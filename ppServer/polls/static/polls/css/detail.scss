@@ -1,0 +1,34 @@
+.main-container {
+	color: #ddd;
+}
+.list {
+	margin: 2em 0;
+	display: flex;
+	flex-wrap: wrap;
+}
+.row {
+	display: flex;
+	flex-wrap: wrap;
+
+	padding: 1.2em 1em;
+	align-items: center;
+	font-size: 1.2rem;
+
+	.checkbox {
+		flex: 0 0 var(--checkbox-size);
+		margin-right: 1em;
+	}
+}
+
+.btn {
+	font-size: 1.3rem;
+}
+
+@media only screen and (max-width: 527px) {
+	.list {
+		justify-content: center;
+	}
+	.btn {
+		margin: 1em auto;
+	}
+}

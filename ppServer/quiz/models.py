@@ -1,0 +1,283 @@
+import string
+from datetime import timedelta
+from math import ceil
+
+from django.core.exceptions import ValidationError
+from django.core.validators import MinValueValidator, MaxValueValidator
+from django.shortcuts import get_object_or_404
+from django.utils import timezone
+from django.utils.crypto import random
+from django.utils.datetime_safe import date, datetime
+from django.utils.translation import gettext_lazy as _
+from django.db import models
+
+from character.models import Spieler
+
+
+module_state = [
+    (0, "locked"),      # prerequisites not met
+    (1, "unlocked"),    # prerequisited met
+    (2, "opened"),      # open for answering
+    (3, "answered"),    # answered by player
+    (4, "corrected"),   # corrected by gamemaster
+    (5, "seen"),        # reviewed by player
+    (6, "passed")       # marked as successfully completed by gamemaster
+]
+
+class RelQuiz(models.Model):
+    class Meta:
+        verbose_name = "Spieler Stats"
+        verbose_name_plural = "Spieler Stats"
+
+        ordering = ["spieler"]
+
+    spieler = models.OneToOneField(Spieler, on_delete=models.CASCADE, null=True, unique=True)
+
+    current_session = models.ForeignKey("SpielerSession", on_delete=models.SET_NULL, null=True, blank=True)
+    quiz_points = models.IntegerField(default=0, blank=True)
+    quiz_points_achieved = models.IntegerField(default=0, blank=True)
+
+
+# used before save on Question.picture and Answer.picture to hide real name in src-path of img-tag in HTML (anti-cheat)
+def upload_and_rename_picture(instance, filename):
+    today = date.today()
+    path = "quiz/{}-{}-{}/{}".format(today.year, today.month, today.day, instance.id) + "".join([random.choice(string.ascii_letters + string.digits) for _ in range(20)])
+    return path
+
+
+class Image(models.Model):
+
+    class Meta:
+        verbose_name = "Bild"
+        verbose_name_plural = "Bilder"
+
+        ordering = ["name"]
+
+    img = models.ImageField(upload_to=upload_and_rename_picture)
+    name = models.CharField(max_length=200, blank=True, null=True)
+
+    def __str__(self): return self.name
+
+class File(models.Model):
+
+    class Meta:
+        verbose_name = "Datei"
+        verbose_name_plural = "Dateien"
+
+        ordering = ["name"]
+
+    file = models.FileField(upload_to=upload_and_rename_picture)
+    name = models.CharField(max_length=200, blank=True, null=True)
+
+    def __str__(self): return self.name
+
+
+class Subject(models.Model):    # as in: subject like Plants, Monsters, Wesen, ..
+    class Meta:
+        verbose_name = "Fach"
+        verbose_name_plural = "Fächer"
+
+        unique_together = ["titel"]
+        ordering = ["titel"]
+
+    titel = models.CharField(max_length=100, default="")
+
+    def __str__(self):
+        return self.titel
+
+
+class Topic(models.Model):
+    class Meta:
+        verbose_name = "Thema"
+        verbose_name_plural = "Themen"
+
+        unique_together = [("titel", "subject")]
+        ordering = ["subject", "titel"]
+
+    subject = models.ForeignKey(Subject, on_delete=models.CASCADE)  # Many to one-relation, can only belong to one Subject
+    titel = models.CharField(max_length=100, default="")
+
+    def __str__(self):
+        return "{}: {}".format(self.subject, self.titel)
+
+
+class Question(models.Model):
+    class Meta:
+        verbose_name = "Frage"
+        verbose_name_plural = "Fragen"
+
+        ordering = ["topic", "grade"]
+
+    topic = models.ForeignKey(Topic, on_delete=models.CASCADE)
+    grade = models.PositiveSmallIntegerField(default=1, validators=[MinValueValidator(0), MaxValueValidator(13)])
+    points = models.FloatField(default=0)
+
+    text = models.TextField(max_length=2000, default="")
+
+    difficulty = models.PositiveSmallIntegerField(default=0, blank=True)    # TODO delete later (when Phillip is done reordering)
+
+    images = models.ManyToManyField(Image, blank=True)
+    files = models.ManyToManyField(File, blank=True)
+
+    answer_note = models.TextField(max_length=100, null=True, blank=True)
+
+    allow_text = models.BooleanField(default=True)
+    allow_upload = models.BooleanField(default=False)
+
+    def __str__(self):
+        max_len = 60
+        actual_len = len(self.text)
+        text = (self.text[:-(actual_len-max_len)] + "..") if actual_len > max_len else self.text
+        return "{} ({}, Klasse {})".format(text, self.topic, self.grade)
+
+
+class MultipleChoiceField(models.Model):
+    class Meta:
+        verbose_name = "Multiple Choice Möglichkeit"
+        verbose_name_plural = "Multiple Choice Möglichkeiten"
+
+        ordering = ["to_question", "text"]
+
+    to_question = models.ForeignKey(Question, on_delete=models.CASCADE) # Many to one-relation: Answer to exactly one Question
+    text = models.TextField(max_length=200, default="", blank=True)
+    img = models.ForeignKey(Image, null=True, blank=True, on_delete=models.SET_NULL)
+
+    def __str__(self):
+        return self.text
+
+
+class ModuleQuestion(models.Model):
+
+    class Meta:
+        verbose_name = "Frage eines Moduls"
+        verbose_name_plural = "Fragen eines Moduls"
+
+    question = models.ForeignKey(Question, on_delete=models.CASCADE)
+    module = models.ForeignKey('Module', on_delete=models.CASCADE)
+
+    def __str__(self):
+        return "{} in {}".format(self.question.text, self.module.title)
+
+
+def next_id():
+    return ceil(Module.objects.last().num) + 1.0 if Module.objects.exists() else 1.0
+
+class Module(models.Model):
+
+    class Meta:
+        verbose_name = "Modul"
+        verbose_name_plural = "Module"
+
+        ordering = ["num"]
+
+    num = models.FloatField(unique=True, default=next_id)
+    icon = models.ForeignKey(Image, on_delete=models.SET_NULL, null=True, blank=True, related_name="icon", related_query_name="icon")
+
+    prerequisite_modules = models.ManyToManyField('Module', blank=True)
+
+    questions = models.ManyToManyField(Question, through=ModuleQuestion)
+
+    title = models.CharField(max_length=300)
+    reward = models.TextField()
+    description = models.TextField()
+
+    max_points = models.FloatField(default=0)
+
+    def __str__(self):
+        return self.title
+
+
+class SpielerModule(models.Model):    # if existing, Spieler answered related Questions
+    class Meta:
+        verbose_name = "Modulstatus eines Spielers"
+        verbose_name_plural = "Modulstati eines Spielers"
+
+        unique_together = [("spieler", "module")]
+        ordering = ["spieler", "state", "module"]
+
+    spieler = models.ForeignKey(Spieler, on_delete=models.CASCADE)
+    module = models.ForeignKey(Module, on_delete=models.CASCADE)
+
+    state = models.PositiveSmallIntegerField(choices=module_state, default=module_state[0][0])
+    achieved_points = models.FloatField(default=None, null=True, blank=True)
+
+    sessions = models.ManyToManyField("SpielerSession")
+
+    def __str__(self):
+        return "{} von {}".format(self.module, self.spieler)
+
+
+class SpielerSession(models.Model):
+    class Meta:
+        verbose_name = "Moduldurchlauf eines Spielers"
+        verbose_name_plural = "Moduldurchläufe eines Spielers"
+
+        unique_together = ["spielerModule", "started"]
+        ordering = ["spielerModule", "-started"]
+
+    spielerModule = models.ForeignKey(SpielerModule, on_delete=models.CASCADE, null=True)
+
+
+    questions = models.ManyToManyField("SpielerQuestion", related_name="questions")
+    # question of questions which the spieler answeres right now or is corrected right now. None ^= all done
+    current_question = models.SmallIntegerField(default=0, blank=True, null=True)
+
+    started = models.DateTimeField(auto_now_add=True, null=True)
+
+
+    def __str__(self):
+        return "{}, Start um {}".format(self.spielerModule, self.started)
+
+
+    def currentQuestion(self):
+        questions = self.questions.all()
+        return questions[self.current_question] if self.current_question is not None and self.current_question < questions.count() else None
+
+
+    def nextQuestion(self):
+        ''' returns next spielerQuestion of module or None if no more exist '''
+        question = None
+
+        current_question = self.currentQuestion()
+        if not current_question: return None
+
+        offset = 1 if current_question.answer_mc or current_question.answer_text or current_question.answer_img or current_question.answer_file else 0
+
+        try:
+            question = self.questions.all()[self.current_question + offset]
+            self.current_question += offset
+        except:
+            self.current_question -= 1
+        self.save()
+        return question
+
+    def setAnswered(self):
+
+        self.spielerModule.state = module_state[3][0]
+        self.spielerModule.save()
+
+        import sys
+        self.current_question = None
+        self.save()
+
+
+
+class SpielerQuestion(models.Model):
+
+    class Meta:
+        verbose_name = "Fragendurchlauf eines Spielers"
+        verbose_name_plural = "Fragendurchläufe eines Spielers"
+
+    question = models.ForeignKey(Question, on_delete=models.CASCADE)
+    spieler = models.ForeignKey(Spieler, on_delete=models.CASCADE)
+
+    achieved_points = models.FloatField(default=0)
+
+    # TODO add fields for correction
+    answer_mc = models.TextField(null=True, blank=True)     # json-array of multiple choice answers (bool[]), ordered by ids of MultipleChoiceFields
+    answer_text = models.TextField(null=True, blank=True)
+    answer_img = models.OneToOneField(Image, on_delete=models.SET_NULL, null=True, blank=True)
+    answer_file = models.OneToOneField(File, on_delete=models.SET_NULL, null=True, blank=True)
+
+    def __str__(self):
+        return "{}, {}".format(self.spieler, self.question)

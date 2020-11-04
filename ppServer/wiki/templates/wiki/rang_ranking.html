@@ -1,0 +1,36 @@
+{% extends 'base/main.html' %}
+{% load static %}
+{% block title %}{{ topic }}{% endblock %}
+{% block extra-head %}
+<link rel="stylesheet" href="{% static 'base/css/table.css' %}">
+<style>
+    div.grid-container {
+        grid-template-columns: repeat(6, auto);
+    }
+</style>
+<script>
+    breakpoint = 510;
+    window.dispatchEvent(new Event('resize'))
+</script>
+{% endblock %}
+{% block absolute %}{% include 'base/header.html' with topic=topic %}{% endblock %}
+{% block body %}
+<div class="grid-container">
+    <div class="col1 heading">Ranking</div>
+    <div class="col2 heading">Rang</div>
+    <div class="col3 heading">Surival-Belohnung</div>
+    <div class="col4 heading">Power-Belohnung</div>
+    <div class="col5 heading">Skill-Belohnung</div>
+    <div class="col6 heading heading--last">Specials-Belohnung</div>
+
+
+    {% for e in list %}
+        <div class="col1">{{ e.ranking }}</div>
+        <div class="col2">{{ e.min_rang }} - {{ e.max_rang }}</div>
+        <div class="col3">{{ e.survival|default:'-' }}</div>
+        <div class="col3">{{ e.power|default:'-' }}</div>
+        <div class="col3">{{ e.skills|default:'-' }}</div>
+        <div class="col3">{{ e.specials|default:'-' }}</div>
+    {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,30 @@
+{% extends 'base/main.html' %}
+{% load static %}
+{% block title %}{{ topic }}{% endblock %}
+{% block extra-head %}
+<link rel="stylesheet" type="text/css" href="{% static 'quiz/css/grades.css' %}" />
+<link rel="stylesheet" type="text/css" href="{% static 'quiz/css/spielleiter_spieler_modules.css' %}" />
+<script src='https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js' type='text/javascript'></script>
+<script src="{% static 'base/js/ajax.js' %}"></script>
+<script type="text/javascript" src="{% static 'quiz/js/spielleiter_spieler_modules.js' %}"></script>
+{% endblock %}
+{% block absolute %}{% include 'base/header.html' with topic=topic %}{% endblock %}
+{% block body %}
+	<label for="player">Spieler</label>
+	<select id="player" onchange="refreshPlayer(event)">
+		<option value="-1" selected>Alle</option>
+		{% for s in spieler %}<option value="{{ s.id }}">{{ s.get_real_name|default:s.name }}</option>{% endfor %}
+	</select>
+
+	<label for="state">Status</label>
+	<select id="state" onchange="refreshState(event)">
+		<option value="-1" selected>Alle</option>
+		{% for s in states %}<option value="{{ s.0 }}">{{ s.1 }}</option>{% endfor %}
+	</select>
+
+	<div class="module-list">
+		{% include 'quiz/sp_module_list.html' with modules=modules %}
+	</div>
+
+	<button class="btn submit" onclick="submit()">Änderungen speichern</button>
+{% endblock %}

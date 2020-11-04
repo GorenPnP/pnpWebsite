@@ -1,0 +1,38 @@
+{% extends 'base/main.html' %}
+{% load static %}
+{% block title %}{{ topic }}{% endblock %}
+{% block extra-head %}
+<link rel="stylesheet" href="{% static 'base/css/table.css' %}">
+<style>
+    .btn {
+        margin: 2em auto;
+        padding: .8em 2em;
+        font-size: 1.2rem;
+    }
+</style>
+{% endblock %}
+{% block absolute %}{% include 'base/header.html' with topic=topic %}{% endblock %}
+
+{% block body %}
+<div class="grid-container">
+    <div class="heading col1 platz">Platz</div>
+    <div class="heading punkte">Punkte</div>
+    <div class="heading heading--last name">Name</div>
+
+
+    {% for position in spieler %}
+        {% for relQuiz in position %}
+            {% if forloop.first %}
+                <div class="col1 platz">{{ forloop.parentloop.counter }}</div>
+            {% else %}
+                <div class="col1"></div>
+            {% endif %}
+
+            <div class="punkte">{{ relQuiz.quiz_points_achieved }}</div>
+            <div class="name">{{ relQuiz.spieler.name }}</div>
+        {% endfor %}
+    {% endfor %}
+</div>
+
+<button class="btn" onclick="history.back();">Zurück</button>
+{% endblock %}

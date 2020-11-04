@@ -1,0 +1,55 @@
+/*
+	use with class .checkbox on empty element, like so:
+
+	 <div class="checkbox
+      {% if checked %}checked{% endif %}"
+			onclick="this.classList.toggle('checked')">
+		</div>
+*/
+:root {
+	--checkbox-size: 40px;
+	--checkbox-border-color: #fff;
+	--checkbox-mark: '\2714';
+	--checkbox-mark-color: lightgreen;
+	--checkbox-shadow: 5px 5px #888888;
+}
+
+*, *::before, *::after {
+	box-sizing: border-box;
+}
+
+.checkbox {
+
+	height: var(--checkbox-size);
+	width: var(--checkbox-size);
+	border-radius: calc(var(--checkbox-size) / 8);
+	border: calc(var(--checkbox-size) / 10) solid var(--checkbox-border-color);
+	box-shadow: var(--checkbox-shadow);
+
+	cursor: pointer;
+
+	// center mark
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+.checkbox.checked:after {
+	content: var(--checkbox-mark);		// tick mark
+
+	// font
+	color: var(--checkbox-mark-color);
+	font-family: Quicksand, "sans-serif";
+	font-size: calc(var(--checkbox-size) * .95);
+	line-height: 1em;
+
+	// center with parent
+	display: block;
+}
+.checkbox:after {
+	content: none;
+}
+
+
+.checkbox:hover {
+	opacity: var(--hover-opacity);
+}

@@ -1,0 +1,89 @@
+@import url('https://fonts.googleapis.com/css2?family=Indie+Flower&family=Quicksand&display=swap');
+
+:root {
+	--hover-opacity: 80%;
+}
+
+/* general styling rules */
+
+*, *::before, *::after {
+	margin: 0;
+	padding: 0;
+	box-sizing: inherit;
+}
+
+html {
+	font-family: 'Indie Flower', cursive;
+	font-size: 16px;
+	box-sizing: border-box;
+}
+body {
+	background: #3a3d40;
+}
+ul {list-style-type: none;}
+a, a:visited {
+	text-decoration: none;
+	color: #0ff;
+}
+a:hover, button:hover, .btn:hover {
+	opacity: var(--hover-opacity);
+}
+
+select, option {
+	cursor: pointer;
+	max-width: 600px;
+}
+select, input {
+	border-radius: 10px;
+	padding: .7em;
+}
+
+button, .btn {
+	display: block;
+	cursor: pointer;
+	font-family: 'Quicksand', sans-serif;
+
+	border-radius: 5px;
+	border: none;
+	background: #0ff;
+	padding: .7em;
+}
+
+/* frequently used classes */
+
+.btn__text {
+	margin: 0.6em;
+}
+.btn:disabled, .btn:disabled:hover {
+	background: #c8c8c8;
+	cursor: not-allowed;
+}
+.hide {
+	display: none;
+}
+
+.main-container {
+	width: 100%;
+	padding: 0 15% 2em;
+	background: #3a3d40;
+	min-width: fit-content;
+}
+
+
+@media only screen and (max-width: 1017px) {
+	.main-container {
+		padding-left: 5%;
+		padding-right: 5%;
+	}
+}
+
+@media only screen and (max-width: 758px) {
+	.main-container {
+		margin: 0;
+	}
+}
+
+
+@media only screen and (max-width: 527px) {
+	*, *::before, *::after {text-align: center;}
+}

@@ -1,0 +1,30 @@
+{% extends 'base/main.html' %}
+{% load static %}
+{% block title %}{{ topic }}{% endblock %}
+{% block extra-head %}
+<link rel="stylesheet" href="{% static 'service/css/random.css' %}">
+<script src="{% static 'service/js/random.js' %}"></script>
+{% endblock %}
+{% block absolute %}
+{% include 'base/header.html' with topic=topic %}
+{% endblock %}
+
+{% block body %}
+{% for d in dice %}
+<div class="section" {% if d.color %}style="border-color: {{ d.color }}"{% endif %}>
+
+    {% if not d.color %}
+    <div class="section__icon">
+        <span class="icon__num">{{ d.faces|length }}</span>
+    </div>
+    {% endif %}
+
+    <h2>{{ d.art }}</h2>
+    <label for="num-{{ d.art }}">Würfelanzahl:</label>
+    <input type="text" class="faces" hidden value="{{ d.faces }}">
+    <input type="number" id="num-{{ d.art }}" class="num" placeholder="0" required>
+    <button class="btn">Würfeln</button>
+    <span class="result"></span>
+</div>
+{% endfor %}
+{% endblock %}

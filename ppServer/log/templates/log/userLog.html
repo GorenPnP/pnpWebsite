@@ -1,0 +1,72 @@
+{% extends "base/main.html" %}
+{% load static %}
+{% block title %}Logs von {{ user }}{% endblock %}
+{% block extra-head %}
+    <link rel="stylesheet" href="{% static 'ppServer/css/tables.css' %}">
+    <link href="{% static 'ppServer/css/select2.min.css' %}" rel="stylesheet" />
+    <link href="{% static 'ppServer/css/container.css' %}" rel="stylesheet" />
+    <style>
+        #note_all_selected {color: red}
+        .select2-selection {width: 33% !important;}
+    </style>
+{% endblock %}
+
+{% block body %}
+    <div class="container">
+
+        <div style="height: 10px"></div>
+        <div class="filters">
+
+            <p style="display: none" id="note_all_selected">Wenn alle ausgewählt werden/sind, dann wird spezifischeres nicht angenommen.</p>
+
+            <label for="char_dropdown">Charaktere:</label>
+            <select multiple class="select2-hidden-accessible char" id="char_dropdown">
+                <option selected value="all">Alle</option>
+                {% for i in filter.char %}<option value="{{ i.id }}">{{ i.name }}</option>{% endfor %}
+            </select>
+
+
+            <label for="spieler_dropdown">Spieler:</label>
+            <select multiple class="select2-hidden-accessible char" id="spieler_dropdown">
+                <option selected value="all">Alle</option>
+                {% for i in filter.spieler %}<option value="{{ i.id }}">{{ i.name }}</option>{% endfor %}
+            </select>
+
+            <label for="kategorie_dropdown">Kategorien:</label>
+            <select multiple class="select2-hidden-accessible char" id="kategorie_dropdown">
+                <option selected value="all">Alle</option>
+                {% for i in filter.kategorie %}<option value="{{ i.0 }}">{{ i.1 }}</option>{% endfor %}
+            </select>
+        </div>
+        <div style="height: 20px"></div>
+
+        <table>
+            <tr class="sticky-top">
+                <td>Charakter</td>
+                <td>Spieler</td>
+                <td>Kategorie</td>
+                <td>Notizen</td>
+                <td>Kosten</td>
+                <td>Timestamp</td>
+            </tr>
+
+            {% for l in logs %}
+            <tr data-active-filters="csk">
+                <td class="char {{ l.item.char.id }}">{{ l.item.char.name }}</td>
+                <td class="spieler {{ l.item.spieler.id }}">{{ l.item.spieler.name }}</td>
+                <td class="kategorie {{ l.item.art }} ">{{ l.kategorie }}</td>
+                <td>{{ l.item.notizen|linebreaks }}</td>
+                <td>{{ l.item.kosten|linebreaks }}</td>
+                <td class="time">{{ l.item.timestamp }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+
+
+
+    <script type="text/javascript" src="{% static 'ppServer/js/jquery.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'ppServer/js/ajax.js' %}"></script>
+    <script type="text/javascript" src="{% static 'ppServer/js/select2.min.js' %}"></script>
+
+    <script type="text/javascript" src="{% static 'log/js/userLog.js' %}"></script>
+{% endblock %}

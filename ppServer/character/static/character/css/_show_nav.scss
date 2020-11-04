@@ -1,0 +1,133 @@
+:root {
+	--mobile-nav-size: 70px;
+	--mobile-nav-gap: 5px;
+}
+
+*, *::before, *::after {
+	box-sizing: border-box;
+	margin: 0;
+	padding: 0;
+}
+
+.show-nav__item {
+	margin: .6em;
+	position: relative;
+	cursor: pointer;
+}
+
+.show-nav__item.current:before {
+	content: "";
+	position: relative;
+	display: block;
+	width: 80%;
+	height: 3.5px;
+	left: 10%;
+	background: orange;
+	border-radius: 3px;
+}
+
+.show-nav {
+	grid-area: navbar;
+	z-index: 6;
+	width: 97vw;
+	background: #0a010a;
+	border-radius: 200px;
+	padding: .2em;
+
+	transition: clip-path 1s;
+}
+
+// handle button icons of mobile nav on click
+.show-nav.expand + .mobile-nav .sec {display: none;}
+.show-nav.expand + .mobile-nav .close {display: block;}
+.show-nav + .mobile-nav .close {display: none;}
+.show-nav + .mobile-nav .sec {display: block;}
+
+.show-nav__list {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: space-evenly;
+	text-align: center;
+}
+
+.mobile-nav {
+	grid-area: mobile-nav;
+	z-index: 7;
+	display: none;
+
+	height: var(--mobile-nav-size);
+	width: var(--mobile-nav-size);
+	cursor: pointer;
+
+	border-radius: 50%;
+	background: orangered;
+
+	position: fixed;
+	bottom: var(--mobile-nav-gap);
+	right: var(--mobile-nav-gap);
+
+	//display: grid;
+	justify-items: center;
+	align-items: center;
+}
+
+.mobile-nav__img {
+	height: calc(var(--mobile-nav-size) / 2);
+}
+
+@media only screen and (max-width: 600px) {
+
+	// style nav differently (full-screen, centered)
+	.show-nav {
+		height: 100vh;
+		width: 100vw;
+		padding: 1em 0;
+		position: fixed;
+		bottom: 0;
+		left: 0;
+		border-radius: 0;
+		clip-path: circle(0px at
+			calc(100vw - var(--mobile-nav-gap) - calc(var(--mobile-nav-size) / 2))
+			calc(100vh - var(--mobile-nav-gap) - calc(var(--mobile-nav-size) / 2)));
+	}
+	.show-nav__list {
+		flex-direction: column;
+		align-content: center;
+		justify-content: space-between;
+		height: 90vh;
+	}
+	.show-nav__item {text-align: center;}
+	div.main-container {padding-bottom: calc(var(--mobile-nav-gap) + var(--mobile-nav-size))}
+	// provides btn to trigger .expand, .shrink
+	.mobile-nav {display: grid;}
+
+	.show-nav.expand {animation: open 1s ease-out forwards;}
+	.show-nav.shrink {animation: close 750ms ease-in forwards;}
+}
+
+// toggle between this two DIFFERENT animations, so they can be repeated
+@keyframes open {
+	from {
+		clip-path: circle(0px at
+			calc(100vw - var(--mobile-nav-gap) - calc(var(--mobile-nav-size) / 2))
+			calc(100vh - var(--mobile-nav-gap) - calc(var(--mobile-nav-size) / 2)));
+	}
+	to {
+		clip-path: circle(200vw at
+			calc(100vw - var(--mobile-nav-gap) - calc(var(--mobile-nav-size) / 2))
+			calc(100vh - var(--mobile-nav-gap) - calc(var(--mobile-nav-size) / 2)));
+	}
+}
+
+@keyframes close {
+	to {
+		clip-path: circle(0px at
+			calc(100vw - var(--mobile-nav-gap) - calc(var(--mobile-nav-size) / 2))
+			calc(100vh - var(--mobile-nav-gap) - calc(var(--mobile-nav-size) / 2)));
+	}
+	from {
+		clip-path: circle(200vw at
+			calc(100vw - var(--mobile-nav-gap) - calc(var(--mobile-nav-size) / 2))
+			calc(100vh - var(--mobile-nav-gap) - calc(var(--mobile-nav-size) / 2)));
+	}
+}

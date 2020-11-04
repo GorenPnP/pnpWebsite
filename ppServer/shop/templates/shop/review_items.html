@@ -1,0 +1,22 @@
+{% extends 'base/main.html' %}
+{% load static %}
+{% block title %}{{ topic }}{% endblock %}
+{% block extra-head %}
+<link rel="stylesheet" href="{% static 'base/css/list.css' %}">
+{% endblock %}
+{% block absolute %}
+{% include 'base/header.html' with topic=topic %}
+{% endblock %}
+
+{% block body %}
+<div class="list-container">
+    {% for item in items %}
+    <div class="row">
+        <a href="{{ item.url }}">
+            <h2 class="card__title">{{ item.titel }}</h2>
+            <p class="card__text">{{ item.model|default:"" }}</p>
+        </a>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,55 @@
+{% extends 'base/main.html' %}
+{% load static %}
+{% block title %}AP{% endblock %}
+{% block extra-head %}
+<link rel="stylesheet" href="{% static 'base/css/table.css' %}">
+<link rel="stylesheet" href="{% static 'create/css/ap.css' %}">
+<script src='https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js' type='text/javascript'></script>
+<script src="{% static 'base/js/ajax.js' %}"></script>
+<script type="text/javascript" src="{% static 'create/js/ap.js' %}"></script>
+{% endblock %}
+{% block absolute %}{% include 'base/header.html' with topic='AP' %}{% endblock %}
+
+{% block body %}
+<p>AP übrig: <b id="ap_pool">{{ ap_pool }}</b></p>
+
+<div class="grid-container">
+    <div class="heading col1">Attribut</div>
+    <div class="heading">Aktuell</div>
+    <div class="heading"></div>
+    <div class="heading">Maximum</div>
+    <div class="heading"></div>
+    <div class="heading heading--last"><b>Stand</b></div>
+
+    {% for f in formset %}
+        <div class="col1 attr attr-id-{{ f.attribut.id }} row{{ forloop.counter0 }}">{{ f.attribut.titel }}<br />({{ f.attribut.beschreibung }})</div>
+        <div class="aktuell_base row{{ forloop.counter0 }}">
+            {{ f.aktuellerWert }}
+            {% if f.aktuellerWert_bonus %}
+                +<span class="aktuell_bonus row{{ forloop.counter0 }}">{{ f.aktuellerWert_bonus }}</span>
+            {% endif %}
+        </div>
+        <div class="aktuell row{{ forloop.counter0 }}" onchange="calc_ap_pool()">
+            <input type="number" min="0" step="1" value="{{ f.aktuellerWert_ap }}">
+        </div>
+        <div class="max_base row{{ forloop.counter0 }}">
+            {{ f.maxWert }}
+            {% if f.maxWert_bonus %}
+                +<span class="max_bonus row{{ forloop.counter0 }}">{{ f.maxWert_bonus }}</span>
+            {% endif %}
+        </div>
+        <div class="max row{{ forloop.counter0 }}" onchange="calc_ap_pool()">
+            <input type="number" min="0" step="1" value="{{ f.maxWert_ap }}">
+        </div>
+        <div><b>
+            <span class="aktuell_sum row{{ forloop.counter0 }}"
+                    data-limit="{% if f.limit_aktuell is not None %}{{ f.limit_aktuell }}{% endif %}">
+            </span>
+                {% if f.aktuellerWert_fix is not None %} fix{% endif %}/<span class="max_sum row{{ forloop.counter0 }}" data-limit="{% if f.limit_max is not None %}{{ f.limit_max }}{% endif %}"></span>{% if f.maxWert_fix is not None %} fix{% endif %}
+        </b></div>
+    </span>
+    {% endfor %}
+</div>
+
+<button id="submit" class="btn" {% if ap_pool %}disabled{% endif %} onclick="submit()">AP absenden</button>
+{% endblock %}

@@ -1,0 +1,99 @@
+// persönliches
+.personal-container {
+	display: grid;
+	grid-gap: 5%;
+	grid-template-areas:
+		"appereance society 	 hp"
+		"currencies currencies hp";
+	justify-items: flex-start;
+	align-items: flex-start;
+
+	justify-content: center;
+}
+
+.section {
+	padding: 2em;
+	border-radius: 15px;
+	color: var(--show-color);
+
+	display: grid;
+	grid-template-columns: auto auto;
+	align-items: baseline;
+
+	background-color: var(--show-bg);
+	background-size: auto 100px;
+	background-repeat: no-repeat;
+}
+.appereance {
+	grid-area: appereance;
+	background-image: url("/static/res/img/person upright.png");
+	background-position: center bottom;
+}
+.gfs {
+	grid-column: 1 / -1;
+	justify-self: right;
+	font-size: 1.4rem;
+	font-weight: 800;
+	padding-bottom: .5em;
+}
+
+.society {
+	grid-area: society;
+	background-image: url("/static/res/img/masks.png");
+	background-position: 140% 150%;
+}
+.hp {
+	grid-area: hp;
+	align-self: stretch;
+
+	background-image:	url("/static/res/img/icon pill.png");
+	background-position: 150% 100%;
+}
+.hp h3 {
+	grid-column: 1 / -1;
+	text-transform: uppercase;
+	margin-top: 1em;
+}
+.hp__sum {
+	border-top: 3px solid var(--show-color);
+	margin-top: 1em;
+	padding-top: .5em;
+}
+.currencies {
+	grid-area: currencies;
+
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+
+	padding: calc(2em - .6em)
+}
+.currency__row {
+	display: flex;
+	align-items: baseline;
+	margin: .6em;
+}
+.currency__row > * {margin: 0 .3em;}
+
+.val {
+	@extend .chip__cell--emph;
+}
+
+@media only screen and (max-width: 900px) {
+	.personal-container {
+		grid-template-areas:
+		"appereance hp"
+		"society		hp"
+		"currencies currencies";
+	}
+}
+@media only screen and (max-width: 600px) {
+	.personal-container {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+	}
+	.section {margin: 1.5em;}
+
+	.hp {align-self: center;}
+}

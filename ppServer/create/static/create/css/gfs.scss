@@ -1,0 +1,42 @@
+.main-container, form {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	color: #ddd;
+}
+
+div.main-container {
+	min-height: 100vh;
+	padding: 0;
+}
+
+form {
+	height: 100%;
+	width: 100%;
+}
+
+select, .btn {
+	margin: 2.4em 0;
+	width: 70%;
+}
+select {
+	max-width: 600px;
+}
+.larp {
+	display: grid;
+	grid-template-columns: repeat(2, auto);
+	justify-items: center;
+	align-items: center;
+	grid-gap: 1.6em;
+
+	--checkbox-size: 20px;
+	--checkbox-shadow: 3px 3px #888;
+}
+.btn {
+	max-width: 300px;
+}
+
+.scetches {
+	margin: 2em;
+}

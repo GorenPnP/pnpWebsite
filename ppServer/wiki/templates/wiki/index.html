@@ -1,0 +1,55 @@
+{% extends 'base/main.html' %}
+{% load static %}
+{% block title %}Wiki{% endblock %}
+{% block extra-head %}
+<link rel="stylesheet" href="{% static 'base/css/cards.css' %}">
+<link rel="stylesheet" href="{% static 'wiki/css/index.css' %}">
+{% endblock %}
+{% block absolute %}{% include 'base/header.html' with topic='Wiki' %}{% endblock %}
+{% block body %}
+<div class="left-col">
+    <div class="sec sec--teil">
+        <a href="{% url 'wiki:vorteile' %}">Vorteile</a>
+        <a href="{% url 'wiki:nachteile' %}">Nachteile</a>
+        <a href="{% url 'wiki:talente' %}">Talente</a>
+    </div>
+    <div class="sec sec--fert">
+        <a href="{% url 'wiki:spezial' %}">Spezialfertigkeiten</a>
+        <a href="{% url 'wiki:wissen' %}">Wissensfertigkeiten</a>
+    </div>
+    <div class="sec sec--wesen">
+        <a href="{% url 'wiki:gfs' %}">Klassen/Gfs</a>
+        <a href="{% url 'wiki:profession' %}">Professionen</a>
+        <a href="{% url 'wiki:wesenkraft' %}">Wesenkräfte</a>
+        <a href="{% url 'wiki:rangRanking' %}">Erfahrungsranking</a>
+    </div>
+    <div class="sec sec--berrel">
+        <a href="{% url 'wiki:berufe' %}">Berufe</a>
+        <a href="{% url 'wiki:religionen' %}">Religionen</a>
+    </div>
+    <div class="sec sec--geburtstag">
+        <a href="{% url 'wiki:geburtstage' %}">Geburtstage</a>
+    </div>
+</div>
+<div class="right-col cards">
+    <div class="card" id="files">
+        <a class="card__link" href="{% url 'file:index' %}">
+            <div class="card__icon">
+                <img class="card__icon__img" src="{% static 'res/img/icon-book.png' %}" alt="lightbulb">
+            </div>
+        </a>
+        <div class="card__container">
+            <h2 class="card__heading">Dateien</h2>
+            <p class="card__text">
+                Alles was nicht im Wiki Platz gefunden hat landet hier.
+                Vom Schmiedesystem zu Landkarten und Hacking.
+            </p>
+            <a href="{% url 'file:index' %}">
+                <button class="card__btn">
+                    <p class="btn__text">Zeich ma her</p>
+                </button>
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

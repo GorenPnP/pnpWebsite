@@ -1,0 +1,41 @@
+{% load static %}
+
+{% comment %}
+html snippet for home btn/logo and nav bar.
+needs base/main.css for styling
+{% endcomment %}
+
+{% block extra-head %}
+<link rel="stylesheet" href="{% static 'base/css/header.css' %}">
+<script src="{% static 'base/js/header.js' %}"></script>
+{% endblock %}
+
+<header>
+	<a class="nav--large nav__logo" href="{% url 'base:index' %}">
+		<img class="nav__logo__img nav-block" src="{% static 'res/img/icon-dice-light.png' %}" alt="PnP logo">
+	</a>
+
+	<h1 class="topic">{{ topic|default:"" }}</h1>
+
+	<a href="{{ plus_url|default:'#' }}" class="nav__plus" {% if plus_url is None %}style="display:none"{% endif %} >
+		<img class="nav__plus__img nav-block" src="{% static 'res/img/icon-plus.png' %}" alt="new">
+	</a>
+
+	<a class="nav--large" href="{% url 'admin:index' %}">
+		<div class="nav__change-data nav-block">Daten ändern</div>
+	</a>
+
+	<a class="nav--large" href="{% url 'auth:logout' %}">
+		<div class="nav__logout nav-block">Logout</div>
+	</a>
+
+	<div class="nav--small nav__more">
+		<img class="nav__more__img nav-block" src="{% static 'res/img/icon-more.svg' %}" alt="more">
+
+		<div class="dropdown-content">
+			<a href="{% url 'base:index' %}">Home</a>
+			<a href="{% url 'admin:index' %}">Daten ändern</a>
+			<a href="{% url 'auth:logout' %}">Logout</a>
+		</div>
+	</div>
+</header>

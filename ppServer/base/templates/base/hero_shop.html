@@ -1,0 +1,19 @@
+<div class="hero__container hero--shop__container">
+	<div class="hero__arrow hero__arrow--left">
+		<img src="/static/res/img/hero-arrow-left.png" alt="previous">
+	</div>
+
+	<div class="hero__words hero--shop__words">
+		<h1 class="hero__words__heading">Neue Items sind da!</h1>
+		<p class="hero__words__text">Jemand hat dem Shop Neues hinzugefügt. Bitte mal angucken!</p>
+	</div>
+	<a href="{% url 'shop:review_items' %}">
+		<button class="hero__btn hero--shop__btn">
+			<p class="btn__text">Review</p>
+		</button>
+	</a>
+
+	<div class="hero__arrow hero__arrow--right">
+		<img src="/static/res/img/hero-arrow-right.png" alt="next">
+	</div>
+</div>

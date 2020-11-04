@@ -1,0 +1,82 @@
+{% extends 'base/main.html' %}
+{% load static %}
+{% load l10n %}
+{% block title %}{{ topic }}{% endblock %}
+{% block extra-head %}
+<link rel="stylesheet" type="text/css" href="{% static 'base/css/checkbox.css' %}" />
+<link rel="stylesheet" type="text/css" href="{% static 'quiz/css/question.css' %}" />
+<script type="text/javascript" src="{% static 'quiz/js/question.js' %}"></script>
+{% endblock %}
+{% block absolute %}{% include 'base/header.html' with topic=topic %}{% endblock %}
+
+{% block body %}
+<section class="info">
+    <div class="general">
+        <div class="info__item"><span class="label">Fach</span> {{ question.topic.subject.titel }}</div>
+        <div class="info__item"><span class="label">Thema</span> {{ question.topic.titel }}</div>
+        <div class="info__item"><span class="label">Klasse</span> {{ question.grade }}</div>
+    </div>
+
+    <div class="vals">
+        <div class="info__item"><span class="label">Frage</span> {{ num_question }}/{{ start_num_questions }}</div>
+        <div class="info__item points"><span class="label">Punkte</span> {{ question.points }}</div>
+    </div>
+</section>
+
+<section class="question">
+    <div class="imgs">
+        {% for e in question.images.all %}<a href="{{ e.img.url }}" class="img"><img src="{{ e.img.url }}"></a>{% endfor %}
+    </div>
+
+    <span class="text">{{ question.text }}</span>
+
+    <div class="files">
+        {% for e in question.files.all %}<a href="{{ e.file.url }}" class="file"><div>{{ e.name }}</div></a>{% endfor %}
+    </div>
+</section>
+
+
+<form method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+
+<section class="answer">
+
+    {% if answers %}
+        <div class="multiple-choice">
+            {% for a in answers %}
+            <div class="choice">
+                <div class="checkbox" id="{% localize off %}{{ a.id }}{% endlocalize %}" onclick="toggleCheckbox({% localize off %}{{ a.id }}{% endlocalize %})"></div>
+                {% if a.img %}<div class="img" onclick="toggleCheckbox({% localize off %}{{ a.id }}{% endlocalize %})"><img src="{{ a.img.img.url }}"></div>{% endif %}
+                {% if a.text %}<div class="text" onclick="toggleCheckbox({% localize off %}{{ a.id }}{% endlocalize %})">{{ a.text }}</div>{% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    {% if question.allow_text %}
+        <textarea class="text-input" name="text" placeholder="Was ich noch hinzufügen wollte ..." onkeyup="autoGrow(this)"></textarea>
+    {% endif %}
+
+    {% comment %}
+    TODO: include this again!
+        {% if question.allow_upload %}
+        <div class="upload upload--img">
+            {{ imgForm }}
+        </div>
+        <div class="upload upload--file">
+            {{ fileForm }}
+        </div>
+        {% endif %}
+    {% endcomment %}
+    </section>
+
+
+    <input type="text" value="[]" id="ids" name="ids" hidden>
+
+    <div class="flex-container flex-container--btn">
+        <div class="btn btn--back" onclick="back(event)">Abbrechen</div>
+        <input type="submit" class="btn" value="OK">
+    </div>
+
+</form>
+{% endblock %}

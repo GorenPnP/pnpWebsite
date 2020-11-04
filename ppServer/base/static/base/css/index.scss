@@ -1,0 +1,245 @@
+@import url('https://fonts.googleapis.com/css2?family=Indie+Flower&family=Quicksand&display=swap');
+
+.main-container {
+
+	// for scrolling over hero
+	position: relative;
+	top: 69vh;		// hero height -1 vh higher up
+	border-radius: 15px;
+
+	// for cards full screen width
+	padding: 0;
+	z-index: 1;
+}
+.cards {padding: 0 3em;}
+header {z-index: 1;}		// on top of hero
+
+#logs .card__icon:hover, #quizkontrolle .card__icon:hover {
+	opacity: 1;
+}
+
+.hero a {display: contents;}
+
+/* hero section */
+.hero {
+	width: 100%;
+	position: absolute;
+	top: 0;
+	left: 0;
+	overflow: hidden;
+	height: 70vh;
+	margin: 0;
+}
+.hero.empty ~ .main-container {
+	top: 0;
+	z-index: 0;
+}
+
+/* arrange content */
+.hero__container {
+	display: grid;
+	grid-gap: 5em 12em;
+
+	position: fixed;
+	top: 0;
+	left: 0;
+
+	padding: 15vh 1.5em 0;
+	width: 100vw;
+	height: 70vh;
+
+	transform: translateX(0px);
+	transition: transform 1s;
+}
+/* img as element, not bg */
+.hero--quiz__container {
+	background-color: #010a0c;
+
+	grid-template-columns: auto 1fr 1fr auto;
+	grid-template-areas:
+			"arrow-left img words arrow-right"
+			"arrow-left img btn   arrow-right";
+}
+/* extra col not to cover pencil of bg */
+.hero--poll__container {
+	background-image: url('/static/res/img/img pencil-panorama.png');
+	background-size: 100% 100%;
+
+	grid-template-columns: auto 0px 1fr auto;
+	grid-template-areas:
+			"arrow-left . words arrow-right"
+			"arrow-left . btn   arrow-right";
+}
+/* uncomplicated */
+.hero--shop__container {
+	background-image: url('/static/res/img/hero-coal.png');
+	background-size: cover;
+
+	grid-template-columns: auto 1fr 3fr auto;
+	grid-template-areas:
+			"arrow-left . words arrow-right"
+			"arrow-left . btn   arrow-right";
+}
+.hero--crafting__container {
+	background-image: url('/static/res/img/hero-crafting.jpg');
+	background-size: cover;
+	filter: grayscale(80%);
+
+	grid-template-columns: auto 3fr 2fr auto;
+	grid-template-areas:
+			"arrow-left . words arrow-right"
+			"arrow-left . btn   arrow-right";
+
+	align-content: flex-start;
+}
+
+/* written content */
+.hero__words {
+	grid-area: words;
+	color: #c8c8c8;
+	text-align: left;
+	align-self: end;
+}
+.hero--shop__words {color: white;}	// increase contrast
+.hero--crafting__words {
+	color: white;
+	text-shadow: #111 2px 2px 1px;
+	font-weight: 900;
+}
+
+.hero__words__heading {
+	font-size: 2.5rem;
+	font-family: 'Quicksand', sans-serif;
+}
+.hero__words__text {
+	margin: 1.5em 0 0;
+	max-width: 70ch;
+}
+
+/* img as element of hero--quiz */
+.hero--quiz__img {
+	grid-area: img;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+.hero--quiz__img img {
+	display: inline-block;
+	max-width: 250px;
+}
+
+/* hero arrows */
+.hero__arrow {
+	margin: auto;
+	height: fit-content;
+	width: fit-content;
+
+	cursor: pointer;
+	transition: transform 200ms;
+}
+.hero__arrow img {
+	height: 4em;
+	display: block;
+}
+
+.hero__arrow--left {grid-area: arrow-left;}
+.hero__arrow--right {grid-area: arrow-right;}
+
+/* arrow transition on hover */
+.hero__arrow--left:hover {transform: translateX(-10px);}
+.hero__arrow--right:hover {transform: translateX(10px);}
+
+/* cta */
+.hero__btn {
+	grid-area: btn;
+
+	font-size: 1.1rem;
+	width: fit-content;
+	height: fit-content;
+
+	justify-self: left;
+	align-self: start;
+}
+
+@media only screen and (max-width: 1200px) {
+
+	// generally closer together
+	.hero__container {
+		grid-gap: 2em;
+		background-size: cover;
+	}
+
+	// mind that pencil
+	.hero--poll__container {grid-template-columns: auto 150px 1fr auto;}
+}
+
+@media only screen and (max-width: 650px) {
+
+	// smaller fonts
+	.hero__words__heading {font-size: 1.8rem;}
+	.hero__words__text {font-size: .9rem;}
+	.hero__btn {font-size: .8rem;}
+
+	// stack elements in hero--quiz__container
+	// center everything in hero__container
+	.hero--quiz__container {
+		grid-template-columns: auto 1fr auto;
+		grid-template-areas:
+			"arrow-left words arrow-right"
+			"arrow-left btn   arrow-right";
+	}
+
+	// replace explicit img with background
+	.hero--quiz__container:before {
+		content: "";
+		position: fixed;
+		top: 0;
+		left: 0;
+		z-index: -1;
+		height: 70vh;
+		width: 100vw;
+
+		background-image: url('/static/res/img/hero-bulb-hand-cut.png');
+		background-repeat: no-repeat;
+		background-size: 50% auto;
+		background-position: center;
+		filter: contrast(20%);
+		background-color: #010a0c;
+	}
+	.hero--quiz__words * {
+		color: white;
+		margin-left: auto;
+		margin-right: auto;
+	}
+	.hero--quiz__img {display: none;}
+
+
+	.hero__words {
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		text-align: center;
+	}
+	.hero__btn {
+		justify-self: center;
+	}
+
+	// some extra space
+	//.hero--poll__words, .hero--poll__btn {margin: 1em auto;}
+
+	// mind that pencil
+	.hero--poll__container {
+		grid-template-columns: auto 4em 1fr auto;
+		background-position: -35px 0;
+		grid-gap: .5em;
+	}
+
+	// center without filler-col
+	.hero--shop__container, .hero--crafting__container {
+		grid-template-columns: auto 1fr auto;
+		grid-template-areas:
+			"arrow-left words arrow-right"
+			"arrow-left btn   arrow-right";
+		align-content: stretch;
+	}
+}

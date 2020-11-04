@@ -1,0 +1,151 @@
+import collections, random, json, datetime
+from math import floor
+from functools import cmp_to_key
+
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
+from django.http import HttpResponse
+from django.http.response import JsonResponse
+from django.shortcuts import render, get_object_or_404, redirect
+from django.urls import reverse
+from django.core.files.uploadedfile import SimpleUploadedFile
+
+from character.models import Spieler
+from .models import *
+from .forms import *
+
+
+@login_required
+def sp_index(request):
+
+    if not User.objects.filter(username=request.user.username, groups__name='spielleiter').exists():
+        return HttpResponse(status=404)
+
+    context = {"topic": "Quiz (Spielleiter)", "entries": [
+        {"titel": "Fragen sortieren", "url": reverse("quiz:sp_questions"), "beschreibung": "Fragen Modulen zuordnen"},
+        {"titel": "Modulkontrolle", "url": reverse("quiz:sp_modules"), "beschreibung": "Module vom Spielern verwalten, z.B. korrigieren"},
+        {"titel": "Quiz Big Brother", "url": reverse("service:quiz_BB"), "beschreibung": "nach Fächern"},
+        {"titel": "Quiz Admin", "url": reverse("admin:app_list", args=["quiz"]), "beschreibung": "Die Admin-Page halt..."},
+    ]}
+    return render(request, "quiz/sp_index.html", context)
+
+
+# map existing questions to modules
+@login_required
+def sp_questions(request):
+
+    if not User.objects.filter(username=request.user.username, groups__name='spielleiter').exists():
+        return HttpResponse(status=404)
+
+    if request.method == "GET":
+        mq = ModuleQuestion.objects.all()
+        context = {"topic": "Fragen sortieren", "mqs": mq,
+                   "questions": Question.objects.exclude(id__in=[model.question.id for model in mq]),
+                   "mods": Module.objects.all()}
+        return render(request, "quiz/spielleiter_questions.html", context)
+
+    if request.method == "POST":
+        ms = Module.objects.all()
+        qs = Question.objects.all()
+
+        questions = json.loads(request.body.decode("utf-8"))["questions"]
+
+        ModuleQuestion.objects.all().delete()
+        for e in questions:
+            if e["module"] < 0: continue
+            ModuleQuestion.objects.create(question=qs.get(id=e["question"]), module=ms.get(id=e["module"]))
+
+        return JsonResponse({})
+
+
+def cmp_time(a, b):
+    if a is None or a["timestamp"] is None: return 1
+    if b is None or b["timestamp"] is None: return -1
+    return 1 if a["timestamp"] <= b["timestamp"] else -1
+
+
+@login_required
+def sp_modules(request):
+
+    if not User.objects.filter(username=request.user.username, groups__name='spielleiter').exists():
+        return HttpResponse(status=404)
+
+    # get SpielerModules from DB
+    if request.method == "GET": sp_mo = SpielerModule.objects.all()
+    if request.method == "POST":
+
+        # get content
+        try:
+            data = json.loads(request.body.decode("utf-8"))
+        except:
+            return JsonResponse({"message": "Konnte Format nicht verstehen"}, status=418)
+
+        # handle change in module states before filter to deliver changes
+        if "state_changes" in data.keys():
+            try:
+                changes = data["state_changes"]
+                for e in SpielerModule.objects.filter(id__in=changes.keys()):
+                    e.state = changes["{}".format(e.id)]
+                    e.save()
+                return JsonResponse({})
+            except:
+                return JsonResponse({"message": "Konnte Zustand nicht ändern"}, status=418)
+
+        # handle filter
+        try:
+            id = data["player"]
+            state = data["state"]
+
+            player = get_object_or_404(Spieler, id=id)
+            sp_mo = SpielerModule.objects.filter(spieler=player) if state == -1 else SpielerModule.objects.filter(spieler=player, state=state)
+        except:
+            if id == -1:
+                sp_mo = SpielerModule.objects.all() if state == -1 else SpielerModule.objects.filter(state=state)
+            else:
+                return JsonResponse({"message": "Konnte Spieler oder Zustand nicht finden"}, status=418)
+
+    # both together
+    modules = []
+    for e in sp_mo:
+        sessions = SpielerSession.objects.filter(spielerModule=e)
+        modules.append(
+            {
+                "id": e.id,
+                "icon": e.module.icon.img.url if e.module.icon else None,
+                "module": e.module.title,
+                "state": (e.state, e.get_state_display()),
+                "spieler": e.spieler,
+                "timestamp": sessions.first().started if sessions.count() else None
+            })
+    modules = sorted(modules, key=cmp_to_key(cmp_time))
+
+    # ['locked', 'unlocked', 'seen', 'passed']
+    stateOption = [module_state[0], module_state[1], module_state[2], module_state[6]]
+
+
+    # return responses
+    if request.method == "GET":
+        return render(request, "quiz/spielleiter_spieler_modules.html",
+            {
+                "topic": "Modulzuweisung",
+                "spieler": Spieler.objects.all(),
+                "states": module_state,
+                "modules": modules,
+                "stateOption": stateOption
+            })
+
+    if request.method == "POST":
+        return JsonResponse({"html": render(request, "quiz/sp_module_list.html", {"modules": modules, "stateOption": stateOption}).content.decode("utf-8")})
+
+
+@login_required
+def sp_correct(request, id):
+    if not User.objects.filter(username=request.user.username, groups__name='spielleiter').exists():
+        return HttpResponse(status=404)
+
+    if request.method == "GET":
+
+        sp_mo = get_object_or_404(SpielerModule, id=id)
+
+        context = {"topic": "{} ({})".format(sp_mo.module.title, sp_mo.spieler.name)}
+        return render(request, "quiz/spielleiter_correct.html", context)

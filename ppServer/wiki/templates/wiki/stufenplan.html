@@ -1,0 +1,98 @@
+{% extends 'base/main.html' %}
+{% load static %}
+{% block title %}{{ topic }}{% endblock %}
+{% block extra-head %}
+<link rel="stylesheet" href="{% static 'base/css/table.css' %}">
+<link rel="stylesheet" href="{% static 'wiki/css/stufenplan.css' %}">
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        breakpoint = 589;
+        window.dispatchEvent(new Event('resize'));
+    });
+</script>
+{% endblock %}
+{% block absolute %}{% include 'base/header.html' with topic=topic %}{% endblock %}
+{% block body %}
+<div class="container">
+    <section class="content description">
+        <h2 class="title">Beschreibung</h2>
+        <p class="description__text">{{ beschreibung }}</p>
+    </section>
+
+    <section class="content startbonus">
+        <h2 class="title">Bonus bei Wahl</h2>
+        <div class="grid-container startbonus__table">
+            {% for b in boni %}
+                <div class="col1">{{ b.field }}</div>
+                <div>{{ b.val|default:'-' }}</div>
+            {% endfor %}
+
+            <div class="col1">Startmanifest</div>
+            <div>{{ gfs.startmanifest|default:'-' }}</div>
+
+            <div class="col1">Schaden waffenloser Kampf (andere Form) in HP</div>
+            <div>{{ gfs.wesenschaden_waff_kampf|default:'-' }} ({{ gfs.wesenschaden_andere_gestalt|default:'-' }})</div>
+
+            <div class="col1 col1--last">Kosten in AP</div>
+            <div>{{ gfs.ap|default:'-' }}</div>
+        </div>
+    </section>
+
+    <section class="content skilltree">
+        <h2 class="title">Skilltree</h2>
+        <div class="grid-container skilltree__table">
+            <div class="col1 heading">Stufe (SP)</div>
+            <div class="col2 heading heading--last">Gibt</div>
+
+            {% for e in skilltree %}
+            <div class="col1">
+                {% if not forloop.last %}
+                {{ forloop.counter }} ({{ e.sp|default:'0' }} SP)
+                {% else %}Bonus{% endif %}
+            </div>
+            <div class="col2">{{ e.text|default:'-' }}</div>
+            {% endfor %}
+        </div>
+    </section>
+</div>
+
+
+<section class="content ep-tree">
+    <h2 class="title">EP-Tree</h2>
+    <div class="grid-container ep-tree__table">
+        <div class="col1 heading">Stufe (EP)</div>
+        <div class="col2 heading">Vorteile</div>
+        <div class="col3 heading">AP</div>
+        <div class="col4 heading">FP, FG</div>
+        <div class="col5 heading">Zauber</div>
+        <div class="col6 heading">Wesenkräfte</div>
+        <div class="col7 heading">Spez.-& Wissensfert.</div>
+        <div class="col8 heading heading--last">Weiteres</div>
+
+        {% for e in stufenplan_entries %}
+            <div class="col1">{{ e.stufe }}<br>({{ e.ep }} EP)</div>
+            <div class="col2">{{ e.vorteile|default:"-" }}</div>
+            <div class="col3">{{ e.ap|default:'-' }}</div>
+
+            <div class="col4">
+                {% if e.fert.0 %}{{ e.fert.0 }}
+                    {% if e.fert.1 %}, {{ e.fert.1 }}{% endif %}
+                {% elif e.fert.1 %}{{ e.fert.1 }}
+                {% else %}-{% endif %}
+            </div>
+
+            <div class="col5">{{ e.zauber|default:"-" }}</div>
+            <div class="col6">{{ e.wesenkräfte|default:"-" }}</div>
+
+            <div class="col7">
+                {% if e.spezial.0 %}{{ e.spezial.0 }}
+                    {% if e.spezial.1 %}, {{ e.spezial.1 }}{% endif %}
+                {% elif e.spezial.1 %}{{ e.spezial.1 }}
+                {% else %}-{% endif %}
+            </div>
+
+            <div class="col8">{{ e.weiteres|default:"-" }}</div>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}

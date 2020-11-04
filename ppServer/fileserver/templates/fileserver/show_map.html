@@ -1,0 +1,17 @@
+{% extends 'base/main.html' %}
+{% load static %}
+{% block title %}{{ topic }}{% endblock %}
+{% block extra-head %}<link rel="stylesheet" href="{% static 'base/css/list.css' %}">{% endblock %}
+{% block absolute %}{% include 'base/header.html' with topic=map.titel %}{% endblock %}
+
+{% block body %}
+<div class="list-container">
+    {% for f in files %}
+    <div class="row">
+        <a href="{{ f.url }}">
+            <h2 class="card__title">{{ f.name }}</h2>
+        </a>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

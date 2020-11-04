@@ -1,0 +1,187 @@
+:root {
+	--itemTile-size: 64px;
+	color: #ddd;
+	font-size: 1.2rem;
+ }
+img {
+	display: block;
+
+	height: var(--itemTile-size);
+	width: var(--itemTile-size);
+	flex-basis: var(--itemTile-size);
+}
+
+// for search and crafting combos
+.input-with-btn {
+	display: flex;
+	flex-wrap: nowrap;
+
+	--search-border-radius: 8px;
+	.btn {border-radius: 0 var(--search-border-radius) var(--search-border-radius) 0;}
+	input {border-radius: var(--search-border-radius) 0 0 var(--search-border-radius);}
+}
+
+// tables, in sidebar and search over the arrow
+.table {
+	cursor: move;
+	border-radius: calc(var(--itemTile-size) / 16);
+
+	// disable opening of image-uri while dragging or sth.
+	img { pointer-events: none; }
+}
+
+.table.dragging {opacity: .5;}
+.table.dragging--mobile {position: absolute;}
+
+.table:not(.selected) {cursor: pointer;}
+.table.selected {
+	border-left: outset orangered calc(var(--itemTile-size) / 8);
+	border-top: solid black calc(var(--itemTile-size) / 32);
+	border-bottom: solid black calc(var(--itemTile-size) / 32);
+
+	border-radius: calc(var(--itemTile-size) / 8) 0 0 calc(var(--itemTile-size) / 8);
+
+	background: unset !important;
+
+	img {--img-size: 95%;}
+}
+.table.selected:not(.available) { border-left: outset lighten(orangered, 40%) calc(var(--itemTile-size) / 8); }
+
+.table.available 			 { background: #555; }
+.table:not(.available) { background: white; }
+
+
+@import './_head';
+
+.item {
+	height: var(--itemTile-size);
+	width: var(--itemTile-size);
+	flex-basis: var(--itemTile-size);
+
+	img {
+		--img-size: 80%;
+
+		// center in parent
+		position: relative;
+		top: calc(calc(100% - var(--img-size)) / 2);
+		left: calc(calc(100% - var(--img-size)) / 2);
+
+
+		height: var(--img-size);
+		width: var(--img-size);
+	}
+}
+
+
+// sidebar with tables
+.tables {
+	--itemTile-size: 110px;
+
+	display: grid;
+	grid-template-columns: var(--itemTile-size);
+	gap: calc(var(--itemTile-size) / 8);
+
+	position: absolute;
+	left: 0;
+	top: 7em;
+	width: var(--itemTile-size);
+}
+
+
+// center of page with head and recipes
+main {
+	--itemTile-size: 90px;
+	margin-left: 70px;
+}
+
+.row {
+	border-bottom: #aaa solid 1px;
+	padding: 3em 0;
+
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: center;
+}
+.recipe {
+	display: grid;
+	grid-template-columns: 1fr auto 1fr;
+	justify-content: center;
+	justify-items: flex-start;
+	align-items: center;
+
+	flex: 1 0 0;
+
+	.ingredients, .products {
+		display: flex;
+		flex-wrap: wrap;
+	}
+	.ingredient, .product { margin: 0 .7em; }
+
+	// amount of ingredient (and product)
+	.inum.insufficient { color: red; }
+
+	// name afterwards
+	.name {margin-left: .3em;}
+
+
+	// arrow section
+	.arrow-container {
+		display: grid;
+		justify-items: center;
+		grid-template-rows: repeat(2, auto);
+	}
+	// css-art arrow
+	.arrow {
+		--border-size: 20px;
+		width: 0;
+		height: 0;
+
+		border-top: var(--border-size) solid transparent;
+		border-bottom: var(--border-size) solid transparent;
+		border-left: var(--border-size) solid #aaa;
+	}
+	// style table over arrow (extention of .table)
+	.table--arrow {
+		margin-bottom: 10px;
+		cursor: auto;
+	}
+	.table--arrow.available {
+		border: 2px solid #aaa;
+		background: unset;
+	}
+	.name--table {
+		text-align: center;
+		color: #aaa;
+		font-size: .8rem;
+		font-weight: 900;
+	}
+}
+
+// input num for crafting
+input.craftNum { width: 60px; }
+
+
+a.info {display: contents;}
+
+.info img {
+	height: 45px;
+	margin: 1em;
+}
+
+
+@media only screen and (max-width: 950px) {
+	.tables {--itemTile-size: unset;}
+	main {--itemTile-size: unset;}
+}
+
+@media only screen and (max-width: 527px) {
+	.recipe {
+		grid-template-columns: auto 1fr;
+		grid-template-rows: repeat(2, auto);
+
+		gap: 4em 2em;
+
+		.ingredients { grid-column: 1 / -1; }
+	}
+}

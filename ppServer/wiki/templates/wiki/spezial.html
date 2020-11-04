@@ -1,0 +1,40 @@
+{% extends 'base/main.html' %}
+{% load static %}
+{% block title %}{{ topic }}{% endblock %}
+{% block extra-head %}
+<link rel="stylesheet" href="{% static 'base/css/table.css' %}">
+<style>
+div.grid-container {grid-template-columns: repeat(5, auto);}
+</style>
+<script>
+    breakpoint = 540;
+    window.dispatchEvent(new Event('resize'))
+</script>
+{% endblock %}
+{% block absolute %}{% include 'base/header.html' with topic=topic %}{% endblock %}
+{% block body %}
+<div class="grid-container">
+    <div class="col1 heading">Titel</div>
+    <div class="col2 heading">Attr1</div>
+    <div class="col3 heading">Attr2</div>
+    <div class="col4 heading">Ausgleich</div>
+    <div class="col5 heading heading--last">Beschreibung</div>
+
+    {% for s in spezial %}
+    <div class="col1">{{ s.titel }}</div>
+    <div class="col2">{{ s.attr1 }}</div>
+    <div class="col3">{{ s.attr2 }}</div>
+    <div class="col4">
+        {% for a in s.ausgleich.all %}
+            {{ a.titel }}
+            {% if not forloop.last %}, {% endif %}
+        {% endfor %}
+    </div>
+    <div class="col5">
+        {% if s.beschreibung %}
+            {{ s.beschreibung|linebreaks }}
+        {% else %}-{% endif %}
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

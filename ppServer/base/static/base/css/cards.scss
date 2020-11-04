@@ -1,0 +1,127 @@
+/*
+use with html like the following.
+!cards has negative margin "" margin: calc(var(--card-margin-vert) * -1) calc(var(--card-margin-hor) * -1); ""!
+<section class="cards">
+	<div class="card>
+			<div class="card__icon">
+					<img class="card__icon__img" src="" alt="">
+			</div>
+			<div class="card__container">
+					<h2 class="card__heading">...</h2>
+					<p class="card__text">...</p>
+					<div class="btns">
+							<a href="#">
+									<button class="card__btn">
+											<p class="btn__text">...</p>
+									</button>
+							</a>
+							...
+					</div>
+			</div>
+	</div>
+	...
+</section>
+*/
+:root {
+	--icon-height: 4.5em;
+	--icon-width: 4.5em;
+	--icon-offset-top: calc(var(--icon-height) / 4);
+	--icon-offset-right: calc(var(--icon-width) / 4);
+	--icon-padding: calc(var(--icon-height) / 4);
+
+	--card-max-width: 300px;	// to set num of cards in row on big screens (is always width)
+	--card-margin-vert: 1em;
+	--card-margin-hor: 1em;
+}
+
+.cards {
+	width: 100%;
+	margin: calc(var(--card-margin-vert) * -1) calc(var(--card-margin-hor) * -1);
+
+	display: flex;
+	justify-content: space-between;
+	flex-wrap: wrap;
+	justify-content: center;
+}
+.card {
+	max-width: var(--card-max-width);
+
+	// min margin of the around all contents:
+	// top & right: (additional margin + (offset by icon)
+	margin: calc(var(--card-margin-vert) + calc(var(--icon-offset-top) - var(--icon-height)))
+					calc(var(--card-margin-hor) + var(--icon-offset-right))
+					var(--card-margin-vert)
+					var(--card-margin-hor);
+}
+
+.card__container {
+	background: #4a4f54;
+	padding: 2rem;
+	border-radius: 15px;
+}
+
+/* btn/s */
+.card__btn {
+	background: #0ff;
+	color: #010a0c;
+	padding: .5em 1em;
+	border-radius: 8.5px;
+}
+.card .btns {
+	display: flex;
+	justify-content: space-between;
+	flex-wrap: wrap;
+	margin: 0 -1em;
+}
+.card .btns button {
+	margin: 1em;
+}
+
+/* card textual content */
+.card__heading {
+	color: #c8c8c8;
+	font-size: 1.2rem;
+	font-family: 'Quicksand', sans-serif;
+}
+.card__text {
+	color: #8e8e8e;
+	margin: 1.2em 0 2em 0;
+}
+
+/* card icon */
+.card__icon {
+	position: relative;
+	right: calc(calc(var(--icon-width) - var(--icon-offset-right)) - 100%);
+	top: calc(var(--icon-height) - var(--icon-offset-top));
+
+	background: lighten(#077, 10%);
+	height: var(--icon-height);
+	width: var(--icon-width);
+	border-radius: 50%;
+	padding: var(--icon-padding) 0;
+}
+.card__icon:hover {
+	opacity: var(--hover-opacity);
+}
+.card__icon__img {
+	height: calc(var(--icon-height) - calc(var(--icon-padding) * 2));
+	margin: auto;
+	display: block;
+}
+
+.card__link {
+	display: contents;
+}
+
+@media only screen and (max-width: 759px) {
+	:root{
+		--card-max-width: 75%;
+	}
+}
+
+@media only screen and (max-width: 527px) {
+	.card {
+		width: 100%;
+		min-width: fit-content;
+	}
+}

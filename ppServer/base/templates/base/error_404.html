@@ -1,0 +1,18 @@
+{% extends 'base/main.html' %}
+{% load static %}
+{% block title %}Fehler{% endblock %}
+{% block extra-head %}
+<link rel="stylesheet" href="{% static 'base/css/error.css' %}">{% endblock %}
+{% block body %}
+<div class="container">
+    <p class="text">
+        Oops! Diese Seite existiert (noch) nicht.
+    </p>
+
+    <a href="{% url 'base:index' %}">
+        <button class="btn">
+            <p class="btn__text">Zurück zur Startseite</p>
+        </button>
+    </a>
+</div>
+{% endblock %}

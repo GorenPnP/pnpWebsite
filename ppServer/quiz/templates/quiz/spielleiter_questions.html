@@ -1,0 +1,87 @@
+{% extends 'base/main.html' %}
+{% load static %}
+{% block title %}{{ topic }}{% endblock %}
+{% block extra-head %}
+<style>
+	:root {color: #ddd;}
+	.new-module {font-size: 1.3rem;}
+	.btn {font-size: 1.2rem;}
+
+	.row {
+		display: grid;
+		align-items: center;
+		justify-items: left;
+		grid-gap: 5%;
+		grid-template-columns: 1fr auto 130px;
+
+		padding-bottom: .5em;
+		margin: 3em 0 0;
+		border-bottom: 1px solid #aaa;
+	}
+
+	@media only screen and (max-width: 400px) {
+		.row {
+			grid-template-columns: 1fr auto;
+			grid-template-rows: repeat(2, auto);
+		}
+		.module {
+			grid-column-end: span 2;
+		}
+	}
+</style>
+<script src='https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js' type='text/javascript'></script>
+<script src="{% static 'base/js/ajax.js' %}"></script>
+{% endblock %}
+{% block absolute %}{% include 'base/header.html' with topic=topic %}{% endblock %}
+{% block body %}
+
+<div style="display: flex; justify-content: space-between;">
+	<a href="{% url 'admin:quiz_module_add' %}" class="new-module">Neues Modul</a>
+	<button class="btn" onclick="submit()">Speichern</button>
+</div>
+
+
+<div class="table">
+	{% for q in questions %}
+	<div class="row">
+		<div class="question">{{ q.text }}</div>
+		<a href="{% url 'admin:quiz_question_change' q.id %}" class="details">Details</a>
+		<select name="" id="{{ q.id }}" class="module">
+			<option value="-1" selected>-</option>
+			{% for module in mods %}
+			<option value="{{ module.id }}">{{ module.title }}</option>
+			{% endfor %}
+		</select>
+	</div>
+	{% endfor %}
+
+	{% for m in mqs %}
+	<div class="row">
+    	<div class="question">{{ m.question.text }}</div>
+    	<a href="{% url 'admin:quiz_question_change' m.question.id %}" class="details">Details</a>
+    	<select name="" id="{{ m.question.id }}" class="module">
+    		<option value="-1">-</option>
+    		{% for module in mods %}
+    		<option value="{{ module.id }}" {% if module.id == m.module.id %}selected{% endif %}>
+    			{{ module.title }}</option>
+    		{% endfor %}
+    	</select>
+	</div>
+	{% endfor %}
+</div>
+
+
+<script>
+	function submit() {
+		select_tags = document.getElementsByTagName("select")
+		questions = [...select_tags].map(tag => {
+			return {"question": parseInt(tag.id), "module": parseInt(tag.options[tag.selectedIndex].value)}
+		})
+
+		post({questions}, data => {
+			reaction(data)
+			location = location  // reload
+		})
+	}
+</script>
+{% endblock %}

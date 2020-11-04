@@ -1,0 +1,19 @@
+<div class="hero__container hero--poll__container">
+	<div class="hero__arrow hero__arrow--left">
+		<img src="/static/res/img/hero-arrow-left.png" alt="previous">
+	</div>
+
+	<div class="hero__words hero--poll__words">
+		<h1 class="hero__words__heading">Umfrage</h1>
+		<p class="hero__words__text">Nach deiner Meinung ist gefragt! Mach jetzt mit! Es dauert auch nur wenige Minuten.</p>
+	</div>
+	<a href="{% url 'polls:detail' polls.0.id %}">
+		<button class="hero__btn hero--poll__btn">
+			<p class="btn__text">Jetzt abstimmen</p>
+		</button>
+	</a>
+
+	<div class="hero__arrow hero__arrow--right">
+		<img src="/static/res/img/hero-arrow-right.png" alt="next">
+	</div>
+</div>

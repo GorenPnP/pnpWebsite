@@ -1,0 +1,20 @@
+**/__pycache__
+**/migrations/__pychache__
+
+**/dumps/
+**/media/
+**/ppServer/static/
+db.sqlite3
+
+**/.idea
+**/.vscode
+
+.env
+
+
+### Sass ###
+**/.sass-cache/
+*.css.map
+*.sass.map
+*.scss.map
+*.css

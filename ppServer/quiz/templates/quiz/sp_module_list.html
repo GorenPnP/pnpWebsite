@@ -1,0 +1,28 @@
+{% for e in modules %}
+<div class="row">
+	{% if e.icon %}<img src="{{ e.icon }}" class="icon">
+	{% else %}<span></span>
+	{% endif %}
+	<div class='module'>{{ e.module }}</div>
+	<div class="player">{{ e.spieler.get_real_name|default:e.spieler.name }}</div>
+	<div class='time'>{{ e.timestamp|date:"j.n.y G:i"|default:'-' }}</div>
+
+	{% if e.state.1 == 'answered' %}
+	<a class="btn" href="{% url 'quiz:sp_correct' e.id %}">Korrigieren</a>
+	{% else %}
+		{% if e.state in stateOption %}
+			<select id="{{ e.id }}" class="stateChange" onChange="changeState(event)">
+				{% for o in stateOption %}
+					<option value="{{ o.0 }}" class="option{{ forloop.counter0 }}" {% if e.state == o %}selected{% endif %}>
+						{{ o.1 }}
+					</option>
+				{% endfor %}
+			</select>
+		{% else %}
+			<div class='state'>{{ e.state.1 }}</div>
+		{% endif %}
+	{% endif %}
+</div>
+
+{% empty %}<h1 style="text-align: center;">Hier ist nichts</h1>
+{% endfor %}

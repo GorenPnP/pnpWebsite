@@ -1,0 +1,24 @@
+.btn {
+	margin: 2.5em 0 0;
+}
+.btn__text {
+	font-size: 1.2rem;
+}
+
+.text {
+	color: #fff;
+	font-size: 2rem;
+}
+
+.main-container {
+	height: 100vh;
+	width: 100vw;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	padding: 2em;
+}
+
+@media only screen and (max-width: 527px) {
+	.btn {margin: 2.5em auto 0;}
+}

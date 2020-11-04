@@ -1,0 +1,55 @@
+{% extends 'base/main.html' %}
+{% load static %}
+{% block title %}Zauber{% endblock %}
+{% block extra-head %}
+<link rel="stylesheet" href="{% static 'base/css/table.css' %}">
+<link rel="stylesheet" href="{% static 'base/css/checkbox.css' %}">
+<style>
+    .grid-container {grid-template-columns: repeat(8, auto);}
+</style>
+<script src='https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js' type='text/javascript'></script>
+<script src="{% static 'base/js/ajax.js' %}"></script>
+<script type="text/javascript" src="{% static 'create/js/zauber.js' %}"></script>
+{% endblock %}
+{% block absolute %}{% include 'base/header.html' with topic='Zauber' %}{% endblock %}
+
+{% block body %}
+<span><b id="zauber_pool">{{ zauber }}</b> Zauber</span>
+<button id="submit" class="btn" onclick="submit()">Zauber wählen</button>
+
+
+
+<h3>Nur ab Stufe 0 wählbar, außer ein entsprechender Vorteil besagt anderes.</h3>
+
+<div class="grid-container">
+        <div class="col1 heading"></div>
+        <div class="heading">Titel</div>
+        <div class="heading">Stufe</div>
+        <div class="heading">Beschreibung</div>
+        <div class="heading">Schaden</div>
+        <div class="heading">Astralschaden</div>
+        <div class="heading">Weiteres</div>
+        <div class="heading heading--last">Kategorie</div>
+
+    {% for w in zauber_list %}
+    <div class="col1">
+        <div class="checkbox {% if w.select %}checked{% endif %}
+                    n-{% if w.st == 'n' %}1{% else %}0{% endif %}
+                    zauber-id-{{ w.item.id }}"
+            id="{{ forloop.counter0 }}"
+        	onclick="onClick(event)">
+        </div>
+    </div>
+    <div><label for="{{ forloop.counter0 }}">{{ w.item.name }}</label></div>
+    <div>{{ w.item.ab_stufe }}</div>
+    <div>{{ w.item.beschreibung }}</div>
+    <div>{{ w.item.schaden }}</div><div>{{ w.item.astralschaden }}</div>
+    <div>
+        {% if w.item.lizenz_benötigt %}lizenz benötigt{% endif %}
+        {% if w.item.illegal %}illegal{% endif %}
+        {% if w.item.flächenzauber %}Flächenzauber{% endif %}
+    </div>
+    <div>{% if w.item.get_kategorie_display %}{{ w.item.get_kategorie_display }}{% else %}-{% endif %}</div>
+    {% endfor %}
+</div>
+{% endblock %}

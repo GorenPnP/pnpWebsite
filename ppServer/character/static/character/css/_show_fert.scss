@@ -1,0 +1,22 @@
+.chip__row--fert {
+	display: grid;
+	grid-auto-flow: dense;
+	grid-template-columns: repeat(4, auto);
+}
+
+@for $i from 2 through 5 {
+ .rows-#{$i} { grid-template-rows: repeat($i, 1fr) };
+}
+
+.fg {
+	grid-row: 1 / -1;
+	grid-column: 3 / span 1;
+	align-self: stretch;
+
+	display: flex;
+	justify-items: center;
+	align-items: center;
+
+	background: rgba(255, 255, 255, .3);
+	border-radius: 5px;
+}

@@ -1,0 +1,27 @@
+{% extends "base/main.html" %}
+{% load static %}
+{% block title %}Ergebnis{% endblock %}
+{% block extra-head %}
+<link rel="stylesheet" href="{% static 'base/css/table.css' %}">
+<link rel="stylesheet" href="{% static 'polls/css/result.css' %}">
+{% endblock %}
+{% block absolute %}{% include 'base/header.html' with topic="Ergebnis" %}{% endblock %}
+
+{% block body %}
+<h1>{{ question.text }}</h1>
+
+<div class="grid-container">
+    <div class="heading col1">Auswahl</div>
+    <div class="heading heading--last">Stimmen</div>
+
+    {% for choice in question.choice_set.all %}
+        <div class="col1">{{ choice.text }}</div>
+        <div>{{ choice.votes }}</div>
+    {% endfor %}
+</div>
+
+<a href="{% url 'base:index' %}">
+    <button class="btn">Beenden</button>
+
+</a>
+{% endblock %}

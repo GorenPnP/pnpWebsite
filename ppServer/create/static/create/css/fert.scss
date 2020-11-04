@@ -1,0 +1,28 @@
+.grid-container#fert1 {
+	grid-template-columns: repeat(5, auto);
+}
+
+.grid-container#fert-else {
+	grid-template-columns: repeat(4, auto);
+}
+
+.btn {
+	margin: 4em auto;
+	padding: 1em 8em;
+	font-size: 1.1rem;
+}
+
+.disabled.btn, .disabled.btn:hover {
+	background: #c8c8c8;
+	cursor: not-allowed;
+}
+
+input[type=number] {
+	border-radius: 5px;
+}
+
+div.group--last {padding-bottom: 5em;}
+.pool {
+	font-weight: 700;
+	font-size: 1.2rem;
+}

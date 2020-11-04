@@ -1,0 +1,102 @@
+:root {
+	--itemTile-size: 100px;
+}
+
+.main-container {margin-bottom: 100px;}
+
+@import './head';
+.head .crafting-time {color: #ddd;}
+
+.add-form {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	flex-wrap: wrap;
+
+	margin-bottom: 3em;
+
+	padding: .5em;
+	border-radius: 8px;
+	background: darken(rgb(4, 201, 245), 60%);
+
+	& > * {
+		margin: .2em;
+		max-width: 300px;
+	}
+	.btn {
+		padding: .7em;
+		font-size: 1em;
+		font-weight: 600;
+	}
+}
+
+
+.grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, var(--itemTile-size));
+	gap: 20px;
+	justify-content: center;
+
+	margin-bottom: 3em;
+}
+.item {
+	height: var(--itemTile-size);
+	width: var(--itemTile-size);
+
+	border-radius: 5px;
+	border: 2px solid transparent;
+
+	cursor: pointer;
+	z-index: 2;
+
+	&:hover, &:visited { border: 2px solid #ddd; }
+
+
+	img {
+		grid-area: "icon";
+
+		z-index: 1;
+		display: block;
+		width: 80%;
+		height: 80%;
+
+		position: relative;
+		top: 10%;
+		left: 10%;
+	}
+
+	.num {
+		z-index: 2;
+
+		// in bottom right corner (move right and up)
+		display: block;
+		text-align: end;
+
+		position: relative;
+		top: calc(-.4em);
+
+		// control size around
+		line-height: 1em;
+		padding: .2em;
+
+		// fancy
+		font-family: Quicksand, "sans-serif";
+		font-size: .9rem;
+		font-weight: 900;
+		color: #fff;
+		text-shadow: #000 0 0 5px;
+	}
+
+	.title {
+		color: #ddd;
+	}
+}
+
+
+
+@import './_overlay';
+.overlay {display: none;}
+
+@media only screen and (max-width: 527px) {
+	.add-form {justify-content: center;}
+}

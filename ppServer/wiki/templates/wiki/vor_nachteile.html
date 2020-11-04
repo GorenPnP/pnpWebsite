@@ -1,0 +1,20 @@
+{% extends 'base/main.html' %}
+{% load static %}
+{% block title %}{{ topic }}{% endblock %}
+{% block extra-head %}
+<link rel="stylesheet" href="{% static 'base/css/table.css' %}">
+{% endblock %}
+{% block absolute %}{% include 'base/header.html' with topic=topic %}{% endblock %}
+{% block body %}
+<div class="grid-container">
+        <div class="col1 heading">Titel</div>
+        <div class="col2 heading">IP</div>
+        <div class="col3 heading heading--last">Beschreibung</div>
+
+    {% for e in list %}
+        <div class="col1">{{ e.titel }}</div>
+        <div class="col2">{{ e.ip }}</div>
+        <div class="col3">{{ e.beschreibung }}</div>
+    {% endfor %}
+</div>
+{% endblock %}

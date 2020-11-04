@@ -1,0 +1,16 @@
+<div class="chip-container">
+    <div class="chip__row chip__row--example">
+        <div class="chip__cell">Anzahl</div>
+        <div class="chip__cell chip__cell--emph">Item</div>
+        <div class="chip__cell">ggf. Stufe</div>
+        <div class="chip__cell">Notizen</div>
+    </div>
+    {% for rel in items %}
+        <div class="chip__row">
+            <div class="chip__cell">{{ rel.anz }}x</div>
+            <div class="chip__cell chip__cell--emph">{{ rel.item.name }}</div>
+            {% if rel.stufe is not None %}<div class="chip__cell">St.{{ rel.stufe }}</div>{% endif %}
+            <div class="chip__cell">{% if rel.notizen %}({{ rel.notizen }}){% else %}-{% endif %}</div>
+        </div>
+    {% endfor %}
+</div>

@@ -1,0 +1,46 @@
+.main-container {
+	margin: 0 0 2em;
+	padding: 0;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+}
+
+.grid-container {
+	grid-template-columns: repeat(7, auto);
+	background-color: rgba(0, 0, 0, 0);
+}
+
+// revert fixes for tables with heading as first row
+div.grid-container:before, div.grid-container:after {
+	content: none;
+}
+
+.grid-container div {
+	margin: 1px;
+	cursor: pointer;
+}
+
+.btn {
+	margin: 4em auto;
+	padding: 2em 8em;
+}
+
+.selected, .grid-container div:hover {
+	background-color: darken(lightblue, 30%);
+	color: black;
+}
+div.blocked, div.blocked:hover {
+	background-color: lightblue;
+	color: black;
+	cursor: not-allowed;
+}
+div.grayed_out, div.col1, div.grayed_out:hover, div.col1:hover {
+	background-color: #c8c8c8;
+	cursor: not-allowed;
+	color: black;
+}
+
+#ap-left-text {
+	display: none;
+}

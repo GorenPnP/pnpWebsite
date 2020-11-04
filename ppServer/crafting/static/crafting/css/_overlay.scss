@@ -1,0 +1,63 @@
+.overlay {
+	display: grid;
+	grid-template-columns: repeat(2, auto);
+	justify-content: center;
+	align-content: center;
+	align-items: flex-start;
+	gap: 1em;
+
+	padding: 1em;
+	border-radius: 10px;
+	border: 3px solid #ddd;
+	color: #ddd;
+	background: lighten(#3a3d40, 10%);
+
+	max-width: 90vw;
+
+	a.btn {color: #333;}
+
+	.separator {
+		grid-column: 1 / -1;
+		height: 2em;
+	}
+	.btn {
+		grid-column: 1 / -1;
+		text-align: center;
+	}
+	img {
+		width: var(--itemTile-size);
+		height: var(--itemTile-size);
+	}
+
+	#overlay__icon {
+		grid-column: span 1 / -1;
+		justify-self: flex-end;
+	}
+	#overlay__name {
+		font-size: 1.7em;
+		font-weight: 900;
+	}
+
+	#overlay__ingredients {
+		display: flex;
+		flex-wrap: wrap;
+	}
+	.ingredient, #overlay__table {
+		margin: 1em;
+
+		display: flex;
+		flex-wrap: wrap;
+		align-items: baseline;
+	}
+}
+
+@media only screen and (max-width: 527px) {
+	.overlay {
+		grid-template-columns: auto;
+		gap: .4em;
+
+		label, .btn {
+			margin-top: 1.8em;
+		}
+	}
+}

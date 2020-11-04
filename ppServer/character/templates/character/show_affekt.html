@@ -1,0 +1,16 @@
+<div class="chip-container">
+    <div class="chip__row chip__row--example">
+        <div class="chip__cell chip__cell--emph">Name</div>
+        <div class="chip__cell">Wert</div>
+        <div class="chip__cell">Grad (UM)</div>
+        <div class="chip__cell">Notizen</div>
+    </div>
+    {% for rel in affekt %}
+        <div class="chip__row">
+            <div class="chip__cell chip__cell--emph">{{ rel.name }}</div>
+            <div class="chip__cell">{{ rel.wert }}</div>
+            <div class="chip__cell">{{ rel.grad }} ({{ rel.um }})</div>
+            <div class="chip__cell">{{ rel.notizen|default:'-' }}</div>
+        </div>
+    {% endfor %}
+</div>

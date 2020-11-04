@@ -1,0 +1,10 @@
+.grid-container {
+	grid-template-columns: repeat(6, auto);
+}
+.alert {color: red; display: None}
+
+.btn {
+	margin: 4em auto;
+	padding: 1em 8em;
+	font-size: 1.1rem;
+}

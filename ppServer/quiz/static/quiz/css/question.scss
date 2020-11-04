@@ -1,0 +1,176 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat&display=swap');
+
+:root {
+	color: #ddd;
+}
+
+.main-container {
+	min-height: 100vh;
+	padding-bottom: 1em;
+}
+.img {
+	background: #eee;
+	border-radius: 13px;
+}
+.img img {
+	width: 100%;
+	padding: .5em .5em 0;
+	margin: 0;
+	border-radius: 13px;
+}
+
+
+.info {
+	font-style: italic;
+	font-weight: light;
+	font-size: .8rem;
+
+	margin: 0 0 3em;
+
+	display: flex;
+	justify-content: space-between;
+	flex-grow: 1;
+
+	& > * {
+		display: flex;
+
+		padding: .5em .5em;
+		background: #222;
+		border-radius: 1000px;
+	}
+
+	.info__item {
+		margin: 0 .5em;
+	}
+	.label {
+		opacity: .7;
+	}
+}
+
+
+.question {
+	font-weight: bolder;
+	font-size: 1.4rem;
+	padding: 1em 0;
+	display: block;
+
+
+	.imgs {
+		display: flex;
+		justify-content: center;
+		flex-wrap: wrap;
+		margin-right: -1.5em;
+	}
+	.img {
+		margin: 0 1.5em 1.5em 0;
+	}
+	.img img {
+		height: 30vh;
+	}
+
+	.text {
+		max-width: 70ch;
+		margin: 1em 0;
+		display: block;
+	}
+}
+
+.answer {
+
+	background: lighten(#3a3d40, 60%);
+	--checkbox-border-color: #222;
+	--checkbox-mark-color: teal;
+	color: var(--checkbox-border-color);
+
+	padding: 1em;
+	border-radius: 8px;
+
+	.multiple-choice {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
+		padding: .5em 0;
+
+		.choice {
+			display: flex;
+			align-items: center;
+			padding: .5em 0;
+			flex: 0 1 400px;
+		}
+		.choice > * {
+			margin: .5em;
+		}
+
+		.checkbox {
+			flex: 0 0 var(--checkbox-size);
+			margin: 0 1em 0 0;
+		}
+		.text {flex: 1 1 300px;}
+		.img {flex: 0 1 300px;}
+	}
+
+	.text-input {
+		width: 100%;
+		min-height: 1em;
+		margin: 2em 0;
+		padding: 1em;
+		border-radius: 8px;
+
+		line-height: 1.7em;
+		resize: none;
+		overflow: hidden;
+		font-family: 'Montserrat', sans-serif;
+	}
+}
+
+
+.flex-container--btn {
+
+	display: flex;
+	justify-content: space-around;
+	align-items: center;
+	flex-wrap: wrap;
+
+	margin: 1em 0 4em;
+
+	.btn {
+		flex: 0 1 190px;
+
+		font-size: 1.2rem;
+		font-weight: bold;
+		padding: .7em 2em;
+		margin: 1.5em .4em 0;
+	}
+
+	.btn--back {
+		background-color: lighten(#3a3d40, 30%);
+	}
+}
+
+@media only screen and (max-width: 700px) {
+	.label, .points {
+		display: none;
+	}
+}
+
+@media only screen and (max-width: 527px) {
+	.multiple-choice {justify-content: center;}
+
+	.flex-container--btn {
+		flex-direction: column-reverse;
+
+		.btn {flex: 1;}
+	}
+
+	.text-input, .choice .text {text-align: left;}
+}
+
+@media only screen and (max-width: 340px) {
+
+	.info {
+		margin: 2em 0 0;
+		justify-content: flex-end;
+
+		.general {display: none;}
+	}
+}

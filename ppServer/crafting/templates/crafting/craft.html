@@ -1,0 +1,45 @@
+{% extends 'base/main.html' %}
+{% load static %}{% load l10n %}
+{% block title %}{{ tables.0.name }}{% endblock %}
+{% block extra-head %}
+<link rel="stylesheet"  type="text/css" href="{% static 'crafting/css/craft.css' %}">
+<script src='https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js' type='text/javascript'></script>
+<script src="{% static 'base/js/ajax.js' %}"></script>
+<script src="{% static 'crafting/js/craft.js' %}"></script>
+{% endblock %}
+{% block absolute %}{% include 'base/header.html' with topic=tables.0.name %}{% endblock %}
+
+{% block body %}
+<div class="tables">
+	{% for table in tables %}
+		<div
+			class="item table{% if forloop.first %} selected{% endif %}{% if table.available %} available{% endif %}"
+			id="tid-{{ table.id }}"
+			draggable="true"
+			onclick="tableChange({{ table.id }})"
+			data-title="{{ table.name }}">
+
+			<img src="{{ table.icon }}" alt="{{ table.name }}">
+		</div>
+	{% endfor %}
+</div>
+
+<main>
+	<div class="head">
+		<div class="search input-with-btn">
+			<input type="text" list="item-search" id="search-input" />
+			<datalist id="item-search"></datalist>
+
+			<button class="btn" onclick="search()" id="search-btn">Suche</button>
+		</div>
+
+		<div class="btns">
+			<a href="{% url 'crafting:inventory' %}" class="btn btn--inventory">Inventar</a>
+			<a href="{% url 'crafting:index' %}" class="">Profil wechseln</a>
+		</div>
+	</div>
+
+
+	<div class="recipes"></div>
+</main>
+{% endblock %}

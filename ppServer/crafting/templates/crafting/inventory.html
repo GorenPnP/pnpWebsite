@@ -1,0 +1,71 @@
+{% extends 'base/main.html' %}
+{% load static %}
+{% block title %}{{ topic }}{% endblock %}
+{% block extra-head %}
+<link rel="stylesheet" type="text/css" href="{% static 'base/css/cards.css' %}">
+<link rel="stylesheet"  type="text/css" href="{% static 'crafting/css/inventory.css' %}">
+<script src='https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js' type='text/javascript'></script>
+<script src="{% static 'base/js/ajax.js' %}" type='text/javascript'></script>
+<script src="{% static 'crafting/js/inventory.js' %}" type='text/javascript'></script>
+{% endblock %}
+{% block absolute %}{% include 'base/header.html' with topic=topic %}{% endblock %}
+
+{% block body %}
+<div class="head">
+	<div class="crafting-time">Crafting Time: {{ profil.getFormattedDuration|default:'-' }}</div>
+
+	<div class="btns">
+		<a href="{% url 'crafting:craft' %}" class="btn btn--craft">Crafting</a>
+		<a href="{% url 'crafting:index' %}" class="">Profil wechseln</a>
+	</div>
+</div>
+
+{% if not profil.restricted %}
+<div class="add-form">
+	<input type="number" id="num" value=1 min=1>
+
+	<select id="items" autocomplete required>
+		{% for i in allItems %}
+			<option value="{{ i.id }}">
+				<img src="{{ i.icon }}" alt="{{ i.name }}">
+				<span>{{ i.name }}</span>
+			</option>
+		{% endfor %}
+	</select>
+
+	<button class="btn" onclick="addItem()">Hinzufügen</button>
+</div>
+{% endif %}
+
+<div class="grid">
+	{% for i in items %}
+		<div class=item onclick="openDetails({{ i.id }})">
+			<img src="{{ i.item.getIconUrl }}" alt="{{ i.item.name }}">
+			<span class="num">{{ i.num|floatformat }}</span>
+		</div>
+	{% endfor %}
+</div>
+
+<div class="overlay">
+	<img id="overlay__icon">
+	<label for="overlay__name">Name:</label><span id="overlay__name"></span>
+	<label for="overlay__owned">Im Besitz:</label><span id="overlay__owned"></span>
+	<label for="overlay__stufe">Ab Stufe:</label><span id="overlay__stufe"></span>
+	<label for="overlay__description">Beschreibung:</label><span id="overlay__description"></span>
+	<label for="overlay__values">Info:</label><span id="overlay__values"></span>
+	<label for="overlay__kategory">Kategorie:</label><span id="overlay__kategory"></span>
+
+	<div class="separator"></div>
+
+	<label for="overlay__duration">Crafting Time:</label><span id="overlay__duration"></span>
+	<label for="overlay__spezial">Spezialfertigkeiten:</label><div id="overlay__spezial"></div>
+	<label for="overlay__wissen">Wissensfertigkeiten:</label><div id="overlay__wissen"></div>
+	<label for="overlay__table">Anzahl pro Rezept:</label><div id="overlay__num-prod"></div>
+	<label for="overlay__table">Hergestellt an:</label><div id="overlay__table"></div>
+	<label for="overlay__table">Hergestellt aus:</label><div id="overlay__ingredients"></div>
+
+	<div class="separator"></div>
+
+	<a id="overlay__link" class="btn" href="">Im Shop ansehen</a>
+</div>
+{% endblock %}

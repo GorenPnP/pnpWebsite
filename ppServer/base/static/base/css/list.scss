@@ -1,0 +1,31 @@
+/*
+use with html like:
+
+<div class="list-container">
+    <div class="row">
+        <a href="#">
+            ...
+        </a>
+    </div>
+    ...
+</div>
+*/
+
+*, *::before, *::after {
+	box-sizing: border-box;
+}
+
+.main-container {
+	min-height: fit-content;
+	height: 100vh;
+}
+.list-container {
+	margin-top: 5em;
+	display: flex;
+	flex-direction: column;
+}
+.list-container a {
+	display: inline-block;
+	margin: 1em 0;
+	font-size: 1.1em;
+}

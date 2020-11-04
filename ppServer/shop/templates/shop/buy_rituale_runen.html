@@ -1,0 +1,82 @@
+{% extends 'base/main.html' %}
+{% load static %}
+{% block title %}{{ topic }}{% endblock %}
+{% block extra-head %}
+<link rel="stylesheet" href="{% static 'base/css/table.css' %}">
+<link rel="stylesheet" href="{% static 'shop/css/buy.css' %}">
+<style>
+    .grid-container {grid-template-columns: repeat(12, auto);}
+</style>
+<script src='https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js' type='text/javascript'></script>
+<script src="{% static 'base/js/ajax.js' %}"></script>
+<script type="text/javascript" src="{% static 'shop/js/buy_shop.js' %}"></script>
+{% endblock %}
+{% block absolute %}
+{% include 'base/header.html' with topic=topic %}
+{% endblock %}
+
+{% block body %}
+<div class="grid-container">
+
+    <div class="heading heading--first">Anzahl</div>
+    <div class="heading">Stufe</div>
+    <div class="heading">für ..</div>
+    <div class="heading">Stufe 1</div>
+    <div class="heading">Stufe 2</div>
+    <div class="heading">Stufe 3</div>
+    <div class="heading">Stufe 4</div>
+    <div class="heading">Stufe 5</div>
+    <div class="heading">Firma</div>
+    <div class="heading">Verfügbarkeit</div>
+    <div class="heading">Notizen</div>
+    <div class="heading--last heading"></div>
+
+
+    {% for e in entries %}
+    <div hidden class="firma_shop_id row-{{ forloop.counter0 }}">{{ e.id }}</div>
+    <div><input class="num row-{{ forloop.counter0 }}" type="number" value="1" min="1"></div>
+    <div><input class="stufe row-{{ forloop.counter0 }}" type="number" value="1" min="1"></div>
+    <div>
+        {% if charaktere %}
+        <select class="character row-{{ forloop.counter0 }}">
+            {% for c in charaktere %}
+            <option value="{{ c.id }}">{{ c.name }} ({{c.geld }} Dr.)</option>
+            {% endfor %}
+        </select>
+        {% else %}Du hast keine Charaktere{% endif %}
+    </div>
+    <div>{{ e.stufe_1 }} Dr.</div>
+    <div>{{ e.stufe_2 }} Dr.</div>
+    <div>{{ e.stufe_3 }} Dr.</div>
+    <div>{{ e.stufe_4 }} Dr.</div>
+    <div>{{ e.stufe_5 }} Dr.</div>
+    <div>{{ e.firma }}</div>
+    <div>{{ e.verfügbarkeit }}%</div>
+    <div><input class="notizen row-{{ forloop.counter0 }}" type="text" placeholder="Eigene Notizen"></div>
+    <div><button onclick="submit(event)" class="btn row-{{ forloop.counter0 }}">Jetzt kaufen</button></div>
+    {% endfor %}
+
+    {% if extra_preis_field %}
+    <div><input class="row-extra num" type="number" value="1" min="1"></div>
+    <div><input class="row-extra stufe" type="number" value="1" min="1"></div>
+    <div>
+        {% if charaktere %}
+        <select class="row-extra character">
+            {% for c in charaktere %}
+            <option value="{{ c.id }}">{{ c.name }} ({{ c.geld }} Dr.)</option>
+            {% endfor %}
+        </select>
+        {% else %}Du hast keine Charaktere{% endif %}</div>
+
+
+    <div><input class="row-extra price" type="number" id="extra_preis" value="0"> Dr.</div>
+    <div>-</div>
+    <div>-</div>
+    <div>-</div>
+    <div>-</div>
+    <div>-</div>
+    <div>-</div>
+    <div><input class="row-extra notizen" type="text" placeholder="Eigene Notizen"></div>
+    <div><button onclick="submit(event)" class="btn row-extra">Jetzt kaufen</button></div>
+    {% endif %}
+    {% endblock %}

@@ -1,0 +1,47 @@
+{% extends 'base/main.html' %}
+{% load static %}
+{% block title %}{{ topic }}{% endblock %}
+{% block extra-head %}
+<link rel="stylesheet" href="{% static 'base/css/table.css' %}">
+<link rel="stylesheet" type="text/css" href="{% static 'quiz/css/grades.css' %}" />
+<style>
+    .grid-container {
+        grid-template-columns: repeat({{ table.0|length }}, auto);
+    }
+    .flex-container {
+        display: flex;
+        flex-wrap: wrap;
+    }
+    .score {
+        margin: 0 .5em;
+    }
+    .progress {
+        font-size: .85rem;
+        opacity: .8;
+    }
+</style>
+{% endblock %}
+{% block absolute %}
+{% include 'base/header.html' with topic=topic %}
+{% endblock %}
+
+{% block body %}
+<div class="grid-container">
+    {% for row in table %}
+        {% for e in row %}
+            <div class="flex-container{% if forloop.parentloop.first %} heading{% if forloop.last %} heading--last{% endif %}{% endif %}{% if forloop.first %} col1{% endif %}">
+
+                {% if forloop.counter0 < 2 or forloop.parentloop.first %}
+                    {% if e.link %}<a href="{{ e.link }}">{{ e.text }}</a>
+                    {% else %}{{ e.text }}{% endif %}
+                {% else %}
+                    <span class="score{% if e.tag_class %} {{ e.tag_class }}{% endif %}">
+                        {{ e.grade_score|default:"-" }}
+                    </span>
+                    <span class="progress{% if e.section_done %} done{% endif %}">{{ e.text }}</span>
+                {% endif %}
+            </div>
+        {% endfor %}
+    {% endfor %}
+</div>
+{% endblock %}

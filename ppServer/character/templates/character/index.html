@@ -1,0 +1,19 @@
+{% extends 'base/main.html' %}
+{% load static %}
+{% block title %}{{ topic }}{% endblock %}
+{% block extra-head %}
+<link rel="stylesheet" href="{% static 'base/css/list.css' %}">{% endblock %}
+{% block absolute %}{% include 'base/header.html' with topic=topic plus_url=plus_url %}{% endblock %}
+
+{% block body %}
+<div class="list-container">
+	{% for c in charaktere %}
+	<div class="row">
+		<a href="{% url 'character:show' c.id %}">
+			<h2 class="card__title">{{ c.name }}{% if c.larp %} (LARP){% endif %}</h2>
+			<p class="card__text">{{ c.persönlicheZiele|default:"" }}</p>
+		</a>
+	</div>
+	{% endfor %}
+</div>
+{% endblock %}

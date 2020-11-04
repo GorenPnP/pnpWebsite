@@ -1,0 +1,78 @@
+{% extends 'base/main.html' %}
+{% load static %}
+{% block title %}Abschluss{% endblock %}
+{% block extra-head %}
+<link rel="stylesheet" href="{% static 'base/css/table.css' %}">
+<style>
+    .grid-container {grid-template-columns: repeat(4, auto);}
+    .flex-container {display: flex; justify-content: space-around;}
+    .btn {margin: 2em 0;}
+</style>
+{% endblock %}
+{% block absolute %}{% include 'base/header.html' with topic='Abschluss' %}{% endblock %}
+
+{% block body %}
+<form method="POST">
+    {% csrf_token %}
+    <input type="number" name="char_id" id="char_id" value="{{ c.id }}" hidden>
+
+    <div class="grid-container">
+        <div class="col1 heading">Name</div>
+        <div class="heading">Eco oder Morph?</div>
+        <div class="heading">Beruf</div>
+        <div class="heading heading--last">Religion</div>
+
+        <div class="col1">
+            <input
+                id="name"
+                name="name"
+                type="text"
+                required
+                onchange="document.getElementById('submit').disabled = !this.value"
+                placeholder="{{ c.name }}"/>
+        </div>
+        <div>
+            <input type="radio" id="eco" name="eco_morph" value="eco" {% if not c.morph %}checked{% endif %}>
+            <label for="eco">Eco</label><br>
+            <input type="radio" id ="morph" name="eco_morph" value="morph" {% if c.morph %}checked{% endif %}>
+            <label for="morph">Morph</label>
+        </div>
+        <div>
+            <select id="berufe" name="beruf" required {% if c.larp %}disabled{% endif %}>
+                {% for a in berufe %}
+                    <option value="{{ a.id }}"
+                            {% if a.beschreibung %}title="{{ a.beschreibung }}"{% endif %}
+                            {% if chosen_beruf_id == a.id %}selected{% endif %}>
+                        {{ a.titel }}
+                        {% if a.beschreibung %}( {{ a.beschreibung|truncatewords:1 }} ){% endif %}
+                    </option>
+                {% endfor %}
+            </select>
+            <div class="flex-container">
+                <a href="{% url 'wiki:berufe' %}" target="_blank">Alle</a>
+                <a href="{% url 'admin:character_beruf_add' %}" target="_blank">Neu</a>
+            </div>
+        </div>
+        <div>
+            <select id="religionen" name="religion" required>
+                {% for a in religionen %}
+                    <option {% if a.beschreibung %}title="{{ a.beschreibung }}"{% endif %}
+                            value="{{ a.id }}"
+                            {% if chosen_religion_id == a.id %}selected{% endif %}>
+                        {{ a.titel }}
+                        {% if a.beschreibung %}( {{ a.beschreibung|truncatewords:1 }} ){% endif %}
+                    </option>
+                {% endfor %}
+            </select>
+            <div class="flex-container">
+                <a href="{% url 'wiki:religionen' %}" target="_blank">Alle</a>
+                <a href="{% url 'admin:character_religion_add' %}" target="_blank">Neu</a>
+            </div>
+        </div>
+    </div>
+
+    <input type="submit" disabled class="btn" id="submit" value="Charaktererstellung endgültig abschließen">
+</form>
+
+<a href="{% url 'shop:index' %}" target="_blank">Im Shop einkaufen</a>
+{% endblock %}

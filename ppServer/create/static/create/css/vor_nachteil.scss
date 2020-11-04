@@ -1,0 +1,28 @@
+.grid-container {
+	grid-template-columns: repeat(5, auto);
+}
+// ŕevert fixes for tables with heading as first row
+div.grid-container:after {
+	content: none;
+}
+
+/* btn */
+.btn {
+	border-radius: 12px;
+	padding: 2em 5em;
+	margin: 2em auto;
+}
+.btn.disabled, .btn.disabled:hover {
+	background: #c8c8c8;
+	cursor: not-allowed;
+}
+
+/* highlight selected rows */
+div.selected {
+	background-color: lighten(rgb(0, 174, 255), 80%);
+	color: black;
+}
+div.begin, div.begin.selected {
+	background-color: lighten(rgb(0, 174, 255), 40%);
+	color: black;
+}

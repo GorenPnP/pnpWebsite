@@ -1,0 +1,16 @@
+# install via pip
+
+Django>=2.2.13
+dj-database-url>=0.5.0
+dj-static>=0.0.6
+gunicorn>=20.0.4
+Unipath>=1.0
+Pillow>=6.2.2
+Markdown>=2.6.6
+bleach>=3.1.4
+psycopg2>=2.8.5
+pytz>=2018.4
+python-dotenv
+django-request>=1.5.5
+#djangorestframework>=3.11.0	# TODO: use if needed
+sass>=1.26.10                   # sass --update . (on root)

@@ -1,0 +1,190 @@
+{% extends 'base/main.html' %}
+{% load static %}
+{% block title %}{{ topic }}{% endblock %}
+{% block extra-head %}
+<link rel="stylesheet" href="{% static 'base/css/index.css' %}" type="text/css">
+<link rel="stylesheet" href="{% static 'base/css/cards.css' %}" type="text/css">
+<script src="{% static 'base/js/index.js' %}"></script>
+{% endblock %}
+{% block absolute %}
+
+<section class="hero">
+    {% include 'base/hero_crafting.html' %}
+    {% if open_quiz %}
+        {% include 'base/hero_quiz.html' %}
+    {% endif %}
+    {% if list_vote and list_vote|length %}
+        {% include 'base/hero_poll.html' with polls=list_vote %}
+    {% endif %}
+    {% if shop_review and shop_review|length %}
+        {% include 'base/hero_shop.html' with items=shop_review %}
+    {% endif %}
+</section>
+
+{% include 'base/header.html' with topic="" %}
+{% endblock %}
+{% block body %}
+<section class="cards">
+
+    <!-- wiki -->
+    <div class="card" id="wiki">
+        <a href="{% url 'wiki:index' %}">
+            <div class="card__icon">
+                <img class="card__icon__img" src="{% static 'res/img/icon-lightbulb.png' %}" alt="lightbulb">
+            </div>
+        </a>
+        <div class="card__container">
+            <h2 class="card__heading">Wiki</h2>
+            <p class="card__text">
+                Das Goren PnP-Wiki steckt voller Informationen
+                rund um das PnP. Schau doch mal vorbei!
+            </p>
+            <div class="btns">
+                <a href="{% url 'wiki:index' %}">
+                    <button class="card__btn">
+                        <p class="btn__text">Los gehts</p>
+                    </button>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- shop -->
+    <div class="card" id="shop">
+        <a href="{% url 'shop:index' %}">
+            <div class="card__icon">
+                <img class="card__icon__img" src="{% static 'res/img/icon-discount.png' %}" alt="">
+            </div>
+        </a>
+        <div class="card__container">
+            <h2 class="card__heading">Shop</h2>
+            <p class="card__text">
+                Der Shop sprudelt über vor nützlichen items
+                und Rezepten. Außer sie sind vergriffen. Oder abgegriffen.
+            </p>
+            <div class="btns">
+                <a href="{% url 'shop:index' %}">
+                    <button class="card__btn">
+                        <p class="btn__text">Jimmy!</p>
+                    </button>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- charaktere -->
+    <div class="card" id="charakter">
+        <a href="{% url 'character:index' %}">
+            <div class="card__icon">
+                <img class="card__icon__img" src="{% static 'res/img/icon-characters.png' %}" alt="">
+            </div>
+        </a>
+        <div class="card__container">
+            <h2 class="card__heading">Charaktere</h2>
+            <p class="card__text">
+                Hier geht's zu allen deinen Charakteren,
+                zum Abschreiben und ganz neu anlegen.
+            </p>
+            <div class="btns">
+                <a href="{% url 'character:index' %}">
+                    <button class="card__btn">
+                        <p class="btn__text">Ja hin da!</p>
+                    </button>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- crafting -->
+    <div class="card" id="crafting">
+        <a href="{% url 'crafting:inventory' %}">
+            <div class="card__icon">
+                <img class="card__icon__img" src="{% static 'res/img/crafting.svg' %}" alt="">
+            </div>
+        </a>
+        <div class="card__container">
+            <h2 class="card__heading">Crafting</h2>
+            <p class="card__text">
+                Fühl dich wie bei Minecraft, nur im Schmiedesystem!
+            </p>
+            <div class="btns">
+                <a href="{% url 'crafting:inventory' %}">
+                    <button class="card__btn">
+                        <p class="btn__text">Überredet :)</p>
+                    </button>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Logs -->
+    <div class="card {% if not spielleiter %}hide{% endif %}" id="logs">
+        <div class="card__icon">
+            <img class="card__icon__img" src="{% static 'res/img/icon-logs.png' %}" alt="">
+        </div>
+        <div class="card__container">
+            <h2 class="card__heading">Logs</h2>
+            <p class="card__text">
+                Alle Aufzeichnungen die wir zu bieten haben 24/7.
+            </p>
+            <div class="btns">
+                <a href="{% url 'admin:request_request_overview' %}">
+                    <button class="card__btn card__btn--first">
+                        <p class="btn__text">Server</p>
+                    </button>
+                </a>
+                <a href="{% url 'log:index' %}">
+                    <button class="card__btn">
+                        <p class="btn__text">Custom</p>
+                    </button>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quizkontrolle -->
+    <div class="card {% if not spielleiter %}hide{% endif %}" id="quizkontrolle">
+        <a href="{% url 'quiz:sp_index' %}">
+            <div class="card__icon">
+                <img class="card__icon__img" src="{% static 'res/img/icon-trophy.png' %}" alt="">
+            </div>
+        </a>
+
+        <div class="card__container">
+            <h2 class="card__heading">Quizkontrolle</h2>
+            <p class="card__text">
+                Na wen haben wir denn da? Ein bisschen gucken?
+            </p>
+            <div class="btns">
+                <a href="{% url 'quiz:sp_index' %}">
+                    <button class="card__btn">
+                        <p class="btn__text">GO</p>
+                    </button>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Würfeln -->
+    <div class="card {% if not spielleiter %}hide{% endif %}" id="wuerfeln">
+        <a href="{% url 'service:random' %}">
+            <div class="card__icon">
+                <img class="card__icon__img" src="{% static 'res/img/icon-dice.png' %}" alt="">
+            </div>
+        </a>
+        <div class="card__container">
+            <h2 class="card__heading">Würfeln</h2>
+            <p class="card__text">
+                Würfeln ganz ohne Würfel in der Sonderedition mit Farben!
+            </p>
+            <div class="btns">
+                <a href="{% url 'service:random' %}">
+                    <button class="card__btn">
+                        <p class="btn__text">milchSHAKE</p>
+                    </button>
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,31 @@
+{% extends 'base/main.html' %}
+{% load static %}
+{% block title %}{{ topic }}{% endblock %}
+{% block extra-head %}
+<link rel="stylesheet" href="{% static 'base/css/table.css' %}">
+<style>
+    .next-party {
+        font-weight: bolder;
+        color: #fff;
+        font-size: 1.1em;
+        background: #c8c8c8 !important;
+        color: black;
+    }
+</style>
+{% endblock %}
+{% block absolute %}{% include 'base/header.html' with topic=topic %}{% endblock %}
+{% block body %}
+
+
+<div class="grid-container">
+    <div class="col1 heading">Name</div>
+    <div class="col2 heading">Geburtstag</div>
+    <div class="col3 heading heading--last">Wird wie alt?</div>
+
+    {% for s in list %}
+    <div class="col1 {% if s.next_party %}next-party{% endif %}">{{ s.name }}</div>
+    <div class="col2 {% if s.next_party %}next-party{% endif %}">{{ s.date }}</div>
+    <div class="col3 {% if s.next_party %}next-party{% endif %}">{{ s.next_age }}</div>
+    {% endfor %}
+</div>
+{% endblock %}

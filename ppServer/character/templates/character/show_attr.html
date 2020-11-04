@@ -1,0 +1,22 @@
+<div class="chip-container">
+    <div class="chip__row chip__row--example">
+        <div class="chip__cell chip__cell--emph">Attr.</div>
+        <div class="chip__cell">Wert</div>
+        <span class="chip__cell">/</span>
+        <div class="chip__cell">Max</div>
+    </div>
+    {% for rel in relAttrs %}
+        <div class="chip__row
+            {% if rel.attribut.id in k %}chip__row--k
+            {% elif rel.attribut.id in g %}chip__row--g
+            {% else %}chip__row--s{% endif %}">
+            <div class="chip__cell chip__cell--emph">{{ rel.attribut.titel }}</div>
+            <div class="chip__cell">{{ rel.aktuellerWert|default:'0' }}
+                {% if rel.aktuellerWert_bonus %}+ {{ rel.aktuellerWert_bonus }}{% endif %}
+            </div>
+            <span class="chip__cell">/</span>
+            <div class="chip__cell">{{ rel.maxWert|default:'0' }}
+                {% if rel.maxWert_bonus %}+{{ rel.maxWert_bonus }}{% endif %}</div>
+        </div>
+    {% endfor %}
+</div>

@@ -1,0 +1,41 @@
+{% extends 'base/main.html' %}
+{% load static %}
+{% block title %}{{ topic }}{% endblock %}
+{% block extra-head %}
+<link rel="stylesheet" href="{% static 'base/css/checkbox.css' %}">
+<link rel="stylesheet" href="{% static 'create/css/gfs.css' %}">
+<script src='https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js' type='text/javascript'></script>
+<script src="{% static 'base/js/ajax.js' %}"></script>
+<script src="{% static 'create/js/gfs.js' %}"></script>
+{% endblock %}
+{% block absolute %}{% include 'base/header.html' with topic=topic %}{% endblock %}
+
+{% block body %}
+<span class="message"></span>
+<select autofocus>
+    {% for g in gfs %}
+        <option value="{{ g.id }}" id="option{{ forloop.counter0 }}">{{ g.titel }} (AP: {{ g.ap }})</option>
+    {% endfor %}
+</select>
+
+<div class="larp">
+    <span class="checkbox" onclick="this.classList.toggle('checked')"></span>
+    <span onclick="document.getElementsByClassName('checkbox')[0].classList.toggle('checked')">Im LARP</span>
+</div>
+
+<button class="btn" onclick="submit()">Weiter</button>
+<p><a href="{% url 'wiki:gfs' %}" target="_blank">Alle Infos zu wählbaren Gfs/Klassen</a></p>
+
+
+{% if old_scetches %}
+    <div class="scetches">
+        {% for s in old_scetches %}
+            <p><a href="{% url 'create:prio' %}">
+                Einen bestehenden Entwurf ({{ s }}) fortführen
+            </a></p>
+        {% endfor %}
+
+        <p>Achtung, alte Entwürfe werden beim Anlegen eines Neuen automatisch gelöscht!</p>
+    </div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,40 @@
+div.main-container {
+	padding: 3em 0 4em;
+}
+label {margin-right: 1em;}
+.filter__titel {font-size: 1.2rem;}
+
+.filter form {display: contents;}
+.filter {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: space-between;
+	align-items: center;
+
+	margin: 3em 5vw;
+	background: #111;
+	border-radius: 10px;
+	width: 90vw;
+}
+.filter__container {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin: 1em;
+}
+
+.no-link {color: #c8c8c8;}
+.no-link:hover {opacity: 1;}
+
+.selected {font-size: 1.1rem;}
+.no-link.selected + a, .selected a:not(.no-link) {
+	color: #009c9c;
+}
+
+.selected {
+	background: #c8c8c8 !important;
+  color: black;
+}
+@media only screen and (max-width: 520px) {
+	.filter {justify-content: center;}
+}

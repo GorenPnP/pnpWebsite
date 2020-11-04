@@ -1,0 +1,68 @@
+{% extends 'base/main.html' %}
+{% load static %}
+{% block title %}{{ topic }}{% endblock %}
+{% block extra-head %}
+<link rel="stylesheet" type="text/css" href="{% static 'base/css/checkbox.css' %}" />
+<link rel="stylesheet" type="text/css" href="{% static 'quiz/css/index.css' %}" />
+<link rel="stylesheet" type="text/css" href="{% static 'quiz/css/grades.css' %}" />
+<script src='https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js' type='text/javascript'></script>
+<script src="{% static 'base/js/ajax.js' %}"></script>
+<script type="text/javascript" src="{% static 'quiz/js/index.js' %}"></script>
+{% endblock %}
+{% block absolute %}{% include 'base/header.html' with topic=topic %}{% endblock %}
+{% block body %}
+
+<aside class="legende">
+    <div>Aktuelle Punktzahl: <b>{{ akt_punktzahl }}</b></div>
+    <div><a href="{% url 'quiz:scoreBoard' %}">Score-Board</a></div>
+</aside>
+
+<main id="timetable">
+
+    <div class="accordeon">
+        {% for module in timetable %}
+        <div class="accordeon__child">
+            <div class="accordeon__module {% if not module.questions %}grayed_out{% endif %}">
+                <div class="accordeon__arrow" onclick="this.parentNode.parentNode.classList.toggle('expand')">
+                    <svg height="512px" id="Layer_1" style="enable-background:new 0 0 512 512;" version="1.1" viewBox="0 0 512 512"
+                        width="512px" xml:space="preserve" xmlns="http://www.w3.org/2000/svg"
+                        xmlns:xlink="http://www.w3.org/1999/xlink">
+                        <path
+                            d="M98.9,184.7l1.8,2.1l136,156.5c4.6,5.3,11.5,8.6,19.2,8.6c7.7,0,14.6-3.4,19.2-8.6L411,187.1l2.3-2.6  c1.7-2.5,2.7-5.5,2.7-8.7c0-8.7-7.4-15.8-16.6-15.8v0H112.6v0c-9.2,0-16.6,7.1-16.6,15.8C96,179.1,97.1,182.2,98.9,184.7z" />
+                    </svg>
+                </div>
+
+                {% if module.icon %}<img src="{{ module.icon }}"  class="icon icon--title"/>
+                {% else %}<span></span>
+                {% endif %}
+                <span class="titel">{{ module.titel }}</span>
+                <div class="sub">
+                    <span class="score {{ module.score_tag_class }}">{{ module.score|default:"-" }}</span>
+                    <span class="questions">{{ module.questions }}
+                        {% if module.questions == 1 %}Frage{% else %}Fragen{% endif %}</span>
+                    <span class="points">{{ module.points|floatformat }}/{{ module.max_points|floatformat }} P.</span>
+                </div>
+
+                {% if not spielleiter_service and module.state == 'opened' %}
+                    <button class="btn" onclick="submit({{ module.id }})">
+                        Quiz me!
+                    </button>
+                {% else %}
+                    <span>{{ module.state }}</span>
+                {% endif %}
+
+            </div>
+            <div class="accordeon__extra">
+                {% if module.icon %}<img src="{{ module.icon }}" class="icon icon--extra" />
+                {% else %}<span></span>
+                {% endif %}
+                <div class="revard">Belohnung: {{ module.revard }}</div>
+
+                <div class="description">{{ module.description }}</div>
+            </div>
+        </div>
+
+        {% endfor %}
+        </div>
+    </main>
+{% endblock %}

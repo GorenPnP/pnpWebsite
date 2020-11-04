@@ -1,0 +1,29 @@
+{% extends 'base/main.html' %}
+{% load static %}
+{% block title %}{{ topic }}{% endblock %}
+{% block extra-head %}
+<link rel="stylesheet" href="{% static 'base/css/checkbox.css' %}">
+<link rel="stylesheet" href="{% static 'crafting/css/index.css' %}">
+<script src="{% static 'crafting/js/index.js' %}"></script>
+{% endblock %}
+{% block absolute %}{% include 'base/header.html' with topic=topic %}{% endblock %}
+
+{% block body %}
+<form method="post" class="container">
+	{% csrf_token %}
+	<label for="name">Crafting für Profil:</label>
+	<input list="profiles" name="name" id="name" placeholder="Name" required>
+	<datalist id="profiles">
+		{% for p in profiles %}<option value="{{ p.name }}"></option>{% endfor %}
+	</datalist>
+
+	<div class="check">
+		<div class="checkbox" id="restriction" onclick="toggleCheckbox()"></div>
+		<label for="restriction" onclick="toggleCheckbox()">Fürs PnP eingeschränkt</label>
+
+		<input type="checkbox" name="restriction" id="hiddenCheckbox" style="display: none">
+	</div>
+
+	<input type="submit" value="GO" class="btn" autofocus>
+</form>
+{% endblock %}

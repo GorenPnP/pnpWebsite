@@ -1,0 +1,109 @@
+/* html for table in .main-container:
+
+	<div class="grid-container">
+        <div class="col1 heading">...</div>
+        <div class="heading">...</div>
+				...
+				 <div class="heading heading--last">...</div>
+
+        <div class="col1">...</div>
+				<div>...</div>
+				...
+
+				...
+</div>
+*/
+
+/*
+modify css with vars in :root below
+and div.grid-container {grid-template-columns: auto ..;}
+for varying col amounts (default: 3)
+*/
+:root {
+	--heading-padding-top: 0.7em;
+	--heading-font-size: .9rem;
+
+	--heading-color: #97b0c9;
+	--heading-bg: #010a0c;
+	--col1-bg: #5a5f64;
+}
+
+.main-container {
+	color: #c8c8c8;
+	padding: 5em 2em 1em;	// attention, got whitespace left & right!
+}
+
+.grid-container {
+	min-width: fit-content;
+	margin: 0 auto;
+	display: grid;
+	grid-template-columns: auto auto auto;
+	background: #4a4f54;
+	position: relative;
+}
+
+.grid-container div {
+	justify-self: stretch;
+	padding: 1em .7em;
+	vertical-align: middle;
+}
+
+/* sticky header and col1 */
+div.col1 {
+	position: sticky;
+	left: 0;
+	z-index: 3;
+	background: var(--col1-bg);
+	font-family: Quicksand, "sans-serif";
+	font-weight: bold;
+	min-width: fit-content;
+}
+div.heading {
+	position: sticky;
+	top: 0;
+	z-index: 4;
+	background: var(--heading-bg);
+	padding-top: var(--heading-padding-top);
+	padding-bottom: var(--heading-padding-top);
+	font-size: var(--heading-font-size);
+	color: var(--heading-color);
+	font-weight: bold;
+	min-width: fit-content;
+}
+div.col1.heading {
+	z-index: 5;
+}
+
+/* heading background */
+div.col1.heading {
+	border-radius: 13px 0 0 13px;
+}
+div.heading--last {
+	border-radius: 0 13px 13px 0;
+}
+
+/* necessary background-fixes for rounded header-row */
+div.grid-container:before {
+	content: '';
+	position: absolute;
+	background: #3a3d40;
+	top: 0;
+	width: 100%;
+	height: calc(var(--heading-font-size) / 2 + var(--heading-padding-top));
+	z-index: 2;
+}
+
+div.grid-container:after {
+	content: '';
+	position: absolute;
+	background: #5a5f64;
+	top: calc(var(--heading-font-size) / 2 + var(--heading-padding-top));;
+	width: 30px;
+	height: 70px;
+	z-index: 1;
+}
+
+/* correct from main.css, where text is centered */
+@media only screen and (max-width: 527px) {
+	*, *::before, *::after {text-align: left;}
+}

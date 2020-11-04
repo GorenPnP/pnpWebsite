@@ -1,0 +1,46 @@
+
+section.content {
+	width: 100%;
+	margin: 3em 0;
+	padding: 0 3em;
+}
+section.content h2.title {
+	margin-bottom: .8em;
+}
+
+/* setup tables */
+section.startbonus .grid-container {
+		grid-template-columns: repeat(2, auto);
+		border-radius: 10px;
+}
+section.startbonus .grid-container:before {
+	content: none;
+}
+section.startbonus .col1:first-of-type {
+	border-radius: 10px 0 0;
+}
+section.startbonus .col1--last {
+	border-radius: 0 0 0 10px;
+}
+
+/* easily readable description without scrolling */
+.description__text {
+	max-width: 75ch;
+	line-height: 1.35em;
+}
+
+/* placing of startbonus */
+.startbonus {
+	margin: 0;
+}
+.container {
+	display: flex;
+	justify-content: space-between;
+	width: 95vw;
+}
+
+@media only screen and (max-width: 700px) {
+	.container {
+		flex-direction: column;
+	}
+}

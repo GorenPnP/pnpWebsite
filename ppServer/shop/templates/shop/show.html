@@ -1,0 +1,64 @@
+{% extends 'base/main.html' %}
+{% load static %}
+{% block title %}{{ topic }}{% endblock %}
+{% block extra-head %}
+<link rel="stylesheet" href="{% static 'base/css/table.css' %}">
+<link rel="stylesheet" href="{% static 'shop/css/show.css' %}">
+<style>
+	.grid-container {grid-template-columns: repeat({{ fields.0|length }}, auto);}
+</style>
+<script src="{% static 'shop/js/show.js' %}"></script>
+{% endblock %}
+{% block absolute %}
+{% include 'base/header.html' with topic=topic plus_url=plus_url %}
+{% endblock %}
+
+{% block body %}
+<section class="filter">
+	<form method="get">
+
+		<div class="filter__container filter__titel">EP-Rang Filter:</div>
+
+		<div class="filter__container">
+			<label for="min_ep_rang">Min. EP-Rang</label>
+			<input name="min_ep_rang" id="min_ep_rang" type="number" value="{{ min_ep_rang }}">
+		</div>
+
+		<div class="filter__container">
+			<label for="max_ep_rang">Max. EP-Rang</label>
+			<input name="max_ep_rang" id="max_ep_rang" type="number" value="{{ max_ep_rang }}">
+		</div>
+
+		<button id="filter_ep_rang_btn" class="btn filter__container" type="submit">Nach Rang filtern</button>
+	</form>
+</section>
+
+<section class="content">
+	{%  if fields|length < 2 %}
+		<h3 style="text-align: center">Hier gibt es nix. Tja, Thaddäus.</h3>
+	{% else %}
+
+	<!-- all items -->
+	<div class="grid-container">
+			{% for row in fields %}
+				{% for entries in row %}
+					<div class="row-{{ forloop.parentloop.counter0 }}
+											{% if forloop.parentloop.first %}heading stick-top
+											{% if forloop.last %}heading--last{% endif %}
+											{% endif %}
+											{% if forloop.first %}col1 stick-left{% endif %}">
+
+						{% for e in entries %}
+							{% if e.name %}<a name="{{ e.name }}" class="no-link row-{{ forloop.parentloop.parentloop.counter0 }}">{% endif %}
+							{% if e.url %}<a href="{{ e.url }}">{% endif %}
+
+							{% if e.val or e.val == 0 %}{{ e.val }}{% else %}-{% endif %}{% if e.url %}</a>{% endif %}{% if e.name %}</a>{% endif %}{% if not forloop.last %},{% endif %}
+
+						{% endfor %}
+					</div>
+				{% endfor %}
+			{% endfor %}
+	</div>
+	{% endif %}
+</section>
+{% endblock %}

@@ -1,0 +1,55 @@
+{% extends 'base/main.html' %}
+{% load static %}
+{% block title %}{{ topic }}{% endblock %}
+{% block extra-head %}
+<link rel="stylesheet" href="{% static 'base/css/table.css' %}">
+<link rel="stylesheet" href="{% static 'create/css/prio.css' %}">
+<script>
+    breakpoint = 550;
+    window.dispatchEvent(new Event('resize'))
+</script>
+<script src='https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js' type='text/javascript'></script>
+<script src="{% static 'base/js/ajax.js' %}"></script>
+<script src="{% static 'create/js/prio.js' %}" type="text/javascript"></script>
+{% endblock %}
+{% block absolute %}{% include 'base/header.html' with topic=topic %}{% endblock %}
+
+{% block body %}
+<div id="prio-part">
+
+    <span id="ap-debt-text">Du brauchst noch <b id="ap-debt">{{ ap_cost }}</b> AP für die Gfs.</span>
+    <span id="ap-left-text">Du hast <b id="ap-left">{{ ap_cost }}</b> AP übrig.</span>
+    <div class="grid-container">
+        {% for row in table %}
+            <div class="priority col1">{{ row.0 }}</div>
+            <div id="0|{{ forloop.counter0 }}" {% if row.1 is None %}class="grayed_out"></div>
+            {% else %}>{{ row.1 }} IP</div>{% endif %}
+
+            <div id="1|{{ forloop.counter0 }}" {% if row.2 is None %}class="grayed_out"></div>
+            {% else %}>{{ row.2 }} AP</div>{% endif %}
+
+            <div id="2|{{ forloop.counter0 }}" {% if row.3 is None %}class="grayed_out"></div>
+            {% else %}>{{ row.3 }} SP</div>{% endif %}
+
+            <div id="3|{{ forloop.counter0 }}" {% if row.4 is None and row.5 is None %}class="grayed_out"></div>
+            {% else %}>
+                {% if row.4 %}{{ row.4 }} FP{% endif %}{% if row.4 and row.5 %},{% endif %}
+                {% if row.5 %}{{ row.5 }} FG{% endif %}
+            </div>{% endif %}
+
+            <div id="4|{{ forloop.counter0 }}" {% if row.6 is None %}class="grayed_out"></div>
+            {% else %}>{{ row.6 }} Zauber</div>{% endif %}
+
+            <div id="5|{{ forloop.counter0 }}" {% if row.7 is None %}class="grayed_out"></div>
+            {% else %}>{{ row.7 }} Drachmen</div>{% endif %}
+        {% endfor %}
+    </div>
+</div>
+
+<button id='submit' class="btn" disabled onclick="submitPrio()">Weiter</button>
+
+<div id="notes">
+    {% if notizen %}<h4>Notizen:</h4>{% endif %}
+    {% for n in notizen %}{{ n }}<br>{% endfor %}
+</div>
+{% endblock %}

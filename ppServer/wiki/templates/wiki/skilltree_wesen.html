@@ -1,0 +1,37 @@
+{% extends 'base/main.html' %}
+{% load static %}
+{% block title %}{{ topic }}{% endblock %}
+{% block extra-head %}
+<link rel="stylesheet" href="{% static 'base/css/table.css' %}">
+<style>
+div.grid-container {
+    grid-template-columns: repeat(9, auto);
+}
+</style>
+{% endblock %}
+{% block absolute %}{% include 'base/header.html' with topic=topic %}{% endblock %}
+{% block body %}
+<div class="grid-container">
+    <div class="col1 heading">Wesen</div>
+    <div class="col2 heading">2 ( {{ heading.2 }} SP )</div>
+    <div class="col3 heading">3 ( {{ heading.3 }} SP )</div>
+    <div class="col4 heading">4 ( {{ heading.4 }} SP )</div>
+    <div class="col5 heading">5 ( {{ heading.5 }} SP )</div>
+    <div class="col6 heading">6 ( {{ heading.6 }} SP )</div>
+    <div class="col7 heading">7 ( {{ heading.7 }} SP )</div>
+    <div class="col8 heading">8 ( {{ heading.8 }} SP )</div>
+    <div class="col9 heading heading--last">Bonus</div>
+
+    {% for e in list %}
+    <div class="col1">{{ e.titel }}</div>
+    <div class="col2">{{ e.2 }}</div>
+    <div class="col3">{{ e.3 }}</div>
+    <div class="col4">{{ e.4 }}</div>
+    <div class="col5">{{ e.5 }}</div>
+    <div class="col6">{{ e.6 }}</div>
+    <div class="col7">{{ e.7 }}</div>
+    <div class="col8">{{ e.8 }}</div>
+    <div class="col9">{{ e.0 }}</div>
+    {% endfor %}
+</div>
+{% endblock %}

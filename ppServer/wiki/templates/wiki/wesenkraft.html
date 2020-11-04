@@ -1,0 +1,39 @@
+{% extends 'base/main.html' %}
+{% load static %}
+{% block title %}{{ topic }}{% endblock %}
+{% block extra-head %}
+<link rel="stylesheet" href="{% static 'base/css/table.css' %}">
+<style>
+    div.grid-container {grid-template-columns: repeat(4, auto);}
+</style>
+<script>
+    breakpoint = 470
+    window.dispatchEvent(new Event('resize'))
+</script>
+{% endblock %}
+{% block absolute %}{% include 'base/header.html' with topic=topic %}{% endblock %}
+{% block body %}
+<div class="grid-container">
+    <div class="col1 heading">Titel</div>
+    <div class="col2 heading">Probe</div>
+    <div class="col3 heading">Wirkung</div>
+    <div class="col4 heading heading--last">Wesen</div>
+
+    {% for w in wesenkräfte %}
+    <div class="col1">{{ w.kraft.titel }}</div>
+    <div class="col2">{{ w.kraft.probe }}</div>
+    <div class="col3">{{ w.kraft.wirkung }}</div>
+    <div class="col4">
+        {% if w.kraft.wesen == 'f' %}
+            {{ w.für }}{{ w.zusatz.0 }}
+        {% else %}
+            {% if w.zusatz %}
+                {% for z in w.zusatz %}{{ z }}{% if not forloop.last %}, {% endif %}{% endfor %}
+            {% else %}
+                {{ w.für }}
+            {% endif %}
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

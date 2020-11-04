@@ -1,0 +1,24 @@
+.grid-container {
+	max-width: 750px;
+}
+
+.col1 img {
+	height: 50px;
+}
+
+.text * {
+	color: #c8c8c8;
+}
+
+.btn {
+	margin: 4em auto;
+	padding: 1em 8em;
+}
+.disabled.btn, .disabled.btn:hover {
+	background: #c8c8c8;
+	cursor: not-allowed;
+}
+
+.checkbox.monochrome {
+	--checkbox-mark-color: #888888;
+}

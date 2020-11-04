@@ -1,0 +1,54 @@
+{% extends 'base/main.html' %}
+{% load static %}
+{% block title %}{{ topic }}{% endblock %}
+{% block extra-head %}
+<link rel="stylesheet" href="{% static 'base/css/table.css' %}">
+<link rel="stylesheet" href="{% static 'wiki/css/stufenplan_profession.css' %}">
+{% endblock %}
+{% block absolute %}{% include 'base/header.html' with topic=topic %}{% endblock %}
+{% block body %}
+<div class="container">
+    <section class="content description">
+        <h2 class="title">Beschreibung</h2>
+        <p class="description__text">{{ profession.beschreibung }}</p>
+    </section>
+
+    <section class="content startbonus">
+        <h2 class="title">Bonus bei Wahl</h2>
+        <div class="grid-container">
+            <div class="col1">Attribut Wert Bonus</div>
+            <div>{{ profession.aktuell_bonus|default:'-' }}</div>
+
+            <div class="col1">Attribut Maximum Bonus</div>
+            <div>{{ profession.max_bonus|default:'-' }}</div>
+
+            <div class="col1">FP Bonus</div>
+            <div>{{ profession.fp_bonus|default:'-' }}</div>
+
+            <div class="col1">Talente</div>
+            <div>{{ profession.talente|default:'-' }}</div>
+
+            <div class="col1">Spezialfertigkeiten</div>
+            <div>{{ profession.spezial|default:'-' }}</div>
+
+            <div class="col1 col1--last">Wissensfertgkeiten</div>
+            <div>{{ profession.wissen|default:'-' }}</div>
+        </div>
+    </section>
+</div>
+
+<section class="content ep-tree">
+    <h2 class="title">EP-Tree</h2>
+    <div class="grid-container ep-tree__table">
+        <div class="col1 heading">Stufe (EP)</div>
+        <div class="heading">TP</div>
+        <div class="heading heading--last">Weiteres</div>
+
+        {% for e in stufenplan_entries %}
+            <div class="col1">{{ e.stufe }}<br>({{ e.ep }} EP)</div>
+            <div>{{ e.tp|default:"-" }}</div>
+            <div>{{ e.weiteres|default:"-" }}</div>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}

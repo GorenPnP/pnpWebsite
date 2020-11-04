@@ -1,0 +1,49 @@
+{% extends 'base/main.html' %}
+{% load static %}{% load l10n %}
+{% block title %}{{ topic }}{% endblock %}
+{% block extra-head %}
+<link rel="stylesheet" type="text/css" href="{% static 'crafting/css/details.css' %}">
+{% endblock %}
+{% block absolute %}{% include 'base/header.html' with topic=topic %}{% endblock %}
+
+{% block body %}
+<div class="head">
+		<a href="{% url 'crafting:inventory' %}" class="btn btn--inventory">Inventar</a>
+		<a href="{% url 'crafting:craft' %}" class="btn btn--craft">Crafting</a>
+		<a href="{% url 'crafting:index' %}" class="">Profil wechseln</a>
+</div>
+
+<div class="overlay">
+	<label for="overlay__duration">Crafting Time:</label><span id="overlay__duration">{{ duration }}</span>
+	<label for="overlay__spezial">Spezialfertigkeiten:</label><div id="overlay__spezial">{{ spezial|default:"-" }}</div>
+	<label for="overlay__wissen">Wissensfertigkeiten:</label><div id="overlay__wissen">{{ wissen|default:"-" }}</div>
+	<label for="overlay__table">Zutaten:</label><div id="overlay__ingredients">
+		{% for item in ingredients %}
+			<a class="ingredient" href="{{ item.link }}">
+				<img src="{{ item.icon }}" alt="{{ item.name }}">
+				<span class="num">{{ item.num|floatformat:-1 }}</span>
+				<span class="name">{{ item.name }}</span>
+			</a>
+		{% empty %}<div>-</div>
+		{% endfor %}
+	</div>
+	<label for="overlay__table">Hergestellt an:</label><div id="overlay__table">
+		<a class="ingredient" href="{{ table.link }}">
+				<img src="{{ table.icon }}" alt="{{ table.name }}">
+				<span class="name">{{ table.name }}</span>
+			</a>
+	</div>
+	<label for="overlay__table">Produkte:</label><div id="overlay__table">
+		{% for item in products %}
+			<a class="ingredient" href="{{ item.link }}">
+				<img src="{{ item.icon }}" alt="{{ item.name }}">
+				<span class="num">{{ item.num|floatformat:-1 }}</span>
+				<span class="name">{{ item.name }}</span>
+			</a>
+		{% empty %}<div>-</div>
+		{% endfor %}
+	</div>
+</div>
+
+<button class="btn btn--back" onclick="window.history.back()">Zurück</button>
+{% endblock %}
