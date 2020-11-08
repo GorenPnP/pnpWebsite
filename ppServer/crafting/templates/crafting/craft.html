@@ -16,7 +16,7 @@
 			class="item table{% if forloop.first %} selected{% endif %}{% if table.available %} available{% endif %}"
 			id="tid-{{ table.id }}"
 			draggable="true"
-			onclick="tableChange({{ table.id }})"
+			onclick="tableChange('tid-{{ table.id }}')"
 			data-title="{{ table.name }}">
 
 			<img src="{{ table.icon }}" alt="{{ table.name }}">

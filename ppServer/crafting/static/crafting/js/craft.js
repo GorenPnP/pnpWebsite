@@ -131,8 +131,10 @@ function getDragAfterElement(container, y) {
 */
 
 // select a different table and show its recipes instead of the current ones
-function tableChange(id) {
-	var selected_tag = document.getElementById("tid-" + id)
+function tableChange(id, display_spinner=true) {
+	var selected_tag = document.getElementById(/*"tid-" +*/ id)
+
+	console.log("table:", selected_tag)
 
 	// markup for selection
 	Array.from(document.getElementsByClassName("table selected")).forEach(table => {table.classList.remove("selected")})
@@ -142,12 +144,12 @@ function tableChange(id) {
 	document.getElementsByTagName("title")[0].innerHTML = selected_tag.dataset.title
 	document.getElementsByClassName("topic")[0].innerHTML = selected_tag.dataset.title
 
-	post({ table: id }, data => {
+	post({ table: /\d+/.exec(id)[0] }, data => {
 		document.getElementsByClassName("recipes")[0].innerHTML = constructRecipes(data.recipes)
 
 		// disable recipes where necessary
 		updateRecipeStatus()
-	})
+	}, null, display_spinner)
 }
 
 
@@ -222,7 +224,7 @@ function craft({ currentTarget }) {
 		// reload by table
 		var selected_table = document.getElementsByClassName("table selected")
 		if (selected_table.length)
-			tableChange(/\d+/.exec(selected_table[0].id)[0])
+			tableChange(selected_table[0].id)
 
 		// reload by search term
 		else {
@@ -290,7 +292,7 @@ document.addEventListener("DOMContentLoaded", () => {
 	// load page content
 
 	// get all recipes of first table
-	tableChange( /\d+/.exec(document.getElementsByClassName("table")[0].id)[0] )
+	tableChange(document.getElementsByClassName("table")[0].id)
 
 
 	// initially disable recipes where necessary
@@ -361,6 +363,9 @@ document.addEventListener("DOMContentLoaded", () => {
 			offsetTouchY = draggable.getBoundingClientRect().height * .5
 
 			draggable.dispatchEvent(new TouchEvent("touchmove", {targetTouches: [touch]}))
+
+			// show table recipes
+			tableChange(draggable.id, false)
 		})
 
 		draggable.addEventListener("touchmove", e => {
