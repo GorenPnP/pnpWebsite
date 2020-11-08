@@ -40,6 +40,7 @@ class RecipeAdmin(hide_on_shop_angucken):
 
     list_display = ('icons_produkte', 'produkte', 'icons_zutaten', 'zutaten', 'table', 'duration', 'fertigkeiten')
     list_display_links = ('icons_produkte', 'produkte')
+    search_fields = ('product__item__name', )
 
     exclude = ["wissen", "spezial"]
 
