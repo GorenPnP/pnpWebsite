@@ -324,3 +324,37 @@ def details(request, id):
 		"duration": recipe.getFormattedDuration(),
 	}
 	return render(request, "crafting/details.html", context)
+
+
+def sp_give_items(request):
+
+	if not request.user.groups.filter(name__iexact="spielleiter").exists():
+		return redirect("crafting:craft")
+
+
+	if request.method == "GET":
+		context = {
+			"allProfiles": sorted([{"name": p.name, "id": p.id, "restricted": p.restricted} for p in Profile.objects.all()], key=lambda p: p["name"]),
+			"allItems": sorted([{"icon": t.getIconUrl(), "id": t.id, "name": t.name} for t in Tinker.objects.all()], key=lambda t: t["name"])
+		}
+		return render(request, "crafting/sp_give_items.html", context)
+
+	if request.method == "POST":
+		json_dict = json.loads(request.body.decode("utf-8"))
+
+		try:
+			item = int(json_dict["item"])
+			profile = int(json_dict["profile"])
+			num = int(json_dict["num"])
+		except:
+			return JsonResponse({"message": "Konnte Parameter nicht lesbar empfangen"}, status=418)
+
+		# add num of items and save
+		item = get_object_or_404(Tinker, id=item)
+		profile = get_object_or_404(Profile, id=profile)
+
+		iitem, _ = InventoryItem.objects.get_or_create(char=profile, item=item)
+		iitem.num += num
+		iitem.save()
+
+		return JsonResponse({})

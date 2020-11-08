@@ -1,0 +1,48 @@
+.main-container {
+	display: grid;
+	justify-content: center;
+	align-content: center;
+	height: 100vh;
+}
+
+.alert {
+	display: none;
+	grid-column: 1 / -1;
+	padding: .5em;
+	border-radius: 8px;
+	margin-bottom: 3em;
+}
+.alert--success {
+	background-color: lightgreen;
+}
+.alert--error {
+	background-color: lightcoral;
+}
+
+.add-form {
+	display: grid;
+	grid-template-columns: auto auto;
+	grid-template-rows: repeat(3, 1fr);
+
+	justify-content: center;
+	align-items: center;
+
+	padding: .5em;
+	border-radius: 8px;
+	background: darken(rgb(4, 201, 245), 60%);
+	color: #ddd;
+
+	& > * {
+		margin: .5em;
+		max-width: 300px;
+	}
+}
+
+.btn {
+	grid-column: 1 / -1;
+	justify-self: center;
+
+	padding: .7em 1em;
+	font-size: 1em;
+	font-weight: 600;
+}
