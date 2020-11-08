@@ -165,11 +165,10 @@ def craft(request):
 		# table selection has changed, update the recipes
 		if "table" in json_dict.keys():
 			try:
-				id = int(json_dict["table"])
-			except:
-				return JsonResponse({"message": "Parameter nicht lesbar angekommen"}, status=418)
+				table_id = int(json_dict["table"])
+			except: return JsonResponse({"message": "Parameter nicht lesbar angekommen"}, status=418)
 
-			return JsonResponse({"recipes": get_recipes_of_table(inventory, rel.profil.restricted, id)})
+			return JsonResponse({"recipes": get_recipes_of_table(inventory, rel.profil.restricted, table_id)})
 
 
 		# search for an item, return just names for autocomplete
@@ -183,46 +182,8 @@ def craft(request):
 		if "search_btn" in json_dict.keys():
 			search = json_dict["search_btn"]
 
-			# get all recipes that need the table with this id
-			recipes_as_product = []
-			for p in Product.objects.filter(item__name__iregex=search):
-
-				recipe = p.recipe
-				ingredients = recipe.ingredient_set.all()
-				products = recipe.product_set.all()
-
-				# restrict only to recipes that need ingredients, IF restricted
-				if rel.profil.restricted and not ingredients.exists(): continue
-
-				recipe = {
-					"id": recipe.id,
-					"ingredients": [{"num": i.num, "own": inventory[i.item.id] if i.item.id in inventory.keys() else 0, "icon": i.item.getIconUrl(), "name": i.item.name} for i in ingredients],
-					"products": [{"num": p.num, "icon": p.item.getIconUrl(), "name": p.item.name, "id": p.item.id} for p in products],
-					"table": {"icon": recipe.table.getIconUrl(), "name": recipe.table.name} if recipe.table else Recipe.getHandwerk(),
-					"locked": recipe.table.id not in inventory.keys() if recipe.table else False
-				}
-				recipes_as_product.append(recipe)
-
-			# all recipes where these are ingredients
-			recipes_as_ingredient = []
-			for i in Ingredient.objects.filter(item__name__iregex=search):
-				recipe = i.recipe
-				ingredients = recipe.ingredient_set.all()
-				products = recipe.product_set.all()
-
-				# restrict only to recipes that need ingredients, IF restricted
-				if rel.profil.restricted and not ingredients.exists(): continue
-
-				recipe = {
-					"id": recipe.id,
-					"ingredients": [{"num": i.num, "own": inventory[i.item.id] if i.item.id in inventory.keys() else 0, "icon": i.item.getIconUrl(), "name": i.item.name} for i in ingredients],
-					"products": [{"num": p.num, "icon": p.item.getIconUrl(), "name": p.item.name, "id": p.item.id} for p in products],
-					"table": {"icon": recipe.table.getIconUrl(), "name": recipe.table.name} if recipe.table else Recipe.getHandwerk(),
-					"locked": recipe.table.id not in inventory.keys() if recipe.table else False
-				}
-				recipes_as_ingredient.append(recipe)
-
-			return JsonResponse({"as_product": recipes_as_product, "as_ingredient": recipes_as_ingredient})
+			return JsonResponse({"as_product": construct_recipes(Product.objects.filter(item__name__iregex=search), inventory, rel),
+                           "as_ingredient": construct_recipes(Ingredient.objects.filter(item__name__iregex=search), inventory, rel)})
 
 
 		# craft items out of others at a table
@@ -294,6 +255,34 @@ def craft(request):
 			return JsonResponse({})
 
 
+# queryset may contain either ingredients or products of recipes
+def construct_recipes(queryset, inventory, rel):
+	recipes = []
+	recipe_ids = []
+	for q in queryset:
+		recipe = q.recipe
+
+		# prevent duplicates
+		if recipe.id in recipe_ids: continue
+		recipe_ids.append(recipe.id)
+
+		ingredients = recipe.ingredient_set.all()
+		products = recipe.product_set.all()
+
+		# restrict only to recipes that need ingredients, IF restricted
+		if rel.profil.restricted and not ingredients.exists():
+			continue
+
+		recipe = {
+			"id": recipe.id,
+			"ingredients": [{"num": i.num, "own": inventory[i.item.id] if i.item.id in inventory.keys() else 0, "icon": i.item.getIconUrl(), "name": i.item.name} for i in ingredients],
+			"products": [{"num": p.num, "icon": p.item.getIconUrl(), "name": p.item.name, "id": p.item.id} for p in products],
+			"table": {"icon": recipe.table.getIconUrl(), "name": recipe.table.name} if recipe.table else Recipe.getHandwerk(),
+			"locked": recipe.table.id not in inventory.keys() if recipe.table else False
+		}
+		recipes.append(recipe)
+
+	return recipes
 
 
 # inventory of a profile, restricted = profile.restricted, id = id of table
