@@ -10,6 +10,13 @@
 {% block absolute %}{% include 'base/header.html' with topic=topic %}{% endblock %}
 
 {% block body %}
+<div class="head">
+		<a href="{% url 'crafting:craft' %}">Crafting</a>
+		<a href="{% url 'crafting:inventory' %}">Inventar</a>
+		<a href="{% url 'crafting:index' %}">Profil wechseln</a>
+</div>
+
+
 <div class="alert alert--success"></div>
 <div class="alert alert--error"></div>
 <div class="add-form">

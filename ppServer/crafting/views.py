@@ -50,6 +50,7 @@ def inventory(request):
 	if request.method == "GET":
 
 		context = {"topic": "Inventar von {}".format(rel.profil.name),
+               "spielleiter": request.user.groups.filter(name__iexact="spielleiter").exists(),
 							 "profil": rel.profil,
 							 "items": InventoryItem.objects.filter(char=rel.profil).order_by("item__name"),
                "allItems": sorted([{"icon": t.getIconUrl(), "id": t.id, "name": t.name} for t in Tinker.objects.all()], key=lambda t: t["name"])}
@@ -155,7 +156,10 @@ def craft(request):
 
 
 
-		context = {"tables": table_list, "recipes": get_recipes_of_table(inventory, rel.profil.restricted, table_list[0]["id"] if len(table_list) else 0)}
+		context = {"tables": table_list,
+							 "recipes": get_recipes_of_table(inventory, rel.profil.restricted, table_list[0]["id"] if len(table_list) else 0),
+               "spielleiter": request.user.groups.filter(name__iexact="spielleiter").exists(),
+							 }
 		return render(request, "crafting/craft.html", context)
 
 	if request.method == "POST":
@@ -334,6 +338,7 @@ def sp_give_items(request):
 
 	if request.method == "GET":
 		context = {
+			"topic": "Profilen Items geben",
 			"allProfiles": sorted([{"name": p.name, "id": p.id, "restricted": p.restricted} for p in Profile.objects.all()], key=lambda p: p["name"]),
 			"allItems": sorted([{"icon": t.getIconUrl(), "id": t.id, "name": t.name} for t in Tinker.objects.all()], key=lambda t: t["name"])
 		}

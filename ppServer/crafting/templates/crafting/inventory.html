@@ -17,6 +17,11 @@
 	<div class="btns">
 		<a href="{% url 'crafting:craft' %}" class="btn btn--craft">Crafting</a>
 		<a href="{% url 'crafting:index' %}" class="">Profil wechseln</a>
+
+		{% if spielleiter %}
+			<div></div>
+			<a href="{% url 'crafting:sp_give_items' %}" class="">Profilen Items geben</a>
+		{% endif %}
 	</div>
 </div>
 

@@ -5,6 +5,13 @@
 	height: 100vh;
 }
 
+.head {
+	display: flex;
+	justify-content: space-between;
+
+	margin-bottom: 2em;
+}
+
 .alert {
 	display: none;
 	grid-column: 1 / -1;
