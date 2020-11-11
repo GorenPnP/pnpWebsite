@@ -93,6 +93,8 @@ tinker_enum = [
     ('a', 'andere Waffen'),
     ('w', 'Werkzeuge'),
     ('ro', 'Rohstoffe/Werkstoffe'),
+    ('k', 'Trankzutaten'),
+    ('t', 'Tränke'),
     ('z', 'Zauber/Upgrades/Verbesserungen'),
     ('p', 'Produktionsstätten'),
     ('u', 'Müll'),
