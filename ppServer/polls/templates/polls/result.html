@@ -20,8 +20,8 @@
     {% endfor %}
 </div>
 
-<a href="{% url 'base:index' %}">
-    <button class="btn">Beenden</button>
+<a href="{{ next_url }}">
+    <button class="btn">OK</button>
 
 </a>
 {% endblock %}

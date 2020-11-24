@@ -2,13 +2,12 @@ import datetime
 from django.utils import timezone
 
 from django.db import models
-from django.utils.timezone import now
 
 from character.models import Spieler
 
 
 def default_deadline():
-    return now() + datetime.timedelta(days=14)
+    return timezone.now() + datetime.timedelta(days=14)
 
 
 class Question(models.Model):
@@ -18,14 +17,13 @@ class Question(models.Model):
 
     text = models.CharField(max_length=200)
     anz_stimmen = models.PositiveIntegerField("Stimmen pro Person", default=1)
-    pub_date = models.DateTimeField('date published', default=now)
+    pub_date = models.DateTimeField('date published', default=timezone.now)
     deadline = models.DateTimeField('deadline', default=default_deadline)
 
     spieler_voted = models.ManyToManyField(Spieler, through="QuestionSpieler")
 
     def umfrage_läuft(self):
-        now = timezone.now()
-        return self.pub_date <= now <= self.deadline
+        return self.pub_date <= timezone.now() <= self.deadline
 
     umfrage_läuft.admin_order_field = 'pub_date'
     umfrage_läuft.boolean = True

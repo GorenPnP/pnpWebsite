@@ -30,7 +30,7 @@ class DetailView(generic.DetailView):
             return JsonResponse({"message": "Daten nicht angekommen"}, status=418)
 
         if not question.umfrage_läuft():
-            return JsonResponse({"message": "Die Umfarge ist nicht zur Abstimmung freigegeben."}, status=418)
+            return JsonResponse({"message": "Die Umfrage ist nicht zur Abstimmung freigegeben."}, status=418)
 
         if len(choice_ids) != question.anz_stimmen:
             return JsonResponse({"message": "Falsche Anzahl an choices."}, status=418)
@@ -43,23 +43,34 @@ class DetailView(generic.DetailView):
             choices.append(choice)
 
         spieler = get_object_or_404(Spieler, name=request.user.username)
-        if QuestionSpieler.objects.filter(question=question, spieler=spieler).exists():
-            return JsonResponse({"message": "Bereits über diese Frage abgestimmt"}, status=418)
+        #if QuestionSpieler.objects.filter(question=question, spieler=spieler).exists():
+        #    return JsonResponse({"message": "Bereits über diese Frage abgestimmt"}, status=418)
 
         # valid since here
 
         for c in choices:
             c.votes += 1
             c.save()
-        QuestionSpieler.objects.create(spieler=spieler, question=question)
+        QuestionSpieler.objects.get_or_create(spieler=spieler, question=question)
 
         # Always return an HttpResponseRedirect after successfully dealing
         # with POST data. This prevents data from being posted twice if a
         # user hits the Back button.
-        #return HttpResponseRedirect(reverse('polls:results', args=(question.id,)))
-        return JsonResponse({"url": reverse("polls:results", args=[question.id])})
+        return JsonResponse({"url": reverse('polls:results', args=(question.id,))})
 
 
-class ResultsView(generic.DetailView):
-    model = Question
-    template_name = 'polls/result.html'
+def results(request, pk):
+
+    spieler = get_object_or_404(Spieler, name=request.user.username)
+    now = timezone.now()
+
+    all_answered = [qs.question.id for qs in QuestionSpieler.objects.filter(spieler=spieler)]
+    open_questions = Question.objects.filter(pub_date__lte=now, deadline__gte=now).exclude(id__in=all_answered)
+
+    next_url = reverse("polls:detail", args=[open_questions[0].id]) if open_questions.exists() else reverse("base:index")
+    context = {
+        "question": get_object_or_404(Question, id=pk),
+        "next_url": next_url,
+    }
+
+    return render(request, 'polls/result.html', context)
