@@ -1,6 +1,8 @@
+import json
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
-from django.shortcuts import get_object_or_404, render
+from django.http.response import JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
 from functools import cmp_to_key
 
 from character.models import Attribut, Fertigkeit, Charakter, Spieler
@@ -92,27 +94,55 @@ def sort_by_name(a, b):
 @login_required
 def userLog(request):
 
-    logs = []
-    if User.objects.filter(username=request.user.username, groups__name='spielleiter').exists():
-        context = {"spielleiter": True}
-        for l in Log.objects.all().order_by("-timestamp", "spieler", "char", "art"):
-            logs.append({"item": l, "kategorie": l.get_art_display()})
-    else:
-        context = {"spielleiter": False}
-        chars = Charakter.objects.filter(eigentümer__name=request.user.username)
-        for l in Log.objects.filter(char__in=chars).order_by("-timestamp", "char", "art"):
-            logs.append({"item": l, "kategorie": l.get_art_display()})
+    if not User.objects.filter(username=request.user.username, groups__name='spielleiter').exists():
+        return redirect("base:index")
 
-    char = []
-    spieler = []
-    kategorie = []
-    for l in logs:
-        char.append(l["item"].char)
-        spieler.append(l["item"].spieler)
-    spieler = sorted(set(spieler), key=cmp_to_key(sort_by_name))
-    char = sorted(set(char), key=cmp_to_key(sort_by_name))
 
-    context["filter"] = {"char": char, "spieler": spieler, "kategorie": kind_enum}
-    context["logs"] = logs
-    context["user"] = request.user.username
-    return render(request, "log/userLog.html", context)
+    if request.method == "GET":
+
+        logs = [{"item": l, "kategorie": l.get_art_display()} for l in Log.objects.all().order_by("-timestamp", "spieler", "char", "art")]
+
+        # get used filter categories
+        char = []
+        spieler = []
+        for l in logs:
+            char.append(l["item"].char)
+            spieler.append(l["item"].spieler)
+
+        # make those entries unique
+        spieler = sorted(set(spieler), key=cmp_to_key(sort_by_name))
+        char = sorted(set(char), key=cmp_to_key(sort_by_name))
+
+        # collect and render
+        context = {
+            "filter": {"char": char, "spieler": spieler, "kategorie": kind_enum},
+            "logs": logs
+        }
+        return render(request, "log/userLog.html", context)
+
+
+    if request.method == "POST":
+        json_dict = json.loads(request.body.decode("utf-8"))
+
+        try:
+            char_filter = json_dict["char"]
+            spieler_filter = json_dict["spieler"]
+            kategorie_filter = json_dict["kategorie"]
+        except:
+            return JsonResponse({"message": "Not all filters were provided"}, status=418)
+
+        print(char_filter, spieler_filter, kategorie_filter)
+        logs = Log.objects
+
+        if len(char_filter): logs = logs.filter(char_id__in=char_filter)
+        if len(spieler_filter): logs = logs.filter(spieler_id__in=spieler_filter)
+        if len(kategorie_filter): logs = logs.filter(art__in=kategorie_filter)
+
+        if not len(char_filter) + len(spieler_filter) + len(kategorie_filter): logs = logs.all()
+
+        return JsonResponse({"logs": [{"charname": l.char.name,
+                                       "spielername": l.spieler.name,
+                                       "kategorie": l.get_art_display(),
+                                       "notizen": l.notizen,
+                                       "kosten": l.kosten,
+                                       "timestamp": l.timestamp} for l in logs]})
