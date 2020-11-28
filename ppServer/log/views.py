@@ -1,6 +1,7 @@
 import json
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
+from django.core.paginator import Paginator
 from django.http.response import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from functools import cmp_to_key
@@ -128,10 +129,11 @@ def userLog(request):
             char_filter = json_dict["char"]
             spieler_filter = json_dict["spieler"]
             kategorie_filter = json_dict["kategorie"]
-        except:
-            return JsonResponse({"message": "Not all filters were provided"}, status=418)
 
-        print(char_filter, spieler_filter, kategorie_filter)
+            page_number = json_dict['page_number']
+        except:
+            return JsonResponse({"message": "Not all filters were provided or pagenumber is missing"}, status=418)
+
         logs = Log.objects
 
         if len(char_filter): logs = logs.filter(char_id__in=char_filter)
@@ -140,9 +142,28 @@ def userLog(request):
 
         if not len(char_filter) + len(spieler_filter) + len(kategorie_filter): logs = logs.all()
 
-        return JsonResponse({"logs": [{"charname": l.char.name,
-                                       "spielername": l.spieler.name,
-                                       "kategorie": l.get_art_display(),
-                                       "notizen": l.notizen,
-                                       "kosten": l.kosten,
-                                       "timestamp": l.timestamp} for l in logs]})
+        log_paginator = Paginator(logs, 20)
+        page = log_paginator.get_page(page_number)
+        paging = {
+            #'count': page.count(),
+            'end_index': page.end_index(),
+            'has_next': page.has_next(),
+            'has_other_pages': page.has_other_pages(),
+            'has_previous': page.has_previous(),
+            #'index': page.index(),
+            'next_page_number': page.next_page_number() if page.has_next() else None,
+            'number': page.number,
+            #'paginator': page.paginator,
+            'previous_page_number': page.previous_page_number() if page.has_previous() else None,
+            'start_index': page.start_index(),
+            'num_pages': page.paginator.num_pages
+        }
+        logs = [{"charname": l.char.name,
+                 "spielername": l.spieler.name,
+                 "kategorie": l.get_art_display(),
+                 "notizen": l.notizen,
+                 "kosten": l.kosten,
+                 "timestamp": l.timestamp} for l in page.object_list]
+
+
+        return JsonResponse({"logs": logs, "paging": paging})

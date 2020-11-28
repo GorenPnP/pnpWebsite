@@ -9,6 +9,10 @@ kind_enum = [("s", "Shop"),
 
 
 class Log(models.Model):
+
+    class Meta:
+        ordering = ['-timestamp']
+
     spieler = models.ForeignKey(Spieler, on_delete=models.CASCADE)
     char = models.ForeignKey(Charakter, on_delete=models.CASCADE)
     art = models.CharField(max_length=1, choices=kind_enum)

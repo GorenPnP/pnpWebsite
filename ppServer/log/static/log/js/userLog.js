@@ -3,6 +3,7 @@ var spieler_select_tag
 var kategorie_select_tag
 
 var table
+var paginations
 
 /* helper functions */
 function get_ids_from_select(select_tag, parseToInt=true) {
@@ -20,6 +21,7 @@ function get_ids_from_select(select_tag, parseToInt=true) {
 document.addEventListener("DOMContentLoaded", () => {
 
     table = document.getElementsByClassName("grid-container")[0]
+    paginations = document.getElementsByClassName("pagination")
 
     char_select_tag = document.getElementById("char_dropdown")
     char_select_tag.addEventListener("change", handle_all_filters);
@@ -34,14 +36,16 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 
-function handle_all_filters() {
+function handle_all_filters(loadPage=1) {
     var char = get_ids_from_select(char_select_tag)
     var spieler = get_ids_from_select(spieler_select_tag)
     var kategorie = get_ids_from_select(kategorie_select_tag, false)
 
-    post({ char, spieler, kategorie }, data => {
-        console.log(data.logs)
+    var page_number = loadPage
 
+    post({ char, spieler, kategorie, page_number }, data => {
+
+        // collect table data
         table.innerHTML =
             `<div class="heading col1">Charakter</div>
                 <div class="heading">Spieler</div>
@@ -61,5 +65,30 @@ function handle_all_filters() {
 
         if (!data.logs.length)
             table.innerHTML += `<div class="col1" style="grid-column: 1 / -1; text-align: center; padding: 2em 1em;">Keine Ergebnisse</div>`
+
+
+        // assemble paging
+        const paging = data.paging
+        var paging_html = ``
+
+        // previous
+        if (paging.has_previous)
+            paging_html += `<a onclick="handle_all_filters()">&laquo; 1</a>
+                <a onclick="handle_all_filters(${ paging.previous_page_number })">< Zurück</a>`
+        else
+            paging_html += `<div></div><div></div>`
+
+        // current
+        paging_html += `<span>${ paging.number } von ${ paging.num_pages }</span>`
+
+        // next
+        if (paging.has_next)
+            paging_html += `<a onclick="handle_all_filters(${ paging.next_page_number })">Weiter ></a>
+                    <a onclick="handle_all_filters(${ paging.num_pages})">${paging.num_pages } &raquo;</a>`
+        else
+            paging_html += `<div></div><div></div>`
+
+        Array.from(paginations).forEach(tag => tag.innerHTML = paging_html)
+
     })
 }
