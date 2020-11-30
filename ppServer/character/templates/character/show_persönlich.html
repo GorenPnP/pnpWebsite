@@ -18,6 +18,8 @@
         <div class="val">{{ char.haarfarbe|default:'-' }}</div>
         <label>Augen</label>
         <div class="val">{{ char.augenfarbe|default:'-' }}</div>
+        <label>Eco oder Morph?</label>
+        <div class="val">{{ char.useEco|yesno:"Eco, Morph" }}</div>
     </section>
 
 
@@ -36,6 +38,10 @@
         <div class="val">{{ char.wesenschaden_waff_kampf|default_if_none:'-' }} HP
             {% if char.wesenschaden_andere_gestalt is not None %}({{ char.wesenschaden_andere_gestalt }} HP){% endif %}
         </div>
+        <label>Humor</label>
+        <div class="val">{{ humor|default:'-' }}</div>
+        <label>Konzentration</label>
+        <div class="val">{{ konzentration|default:'-' }}</div>
     </section>
 
     <section class="section hp">

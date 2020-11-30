@@ -93,6 +93,7 @@ def show(request, pk):
         # for attrs, ferts (with 1 attr)
         context["k"] = [1, 3, 4, 5]
         context["g"] = [2, 6, 7]
+        context["m"] = [7, 8]
 
 
         # persönliches
@@ -108,6 +109,8 @@ def show(request, pk):
             context["totAb"] = base_hp * -10
             context["maxHp"] = base_hp * 50 + char.rang + char.HPplus
             context["wkHp"] = get_object_or_404(RelAttribut, char=char, attribut__titel="WK").aktuell() * 50
+            context["humor"] = get_object_or_404(RelAttribut, char=char, attribut__titel="UM").aktuell() * 5
+            context["konzentration"] = get_object_or_404(RelAttribut, char=char, attribut__titel="IN").aktuell() * 5
 
 
         # attribute
@@ -123,6 +126,7 @@ def show(request, pk):
 
             # get ferts with one attr
             attrs = []
+            attr_aktWert = {}
             for relAttr in RelAttribut.objects.filter(char=char):
                 attrs.append({
                     "attr_id": relAttr.attribut.id,
@@ -131,8 +135,16 @@ def show(request, pk):
                     "ferts": RelFertigkeit.objects.filter(char=char, fertigkeit__attr2=None, fertigkeit__attr1=relAttr.attribut)
                 })
 
+                # to calc limits
+                attr_aktWert[relAttr.attribut.id] = relAttr.aktuell()
+
             context["fert2"] = fert_else
             context["attr"] = attrs
+            context["limits"] = {
+                "k": round(sum([attr_aktWert[attr_id] for attr_id in context["k"]]) / 2, 1),
+                "g": round(sum([attr_aktWert[attr_id] for attr_id in context["g"]]) / 2, 1),
+                "m": round(sum([attr_aktWert[attr_id] for attr_id in context["m"]]) / 2, 1)
+            }
 
 
         # proben
@@ -151,6 +163,10 @@ def show(request, pk):
             # collect proben
             context["proben"] = [
                     {"titel": "Schadenswiderstand", "val": attrs["ST"].aktuell() + attrs["VER"].aktuell()},
+                    {"titel": "Astralwiderstand", "val": attrs["MA"].aktuell() + attrs["WK"].aktuell()},
+                    {"titel": "Initiative", "val": "{} + {} W4".format(
+                        attrs["WK"].aktuell() + attrs["N"].aktuell(), attrs["SCH"].aktuell())
+                     },
                     {"titel": "Initiative Astral", "val": "{} + {} W4".format(
                         attrs["SCH"].aktuell() + attrs["WK"].aktuell(), floor(attrs["MA"].aktuell() / 2 + .5))
                     },
