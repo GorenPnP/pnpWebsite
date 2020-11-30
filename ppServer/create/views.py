@@ -813,6 +813,9 @@ def new_cp(request):
             for rel in NewCharakterSpezialfertigkeit.objects.filter(char=new_char):
                 RelSpezialfertigkeit.objects.create(char=c, spezialfertigkeit=rel.spezialfertigkeit, stufe=rel.stufe)
 
+            for rel in NewCharakterWissensfertigkeit.objects.filter(char=new_char):
+                RelWissensfertigkeit.objects.create(char=c, wissensfertigkeit=rel.wissensfertigkeit)
+
             for rel in GfsWesenkraft.objects.filter(gfs=new_char.gfs):
                 RelWesenkraft.objects.create(char=c, wesenkraft=rel.wesenkraft)
 
