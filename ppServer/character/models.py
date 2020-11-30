@@ -597,7 +597,7 @@ class Charakter(models.Model):
     eigentümer = models.ForeignKey(Spieler, on_delete=models.CASCADE, null=True, blank=True)
     name = models.CharField(max_length=200, default=rand_str, blank=True, unique=True)
     spezies = models.ManyToManyField(Spezies, related_name='wesen', through='RelSpezies')
-    gfs = models.ForeignKey(Gfs, on_delete=models.SET_NULL, null=True)
+    gfs = models.ForeignKey(Gfs, on_delete=models.SET_NULL, null=True, blank=True)
     profession = models.ForeignKey(Profession, on_delete=models.SET_NULL, null=True, blank=True)
 
     manifest = models.DecimalField('Startmanifest', max_digits=4, decimal_places=2, default=10.0,
