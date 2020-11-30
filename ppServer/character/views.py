@@ -72,7 +72,9 @@ def show(request, pk):
             'wesen': wesen,
             "totAb": base_hp * -10,
             "maxHp": base_hp * 50 + char.rang + char.HPplus,
-            "wkHp": get_object_or_404(RelAttribut, char=char, attribut__titel="WK").aktuell() * 50
+            "wkHp": get_object_or_404(RelAttribut, char=char, attribut__titel="WK").aktuell() * 50,
+            "humor": get_object_or_404(RelAttribut, char=char, attribut__titel="UM").aktuell() * 5,
+            "konzentration": get_object_or_404(RelAttribut, char=char, attribut__titel="IN").aktuell() * 5
         }
 
         return render(request, "character/show.html", context)
