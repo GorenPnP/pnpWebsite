@@ -1,13 +1,120 @@
 {% extends 'base/main.html' %}
 {% load static %}
+{% load l10n %}
 {% block title %}{{ topic }}{% endblock %}
 {% block extra-head %}
-<link rel="stylesheet" type="text/css" href="{% static 'quiz/css/spielleiter_correct.css' %}" />
+<link rel="stylesheet" type="text/css" href="{% static 'base/css/checkbox.css' %}" />
+<link rel="stylesheet" type="text/css" href="{% static 'quiz/css/question.css' %}" />
 <script src='https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js' type='text/javascript'></script>
 <script src="{% static 'base/js/ajax.js' %}"></script>
-<script type="text/javascript" src="{% static 'quiz/js/spielleiter_correct.js' %}"></script>
+<script type="text/javascript" src="{% static 'quiz/js/question.js' %}"></script>
 {% endblock %}
 {% block absolute %}{% include 'base/header.html' with topic=topic %}{% endblock %}
 {% block body %}
+<form method="POST" enctype="multipart/form-data">
+	{% csrf_token %}
 
+	<section class="info">
+			<div class="general">
+					<div class="info__item"><span class="label">Fach</span> {{ question.topic.subject.titel }}</div>
+					<div class="info__item"><span class="label">Thema</span> {{ question.topic.titel }}</div>
+					<div class="info__item"><span class="label">Klasse</span> {{ question.grade }}</div>
+			</div>
+
+			<div class="vals">
+					<div class="info__item"><span class="label">Frage</span> {{ num_question }}/{{ start_num_questions }}</div>
+					<div class="info__item points">
+						<span class="label">Punkte</span>
+						<input type="number" min="0" class="points__input" name="points" step="0.5">/
+						{{ question.points }}
+					</div>
+			</div>
+	</section>
+
+	<section class="question">
+			<div class="imgs">
+					{% for e in question.images.all %}<a href="{{ e.img.url }}" class="img"><img src="{{ e.img.url }}"></a>{% endfor %}
+			</div>
+
+			<span class="text">{{ question.text }}</span>
+
+			<div class="files">
+					{% for e in question.files.all %}<a href="{{ e.file.url }}" class="file"><div>{{ e.name }}</div></a>{% endfor %}
+			</div>
+	</section>
+
+	<section class="answer">
+
+			{% if answers %}
+					<div class="multiple-choice">
+							{% for a in answers %}
+							<div class="choice">
+									<div class="checkbox checkbox--correction{% localize off %}{% if a.id in checked_answers %} checked{% endif %}{% if a.id in corrected_answers %} wrong-answer{% endif %}{% endlocalize %}"
+											id="{% localize off %}{{ a.id }}{% endlocalize %}"
+											onclick="toggleCheckbox({% localize off %}{{ a.id }}{% endlocalize %})">
+									</div>
+									{% if a.img %}<div class="img" onclick="toggleCheckbox({% localize off %}{{ a.id }}{% endlocalize %})"><img src="{{ a.img.img.url }}"></div>{% endif %}
+									{% if a.text %}<div class="text" onclick="toggleCheckbox({% localize off %}{{ a.id }}{% endlocalize %})">{{ a.text }}</div>{% endif %}
+							</div>
+							{% endfor %}
+					</div>
+			{% endif %}
+
+			{% if question.allow_text %}
+				<textarea class="text-input" name="text" placeholder="Kein Text abgegeben" onkeyup="autoGrow(this)" disabled>{{ spieler_question.answer_text }}</textarea>
+			{% endif %}
+
+			{% if question.allow_upload %}
+					<div class="uploads">
+						{% if spieler_question.answer_img %}
+							<div class="upload">
+									<label for="img">Bild:</label>
+									<a href="{{ spieler_question.answer_img.img.url }}">{{ spieler_question.answer_img.name }}</a>
+							</div>
+						{% endif %}
+
+						{% if spieler_question.answer_file %}
+							<div class="upload">
+									<label for="file">Datei:</label>
+									<a href="{{ spieler_question.answer_file.file.url }}">{{ spieler_question.answer_file.name }}</a>
+							</div>
+						{% endif %}
+					</div>
+			{% endif %}
+	</section>
+
+
+
+		<!-- ids of changed checkboxes -->
+		<input type="text" value="{{ corrected_answers }}" id="ids" name="ids" hidden>
+
+    <section class="answer">
+
+            <textarea class="text-input" name="text" placeholder="Folgendes war gut / schlecht ..." onkeyup="autoGrow(this)" autofocus>{{ spieler_question.correct_text }}</textarea>
+
+            <div class="uploads">
+							<div class="upload">
+								<label for="img">Bild:</label>
+								<input type="file" accept="image/*" name="img" id="img" class="upload upload--img">
+								{% if spieler_question.correct_img %}
+									<a href="{{ spieler_question.correct_img.img.url }}">{{ spieler_question.correct_img.name }}</a>
+								{% endif %}
+							</div>
+
+							<div class="upload">
+									<label for="file">Datei:</label>
+									<input type="file" name="file" id="file" class="upload upload--file">
+									{% if spieler_question.correct_file %}
+										<a href="{{ spieler_question.correct_file.file.url }}">{{ spieler_question.correct_file.name }}</a>
+								{% endif %}
+							</div>
+            </div>
+    </section>
+
+    <div class="flex-container flex-container--btn">
+        <button class="btn btn--back" onclick="back(event)">Abbrechen</button>
+        <input type="submit" class="btn" value="OK">
+    </div>
+
+</form>
 {% endblock %}

@@ -120,9 +120,15 @@ def question(request):
 
         # no module for player selected
         if not rel.current_session: return redirect("quiz:index")
-        spq = rel.current_session.nextQuestion()
 
-        print(spq, rel.current_session.current_question)
+        state = rel.current_session.spielerModule.state
+        if state == 3:    # if 'answered'
+            return redirect("quiz:session_done")
+
+        if state != 2:    # if not 'opened'
+            return redirect("quiz:index")
+
+        spq = rel.current_session.nextQuestion()
 
         # all questions done
         if not spq:
@@ -134,18 +140,12 @@ def question(request):
         random.shuffle(answers)
 
         context = {"topic": rel.current_session.spielerModule.module.title, "question": spq.question, "answers": answers,
-                   "start_num_questions": rel.current_session.questions.count(), "num_question": rel.current_session.current_question + 1,
-                   "imgForm": ImageForm, "fileForm": FileForm,
-                   # for debugging
-                   "spielleiter": request.user.groups.filter(name__iexact="spielleiter").exists()
+                   "start_num_questions": rel.current_session.questions.count(), "num_question": rel.current_session.current_question + 1
                    }
 
         return render(request, "quiz/question.html", context)
 
     if request.method == "POST":
-
-        #imgForm = ImageForm(request.POST, request.FILES)
-        #fileForm = FileForm(request.POST, request.FILES)
 
         spq = rel.current_session.currentQuestion()
         spq.answer_text = request.POST.get("text")
@@ -159,6 +159,7 @@ def question(request):
             spq.answer_img.save()
 
             """
+            TODO: validate image and file data
             file_data = {'img': SimpleUploadedFile('face.jpg', request.FILES.get("img"))}
             imgForm = ImageForm({}, file_data)
 
@@ -181,20 +182,19 @@ def question(request):
 @login_required
 def session_done(request):
 
-    """
     spieler = get_object_or_404(Spieler, name=request.user.username)
     rel = get_object_or_404(RelQuiz, spieler=spieler)
-
     if not rel.current_session: return redirect("quiz:index")
 
-    # delete marking of current session
-    topic = rel.current_session.spielerModule.module.title
-    rel.current_session = None
-    rel.save()
-    """
+    if request.method == "GET":
+        context = {"topic": rel.current_session.spielerModule.module.title}
+        return render(request, "quiz/session_done.html", context)
 
-    context = {"topic": "topic"} #topic}
-    return render(request, "quiz/session_done.html", context)
+    if request.method == "POST":
+        rel.current_session = None
+        rel.save()
+
+        return redirect("quiz:index")
 
 
 def score_board(request):

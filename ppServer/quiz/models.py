@@ -236,28 +236,40 @@ class SpielerSession(models.Model):
 
     def nextQuestion(self):
         ''' returns next spielerQuestion of module or None if no more exist '''
-        question = None
 
+        # current questions index, work from here to next question
         current_question = self.currentQuestion()
         if not current_question: return None
 
-        offset = 1 if current_question.answer_mc or current_question.answer_text or current_question.answer_img or current_question.answer_file else 0
+        # get all questions and index to the next to display. Is the current if no answer was given.
+        offset = 1 if (self.spielerModule.state == 2 and (current_question.answer_mc or current_question.answer_text or current_question.answer_img or current_question.answer_file)) or\
+                      (self.spielerModule.state == 3 and (current_question.achieved_points is not None)) else 0
+        questions = self.questions.all()
 
-        try:
-            question = self.questions.all()[self.current_question + offset]
-            self.current_question += offset
-        except:
-            self.current_question -= 1
+        # if index out of bounds, return None
+        if self.current_question + offset >= questions.count() or self.current_question + offset < 0: return None
+
+        # apply offset
+        self.current_question += offset
         self.save()
-        return question
+
+        return questions[self.current_question]
+
 
     def setAnswered(self):
 
         self.spielerModule.state = module_state[3][0]
         self.spielerModule.save()
 
-        import sys
-        self.current_question = None
+        self.current_question = 0
+        self.save()
+
+    def setCorrected(self):
+
+        self.spielerModule.state = module_state[4][0]
+        self.spielerModule.save()
+
+        self.current_question = 0
         self.save()
 
 
@@ -271,13 +283,20 @@ class SpielerQuestion(models.Model):
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
     spieler = models.ForeignKey(Spieler, on_delete=models.CASCADE)
 
-    achieved_points = models.FloatField(default=0)
+    achieved_points = models.FloatField(null=True, blank=True)
 
-    # TODO add fields for correction
-    answer_mc = models.TextField(null=True, blank=True)     # json-array of multiple choice answers (bool[]), ordered by ids of MultipleChoiceFields
+    # fields for answer
+    # json-array of multiple choice answers (bool[]), ordered by ids of MultipleChoiceFields
+    answer_mc = models.TextField(null=True, blank=True)
     answer_text = models.TextField(null=True, blank=True)
-    answer_img = models.OneToOneField(Image, on_delete=models.SET_NULL, null=True, blank=True)
-    answer_file = models.OneToOneField(File, on_delete=models.SET_NULL, null=True, blank=True)
+    answer_img = models.OneToOneField(Image, on_delete=models.SET_NULL, null=True, blank=True, related_name="answer_img")
+    answer_file = models.OneToOneField(File, on_delete=models.SET_NULL, null=True, blank=True, related_name="answer_file")
+
+    # fields for correction
+    correct_mc = models.TextField(null=True, blank=True)     # json-array of multiple choice answers (bool[]), ordered by ids of MultipleChoiceFields
+    correct_text = models.TextField(null=True, blank=True)
+    correct_img = models.OneToOneField(Image, on_delete=models.SET_NULL, null=True, blank=True, related_name="correct_img")
+    correct_file = models.OneToOneField(File, on_delete=models.SET_NULL, null=True, blank=True, related_name="correct_file")
 
     def __str__(self):
         return "{}, {}".format(self.spieler, self.question)

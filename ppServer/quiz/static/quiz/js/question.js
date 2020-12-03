@@ -1,6 +1,10 @@
 function toggleCheckbox(id) {
     // toggle clicked checkbox
-    document.getElementById(id).classList.toggle('checked')
+    const checkbox = document.getElementById(id)
+    checkbox.classList.toggle('checked')
+
+    if (checkbox.classList.contains('checkbox--correction'))
+        checkbox.classList.toggle('wrong-answer')
 
     var list_tag = document.getElementById("ids")
     var list = JSON.parse(list_tag.value)
@@ -24,3 +28,10 @@ function back(e) {
     e.preventDefault()
     window.history.back()
 }
+
+
+// for /quiz/sp/correction/.. only
+document.addEventListener("DOMContentLoaded", _ => {
+    const checkboxes = [...document.getElementsByClassName("checkbox checkbox--correction wrong-answer")]
+    checkboxes.forEach(checkbox => checkbox.classList.toggle('checked'))
+})

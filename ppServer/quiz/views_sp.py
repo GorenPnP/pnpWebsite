@@ -143,9 +143,71 @@ def sp_correct(request, id):
     if not User.objects.filter(username=request.user.username, groups__name='spielleiter').exists():
         return HttpResponse(status=404)
 
+
+    sp_mo = get_object_or_404(SpielerModule, id=id)
+
+    # no module for player selected
+    if sp_mo.state != 3:    # if not 'answered'
+        return redirect("quiz:sp_modules")
+
+    current_session = SpielerSession.objects.filter(spielerModule=sp_mo).order_by("-started").first()
+    if not current_session:
+        return redirect("quiz:sp_modules")
+
+    # GET
     if request.method == "GET":
 
-        sp_mo = get_object_or_404(SpielerModule, id=id)
+        spq = current_session.nextQuestion()
 
-        context = {"topic": "{} ({})".format(sp_mo.module.title, sp_mo.spieler.name)}
+        # all questions done
+        if not spq:
+            current_session.setCorrected()
+            return redirect("quiz:sp_modules")
+
+        answers = spq.question.multiplechoicefield_set.all()
+        checked_answers = json.loads(spq.answer_mc) if spq.answer_mc else []
+        corrected_answers = json.loads(spq.correct_mc) if spq.correct_mc else []
+
+        context = {"topic": "{} ({})".format(sp_mo.module.title, sp_mo.spieler.name),
+                   "question": spq.question, "spieler_question": spq,
+                   "answers": answers, "checked_answers": checked_answers, "corrected_answers": corrected_answers,
+                   "start_num_questions": current_session.questions.count(), "num_question": current_session.current_question + 1
+                   }
         return render(request, "quiz/spielleiter_correct.html", context)
+
+
+    # POST
+    if request.method == "POST":
+
+        spq = current_session.currentQuestion()
+        spq.correct_text = request.POST.get("text")
+        spq.correct_mc = request.POST.get("ids")
+
+        points = request.POST.get("points")
+        spq.achieved_points = float(points) if len(points) else None
+
+        # check whether it's valid:
+        if "img" in request.FILES.keys():  # and imgForm.is_valid():
+            image = request.FILES.get("img")
+            spq.correct_img = Image.objects.create(img=image)
+            spq.correct_img.save()
+
+            """
+            TODO: validate image and file data
+            file_data = {'img': SimpleUploadedFile('face.jpg', request.FILES.get("img"))}
+            imgForm = ImageForm({}, file_data)
+
+            print("IMG valid", imgForm.cleaned_data)
+            spq.correct_img = imgForm.cleaned_data.get("img")
+
+        if fileForm.is_valid():
+            print("FILE valid")
+            spq.correct_file = fileForm.cleaned_data["file"]
+        """
+        if "file" in request.FILES.keys():  # and imgForm.is_valid():
+            file = request.FILES.get("file")
+            spq.correct_file = File.objects.create(file=file)
+            spq.correct_file.save()
+
+        spq.save()
+        return redirect(reverse("quiz:sp_correct", args=[id]))

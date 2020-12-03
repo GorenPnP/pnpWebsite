@@ -3,7 +3,7 @@
 {% block title %}{{ topic }}{% endblock %}
 {% block extra-head %}
 <style>
-	a.btn {
+	.btn {
 		color: #333;
 		padding: 1em 2em;
 	}
@@ -25,5 +25,8 @@
 {% block body %}
 <h1>Fertig!</h1>
 
-<a href="{% url 'quiz:index' %}" class="btn">Beenden</a>
+<form method="POST">
+	{% csrf_token %}
+	<input type="submit" class="btn" value="Beenden" />
+</form>
 {% endblock %}
