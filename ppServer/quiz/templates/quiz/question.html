@@ -39,42 +39,44 @@
 <form method="POST" enctype="multipart/form-data">
     {% csrf_token %}
 
-<section class="answer">
+    <section class="answer">
 
-    {% if answers %}
-        <div class="multiple-choice">
-            {% for a in answers %}
-            <div class="choice">
-                <div class="checkbox" id="{% localize off %}{{ a.id }}{% endlocalize %}" onclick="toggleCheckbox({% localize off %}{{ a.id }}{% endlocalize %})"></div>
-                {% if a.img %}<div class="img" onclick="toggleCheckbox({% localize off %}{{ a.id }}{% endlocalize %})"><img src="{{ a.img.img.url }}"></div>{% endif %}
-                {% if a.text %}<div class="text" onclick="toggleCheckbox({% localize off %}{{ a.id }}{% endlocalize %})">{{ a.text }}</div>{% endif %}
+        {% if answers %}
+            <div class="multiple-choice">
+                {% for a in answers %}
+                <div class="choice">
+                    <div class="checkbox" id="{% localize off %}{{ a.id }}{% endlocalize %}" onclick="toggleCheckbox({% localize off %}{{ a.id }}{% endlocalize %})"></div>
+                    {% if a.img %}<div class="img" onclick="toggleCheckbox({% localize off %}{{ a.id }}{% endlocalize %})"><img src="{{ a.img.img.url }}"></div>{% endif %}
+                    {% if a.text %}<div class="text" onclick="toggleCheckbox({% localize off %}{{ a.id }}{% endlocalize %})">{{ a.text }}</div>{% endif %}
+                </div>
+                {% endfor %}
             </div>
-            {% endfor %}
-        </div>
-    {% endif %}
-
-    {% if question.allow_text %}
-        <textarea class="text-input" name="text" placeholder="Was ich noch hinzufügen wollte ..." onkeyup="autoGrow(this)"></textarea>
-    {% endif %}
-
-    {% comment %}
-    TODO: include this again!
-        {% if question.allow_upload %}
-        <div class="upload upload--img">
-            {{ imgForm }}
-        </div>
-        <div class="upload upload--file">
-            {{ fileForm }}
-        </div>
         {% endif %}
-    {% endcomment %}
+
+        {% if question.allow_text %}
+            <textarea class="text-input" name="text" placeholder="Was ich noch hinzufügen wollte ..." onkeyup="autoGrow(this)" autofocus></textarea>
+        {% endif %}
+
+        {% if question.allow_upload %}
+            <div class="uploads">
+                <div class="upload">
+                    <label for="img">Bild:</label>
+                    <input type="file" accept="image/*" name="img" id="img" class="upload upload--img">
+                </div>
+
+                <div class="upload">
+                    <label for="file">Datei:</label>
+                    <input type="file" name="file" id="file" class="upload upload--file">
+                </div>
+            </div>
+        {% endif %}
     </section>
 
 
     <input type="text" value="[]" id="ids" name="ids" hidden>
 
     <div class="flex-container flex-container--btn">
-        <div class="btn btn--back" onclick="back(event)">Abbrechen</div>
+        <button class="btn btn--back" onclick="back(event)">Abbrechen</button>
         <input type="submit" class="btn" value="OK">
     </div>
 

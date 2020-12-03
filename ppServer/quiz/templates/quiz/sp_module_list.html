@@ -13,9 +13,11 @@
 		{% if e.state in stateOption %}
 			<select id="{{ e.id }}" class="stateChange" onChange="changeState(event)">
 				{% for o in stateOption %}
-					<option value="{{ o.0 }}" class="option{{ forloop.counter0 }}" {% if e.state == o %}selected{% endif %}>
-						{{ o.1 }}
-					</option>
+					{% if e.state.1 == 'locked' or o.1 != 'locked' %}	<!-- dont display 'locked' if the module is not -->
+						<option value="{{ o.0 }}" class="option{{ forloop.counter0 }}" {% if e.state == o %}selected{% endif %}>
+							{{ o.1 }}
+						</option>
+					{% endif %}
 				{% endfor %}
 			</select>
 		{% else %}

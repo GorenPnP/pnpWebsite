@@ -151,9 +151,14 @@ def question(request):
         spq.answer_text = request.POST.get("text")
         spq.answer_mc = request.POST.get("ids")
 
-        """
+
         # check whether it's valid:
         if "img" in request.FILES.keys(): #and imgForm.is_valid():
+            image = request.FILES.get("img")
+            spq.answer_img = Image.objects.create(img=image, name="some name")
+            spq.answer_img.save()
+
+            """
             file_data = {'img': SimpleUploadedFile('face.jpg', request.FILES.get("img"))}
             imgForm = ImageForm({}, file_data)
 
@@ -164,6 +169,10 @@ def question(request):
             print("FILE valid")
             spq.answer_file = fileForm.cleaned_data["file"]
         """
+        if "file" in request.FILES.keys():  # and imgForm.is_valid():
+            file = request.FILES.get("file")
+            spq.answer_file = File.objects.create(file=file, name="some name")
+            spq.answer_file.save()
 
         spq.save()
         return redirect("quiz:question")

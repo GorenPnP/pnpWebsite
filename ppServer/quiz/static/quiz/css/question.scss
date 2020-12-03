@@ -105,6 +105,7 @@
 			flex: 0 0 var(--checkbox-size);
 			margin: 0 1em 0 0;
 		}
+
 		.text {flex: 1 1 300px;}
 		.img {flex: 0 1 300px;}
 	}
@@ -120,6 +121,18 @@
 		resize: none;
 		overflow: hidden;
 		font-family: 'Montserrat', sans-serif;
+	}
+
+	.uploads {
+		display: flex;
+		justify-content: center;
+		flex-wrap: wrap;
+
+		.upload {
+			display: flex;
+			align-items: center;
+			flex-wrap: wrap;
+		}
 	}
 }
 
