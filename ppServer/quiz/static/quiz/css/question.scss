@@ -90,7 +90,12 @@
 	}
 }
 
-.answer {
+
+.container-previous-answer {
+	display: flex;
+	justify-content: flex-end;
+}
+.answer, .correction {
 
 	background: lighten(#3a3d40, 60%);
 	--checkbox-border-color: #222;

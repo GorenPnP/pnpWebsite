@@ -43,6 +43,12 @@
 			</div>
 	</section>
 
+
+	<div class="container-previous-answer">
+		<button disabled>Previous answer</button>
+	</div>
+
+
 	<section class="answer">
 
 			{% if answers %}
@@ -84,13 +90,16 @@
 	</section>
 
 
-
 		<!-- ids of changed checkboxes -->
 		<input type="text" value="{{ corrected_answers }}" id="ids" name="ids" hidden>
 
-    <section class="answer">
+    <section class="correction">
 
-            <textarea class="text-input" name="text" placeholder="Folgendes war gut / schlecht ..." onkeyup="autoGrow(this)" autofocus>{{ spieler_question.correct_text }}</textarea>
+						<label for="answer_note">Hinweise zur Korrektur</label>
+						<textarea class="text-input" name="answer_note" id="answer_note" placeholder="Hinweise zur Korrektur" onkeyup="autoGrow(this)">{{ question.answer_note|default_if_none:'' }}</textarea>
+
+						<label for="text">Korrektur</label>
+            <textarea class="text-input" name="text" id="text" placeholder="Folgendes war gut / schlecht ..." onkeyup="autoGrow(this)">{{ spieler_question.correct_text|default_if_none:'' }}</textarea>
 
             <div class="uploads">
 							<div class="upload">

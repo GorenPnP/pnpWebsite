@@ -162,6 +162,10 @@ def sp_correct(request, id):
         # all questions done
         if not spq:
             current_session.setCorrected()
+
+            current_session.spielerModule.achieved_points = sum([q.achieved_points for q in current_session.questions.all()])
+            current_session.spielerModule.save()
+
             return redirect("quiz:sp_modules")
 
         answers = spq.question.multiplechoicefield_set.all()
@@ -180,6 +184,12 @@ def sp_correct(request, id):
     if request.method == "POST":
 
         spq = current_session.currentQuestion()
+
+        # save meta info of question
+        spq.question.answer_note = request.POST.get("answer_note")
+        spq.question.save()
+
+        # handle corretion
         spq.correct_text = request.POST.get("text")
         spq.correct_mc = request.POST.get("ids")
 

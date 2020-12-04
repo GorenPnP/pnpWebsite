@@ -272,6 +272,13 @@ class SpielerSession(models.Model):
         self.current_question = 0
         self.save()
 
+    def setSeen(self):
+
+        self.spielerModule.state = module_state[5][0]
+        self.spielerModule.save()
+
+        self.current_question = 0
+        self.save()
 
 
 class SpielerQuestion(models.Model):
