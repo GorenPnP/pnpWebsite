@@ -12,7 +12,6 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 
 from character.models import Spieler
 from .models import *
-from .forms import *
 
 
 # TODO try-except around request.POST in this file
@@ -72,17 +71,17 @@ def mw_from_grade_list(grade_list):
 
 @login_required
 def index(request, spieler_id=None):
+
     # for Phillip's wish to see everyone's timetable
     if spieler_id is not None:
-        if not User.objects.filter(username=request.user.username, groups__name='spielleiter').exists():
-            return HttpResponse(status=404)
+        if not User.objects.filter(username=request.user.username, groups__name='spielleiter').exists(): return HttpResponse(status=404)
+
         spielleiter_service = True
-        is_spielleiter = False
         spieler = get_object_or_404(Spieler, id=spieler_id)
+
     # usual case
     else:
         spielleiter_service = False
-        is_spielleiter = User.objects.filter(username=request.user.username, groups__name='spielleiter').exists()
         spieler = get_object_or_404(Spieler, name=request.user.username)
 
     if request.method == "GET":
@@ -98,17 +97,29 @@ def index(request, spieler_id=None):
                     "revard": sp_m.module.reward, "state": sp_m.get_state_display()})
 
         context = {"timetable": timetable, "topic": "{}'s Quiz".format(spieler.get_real_name()) if spielleiter_service else "Quiz",
-                   "akt_punktzahl": get_object_or_404(RelQuiz, spieler=spieler).quiz_points}
+                   "akt_punktzahl": get_object_or_404(RelQuiz, spieler=spieler).quiz_points, "button_states": ["opened", "corrected"]}
 
         return render(request, "quiz/index.html", context)
 
     if request.method == "POST":
-        sp_mod = json.loads(request.body.decode("utf-8"))["id"]
-        rel, _ = RelQuiz.objects.get_or_create(spieler=spieler)
-        rel.current_session, _ = SpielerSession.objects.get_or_create(spielerModule=get_object_or_404(SpielerModule, id=sp_mod))
-        rel.save()
+        sp_mo_id = int(request.POST.get("id"))
+        sp_mo = get_object_or_404(SpielerModule, id=sp_mo_id)
 
-        return JsonResponse({"url": reverse("quiz:question")})
+        # opened
+        if sp_mo.state == 2:
+
+            rel, _ = RelQuiz.objects.get_or_create(spieler=spieler)
+            rel.current_session, _ = SpielerSession.objects.get_or_create(spielerModule=sp_mo)
+            rel.save()
+
+            return redirect("quiz:question")
+
+        # corrected
+        if sp_mo.state == 4:
+            return redirect(reverse("quiz:review", args=[sp_mo_id]))
+
+        # else
+        return redirect("quiz:index")
 
 
 @login_required
@@ -199,8 +210,6 @@ def session_done(request):
 
 def score_board(request):
 
-    # copy_tinker()
-
     spieler = []
     same = []
     for  s in RelQuiz.objects.all().order_by("-quiz_points_achieved"):
@@ -215,28 +224,61 @@ def score_board(request):
     return render(request, "quiz/score_board.html", context)
 
 
+@login_required
+def review(request, id):
 
-def copy_tinker():
-    from shop.models import Tinker, TinkerNeeds, TinkerWaste
-    from crafting.models import Recipe, Ingredient, Product
+    sp_mo = get_object_or_404(SpielerModule, id=id)
 
-    # populate recipes
-    for t in Tinker.objects.all():
-        r = Recipe.objects.create(table=t.herstellung_via, duration=t.herstellungsdauer)
+    # no module for player selected
+    if sp_mo.state != 4:    # if not 'corrected'
+        return redirect("quiz:index")
 
-        for s in t.probe_spezial.all(): r.spezial.add(s)
-        for w in t.probe_wissen.all(): r.wissen.add(w)
+    current_session = SpielerSession.objects.filter(
+        spielerModule=sp_mo).order_by("-started").first()
+    if not current_session:
+        return redirect("quiz:index")
 
-        r.save()
+    # GET
+    if request.method == "GET":
 
+        spq = current_session.nextQuestion()
 
-        # add ingredients
-        for tn in TinkerNeeds.objects.filter(product=t):
-            Ingredient.objects.create(num=tn.num, item=tn.part, recipe=r)
+        # all questions done
+        if not spq:
 
+            # change state to seen
+            current_session.setSeen()
 
-        # add products
-        Product.objects.create(num=t.num_product, item=t, recipe=r)
+            spieler = sp_mo.spieler
+            rel = get_object_or_404(RelQuiz, spieler=spieler)
 
-        for tw in TinkerWaste.objects.filter(rezept=t):
-            Product.objects.create(num=tw.num, item=tw.neben, recipe=r)
+            # calc new score
+            old_score = rel.quiz_points_achieved
+
+            rel.quiz_points_achieved = sum([q.achieved_points for q in SpielerModule.objects.filter(
+                spieler=spieler) if q.achieved_points is not None])
+
+            rel.quiz_points += rel.quiz_points_achieved - old_score
+
+            rel.save()
+
+            return redirect("quiz:index")
+
+        answers = spq.question.multiplechoicefield_set.all()
+        checked_answers = json.loads(spq.answer_mc) if spq.answer_mc else []
+        corrected_answers = json.loads(spq.correct_mc) if spq.correct_mc else []
+
+        context = {"topic": "{} ({})".format(sp_mo.module.title, sp_mo.spieler.name),
+                   "question": spq.question, "spieler_question": spq,
+                   "answers": answers, "checked_answers": checked_answers, "corrected_answers": corrected_answers,
+                   "start_num_questions": current_session.questions.count(), "num_question": current_session.current_question + 1
+                   }
+        return render(request, "quiz/review.html", context)
+
+    # POST
+    if request.method == "POST":
+
+        current_session.current_question += 1
+        current_session.save()
+
+        return redirect(reverse("quiz:review", args=[id]))

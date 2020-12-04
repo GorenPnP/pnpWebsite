@@ -13,10 +13,14 @@
 		{% if e.state in stateOption %}
 			<select id="{{ e.id }}" class="stateChange" onChange="changeState(event)">
 				{% for o in stateOption %}
-					{% if e.state.1 == 'locked' or o.1 != 'locked' %}	<!-- dont display 'locked' if the module is not -->
-						<option value="{{ o.0 }}" class="option{{ forloop.counter0 }}" {% if e.state == o %}selected{% endif %}>
-							{{ o.1 }}
-						</option>
+					{% if e.state.1 != 'locked' and o.1 == 'locked' %}	<!-- dont display 'locked' if the module is not -->
+					{% else %}
+
+						{% if e.state.1 != 'seen' and o.1 == 'seen' %}	<!-- dont display 'seen' if the module is not -->
+						{% else %}
+							<option value="{{ o.0 }}" class="option{{ forloop.counter0 }}" {% if e.state == o %}selected{% endif %}> {{ o.1 }} </option>
+						{% endif %}
+
 					{% endif %}
 				{% endfor %}
 			</select>

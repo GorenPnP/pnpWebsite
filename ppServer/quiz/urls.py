@@ -15,5 +15,6 @@ urlpatterns = [
 	path('', index, name='index'),
 	path('question', question, name='question'),
 	path('done', session_done, name='session_done'),
+	path('review/<int:id>', review, name="review"),
 	path('scoreBoard', score_board, name='scoreBoard'),
 ]

@@ -12,7 +12,6 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 
 from character.models import Spieler
 from .models import *
-from .forms import *
 
 
 @login_required
@@ -42,7 +41,7 @@ def sp_questions(request):
         context = {"topic": "Fragen sortieren", "mqs": mq,
                    "questions": Question.objects.exclude(id__in=[model.question.id for model in mq]),
                    "mods": Module.objects.all()}
-        return render(request, "quiz/spielleiter_questions.html", context)
+        return render(request, "quiz/sp_questions.html", context)
 
     if request.method == "POST":
         ms = Module.objects.all()
@@ -119,13 +118,13 @@ def sp_modules(request):
             })
     modules = sorted(modules, key=cmp_to_key(cmp_time))
 
-    # ['locked', 'unlocked', 'seen', 'passed']
-    stateOption = [module_state[0], module_state[1], module_state[2], module_state[6]]
+    # ['locked', 'unlocked', 'opened', 'seen', 'passed']
+    stateOption = [module_state[0], module_state[1], module_state[2], module_state[5], module_state[6]]
 
 
     # return responses
     if request.method == "GET":
-        return render(request, "quiz/spielleiter_spieler_modules.html",
+        return render(request, "quiz/sp_spieler_modules.html",
             {
                 "topic": "Modulzuweisung",
                 "spieler": Spieler.objects.all(),
@@ -177,7 +176,7 @@ def sp_correct(request, id):
                    "answers": answers, "checked_answers": checked_answers, "corrected_answers": corrected_answers,
                    "start_num_questions": current_session.questions.count(), "num_question": current_session.current_question + 1
                    }
-        return render(request, "quiz/spielleiter_correct.html", context)
+        return render(request, "quiz/sp_correct.html", context)
 
 
     # POST

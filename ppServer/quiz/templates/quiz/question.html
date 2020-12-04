@@ -19,7 +19,7 @@
 
     <div class="vals">
         <div class="info__item"><span class="label">Frage</span> {{ num_question }}/{{ start_num_questions }}</div>
-        <div class="info__item points"><span class="label">Punkte</span> {{ question.points }}</div>
+        <div class="info__item points"><span class="label">Punkte</span> {{ question.points|floatformat }}</div>
     </div>
 </section>
 

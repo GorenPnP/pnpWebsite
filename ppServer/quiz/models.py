@@ -256,25 +256,20 @@ class SpielerSession(models.Model):
         return questions[self.current_question]
 
 
+    def setOpened(self):
+        self._setState(module_state[2][0])
+
     def setAnswered(self):
-
-        self.spielerModule.state = module_state[3][0]
-        self.spielerModule.save()
-
-        self.current_question = 0
-        self.save()
+        self._setState(module_state[3][0])
 
     def setCorrected(self):
-
-        self.spielerModule.state = module_state[4][0]
-        self.spielerModule.save()
-
-        self.current_question = 0
-        self.save()
+        self._setState(module_state[4][0])
 
     def setSeen(self):
+        self._setState(module_state[5][0])
 
-        self.spielerModule.state = module_state[5][0]
+    def _setState(self, state):
+        self.spielerModule.state = state
         self.spielerModule.save()
 
         self.current_question = 0

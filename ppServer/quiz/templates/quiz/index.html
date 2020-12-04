@@ -5,9 +5,6 @@
 <link rel="stylesheet" type="text/css" href="{% static 'base/css/checkbox.css' %}" />
 <link rel="stylesheet" type="text/css" href="{% static 'quiz/css/index.css' %}" />
 <link rel="stylesheet" type="text/css" href="{% static 'quiz/css/grades.css' %}" />
-<script src='https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js' type='text/javascript'></script>
-<script src="{% static 'base/js/ajax.js' %}"></script>
-<script type="text/javascript" src="{% static 'quiz/js/index.js' %}"></script>
 {% endblock %}
 {% block absolute %}{% include 'base/header.html' with topic=topic %}{% endblock %}
 {% block body %}
@@ -43,12 +40,14 @@
                     <span class="points">{{ module.points|floatformat }}/{{ module.max_points|floatformat }} P.</span>
                 </div>
 
-                {% if not spielleiter_service and module.state == 'opened' %}
-                    <button class="btn" onclick="submit({{ module.id }})">
-                        Quiz me!
-                    </button>
-                {% else %}
+                {% if spielleiter_service or module.state not in button_states %}
                     <span>{{ module.state }}</span>
+                {% else %}
+                    <form method="POST">
+                        {% csrf_token %}
+                        <input type="number" name="id" value="{{ module.id }}" hidden>
+                        <input type="submit" class="btn" value="{% if module.state == 'opened' %}Quiz me!{% else %}Ergebnis{% endif %}" />
+                    </form>
                 {% endif %}
 
             </div>
