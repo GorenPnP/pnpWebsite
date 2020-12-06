@@ -22,7 +22,7 @@
 					<div class="info__item"><span class="label">Frage</span> {{ num_question }}/{{ start_num_questions }}</div>
 					<div class="info__item points">
 						<span class="label">Punkte</span>
-						{{ spieler_question.achieved_points|floatformat }} / {{ question.points|floatformat }}
+						{{ spieler_question.achieved_points|floatformat:"-2" }} / {{ question.points|floatformat:"-2" }}
 					</div>
 			</div>
 	</section>

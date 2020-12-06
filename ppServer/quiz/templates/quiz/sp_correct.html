@@ -26,7 +26,7 @@
 					<div class="info__item points">
 						<span class="label">Punkte</span>
 						<input type="number" min="0" class="points__input" name="points" step="0.01">/
-						{{ question.points|floatformat }}
+						{{ question.points|floatformat:"-2" }}
 					</div>
 			</div>
 	</section>

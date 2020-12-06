@@ -37,7 +37,7 @@
                     <span class="score {{ module.score_tag_class }}">{{ module.score|default:"-" }}</span>
                     <span class="questions">{{ module.questions }}
                         {% if module.questions == 1 %}Frage{% else %}Fragen{% endif %}</span>
-                    <span class="points">{{ module.points|floatformat }}/{{ module.max_points|floatformat }} P.</span>
+                    <span class="points">{{ module.points|floatformat:"-2" }}/{{ module.max_points|floatformat:"-2" }} P.</span>
                 </div>
 
                 {% if spielleiter_service or module.state not in button_states %}
