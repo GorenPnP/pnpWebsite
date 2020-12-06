@@ -45,7 +45,7 @@ class QuestionAdmin(hide_on_shop_angucken):
     list_display_links = ["text"]
 
     fieldsets = [
-        ("Context", {'fields': ['topic', "grade", "difficulty", "points"]}),
+        ("Context", {'fields': ['topic', "grade", "points"]}),
         ("Question", {"fields": ["text", "answer_note", "images", "files"]}),
         ("Permissions", {"fields": ["allow_text", "allow_upload"]})
         ]

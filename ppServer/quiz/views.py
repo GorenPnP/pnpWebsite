@@ -97,7 +97,7 @@ def index(request, spieler_id=None):
                     "revard": sp_m.module.reward, "state": sp_m.get_state_display()})
 
         context = {"timetable": timetable, "topic": "{}'s Quiz".format(spieler.get_real_name()) if spielleiter_service else "Quiz",
-                   "akt_punktzahl": get_object_or_404(RelQuiz, spieler=spieler).quiz_points, "button_states": ["opened", "corrected"]}
+                   "akt_punktzahl": get_object_or_404(RelQuiz, spieler=spieler).quiz_points_achieved, "button_states": ["opened", "corrected"]}
 
         return render(request, "quiz/index.html", context)
 
@@ -253,12 +253,8 @@ def review(request, id):
             rel = get_object_or_404(RelQuiz, spieler=spieler)
 
             # calc new score
-            old_score = rel.quiz_points_achieved
-
             rel.quiz_points_achieved = sum([q.achieved_points for q in SpielerModule.objects.filter(
-                spieler=spieler) if q.achieved_points is not None])
-
-            rel.quiz_points += rel.quiz_points_achieved - old_score
+                spieler=spieler, state__in=[5, 6]) if q.achieved_points is not None]) # sum all seen and passed modules
 
             rel.save()
 

@@ -34,7 +34,6 @@ class RelQuiz(models.Model):
     spieler = models.OneToOneField(Spieler, on_delete=models.CASCADE, null=True, unique=True)
 
     current_session = models.ForeignKey("SpielerSession", on_delete=models.SET_NULL, null=True, blank=True)
-    quiz_points = models.IntegerField(default=0, blank=True)
     quiz_points_achieved = models.IntegerField(default=0, blank=True)
 
 
@@ -191,7 +190,7 @@ class SpielerModule(models.Model):    # if existing, Spieler answered related Qu
         verbose_name_plural = "Modulstati eines Spielers"
 
         unique_together = [("spieler", "module")]
-        ordering = ["spieler", "state", "module"]
+        ordering = ["spieler", "module"]
 
     spieler = models.ForeignKey(Spieler, on_delete=models.CASCADE)
     module = models.ForeignKey(Module, on_delete=models.CASCADE)
