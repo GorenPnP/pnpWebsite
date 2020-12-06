@@ -1,6 +1,8 @@
+from ppServer.decorators import verified_account
 from functools import cmp_to_key
 
 import math, re
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils.timezone import now
@@ -11,29 +13,43 @@ from log.views import logAlleMAverloren
 from create.models import NewCharakter
 
 
+@login_required
+@verified_account
 def index(request):
     context = {"topic": "Home" }
     return render(request, 'wiki/index.html', context)
 
 
+@login_required
+@verified_account
 def vorteile(request):
     context = {'topic': 'Vorteile', 'list': Vorteil.objects.all().order_by("titel")}
     return render(request, 'wiki/vor_nachteile.html', context)
 
 
+@login_required
+@verified_account
 def nachteile(request):
     context = {'topic': 'Nachteile', 'list': Nachteil.objects.all().order_by("titel")}
     return render(request, 'wiki/vor_nachteile.html', context)
 
+
+@login_required
+@verified_account
 def talente(request):
     context = {"topic": "Talente", "list": Talent.objects.all()}
     return render(request, "wiki/talent.html", context)
 
+
+@login_required
+@verified_account
 def gfs(request):
     return render(request, 'wiki/gfs.html', {'topic': 'Gfs/Klassen', "heading": Attribut.objects.all(),
                                                "gfs": Gfs.objects.all()})
 
 
+@login_required
+@verified_account
 def stufenplan(request, gfs_id):
     gfs = get_object_or_404(Gfs, id=gfs_id)
     entries = []
@@ -96,6 +112,8 @@ def stufenplan(request, gfs_id):
     return render(request, "wiki/stufenplan.html", context=context)
 
 
+@login_required
+@verified_account
 def profession(request):
     profs = Profession.objects.all()
     entries = []
@@ -128,6 +146,8 @@ def profession(request):
     return render(request, 'wiki/profession.html', {'topic': 'Professionen', "professionen": entries})
 
 
+@login_required
+@verified_account
 def stufenplan_profession(request, profession_id):
     profession = get_object_or_404(Profession, id=profession_id)
 
@@ -175,14 +195,20 @@ def stufenplan_profession(request, profession_id):
     return render(request, "wiki/stufenplan_profession.html", context=context)
 
 
+@login_required
+@verified_account
 def spezial(request):
     return render(request, 'wiki/spezial.html', {'topic': 'Spezialfertigkeiten', "spezial": Spezialfertigkeit.objects.all().order_by("titel")})
 
 
+@login_required
+@verified_account
 def wissen(request):
     return render(request, 'wiki/wissen.html', {'topic': 'Wissensfertigkeiten', 'wissen': Wissensfertigkeit.objects.all().order_by("titel")})
 
 
+@login_required
+@verified_account
 def wesenkräfte(request):
     wesenkraft = []
     for w in Wesenkraft.objects.all().order_by("titel"):
@@ -199,58 +225,20 @@ def wesenkräfte(request):
     return render(request, "wiki/wesenkraft.html", {"wesenkräfte": wesenkraft, "topic": "Wesenkräfte"})
 
 
+@login_required
+@verified_account
 def religion(request):
     return render(request, "wiki/religion.html", {'topic': "Religionen", "religionen": Religion.objects.all().order_by("titel")})
 
 
+@login_required
+@verified_account
 def beruf(request):
     return render(request, "wiki/beruf.html", {'topic': "Berufe", "berufe": Beruf.objects.all().order_by("titel")})
 
 
-def skilltreeWesen(request):
-
-    heading_dict = {}
-    list = []
-    for w in Spezies.objects.all().order_by('komplexität'):
-        dict = {"titel": w.titel}
-        skillWesen = SkilltreeEntryWesen.objects.filter(wesen=w)
-        for s in skillWesen:
-            if s.context.stufe not in heading_dict.keys():
-                heading_dict[s.context.stufe] = s.context.sp
-            dict[s.context.stufe] = s.text
-        list.append(dict)
-
-    return render(request, "wiki/skilltree_wesen.html", {"list": list, "heading": heading_dict, "topic": "Skilltree Wesen"})
-
-
-def skilltreeRest(request):
-
-    entry_dict = {}
-    for e in SkilltreeEntryKategorie.objects.all().order_by("id"):
-        kind = e.context.kind
-        stufe = e.context.stufe
-
-        if kind not in entry_dict.keys():
-            entry_dict[kind] = {}
-
-        if e.kategorie not in entry_dict[kind].keys():
-            entry_dict[kind][e.kategorie] = {"titel": e.get_kategorie_display()}
-
-        entry_dict[kind][e.kategorie][stufe] = e.text
-
-    # get all headings corresponding to SkillterrentryKategories
-    head_dict = {}
-    for h in SkilltreeBase.objects.filter(kind__in=entry_dict.keys()):
-        if h.kind not in head_dict.keys():
-            head_dict[h.kind] = {"titel": h.get_kind_display()}
-        head_dict[h.kind][h.stufe] = h.sp
-
-    for t in head_dict.items():
-        entry_dict[t[0]]["head"] = t[1]
-
-    return render(request, "wiki/skilltree_rest.html", {"entry_dict": entry_dict, "topic": "Skilltree Rest"})
-
-
+@login_required
+@verified_account
 def rang_ranking(request):
     return render(request, "wiki/rang_ranking.html", {"list": RangRankingEntry.objects.all().order_by("order"), "topic": "Erfahrungsranking"})
 
@@ -271,6 +259,8 @@ def delta_without_year(date, today):
     return (datetime(today.year, date.month, date.day) - today).days + 1
 
 
+@login_required
+@verified_account
 def geburtstage(request):
     today = datetime.today()
     name_dict = {}    # [username] = full name

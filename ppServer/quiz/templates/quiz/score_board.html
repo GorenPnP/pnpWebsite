@@ -28,7 +28,7 @@
                 <div class="col1"></div>
             {% endif %}
 
-            <div class="punkte">{{ relQuiz.quiz_points_achieved }}</div>
+            <div class="punkte">{{ relQuiz.quiz_points_achieved|floatformat:"-2" }}</div>
             <div class="name">{{ relQuiz.spieler.name }}</div>
         {% endfor %}
     {% endfor %}

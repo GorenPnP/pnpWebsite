@@ -1,5 +1,5 @@
-import collections, random, json, datetime
-from math import floor
+from ppServer.decorators import spielleiter_only
+import json
 from functools import cmp_to_key
 
 from django.contrib.auth.decorators import login_required
@@ -8,17 +8,14 @@ from django.http import HttpResponse
 from django.http.response import JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse
-from django.core.files.uploadedfile import SimpleUploadedFile
 
 from character.models import Spieler
 from .models import *
 
 
 @login_required
+@spielleiter_only(redirect_to="quiz:index")
 def sp_index(request):
-
-    if not User.objects.filter(username=request.user.username, groups__name='spielleiter').exists():
-        return HttpResponse(status=404)
 
     context = {"topic": "Quiz (Spielleiter)", "entries": [
         {"titel": "Fragen sortieren", "url": reverse("quiz:sp_questions"), "beschreibung": "Fragen Modulen zuordnen"},
@@ -31,10 +28,8 @@ def sp_index(request):
 
 # map existing questions to modules
 @login_required
+@spielleiter_only(redirect_to="quiz:index")
 def sp_questions(request):
-
-    if not User.objects.filter(username=request.user.username, groups__name='spielleiter').exists():
-        return HttpResponse(status=404)
 
     if request.method == "GET":
         mq = ModuleQuestion.objects.all()
@@ -64,10 +59,8 @@ def cmp_time(a, b):
 
 
 @login_required
+@spielleiter_only(redirect_to="quiz:index")
 def sp_modules(request):
-
-    if not User.objects.filter(username=request.user.username, groups__name='spielleiter').exists():
-        return HttpResponse(status=404)
 
     # get SpielerModules from DB
     if request.method == "GET": sp_mo = SpielerModule.objects.all()
@@ -138,10 +131,8 @@ def sp_modules(request):
 
 
 @login_required
+@spielleiter_only(redirect_to="quiz:index")
 def sp_correct(request, id):
-    if not User.objects.filter(username=request.user.username, groups__name='spielleiter').exists():
-        return HttpResponse(status=404)
-
 
     sp_mo = get_object_or_404(SpielerModule, id=id)
 

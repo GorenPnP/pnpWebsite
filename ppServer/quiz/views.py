@@ -1,3 +1,4 @@
+from ppServer.decorators import verified_account
 import collections, random, json, datetime
 from math import floor
 from functools import cmp_to_key
@@ -70,19 +71,19 @@ def mw_from_grade_list(grade_list):
 
 
 @login_required
+@verified_account
 def index(request, spieler_id=None):
 
+    spielleiter_service = False
+
     # for Phillip's wish to see everyone's timetable
-    if spieler_id is not None:
-        if not User.objects.filter(username=request.user.username, groups__name='spielleiter').exists(): return HttpResponse(status=404)
+    if spieler_id is not None and\
+        User.objects.filter(username=request.user.username, groups__name='spielleiter').exists():
 
         spielleiter_service = True
-        spieler = get_object_or_404(Spieler, id=spieler_id)
 
-    # usual case
-    else:
-        spielleiter_service = False
-        spieler = get_object_or_404(Spieler, name=request.user.username)
+    # usual case if not spielleiter_service (as in: BB). Or not.
+    spieler = get_object_or_404(Spieler, name=request.user.username) if not spielleiter_service else get_object_or_404(Spieler, id=spieler_id)
 
     if request.method == "GET":
 
@@ -123,6 +124,7 @@ def index(request, spieler_id=None):
 
 
 @login_required
+@verified_account
 def question(request):
     spieler = get_object_or_404(Spieler, name=request.user.username)
     rel = get_object_or_404(RelQuiz, spieler=spieler)
@@ -191,6 +193,7 @@ def question(request):
 
 
 @login_required
+@verified_account
 def session_done(request):
 
     spieler = get_object_or_404(Spieler, name=request.user.username)
@@ -208,6 +211,8 @@ def session_done(request):
         return redirect("quiz:index")
 
 
+@login_required
+@verified_account
 def score_board(request):
 
     spieler = []
@@ -225,6 +230,7 @@ def score_board(request):
 
 
 @login_required
+@verified_account
 def review(request, id):
 
     sp_mo = get_object_or_404(SpielerModule, id=id)
@@ -258,7 +264,7 @@ def review(request, id):
 
             rel.save()
 
-            return redirect("quiz:index")
+            return redirect("quiz:review_done")
 
         answers = spq.question.multiplechoicefield_set.all()
         checked_answers = json.loads(spq.answer_mc) if spq.answer_mc else []
@@ -278,3 +284,23 @@ def review(request, id):
         current_session.save()
 
         return redirect(reverse("quiz:review", args=[id]))
+
+
+@login_required
+@verified_account
+def review_done(request):
+
+    spieler = get_object_or_404(Spieler, name=request.user.username)
+    rel = get_object_or_404(RelQuiz, spieler=spieler)
+    if not rel.current_session:
+        return redirect("quiz:index")
+
+    if request.method == "GET":
+        context = {"topic": rel.current_session.spielerModule.module.title}
+        return render(request, "quiz/review_done.html", context)
+
+    if request.method == "POST":
+        rel.current_session = None
+        rel.save()
+
+        return redirect("quiz:index")

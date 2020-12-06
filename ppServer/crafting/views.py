@@ -1,3 +1,4 @@
+from ppServer.decorators import spielleiter_only, verified_account
 from random import randrange
 import json
 
@@ -12,6 +13,7 @@ from .models import *
 
 
 @login_required
+@verified_account
 def index(request):
 
 	if request.method == "GET":
@@ -38,6 +40,7 @@ def index(request):
 
 
 @login_required
+@verified_account
 def inventory(request):
 
 	spieler = get_object_or_404(Spieler, name=request.user.username)
@@ -134,6 +137,7 @@ def inventory(request):
 
 
 @login_required
+@verified_account
 def craft(request):
 
 	spieler = get_object_or_404(Spieler, name=request.user.username)
@@ -312,6 +316,8 @@ def get_recipes_of_table(inventory, restricted, id):
 	return recipes
 
 
+@login_required
+@verified_account
 def details(request, id):
 	recipe = get_object_or_404(Recipe, id=id)
 	context = {
@@ -330,11 +336,9 @@ def details(request, id):
 	return render(request, "crafting/details.html", context)
 
 
+@login_required
+@spielleiter_only(redirect_to="crafting:craft")
 def sp_give_items(request):
-
-	if not request.user.groups.filter(name__iexact="spielleiter").exists():
-		return redirect("crafting:craft")
-
 
 	if request.method == "GET":
 		context = {

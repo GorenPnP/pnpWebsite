@@ -23,10 +23,9 @@
 {% block absolute %}{% include 'base/header.html' with topic=topic %}{% endblock %}
 
 {% block body %}
-<h1 style="color: #c8c8c8;">Fertig!</h1>
+<div style="color: #c8c8c8;"></div>
+<h1>Das wars!</h1>
+<span>Deine Punkte aus diesem Modul wurden dir schon gutgeschrieben.</span>
 
-<form method="POST">
-	{% csrf_token %}
-	<input type="submit" class="btn" value="Beenden" />
-</form>
+<a class="btn" href="{% url 'quiz:index' %}">Beenden</a>
 {% endblock %}

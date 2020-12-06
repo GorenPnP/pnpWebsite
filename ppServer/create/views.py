@@ -1,20 +1,15 @@
-import re, math
-from functools import cmp_to_key
+from ppServer.decorators import verified_account
 import json
-import math
 
-from django.db.utils import IntegrityError
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_protect
-from django.http import HttpResponse
 from django.http.response import JsonResponse
-from django.shortcuts import render, get_object_or_404, redirect, get_list_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse
 
 from character.models import *
 from shop.models import Zauber
 
-from character.enums import teil_erstellung_enum
 from .models import *
 
 
@@ -65,6 +60,7 @@ def new_vor_nacht_done(new_char):
 
 
 @login_required
+@verified_account
 @csrf_protect
 def landing_page(request):
 
@@ -262,6 +258,7 @@ def get_entries_of_prio():
 
 
 @login_required
+@verified_account
 @csrf_protect
 def new_gfs(request):
     if request.method == "GET":
@@ -313,6 +310,7 @@ def new_gfs(request):
 
 
 @login_required
+@verified_account
 @csrf_protect
 def new_priotable(request):
     entries = get_entries_of_prio()
@@ -411,6 +409,7 @@ def new_priotable(request):
 
 # reachable only via links all over
 @login_required
+@verified_account
 @csrf_protect
 def new_vor_nachteil(request, char_id=None):
 
@@ -503,6 +502,7 @@ def new_vor_nachteil(request, char_id=None):
 
 
 @login_required
+@verified_account
 @csrf_protect
 def new_ap(request):
     if request.method == "POST":
@@ -565,6 +565,7 @@ def new_ap(request):
 
 
 @login_required
+@verified_account
 @csrf_protect
 def new_fert(request):
     if request.method == "POST":
@@ -701,6 +702,7 @@ def new_fert(request):
 
 
 @login_required
+@verified_account
 @csrf_protect
 def new_zauber(request):
     if request.method == "GET":
@@ -751,6 +753,7 @@ def new_zauber(request):
 
 
 @login_required
+@verified_account
 @csrf_protect
 def new_cp(request):
     if request.method == "GET":

@@ -5,116 +5,18 @@ from django.utils.html import format_html
 from .models import *
 
 
-class ViewOnlyInLine(admin.TabularInline):
-
-    def get_readonly_fields(self, request, obj=None):
-        if request.user.groups.filter(name__iexact="shop angucken").exists():
-            return [f.name for f in self.model._meta.fields if f.name != "id"]
-        else:
-            return super().get_readonly_fields(request, obj)
-
-    def has_add_permission(self, request):
-        if request.user.groups.filter(name__iexact="shop angucken").exists():
-            return False
-        else:
-            return super().has_add_permission(request)
-
-    def has_delete_permission(self, request, obj=None):
-        if request.user.groups.filter(name__iexact="shop angucken").exists():
-            return False
-        else:
-            return super().has_delete_permission(request, obj)
-
-
-class ViewOnlyAdmin(admin.ModelAdmin):
-
-    def get_readonly_fields(self, request, obj=None):
-        if request.user.groups.filter(name__iexact="shop angucken").exists():
-            return [f.name for f in self.model._meta.fields if f.name != "id"]
-        else:
-            return super().get_readonly_fields(request, obj)
-
-    def has_add_permission(self, request):
-        if request.user.groups.filter(name__iexact="shop angucken").exists():
-            return False
-        else:
-            return super().has_add_permission(request)
-
-    def has_delete_permission(self, request, obj=None):
-        if request.user.groups.filter(name__iexact="shop angucken").exists():
-            return False
-        else:
-            return super().has_delete_permission(request, obj)
-
-
-class NotDeleteAdmin(admin.ModelAdmin):
-    def has_delete_permission(self, request, obj=None):
-        if request.user.groups.filter(name__iexact="shop angucken").exists():
-            return False
-        else:
-            return super().has_delete_permission(request, obj)
-
-
-class ViewEditAdmin(admin.ModelAdmin):
-    """edit allowed if model.frei_editierbar == True"""
-
-    def get_readonly_fields(self, request, obj=None):
-
-        # obj=None on add occasion
-        if obj is not None:
-            if request.user.groups.filter(name__iexact="shop angucken").exists() and not obj.frei_editierbar:
-                return [f.name for f in self.model._meta.fields if f.name != "id"]
-            else:
-                return super().get_readonly_fields(request, obj)
-        else:
-            return super().get_readonly_fields(request, obj)
-
-    def has_delete_permission(self, request, obj=None):
-        if request.user.groups.filter(name__iexact="shop angucken").exists():
-            return False
-        else:
-            return super().has_delete_permission(request, obj)
-
-    def get_fields(self, request, obj=None):
-        if request.user.groups.filter(name__iexact="shop angucken").exists():
-                    return [f.name for f in self.model._meta.fields if f.name != "id" and f.name != "frei_editierbar"]
-
-        return super().get_fields(request, obj)
-
-
-class hide_on_shop_angucken(admin.ModelAdmin):
-
-    def has_change_permission(self, request, obj=None):
-        if request.user.groups.filter(name__iexact="shop angucken").exists():
-            return False
-        else:
-            return super().has_change_permission(request, obj)
-
-    def has_add_permission(self, request):
-        if request.user.groups.filter(name__iexact="shop angucken").exists():
-            return False
-        else:
-            return super().has_add_permission(request)
-
-    def has_delete_permission(self, request, obj=None):
-        if request.user.groups.filter(name__iexact="shop angucken").exists():
-            return False
-        else:
-            return super().has_delete_permission(request, obj)
-
-
-class SchussMagazineInLine(ViewOnlyInLine):
+class SchussMagazineInLine(admin.TabularInline):
     model = Schusswaffen.magazine.through
     extra = 1
 
 
-class SchussPfeileBolzenInLine(ViewOnlyInLine):
+class SchussPfeileBolzenInLine(admin.TabularInline):
     model = Schusswaffen.pfeile_bolzen.through
     extra = 1
 
 
 ############# FirmaShop ##################
-class FirmaShopInLine(ViewOnlyInLine):
+class FirmaShopInLine(admin.TabularInline):
     extra = 1
 
 
@@ -171,7 +73,7 @@ class FirmaAlchemieInLine(FirmaShopInLine):
 
 
 ######### BaseAdmin ##################
-class BaseAdmin(ViewEditAdmin):
+class BaseAdmin(admin.ModelAdmin):
     search_fields = ['name']
     #list_editable = ["ab_stufe"]
 
@@ -275,7 +177,7 @@ class Magische_AusrüstungAdmin(BaseAdmin):
     inlines = [FirmaMagische_AusrüstungInLine]
 
 
-class Rituale_RunenAdmin(ViewEditAdmin):
+class Rituale_RunenAdmin(admin.ModelAdmin):
 
     shop_model = Rituale_Runen
     firma_shop_model = FirmaRituale_Runen
@@ -395,7 +297,7 @@ class TinkerAdmin(BaseAdmin):
 
 
 
-class FirmaAdmin(hide_on_shop_angucken):
+class FirmaAdmin(admin.ModelAdmin):
     list_display = ('name', 'beschreibung')
 
 

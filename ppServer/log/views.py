@@ -1,3 +1,4 @@
+from ppServer.decorators import spielleiter_only
 import json
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
@@ -93,11 +94,8 @@ def sort_by_name(a, b):
 
 
 @login_required
+@spielleiter_only
 def userLog(request):
-
-    if not User.objects.filter(username=request.user.username, groups__name='spielleiter').exists():
-        return redirect("base:index")
-
 
     if request.method == "GET":
 

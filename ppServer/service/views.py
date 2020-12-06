@@ -1,24 +1,19 @@
+from ppServer.decorators import spielleiter_only
 import math
-import re
 
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import User
-from django.http.response import JsonResponse, HttpResponse
-from django.shortcuts import redirect, render, get_object_or_404, get_list_or_404
+from django.shortcuts import render
 from django.urls import reverse
 from django.db.models import Sum
 
-from character.models import Charakter, RelVorteil, RelNachteil, RelFertigkeit, \
-    RelMagische_Ausrüstung, Spieler
-
-from shop.models import FirmaMagische_Ausrüstung
-from log.views import logQuizPointsSP
-from quiz.models import SpielerModule, Question, RelQuiz, Subject, SpielerQuestion, module_state
-from quiz.views import get_grade_score, mw_from_grade_list
+from quiz.models import SpielerModule, RelQuiz, Subject, SpielerQuestion, module_state
+from quiz.views import get_grade_score
 
 # TODO try-except around request.POST in this file
 
 # dice roll
+@login_required
+@spielleiter_only
 def random(request):
     dice = [
         {"art": "pink", "faces": [0, 0, 0, 1, 1, 2], "color": "hotpink"},
@@ -40,10 +35,8 @@ def random(request):
 
 # quiz big brother
 @login_required
+@spielleiter_only
 def quiz_BB(request):
-
-    if not User.objects.filter(username=request.user.username, groups__name='spielleiter').exists():
-        return HttpResponse(status=404)
 
     all_spieler = RelQuiz.objects.all().order_by("-quiz_points_achieved")
     all_subjects = Subject.objects.all().order_by("titel")

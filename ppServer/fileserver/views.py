@@ -1,9 +1,13 @@
+from ppServer.decorators import verified_account
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.shortcuts import render, redirect, get_object_or_404
 
 from fileserver.models import Map, File
 
+
+@login_required
+@verified_account
 def maps(request):
     map_list = []
     maps = Map.objects.all().order_by('titel')
@@ -19,6 +23,7 @@ def maps(request):
 
 
 @login_required
+@verified_account
 def show_map(request, mapID):
     map = get_object_or_404(Map, id=mapID)
 

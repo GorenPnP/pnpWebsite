@@ -1,34 +1,33 @@
 from django.contrib import admin
 from django.utils.html import format_html
 
-from shop.admin import hide_on_shop_angucken, ViewOnlyInLine
 from .models import *
 
 
-class MultipleChoiceFieldInLine(ViewOnlyInLine):
+class MultipleChoiceFieldInLine(admin.TabularInline):
     model = MultipleChoiceField
     fields = ["img", "text"]
     extra = 5
 
 
-class QuestionsInLine(ViewOnlyInLine):
+class QuestionsInLine(admin.TabularInline):
     model = ModuleQuestion
     verbose_name = "Question"
     verbose_name_plural = "Questions"
     extra = 1
 
 
-class SessionQuestionsInLine(ViewOnlyInLine):
+class SessionQuestionsInLine(admin.TabularInline):
     model = SpielerSession.questions.through
     extra = 0
 
 
-class SubjectAdmin(hide_on_shop_angucken):
+class SubjectAdmin(admin.ModelAdmin):
     list_display = ["titel"]
     search_fields = ["titel"]
 
 
-class TopicAdmin(hide_on_shop_angucken):
+class TopicAdmin(admin.ModelAdmin):
     list_display = ["subject_", "titel"]
     list_filter = ["subject"]
 
@@ -36,7 +35,7 @@ class TopicAdmin(hide_on_shop_angucken):
         return obj.subject.titel
 
 
-class QuestionAdmin(hide_on_shop_angucken):
+class QuestionAdmin(admin.ModelAdmin):
     list_display = ["text", "module_", "topic", "grade", "points", "answer_note", "images_included"]
     list_filter = ["topic", "grade"]
     list_display_links = ("topic", )
@@ -68,7 +67,7 @@ class QuestionAdmin(hide_on_shop_angucken):
         mqs = ModuleQuestion.objects.filter(question=obj)
         return ", ".join([mq.module.__str__() for mq in mqs]) if mqs.count() else "-"
 
-class ModuleAdmin(hide_on_shop_angucken):
+class ModuleAdmin(admin.ModelAdmin):
     list_display = ["icon_", "title", "num", "max_points", "reward", "prerequisites_"]
     list_display_links = ("icon_", "title")
 
@@ -83,28 +82,28 @@ class ModuleAdmin(hide_on_shop_angucken):
     icon_.allow_tags = True
 
 
-class SpielerModuleAdmin(hide_on_shop_angucken):
+class SpielerModuleAdmin(admin.ModelAdmin):
     list_display = ["spieler", "module", "state", "achieved_points"]
     list_filter = ["spieler", "module", "state"]
 
     readonly_fields = ["sessions"]
 
 
-class SpielerSessionAdmin(hide_on_shop_angucken):
+class SpielerSessionAdmin(admin.ModelAdmin):
     list_display = ["spielerModule", "current_question", "started"]
 
     exclude = ["questions"]
     inlines = [SessionQuestionsInLine]
 
 
-class SpielerQuestionAdmin(hide_on_shop_angucken):
+class SpielerQuestionAdmin(admin.ModelAdmin):
     pass
 
-class RelQuizAdmin(hide_on_shop_angucken):
+class RelQuizAdmin(admin.ModelAdmin):
     list_display = ("spieler", "quiz_points_achieved", "current_session")
 
 
-class DataAdmin(hide_on_shop_angucken):
+class DataAdmin(admin.ModelAdmin):
     exclude = ["name"]
 
 admin.site.register(RelQuiz, RelQuizAdmin)

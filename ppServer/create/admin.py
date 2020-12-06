@@ -1,6 +1,5 @@
 from django.contrib import admin
 
-from shop.admin import hide_on_shop_angucken
 from .models import *
 
 
@@ -46,7 +45,7 @@ class NewCharakterZauberInLine(admin.TabularInline):
     extra = 0
 
 
-class NewCharakterAdmin(hide_on_shop_angucken):
+class NewCharakterAdmin(admin.ModelAdmin):
     fieldsets = [
         ("Settings (Finger weg)", {'fields': ['eigentümer', "ep_system", "larp", "gfs", "profession"]}),
         ("Aus der Prioritätentabelle", {"fields": ["zauber", "ap", "sp", "fp", "fg", "geld", "ip"]}),
@@ -61,7 +60,7 @@ class NewCharakterAdmin(hide_on_shop_angucken):
                ]
 
     def get_queryset(self, request):
-        if request.user.groups.filter(name__iexact="shop angucken"):
+        if request.user.groups.filter(name__iexact="spieler"):
             return NewCharakter.objects.filter(eigentümer__name__exact=request.user.username)
         else:
             return super().get_queryset(request)

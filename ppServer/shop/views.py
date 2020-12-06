@@ -1,3 +1,4 @@
+from ppServer.decorators import spielleiter_only, verified_account
 import random, json
 import sre_constants
 from math import ceil
@@ -15,10 +16,10 @@ from base.views import reviewable_shop
 
 from .models import *
 
+
 @login_required
+@spielleiter_only
 def review_items(request):
-    if not User.objects.filter(username=request.user.username, groups__name='spielleiter').exists():
-        return redirect("base:index")
 
     context = {"topic": "Neue Items", "items": reviewable_shop()}
 
@@ -28,6 +29,8 @@ def review_items(request):
     return render(request, "shop/review_items.html", context)
 
 
+@login_required
+@verified_account
 def index(request):
     if request.method == "GET":
         return render(request, "shop/index.html", {"topic": "Shop"})
@@ -70,58 +73,86 @@ def index(request):
 
 
 # specific show_shop
+@login_required
+@verified_account
 def item(request):
     return show_shop(request, "Items", Item, FirmaItem, reverse("admin:shop_item_add"))
 
 
+@login_required
+@verified_account
 def waffen_werkzeuge(request):
     return show_shop(request, "Waffen & Werkzeuge", Waffen_Werkzeuge, FirmaWaffen_Werkzeuge, reverse("admin:shop_waffen_werkzeuge_add"))
 
 
+@login_required
+@verified_account
 def magazine(request):
     return show_shop(request, "Magazine", Magazin, FirmaMagazin, reverse("admin:shop_magazin_add"))
 
 
+@login_required
+@verified_account
 def pfeile_bolzen(request):
     return show_shop(request, "Pfeile & Bolzen", Pfeil_Bolzen, FirmaPfeil_Bolzen, reverse("admin:shop_pfeil_bolzen_add"))
 
 
+@login_required
+@verified_account
 def schusswaffen(request):
     return show_shop(request, "Schusswaffen", Schusswaffen, FirmaSchusswaffen, reverse("admin:shop_schusswaffen_add"))
 
 
+@login_required
+@verified_account
 def mag_ausrüstung(request):
     return show_shop(request, "Magische Ausrüstung", Magische_Ausrüstung, FirmaMagische_Ausrüstung, reverse("admin:shop_magische_ausrüstung_add"))
 
 
+@login_required
+@verified_account
 def rituale_runen(request):
     return show_shop(request, "Rituale & Runen", Rituale_Runen, FirmaRituale_Runen, reverse("admin:shop_rituale_runen_add"))
 
 
+@login_required
+@verified_account
 def rüstungen(request):
     return show_shop(request, "Rüstungen", Rüstungen, FirmaRüstungen, reverse("admin:shop_rüstungen_add"))
 
 
+@login_required
+@verified_account
 def ausrüstung_technik(request):
     return show_shop(request, "Ausrüstung & Technik", Ausrüstung_Technik, FirmaAusrüstung_Technik, reverse("admin:shop_ausrüstung_technik_add"))
 
 
+@login_required
+@verified_account
 def fahrzeuge(request):
     return show_shop(request, "Fahrzeuge", Fahrzeug, FirmaFahrzeug, reverse("admin:shop_fahrzeug_add"))
 
 
+@login_required
+@verified_account
 def einbauten(request):
     return show_shop(request, "Einbauten", Einbauten, FirmaEinbauten, reverse("admin:shop_einbauten_add"))
 
 
+@login_required
+@verified_account
 def zauber(request):
     return show_shop(request, "Zauber", Zauber, FirmaZauber, reverse("admin:shop_zauber_add"))
 
 
+@login_required
+@verified_account
 def alchemie(request):
     return show_shop(request, "Alchemie", Alchemie, FirmaAlchemie, reverse("admin:shop_alchemie_add"))
 
 
+@login_required
+@verified_account
 def tinker(request):
     return show_shop(request, "Für Selbstständige", Tinker, FirmaTinker, reverse("admin:shop_tinker_add"))
 
@@ -151,6 +182,7 @@ def show_shop(request, topic, shop_model, firma_shop_model, plus_url=""):
 
 # specific buy_shop
 @login_required
+@verified_account
 def buy_item(request, id):
     if request.method == 'GET':
         context = buy_item_get(request, id, Item, RelItem, FirmaItem)
@@ -162,6 +194,7 @@ def buy_item(request, id):
 
 
 @login_required
+@verified_account
 def buy_waffen_werkzeuge(request, id):
     if request.method == 'GET':
         context = buy_item_get(request, id, Waffen_Werkzeuge ,RelWaffen_Werkzeuge, FirmaWaffen_Werkzeuge)
@@ -173,6 +206,7 @@ def buy_waffen_werkzeuge(request, id):
 
 
 @login_required
+@verified_account
 def buy_magazin(request, id):
     if request.method == 'GET':
         context = buy_item_get(request, id, Magazin, RelMagazin, FirmaMagazin)
@@ -184,6 +218,7 @@ def buy_magazin(request, id):
 
 
 @login_required
+@verified_account
 def buy_pfeil_bolzen(request, id):
     if request.method == 'GET':
         context = buy_item_get(request, id, Pfeil_Bolzen, RelPfeil_Bolzen, FirmaPfeil_Bolzen)
@@ -195,6 +230,7 @@ def buy_pfeil_bolzen(request, id):
 
 
 @login_required
+@verified_account
 def buy_schusswaffe(request, id):
     if request.method == 'GET':
         context = buy_item_get(request, id, Schusswaffen, RelSchusswaffen, FirmaSchusswaffen)
@@ -206,6 +242,7 @@ def buy_schusswaffe(request, id):
 
 
 @login_required
+@verified_account
 def buy_rituale_runen(request, id):
     spieler = get_object_or_404(Spieler, name=request.user.username)
 
@@ -219,6 +256,7 @@ def buy_rituale_runen(request, id):
 
 
 @login_required
+@verified_account
 def buy_mag_ausrüstung(request, id):
     if request.method == 'GET':
         context = buy_item_get(request, id, Magische_Ausrüstung, RelMagische_Ausrüstung, FirmaMagische_Ausrüstung)
@@ -230,6 +268,7 @@ def buy_mag_ausrüstung(request, id):
 
 
 @login_required
+@verified_account
 def buy_rüstung(request, id):
     if request.method == 'GET':
         context = buy_item_get(request, id, Rüstungen, RelRüstung, FirmaRüstungen)
@@ -241,6 +280,7 @@ def buy_rüstung(request, id):
 
 
 @login_required
+@verified_account
 def buy_ausrüstung_technik(request, id):
     if request.method == 'GET':
         context = buy_item_get(request, id, Ausrüstung_Technik , RelAusrüstung_Technik, FirmaAusrüstung_Technik)
@@ -252,6 +292,7 @@ def buy_ausrüstung_technik(request, id):
 
 
 @login_required
+@verified_account
 def buy_fahrzeug(request, id):
     if request.method == 'GET':
         context = buy_item_get(request, id, Fahrzeug, RelFahrzeug, FirmaFahrzeug)
@@ -263,6 +304,7 @@ def buy_fahrzeug(request, id):
 
 
 @login_required
+@verified_account
 def buy_einbauten(request, id):
     if request.method == 'GET':
         context = buy_item_get(request, id, Einbauten, RelEinbauten, FirmaEinbauten)
@@ -274,6 +316,7 @@ def buy_einbauten(request, id):
 
 
 @login_required
+@verified_account
 def buy_zauber(request, id):
     if request.method == 'GET':
         context = buy_item_get(request, id, Zauber, RelZauber, FirmaZauber)
@@ -285,6 +328,7 @@ def buy_zauber(request, id):
 
 
 @login_required
+@verified_account
 def buy_alchemie(request, id):
     if request.method == 'GET':
         context = buy_item_get(request, id, Alchemie, RelAlchemie, FirmaAlchemie)

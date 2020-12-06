@@ -1,9 +1,8 @@
-
 from django.db.models.signals import pre_save, pre_delete, post_save
 from django.dispatch import receiver
 
 from character.models import Spieler
-from .models import Image, File, ModuleQuestion, SpielerSession, Module, module_state, Question, SpielerModule
+from .models import Image, File, ModuleQuestion, RelQuiz, SpielerSession, Module, module_state, Question, SpielerModule
 
 
 # to save the old picture-name in answer_note, before changed (against cheating)
@@ -29,6 +28,17 @@ def save_picture_name(sender, instance, **kwargs):
         new_instance.name = new_instance.img.name if new_instance.img and new_instance.img.name else None
     else:
         new_instance.name = new_instance.file.name if new_instance.file and new_instance.file.name else None
+
+
+@receiver(post_save, sender=Spieler)
+def create_relQuiz(sender, instance, **qwargs):
+    if qwargs['created']:
+        RelQuiz.objects.get_or_create(spieler=instance)
+
+        # use post_save signal of Module to add all SpielerModules for new spieler
+        module = Module.objects.all().first()
+        if module: module.save()
+
 
 
 # following: update module.max_points on:
@@ -92,7 +102,9 @@ def add_questions(sender, instance, **kwargs):
             spieler=instance.spielerModule.spieler, question=q)
 
 
+
 # works recursively, should a sp_mod's state be set from locked to unlocked
+
 @receiver(post_save, sender=Module)
 def add_spielermodules(sender, instance, **kwargs):
 

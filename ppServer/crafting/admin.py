@@ -1,42 +1,40 @@
 from django.contrib import admin
 from django.utils.html import format_html
 
-from shop.admin import hide_on_shop_angucken, ViewOnlyInLine
-
 from .models import *
 
 
-class ProfileAdmin(hide_on_shop_angucken):
+class ProfileAdmin(admin.ModelAdmin):
     list_display = ["owner", "name", "restricted", "craftingTime"]
 
 
-class InventoryAdmin(hide_on_shop_angucken):
+class InventoryAdmin(admin.ModelAdmin):
     list_display = ["char", "item", "num"]
 
 
-class IngredientInLineAdmin(ViewOnlyInLine):
+class IngredientInLineAdmin(admin.TabularInline):
     model = Ingredient
     extra = 1
     fk_name = "recipe"
 
 
-class ProductInLineAdmin(ViewOnlyInLine):
+class ProductInLineAdmin(admin.TabularInline):
     model = Product
     extra = 1
     fk_name = "recipe"
 
 
-class SpezialInLineAdmin(ViewOnlyInLine):
+class SpezialInLineAdmin(admin.TabularInline):
     model = Recipe.spezial.through
     extra = 1
 
 
-class WissenInLineAdmin(ViewOnlyInLine):
+class WissenInLineAdmin(admin.TabularInline):
     model = Recipe.wissen.through
     extra = 1
 
 
-class RecipeAdmin(hide_on_shop_angucken):
+class RecipeAdmin(admin.ModelAdmin):
 
     list_display = ('icons_produkte', 'produkte', 'icons_zutaten', 'zutaten', 'table', 'duration', 'fertigkeiten')
     list_display_links = ('icons_produkte', 'produkte')

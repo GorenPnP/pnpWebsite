@@ -1,23 +1,19 @@
+from ppServer.decorators import verified_account
 import json
 
-from django.contrib import messages
-from django.contrib.auth import authenticate, update_session_auth_hash, login
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.forms import UserCreationForm, PasswordChangeForm
 from django.contrib.auth.models import User
 from django.http.response import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
-from django.apps import apps as django_apps
 
-from fileserver.models import Map
-from character.apps import CharacterConfig
 from .models import *
 
 
 from django.http import HttpResponse
 
 @login_required
+@verified_account
 def index(request):
 
     if User.objects.filter(username=request.user.username, groups__name='spielleiter').exists():
@@ -30,6 +26,7 @@ def index(request):
 
 
 @login_required
+@verified_account
 def show(request, pk):
 
     # sections of navbar and for reference in POST
@@ -52,8 +49,8 @@ def show(request, pk):
     char = get_object_or_404(Charakter, id=pk)
     username = request.user.username
 
-    if username != 'spielleiter' and (char.eigentümer is None or username != char.eigentümer.name):
-        return redirect('auth:login')
+    if not User.objects.filter(username=username, groups__name='spielleiter').exists() and (char.eigentümer is None or username != char.eigentümer.name):
+        return redirect('character:index')
 
 
     if request.method == "GET":

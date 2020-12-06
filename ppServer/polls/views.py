@@ -1,4 +1,6 @@
+from ppServer.decorators import verified_account
 import json
+from django.contrib.auth.decorators import login_required
 
 from django.http.response import JsonResponse
 from django.shortcuts import get_object_or_404, render, get_list_or_404, redirect
@@ -13,6 +15,14 @@ from django.views.decorators.http import require_POST
 from .models import Choice, Question, QuestionSpieler
 
 
+# TODO delete later
+@login_required
+@verified_account
+def detail(request, pk):
+    return render(request, 'polls/detail.html')
+
+@login_required
+@verified_account
 class DetailView(generic.DetailView):
     model = Question
     template_name = 'polls/detail.html'
@@ -59,6 +69,8 @@ class DetailView(generic.DetailView):
         return JsonResponse({"url": reverse('polls:results', args=(question.id,))})
 
 
+@login_required
+@verified_account
 def results(request, pk):
 
     spieler = get_object_or_404(Spieler, name=request.user.username)

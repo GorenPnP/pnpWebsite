@@ -23,9 +23,6 @@ urlpatterns = [
     path('berufe', views.beruf, name='berufe'),
     path('religionen', views.religion, name='religionen'),
 
-    path('skilltreeWesen', views.skilltreeWesen, name='skillWesen'),
-    path('skilltreeRest', views.skilltreeRest, name='skillRest'),
     path('rangRanking', views.rang_ranking, name='rangRanking'),
-
     path('geburtstage', views.geburtstage, name='geburtstage'),
 ]

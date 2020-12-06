@@ -1,16 +1,14 @@
 from django.contrib import admin
 
 from .models import *
-from shop.admin import hide_on_shop_angucken, ViewOnlyAdmin, ViewOnlyInLine, NotDeleteAdmin
-from shop.admin import hide_on_shop_angucken
 
 
-class WesenkraftZusatzWesenspInLine(ViewOnlyInLine):
+class WesenkraftZusatzWesenspInLine(admin.TabularInline):
     model = Wesenkraft.zusatz_wesenspezifisch.through
     extra = 1
 
 
-class SpeziesAttributInLine(ViewOnlyInLine):
+class SpeziesAttributInLine(admin.TabularInline):
     model = SpeziesAttribut
     fields = ["attribut", "aktuellerWert", "maxWert"]
     readonly_fields = ["attribut"]
@@ -20,14 +18,14 @@ class SpeziesAttributInLine(ViewOnlyInLine):
         return False
 
 
-class SpeziesStufenplanInLine(ViewOnlyInLine):
+class SpeziesStufenplanInLine(admin.TabularInline):
     model = Stufenplan
     fields = ["stufe", "ep", "vorteile", "ap", "ap_max", "fp", "fg", "zauber", "wesenkräfte",
             "spezial", "wissensp", "weiteres"]
     extra = 0
 
 
-class GfsAttributInLine(ViewOnlyInLine):
+class GfsAttributInLine(admin.TabularInline):
     model = GfsAttribut
     fields = ["attribut", "aktuellerWert", "maxWert"]
     readonly_fields = ["attribut"]
@@ -37,7 +35,7 @@ class GfsAttributInLine(ViewOnlyInLine):
         return False
 
 
-class GfsFertigkeitInLine(ViewOnlyInLine):
+class GfsFertigkeitInLine(admin.TabularInline):
     model = GfsFertigkeit
     fields = ["fertigkeit", "fp"]
     readonly_fields = ["fertigkeit"]
@@ -47,33 +45,33 @@ class GfsFertigkeitInLine(ViewOnlyInLine):
         return False
 
 
-class GfsVorteilInLine(ViewOnlyInLine):
+class GfsVorteilInLine(admin.TabularInline):
     model = GfsVorteil
     extra = 1
 
 
-class GfsNachteilInLine(ViewOnlyInLine):
+class GfsNachteilInLine(admin.TabularInline):
     model = GfsNachteil
     extra = 1
 
 
-class GfsWesenkraftInLine(ViewOnlyInLine):
+class GfsWesenkraftInLine(admin.TabularInline):
     model = GfsWesenkraft
     extra = 1
 
 
-class GfsStufenplanInLine(ViewOnlyInLine):
+class GfsStufenplanInLine(admin.TabularInline):
     model = GfsStufenplan
     fields = ["basis", "vorteile", "zauber", "wesenkräfte", "weiteres"]
     extra = 0
 
-class GfsSkilltreeInLine(ViewOnlyInLine):
+class GfsSkilltreeInLine(admin.TabularInline):
     model = SkilltreeEntryGfs
     fields = ["context", "text"]
     extra = 0
 
 
-class ProfessionAttributInLine(ViewOnlyInLine):
+class ProfessionAttributInLine(admin.TabularInline):
     model = ProfessionAttribut
     fields = ["attribut", "aktuellerWert", "maxWert"]
     readonly_fields = ["attribut"]
@@ -83,7 +81,7 @@ class ProfessionAttributInLine(ViewOnlyInLine):
         return False
 
 
-class ProfessionFertigkeitInLine(ViewOnlyInLine):
+class ProfessionFertigkeitInLine(admin.TabularInline):
     model = ProfessionFertigkeit
     fields = ["fertigkeit", "fp"]
     readonly_fields = ["fertigkeit"]
@@ -93,52 +91,52 @@ class ProfessionFertigkeitInLine(ViewOnlyInLine):
         return False
 
 
-class ProfessionSpezialInLine(ViewOnlyInLine):
+class ProfessionSpezialInLine(admin.TabularInline):
     model = ProfessionSpezialfertigkeit
     fields = ["spezial"]
     extra = 1
 
 
-class ProfessionWissenInLine(ViewOnlyInLine):
+class ProfessionWissenInLine(admin.TabularInline):
     model = ProfessionWissensfertigkeit
     fields = ["wissen"]
     extra = 1
 
 
-class ProfessionTalentInLine(ViewOnlyInLine):
+class ProfessionTalentInLine(admin.TabularInline):
     model = ProfessionTalent
     fields = ["talent"]
     extra = 1
 
 
-class ProfessionSkilltreeInLine(ViewOnlyInLine):
+class ProfessionSkilltreeInLine(admin.TabularInline):
     model = SkilltreeEntryProfession
     fields = ["context", "text"]
     extra = 0
 
 
-class ProfessionStufenplanInLine(ViewOnlyInLine):
+class ProfessionStufenplanInLine(admin.TabularInline):
     model = ProfessionStufenplan
     fields = ["basis", "tp", "weiteres"]
     extra = 0
 
 
-class SpezialAusgleichInLine(ViewOnlyInLine):
+class SpezialAusgleichInLine(admin.TabularInline):
     model = Spezialfertigkeit.ausgleich.through
     extra = 1
 
 
-class WissenFertInLine(ViewOnlyInLine):
+class WissenFertInLine(admin.TabularInline):
     model = Wissensfertigkeit.fertigkeit.through
     extra = 1
 
 
-class RelSpeziesInline(ViewOnlyInLine):
+class RelSpeziesInline(admin.TabularInline):
     model = RelSpezies
     extra = 1
 
 
-class RelAttributInline(ViewOnlyInLine):
+class RelAttributInline(admin.TabularInline):
     fields = ['attribut', 'aktuellerWert', 'aktuellerWert_bonus', 'maxWert', 'maxWert_bonus', 'fg']
     readonly_fields = ['attribut']
     model = RelAttribut
@@ -151,7 +149,7 @@ class RelAttributInline(ViewOnlyInLine):
         return False
 
 
-class RelFertigkeitInLine(ViewOnlyInLine):
+class RelFertigkeitInLine(admin.TabularInline):
     fields = ['fertigkeit', 'fp', 'fp_bonus']
     readonly_fields = ['fertigkeit']
     model = RelFertigkeit
@@ -164,17 +162,17 @@ class RelFertigkeitInLine(ViewOnlyInLine):
         return False
 
 
-class RelWesenkraftInLine(ViewOnlyInLine):
+class RelWesenkraftInLine(admin.TabularInline):
     model = RelWesenkraft
     extra = 1
 
 
-class RelSpezialfertigkeitInLine(ViewOnlyInLine):
+class RelSpezialfertigkeitInLine(admin.TabularInline):
     model = RelSpezialfertigkeit
     extra = 1
 
 
-class RelWissensfertigkeitInLine(ViewOnlyInLine):
+class RelWissensfertigkeitInLine(admin.TabularInline):
     model = RelWissensfertigkeit
     extra = 1
 
@@ -190,30 +188,30 @@ class RelBegleiterInLine(admin.TabularInline):
     extra = 1
 
 
-class RelVorteilInLine(ViewOnlyInLine):
+class RelVorteilInLine(admin.TabularInline):
     model = RelVorteil
     fields = ["anzahl", "teil", "notizen"]
     extra = 1
 
 
-class RelNachteilInLine(ViewOnlyInLine):
+class RelNachteilInLine(admin.TabularInline):
     model = RelNachteil
     fields = ["anzahl", "teil", "notizen"]
     extra = 1
 
-class RelTalentInLine(ViewOnlyInLine):
+class RelTalentInLine(admin.TabularInline):
     model = RelTalent
     fields = ["talent"]
     extra = 1
 
 ########## generic (st)shop ##############
 
-class RelShopInLine(ViewOnlyInLine):
+class RelShopInLine(admin.TabularInline):
     extra = 1
     fields = ["anz", "item", "notizen"]
 
 
-class RelStShopInLine(ViewOnlyInLine):
+class RelStShopInLine(admin.TabularInline):
     extra = 1
     fields = ["anz", "stufe", "item", "notizen"]
 
@@ -278,7 +276,7 @@ class RelTinkerInLine(RelShopInLine):
 
 
 
-class CharakterAdmin(NotDeleteAdmin):
+class CharakterAdmin(admin.ModelAdmin):
 
     class Meta:
         model = Charakter
@@ -329,29 +327,26 @@ class CharakterAdmin(NotDeleteAdmin):
         return ', '.join([w.titel for w in obj.spezies.all()])
 
     def get_readonly_fields(self, request, obj=None):
-        if request.user.groups.filter(name__iexact="shop angucken"):
-            return ["manifest", "rang", "HPplus", "sp", "geld", "nutzt_magie", "useEco", "eigentümer",
-                    "ep_system", "larp", "in_erstellung", "wesenschaden_waff_kampf", "wesenschaden_andere_gestalt"]
+        if request.user.groups.filter(name__iexact="spieler"):
+            return ['eigentümer', "in_erstellung", "ep_system", "larp", "gfs", "profession", "manifest",
+                    "sonstiger_manifestverlust", "notizen_sonstiger_manifestverlust", 'rang', 'HPplus',
+                    "wesenschaden_waff_kampf", "wesenschaden_andere_gestalt", 'sp', "geld", 'ip', 'tp',
+                    "nutzt_magie", 'useEco', 'eco', 'morph']
         return super().get_readonly_fields(request, obj)
 
     def get_queryset(self, request):
-        if request.user.groups.filter(name__iexact="shop angucken"):
+        if request.user.groups.filter(name__iexact="spieler"):
             return Charakter.objects.filter(eigentümer__name__exact=request.user.username)
         else:
             return super().get_queryset(request)
 
-    def has_add_permission(self, request):
-        if request.user.groups.filter(name__iexact="shop angucken"):
-            return False
-        return super().has_add_permission(request)
 
-
-class AttributAdmin(ViewOnlyAdmin):
+class AttributAdmin(admin.ModelAdmin):
     list_display = ('titel', 'beschreibung')
     search_fields = ['titel', 'beschreibung']
 
 
-class FertigkeitAdmin(ViewOnlyAdmin):
+class FertigkeitAdmin(admin.ModelAdmin):
 
     fieldsets = [
         (None, {'fields': ['titel', 'limit', 'attr1', 'attr2']}),
@@ -363,7 +358,7 @@ class FertigkeitAdmin(ViewOnlyAdmin):
     list_filter = ['attr1', 'attr2', 'limit']
 
 
-class WesenkraftAdmin(hide_on_shop_angucken):
+class WesenkraftAdmin(admin.ModelAdmin):
 
     fields = ['titel', 'min_rang', 'probe', 'wirkung', 'wesen', "zusatz_manifest"]
     inlines = [WesenkraftZusatzWesenspInLine]
@@ -373,7 +368,7 @@ class WesenkraftAdmin(hide_on_shop_angucken):
     list_filter = ['wesen']
 
 
-class SpezialfertigkeitAdmin(hide_on_shop_angucken):
+class SpezialfertigkeitAdmin(admin.ModelAdmin):
     fieldsets = [
         (None, {'fields': ['titel', 'attr1', 'attr2']}),
         ('Beschreibung', {'fields': ['beschreibung']})
@@ -389,7 +384,7 @@ class SpezialfertigkeitAdmin(hide_on_shop_angucken):
         return ', '.join([a.titel for a in obj.ausgleich.all()])
 
 
-class WissensfertigkeitAdmin(hide_on_shop_angucken):
+class WissensfertigkeitAdmin(admin.ModelAdmin):
     fieldsets = [
         (None, {'fields': ['titel', 'attr1', 'attr2', 'attr3']}),
         ('Beschreibung', {'fields': ['beschreibung']})
@@ -405,7 +400,7 @@ class WissensfertigkeitAdmin(hide_on_shop_angucken):
         return ', '.join([a.titel for a in obj.fertigkeit.all()])
 
 
-class SpeziesAdmin(hide_on_shop_angucken):
+class SpeziesAdmin(admin.ModelAdmin):
     list_display = ('titel', 'beschreibung_')
     search_fields = ('titel',)
 
@@ -418,7 +413,7 @@ class SpeziesAdmin(hide_on_shop_angucken):
         return str
 
 
-class GfsAdmin(hide_on_shop_angucken):
+class GfsAdmin(admin.ModelAdmin):
     list_display = ('titel', 'ap', 'beschreibung_', 'vorteil_', 'nachteil_',
                     "wesenschaden_waff_kampf", "wesenschaden_andere_gestalt", "wesenkraft_", "startmanifest",)
     list_filter = ['ap', 'startmanifest', "wesenschaden_waff_kampf"]
@@ -445,7 +440,7 @@ class GfsAdmin(hide_on_shop_angucken):
         return str
 
 
-class ProfessionAdmin(hide_on_shop_angucken):
+class ProfessionAdmin(admin.ModelAdmin):
     list_display = ('titel', 'beschreibung_')
     search_fields = ('titel',)
 
@@ -461,48 +456,48 @@ class ProfessionAdmin(hide_on_shop_angucken):
         return str
 
 
-class VorNachteilAdmin(hide_on_shop_angucken):
+class VorNachteilAdmin(admin.ModelAdmin):
 
     list_display = ('titel', 'ip', 'beschreibung', "wann_wählbar")
     list_filter = ['ip', "wann_wählbar"]
     search_fields = ['titel', 'ip', "wann_wählbar"]
 
 
-class BegleiterAdmin(NotDeleteAdmin):
+class BegleiterAdmin(admin.ModelAdmin):
     list_display = ['name', 'beschreibung']
     search_fields = ['name']
     list_filter = ['name']
 
 
-class BerufAdmin(NotDeleteAdmin):
+class BerufAdmin(admin.ModelAdmin):
     list_display = ['titel', 'beschreibung']
     search_fields = ['titel']
     list_filter = ['titel']
 
 
-class ReligionAdmin(NotDeleteAdmin):
+class ReligionAdmin(admin.ModelAdmin):
     list_display = ['titel', 'beschreibung']
     search_fields = ['titel']
     list_filter = ['titel']
 
 
-class SpielerAdmin(hide_on_shop_angucken):
+class SpielerAdmin(admin.ModelAdmin):
     #readonly_fields = ["name"]
     fields = ["name", "geburtstag"]
     list_display = ["name", "geburtstag"]
 
 
-class RangRankingEntryAdmin(hide_on_shop_angucken):
+class RangRankingEntryAdmin(admin.ModelAdmin):
     exclude = []
     list_display = ["order", "ranking", "min_rang", "max_rang"]
 
 
-class SkilltreeEntryWesenAdmin(hide_on_shop_angucken):
+class SkilltreeEntryWesenAdmin(admin.ModelAdmin):
     list_display = ["wesen", "context"]
     list_filter = ["wesen", "context"]
 
 
-class StufenplanAdmin(hide_on_shop_angucken):
+class StufenplanAdmin(admin.ModelAdmin):
     list_editable = ["ep", "ap", "ap_max", "fp", "fg", "zauber", "spezial", "wissensp"]#, "weiteres"]
     list_display = ["wesen", "stufe", "ep", "vorteile_", "ap", "ap_max", "fp", "fg", "zauber", "wesenkräfte_",
                     "spezial", "wissensp", "weiteres"]
@@ -515,15 +510,15 @@ class StufenplanAdmin(hide_on_shop_angucken):
         return ', '.join([a.titel for a in obj.wesenkräfte.all()])
 
 
-class GfsStufenplanBaseAdmin(hide_on_shop_angucken):
+class GfsStufenplanBaseAdmin(admin.ModelAdmin):
     list_display = ["stufe", "ep", "ap", "fp", "fg"]
 
 
-class ProfessionStufenplanBaseAdmin(hide_on_shop_angucken):
+class ProfessionStufenplanBaseAdmin(admin.ModelAdmin):
     list_display = ["stufe", "ep"]
 
 
-class TalentAdmin(hide_on_shop_angucken):
+class TalentAdmin(admin.ModelAdmin):
     list_display = ["titel", "tp", "beschreibung", "kategorie"]
 
 
@@ -542,9 +537,9 @@ admin.site.register(Vorteil, VorNachteilAdmin)
 admin.site.register(Wissensfertigkeit, WissensfertigkeitAdmin)
 admin.site.register(Begleiter, BegleiterAdmin)
 
-admin.site.register(SkilltreeBase, hide_on_shop_angucken)
+admin.site.register(SkilltreeBase, admin.ModelAdmin)
 #admin.site.register(SkilltreeEntryWesen, SkilltreeEntryWesenAdmin)
-#admin.site.register(SkilltreeEntryKategorie, hide_on_shop_angucken)
+#admin.site.register(SkilltreeEntryKategorie, admin.ModelAdmin)
 admin.site.register(Talent, TalentAdmin)
 
 admin.site.register(GfsStufenplanBase, GfsStufenplanBaseAdmin)
@@ -554,27 +549,3 @@ admin.site.register(RangRankingEntry, RangRankingEntryAdmin)
 admin.site.register(Spieler, SpielerAdmin)
 
 #admin.site.register(Stufenplan, StufenplanAdmin)
-
-#admin.site.register(RelFirmaItem, hide_on_shop_angucken)
-#admin.site.register(RelFirmaWaffen_Werkzeuge, hide_on_shop_angucken)
-#admin.site.register(RelFirmaMagazin, hide_on_shop_angucken)
-#admin.site.register(RelFirmaPfeil_Bolzen, hide_on_shop_angucken)
-#admin.site.register(RelFirmaSchusswaffen, hide_on_shop_angucken)
-#admin.site.register(RelFirmaMagische_Ausrüstung, hide_on_shop_angucken)
-#admin.site.register(RelFirmaRüstung, hide_on_shop_angucken)
-#admin.site.register(RelFirmaAusrüstung_Technik, hide_on_shop_angucken)
-#admin.site.register(RelFirmaFahrzeug, hide_on_shop_angucken)
-#admin.site.register(RelFirmaEinbauten, hide_on_shop_angucken)
-#admin.site.register(RelFirmaZauber, hide_on_shop_angucken)
-
-#admin.site.register(RelFirmaStItem, hide_on_shop_angucken)
-#admin.site.register(RelFirmaStWaffen_Werkzeuge, hide_on_shop_angucken)
-#admin.site.register(RelFirmaStMagazin, hide_on_shop_angucken)
-#admin.site.register(RelFirmaStPfeil_Bolzen, hide_on_shop_angucken)
-#admin.site.register(RelFirmaStSchusswaffen, hide_on_shop_angucken)
-#admin.site.register(RelFirmaStMagische_Ausrüstung, hide_on_shop_angucken)
-#admin.site.register(RelFirmaStRüstung, hide_on_shop_angucken)
-#admin.site.register(RelFirmaStAusrüstung_Technik, hide_on_shop_angucken)
-#admin.site.register(RelFirmaStFahrzeug, hide_on_shop_angucken)
-#admin.site.register(RelFirmaStEinbauten, hide_on_shop_angucken)
-#admin.site.register(RelFirmaStZauber, hide_on_shop_angucken)
