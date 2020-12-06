@@ -132,8 +132,8 @@
 		}
 
 		.text {flex: 1 1 300px;}
-		.img {flex: 0 1 300px;}
 	}
+	.img {flex: 0 1 300px;}
 
 	.text-input {
 		width: 100%;
@@ -156,7 +156,10 @@
 		.upload {
 			display: flex;
 			align-items: center;
+			justify-content: center;
 			flex-wrap: wrap;
+
+			margin: 1em 0;
 
 			a {
 				color: #088;

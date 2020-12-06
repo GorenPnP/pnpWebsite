@@ -75,7 +75,7 @@
 						{% if spieler_question.answer_img %}
 							<div class="upload">
 									<label for="img">Bild:</label>
-									<a href="{{ spieler_question.answer_img.img.url }}">{{ spieler_question.answer_img.name }}</a>
+									<a href="{{ spieler_question.answer_img.img.url }}" class="img"><img src="{{ spieler_question.answer_img.img.url }}" alt="{{ spieler_question.answer_img.name }}" /></a>
 							</div>
 						{% endif %}
 
@@ -106,7 +106,7 @@
 								<label for="img">Bild:</label>
 								<input type="file" accept="image/*" name="img" id="img" class="upload upload--img">
 								{% if spieler_question.correct_img %}
-									<a href="{{ spieler_question.correct_img.img.url }}">{{ spieler_question.correct_img.name }}</a>
+									<a href="{{ spieler_question.correct_img.img.url }}" class="img"><img src="{{ spieler_question.correct_img.img.url }}" alt="{{ spieler_question.correct_img.name }}" /></a>
 								{% endif %}
 							</div>
 
