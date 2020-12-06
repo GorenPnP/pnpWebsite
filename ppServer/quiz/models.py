@@ -119,7 +119,7 @@ class Question(models.Model):
     images = models.ManyToManyField(Image, blank=True)
     files = models.ManyToManyField(File, blank=True)
 
-    answer_note = models.TextField(max_length=100, null=True, blank=True)
+    answer_note = models.TextField(max_length=2000, null=True, blank=True)
 
     allow_text = models.BooleanField(default=True)
     allow_upload = models.BooleanField(default=False)
