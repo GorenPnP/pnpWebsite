@@ -37,7 +37,7 @@ class TopicAdmin(hide_on_shop_angucken):
 
 
 class QuestionAdmin(hide_on_shop_angucken):
-    list_display = ["text", "topic", "grade", "points", "answer_note", "images_included"]
+    list_display = ["text", "module_", "topic", "grade", "points", "answer_note", "images_included"]
     list_filter = ["topic", "grade"]
     list_display_links = ("topic", )
 
@@ -63,6 +63,10 @@ class QuestionAdmin(hide_on_shop_angucken):
     # to show properties as pretty boolean-vals
     images_included.boolean = True
 
+
+    def module_(self, obj):
+        mqs = ModuleQuestion.objects.filter(question=obj)
+        return ", ".join([mq.module.__str__() for mq in mqs]) if mqs.count() else "-"
 
 class ModuleAdmin(hide_on_shop_angucken):
     list_display = ["icon_", "title", "num", "max_points", "reward", "prerequisites_"]
