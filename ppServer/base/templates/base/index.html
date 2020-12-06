@@ -95,6 +95,28 @@
         </div>
     </div>
 
+    <!-- quiz -->
+    <div class="card" id="quiz">
+        <a href="{% url 'quiz:index' %}">
+            <div class="card__icon">
+                <img class="card__icon__img" src="{% static 'res/img/icon-quiz.svg' %}" alt="">
+            </div>
+        </a>
+        <div class="card__container">
+            <h2 class="card__heading">Quiz</h2>
+            <p class="card__text">
+                Das beste, einmalige Quiz zur PnP Welt des Goren.
+            </p>
+            <div class="btns">
+                <a href="{% url 'quiz:index' %}">
+                    <button class="card__btn">
+                        <p class="btn__text">Lets quizz!</p>
+                    </button>
+                </a>
+            </div>
+        </div>
+    </div>
+
     <!-- crafting -->
     <div class="card" id="crafting">
         <a href="{% url 'crafting:inventory' %}">
