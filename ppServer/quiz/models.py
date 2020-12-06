@@ -114,8 +114,6 @@ class Question(models.Model):
 
     text = models.TextField(max_length=2000, default="")
 
-    difficulty = models.PositiveSmallIntegerField(default=0, blank=True)    # TODO delete later (when Phillip is done reordering)
-
     images = models.ManyToManyField(Image, blank=True)
     files = models.ManyToManyField(File, blank=True)
 
