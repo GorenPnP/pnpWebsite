@@ -23,6 +23,22 @@ label {margin-right: 1em;}
 	margin: 1em;
 }
 
+.row {
+	display: flex;
+	align-items: flex-start;
+
+	& > * {
+		display: flex;
+		align-items: center;
+	}
+
+	.icon {
+		max-height: 32px;
+		max-width: 32px;
+		margin: .5em;
+	}
+}
+
 .no-link {color: #c8c8c8;}
 .no-link:hover {opacity: 1;}
 

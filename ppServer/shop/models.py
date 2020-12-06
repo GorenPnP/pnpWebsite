@@ -171,7 +171,7 @@ class BaseShop(models.Model):
         offers = firma_model.objects.filter(item=self)
         billigster = sorted([o.current_price() for o in offers])[0] if offers.count() else None
 
-        return [[{"val": self.name, "url": reverse(url_prefix, args=[self.id]), "name": self.id}],
+        return [[{"val": self.name, "icon_url": self.getIconUrl(), "url": reverse(url_prefix, args=[self.id]), "name": self.id}],
                 [{"val": self.beschreibung}],
                 [{"val": self.ab_stufe}],
                 [{"val": billigster}],
@@ -426,7 +426,7 @@ class Rituale_Runen(BaseShop):
         offers5 = firma_model.objects.filter(item=self).order_by("stufe_5")
         billig5 = offers5[0].stufe_5 if offers5.count() else None
 
-        return [[{"val": self.name, "url": reverse(url_prefix, args=[self.id])}],
+        return [[{"val": self.name, "icon_url": self.getIconUrl(), "url": reverse(url_prefix, args=[self.id])}],
                 [{"val": self.beschreibung}],
                 [{"val": self.ab_stufe}],
                 [{"val": billig1}],
@@ -641,16 +641,11 @@ class Tinker(BaseShop):
             [{"val": "Name"}],
             [{"val": "Beschreibung"}],
             [{"val": "Ab Stufe"}],
-            #[{"val": "Benötigt"}],
-            #[{"val": "Nebenprodukte"}],
-            #[{"val": "Herstellung via"}],
             [{"val": "Werte"}],
-            #[{"val": "Herstellungsdauer"}],
-            #[{"val": "Proben"}],
             [{"val": "Weiteres"}]
         ]
 
-    def get_values(self, firma_model=FirmaTinker, url_prefix=""):
+    def get_values(self, firma_model=FirmaTinker, url_prefix=None):
 
         weiteres = "illegal" if self.illegal else ""
         if self.lizenz_benötigt and not weiteres:
@@ -658,30 +653,9 @@ class Tinker(BaseShop):
         if self.lizenz_benötigt and self.illegal:
             weiteres += ", Lizenz"
 
-        url_show_prefix = "shop:tinker"
-
-        #needs = TinkerNeeds.objects.filter(product=self)
-        #needs_list = [{"val": "{}x {}".format(i.num, i.part.name), "url": "{}#{}".format(reverse(url_show_prefix), i.part.id)} for i in needs]
-        #if not len(needs_list): needs_list = [{"val": ""}]
-
-        #waste = TinkerWaste.objects.filter(rezept=self)
-        #waste_list = [{"val": "{}x {}".format(i.num, i.neben.name), "url": "{}#{}".format(reverse(url_show_prefix), i.neben.id)} for i in waste]
-        #if not len(waste_list): waste_list = [{"val": ""}]
-
-        #proben_list = [{"val": i.titel} for i in self.probe_spezial.all()] + [{"val": i.titel} for i in self.probe_wissen.all()]
-        #if not len(proben_list): proben_list = {"val": ""}
-
-        return [[{"val": self.name, "name": self.id}],
+        return [[{"val": self.name, "icon_url": self.getIconUrl(), "name": self.id}],
                 [{"val": self.beschreibung}],
                 [{"val": self.ab_stufe}],
-                #needs_list,
-                #waste_list,
-                #[{"val": self.herstellung_via.name,
-                #  "url": "{}#{}".format(reverse(url_show_prefix), self.herstellung_via.id)}
-                #    if self.herstellung_via
-                #    else {"val": ""}],
                 [{"val": self.werte}],
-                #[{"val": "{} dd:hh:mm".format(self.herstellungsdauer)}],
-                #proben_list,
                 [{"val": weiteres}]
                 ]

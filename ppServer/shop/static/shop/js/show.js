@@ -1,7 +1,7 @@
 var marked_row = ""
 
 // get class of row
-function getClass(tag, prefix = "row") {
+function getClass(tag, prefix = "row--") {
 
     var classes = tag.classList
     for (var c = 0; c < classes.length; c++) {
@@ -30,7 +30,7 @@ function scroll() {
             for (var i = 0; i < tags.length; i++) tags[i].classList.remove("selected")
         }
 
-        marked_row = getClass(document.getElementsByName(id)[0], "row")
+        marked_row = getClass(document.getElementsByName(id)[0], "row--")
         if (marked_row !== "") {
             var tags = document.getElementsByClassName(marked_row)
             for (var i = 0; i < tags.length; i++) tags[i].classList.add("selected")

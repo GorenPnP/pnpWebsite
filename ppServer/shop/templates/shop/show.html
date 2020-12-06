@@ -42,7 +42,7 @@
 	<div class="grid-container">
 			{% for row in fields %}
 				{% for entries in row %}
-					<div class="row-{{ forloop.parentloop.counter0 }}
+					<div class="row row--{{ forloop.parentloop.counter0 }}
 											{% if forloop.parentloop.first %}heading stick-top
 											{% if forloop.last %}heading--last{% endif %}
 											{% endif %}
@@ -52,7 +52,8 @@
 							{% if e.name %}<a name="{{ e.name }}" class="no-link row-{{ forloop.parentloop.parentloop.counter0 }}">{% endif %}
 							{% if e.url %}<a href="{{ e.url }}">{% endif %}
 
-							{% if e.val or e.val == 0 %}{{ e.val }}{% else %}-{% endif %}{% if e.url %}</a>{% endif %}{% if e.name %}</a>{% endif %}{% if not forloop.last %},{% endif %}
+							{% if e.icon_url %}<img src="{{ e.icon_url }}" class="icon">{% endif %}
+							{% if e.val or e.val == 0 %}<span>{{ e.val }}</span>{% else %}-{% endif %}{% if e.url %}</a>{% endif %}{% if e.name %}</a>{% endif %}{% if not forloop.last %},{% endif %}
 
 						{% endfor %}
 					</div>
