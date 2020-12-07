@@ -72,6 +72,18 @@ def update_max_points(sender, instance, **kwargs):
     instance.max_points = sum
 
 
+
+# changed spielerModule -> add new Spielersession if state [seen, passed] ->
+@receiver(pre_save, sender=SpielerModule)
+def add_session(sender, instance, **kwargs):
+
+    old_instance = SpielerModule.objects.filter(id=instance.id)
+    if old_instance.count() == 0: return
+
+    if old_instance[0].state in [5, 6] and instance.state <= 2: # old: [seen, passed], new: [locked, unlocked, opened]
+        SpielerSession.objects.create(spielerModule=instance)
+
+
 # new session -> add SpielerQuestions
 @receiver(post_save, sender=SpielerSession)
 def add_questions(sender, instance, **kwargs):
