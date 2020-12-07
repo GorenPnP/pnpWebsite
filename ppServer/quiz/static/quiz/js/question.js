@@ -30,8 +30,26 @@ function back(e) {
 }
 
 
-// for /quiz/sp/correction/.. only
-document.addEventListener("DOMContentLoaded", _ => {
+function updateChecked() {
+
+    // for /quiz/sp/correction/.. only
     const checkboxes = [...document.getElementsByClassName("checkbox checkbox--correction wrong-answer")]
     checkboxes.forEach(checkbox => checkbox.classList.toggle('checked'))
+
+    // for /quiz/question/.. only
+    if (checkboxes.length == 0) {
+        const checked = JSON.parse(document.getElementById("ids").value)
+        checked.forEach(id => document.getElementById(`${id}`).addEventListener("change"));
+    }
+}
+
+document.addEventListener("DOMContentLoaded", _ => {
+
+    const inputs = [...document.getElementsByName("input")]
+    inputs.forEach(input => {
+        input.addEventListener("change", __ => updateChecked)
+        input.addEventListener("click", __ => updateChecked)
+    })
+
+    updateChecked()
 })
