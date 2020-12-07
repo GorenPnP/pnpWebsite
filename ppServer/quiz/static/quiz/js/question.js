@@ -45,7 +45,12 @@ function updateChecked() {
 
 document.addEventListener("DOMContentLoaded", _ => {
 
-    const inputs = [...document.getElementsByName("input")]
+    // resize textareas
+    const textareas = [...document.getElementsByTagName("textarea")]
+    textareas.forEach(area => autoGrow(area))
+
+    // handle checkboxes
+    const inputs = [...document.getElementsByTagName("input")]
     inputs.forEach(input => {
         input.addEventListener("change", __ => updateChecked)
         input.addEventListener("click", __ => updateChecked)
