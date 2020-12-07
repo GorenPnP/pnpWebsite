@@ -1,4 +1,4 @@
-from django.db.models.signals import pre_save, pre_delete, post_save
+from django.db.models.signals import m2m_changed, post_delete, pre_save, pre_delete, post_save
 from django.dispatch import receiver
 
 from character.models import Spieler
@@ -42,56 +42,37 @@ def create_relQuiz(sender, instance, **qwargs):
 
 
 # following: update module.max_points on:
-#   add, delete of question-module relation
-#   save of any question
+#   save of every module
+#   save or delete of any question
+#   didn't work on Modulequestion since it resolves a m2m ()between them)
 
-# basically on new relation to module
-@receiver(pre_save, sender=ModuleQuestion)
-def update_max_points(sender, instance, **kwargs):
-    # shouldn't ever happen
-    if not instance:
-        return
-
-    old_instance = sender.objects.filter(id=instance.id)
-    if not old_instance.exists():
-        module = instance.module
-        module.max_points += instance.question.points
-        module.save()
-
-
-@receiver(pre_delete, sender=ModuleQuestion)
-def decrease_max_points(sender, instance, **kwargs):
-    # shouldn't ever happen
-    if not instance:
-        return
-
-    module = instance.module
-    module.max_points -= instance.question.points
-    module.save()
-
-
-@receiver(pre_save, sender=Question)
+@receiver(post_save, sender=Question)
+@receiver(post_delete, sender=Question)
 def update_max_points_of_module(sender, instance, **kwargs):
     # shouldn't ever happen
-    if not instance:
-        return
+    if not instance: return
 
-    # is newly instantiated, cannot have a relation to a module
-    old_instance = sender.objects.filter(id=instance.id)
-    if not old_instance.exists():
-        return
+    # get related module
+    modules = [mq.module for mq in ModuleQuestion.objects.filter(question=instance) if mq.module]
 
-    mq = ModuleQuestion.objects.filter(question=instance)
-
-    # no relation detected
-    if not mq.exists():
-        return
-
-    for e in mq:
-        e.module.max_points += instance.points - old_instance[0].points
-        e.module.save()
+    # sum new max_points for each related module (trigger pre_save of Module)
+    for m in modules: m.save()
 
 
+@receiver(pre_save, sender=Module)
+def update_max_points(sender, instance, **kwargs):
+    # shouldn't ever happen
+    if not instance: return
+
+    sum = 0
+
+    for mq in ModuleQuestion.objects.filter(module=instance):
+        sum += mq.question.points
+
+    instance.max_points = sum
+
+
+# new session -> add SpielerQuestions
 @receiver(post_save, sender=SpielerSession)
 def add_questions(sender, instance, **kwargs):
     if not kwargs["created"]:

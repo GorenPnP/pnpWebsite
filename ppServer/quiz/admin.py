@@ -4,6 +4,13 @@ from django.utils.html import format_html
 from .models import *
 
 
+def save_selected(modeladmin, request, queryset):
+    for q in queryset:
+        q.save()
+save_selected.short_description = "Ausgewählte Module speichern"
+save_selected.allowed_permissions = ('change',)
+
+
 class MultipleChoiceFieldInLine(admin.TabularInline):
     model = MultipleChoiceField
     fields = ["img", "text"]
@@ -80,6 +87,8 @@ class ModuleAdmin(admin.ModelAdmin):
     def icon_(self, obj):
         return format_html('<img src="{0}" style="max-width: 32px; max-height:32px;" />'.format(obj.icon.img.url)) if obj.icon else "-"
     icon_.allow_tags = True
+
+    actions = [save_selected]
 
 
 class SpielerModuleAdmin(admin.ModelAdmin):

@@ -34,7 +34,7 @@ class RelQuiz(models.Model):
     spieler = models.OneToOneField(Spieler, on_delete=models.CASCADE, null=True, unique=True)
 
     current_session = models.ForeignKey("SpielerSession", on_delete=models.SET_NULL, null=True, blank=True)
-    quiz_points_achieved = models.IntegerField(default=0, blank=True)
+    quiz_points_achieved = models.FloatField(default=0, blank=True)
 
 
 # used before save on Question.picture and Answer.picture to hide real name in src-path of img-tag in HTML (anti-cheat)
