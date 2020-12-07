@@ -61,6 +61,6 @@ def index(request):
 
 
         # got open questions in quiz? (state = open)
-        context["open_quiz"] = SpielerModule.objects.filter(spieler=spieler, state=module_state[2][0]).exists()
+        context["open_quiz"] = SpielerModule.objects.filter(spieler=spieler, state__in=[2, 4]).exists() # opened or corrected
 
         return render(request, 'base/index.html', context)

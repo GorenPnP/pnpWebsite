@@ -9,10 +9,10 @@
 {% block absolute %}
 
 <section class="hero">
-    {% include 'base/hero_crafting.html' %}
     {% if open_quiz %}
         {% include 'base/hero_quiz.html' %}
     {% endif %}
+    {% include 'base/hero_crafting.html' %}
     {% if list_vote and list_vote|length %}
         {% include 'base/hero_poll.html' with polls=list_vote %}
     {% endif %}
