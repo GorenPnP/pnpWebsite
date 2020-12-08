@@ -1,5 +1,4 @@
-import random
-import string
+import random, string
 from datetime import date
 
 from django.contrib.auth.models import User
@@ -7,9 +6,8 @@ from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.shortcuts import get_object_or_404
-from math import floor
 
-from .enums import *
+from . import enums
 
 
 class Spieler(models.Model):
@@ -44,7 +42,7 @@ class Wesenkraft(models.Model):
     wirkung = models.CharField(max_length=300, null=False, default="")
     min_rang = models.PositiveIntegerField(default=0)
 
-    wesen = models.CharField(max_length=1, choices=enum_wesenkr, null=False, default=enum_wesenkr[0][0])
+    wesen = models.CharField(max_length=1, choices=enums.enum_wesenkr, null=False, default=enums.enum_wesenkr[0][0])
     zusatz_wesenspezifisch = models.ManyToManyField("Spezies", blank=True)
     zusatz_manifest = models.DecimalField('zusatz_manifest', max_digits=4, decimal_places=2,
                                           validators=[MaxValueValidator(10), MinValueValidator(0)], null=True, blank=True)
@@ -419,7 +417,7 @@ class Talent(models.Model):
     titel = models.CharField(max_length=200)
     tp = models.PositiveIntegerField(default=1)
     beschreibung = models.TextField()
-    kategorie = models.CharField(max_length=1, choices=talent_enum, default=talent_enum[0][0])
+    kategorie = models.CharField(max_length=1, choices=enums.talent_enum, default=enums.talent_enum[0][0])
 
     def __str__(self):
         return self.titel
@@ -449,7 +447,7 @@ class Teil(models.Model):
     titel = models.CharField(max_length=40)
     ip = models.PositiveIntegerField(default=0, validators=[MaxValueValidator(1000)])
     beschreibung = models.TextField(max_length=1000, blank=True, default="")
-    wann_wählbar = models.CharField(max_length=1, choices=teil_erstellung_enum, default=teil_erstellung_enum[0][0])
+    wann_wählbar = models.CharField(max_length=1, choices=enums.teil_erstellung_enum, default=enums.teil_erstellung_enum[0][0])
 
 
 
@@ -511,7 +509,7 @@ class Fertigkeit(models.Model):
     titel = models.CharField(max_length=50, unique=True)
     attr1 = models.ForeignKey(Attribut, null=True, on_delete=models.SET_NULL, related_name="attr1")
     attr2 = models.ForeignKey(Attribut, on_delete=models.SET_NULL, related_name="attr2", blank=True, null=True)
-    limit = models.CharField(choices=limit_enum, max_length=20, default=limit_enum[0])
+    limit = models.CharField(choices=enums.limit_enum, max_length=20, default=enums.limit_enum[0])
     beschreibung = models.CharField(max_length=100, blank=True, default='')
 
     def __str__(self):
@@ -618,7 +616,7 @@ class Charakter(models.Model):
     haarfarbe = models.CharField(max_length=100, default="", blank=True)
     augenfarbe = models.CharField(max_length=100, default="", blank=True)
 
-    nutzt_magie = models.PositiveSmallIntegerField(choices=nutzt_magie_enum, default=nutzt_magie_enum[0][0], blank=True)
+    nutzt_magie = models.PositiveSmallIntegerField(choices=enums.nutzt_magie_enum, default=enums.nutzt_magie_enum[0][0], blank=True)
     useEco = models.BooleanField("benutze 'eco':y, benutze 'morph':n", default=True, blank=True)
 
     eco = models.PositiveIntegerField(default=0, blank=True)
@@ -702,7 +700,7 @@ class RelBegleiter(models.Model):
 
     char = models.ForeignKey(Charakter, on_delete=models.CASCADE)
     begleiter = models.ForeignKey(Begleiter, on_delete=models.CASCADE)
-    status = models.CharField(max_length=60, choices=status_enum)
+    status = models.CharField(max_length=60, choices=enums.status_enum)
     notizen = models.CharField(max_length=100, blank=True, default='')
 
     def __str__(self):
@@ -863,7 +861,7 @@ class RelWissensfertigkeit(models.Model):
     char = models.ForeignKey(Charakter, on_delete=models.CASCADE)
     wissensfertigkeit = models.ForeignKey(Wissensfertigkeit, on_delete=models.CASCADE)
 
-    würfel2 = models.SmallIntegerField(choices=würfelart_enum, default=würfelart_enum[0][0])
+    würfel2 = models.SmallIntegerField(choices=enums.würfelart_enum, default=enums.würfelart_enum[0][0])
 
     def __str__(self):
         return "'{}' von ’{}’".format(self.wissensfertigkeit.__str__(), self.char.__str__())
@@ -1159,7 +1157,7 @@ class SkilltreeBase(models.Model):
     class Meta:
         unique_together = ["kind", "stufe"]
 
-    kind = models.CharField(max_length=1, choices=skilltreeBase_enum, null=True)
+    kind = models.CharField(max_length=1, choices=enums.skilltreeBase_enum, null=True)
 
     # stufe == 0: Bonus
     stufe = models.PositiveIntegerField(validators=[MaxValueValidator(10)], default=1)
@@ -1214,7 +1212,7 @@ class SkilltreeEntryKategorie(models.Model):
 
     context = models.ForeignKey(SkilltreeBase, on_delete=models.CASCADE, null=True)
 
-    kategorie = models.CharField(max_length=2, choices=skilltree_kategorie_enum, null=True)
+    kategorie = models.CharField(max_length=2, choices=enums.skilltree_kategorie_enum, null=True)
     text = models.TextField(max_length=100)
 
     def __str__(self):

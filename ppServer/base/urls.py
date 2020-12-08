@@ -1,12 +1,12 @@
 from django.urls import path
 
-from .views import *
+from . import views
 
 app_name = 'base'
 
 urlpatterns = [
-    path('', index, name='index'),
+    path('', views.index, name='index'),
 
     # for testing only
-    path("redirect", redirect),
+    path("redirect", views.redirect),
 ]

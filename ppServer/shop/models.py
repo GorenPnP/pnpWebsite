@@ -1,17 +1,11 @@
-import re
-
 import math
-from datetime import timedelta
 
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator, MaxValueValidator
-from django.utils.timezone import now
 from django.db import models
 from django.urls import reverse
 
-from character.models import Spezialfertigkeit, Wissensfertigkeit
-
-from .enums import *
+from . import enums
 
 
 # Firma
@@ -94,15 +88,6 @@ class FirmaRituale_Runen(models.Model):
 
     def __str__(self):
         return "{} von {} ({}%)".format(self.item, self.firma, self.verfügbarkeit)
-
-    def clean(self):
-        if preis_lte(self.stufe_1, self.stufe_2) and \
-            preis_lte(self.stufe_2, self.stufe_3) and \
-            preis_lte(self.stufe_3, self.stufe_4) and \
-                preis_lte(self.stufe_4, self.stufe_5):
-            pass
-        else:
-            raise ValidationError("Höhere Stufe kostet weniger")
 
 
 class FirmaRüstungen(FirmaShop):
@@ -188,7 +173,7 @@ class Item(BaseShop):
         verbose_name = "Item"
         verbose_name_plural = "Items"
 
-    kategorie = models.CharField(choices=item_enum, max_length=2, default=item_enum[0][0])
+    kategorie = models.CharField(choices=enums.item_enum, max_length=2, default=enums.item_enum[0][0])
     firmen = models.ManyToManyField('Firma', through='FirmaItem', blank=True, related_name='firmen')
 
     def __str__(self):
@@ -208,7 +193,7 @@ class Waffen_Werkzeuge(BaseShop):
     zs = models.CharField(max_length=20, default=0)
     dk = models.PositiveIntegerField(default=0, blank=True, null=True)
 
-    kategorie = models.CharField(choices=werkzeuge_enum, max_length=2, default=werkzeuge_enum[0][0])
+    kategorie = models.CharField(choices=enums.werkzeuge_enum, max_length=2, default=enums.werkzeuge_enum[0][0])
     firmen = models.ManyToManyField('Firma', through='FirmaWaffen_Werkzeuge', blank=True)
 
     def __str__(self):
@@ -321,7 +306,7 @@ class Schusswaffen(BaseShop):
     dk = models.PositiveIntegerField(default=0, blank=True)
     präzision = models.PositiveIntegerField(default=0, blank=True)
 
-    kategorie = models.CharField(choices=schusswaffen_enum, max_length=2, default=schusswaffen_enum[0][0])
+    kategorie = models.CharField(choices=enums.schusswaffen_enum, max_length=2, default=enums.schusswaffen_enum[0][0])
     firmen = models.ManyToManyField('Firma', through='FirmaSchusswaffen', blank=True)
 
     def __str__(self):
@@ -367,7 +352,7 @@ class Magische_Ausrüstung(BaseShop):
         verbose_name = "magische Ausrüstung"
         verbose_name_plural = "magische Ausrüstung"
 
-    kategorie = models.CharField(choices=magische_Ausrüstung_enum, max_length=2, default=magische_Ausrüstung_enum[0][0])
+    kategorie = models.CharField(choices=enums.magische_Ausrüstung_enum, max_length=2, default=enums.magische_Ausrüstung_enum[0][0])
     firmen = models.ManyToManyField('Firma', through='FirmaMagische_Ausrüstung', blank=True)
 
     def __str__(self):
@@ -382,7 +367,7 @@ class Rituale_Runen(BaseShop):
         verbose_name = "Ritual/Rune"
         verbose_name_plural = "Rituale & Runen"
 
-    kategorie = models.CharField(choices=rituale_enum, max_length=2, default=rituale_enum[0][0])
+    kategorie = models.CharField(choices=enums.rituale_enum, max_length=2, default=enums.rituale_enum[0][0])
     firmen = models.ManyToManyField('Firma', through='FirmaRituale_Runen', blank=True)
 
     def __str__(self):
@@ -487,7 +472,7 @@ class Ausrüstung_Technik(BaseShop):
     manifestverlust = models.DecimalField('manifestverlust', max_digits=4, decimal_places=2,
                                           default=0.0, blank=True, null=True,
                                           validators=[MinValueValidator(0), MaxValueValidator(10)])
-    kategorie = models.CharField(choices=ausrüstung_enum, max_length=2, default=ausrüstung_enum[0][0])
+    kategorie = models.CharField(choices=enums.ausrüstung_enum, max_length=2, default=enums.ausrüstung_enum[0][0])
     firmen = models.ManyToManyField('Firma', through='FirmaAusrüstung_Technik', blank=True)
 
     def __str__(self):
@@ -506,7 +491,7 @@ class Fahrzeug(BaseShop):
     rüstung = models.PositiveIntegerField(blank=True, null=True)
     erfolge = models.PositiveIntegerField(default=0, blank=True, null=True)
 
-    kategorie = models.CharField(choices=fahrzeuge_enum, max_length=2, default=fahrzeuge_enum[0][0])
+    kategorie = models.CharField(choices=enums.fahrzeuge_enum, max_length=2, default=enums.fahrzeuge_enum[0][0])
     firmen = models.ManyToManyField('Firma', through='FirmaFahrzeug', blank=True)
 
     def __str__(self):
@@ -543,7 +528,7 @@ class Einbauten(BaseShop):
         verbose_name_plural = "Einbauten"
 
     manifestverlust = models.CharField(max_length=20, null=True, blank=True)
-    kategorie = models.CharField(choices=einbauten_enum, max_length=2, default=einbauten_enum[0][0])
+    kategorie = models.CharField(choices=enums.einbauten_enum, max_length=2, default=enums.einbauten_enum[0][0])
     firmen = models.ManyToManyField('Firma', through='FirmaEinbauten', blank=True)
 
     def __str__(self):
@@ -575,7 +560,7 @@ class Zauber(BaseShop):
     schaden = models.CharField(max_length=20, default='')
     astralschaden = models.CharField(max_length=20, default='')
 
-    kategorie = models.CharField(choices=zauber_enum, max_length=2, null=True, blank=True)
+    kategorie = models.CharField(choices=enums.zauber_enum, max_length=2, null=True, blank=True)
     flächenzauber = models.BooleanField(default=False)
 
     firmen = models.ManyToManyField('Firma', through='FirmaZauber', blank=True)
@@ -613,7 +598,7 @@ class Alchemie(BaseShop):
         verbose_name = "Alchemie"
         verbose_name_plural = "Alchemie"
 
-    kategorie = models.CharField(choices=alchemie_enum, max_length=2, default=alchemie_enum[0][0])
+    kategorie = models.CharField(choices=enums.alchemie_enum, max_length=2, default=enums.alchemie_enum[0][0])
     firmen = models.ManyToManyField('Firma', through='FirmaAlchemie', blank=True)
 
     def __str__(self):
@@ -629,7 +614,7 @@ class Tinker(BaseShop):
         verbose_name_plural = "Für Selbstständige"
 
     werte = models.TextField(max_length=1500, default='', blank=True)
-    kategorie = models.CharField(choices=tinker_enum, max_length=2, default=tinker_enum[0][0])
+    kategorie = models.CharField(choices=enums.tinker_enum, max_length=2, default=enums.tinker_enum[0][0])
     firmen = models.ManyToManyField('Firma', through='FirmaTinker', blank=True)
 
     def __str__(self):

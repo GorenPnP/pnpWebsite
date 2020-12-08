@@ -1,9 +1,5 @@
-from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-
-from character.enums import magie_enum
 from django.shortcuts import get_object_or_404
-from math import floor
 
 
 class NewCharakter(models.Model):

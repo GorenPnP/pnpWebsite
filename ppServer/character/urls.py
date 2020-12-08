@@ -1,11 +1,10 @@
 from django.urls import path
 
-from create import views
-from .views import *
+from . import views
 
 app_name = 'character'
 
 urlpatterns = [
-    path('', index, name='index'),
-    path('<int:pk>/', show, name='show'),
+    path('', views.index, name='index'),
+    path('<int:pk>/', views.show, name='show'),
 ]
