@@ -110,7 +110,9 @@ def index(request, spieler_id=None):
         if sp_mo.state == 2:
 
             rel, _ = RelQuiz.objects.get_or_create(spieler=spieler)
-            rel.current_session, _ = SpielerSession.objects.get_or_create(spielerModule=sp_mo)
+
+            session = SpielerSession.objects.filter(spielerModule=sp_mo).order_by("-started").first()
+            rel.current_session = session if session else SpielerSession.objects.create(spielerModule=sp_mo)
             rel.save()
 
             return redirect("quiz:question")
