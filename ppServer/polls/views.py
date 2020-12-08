@@ -15,24 +15,15 @@ from django.views.decorators.http import require_POST
 from .models import Choice, Question, QuestionSpieler
 
 
-# TODO delete later
 @login_required
 @verified_account
 def detail(request, pk):
-    return render(request, 'polls/detail.html')
 
-@login_required
-@verified_account
-class DetailView(generic.DetailView):
-    model = Question
-    template_name = 'polls/detail.html'
+    if request.method == "GET":
+        return render(request, 'polls/detail.html', {"question": get_object_or_404(Question, id=pk)})
 
-    def get_object(self, queryset=None):
-        id_ = self.kwargs.get("pk")
-        return self.model.objects.get(id=id_)
-
-    def post(self, request, *args, **kwargs):
-        question = self.get_object()
+    if request.method == "POST":
+        question = get_object_or_404(Question, id=pk)
 
         try:
             choice_ids=json.loads(request.body.decode("utf-8"))["ids"]
