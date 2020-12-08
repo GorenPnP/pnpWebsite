@@ -18,8 +18,11 @@ from .models import *
 
 
 @login_required
-@spielleiter_only
+# @spielleiter_only     --> breaks
 def review_items(request):
+
+    if not request.user.groups.filter(name="spielleiter").exists():
+        return redirect("quiz:index")
 
     context = {"topic": "Neue Items", "items": reviewable_shop()}
 
