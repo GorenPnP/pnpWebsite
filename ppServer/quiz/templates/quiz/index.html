@@ -55,6 +55,8 @@
                 {% if module.icon %}<img src="{{ module.icon }}" class="icon icon--extra" />
                 {% else %}<span></span>
                 {% endif %}
+                <span class="prerequisites">Vorher: {{ prerequisites|default:'-' }}</span>
+
                 <div class="revard">Belohnung: {{ module.revard }}</div>
 
                 <div class="description">{{ module.description }}</div>

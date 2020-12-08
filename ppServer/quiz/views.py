@@ -95,7 +95,8 @@ def index(request, spieler_id=None):
                     "points": sp_m.achieved_points if sp_m.achieved_points else 0, "max_points": sp_m.module.max_points,
                     "score": score, "score_tag_class": score_class,
                     "description": sp_m.module.description, "icon": sp_m.module.icon.img.url if sp_m.module.icon else None,
-                    "revard": sp_m.module.reward, "state": sp_m.get_state_display()})
+                    "revard": sp_m.module.reward, "state": sp_m.get_state_display(),
+                    "prerequisites": ", ".join([m.title for m in sp_m.module.prerequisite_modules.all()])})
 
         context = {"timetable": timetable, "topic": "{}'s Quiz".format(spieler.get_real_name()) if spielleiter_service else "Quiz",
                    "akt_punktzahl": get_object_or_404(RelQuiz, spieler=spieler).quiz_points_achieved, "button_states": ["opened", "corrected"]}
