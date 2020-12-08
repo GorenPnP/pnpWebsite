@@ -9,24 +9,36 @@
 
 	{% if e.state.1 == 'answered' %}
 	<a class="btn" href="{% url 'quiz:sp_correct' e.id %}">Korrigieren</a>
-	{% else %}
-		{% if e.state in stateOption %}
-			<select id="{{ e.id }}" class="stateChange" onChange="changeState(event)">
-				{% for o in stateOption %}
-					{% if e.state.1 != 'locked' and o.1 == 'locked' %}	<!-- dont display 'locked' if the module is not -->
-					{% else %}
-
-						{% if e.state.1 != 'seen' and o.1 == 'seen' %}	<!-- dont display 'seen' if the module is not -->
-						{% else %}
-							<option value="{{ o.0 }}" class="option{{ forloop.counter0 }}" {% if e.state == o %}selected{% endif %}> {{ o.1 }} </option>
-						{% endif %}
-
-					{% endif %}
+	{% elif e.state.0 in selectOnStates %}
+		<select id="{{ e.id }}" class="stateChange" onChange="changeState(event)">
+			{% if e.state.0 == 0 %}
+				{% for o in optionsLocked %}
+						<option value="{{ o.0 }}" class="option{{ forloop.counter0 }}" {% if e.state == o %}selected{% endif %}> {{ o.1 }} </option>
 				{% endfor %}
-			</select>
-		{% else %}
-			<div class='state'>{{ e.state.1 }}</div>
-		{% endif %}
+
+			{% elif e.state.0 == 1 %}
+				{% for o in optionsUnlocked %}
+						<option value="{{ o.0 }}" class="option{{ forloop.counter0 }}" {% if e.state == o %}selected{% endif %}> {{ o.1 }} </option>
+				{% endfor %}
+
+			{% elif e.state.0 == 2 %}
+				{% for o in optionsOpened %}
+						<option value="{{ o.0 }}" class="option{{ forloop.counter0 }}" {% if e.state == o %}selected{% endif %}> {{ o.1 }} </option>
+				{% endfor %}
+
+			{% elif e.state.0 == 5 %}
+				{% for o in optionsSeen %}
+						<option value="{{ o.0 }}" class="option{{ forloop.counter0 }}" {% if e.state == o %}selected{% endif %}> {{ o.1 }} </option>
+				{% endfor %}
+
+			{% elif e.state.0 == 6 %}
+				{% for o in optionsPassed %}
+						<option value="{{ o.0 }}" class="option{{ forloop.counter0 }}" {% if e.state == o %}selected{% endif %}> {{ o.1 }} </option>
+				{% endfor %}
+			{% endif %}
+		</select>
+	{% else %}
+		<div class='state'>{{ e.state.1 }}</div>
 	{% endif %}
 </div>
 

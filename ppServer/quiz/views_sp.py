@@ -111,8 +111,12 @@ def sp_modules(request):
             })
     modules = sorted(modules, key=cmp_to_key(cmp_time))
 
-    # ['locked', 'unlocked', 'opened', 'seen', 'passed']
-    stateOption = [module_state[0], module_state[1], module_state[2], module_state[5], module_state[6]]
+    selectOnStates = [0, 1, 2, 5, 6]    # ['locked', 'unlocked', 'opened', 'seen', 'passed']
+    optionsLocked = [module_state[0], module_state[1], module_state[2], module_state[6]]    # ['locked', 'unlocked', 'opened', 'passed']
+    optionsUnlocked = [module_state[1], module_state[2], module_state[6]]   # ['unlocked', 'opened', 'passed']
+    optionsOpened = [module_state[1], module_state[2], module_state[6]]     # ['unlocked', 'opened', 'passed']
+    optionsSeen = [module_state[1], module_state[2], module_state[5], module_state[6]]      # ['unlocked', 'opened', 'seen', 'passed']
+    optionsPassed = [module_state[1], module_state[2], module_state[6]]     # ['unlocked', 'opened', 'passed']
 
 
     # return responses
@@ -123,7 +127,13 @@ def sp_modules(request):
                 "spieler": Spieler.objects.all(),
                 "states": module_state,
                 "modules": modules,
-                "stateOption": stateOption
+
+                "selectOnStates": selectOnStates,
+                "optionsLocked": optionsLocked,
+                "optionsUnlocked": optionsUnlocked,
+                "optionsOpened": optionsOpened,
+                "optionsSeen": optionsSeen,
+                "optionsPassed": optionsPassed
             })
 
     if request.method == "POST":
