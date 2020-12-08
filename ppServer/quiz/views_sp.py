@@ -63,7 +63,8 @@ def cmp_time(a, b):
 def sp_modules(request):
 
     # get SpielerModules from DB
-    if request.method == "GET": sp_mo = SpielerModule.objects.all()
+    sp_mo = SpielerModule.objects.all()
+
     if request.method == "POST":
 
         # get content
@@ -85,16 +86,16 @@ def sp_modules(request):
 
         # handle filter
         try:
-            id = data["player"]
+            player = data["player"]
             state = data["state"]
-
-            player = get_object_or_404(Spieler, id=id)
-            sp_mo = SpielerModule.objects.filter(spieler=player) if state == -1 else SpielerModule.objects.filter(spieler=player, state=state)
+            module = data["modul"]
         except:
-            if id == -1:
-                sp_mo = SpielerModule.objects.all() if state == -1 else SpielerModule.objects.filter(state=state)
-            else:
-                return JsonResponse({"message": "Konnte Spieler oder Zustand nicht finden"}, status=418)
+            return JsonResponse({"message": "Konnte Filter nicht finden"}, status=418)
+
+        if player     != -1: sp_mo = sp_mo.filter(spieler__id=player)
+        if state  != -1: sp_mo = sp_mo.filter(state=state)
+        if module != -1: sp_mo = sp_mo.filter(module__id=module)
+
 
     # both together
     modules = []
@@ -126,18 +127,30 @@ def sp_modules(request):
                 "topic": "Modulzuweisung",
                 "spieler": Spieler.objects.all(),
                 "states": module_state,
-                "modules": modules,
+                "all_modules": Module.objects.all(),
 
                 "selectOnStates": selectOnStates,
                 "optionsLocked": optionsLocked,
                 "optionsUnlocked": optionsUnlocked,
                 "optionsOpened": optionsOpened,
                 "optionsSeen": optionsSeen,
-                "optionsPassed": optionsPassed
+                "optionsPassed": optionsPassed,
+
+                "modules": modules
             })
 
     if request.method == "POST":
-        return JsonResponse({"html": render(request, "quiz/sp_module_list.html", {"modules": modules, "stateOption": stateOption}).content.decode("utf-8")})
+        context = {"modules": modules,
+
+                   "selectOnStates": selectOnStates,
+                   "optionsLocked": optionsLocked,
+                   "optionsUnlocked": optionsUnlocked,
+                   "optionsOpened": optionsOpened,
+                   "optionsSeen": optionsSeen,
+                   "optionsPassed": optionsPassed
+        }
+
+        return JsonResponse({"html": render(request, "quiz/sp_module_list.html", context).content.decode("utf-8")})
 
 
 @login_required

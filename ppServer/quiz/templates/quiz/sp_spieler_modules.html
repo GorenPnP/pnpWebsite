@@ -10,21 +10,36 @@
 {% endblock %}
 {% block absolute %}{% include 'base/header.html' with topic=topic %}{% endblock %}
 {% block body %}
-	<label for="player">Spieler</label>
-	<select id="player" onchange="refreshPlayer(event)">
-		<option value="-1" selected>Alle</option>
-		{% for s in spieler %}<option value="{{ s.id }}">{{ s.get_real_name|default:s.name }}</option>{% endfor %}
-	</select>
-
-	<label for="state">Status</label>
-	<select id="state" onchange="refreshState(event)">
-		<option value="-1" selected>Alle</option>
-		{% for s in states %}<option value="{{ s.0 }}">{{ s.1 }}</option>{% endfor %}
-	</select>
-
-	<div class="module-list">
-		{% include 'quiz/sp_module_list.html' with modules=modules %}
+<div class="filters">
+	<div class="filter">
+		<label for="player">Spieler</label>
+		<select id="player" onchange="refreshPlayer(event)">
+			<option value="-1" selected>Alle</option>
+			{% for s in spieler %}<option value="{{ s.id }}">{{ s.get_real_name|default:s.name }}</option>{% endfor %}
+		</select>
 	</div>
 
-	<button class="btn submit" onclick="submit()">Änderungen speichern</button>
+	<div class="filter">
+		<label for="state">Status</label>
+		<select id="state" onchange="refreshState(event)">
+			<option value="-1" selected>Alle</option>
+			{% for s in states %}<option value="{{ s.0 }}">{{ s.1 }}</option>{% endfor %}
+		</select>
+	</div>
+
+	<div class="filter">
+		<label for="state">Module</label>
+		<select id="module" onchange="refreshModule(event)">
+			<option value="-1" selected>Alle</option>
+			{% for m in all_modules %}<option value="{{ m.id }}">{{ m.title }}</option>{% endfor %}
+		</select>
+	</div>
+</div>
+
+
+<div class="module-list">
+	{% include 'quiz/sp_module_list.html' with modules=modules %}
+</div>
+
+<button class="btn submit" onclick="submit()">Änderungen speichern</button>
 {% endblock %}

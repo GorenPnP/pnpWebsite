@@ -2,6 +2,14 @@
 	color: #ddd;
 }
 
+.filters {
+	display: flex;
+	justify-content: space-between;
+	flex-wrap: wrap;
+
+	.filter > * { margin: .5em; }
+}
+
 .module-list {
 	padding: 3em 0;
 }

@@ -1,5 +1,6 @@
 player = -1
 state = -1
+modul = -1
 
 module_states = {}		// initial states
 dirty_states = {}
@@ -48,14 +49,23 @@ function reapplyDirty() {
 // changed player filter
 function refreshPlayer({ currentTarget }) {
 	player = parseInt(currentTarget.options[currentTarget.selectedIndex].value)
-	post({ player, state }, attachEntries)
+	post({ player, state, modul }, attachEntries)
 }
 
 // changed state filter
 function refreshState({ currentTarget }) {
 	state = parseInt(currentTarget.options[currentTarget.selectedIndex].value)
-	post({player, state}, attachEntries)
+	post({player, state, modul }, attachEntries)
 }
+
+// changed module filter
+function refreshModule({ currentTarget }) {
+	modul = parseInt(currentTarget.options[currentTarget.selectedIndex].value)
+	post({ player, state, modul }, attachEntries)
+}
+
+
+
 // changed state of one Module
 function changeState({ currentTarget }) {
 	var new_state = parseInt(currentTarget.getElementsByClassName("option" + currentTarget.selectedIndex)[0].value)
