@@ -1,3 +1,4 @@
+from django.db.models.aggregates import Count
 from ppServer.decorators import spielleiter_only
 import math
 
@@ -6,7 +7,7 @@ from django.shortcuts import render
 from django.urls import reverse
 from django.db.models import Sum
 
-from quiz.models import SpielerModule, RelQuiz, Subject, SpielerQuestion, module_state
+from quiz.models import SpielerModule, RelQuiz, SpielerSession, Subject, SpielerQuestion, module_state
 from quiz.views import get_grade_score
 
 # TODO try-except around request.POST in this file
@@ -34,8 +35,7 @@ def random(request):
 
 
 # quiz big brother
-@login_required
-@spielleiter_only
+
 def quiz_BB(request):
 
     all_spieler = RelQuiz.objects.all().order_by("-quiz_points_achieved")
@@ -52,13 +52,23 @@ def quiz_BB(request):
             {"text": rel.quiz_points_achieved}, {}
         ]
 
-        # TODO: reformat passed_questions with its sp_mod
-        passed_mods = [sp_mod.module for sp_mod in SpielerModule.objects.filter(spieler=rel.spieler, state=module_state[6][0])]   # state=passed
-        passed_sp_qs = []
-        for m in passed_mods:
-            for mq in m.modulequestion_set.all():
-                passed_sp_qs.append(SpielerQuestion.objects.filter(spieler=rel.spieler, question=mq.question).order_by("questions__started").first())
+        # use questions of seen/passed modules
+        sp_mods_done = SpielerModule.objects.filter(spieler=rel.spieler, state__in=[5, 6]).exclude(achieved_points=None)      # state=passed OR seen
+        sessions = [SpielerSession.objects.filter(spielerModule=sp_mo).order_by("-started").first() for sp_mo in sp_mods_done]
 
+        # use questions of all other modules if they were answered previously
+        sp_mods_pending = SpielerModule.objects.filter(spieler=rel.spieler).exclude(state__in=[5, 6], achieved_points=None)  # state!=passed OR seen
+        for sp_mo in sp_mods_pending:
+            sp_mo_sessions = SpielerSession.objects.filter(spielerModule=sp_mo)
+            if sp_mo_sessions.count() > 1:
+                sessions.append(sp_mo_sessions[1])
+
+        # really retrieve (spieler)questions
+        passed_sp_qs = []
+        for s in sessions:
+            if s is None: continue      # ignore, can happen on a passe module with deleted sessions
+
+            passed_sp_qs += s.questions.all()
 
         # collect noten from all subjects (table[0][3:]) row and average
         sum_max_points = 0
@@ -66,29 +76,33 @@ def quiz_BB(request):
 
         for s in table[0][3:]:
 
-            # get max points (sum points of questions whose modules are at least open)
             subject = s["text"]
+
+            # get achieved points & delete all questions of current subject from list (speed)
             max_points = 0
-            for sp_mod in SpielerModule.objects.filter(spieler=rel.spieler, state__gte=module_state[2][0]): # at least state of opened
-                questions = sp_mod.module.questions.filter(topic__subject__titel=subject)
-
-                if questions:
-                    max_points += questions.aggregate(Sum("points"))["points__sum"]
-
-            # get achieved points & delete all questions of current subject (speed)
             achieved_points = 0
+
             reduced_questions = []
             for sp_q in passed_sp_qs:
-                if sp_q.question.topic.subject.titel == subject:
-                    achieved_points += sp_q.achieved_points
-                else:
+
+                # take question over to next subject
+                if sp_q.question.topic.subject.titel != subject:
                     reduced_questions.append(sp_q)
+                    continue
+
+                # get achieved points (sum points of questions whose modules are at least open)
+                achieved_points += sp_q.achieved_points
+
+                # get max points (sum points of questions whose modules are at least open)
+                max_points += sp_q.question.points
+
             passed_sp_qs = reduced_questions
 
             grade_score, tag_class = get_grade_score(achieved_points, max_points)
 
+            # collect vals for cell and append it to player's row
             cell = {"grade_score": grade_score, "tag_class": tag_class, "section_done": achieved_points == max_points,
-                            "text": "{}/{}".format(math.floor(achieved_points), math.floor(max_points))}
+                            "text": "{}/{}".format(round(achieved_points, 2), round(max_points, 2))}
             row.append(cell)
 
             # for average
@@ -98,7 +112,7 @@ def quiz_BB(request):
         # construct entry for average
         grade_score, tag_class = get_grade_score(sum_achieved_points, sum_max_points)
         row[2] = {"grade_score": grade_score, "tag_class": tag_class, "section_done": sum_achieved_points == sum_max_points,
-                  "text": "{}/{}".format(math.floor(sum_achieved_points), math.floor(sum_max_points))}
+                  "text": "{}/{}".format(round(sum_achieved_points, 2), round(sum_max_points, 2))}
 
         # add row containing one player to table
         table.append(row)
