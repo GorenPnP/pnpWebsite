@@ -3,7 +3,7 @@ from ppServer.decorators import spielleiter_only
 import math
 
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.db.models import Sum
 
@@ -35,8 +35,12 @@ def random(request):
 
 
 # quiz big brother
-
+@login_required
+# @spielleiter_only     <-- breaks
 def quiz_BB(request):
+
+    if not request.user.groups.filter(name="spielleiter").exists():
+        return redirect("quiz:index")
 
     all_spieler = RelQuiz.objects.all().order_by("-quiz_points_achieved")
     all_subjects = Subject.objects.all().order_by("titel")
