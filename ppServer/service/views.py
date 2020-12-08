@@ -63,7 +63,7 @@ def quiz_BB(request):
         # use questions of all other modules if they were answered previously
         sp_mods_pending = SpielerModule.objects.filter(spieler=rel.spieler).exclude(state__in=[5, 6], achieved_points=None)  # state!=passed OR seen
         for sp_mo in sp_mods_pending:
-            sp_mo_sessions = SpielerSession.objects.filter(spielerModule=sp_mo)
+            sp_mo_sessions = SpielerSession.objects.filter(spielerModule=sp_mo).order_by("-started")
             if sp_mo_sessions.count() > 1:
                 sessions.append(sp_mo_sessions[1])
 
