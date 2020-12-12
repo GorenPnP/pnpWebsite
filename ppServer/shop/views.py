@@ -22,7 +22,7 @@ from .models import *
 def review_items(request):
 
     if not request.user.groups.filter(name="spielleiter").exists():
-        return redirect("quiz:index")
+        return redirect("base:index")
 
     context = {"topic": "Neue Items", "items": reviewable_shop()}
 

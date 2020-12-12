@@ -1,7 +1,7 @@
 from django.utils import timezone
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
-from django.shortcuts import render, redirect, get_object_or_404, reverse
+from django.shortcuts import render, get_object_or_404, reverse
 
 from shop.models import Ausrüstung_Technik, Einbauten, Fahrzeug, Item, Magazin, Magische_Ausrüstung, Pfeil_Bolzen,\
                         Rituale_Runen, Rüstungen, Schusswaffen, Waffen_Werkzeuge, Zauber
@@ -9,7 +9,7 @@ from character.models import Spieler
 
 # clashing Question-models, so in separate namespaces
 import polls.models as pollsm
-from quiz.models import SpielerModule, module_state
+from quiz.models import SpielerModule
 
 
 def redirect(request):

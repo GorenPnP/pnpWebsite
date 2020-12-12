@@ -1,14 +1,9 @@
 import string
-from datetime import timedelta
 from math import ceil
 
-from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator, MaxValueValidator
-from django.shortcuts import get_object_or_404
-from django.utils import timezone
 from django.utils.crypto import random
-from django.utils.datetime_safe import date, datetime
-from django.utils.translation import gettext_lazy as _
+from django.utils.datetime_safe import date
 from django.db import models
 
 from character.models import Spieler
@@ -24,6 +19,13 @@ module_state = [
     (6, "passed")       # marked as successfully completed by gamemaster
 ]
 
+# used before save on Question.picture and Answer.picture to hide real name in src-path of img-tag in HTML (anti-cheat)
+def upload_and_rename_picture(instance, filename):
+    today = date.today()
+    path = "quiz/{}-{}-{}/{}".format(today.year, today.month, today.day, instance.id) + "".join([random.choice(string.ascii_letters + string.digits) for _ in range(20)])
+    return path
+
+
 class RelQuiz(models.Model):
     class Meta:
         verbose_name = "Spieler Stats"
@@ -35,13 +37,6 @@ class RelQuiz(models.Model):
 
     current_session = models.ForeignKey("SpielerSession", on_delete=models.SET_NULL, null=True, blank=True)
     quiz_points_achieved = models.FloatField(default=0, blank=True)
-
-
-# used before save on Question.picture and Answer.picture to hide real name in src-path of img-tag in HTML (anti-cheat)
-def upload_and_rename_picture(instance, filename):
-    today = date.today()
-    path = "quiz/{}-{}-{}/{}".format(today.year, today.month, today.day, instance.id) + "".join([random.choice(string.ascii_letters + string.digits) for _ in range(20)])
-    return path
 
 
 class Image(models.Model):
@@ -149,6 +144,8 @@ class ModuleQuestion(models.Model):
         verbose_name = "Frage eines Moduls"
         verbose_name_plural = "Fragen eines Moduls"
 
+        ordering = ["module"]
+
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
     module = models.ForeignKey('Module', on_delete=models.CASCADE)
 
@@ -198,10 +195,26 @@ class SpielerModule(models.Model):    # if existing, Spieler answered related Qu
     state = models.PositiveSmallIntegerField(choices=module_state, default=module_state[0][0])
     achieved_points = models.FloatField(default=None, null=True, blank=True)
 
+    # answering this module(again) is optional. It count as achieved prerequisite to others and the achieved_points will be added to the overall score
+    optional = models.BooleanField(default=False)
+
     sessions = models.ManyToManyField("SpielerSession")
 
     def __str__(self):
         return "{} von {}".format(self.module, self.spieler)
+
+    def getFinishedSession(self):
+        sessions = SpielerSession.objects.filter(spielerModule=self).order_by("-started")
+        if not len(sessions): return None
+
+        if self.state in [5, 6]: return sessions[0]
+        return sessions[1] if len(sessions) > 1 else None
+
+    def getSessionInProgress(self):
+        return self.sessions.order_by("-started").first() if self.state < 5 else None
+
+    def pointsEarned(self):
+        return self.state in [5, 6] or self.optional or self.sessions.all().count() > 1
 
 
 class SpielerSession(models.Model):
@@ -278,6 +291,8 @@ class SpielerQuestion(models.Model):
     class Meta:
         verbose_name = "Fragendurchlauf eines Spielers"
         verbose_name_plural = "Fragendurchläufe eines Spielers"
+
+        ordering = ["spieler", "question"]
 
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
     spieler = models.ForeignKey(Spieler, on_delete=models.CASCADE)

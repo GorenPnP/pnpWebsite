@@ -1,13 +1,10 @@
-from django.db.models.aggregates import Count
 from ppServer.decorators import spielleiter_only
-import math
 
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 from django.urls import reverse
-from django.db.models import Sum
 
-from quiz.models import SpielerModule, RelQuiz, SpielerSession, Subject, SpielerQuestion, module_state
+from quiz.models import SpielerModule, RelQuiz, Subject
 from quiz.views import get_grade_score
 
 # TODO try-except around request.POST in this file
@@ -57,20 +54,13 @@ def quiz_BB(request):
         ]
 
         # use questions of seen/passed modules
-        sp_mods_done = SpielerModule.objects.filter(spieler=rel.spieler, state__in=[5, 6]).exclude(achieved_points=None)      # state=passed OR seen
-        sessions = [SpielerSession.objects.filter(spielerModule=sp_mo).order_by("-started").first() for sp_mo in sp_mods_done]
-
-        # use questions of all other modules if they were answered previously
-        sp_mods_pending = SpielerModule.objects.filter(spieler=rel.spieler).exclude(state__in=[5, 6], achieved_points=None)  # state!=passed OR seen
-        for sp_mo in sp_mods_pending:
-            sp_mo_sessions = SpielerSession.objects.filter(spielerModule=sp_mo).order_by("-started")
-            if sp_mo_sessions.count() > 1:
-                sessions.append(sp_mo_sessions[1])
+        sp_mods = [sp_mo for sp_mo in SpielerModule.objects.filter(spieler=rel.spieler).exclude(achieved_points=None) if sp_mo.pointsEarned()]      # state=passed OR seen
+        sessions = [sp_mo.getFinishedSession() for sp_mo in sp_mods if sp_mo is not None]
 
         # really retrieve (spieler)questions
         passed_sp_qs = []
         for s in sessions:
-            if s is None: continue      # ignore, can happen on a passe module with deleted sessions
+            if s is None: continue      # ignore, can happen, e.g. on a passed module with deleted sessions
 
             passed_sp_qs += s.questions.all()
 

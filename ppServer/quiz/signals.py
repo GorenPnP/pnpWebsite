@@ -1,4 +1,4 @@
-from django.db.models.signals import m2m_changed, post_delete, pre_save, pre_delete, post_save
+from django.db.models.signals import post_delete, pre_save, post_save
 from django.dispatch import receiver
 
 from character.models import Spieler
@@ -44,7 +44,7 @@ def create_relQuiz(sender, instance, **qwargs):
 # following: update module.max_points on:
 #   save of every module
 #   save or delete of any question
-#   didn't work on Modulequestion since it resolves a m2m ()between them)
+#   didn't work on Modulequestion since it resolves a m2m (between them)
 
 @receiver(post_save, sender=Question)
 @receiver(post_delete, sender=Question)
@@ -97,7 +97,7 @@ def add_questions(sender, instance, **kwargs):
 
 
 # works recursively, should a sp_mod's state be set from locked to unlocked
-
+# TODO
 @receiver(post_save, sender=Module)
 def add_spielermodules(sender, instance, **kwargs):
 

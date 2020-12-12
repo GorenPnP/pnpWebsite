@@ -1,18 +1,14 @@
 from ppServer.decorators import verified_account
-import collections, random, json, datetime
+import random, json
 from math import floor
-from functools import cmp_to_key
 
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
-from django.http import HttpResponse
-from django.http.response import JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse
-from django.core.files.uploadedfile import SimpleUploadedFile
 
 from character.models import Spieler
-from .models import *
+from . import models
 
 
 # TODO try-except around request.POST in this file
@@ -88,32 +84,32 @@ def index(request, spieler_id=None):
     if request.method == "GET":
 
         timetable = []
-        for sp_m in SpielerModule.objects.filter(spieler=spieler):
+        for sp_m in models.SpielerModule.objects.filter(spieler=spieler):
 
             score, score_class = get_grade_score(sp_m.achieved_points, sp_m.module.max_points) if sp_m.achieved_points is not None else ("", "")
             timetable.append({"titel": sp_m.module.title, "id": sp_m.id, "questions": sp_m.module.questions.count(),
-                    "points": sp_m.achieved_points if sp_m.achieved_points else 0, "max_points": sp_m.module.max_points,
+                    "points": sp_m.achieved_points if sp_m.achieved_points is not None else "-", "max_points": sp_m.module.max_points,
                     "score": score, "score_tag_class": score_class,
                     "description": sp_m.module.description, "icon": sp_m.module.icon.img.url if sp_m.module.icon else None,
                     "revard": sp_m.module.reward, "state": sp_m.get_state_display(),
                     "prerequisites": ", ".join([m.title for m in sp_m.module.prerequisite_modules.all()])})
 
         context = {"timetable": timetable, "topic": "{}'s Quiz".format(spieler.get_real_name()) if spielleiter_service else "Quiz",
-                   "akt_punktzahl": get_object_or_404(RelQuiz, spieler=spieler).quiz_points_achieved, "button_states": ["opened", "corrected"]}
+                   "akt_punktzahl": get_object_or_404(models.RelQuiz, spieler=spieler).quiz_points_achieved, "button_states": ["opened", "corrected"]}
 
         return render(request, "quiz/index.html", context)
 
     if request.method == "POST":
         sp_mo_id = int(request.POST.get("id"))
-        sp_mo = get_object_or_404(SpielerModule, id=sp_mo_id)
+        sp_mo = get_object_or_404(models.SpielerModule, id=sp_mo_id)
 
         # opened
         if sp_mo.state == 2:
 
-            rel, _ = RelQuiz.objects.get_or_create(spieler=spieler)
+            rel, _ = models.RelQuiz.objects.get_or_create(spieler=spieler)
 
-            session = SpielerSession.objects.filter(spielerModule=sp_mo).order_by("-started").first()
-            rel.current_session = session if session else SpielerSession.objects.create(spielerModule=sp_mo)
+            session = sp_mo.getSessionInProgress()
+            rel.current_session = session if session else models.SpielerSession.objects.create(spielerModule=sp_mo)
             rel.save()
 
             return redirect("quiz:question")
@@ -130,7 +126,7 @@ def index(request, spieler_id=None):
 @verified_account
 def question(request):
     spieler = get_object_or_404(Spieler, name=request.user.username)
-    rel = get_object_or_404(RelQuiz, spieler=spieler)
+    rel = get_object_or_404(models.RelQuiz, spieler=spieler)
 
     if request.method == "GET":
 
@@ -171,7 +167,7 @@ def question(request):
         # check whether it's valid:
         if "img" in request.FILES.keys(): #and imgForm.is_valid():
             image = request.FILES.get("img")
-            spq.answer_img = Image.objects.create(img=image, name="some name")
+            spq.answer_img = models.Image.objects.create(img=image, name="some name")
             spq.answer_img.save()
 
             """
@@ -188,7 +184,7 @@ def question(request):
         """
         if "file" in request.FILES.keys():  # and imgForm.is_valid():
             file = request.FILES.get("file")
-            spq.answer_file = File.objects.create(file=file, name="some name")
+            spq.answer_file = models.File.objects.create(file=file, name="some name")
             spq.answer_file.save()
 
         spq.save()
@@ -200,7 +196,7 @@ def question(request):
 def session_done(request):
 
     spieler = get_object_or_404(Spieler, name=request.user.username)
-    rel = get_object_or_404(RelQuiz, spieler=spieler)
+    rel = get_object_or_404(models.RelQuiz, spieler=spieler)
     if not rel.current_session: return redirect("quiz:index")
 
     if request.method == "GET":
@@ -220,7 +216,7 @@ def score_board(request):
 
     spieler = []
     same = []
-    for  s in RelQuiz.objects.all().order_by("-quiz_points_achieved"):
+    for  s in models.RelQuiz.objects.all().order_by("-quiz_points_achieved"):
         if (len(same) >= 1 and same[0].quiz_points_achieved != s.quiz_points_achieved):
             spieler.append(same)
             same = []
@@ -236,14 +232,13 @@ def score_board(request):
 @verified_account
 def review(request, id):
 
-    sp_mo = get_object_or_404(SpielerModule, id=id)
+    sp_mo = get_object_or_404(models.SpielerModule, id=id)
 
     # no module for player selected
     if sp_mo.state != 4:    # if not 'corrected'
         return redirect("quiz:index")
 
-    current_session = SpielerSession.objects.filter(
-        spielerModule=sp_mo).order_by("-started").first()
+    current_session = sp_mo.getSessionInProgress()
     if not current_session:
         return redirect("quiz:index")
 
@@ -259,11 +254,11 @@ def review(request, id):
             current_session.setSeen()
 
             spieler = sp_mo.spieler
-            rel = get_object_or_404(RelQuiz, spieler=spieler)
+            rel = get_object_or_404(models.RelQuiz, spieler=spieler)
 
             # calc new score
-            rel.quiz_points_achieved = sum([q.achieved_points for q in SpielerModule.objects.filter(
-                spieler=spieler, state__in=[5, 6]) if q.achieved_points is not None]) # sum all seen and passed modules
+            rel.quiz_points_achieved = sum([q.achieved_points for q in models.SpielerModule.objects.filter(
+                spieler=spieler) if q.pointsEarned() and q.achieved_points is not None]) # sum all modules with earned points on them
 
             rel.save()
 
@@ -294,7 +289,7 @@ def review(request, id):
 def review_done(request):
 
     spieler = get_object_or_404(Spieler, name=request.user.username)
-    rel = get_object_or_404(RelQuiz, spieler=spieler)
+    rel = get_object_or_404(models.RelQuiz, spieler=spieler)
     if not rel.current_session:
         return redirect("quiz:index")
 

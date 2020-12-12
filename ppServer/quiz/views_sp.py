@@ -1,16 +1,15 @@
-from ppServer.decorators import spielleiter_only
+
 import json
 from functools import cmp_to_key
 
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import User
-from django.http import HttpResponse
 from django.http.response import JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse
 
+from ppServer.decorators import spielleiter_only
 from character.models import Spieler
-from .models import *
+from . import models
 
 
 @login_required
@@ -32,22 +31,22 @@ def sp_index(request):
 def sp_questions(request):
 
     if request.method == "GET":
-        mq = ModuleQuestion.objects.all()
+        mq = models.ModuleQuestion.objects.all()
         context = {"topic": "Fragen sortieren", "mqs": mq,
-                   "questions": Question.objects.exclude(id__in=[model.question.id for model in mq]),
-                   "mods": Module.objects.all()}
+                   "questions": models.Question.objects.exclude(id__in=[model.question.id for model in mq]),
+                   "mods": models.Module.objects.all()}
         return render(request, "quiz/sp_questions.html", context)
 
     if request.method == "POST":
-        ms = Module.objects.all()
-        qs = Question.objects.all()
+        ms = models.Module.objects.all()
+        qs = models.Question.objects.all()
 
         questions = json.loads(request.body.decode("utf-8"))["questions"]
 
-        ModuleQuestion.objects.all().delete()
+        models.ModuleQuestion.objects.all().delete()
         for e in questions:
             if e["module"] < 0: continue
-            ModuleQuestion.objects.create(question=qs.get(id=e["question"]), module=ms.get(id=e["module"]))
+            models.ModuleQuestion.objects.create(question=qs.get(id=e["question"]), module=ms.get(id=e["module"]))
 
         return JsonResponse({})
 
@@ -63,7 +62,7 @@ def cmp_time(a, b):
 def sp_modules(request):
 
     # get SpielerModules from DB
-    sp_mo = SpielerModule.objects.all()
+    sp_mo = models.SpielerModule.objects.all()
 
     if request.method == "POST":
 
@@ -77,7 +76,7 @@ def sp_modules(request):
         if "state_changes" in data.keys():
             try:
                 changes = data["state_changes"]
-                for e in SpielerModule.objects.filter(id__in=changes.keys()):
+                for e in models.SpielerModule.objects.filter(id__in=changes.keys()):
                     e.state = changes["{}".format(e.id)]
                     e.save()
                 return JsonResponse({})
@@ -92,7 +91,7 @@ def sp_modules(request):
         except:
             return JsonResponse({"message": "Konnte Filter nicht finden"}, status=418)
 
-        if player     != -1: sp_mo = sp_mo.filter(spieler__id=player)
+        if player != -1: sp_mo = sp_mo.filter(spieler__id=player)
         if state  != -1: sp_mo = sp_mo.filter(state=state)
         if module != -1: sp_mo = sp_mo.filter(module__id=module)
 
@@ -100,7 +99,7 @@ def sp_modules(request):
     # both together
     modules = []
     for e in sp_mo:
-        sessions = SpielerSession.objects.filter(spielerModule=e)
+        sessions = models.SpielerSession.objects.filter(spielerModule=e)
         modules.append(
             {
                 "id": e.id,
@@ -113,11 +112,11 @@ def sp_modules(request):
     modules = sorted(modules, key=cmp_to_key(cmp_time))
 
     selectOnStates = [0, 1, 2, 5, 6]    # ['locked', 'unlocked', 'opened', 'seen', 'passed']
-    optionsLocked = [module_state[0], module_state[1], module_state[2], module_state[6]]    # ['locked', 'unlocked', 'opened', 'passed']
-    optionsUnlocked = [module_state[1], module_state[2], module_state[6]]   # ['unlocked', 'opened', 'passed']
-    optionsOpened = [module_state[1], module_state[2], module_state[6]]     # ['unlocked', 'opened', 'passed']
-    optionsSeen = [module_state[1], module_state[2], module_state[5], module_state[6]]      # ['unlocked', 'opened', 'seen', 'passed']
-    optionsPassed = [module_state[1], module_state[2], module_state[6]]     # ['unlocked', 'opened', 'passed']
+    optionsLocked = [models.module_state[0], models.module_state[1], models.module_state[2], models.module_state[6]]    # ['locked', 'unlocked', 'opened', 'passed']
+    optionsUnlocked = [models.module_state[1], models.module_state[2], models.module_state[6]]   # ['unlocked', 'opened', 'passed']
+    optionsOpened = [models.module_state[1], models.module_state[2], models.module_state[6]]     # ['unlocked', 'opened', 'passed']
+    optionsSeen = [models.module_state[1], models.module_state[2], models.module_state[5], models.module_state[6]]      # ['unlocked', 'opened', 'seen', 'passed']
+    optionsPassed = [models.module_state[1], models.module_state[2], models.module_state[6]]     # ['unlocked', 'opened', 'passed']
 
 
     # return responses
@@ -126,8 +125,8 @@ def sp_modules(request):
             {
                 "topic": "Modulzuweisung",
                 "spieler": Spieler.objects.all(),
-                "states": module_state,
-                "all_modules": Module.objects.all(),
+                "states": models.module_state,
+                "all_modules": models.Module.objects.all(),
 
                 "selectOnStates": selectOnStates,
                 "optionsLocked": optionsLocked,
@@ -157,13 +156,13 @@ def sp_modules(request):
 @spielleiter_only(redirect_to="quiz:index")
 def sp_correct(request, id):
 
-    sp_mo = get_object_or_404(SpielerModule, id=id)
+    sp_mo = get_object_or_404(models.SpielerModule, id=id)
 
     # no module for player selected
     if sp_mo.state != 3:    # if not 'answered'
         return redirect("quiz:sp_modules")
 
-    current_session = SpielerSession.objects.filter(spielerModule=sp_mo).order_by("-started").first()
+    current_session = sp_mo.getSessionInProgress()
     if not current_session:
         return redirect("quiz:sp_modules")
 
@@ -212,7 +211,7 @@ def sp_correct(request, id):
         # check whether it's valid:
         if "img" in request.FILES.keys():  # and imgForm.is_valid():
             image = request.FILES.get("img")
-            spq.correct_img = Image.objects.create(img=image)
+            spq.correct_img = models.Image.objects.create(img=image)
             spq.correct_img.save()
 
             """
@@ -229,7 +228,7 @@ def sp_correct(request, id):
         """
         if "file" in request.FILES.keys():  # and imgForm.is_valid():
             file = request.FILES.get("file")
-            spq.correct_file = File.objects.create(file=file)
+            spq.correct_file = models.File.objects.create(file=file)
             spq.correct_file.save()
 
         spq.save()

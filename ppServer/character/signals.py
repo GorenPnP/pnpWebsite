@@ -12,25 +12,6 @@ def create_spieler(sender, **qwargs):
         Spieler.objects.get_or_create(name=qwargs['instance'].username)
 
 
-@receiver(pre_save, sender=Spieler)
-def handle_quiz_points(sender, instance, **kwargs):
-
-    old_instance = None
-    try:
-        old_instance = sender.objects.get(id=instance.id)
-    except ObjectDoesNotExist:
-        print("Spieler instance does not exist (jet):", instance.name)
-        return
-
-
-    new_instance = instance
-    if not new_instance.quiz_points_achieved:
-        new_instance.quiz_points_achieved = new_instance.quiz_points
-    elif old_instance.quiz_points != new_instance.quiz_points:
-        diff = new_instance.quiz_points - old_instance.quiz_points
-        new_instance.quiz_points_achieved += diff
-
-
 @receiver(post_delete, sender=User)
 def delete_spieler(sender, **qwargs):
     spieler = Spieler.objects.filter(name=qwargs['instance'].username)
