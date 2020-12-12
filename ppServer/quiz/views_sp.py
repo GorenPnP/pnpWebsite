@@ -1,6 +1,7 @@
 
 import json
 from functools import cmp_to_key
+from quiz.views import get_grade_score
 
 from django.contrib.auth.decorators import login_required
 from django.http.response import JsonResponse
@@ -75,6 +76,11 @@ def sp_modules(request):
         # handle change in module states before filter to deliver changes
         if "state_changes" in data.keys():
             try:
+                changes_optional = data["optional_changes"]
+                for e in models.SpielerModule.objects.filter(id__in=changes_optional):
+                    e.optional = not e.optional
+                    e.save()
+
                 changes = data["state_changes"]
                 for e in models.SpielerModule.objects.filter(id__in=changes.keys()):
                     e.state = changes["{}".format(e.id)]
@@ -100,6 +106,7 @@ def sp_modules(request):
     modules = []
     for e in sp_mo:
         sessions = models.SpielerSession.objects.filter(spielerModule=e)
+        score, score_class = get_grade_score(e.achieved_points, e.module.max_points) if e.achieved_points is not None else ("", "")
         modules.append(
             {
                 "id": e.id,
@@ -107,7 +114,10 @@ def sp_modules(request):
                 "module": e.module.title,
                 "state": (e.state, e.get_state_display()),
                 "spieler": e.spieler,
-                "timestamp": sessions.first().started if sessions.count() else None
+                "timestamp": sessions.first().started if sessions.count() else None,
+                "achieved_points": e.achieved_points, "max_points": e.module.max_points,
+                "score": score, "score_class": score_class,
+                "optional": e.optional
             })
     modules = sorted(modules, key=cmp_to_key(cmp_time))
 

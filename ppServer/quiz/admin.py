@@ -92,7 +92,7 @@ class ModuleAdmin(admin.ModelAdmin):
 
 
 class SpielerModuleAdmin(admin.ModelAdmin):
-    list_display = ["spieler", "module", "state", "achieved_points"]
+    list_display = ["spieler", "module", "state", "optional", "achieved_points"]
     list_filter = ["spieler", "module", "state"]
 
     readonly_fields = ["sessions"]

@@ -17,7 +17,7 @@
 
 .row {
 	display: grid;
-	grid-template-columns: auto 2fr 2fr 1fr 1fr;
+	grid-template-columns: auto 2fr 2fr 1fr 1fr 1fr;
 	justify-items: flex-start;
 	align-items: center;
 	grid-gap: .5em;
@@ -36,6 +36,15 @@
 	height: 32px;
 	width: 32px;
 	padding: 0;
+}
+
+.optional {
+	display: flex;
+
+	--checkbox-size: 20px;
+	--checkbox-shadow: 3px 3px #888888;
+
+	& > * {margin: .2em .3em;}
 }
 
 .module, .player {
@@ -71,7 +80,7 @@
 		margin: 0;
 	}
 	.row {
-		grid-template-columns: repeat(3, auto);
+		grid-template-columns: repeat(4, auto);
 		grid-gap: .2em;
 	}
 }

@@ -4,6 +4,7 @@ modul = -1
 
 module_states = {}		// initial states
 dirty_states = {}
+dirty_optionals = []
 
 // transfer via html via AJAX into page
 function attachEntries(data) {
@@ -24,7 +25,7 @@ function reapplyDirty() {
 	// go over all dirty ones
 	Object.keys(dirty_states).forEach(id => {
 		tag = document.getElementById(id)
-		if (!tag ) return
+		if (!tag) return
 
 		// add dirty class
 		enableBtn = true
@@ -73,29 +74,50 @@ function changeState({ currentTarget }) {
 
 	// set class dirty and add to dirty_states if state is not initial state. If so, reverse
 	if (new_state != module_states[id]) {
-		currentTarget.parentNode.classList.add("dirty")
+		currentTarget.parentNode.parentNode.classList.add("dirty")
 		dirty_states[id] = new_state
 	} else {
-		currentTarget.parentNode.classList.remove("dirty")
+		currentTarget.parentNode.parentNode.classList.remove("dirty")
 		delete dirty_states[id]
 	}
 
 	// adapt submit-btn
-	if (Object.keys(dirty_states).length)
+	if (document.getElementsByClassName("dirty").length)
 		document.getElementsByClassName("submit")[0].classList.add("active")
 	else
 		document.getElementsByClassName("submit")[0].classList.remove("active")
 }
 
 
+function changeOptional(checkbox) {
+	checkbox.classList.toggle("checked")
+	var id = parseInt(/\d+/.exec(checkbox.id))
+	console.log(id)
+
+	// set class dirty and add to dirty_states if state is not initial state. If so, reverse
+	if (!dirty_optionals.includes(id)) {
+		checkbox.parentNode.parentNode.classList.add("dirty")
+		dirty_optionals.push(id)
+	} else {
+		checkbox.parentNode.parentNode.classList.remove("dirty")
+		dirty_optionals = dirty_optionals.filter(o_id => o_id !== id)
+	}
+
+	// adapt submit-btn
+	if (document.getElementsByClassName("dirty").length)
+		document.getElementsByClassName("submit")[0].classList.add("active")
+	else
+		document.getElementsByClassName("submit")[0].classList.remove("active")
+}
+
 
 // save changed states of modules
 function submit() {
 
 	// no change, btn should be inactive anyway
-	if (!Object.keys(dirty_states).length) return
+	if (!Object.keys(dirty_states).length && !dirty_optionals.length) return
 
-	post({"state_changes": dirty_states}, () => {
+	post({"state_changes": dirty_states, "optional_changes": dirty_optionals}, () => {
 
 		// remove all 'dirty'-classes
 		Object.keys(dirty_states).forEach(id => {
@@ -103,8 +125,13 @@ function submit() {
 			module_states[id] = dirty_states[id]
 		})
 
+		dirty_optionals.forEach(id => {
+			document.getElementById(id).parentNode.classList.remove("dirty")
+		})
+
 		// clear dirty_modules and disable submit-btn
 		dirty_states = {}
+		dirty_optionals = []
 		document.getElementsByClassName("submit")[0].classList.remove("active")
 	})
 }

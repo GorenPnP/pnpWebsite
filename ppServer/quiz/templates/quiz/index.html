@@ -37,18 +37,22 @@
                     <span class="score {{ module.score_tag_class }}">{{ module.score|default:"-" }}</span>
                     <span class="questions">{{ module.questions }}
                         {% if module.questions == 1 %}Frage{% else %}Fragen{% endif %}</span>
-                    <span class="points">{{ module.points|floatformat:"-2" }}/{{ module.max_points|floatformat:"-2" }} P.</span>
+                    <span class="points">{% if module.points is None %}-{% else %}{{ module.points|floatformat:"-2" }}{% endif %}/{{ module.max_points|floatformat:"-2" }} P.</span>
                 </div>
 
-                {% if spielleiter_service or module.state not in button_states %}
-                    <span>{{ module.state }}</span>
-                {% else %}
-                    <form method="POST">
-                        {% csrf_token %}
-                        <input type="number" name="id" value="{{ module.id }}" hidden>
-                        <input type="submit" class="btn" value="{% if module.state == 'opened' %}Quiz me!{% else %}Ergebnis{% endif %}" />
-                    </form>
-                {% endif %}
+                <div>
+                    {% if spielleiter_service or module.state not in button_states %}
+                        <span>{{ module.state }}</span>
+                    {% else %}
+                        <form method="POST">
+                            {% csrf_token %}
+                            <input type="number" name="id" value="{{ module.id }}" hidden>
+                            <input type="submit" class="btn" value="{% if module.state == 'opened' %}Quiz me!{% else %}Ergebnis{% endif %}" />
+                        </form>
+                    {% endif %}
+
+                    {% if module.optional %}<span>(optional)</span>{% endif %}
+                </div>
 
             </div>
             <div class="accordeon__extra">
