@@ -26,11 +26,10 @@ function scroll() {
         window.scrollBy(0, -.5 * viewport_height)
 
         if (marked_row !== "") {
-            var tags = document.getElementsByClassName(marked_row)
-            for (var i = 0; i < tags.length; i++) tags[i].classList.remove("selected")
+            document.getElementsByClassName(marked_row).forEach(tag => tag.classList.remove("selected"))
         }
 
-        marked_row = getClass(document.getElementsByName(id)[0], "row--")
+        marked_row = getClass(document.getElementsByName(id)[0], "row-")
         if (marked_row !== "") {
             var tags = document.getElementsByClassName(marked_row)
             for (var i = 0; i < tags.length; i++) tags[i].classList.add("selected")

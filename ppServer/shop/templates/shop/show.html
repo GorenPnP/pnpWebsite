@@ -42,7 +42,7 @@
 	<div class="grid-container">
 			{% for row in fields %}
 				{% for entries in row %}
-					<div class="row row--{{ forloop.parentloop.counter0 }}
+					<div class="row row-{{ forloop.parentloop.counter0 }}
 											{% if forloop.parentloop.first %}heading stick-top
 											{% if forloop.last %}heading--last{% endif %}
 											{% endif %}

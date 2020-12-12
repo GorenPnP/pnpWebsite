@@ -1,11 +1,10 @@
-from ppServer.decorators import spielleiter_only, verified_account
-import random, json
+from ppServer.decorators import verified_account
+import random, json, re
 import sre_constants
-from math import ceil
 
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
-from django.http.response import HttpResponse, JsonResponse
+from django.http.response import JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse
 from django.utils.datetime_safe import date
