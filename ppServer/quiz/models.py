@@ -216,6 +216,9 @@ class SpielerModule(models.Model):    # if existing, Spieler answered related Qu
     def pointsEarned(self):
         return self.state in [5, 6] or self.optional or self.sessions.all().count() > 1
 
+    def moduleFinished(self):
+        return self.state in [5, 6] or self.optional
+
 
 class SpielerSession(models.Model):
     class Meta:

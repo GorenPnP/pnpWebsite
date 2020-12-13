@@ -98,7 +98,6 @@ def index(request, spieler_id=None):
         context = {"timetable": timetable, "topic": "{}'s Quiz".format(spieler.get_real_name()) if spielleiter_service else "Quiz",
                    "akt_punktzahl": get_object_or_404(models.RelQuiz, spieler=spieler).quiz_points_achieved, "button_states": ["opened", "corrected"]}
 
-        print(timetable)
         return render(request, "quiz/index.html", context)
 
     if request.method == "POST":

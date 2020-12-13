@@ -95,53 +95,86 @@ def add_questions(sender, instance, **kwargs):
             spieler=instance.spielerModule.spieler, question=q)
 
 
+# create all missing sp_mods between all modules and all players
+def add_missing_spielermodules():
 
-# works recursively, should a sp_mod's state be set from locked to unlocked
+    # create all missing sp_mods between all modules and all players
+    for p in Spieler.objects.all():
+        for m in Module.objects.all():
+            SpielerModule.objects.get_or_create(spieler=p, module=m)
+
+
+# works recursively, should a sp_mod's state be changed due to changes in prerequisites
 # TODO
 @receiver(post_save, sender=Module)
-def add_spielermodules(sender, instance, **kwargs):
+@receiver(post_save, sender=SpielerModule)
+def update_states_of_spielermodules(sender, instance, **kwargs):
 
-    modules = Module.objects.exclude(id=instance.id)
-    sp_mods = []
+    # make sure all SpielerModules exist
+    if sender == Module:
+        add_missing_spielermodules()
 
-    # create all missing sp_mods
-    for p in Spieler.objects.all():
+    # collect changed SpielerModule OR all SpielerModules of changed Module instance
+    sp_mods = [instance] if sender == SpielerModule else list(SpielerModule.objects.filter(module=instance))
 
-        sp_mod, _ = SpielerModule.objects.get_or_create(spieler=p, module=instance)
-        sp_mods.append(sp_mod)
+    # collect all theot dependants/children, too
+    sp_mods_children = []
+    for sp_mod in sp_mods:
+        for child in SpielerModule.objects.filter(module__in=sp_mod.module.prerequisite_modules.all(), spieler=sp_mod.spieler).exclude(id=sp_mod.id):
+            sp_mods_children.append(child)
 
-        for m in modules:
-            sp_mod, created = SpielerModule.objects.get_or_create(spieler=p, module=m)
-            if created:
-                sp_mods.append(sp_mod)
-
+    # get all of them together, eliminate duplicates
+    sp_mods = list(set(sp_mods + sp_mods_children))
 
     # as long as sp_mods' states need to update their state potentially...
-    while sp_mods:
+    while len(sp_mods):
+
         sp_mod = sp_mods.pop(0)
         prerequisites = [SpielerModule.objects.get(spieler=sp_mod.spieler, module=m) for m in sp_mod.module.prerequisite_modules.all()]
 
         # test if all at least unlocked
         all_passed = True
         for p in prerequisites:
-            if p.state != module_state[6][0]:
+            if not p.moduleFinished():
                 all_passed = False
                 break
 
-        test_children = True
+
+        test_children = False    # true if state changed on the module. Then have to check its dependants/children for potential changes
+
         # unlock module
-        if all_passed and sp_mod.state == module_state[0][0]:
-            sp_mod.state = module_state[1][0]
+        if all_passed and sp_mod.state == module_state[0][0]:   # if SpielerModule is locked, but all prerequisites are met
+            sp_mod.state = module_state[1][0]                   # set it to unlocked
+            sp_mod.save()
+            test_children = True
+
             sp_mod.save()
 
-        # lock module if it was in the state of unlocked (no other, because that has been explicitly set by Floofy or by player actions)
-        elif not all_passed and sp_mod.state == module_state[1][0]:
+        # prerequisites not met: unlocked or seen (not all to not disturb answering/correction/reviewing routine!)
+        # -> locked (or plain passed if it has been optional)
+        elif not all_passed and sp_mod.state in [1, 5]:
+            test_children = True
+
+            if sp_mod.optional:
+                sp_mod.optional = False
+                sp_mod.state = module_state[6][0]
+            else:
+                sp_mod.state = module_state[0][0]
+
+            sp_mod.save()
+
+        # prerequisites not met: optional passed -> optional locked. Don't need to test children since it stays optional ^= it is still finished
+        elif not all_passed and sp_mod.state == module_state[6][0] and sp_mod.optional:
             sp_mod.state = module_state[0][0]
-            sp_mod.save()
-        else: test_children = False
 
-        # if state has changed, add children to sp_mods
-        if test_children:
-            for child in SpielerModule.objects.filter(spieler=sp_mod.spieler):
-                if child not in sp_mods and sp_mod.module in child.module.prerequisite_modules.all():
-                    sp_mods.append(child)
+            sp_mod.save()
+
+
+        if not test_children: continue
+
+        # if state has changed, add children to sp_mods for checking
+        for child in SpielerModule.objects.filter(spieler=sp_mod.spieler):
+
+            # get all children-sp_mods and add them to list sp_mods (if they weren't in there before)
+            if child not in sp_mods and sp_mod.module in child.module.prerequisite_modules.all():
+                sp_mods.append(child)
