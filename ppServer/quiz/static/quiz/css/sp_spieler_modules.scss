@@ -24,6 +24,10 @@
 
 	border-bottom: 1px solid #ddd;
 	transition: border-bottom 100ms;
+
+	// for rewards and optional
+	--checkbox-size: 20px;
+	--checkbox-shadow: 3px 3px #888888;
 }
 .row.dirty {
 	border-bottom: 1px solid lighten(orangered, 10%);
@@ -38,13 +42,14 @@
 	padding: 0;
 }
 
-.optional {
+.optional, .rewards {
 	display: flex;
 
-	--checkbox-size: 20px;
-	--checkbox-shadow: 3px 3px #888888;
-
 	& > * {margin: .2em .3em;}
+}
+.rewards {
+	--checkbox-border-color: transparent;
+	--checkbox-shadow: 0;
 }
 
 .module, .player {
@@ -83,4 +88,6 @@
 		grid-template-columns: repeat(4, auto);
 		grid-gap: .2em;
 	}
+
+	.rewards, .points {display: none;}
 }

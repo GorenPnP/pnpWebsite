@@ -117,7 +117,8 @@ def sp_modules(request):
                 "timestamp": sessions.first().started if sessions.count() else None,
                 "achieved_points": e.achieved_points, "max_points": e.module.max_points,
                 "score": score, "score_class": score_class,
-                "optional": e.optional
+                "optional": e.optional,
+                "spent_reward": e.spent_reward, "spent_reward_larp": e.spent_reward_larp
             })
     modules = sorted(modules, key=cmp_to_key(cmp_time))
 

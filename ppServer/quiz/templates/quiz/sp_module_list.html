@@ -3,7 +3,16 @@
 	{% if e.icon %}<img src="{{ e.icon }}" class="icon">
 	{% else %}<span></span>
 	{% endif %}
-	<div class='module'>{{ e.module }}</div>
+	<div class='module'>
+		{{ e.module }}
+
+		{% if e.spent_reward or e.spent_reward_larp %}
+			<div class="rewards">
+				{% if e.spent_reward %}<div class="checkbox checked reward"></div> PnP{% endif %}
+				{% if e.spent_reward_larp %}<div class="checkbox checked reward"></div> Larp{% endif %}
+			</div>
+		{% endif %}
+	</div>
 	<div class="player">{{ e.spieler.get_real_name|default:e.spieler.name }}</div>
 
 	<div>
