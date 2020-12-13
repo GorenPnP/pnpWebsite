@@ -19,14 +19,24 @@ function toggleCheckbox(id) {
 
 // auto-grow textarea on typeing
 function autoGrow(oField) {
-    if (oField.scrollHeight > oField.clientHeight) {
-        oField.style.height = oField.scrollHeight + "px"
+    if (oField.scrollHeight != oField.clientHeight) {
+        oField.style.height = `${oField.scrollHeight + 20}px`
     }
+    console.log(oField.scrollHeight, oField.clientHeight)
 }
 
 function back(e) {
     e.preventDefault()
     window.history.back()
+}
+
+function back_to_previous(e) {
+    e.preventDefault()
+
+    const form = document.getElementsByTagName("form")[0]
+    form.querySelector("input.previous").checked = true
+    form.querySelector("input.points__input").required = false
+    form.submit()
 }
 
 
@@ -49,8 +59,8 @@ document.addEventListener("DOMContentLoaded", _ => {
     const textareas = [...document.getElementsByTagName("textarea")]
     textareas.forEach(area => autoGrow(area))
 
-    // handle checkboxes
-    const inputs = [...document.getElementsByTagName("input")]
+    // handle checkboxes (on file upload)
+    const inputs = [...document.querySelectorAll("input[type=file]")]
     inputs.forEach(input => {
         input.addEventListener("change", __ => updateChecked)
         input.addEventListener("click", __ => updateChecked)

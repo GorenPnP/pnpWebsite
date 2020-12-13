@@ -165,7 +165,7 @@ def sp_modules(request):
 
 @login_required
 @spielleiter_only(redirect_to="quiz:index")
-def sp_correct(request, id):
+def sp_correct(request, id, question_index=0):
 
     sp_mo = get_object_or_404(models.SpielerModule, id=id)
 
@@ -177,13 +177,22 @@ def sp_correct(request, id):
     if not current_session:
         return redirect("quiz:sp_modules")
 
+    if question_index is None or question_index < 0: question_index = 0
+    spq = current_session.questions.all()[question_index]  if question_index < current_session.questions.count() else None
+
     # GET
     if request.method == "GET":
 
-        spq = current_session.nextQuestion()
-
         # all questions done
         if not spq:
+
+            # if not at least one questoin with achieved_points is None exists, redirect to the first one
+            if current_session.questions.filter(achieved_points=None).exists():
+                print("Not all done! look through all again")
+                for index, q in enumerate(current_session.questions.all()):
+                    if q.achieved_points is None:
+                        return redirect(reverse("quiz:sp_correct_index", args=[id, index]))
+
             current_session.setCorrected()
 
             current_session.spielerModule.achieved_points = sum([q.achieved_points for q in current_session.questions.all()])
@@ -196,17 +205,18 @@ def sp_correct(request, id):
         corrected_answers = json.loads(spq.correct_mc) if spq.correct_mc else []
 
         context = {"topic": "{} ({})".format(sp_mo.module.title, sp_mo.spieler.name),
+                   "achieved_points": spq.achieved_points,
                    "question": spq.question, "spieler_question": spq,
                    "answers": answers, "checked_answers": checked_answers, "corrected_answers": corrected_answers,
-                   "start_num_questions": current_session.questions.count(), "num_question": current_session.current_question + 1
+                   "start_num_questions": current_session.questions.count(), "num_question": question_index + 1,
+                   "display_btn_previous": question_index,
+                   "display_btn_done": question_index +1 == current_session.questions.count()
                    }
         return render(request, "quiz/sp_correct.html", context)
 
 
     # POST
     if request.method == "POST":
-
-        spq = current_session.currentQuestion()
 
         # save meta info of question
         spq.question.answer_note = request.POST.get("answer_note")
@@ -243,4 +253,11 @@ def sp_correct(request, id):
             spq.correct_file.save()
 
         spq.save()
-        return redirect(reverse("quiz:sp_correct", args=[id]))
+
+        # which question is next?
+        next_question = question_index - 1 if request.POST.get("previous") else question_index + 1
+        if next_question < 0: next_question = 0
+        print(next_question)
+
+
+        return redirect(reverse("quiz:sp_correct_index", args=[id, next_question]))

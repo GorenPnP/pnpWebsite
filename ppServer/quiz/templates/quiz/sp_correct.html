@@ -25,7 +25,7 @@
 					<div class="info__item"><span class="label">Frage</span> {{ num_question }}/{{ start_num_questions }}</div>
 					<div class="info__item points">
 						<span class="label">Punkte</span>
-						<input type="number" min="0" class="points__input" name="points" step="0.01">/
+						<input type="number" min="0" class="points__input" name="points" step="0.01" value="{{ achieved_points }}" required>
 						{{ question.points|floatformat:"-2" }}
 					</div>
 			</div>
@@ -120,9 +120,17 @@
             </div>
     </section>
 
+		<input type="checkbox" class="previous" name="previous" hidden>
     <div class="flex-container flex-container--btn">
-        <button class="btn btn--back" onclick="back(event)">Abbrechen</button>
-        <input type="submit" class="btn" value="OK">
+				<a href="{% url 'quiz:sp_modules' %}" class="btn btn--back">Abbrechen</a>
+				{% if display_btn_previous %}
+					<button class="btn btn--previous" onclick="back_to_previous(event)">Zur Vorigen</button>
+				{% endif %}
+				{% if display_btn_done %}
+					<input type="submit" class="btn" value="Alles Fertig?">
+				{% else %}
+					<input type="submit" class="btn" value="OK">
+				{% endif %}
     </div>
 
 </form>

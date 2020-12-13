@@ -54,7 +54,7 @@
         {% endif %}
 
         {% if question.allow_text %}
-            <textarea class="text-input" name="text" placeholder="Mein Senf dazu ..." onkeyup="autoGrow(this)" autofocus></textarea>
+            <textarea class="text-input" name="text" placeholder="Mein Senf dazu ..." onkeyup="autoGrow(this)" oninput="autoGrow(this)" autofocus></textarea>
         {% endif %}
 
         {% if question.allow_upload %}
