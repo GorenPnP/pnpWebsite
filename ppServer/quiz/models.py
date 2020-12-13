@@ -211,7 +211,7 @@ class SpielerModule(models.Model):    # if existing, Spieler answered related Qu
         return sessions[1] if len(sessions) > 1 else None
 
     def getSessionInProgress(self):
-        return self.sessions.order_by("-started").first() if self.state < 5 else None
+        return SpielerSession.objects.filter(spielerModule=self).order_by("-started").first() if self.state < 5 else None
 
     def pointsEarned(self):
         return self.state in [5, 6] or self.optional or self.sessions.all().count() > 1
