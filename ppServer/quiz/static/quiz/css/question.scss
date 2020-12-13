@@ -91,10 +91,15 @@
 }
 
 
-.container-previous-answer {
+.container-old-answer {
 	display: flex;
 	justify-content: flex-end;
 }
+a.btn.btn--old-answer {
+		color: #444;
+}
+
+
 .answer, .correction {
 
 	background: lighten(#3a3d40, 60%);
@@ -168,7 +173,6 @@
 		}
 	}
 }
-
 
 .flex-container--btn {
 

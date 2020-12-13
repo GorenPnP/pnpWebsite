@@ -104,8 +104,12 @@
 		<form method="POST">
 			{% csrf_token %}
 			<div class="flex-container flex-container--btn">
+				{% if called_from_sp %}
+					<button class="btn" onclick="window.history.back()">OK</button>
+				{% else %}
 					<button class="btn btn--back" onclick="back(event)">Abbrechen</button>
 					<input type="submit" class="btn" value="OK">
+				{% endif %}
 			</div>
 		</form>
 

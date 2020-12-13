@@ -10,6 +10,7 @@ urlpatterns = [
 	path('sp/modules', views_sp.sp_modules, name="sp_modules"),
 	path('sp/correct/<int:id>', views_sp.sp_correct, name="sp_correct"),
 	path('sp/correct/<int:id>/<int:question_index>', views_sp.sp_correct, name="sp_correct_index"),
+	path('sp/old_answer/<int:sp_mo_id>/<int:question_id>/<int:question_index>', views_sp.old_answer, name="sp_old_answer"),
 
 
 	path('', views.index, name='index'),

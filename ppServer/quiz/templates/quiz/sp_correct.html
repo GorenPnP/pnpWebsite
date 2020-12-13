@@ -44,10 +44,11 @@
 	</section>
 
 
-	<div class="container-previous-answer">
-		<button disabled>Previous answer</button>
+	{% if display_old_answer %}
+	<div class="container-old-answer">
+		<a href="{% url 'quiz:sp_old_answer' sp_mo_id spieler_question.question.id question_index %}" class="btn btn--old-answer" >Alte Antwort</a>
 	</div>
-
+	{% endif %}
 
 	<section class="answer">
 

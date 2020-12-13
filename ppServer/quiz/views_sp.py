@@ -8,7 +8,7 @@ from django.http.response import JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse
 
-from ppServer.decorators import spielleiter_only
+from ppServer.decorators import spielleiter_only, verified_account
 from character.models import Spieler
 from . import models
 
@@ -188,7 +188,8 @@ def sp_correct(request, id, question_index=0):
 
             # if not at least one questoin with achieved_points is None exists, redirect to the first one
             if current_session.questions.filter(achieved_points=None).exists():
-                print("Not all done! look through all again")
+
+                # Not all done! look through all again
                 for index, q in enumerate(current_session.questions.all()):
                     if q.achieved_points is None:
                         return redirect(reverse("quiz:sp_correct_index", args=[id, index]))
@@ -200,6 +201,7 @@ def sp_correct(request, id, question_index=0):
 
             return redirect("quiz:sp_modules")
 
+        # collect things to display
         answers = spq.question.multiplechoicefield_set.all()
         checked_answers = json.loads(spq.answer_mc) if spq.answer_mc else []
         corrected_answers = json.loads(spq.correct_mc) if spq.correct_mc else []
@@ -210,8 +212,10 @@ def sp_correct(request, id, question_index=0):
                    "answers": answers, "checked_answers": checked_answers, "corrected_answers": corrected_answers,
                    "start_num_questions": current_session.questions.count(), "num_question": question_index + 1,
                    "display_btn_previous": question_index,
-                   "display_btn_done": question_index +1 == current_session.questions.count()
+                   "display_btn_done": question_index + 1 == current_session.questions.count(),
+                   "display_old_answer": sp_mo.pointsEarned(), "sp_mo_id": id, "question_index": question_index,
                    }
+
         return render(request, "quiz/sp_correct.html", context)
 
 
@@ -257,7 +261,41 @@ def sp_correct(request, id, question_index=0):
         # which question is next?
         next_question = question_index - 1 if request.POST.get("previous") else question_index + 1
         if next_question < 0: next_question = 0
-        print(next_question)
-
 
         return redirect(reverse("quiz:sp_correct_index", args=[id, next_question]))
+
+
+@verified_account
+# @spielleiter_only     <-- breaks
+def old_answer(request, sp_mo_id, question_id, question_index):    # id of currently answered SpielerQuestion
+
+    if not request.user.groups.filter(name="spielleiter").exists():
+        return redirect("quiz:index")
+
+    sp_mo = get_object_or_404(models.SpielerModule, id=sp_mo_id)
+    old_session = sp_mo.getFinishedSession()
+    if not old_session:
+        return redirect(reverse("quiz:sp_correct_index", args=[sp_mo_id, question_index]))
+
+    old_spq = old_session.questions.get(question__id=question_id)
+
+    # no module for player selected
+    if sp_mo.state != 3:    # if not 'answered'
+        return redirect(reverse("quiz:sp_correct_index", args=[sp_mo_id, question_index]))
+
+
+    # all questions done
+    if not old_spq:
+        return redirect(reverse("quiz:sp_correct_index", args=[sp_mo_id, question_index]))
+
+    answers = old_spq.question.multiplechoicefield_set.all()
+    checked_answers = json.loads(old_spq.answer_mc) if old_spq.answer_mc else []
+    corrected_answers = json.loads(old_spq.correct_mc) if old_spq.correct_mc else []
+
+    context = {"topic": "{} ({})".format(sp_mo.module.title, sp_mo.spieler.name),
+                "question": old_spq.question, "spieler_question": old_spq,
+                "answers": answers, "checked_answers": checked_answers, "corrected_answers": corrected_answers,
+                "start_num_questions": old_session.questions.count(), "num_question": question_index + 1,
+               "called_from_sp": True
+                }
+    return render(request, "quiz/review.html", context)
