@@ -92,7 +92,8 @@ def index(request, spieler_id=None):
                     "score": score, "score_tag_class": score_class,
                     "optional": sp_m.optional,
                     "description": sp_m.module.description, "icon": sp_m.module.icon.img.url if sp_m.module.icon else None,
-                    "revard": sp_m.module.reward, "state": sp_m.get_state_display(),
+                    "revard": sp_m.module.reward, "spent_reward": sp_m.spent_reward, "spent_reward_larp": sp_m.spent_reward_larp,
+                    "state": sp_m.get_state_display(),
                     "prerequisites": ", ".join([m.title for m in sp_m.module.prerequisite_modules.all()])})
 
         context = {"timetable": timetable, "topic": "{}'s Quiz".format(spieler.get_real_name()) if spielleiter_service else "Quiz",

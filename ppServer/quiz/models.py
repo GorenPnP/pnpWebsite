@@ -193,10 +193,14 @@ class SpielerModule(models.Model):    # if existing, Spieler answered related Qu
     module = models.ForeignKey(Module, on_delete=models.CASCADE)
 
     state = models.PositiveSmallIntegerField(choices=module_state, default=module_state[0][0])
-    achieved_points = models.FloatField(default=None, null=True, blank=True)
-
     # answering this module(again) is optional. It count as achieved prerequisite to others and the achieved_points will be added to the overall score
     optional = models.BooleanField(default=False)
+
+    achieved_points = models.FloatField(default=None, null=True, blank=True)
+
+    spent_reward = models.BooleanField(default=False)
+    spent_reward_larp = models.BooleanField(default=False)
+    spent_reward_on = models.TextField(blank=True, null=True)
 
     sessions = models.ManyToManyField("SpielerSession")
 

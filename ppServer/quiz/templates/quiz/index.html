@@ -64,6 +64,13 @@
                 <div class="revard">Belohnung: {{ module.revard }}</div>
 
                 <div class="description">{{ module.description }}</div>
+
+                {% if module.spent_reward or module.spent_reward_larp %}
+                    <div class="footnote">
+                        {% if module.spent_reward %}Ausgegeben.{% endif %}
+                        {% if module.spent_reward_larp %}Ausgegeben (Larp).{% endif %}
+                    </div>
+                {% endif %}
             </div>
         </div>
 

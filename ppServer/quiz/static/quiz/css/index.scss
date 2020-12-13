@@ -101,6 +101,12 @@
     .description {
         flex: 0 0 100%;
     }
+
+    .footnote {
+        margin: .7em 0;
+        font-size: .7rem;
+        opacity: .9;
+    }
 }
 .accordeon__child.expand .accordeon__extra {
     animation: open 200ms forwards ease-out;
