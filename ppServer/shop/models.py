@@ -1,6 +1,6 @@
 import math
+from PIL import Image as PilImage
 
-from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 from django.urls import reverse
@@ -166,6 +166,26 @@ class BaseShop(models.Model):
 
     def getIconUrl(self):
         return self.icon.url if self.icon else "/static/res/img/icon-dice-account.svg"
+
+
+    # resize icon
+    def save(self, *args, **kwargs):
+        MAX_SIZE = 64
+
+        super().save(*args, **kwargs)
+
+        img = PilImage.open(self.img.path)
+
+        # is smaller, leave it
+        if img.height <= MAX_SIZE and img.width <= MAX_SIZE:
+            return
+
+        # resize, longest is MAX_SIZE, scale the other accordingly while maintaining ratio
+        new_width = MAX_SIZE if img.width >= img.height else img.width * MAX_SIZE // img.height
+        new_height = MAX_SIZE if img.width <= img.height else img.height * MAX_SIZE // img.width
+
+        img.thumbnail((new_width, new_height), PilImage.BILINEAR)
+        img.save(self.img.path, "jpeg")
 
 
 class Item(BaseShop):

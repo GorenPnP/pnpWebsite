@@ -1,5 +1,6 @@
 import string
 from math import ceil
+from PIL import Image as PilImage
 
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils.crypto import random
@@ -22,7 +23,7 @@ module_state = [
 # used before save on Question.picture and Answer.picture to hide real name in src-path of img-tag in HTML (anti-cheat)
 def upload_and_rename_picture(instance, filename):
     today = date.today()
-    path = "quiz/{}-{}-{}/{}".format(today.year, today.month, today.day, instance.id) + "".join([random.choice(string.ascii_letters + string.digits) for _ in range(20)])
+    path = "quiz/{}-{}-{}/".format(today.year, today.month, today.day) + "".join([random.choice(string.ascii_letters + string.digits) for _ in range(20)])
     return path
 
 
@@ -51,6 +52,25 @@ class Image(models.Model):
     name = models.CharField(max_length=200, blank=True, null=True)
 
     def __str__(self): return self.name
+
+    def save(self, *args, **kwargs):
+        MAX_SIZE = 512
+
+        super().save(*args, **kwargs)
+
+        img = PilImage.open(self.img.path)
+
+        # is smaller, leave it
+        if img.height <= MAX_SIZE and img.width <= MAX_SIZE:
+            return
+
+        # resize, longest is MAX_SIZE, scale the other accordingly while maintaining ratio
+        new_width = MAX_SIZE if img.width >= img.height else img.width * MAX_SIZE // img.height
+        new_height = MAX_SIZE if img.width <= img.height else img.height * MAX_SIZE // img.width
+
+        img.thumbnail((new_width, new_height), PilImage.BILINEAR)
+        img.save(self.img.path, "jpeg")
+
 
 class File(models.Model):
 
@@ -236,14 +256,13 @@ class SpielerSession(models.Model):
 
 
     questions = models.ManyToManyField("SpielerQuestion", related_name="questions")
-    # question of questions which the spieler answeres right now or is corrected right now. None ^= all done
+    # question of questions which the spieler answers right now or is corrected right now. None ^= all done
     current_question = models.SmallIntegerField(default=0, blank=True, null=True)
 
     started = models.DateTimeField(auto_now_add=True, null=True)
 
 
-    def __str__(self):
-        return "{}, Start um {}".format(self.spielerModule, self.started)
+    def __str__(self): return "{}, Start um {}".format(self.spielerModule, self.started)
 
 
     def currentQuestion(self):
