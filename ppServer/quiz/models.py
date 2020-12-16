@@ -238,7 +238,7 @@ class SpielerModule(models.Model):    # if existing, Spieler answered related Qu
         return SpielerSession.objects.filter(spielerModule=self).order_by("-started").first() if self.state < 5 else None
 
     def pointsEarned(self):
-        return self.state in [5, 6] or self.optional or self.sessions.all().count() > 1
+        return self.state in [5, 6] or self.optional or SpielerSession.objects.filter(spielerModule=self).count() > 1
 
     def moduleFinished(self):
         return self.state in [5, 6] or self.optional

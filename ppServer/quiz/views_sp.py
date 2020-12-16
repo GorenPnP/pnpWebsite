@@ -186,7 +186,7 @@ def sp_correct(request, id, question_index=0):
         # all questions done
         if not spq:
 
-            # if not at least one questoin with achieved_points is None exists, redirect to the first one
+            # if not at least one question with achieved_points is None exists, redirect to the first one
             if current_session.questions.filter(achieved_points=None).exists():
 
                 # Not all done! look through all again
@@ -230,8 +230,10 @@ def sp_correct(request, id, question_index=0):
         spq.correct_text = request.POST.get("text")
         spq.correct_mc = request.POST.get("ids")
 
+        # update points if they are not None. Use current score then
         points = request.POST.get("points")
-        spq.achieved_points = float(points) if len(points) else None
+        new_points = float(points) if len(points) else spq.achieved_points
+        spq.achieved_points = new_points
 
         # check whether it's valid:
         if "img" in request.FILES.keys():  # and imgForm.is_valid():
@@ -258,7 +260,12 @@ def sp_correct(request, id, question_index=0):
 
         spq.save()
 
-        # which question is next?
+        # if redirect somewhere, do it now
+        redirect_url = request.POST.get("redirect")
+        if (redirect_url):
+            return redirect(redirect_url)
+
+        # otherwise continue on: which question is next?
         next_question = question_index - 1 if request.POST.get("previous") else question_index + 1
         if next_question < 0: next_question = 0
 
@@ -296,6 +303,6 @@ def old_answer(request, sp_mo_id, question_id, question_index):    # id of curre
                 "question": old_spq.question, "spieler_question": old_spq,
                 "answers": answers, "checked_answers": checked_answers, "corrected_answers": corrected_answers,
                 "start_num_questions": old_session.questions.count(), "num_question": question_index + 1,
-               "called_from_sp": True
+                "called_from_sp": True, "return_to": reverse("quiz:sp_correct_index", args=[sp_mo_id, question_index])
                 }
     return render(request, "quiz/review.html", context)

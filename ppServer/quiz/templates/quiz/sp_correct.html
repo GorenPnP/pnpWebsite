@@ -26,7 +26,7 @@
 					<div class="info__item points">
 						<span class="label">Punkte</span>
 						<input type="number" min="0" class="points__input" name="points" step="0.01" value="{{ achieved_points }}" required>
-						{{ question.points|floatformat:"-2" }}
+						/{{ question.points|floatformat:"-2" }}
 					</div>
 			</div>
 	</section>
@@ -44,9 +44,16 @@
 	</section>
 
 
+	<input hidden id="redirect" type='text' value="{% url 'quiz:sp_old_answer' sp_mo_id spieler_question.question.id question_index %}">
+
 	{% if display_old_answer %}
 	<div class="container-old-answer">
-		<a href="{% url 'quiz:sp_old_answer' sp_mo_id spieler_question.question.id question_index %}" class="btn btn--old-answer" >Alte Antwort</a>
+		<input type="submit" class="btn btn--old-answer" value="Alte Antwort"
+			onclick="
+				event.preventDefault();
+				document.querySelector('#redirect').name = 'redirect' // add redirect to POST data
+				document.querySelector('form').submit()
+		">
 	</div>
 	{% endif %}
 

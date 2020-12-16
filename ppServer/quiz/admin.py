@@ -44,11 +44,8 @@ class TopicAdmin(admin.ModelAdmin):
 
 class QuestionAdmin(admin.ModelAdmin):
     list_display = ["text", "module_", "topic", "grade", "points", "answer_note", "images_included"]
-    list_filter = ["topic", "grade"]
-    list_display_links = ("topic", )
-
-    list_editable = ["topic", "grade", "points"]
-    list_display_links = ["text"]
+    list_filter = ["topic__subject", "topic", "grade"]
+    search_fields = ["text", "topic__titel", "topic__subject__titel"]
 
     fieldsets = [
         ("Context", {'fields': ['topic', "grade", "points"]}),
@@ -77,6 +74,7 @@ class QuestionAdmin(admin.ModelAdmin):
 class ModuleAdmin(admin.ModelAdmin):
     list_display = ["icon_", "title", "num", "max_points", "reward", "prerequisites_"]
     list_display_links = ("icon_", "title")
+    search_fields = ["title", "num", "prerequisite_modules__title"]
 
     exclude = ["max_points"]
     inlines = [QuestionsInLine]
@@ -94,19 +92,24 @@ class ModuleAdmin(admin.ModelAdmin):
 class SpielerModuleAdmin(admin.ModelAdmin):
     list_display = ["spieler", "module", "state", "optional", "achieved_points"]
     list_filter = ["spieler", "module", "state"]
+    search_fields = ["spieler__name", "module__title", "state"]
 
     exclude = ["sessions"]
 
 
 class SpielerSessionAdmin(admin.ModelAdmin):
     list_display = ["spielerModule", "current_question", "started"]
+    list_filter = ["spielerModule__spieler", "spielerModule__module"]
+    search_fields = ["spielerModule__spieler__name", "spielerModule__module__title"]
 
     exclude = ["questions"]
     inlines = [SessionQuestionsInLine]
 
 
 class SpielerQuestionAdmin(admin.ModelAdmin):
-    pass
+    list_display = ["spieler", "question", "achieved_points"]
+    list_filter = ["spieler", "question"]
+    search_fields = ["question__text", "question__topic__titel", "question__topic__subject__titel", "spieler__name"]
 
 class RelQuizAdmin(admin.ModelAdmin):
     list_display = ("spieler", "quiz_points_achieved", "current_session")

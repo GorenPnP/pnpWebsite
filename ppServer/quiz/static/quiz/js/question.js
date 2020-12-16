@@ -19,10 +19,10 @@ function toggleCheckbox(id) {
 
 // auto-grow textarea on typeing
 function autoGrow(oField) {
+    oField.style.lineHeight = 1.2
     if (oField.scrollHeight != oField.clientHeight) {
-        oField.style.height = `${oField.scrollHeight + 20}px`
+        oField.style.height = `${oField.scrollHeight * 1.2}px`
     }
-    console.log(oField.scrollHeight, oField.clientHeight)
 }
 
 function back(e) {
