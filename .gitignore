@@ -2,6 +2,7 @@
 **/migrations/__pychache__
 
 **/dumps/
+**/node_modules/
 **/media/
 **/ppServer/static/
 db.sqlite3

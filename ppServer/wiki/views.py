@@ -263,10 +263,6 @@ def delta_without_year(date, today):
 @verified_account
 def geburtstage(request):
 
-    from quiz.models import Image
-    for img in Image.objects.all():
-        img.save()
-
     today = datetime.today()
     name_dict = {}    # [username] = full name
     for u in User.objects.all():

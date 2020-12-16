@@ -84,6 +84,9 @@ def quiz_BB(request):
                     reduced_questions.append(sp_q)
                     continue
 
+                # TODO don't just ignore a value of null on a finished session question!
+                if sp_q.achieved_points is None: continue
+
                 # get achieved points (sum points of questions whose modules are at least open)
                 achieved_points += sp_q.achieved_points
 
