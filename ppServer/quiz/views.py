@@ -14,10 +14,11 @@ from . import models
 # TODO try-except around request.POST in this file
 
 def get_grade_score(correct, max):
-    if correct > max or max == 0:
+    if max == 0:
         return "", ""
 
     grade_key = [   # minimal in%, Note
+        {"min": 100, "main": "S", "extra": ""},
         {"min": 95, "main": "A", "extra": "+"},
         {"min": 90, "main": "A", "extra": ""},
         {"min": 85, "main": "A", "extra": "-"},
