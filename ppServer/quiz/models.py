@@ -54,11 +54,19 @@ class Image(models.Model):
     def __str__(self): return self.name
 
     def save(self, *args, **kwargs):
-        MAX_SIZE = 512
 
         super().save(*args, **kwargs)
+        if self.img is None: return
 
-        img = PilImage.open(self.img.path)
+        MAX_SIZE = 512
+
+        # need to check this, because save() is also called on delete,
+        # when no physical image is available anymore. Weird.
+        try:
+            img = PilImage.open(self.img.path)
+        except:
+            print("No image found on save")
+            return
 
         # is smaller, leave it
         if img.height <= MAX_SIZE and img.width <= MAX_SIZE:
@@ -122,7 +130,7 @@ class Question(models.Model):
 
         ordering = ["topic", "grade"]
 
-    topic = models.ForeignKey(Topic, on_delete=models.CASCADE)
+    topic = models.ForeignKey(Topic, on_delete=models.SET_NULL, null=True, blank=True)
     grade = models.PositiveSmallIntegerField(default=1, validators=[MinValueValidator(0), MaxValueValidator(13)])
     points = models.FloatField(default=0)
 

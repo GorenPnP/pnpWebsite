@@ -116,6 +116,7 @@ class RelQuizAdmin(admin.ModelAdmin):
 
 
 class DataAdmin(admin.ModelAdmin):
+    search_fields = ["name"]
     exclude = ["name"]
 
 admin.site.register(RelQuiz, RelQuizAdmin)

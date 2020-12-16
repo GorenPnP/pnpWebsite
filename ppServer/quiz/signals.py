@@ -1,8 +1,8 @@
-from django.db.models.signals import post_delete, pre_save, post_save
+from django.db.models.signals import post_delete, pre_delete, pre_save, post_save
 from django.dispatch import receiver
 
 from character.models import Spieler
-from .models import Image, File, ModuleQuestion, RelQuiz, SpielerSession, Module, module_state, Question, SpielerModule
+from .models import Image, File, ModuleQuestion, RelQuiz, SpielerQuestion, SpielerSession, Module, module_state, Question, SpielerModule
 
 
 # to save the old picture-name in answer_note, before changed (against cheating)
@@ -105,7 +105,6 @@ def add_missing_spielermodules():
 
 
 # works recursively, should a sp_mod's state be changed due to changes in prerequisites
-# TODO
 @receiver(post_save, sender=Module)
 @receiver(post_save, sender=SpielerModule)
 def update_states_of_spielermodules(sender, instance, **kwargs):
@@ -178,3 +177,71 @@ def update_states_of_spielermodules(sender, instance, **kwargs):
             # get all children-sp_mods and add them to list sp_mods (if they weren't in there before)
             if child not in sp_mods and sp_mod.module in child.module.prerequisite_modules.all():
                 sp_mods.append(child)
+
+
+
+
+
+#       deleting model instances        #
+
+
+# delete all Media on delete of Question
+@receiver(pre_delete, sender=Question)
+def delete_its_media(sender, instance, **kwargs):
+    media = [
+        instance.images,
+        instance.files,
+    ]
+    for type in media:
+        if type is None: continue
+
+        for m in type:
+            if m is not None:
+                m.delete()
+
+
+# delete all SpielerModules on delete of Module
+@receiver(pre_delete, sender=Module)
+def delete_its_spieler_modules(sender, instance, **kwargs):
+    if instance.icon:
+        instance.icon.delete()
+
+    for sp_mo in SpielerModule.objects.filter(module=instance):
+        sp_mo.delete()
+
+
+# delete all SpielerSessions on delete of SpielerModule
+@receiver(pre_delete, sender=SpielerModule)
+def delete_its_sessions(sender, instance, **kwargs):
+    for session in SpielerSession.objects.filter(spielerModule=instance):
+        session.delete()
+
+
+# delete SpielerQuestions of SpielerSession on its delete
+@receiver(pre_delete, sender=SpielerSession)
+def delete_its_spieler_questions(sender, instance, **kwargs):
+    for sp_q in instance.questions.all():
+        sp_q.delete()
+
+
+# delete all media of SpielerQuestion on its delete
+@receiver(pre_delete, sender=SpielerQuestion)
+def delete_its_media(sender, instance, **kwargs):
+    media = [
+        instance.answer_img,
+        instance.answer_file,
+        instance.correct_img,
+        instance.correct_file
+    ]
+    for m in media:
+        if m is not None: m.delete()
+
+
+@receiver(pre_delete, sender=Image)
+def delete_its_filesystem_img(sender, instance, **kwargs):
+    if instance.img is not None: instance.img.delete()
+
+
+@receiver(pre_delete, sender=File)
+def delete_its_filesystem_file(sender, instance, **kwargs):
+    if instance.file is not None: instance.file.delete()
