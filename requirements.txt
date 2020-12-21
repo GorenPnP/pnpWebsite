@@ -8,7 +8,7 @@ Unipath>=1.0
 Pillow>=6.2.2
 Markdown>=2.6.6
 bleach>=3.1.4
-psycopg2>=2.8.5
+psycopg2-binary>=2.8.5
 pytz>=2018.4
 python-dotenv
 django-request>=1.5.5
