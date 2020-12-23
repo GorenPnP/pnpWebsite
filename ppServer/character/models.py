@@ -868,7 +868,6 @@ class RelWissensfertigkeit(models.Model):
 
 
 class RelSpezialfertigkeit(models.Model):
-    # TODO: delete unnecessary fields (throws error on migration)
     class Meta:
         ordering = ['char', 'spezialfertigkeit']
         verbose_name = "Spezialfertigkeit"
@@ -879,12 +878,7 @@ class RelSpezialfertigkeit(models.Model):
     char = models.ForeignKey(Charakter, on_delete=models.CASCADE)
     spezialfertigkeit = models.ForeignKey(Spezialfertigkeit, on_delete=models.CASCADE)
 
-    gesamt = models.PositiveIntegerField(default=0)
-    korrektur = models.PositiveIntegerField(default=0)
     stufe = models.PositiveIntegerField(default=0, validators=[MaxValueValidator(50)])
-    w20 = models.PositiveIntegerField(default=0, blank=True)
-    würfelÜbrig = models.PositiveIntegerField(default=0, validators=[MaxValueValidator(200)])
-    pool = models.PositiveIntegerField(default=0)
 
     def __str__(self):
         return "'{}' von ’{}’".format(self.spezialfertigkeit.__str__(), self.char.__str__())
