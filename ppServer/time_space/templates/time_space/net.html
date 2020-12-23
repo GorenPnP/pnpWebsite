@@ -1,0 +1,16 @@
+{% extends 'base/main.html' %}
+{% load static %}
+{% block title %}{{ topic }}{% endblock %}
+{% block extra-head %}
+<script src='https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js' type='text/javascript'></script>
+<script src="{% static 'base/js/ajax.js' %}"></script>
+<script type="text/javascript" src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+<script src="{% static 'time_space/js/net.js' %}"></script>
+
+<link rel="stylesheet" href="{% static 'time_space/css/net.css' %}">
+{% endblock %}
+{% block absolute %}{% include 'base/header.html' with topic=topic %}{% endblock %}
+
+{% block body %}
+<div id="mynetwork"></div>
+{% endblock %}

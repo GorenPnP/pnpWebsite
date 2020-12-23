@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'polls.apps.PollsConfig',
     'quiz.apps.QuizConfig',
     'crafting.apps.CraftingConfig',
+    'time_space.apps.TimeSpaceConfig',
     'base.apps.BaseConfig',
     'service.apps.ServiceConfig',
     'django.contrib.admin',
