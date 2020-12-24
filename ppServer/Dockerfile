@@ -4,7 +4,11 @@
 #FROM python:3.9-slim-buster
 FROM nikolaik/python-nodejs:python3.9-nodejs14-alpine
 
-WORKDIR /code
+# set environment variables
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
+
+WORKDIR /usr/src/ppServer
 
 # dependencies ...
 RUN apk update && \
@@ -13,7 +17,7 @@ RUN apk update && \
     apk add --virtual build-deps gcc musl-dev  && \
 
     # for psycopg2
-    apk add postgresql-dev && \
+    apk add postgresql-dev python3-dev && \
     apk add netcat-openbsd && \
 
     # for pillow
@@ -24,8 +28,8 @@ RUN apk update && \
 
 
 # Allows docker to cache installed dependencies between builds
-COPY requirements.txt requirements.txt
 RUN /usr/local/bin/python -m pip install --upgrade pip
+COPY ./requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 
@@ -33,22 +37,19 @@ COPY package*.json ./
 RUN npm update npm && npm ci --only=production
 
 
+# copy entrypoint.sh
+COPY ./entrypoint.sh .
+
 # Mounts the application code to the image
-COPY . /code
+COPY . .
 
-# django setup
-WORKDIR ppServer
+# run entrypoint.sh
+ENTRYPOINT ["/usr/src/ppServer/entrypoint.sh"]
 
-RUN python manage.py migrate
-RUN python manage.py collectstatic
+# # django setup
 
-# sass setup
-RUN ../node_modules/sass/sass.js ./static/ --update
+# RUN python manage.py migrate
+# RUN python manage.py collectstatic
 
-
-EXPOSE 8000
-
-# runs the production server
-ENTRYPOINT ["python", "manage.py"]
-CMD ["runserver", "0.0.0.0:8000"]
-
+# # sass setup
+# RUN ../node_modules/sass/sass.js ./static/ --update
