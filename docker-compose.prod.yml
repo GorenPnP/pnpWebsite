@@ -1,0 +1,46 @@
+version: '3.7'
+
+services:
+        web:
+                container_name: pnp-server
+                build:
+                        context: ./ppServer
+                        dockerfile: Dockerfile.prod
+                command: gunicorn ppServer.wsgi:application --bind 0.0.0.0:8000 --workers=3
+                volumes:
+                        - static_volume:/home/ppServer/web/static
+                        - media_volume:/home/ppServer/web/media
+                expose:
+                        - 8000
+                env_file:
+                        - ./.env.prod
+                depends_on:
+                        - db
+
+        db:
+                container_name: pnp-db
+                image: postgres:12.0-alpine
+                volumes:
+                        - postgres_data:/var/lib/postgresql/data/
+                environment:
+                        - POSTGRES_USER=admin
+                        - POSTGRES_PASSWORD=schwefelsäure!
+                        - POSTGRES_DB=goren_db
+                env_file:
+                        - ./.env.prod.db
+
+        nginx:
+                container_name: pnp-nginx
+                build: ./nginx
+                volumes:
+                        - static_volume:/home/ppServer/web/static
+                        - media_volume:/home/ppServer/web/media
+                ports:
+                        - 80:80
+                depends_on:
+                        - web
+
+volumes:
+        postgres_data:
+        static_volume:
+        media_volume:

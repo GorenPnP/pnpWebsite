@@ -23,7 +23,7 @@ load_dotenv(os.path.join(BASE_DIR, '.env'))
 # See https://docs.djangoproject.com/en/2.0/howto/deployment/checklist/
 
 SECRET_KEY = os.getenv('SECRET_KEY')
-DEBUG = os.getenv('DEBUG') ==  'True'
+DEBUG = int(os.getenv('DEBUG', 0))
 
 ALLOWED_HOSTS = [i.strip() for i in os.getenv('ALLOWED_HOSTS').split(",")]
 
