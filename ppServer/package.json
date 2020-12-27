@@ -13,7 +13,8 @@
     "vis": "^4.21.0-EOL",
     "vis-data": "^7.1.1",
     "vis-network": "^8.5.5",
-    "vis-util": "^4.3.4"
+    "vis-util": "^4.3.4",
+    "opencollective-postinstall": "^2.0.0"
   },
   "devDependencies": {}
 }
