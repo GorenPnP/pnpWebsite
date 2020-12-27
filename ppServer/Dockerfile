@@ -12,17 +12,13 @@ WORKDIR /usr/src/ppServer
 
 # dependencies ...
 RUN apk update && \
-
     # for psycopg2 && pillow
     apk add --virtual build-deps gcc musl-dev  && \
-
     # for psycopg2
     apk add postgresql-dev python3-dev && \
     apk add netcat-openbsd && \
-
     # for pillow
     apk add zlib-dev jpeg-dev && \
-
     # for sass
     apk add g++
 
