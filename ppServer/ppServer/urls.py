@@ -23,9 +23,7 @@ from . import views
 
 
 urlpatterns = [
-    path("500", views.error_500, name="test500"),
     path("404", views.error_404, name="test404"),
-    path("418", views.error_418, name="test418"),
 
     path('auth/', include('auth_custom.urls')),
     path('accounts/', include('auth_custom.urls')),
@@ -47,8 +45,6 @@ urlpatterns = [
 ]
 
 handler404 = views.error_404
-handler500 = views.error_500
-handler418 = views.error_418
 
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
