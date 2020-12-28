@@ -30,7 +30,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 
 COPY package*.json ./
-RUN npm update npm && npm ci --only=production
+RUN npm update npm && npm i opencollective && npm ci --only=production
 
 
 # copy entrypoint.sh
@@ -41,11 +41,3 @@ COPY . .
 
 # run entrypoint.sh
 ENTRYPOINT ["/usr/src/ppServer/entrypoint.sh"]
-
-# # django setup
-
-# RUN python manage.py migrate
-# RUN python manage.py collectstatic
-
-# # sass setup
-# RUN ../node_modules/sass/sass.js ./static/ --update
