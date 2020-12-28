@@ -94,8 +94,11 @@ def sort_by_name(a, b):
 
 
 @login_required
-@spielleiter_only
+# @spielleiter_only     <-- breaks
 def userLog(request):
+
+    if not request.user.groups.filter(name="spielleiter").exists():
+        return redirect("base:index")
 
     if request.method == "GET":
 
