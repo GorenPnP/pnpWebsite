@@ -1,9 +1,8 @@
-import string
+import string, random
 from math import ceil
 from PIL import Image as PilImage
 
 from django.core.validators import MinValueValidator, MaxValueValidator
-from django.utils.crypto import random
 from django.utils.datetime_safe import date
 from django.db import models
 

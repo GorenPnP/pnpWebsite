@@ -11,8 +11,12 @@ from quiz.views import get_grade_score
 
 # dice roll
 @login_required
-@spielleiter_only
+# @spielleiter_only     --> breaks
 def random(request):
+
+    if not request.user.groups.filter(name="spielleiter").exists():
+        return redirect("base:index")
+
     dice = [
         {"art": "pink", "faces": [0, 0, 0, 1, 1, 2], "color": "hotpink"},
         {"art": "grün", "faces": [0, 0, 1, 1, 2, 2], "color": "green"},
