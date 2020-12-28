@@ -28,11 +28,6 @@ RUN /usr/local/bin/python -m pip install --upgrade pip
 COPY ./requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-
-COPY package*.json ./
-RUN npm update npm && npm i opencollective && npm ci --only=production
-
-
 # copy entrypoint.sh
 COPY ./entrypoint.sh .
 

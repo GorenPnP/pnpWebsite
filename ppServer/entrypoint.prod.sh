@@ -11,4 +11,8 @@ then
     echo "PostgreSQL started"
 fi
 
+python manage.py migrate
+python manage.py collectstatic --noinput && \
+./node_modules/sass/sass.js ./static --update
+
 exec "$@"
