@@ -129,16 +129,18 @@
     </section>
 
 		<input type="checkbox" class="previous" name="previous" hidden>
-    <div class="flex-container flex-container--btn">
-				<a href="{% url 'quiz:sp_modules' %}" class="btn btn--back">Abbrechen</a>
-				{% if display_btn_previous %}
-					<button class="btn btn--previous" onclick="back_to_previous(event)">Zur Vorigen</button>
-				{% endif %}
-				{% if display_btn_done %}
-					<input type="submit" class="btn" value="Alles Fertig?">
-				{% else %}
-					<input type="submit" class="btn" value="OK">
-				{% endif %}
+
+		<!-- reverse order of buttons here, so that OK is the first input[type=submit] and therefore used on pressing enter -->
+    <div class="flex-container flex-container--reversed flex-container--btn">
+			{% if display_btn_done %}
+				<input type="submit" class="btn" value="Alles Fertig?">
+			{% else %}
+				<input type="submit" class="btn" value="OK">
+			{% endif %}
+			{% if display_btn_previous %}
+				<button class="btn btn--previous" onclick="back_to_previous(event)">Zur Vorigen</button>
+			{% endif %}
+			<a href="{% url 'quiz:sp_modules' %}" class="btn btn--back">Abbrechen</a>
     </div>
 
 </form>

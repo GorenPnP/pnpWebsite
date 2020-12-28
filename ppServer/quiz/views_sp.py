@@ -230,9 +230,14 @@ def sp_correct(request, id, question_index=0):
         spq.correct_text = request.POST.get("text")
         spq.correct_mc = request.POST.get("ids")
 
-        # update points if they are not None. Use current score then
-        points = request.POST.get("points")
-        new_points = float(points) if len(points) else spq.achieved_points
+        # update points if they are not None. Use current score if successful
+        # replace (all) , by . for float parsing
+        try:
+            points = float( request.POST.get("points").replace(",", ".") )
+        except ValueError:
+            points = None
+
+        new_points = points if points is not None else spq.achieved_points
         spq.achieved_points = new_points
 
         # check whether it's valid:
