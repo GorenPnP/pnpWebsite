@@ -1,21 +1,22 @@
-**/__pycache__
-**/migrations/__pychache__
+# django components
+media/
+static/
 
-**/dumps/
-**/node_modules/
-**/media/
-**/ppServer/static/
-db.sqlite3
+__pycache__/
 
-**/.idea
-**/.vscode
-
+# secrets & configs
 .env**
 
-
-### Sass ###
-**/.sass-cache/
-*.css.map
+# using sass, only check *.scss files into source control
+.sass-cache/
+*.css**
 *.sass.map
 *.scss.map
-*.css
+
+# IDEs
+.idea
+.vscode
+
+# other
+dumps/
+node_modules/
