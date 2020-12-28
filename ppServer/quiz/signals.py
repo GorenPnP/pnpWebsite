@@ -90,7 +90,7 @@ def add_questions(sender, instance, **kwargs):
     if not kwargs["created"]:
         return
 
-    for q in instance.spielerModule.module.questions.all():
+    for q in instance.spielerModule.module.questions.all().order_by("id"):
         instance.questions.create(
             spieler=instance.spielerModule.spieler, question=q)
 

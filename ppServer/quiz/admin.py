@@ -27,6 +27,8 @@ class QuestionsInLine(admin.TabularInline):
 class SessionQuestionsInLine(admin.TabularInline):
     model = SpielerSession.questions.through
     extra = 0
+    readonly_fields = ("spielerquestion",)
+    can_delete = False
 
 
 class SubjectAdmin(admin.ModelAdmin):
@@ -103,6 +105,7 @@ class SpielerSessionAdmin(admin.ModelAdmin):
     search_fields = ["spielerModule__spieler__name", "spielerModule__module__title"]
 
     exclude = ["questions"]
+    readonly_fields = ["spielerModule"]
     inlines = [SessionQuestionsInLine]
 
 

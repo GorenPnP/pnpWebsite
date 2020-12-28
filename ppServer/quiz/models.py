@@ -11,7 +11,7 @@ from character.models import Spieler
 
 module_state = [
     (0, "locked"),      # prerequisites not met
-    (1, "unlocked"),    # prerequisited met
+    (1, "unlocked"),    # prerequisites met
     (2, "opened"),      # open for answering
     (3, "answered"),    # answered by player
     (4, "corrected"),   # corrected by gamemaster
@@ -171,7 +171,7 @@ class ModuleQuestion(models.Model):
         verbose_name = "Frage eines Moduls"
         verbose_name_plural = "Fragen eines Moduls"
 
-        ordering = ["module"]
+        ordering = ["module", "id"]
 
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
     module = models.ForeignKey('Module', on_delete=models.CASCADE)
@@ -325,7 +325,7 @@ class SpielerQuestion(models.Model):
         verbose_name = "Fragendurchlauf eines Spielers"
         verbose_name_plural = "Fragendurchläufe eines Spielers"
 
-        ordering = ["spieler", "question"]
+        ordering = ["spieler", "id"]    # assuming it is the same id as in ModuleQuestion (resolved at creation of SpielerQuestion at SpielerSession save in signals.py)
 
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
     spieler = models.ForeignKey(Spieler, on_delete=models.CASCADE)
@@ -346,4 +346,4 @@ class SpielerQuestion(models.Model):
     correct_file = models.OneToOneField(File, on_delete=models.SET_NULL, null=True, blank=True, related_name="correct_file")
 
     def __str__(self):
-        return "{}, {}".format(self.spieler, self.question)
+        return "{}, {} ({} Punkte)".format(self.spieler, self.question, self.achieved_points)
