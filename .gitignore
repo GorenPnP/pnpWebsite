@@ -9,7 +9,8 @@ __pycache__/
 
 # using sass, only check *.scss files into source control
 .sass-cache/
-*.css**
+*.css
+*.css.map
 *.sass.map
 *.scss.map
 

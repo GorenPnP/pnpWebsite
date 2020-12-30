@@ -1,11 +1,13 @@
-from ppServer.decorators import verified_account
 import json
+from math import floor
 
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_protect
 from django.http.response import JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse
+
+from ppServer.decorators import verified_account
 
 from character.models import *
 from shop.models import Zauber

@@ -1,0 +1,30 @@
+.model-fields {
+	display: grid;
+	grid-gap: 1.3em;
+
+	& > * {
+		max-width: 400px;
+
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: space-between;
+		align-items: flex-start;
+	}
+
+	.row--icon { margin-bottom: 2em; }
+
+	#id_description { margin: 0; }
+	& > *:last-of-type {
+		display: flex;
+		flex-direction: column;
+		max-width: unset;
+	}
+}
+
+
+.btn--submit { padding: 1em 1.7em; }
+
+
+@media only screen and (max-width: 527px) {
+	input { text-align: left; }
+}

@@ -12,7 +12,7 @@ class OldChoiceInline(admin.TabularInline):
     verbose_name = "Bestehende Möglichkeit"
     verbose_name_plural = "Bestehende Möglichkeiten"
 
-    def has_add_permission(self, request):
+    def has_add_permission(self, request, obj=None):
         return False
 
 
@@ -27,7 +27,7 @@ class NewChoiceInline(admin.TabularInline):
     def get_queryset(self, request):
         return Choice.objects.filter(id=-1)
 
-    def has_add_permission(self, request):
+    def has_add_permission(self, request, obj=None):
         return True
 
 
@@ -39,7 +39,7 @@ class SpielerInline(admin.TabularInline):
     def has_delete_permission(self, request, obj=None):
         return False
 
-    def has_add_permission(self, request):
+    def has_add_permission(self, request, obj=None):
         return False
 
 

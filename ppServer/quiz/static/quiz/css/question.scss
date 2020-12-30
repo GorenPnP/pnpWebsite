@@ -110,6 +110,8 @@ a.btn.btn--old-answer {
 	padding: 1em;
 	border-radius: 8px;
 
+	label { display: block; }
+
 	.multiple-choice {
 		display: flex;
 		flex-wrap: wrap;

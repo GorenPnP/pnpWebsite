@@ -147,7 +147,7 @@ class Question(models.Model):
         max_len = 60
         actual_len = len(self.text)
         text = (self.text[:-(actual_len-max_len)] + "..") if actual_len > max_len else self.text
-        return "{} ({}, Klasse {})".format(text, self.topic, self.grade)
+        return "{} ({}, Klasse {}) ({} Punkte)".format(text, self.topic, self.grade, self.points)
 
 
 class MultipleChoiceField(models.Model):

@@ -1,0 +1,19 @@
+.list-container .list__entry {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+
+	& > * {
+		margin: .7em;
+		max-width: 70ch;
+	}
+
+	img {
+		height: 64px;
+		width: 64px;
+	}
+}
+
+@media only screen and (max-width: 527px) {
+	.list__entry {justify-content: center;}
+}

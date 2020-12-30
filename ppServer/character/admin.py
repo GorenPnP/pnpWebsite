@@ -14,7 +14,7 @@ class SpeziesAttributInLine(admin.TabularInline):
     readonly_fields = ["attribut"]
     extra = 0
 
-    def has_add_permission(self, request):
+    def has_add_permission(self, request, obj=None):
         return False
 
 
@@ -31,7 +31,7 @@ class GfsAttributInLine(admin.TabularInline):
     readonly_fields = ["attribut"]
     extra = 0
 
-    def has_add_permission(self, request):
+    def has_add_permission(self, request, obj=None):
         return False
 
 
@@ -41,7 +41,7 @@ class GfsFertigkeitInLine(admin.TabularInline):
     readonly_fields = ["fertigkeit"]
     extra = 0
 
-    def has_add_permission(self, request):
+    def has_add_permission(self, request, obj=None):
         return False
 
 
@@ -77,7 +77,7 @@ class ProfessionAttributInLine(admin.TabularInline):
     readonly_fields = ["attribut"]
     extra = 0
 
-    def has_add_permission(self, request):
+    def has_add_permission(self, request, obj=None):
         return False
 
 
@@ -87,7 +87,7 @@ class ProfessionFertigkeitInLine(admin.TabularInline):
     readonly_fields = ["fertigkeit"]
     extra = 0
 
-    def has_add_permission(self, request):
+    def has_add_permission(self, request, obj=None):
         return False
 
 
@@ -142,7 +142,7 @@ class RelAttributInline(admin.TabularInline):
     model = RelAttribut
     extra = 0
 
-    def has_add_permission(self, request):
+    def has_add_permission(self, request, obj=None):
         return False
 
     def has_delete_permission(self, request, obj=None):
@@ -155,7 +155,7 @@ class RelFertigkeitInLine(admin.TabularInline):
     model = RelFertigkeit
     extra = 0
 
-    def has_add_permission(self, request):
+    def has_add_permission(self, request, obj=None):
         return False
 
     def has_delete_permission(self, request, obj=None):

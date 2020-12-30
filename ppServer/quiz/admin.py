@@ -27,7 +27,6 @@ class QuestionsInLine(admin.TabularInline):
 class SessionQuestionsInLine(admin.TabularInline):
     model = SpielerSession.questions.through
     extra = 0
-    readonly_fields = ("spielerquestion",)
     can_delete = False
 
 
@@ -113,6 +112,14 @@ class SpielerQuestionAdmin(admin.ModelAdmin):
     list_display = ["spieler", "question", "achieved_points"]
     list_filter = ["spieler", "question"]
     search_fields = ["question__text", "question__topic__titel", "question__topic__subject__titel", "spieler__name"]
+
+    fieldsets = [
+        ("Basis", {'fields': ["question", "spieler",  "achieved_points"]}),
+        ("Antwort", {'fields': ["answer_mc", "answer_text", "answer_img", "answer_file"]}),
+        ("Korrektur", {'fields': ["correct_mc", "correct_text", "correct_img", "correct_file"]})
+    ]
+    readonly_fields = ["spieler", "question"]
+
 
 class RelQuizAdmin(admin.ModelAdmin):
     list_display = ("spieler", "quiz_points_achieved", "current_session")
