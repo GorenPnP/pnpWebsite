@@ -6,7 +6,11 @@ app_name = 'quiz'
 
 urlpatterns = [
 	path('sp', views_sp.sp_index, name='sp_index'),
+
+	path('sp/module_index', views_sp.sp_module_index, name='sp_module_index'),
+	path('sp/module_edit/<int:id>', views_sp.sp_module_edit, name='sp_module_edit'),
 	path('sp/questions', views_sp.sp_questions, name="sp_questions"),
+
 	path('sp/modules', views_sp.sp_modules, name="sp_modules"),
 	path('sp/correct/<int:id>', views_sp.sp_correct, name="sp_correct"),
 	path('sp/correct/<int:id>/<int:question_index>', views_sp.sp_correct, name="sp_correct_index"),

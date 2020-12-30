@@ -1,0 +1,27 @@
+{% extends 'base/main.html' %}
+{% load static %}
+{% block title %}{{ topic }}{% endblock %}
+{% block extra-head %}
+<link rel="stylesheet" type="text/css" href="{% static 'base/css/textarea.css' %}" />
+<link rel="stylesheet" type="text/css" href="{% static 'quiz/css/sp_module_edit.css' %}" />
+<script type="text/javascript" src="{% static 'base/js/textarea.js' %}"></script>
+{% endblock %}
+{% block absolute %}{% include 'base/header.html' with topic=topic %}{% endblock %}
+
+{% block body %}
+<form method='post'>
+		{% csrf_token %}
+
+		<div class="model-fields">
+			<p class="row--icon">
+				<img src="{{ icon }}" alt="kein Icon">
+				<input type="file" accept="image/*" name="icon">
+			</p>
+			{{ form.as_p }}
+		</div>
+
+		prerequisires &
+		questions
+    <input type="submit" class="btn btn--submit" value="Speichern">
+</form>
+{% endblock %}

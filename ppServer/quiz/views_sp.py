@@ -1,6 +1,7 @@
 
 import json
 from functools import cmp_to_key
+from quiz.forms import ModuleForm
 from quiz.views import get_grade_score
 
 from django.contrib.auth.decorators import login_required
@@ -18,12 +19,58 @@ from . import models
 def sp_index(request):
 
     context = {"topic": "Quiz (Spielleiter)", "entries": [
+        {"titel": "Module bearbeiten", "url": reverse("quiz:sp_module_index"), "beschreibung": "Bearbeiten & neue anlegen"},
         {"titel": "Fragen sortieren", "url": reverse("quiz:sp_questions"), "beschreibung": "Fragen Modulen zuordnen"},
         {"titel": "Modulkontrolle", "url": reverse("quiz:sp_modules"), "beschreibung": "Module vom Spielern verwalten, z.B. korrigieren"},
         {"titel": "Quiz Big Brother", "url": reverse("service:quiz_BB"), "beschreibung": "nach Fächern"},
         {"titel": "Quiz Admin", "url": reverse("admin:app_list", args=["quiz"]), "beschreibung": "Die Admin-Page halt..."},
     ]}
     return render(request, "quiz/sp_index.html", context)
+
+
+@login_required
+# @spielleiter_only     <-- breaks
+def sp_module_index(request):
+
+    if not request.user.groups.filter(name="spielleiter").exists():
+        return redirect("quiz:index")
+
+    context = {
+        "topic": "Quiz (Spielleiter)",
+        "entries": [{"icon": m.icon.img.url if m.icon else None, "titel": m.title, "url": reverse("quiz:sp_module_edit", args=[m.id]), "beschreibung": m.description} for m in models.Module.objects.all()]
+    }
+    return render (request, "quiz/sp_module_index.html", context)
+
+
+@login_required
+# @spielleiter_only     <-- breaks
+def sp_module_edit(request, id):
+
+    if not request.user.groups.filter(name="spielleiter").exists():
+        return redirect("quiz:index")
+
+    module = get_object_or_404(models.Module, id=id)
+
+
+    if request.method == 'GET':
+
+        form = ModuleForm(instance=module)
+        context = {'topic': module.title, 'form': form, 'icon': module.icon.img.url if module.icon else None}
+        return render(request, "quiz/sp_module_edit.html", context)
+
+
+    if request.method == 'POST':
+        form = ModuleForm(request.POST, instance=module)
+        logging.warn(form.instance, form.instance.id)
+
+        if not form.is_valid():
+            context = {'topic': module.title, 'form': form}
+            return render(request, "quiz/sp_module_edit.html", context)
+
+        form.save()
+        return redirect("quiz:sp_module_index")
+
+
 
 
 # map existing questions to modules

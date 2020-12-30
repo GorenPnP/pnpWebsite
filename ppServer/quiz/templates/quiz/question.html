@@ -4,7 +4,9 @@
 {% block title %}{{ topic }}{% endblock %}
 {% block extra-head %}
 <link rel="stylesheet" type="text/css" href="{% static 'base/css/checkbox.css' %}" />
+<link rel="stylesheet" type="text/css" href="{% static 'base/css/textarea.css' %}" />
 <link rel="stylesheet" type="text/css" href="{% static 'quiz/css/question.css' %}" />
+<script type="text/javascript" src="{% static 'base/js/textarea.js' %}"></script>
 <script type="text/javascript" src="{% static 'quiz/js/question.js' %}"></script>
 {% endblock %}
 {% block absolute %}{% include 'base/header.html' with topic=topic %}{% endblock %}
@@ -54,7 +56,7 @@
         {% endif %}
 
         {% if question.allow_text %}
-            <textarea class="text-input" name="text" placeholder="Mein Senf dazu ..." onkeyup="autoGrow(this)" oninput="autoGrow(this)" autofocus></textarea>
+            <textarea class="text-input" name="text" placeholder="Mein Senf dazu ..." autofocus></textarea>
         {% endif %}
 
         {% if question.allow_upload %}
