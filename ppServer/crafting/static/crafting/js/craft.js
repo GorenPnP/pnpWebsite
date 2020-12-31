@@ -1,11 +1,4 @@
 /*
-	VARIABLES
-*/
-var offsetTouchX = null;
-var offsetTouchY = null;
-
-
-/*
 	HELPER FUNCTIONS
 */
 function displayFloat(f) {
@@ -106,25 +99,22 @@ function updateRecipeStatus() {
 }
 
 
-// returns element of container below position of cursor
-function getDragAfterElement(container, y) {
-	const draggableElements = [...container.querySelectorAll('.table:not(.dragging)')]
+/*
+	callbacks triggered on dragging of tables
+*/
 
-	return draggableElements.reduce((closest, child) => {
+function drag_start_callback(element) {
 
-		// y-offset cursor from center of element, if negative cursor above element
-		const box = child.getBoundingClientRect()
-		const offset = y - box.top - box.height / 2
-
-		// if offset negative and closer to 0, take that. Else: keep old one
-		return offset < 0 && offset > closest.offset ? { offset: offset, element: child } : closest
-
-		// initial value of closest, simulates element infinitely further down; (.element: just return element without the offset)
-	}, { offset: Number.NEGATIVE_INFINITY }).element
+	// show table recipes
+	tableChange(element.id, false)
 }
 
+function drag_end_callback() {
+	// save new ordering to db
+	var tables = [...document.getElementsByClassName('table')].map(table => { return parseInt(/\d+/.exec(table.id)) })
 
-
+	post({ table_ordering: tables }, reaction, reaction, false)
+}
 
 /*
 	EVENT HANDLERS
@@ -133,8 +123,6 @@ function getDragAfterElement(container, y) {
 // select a different table and show its recipes instead of the current ones
 function tableChange(id, display_spinner=true) {
 	var selected_tag = document.getElementById(/*"tid-" +*/ id)
-
-	console.log("table:", selected_tag)
 
 	// markup for selection
 	Array.from(document.getElementsByClassName("table selected")).forEach(table => {table.classList.remove("selected")})
@@ -301,6 +289,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 	// event handlers
+	init_draggable_reorder()
 
 	// send input data per btn event on keydown of enter key
 	Array.from( document.getElementsByTagName("input") ).forEach(el => el.addEventListener("keydown", (e) => {
@@ -311,115 +300,4 @@ document.addEventListener("DOMContentLoaded", () => {
 			e.currentTarget.parentElement.getElementsByClassName("btn")[0].click();
 		}
 	}))
-
-
-	/*
-			event handlers for dragging tables
-	*/
-
-	// handle table dragging
-	const container = document.getElementsByClassName("tables")[0]
-	const draggables = [...container.getElementsByClassName('table')]
-
-	// fires constantly if dragging over container (.tables)
-	container.addEventListener('dragover', e => {
-
-		// allow dropping into container
-		e.preventDefault()
-
-		// get moving element and the one below its position
-		const afterElement = getDragAfterElement(container, e.clientY)
-		const draggable = document.getElementsByClassName('dragging')[0]
-
-		// set moving element before the element or at the absolute bottom if null
-		afterElement == null ? container.appendChild(draggable) : container.insertBefore(draggable, afterElement)
-	})
-
-	// set class dragging on drag of table
-	draggables.forEach(draggable => {
-		draggable.addEventListener('dragstart', () => draggable.classList.add('dragging') )
-		draggable.addEventListener('dragend', () => {
-
-			draggable.classList.remove('dragging')
-
-			// save new ordering to db
-			var tables = [...container.getElementsByClassName('table')].map(table => { return parseInt(/\d+/.exec(table.id)) })
-
-			post({ table_ordering: tables }, reaction, reaction, false)
-		})
-
-
-
-
-		/*
-				... for mobile
-		*/
-		draggable.addEventListener("touchstart", e => {
-			e.preventDefault();
-			draggable.classList.add('dragging')
-			draggable.classList.add('dragging--mobile')
-
-			const touch = e.targetTouches[0]
-			offsetTouchY = draggable.getBoundingClientRect().height * .5
-
-			draggable.dispatchEvent(new TouchEvent("touchmove", {targetTouches: [touch]}))
-
-			// show table recipes
-			tableChange(draggable.id, false)
-		})
-
-		draggable.addEventListener("touchmove", e => {
-
-			const touch = e.targetTouches[0]
-
-			// container position relative to whole document
-			var containerTop = window.scrollY + container.offsetTop
-			draggable.style.top = `${touch.pageY - containerTop - offsetTouchY}px`
-			draggable.style.left = `${container.style.paddingLeft}px`
-
-			// work on tables
-			// get moving element and the one below its position
-			const afterElement = getDragAfterElement(container, e.targetTouches[0].clientY)
-
-			var copy = container.getElementsByClassName("copy")
-			if (! (copy?.length) ) {
-
-				// (mark as) copy
-				var copy = draggable.cloneNode(true);
-				copy.classList.add("copy")
-
-				// unset fields of original
-				copy.id = "";
-				copy.style.position = "unset";
-				copy.style.left = "unset"
-				copy.style.top = "unset";
-			}
-			// get existing copy of dragged element
-			else copy = copy[0]
-
-			// set moving element before the element or at the absolute bottom if null
-		  afterElement == null ? container.appendChild(copy) : container.insertBefore(copy, afterElement)
-		})
-
-		draggable.addEventListener("touchend", e => {
-			e.preventDefault();
-			draggable.classList.remove('dragging')
-			draggable.classList.remove('dragging--mobile')
-
-			var copies = [...container.getElementsByClassName("copy")]
-			copies.forEach(c => c.remove())
-
-			// get moving element and the one below its position
-			const afterElement = getDragAfterElement(container, e.changedTouches[0].clientY)
-
-			// set moving element before the element or at the absolute bottom if null
-			afterElement == null ? container.appendChild(draggable) : container.insertBefore(draggable, afterElement)
-
-
-			// save new ordering to db
-			var tables = [...container.getElementsByClassName('table')].map(table => { return parseInt(/\d+/.exec(table.id)) })
-
-			post({ table_ordering: tables }, reaction, reaction, false)
-		})
-	})
 })

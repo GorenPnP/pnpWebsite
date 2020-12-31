@@ -39,7 +39,7 @@ def sp_module_index(request):
         "topic": "Quiz (Spielleiter)",
         "entries": [{"icon": m.icon.img.url if m.icon else None, "titel": m.title, "url": reverse("quiz:sp_module_edit", args=[m.id]), "beschreibung": m.description} for m in models.Module.objects.all()]
     }
-    return render (request, "quiz/sp_module_index.html", context)
+    return render(request, "quiz/sp_module_index.html", context)
 
 
 # common save of new or edited module (private function)
@@ -56,6 +56,7 @@ def post_save_module(module, request):
         image = request.FILES.get("icon")
         module.icon = models.Image.objects.create(img=image)
     module.save()
+    form.save_m2m()
 
     return redirect("quiz:sp_module_index")
 

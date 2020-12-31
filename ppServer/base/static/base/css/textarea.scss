@@ -1,0 +1,17 @@
+textarea {
+	width: 100%;
+	max-width: 70ch;
+	min-height: 1em;
+	margin: 2em 0;
+	padding: 1em;
+	border-radius: 8px;
+
+	line-height: 1.7em;
+	resize: none;
+	overflow: hidden;
+	font-family: 'Montserrat', sans-serif;
+}
+
+@media only screen and (max-width: 527px) {
+	textarea {text-align: left;}
+}

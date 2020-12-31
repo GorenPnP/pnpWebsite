@@ -1,6 +1,7 @@
 # django components
 media/
-static/
+# generated static folder (but also the one next to settings.py, should it exist)
+ppServer/static/
 
 __pycache__/
 
@@ -9,8 +10,7 @@ __pycache__/
 
 # using sass, only check *.scss files into source control
 .sass-cache/
-*.css
-*.css.map
+*.css**
 *.sass.map
 *.scss.map
 

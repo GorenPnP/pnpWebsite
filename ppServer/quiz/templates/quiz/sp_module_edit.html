@@ -5,6 +5,8 @@
 <link rel="stylesheet" type="text/css" href="{% static 'base/css/textarea.css' %}" />
 <link rel="stylesheet" type="text/css" href="{% static 'quiz/css/sp_module_edit.css' %}" />
 <script type="text/javascript" src="{% static 'base/js/textarea.js' %}"></script>
+<script type="text/javascript" src="{% static 'base/js/draggable_reorder.js' %}"></script>
+<script type="text/javascript" src="{% static 'quiz/js/sp_module_edit.js' %}"></script>
 {% endblock %}
 {% block absolute %}{% include 'base/header.html' with topic=topic %}{% endblock %}
 
@@ -20,8 +22,6 @@
 			{{ form.as_p }}
 		</div>
 
-		prerequisites &
-		questions
     <input type="submit" class="btn btn--submit" value="Speichern">
 </form>
 {% endblock %}
