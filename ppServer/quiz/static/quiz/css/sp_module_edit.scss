@@ -1,6 +1,7 @@
 .model-fields {
 	display: grid;
 	grid-gap: 1.3em;
+	color: lighten(#97b0c9, 15%);
 
 	& > * {
 		max-width: 400px;
@@ -11,7 +12,14 @@
 		align-items: flex-start;
 	}
 
-	.row--icon { margin-bottom: 2em; }
+	.row--icon {
+		margin-bottom: 2em;
+
+		img {
+			height: 64px;
+			width: 64px;
+		}
+	}
 
 	#id_description { margin: 0; }
 	& > *:last-of-type {

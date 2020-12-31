@@ -42,6 +42,42 @@ def sp_module_index(request):
     return render (request, "quiz/sp_module_index.html", context)
 
 
+# common save of new or edited module (private function)
+def post_save_module(module, request):
+    form = ModuleForm(request.POST, instance=module)
+
+    if not form.is_valid():
+        context = {'topic': module.title, 'form': form}
+        return render(request, "quiz/sp_module_edit.html", context)
+
+    form.save(commit= False)
+
+    if "icon" in request.FILES.keys():
+        image = request.FILES.get("icon")
+        module.icon = models.Image.objects.create(img=image)
+    module.save()
+
+    return redirect("quiz:sp_module_index")
+
+
+@login_required
+# @spielleiter_only     <-- breaks
+def sp_module_add(request):
+
+    if request.method == 'GET':
+
+        # form without module (doesn't exist jet) but set num to next available
+        form = ModuleForm()
+        form.instance.num = models.next_id()
+
+        context = {'topic': "Neues Module", 'form': form, 'icon': None}
+        return render(request, "quiz/sp_module_edit.html", context)
+
+
+    if request.method == 'POST':
+        module = models.Module.objects.create()
+        return post_save_module(module, request)
+
 @login_required
 # @spielleiter_only     <-- breaks
 def sp_module_edit(request, id):
@@ -49,28 +85,16 @@ def sp_module_edit(request, id):
     if not request.user.groups.filter(name="spielleiter").exists():
         return redirect("quiz:index")
 
+    # the original module
     module = get_object_or_404(models.Module, id=id)
 
-
     if request.method == 'GET':
-
         form = ModuleForm(instance=module)
         context = {'topic': module.title, 'form': form, 'icon': module.icon.img.url if module.icon else None}
         return render(request, "quiz/sp_module_edit.html", context)
 
-
     if request.method == 'POST':
-        form = ModuleForm(request.POST, instance=module)
-        logging.warn(form.instance, form.instance.id)
-
-        if not form.is_valid():
-            context = {'topic': module.title, 'form': form}
-            return render(request, "quiz/sp_module_edit.html", context)
-
-        form.save()
-        return redirect("quiz:sp_module_index")
-
-
+        return post_save_module(module, request)
 
 
 # map existing questions to modules

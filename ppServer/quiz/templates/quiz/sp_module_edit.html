@@ -9,18 +9,18 @@
 {% block absolute %}{% include 'base/header.html' with topic=topic %}{% endblock %}
 
 {% block body %}
-<form method='post'>
+<form method='post' enctype="multipart/form-data">
 		{% csrf_token %}
 
 		<div class="model-fields">
 			<p class="row--icon">
-				<img src="{{ icon }}" alt="kein Icon">
+				{% if icon %}<img src="{{ icon }}" alt="kein Icon">{% endif %}
 				<input type="file" accept="image/*" name="icon">
 			</p>
 			{{ form.as_p }}
 		</div>
 
-		prerequisires &
+		prerequisites &
 		questions
     <input type="submit" class="btn btn--submit" value="Speichern">
 </form>

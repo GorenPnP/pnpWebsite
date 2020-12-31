@@ -5,7 +5,7 @@
 <link rel="stylesheet" type="text/css" href="{% static 'base/css/list.css' %}" />
 <link rel="stylesheet" type="text/css" href="{% static 'quiz/css/sp_module_index.css' %}" />
 {% endblock %}
-{% block absolute %}{% include 'base/header.html' with topic=topic %}{% endblock %}
+{% block absolute %}{% include 'base/header.html' with topic=topic plus_url='/quiz/sp/module_add' %}{% endblock %}
 {% block body %}
 <div class="list-container">
     {% for e in entries %}
