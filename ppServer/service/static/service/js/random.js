@@ -18,7 +18,8 @@ document.addEventListener("DOMContentLoaded", function() {
         for (var i = 0; i < faces.length; i++) sum += solution[i] * faces[i]
         section.getElementsByClassName("result")[0].innerHTML = sum
 
-        if (faces.length == 6) {
+        // if dice is ordinary w6, show individual faces
+        if (faces.length == 6 && section.getElementsByClassName("num")[0].id.toLowerCase().includes("w6")) {
             var details = []
             solution.forEach((number, index) => { if (number) details.push(` ${number}x${index+1}`) })
 

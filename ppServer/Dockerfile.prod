@@ -69,7 +69,7 @@ COPY ./entrypoint.prod.sh $APP_HOME
 
 # copy package*.json, install dependencies over npm
 COPY ./package*.json $APP_HOME/
-RUN npm update npm && npm ci --only=production
+RUN npm update npm && npm i opencollective && npm ci --only=production
 
 # copy project
 COPY . $APP_HOME

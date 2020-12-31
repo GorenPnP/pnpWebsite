@@ -1,16 +1,13 @@
+import math
 from ppServer.decorators import verified_account
 from functools import cmp_to_key
 
-import math, re
+import sys
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import User
-from django.shortcuts import render, redirect, get_object_or_404
-from django.utils.timezone import now
+from django.shortcuts import render, get_object_or_404
 
 from character.models import *
 from django.utils.datetime_safe import datetime
-from log.views import logAlleMAverloren
-from create.models import NewCharakter
 
 
 @login_required
@@ -244,78 +241,77 @@ def rang_ranking(request):
 
 
 def compare_dates(a, b):
-    if a["date"].month < b["date"].month: return -1
-    if a["date"].month > b["date"].month: return 1
-
-    if a["date"].day < b["date"].day: return -1
-    if a["date"].day > b["date"].day: return 1
-
-    if a["date"].year < b["date"].year: return -1
-    if a["date"].year > b["date"].year: return 1
-    return 0
+    a = a["date"]
+    b = b["date"]
+    day_diff = day_diff_without_year(datetime(a.year, a.month, a.day), datetime(b.year, b.month, b.day))
+    return day_diff if day_diff != 1 else b.year - a.year
 
 
-def delta_without_year(date, today):
+def day_diff_without_year(date, today):
     return (datetime(today.year, date.month, date.day) - today).days + 1
+
+
+def age(birthdate: datetime.date):
+
+    today = datetime.today()
+    years = today.year - birthdate.year
+
+    # hadn't had birthday this year (jet)
+    if today.month < birthdate.month or (today.month == birthdate.month and today.day < birthdate.day): years -= 1
+    return years
 
 
 @login_required
 @verified_account
 def geburtstage(request):
 
+    # collect all birthdays in here
+    spieler_birthdays = []
+
     today = datetime.today()
-    name_dict = {}    # [username] = full name
-    for u in User.objects.all():
-       name_dict[u.username] = "{} {}".format(u.first_name, u.last_name)
 
+    # intermediately save next birthday in here
+    days_until_next_birthday = sys.maxsize
+    spieler_with_next_birthday = []
+    for s in Spieler.objects.exclude(geburtstag=None):
 
-    spieler_list = []
-    next_birthday = {"delta": None, "date": None, "spieler": []}
-    for s in Spieler.objects.all():
-        if s.geburtstag:
-            spieler_delta = delta_without_year(s.geburtstag, today)
-            next_age = math.floor((today - datetime(s.geburtstag.year, s.geburtstag.month, s.geburtstag.day)).days / 365.2425)
-            if spieler_delta != 0:
-                next_age += 1
+        real_name = s.get_real_name()
+        spieler_delta = day_diff_without_year(s.geburtstag, today)
 
-            spieler_list.append({"name": name_dict[s.name], "date": s.geburtstag, "next_age": next_age, "next_party": False})
+        # append spieler & birthday
+        spieler_birthdays.append({
+            "name": real_name,
+            "date": s.geburtstag,
+            "next_age": age(s.geburtstag) + 1,
+            "next_party": False
+        })
 
-            # birthday has already been this year
-            if spieler_delta < 0:
-                continue
+        # birthday has already been this year
+        if spieler_delta < 0: continue
 
-            if next_birthday["delta"] is None:
-                next_birthday["date"] = s.geburtstag
-                next_birthday["delta"] = delta_without_year(s.geburtstag, today)
-                next_birthday["spieler"].append(name_dict[s.name])
-                continue
+        # check if spieler has on the same date as the next having one(s)
+        if spieler_delta == days_until_next_birthday:
+            days_until_next_birthday = spieler_delta
+            spieler_with_next_birthday.append(real_name)
 
-            if spieler_delta < next_birthday["delta"]:
-                next_birthday["spieler"] = [name_dict[s.name]]
-                next_birthday["date"] = s.geburtstag
-                next_birthday["delta"] = spieler_delta
-                continue
+        # new closest birthday found, set it
+        elif spieler_delta < days_until_next_birthday:
+            days_until_next_birthday = spieler_delta
+            spieler_with_next_birthday = [real_name]
 
-            # same date, append to list
-            if spieler_delta == next_birthday["delta"]:
-                next_birthday["spieler"].append(name_dict[s.name])
+    # mark spieler in list with next birthday
+    for s in spieler_birthdays:
+        if s["name"] in spieler_with_next_birthday: s["next_party"] = True
 
-    for s in spieler_list:
-        if s["name"] in next_birthday["spieler"]:
-            s["next_party"] = True
+    spieler_birthdays = sorted(spieler_birthdays, key=cmp_to_key(compare_dates))
 
-    spieler_list = sorted(spieler_list, key=cmp_to_key(compare_dates))
+    # everyone had already had their birthday, set the first one(s) of the year
+    if days_until_next_birthday is sys.maxsize and len(spieler_birthdays):
+        first_birthday = spieler_birthdays[0]["date"]
+        for spieler_birthday in spieler_birthdays:
+            if spieler_birthday["date"] != first_birthday: break
 
-    # everyone had already their birthday, set the first one(s) of the year
-    if next_birthday["delta"] is None:
-        first_years_birthday = None
-        for s in spieler_list:
-            if first_years_birthday is None:
-                first_years_birthday = s["date"]
-            if s["date"] == first_years_birthday:
-                s["next_party"] = True
-                s["next_age"] -= 1
-            else: break
+            spieler_birthday["next_party"] = True
 
-    context = {"list": spieler_list, "topic": "Geburtstage"}
+    context = {"list": spieler_birthdays, "topic": "Geburtstage"}
     return render(request, "wiki/geburtstage.html", context)

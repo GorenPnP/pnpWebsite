@@ -14,7 +14,7 @@ fi
 python manage.py migrate
 python manage.py collectstatic --noinput && \
 
-npm update npm && npm ci --only=production && \
+npm update npm && npm i opencollective && npm ci --only=production && \
 ./node_modules/sass/sass.js ./static --update
 
 
