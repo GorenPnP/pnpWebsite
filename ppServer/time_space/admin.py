@@ -1,3 +1,8 @@
+from time_space.models.net import Net
 from django.contrib import admin
 
-# Register your models here.
+class NetAdmin(admin.ModelAdmin):
+	fields = ["text"]
+
+
+admin.site.register(Net, NetAdmin)

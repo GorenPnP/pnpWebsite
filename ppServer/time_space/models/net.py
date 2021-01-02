@@ -9,9 +9,16 @@ from time_space.enums import NodeType, Signal
 
 class Net(models.Model):
 
+	class Meta:
+		verbose_name = "Netz"
+		verbose_name_plural = "Netze"
+
 	startNode = models.TextField(default="")
 	text = models.TextField(null=True, blank=True)
 	#layers = []
+
+	def __str__(self):
+		return "{} (Netz)".format(self.text[:50])
 
 	def getStartNode(self):
 		if not self.startNode or not len(self.startNode): return None
