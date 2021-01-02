@@ -1,7 +1,6 @@
 
 import json
 from functools import cmp_to_key
-from quiz.forms import ModuleForm
 from quiz.views import get_grade_score
 
 from django.contrib.auth.decorators import login_required
@@ -19,83 +18,12 @@ from . import models
 def sp_index(request):
 
     context = {"topic": "Quiz (Spielleiter)", "entries": [
-        {"titel": "Module bearbeiten", "url": reverse("quiz:sp_module_index"), "beschreibung": "Bearbeiten & neue anlegen"},
         {"titel": "Fragen sortieren", "url": reverse("quiz:sp_questions"), "beschreibung": "Fragen Modulen zuordnen"},
         {"titel": "Modulkontrolle", "url": reverse("quiz:sp_modules"), "beschreibung": "Module vom Spielern verwalten, z.B. korrigieren"},
         {"titel": "Quiz Big Brother", "url": reverse("service:quiz_BB"), "beschreibung": "nach Fächern"},
         {"titel": "Quiz Admin", "url": reverse("admin:app_list", args=["quiz"]), "beschreibung": "Die Admin-Page halt..."},
     ]}
     return render(request, "quiz/sp_index.html", context)
-
-
-@login_required
-# @spielleiter_only     <-- breaks
-def sp_module_index(request):
-
-    if not request.user.groups.filter(name="spielleiter").exists():
-        return redirect("quiz:index")
-
-    context = {
-        "topic": "Quiz (Spielleiter)",
-        "entries": [{"icon": m.icon.img.url if m.icon else None, "titel": m.title, "url": reverse("quiz:sp_module_edit", args=[m.id]), "beschreibung": m.description} for m in models.Module.objects.all()]
-    }
-    return render(request, "quiz/sp_module_index.html", context)
-
-
-# common save of new or edited module (private function)
-def post_save_module(module, request):
-    form = ModuleForm(request.POST, instance=module)
-
-    if not form.is_valid():
-        context = {'topic': module.title, 'form': form}
-        return render(request, "quiz/sp_module_edit.html", context)
-
-    form.save(commit= False)
-
-    if "icon" in request.FILES.keys():
-        image = request.FILES.get("icon")
-        module.icon = models.Image.objects.create(img=image)
-    module.save()
-    form.save_m2m()
-
-    return redirect("quiz:sp_module_index")
-
-
-@login_required
-# @spielleiter_only     <-- breaks
-def sp_module_add(request):
-
-    if request.method == 'GET':
-
-        # form without module (doesn't exist jet) but set num to next available
-        form = ModuleForm()
-        form.instance.num = models.next_id()
-
-        context = {'topic': "Neues Module", 'form': form, 'icon': None}
-        return render(request, "quiz/sp_module_edit.html", context)
-
-
-    if request.method == 'POST':
-        module = models.Module.objects.create()
-        return post_save_module(module, request)
-
-@login_required
-# @spielleiter_only     <-- breaks
-def sp_module_edit(request, id):
-
-    if not request.user.groups.filter(name="spielleiter").exists():
-        return redirect("quiz:index")
-
-    # the original module
-    module = get_object_or_404(models.Module, id=id)
-
-    if request.method == 'GET':
-        form = ModuleForm(instance=module)
-        context = {'topic': module.title, 'form': form, 'icon': module.icon.img.url if module.icon else None}
-        return render(request, "quiz/sp_module_edit.html", context)
-
-    if request.method == 'POST':
-        return post_save_module(module, request)
 
 
 # map existing questions to modules
