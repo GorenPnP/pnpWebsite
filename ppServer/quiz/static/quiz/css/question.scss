@@ -18,11 +18,33 @@
 	margin: 0;
 	border-radius: 13px;
 }
+div.btn {
+	color: rgb(46, 52, 54);
+}
 
+
+.paging {
+	display: flex;
+	justify-content: space-between;
+
+	margin: 0 0 1em;
+
+	& > * {padding: 1em;}
+
+	.link {
+		color: #0ff;
+		cursor: pointer;
+	}
+	.link:hover { opacity: var(--hover-opacity); }
+}
+.paging__current-page {
+		text-decoration: underline;
+		font-weight: 600;
+	}
 
 .info {
 	font-style: italic;
-	font-weight: light;
+	font-weight: lighter;
 	font-size: .8rem;
 
 	margin: 0 0 3em;
@@ -163,9 +185,6 @@ a.btn.btn--old-answer {
 	}
 }
 
-.flex-container--reversed {
-	flex-direction: row-reverse;
-}
 .flex-container--btn {
 
 	display: flex;

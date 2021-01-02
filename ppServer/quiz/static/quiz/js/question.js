@@ -22,13 +22,19 @@ function back(e) {
     window.history.back()
 }
 
-function back_to_previous(e) {
-    e.preventDefault()
+function submit_and_redirect(button) {
 
-    const form = document.getElementsByTagName("form")[0]
-    form.querySelector("input.previous").checked = true
-    form.querySelector("input.points__input").required = false
-    form.submit()
+    // setup redirect url
+    const redirect = document.querySelector('#redirect') // add redirect to POST data
+    redirect.name = 'redirect'
+    redirect.value = button.dataset.redirect
+
+    // points are optional
+    const points = document.querySelector(".points__input")
+    points.required = false
+
+    // send
+    document.querySelector('form').submit()
 }
 
 

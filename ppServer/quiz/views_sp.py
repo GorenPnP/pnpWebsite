@@ -250,7 +250,9 @@ def sp_correct(request, id, question_index=0):
         return redirect("quiz:sp_modules")
 
     if question_index is None or question_index < 0: question_index = 0
-    spq = current_session.questions.all()[question_index]  if question_index < current_session.questions.count() else None
+
+    sqs = current_session.sorted_spieler_questions()
+    spq = sqs[question_index]  if question_index < len(sqs) else None
 
     # GET
     if request.method == "GET":
@@ -259,16 +261,16 @@ def sp_correct(request, id, question_index=0):
         if not spq:
 
             # if not at least one question with achieved_points is None exists, redirect to the first one
-            if current_session.questions.filter(achieved_points=None).exists():
+            if any([sq.achieved_points is None for sq in sqs]):
 
                 # Not all done! look through all again
-                for index, q in enumerate(current_session.questions.all()):
+                for index, q in enumerate(sqs):
                     if q.achieved_points is None:
                         return redirect(reverse("quiz:sp_correct_index", args=[id, index]))
 
             current_session.setCorrected()
 
-            current_session.spielerModule.achieved_points = sum([q.achieved_points for q in current_session.questions.all()])
+            current_session.spielerModule.achieved_points = sum([q.achieved_points for q in sqs])
             current_session.spielerModule.save()
 
             return redirect("quiz:sp_modules")
@@ -278,14 +280,17 @@ def sp_correct(request, id, question_index=0):
         checked_answers = json.loads(spq.answer_mc) if spq.answer_mc else []
         corrected_answers = json.loads(spq.correct_mc) if spq.correct_mc else []
 
+        num_questions = len(sqs)
         context = {"topic": "{} ({})".format(sp_mo.module.title, sp_mo.spieler.name),
                    "achieved_points": spq.achieved_points,
                    "question": spq.question, "spieler_question": spq,
                    "answers": answers, "checked_answers": checked_answers, "corrected_answers": corrected_answers,
-                   "start_num_questions": current_session.questions.count(), "num_question": question_index + 1,
+                   "start_num_questions": num_questions, "num_question": question_index + 1,
                    "display_btn_previous": question_index,
-                   "display_btn_done": question_index + 1 == current_session.questions.count(),
-                   "display_old_answer": sp_mo.pointsEarned(), "sp_mo_id": id, "question_index": question_index,
+                   "display_btn_done": question_index + 1 == num_questions,
+                   "display_old_answer": sp_mo.pointsEarned(), "sp_mo_id": id,
+                   "question_index": question_index, "prev_question_index": question_index - 1, "next_question_index": question_index + 1,
+                   "pages": [i for i in range(num_questions)]
                    }
 
         return render(request, "quiz/sp_correct.html", context)
@@ -342,11 +347,8 @@ def sp_correct(request, id, question_index=0):
         if (redirect_url):
             return redirect(redirect_url)
 
-        # otherwise continue on: which question is next?
-        next_question = question_index - 1 if request.POST.get("previous") else question_index + 1
-        if next_question < 0: next_question = 0
-
-        return redirect(reverse("quiz:sp_correct_index", args=[id, next_question]))
+        # otherwise continue on
+        return redirect(reverse("quiz:sp_correct_index", args=[id, question_index + 1]))
 
 
 @verified_account

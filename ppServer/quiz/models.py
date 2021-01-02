@@ -1,4 +1,4 @@
-import string, random
+import string, random, json
 from math import ceil
 from PIL import Image as PilImage
 
@@ -171,13 +171,16 @@ class ModuleQuestion(models.Model):
         verbose_name = "Frage eines Moduls"
         verbose_name_plural = "Fragen eines Moduls"
 
-        ordering = ["module", "id"]
+        ordering = ["module", "num"]
+        unique_together = [("module", "question"), ("module", "num")]
 
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
     module = models.ForeignKey('Module', on_delete=models.CASCADE)
 
+    num = models.PositiveSmallIntegerField(default=0)
+
     def __str__(self):
-        return "{} in {}".format(self.question.text, self.module.title)
+        return "{} in {} NR. {}".format(self.question.text, self.module.title, self.num)
 
 
 def next_id():
@@ -271,10 +274,23 @@ class SpielerSession(models.Model):
 
     def __str__(self): return "{}, Start um {}".format(self.spielerModule, self.started)
 
+    def sorted_spieler_questions(self):
+
+        # get all own SpielerQuestions
+        sqs = self.questions.all()
+
+        # get num out of ModuleQUESTIONs for all found SpielerQUESTIONs
+        mqs_in_order = ModuleQuestion.objects.filter(module=self.spielerModule.module, question__in=[sq.question for sq in sqs])
+
+        question_id_to_num = {}     # {question_id: num, ...}
+        for mq in mqs_in_order: question_id_to_num[mq.question.id] = mq.num
+
+        return sorted(sqs, key=lambda sq: question_id_to_num[sq.question.id])
+
 
     def currentQuestion(self):
-        questions = self.questions.all()
-        return questions[self.current_question] if self.current_question is not None and self.current_question < questions.count() else None
+        questions = self.sorted_spieler_questions()
+        return questions[self.current_question] if self.current_question is not None and self.current_question < len(questions) else None
 
 
     def nextQuestion(self):
@@ -285,12 +301,12 @@ class SpielerSession(models.Model):
         if not current_question: return None
 
         # get all questions and index to the next to display. Is the current if no answer was given.
-        offset = 1 if (self.spielerModule.state == 2 and (current_question.answer_mc or current_question.answer_text or current_question.answer_img or current_question.answer_file)) or\
+        offset = 1 if (self.spielerModule.state == 2 and (json.loads(current_question.answer_mc) or current_question.answer_text or current_question.answer_img or current_question.answer_file)) or\
                       (self.spielerModule.state == 3 and (current_question.achieved_points is not None)) else 0
-        questions = self.questions.all()
+        questions = self.sorted_spieler_questions()
 
         # if index out of bounds, return None
-        if self.current_question + offset >= questions.count() or self.current_question + offset < 0: return None
+        if self.current_question + offset >= len(questions) or self.current_question + offset < 0: return None
 
         # apply offset
         self.current_question += offset
@@ -325,22 +341,23 @@ class SpielerQuestion(models.Model):
         verbose_name = "Fragendurchlauf eines Spielers"
         verbose_name_plural = "Fragendurchläufe eines Spielers"
 
-        ordering = ["spieler", "id"]    # assuming it is the same id as in ModuleQuestion (resolved at creation of SpielerQuestion at SpielerSession save in signals.py)
+        ordering = ["spieler"]    # TODO manual ordering by moduleQuestions.num at current module needed, because a question could appear in multiple modules
 
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
     spieler = models.ForeignKey(Spieler, on_delete=models.CASCADE)
 
+    moduleQuestions = models.ManyToManyField(ModuleQuestion)
+
     achieved_points = models.FloatField(null=True, blank=True)
 
     # fields for answer
-    # json-array of multiple choice answers (bool[]), ordered by ids of MultipleChoiceFields
-    answer_mc = models.TextField(null=True, blank=True)
+    answer_mc = models.TextField(default="[]")      # json-array of multiple choice answers (ids of selected MultipleChoiceFields)
     answer_text = models.TextField(null=True, blank=True)
     answer_img = models.OneToOneField(Image, on_delete=models.SET_NULL, null=True, blank=True, related_name="answer_img")
     answer_file = models.OneToOneField(File, on_delete=models.SET_NULL, null=True, blank=True, related_name="answer_file")
 
     # fields for correction
-    correct_mc = models.TextField(null=True, blank=True)     # json-array of multiple choice answers (bool[]), ordered by ids of MultipleChoiceFields
+    correct_mc = models.TextField(default="[]")     # json-array of multiple choice answers (ids of corrected MultipleChoiceFields)
     correct_text = models.TextField(null=True, blank=True)
     correct_img = models.OneToOneField(Image, on_delete=models.SET_NULL, null=True, blank=True, related_name="correct_img")
     correct_file = models.OneToOneField(File, on_delete=models.SET_NULL, null=True, blank=True, related_name="correct_file")

@@ -21,6 +21,8 @@ class QuestionsInLine(admin.TabularInline):
     model = ModuleQuestion
     verbose_name = "Question"
     verbose_name_plural = "Questions"
+    fields = ["question", "num"]
+
     extra = 1
 
 
@@ -114,11 +116,14 @@ class SpielerQuestionAdmin(admin.ModelAdmin):
     search_fields = ["question__text", "question__topic__titel", "question__topic__subject__titel", "spieler__name"]
 
     fieldsets = [
-        ("Basis", {'fields': ["question", "spieler",  "achieved_points"]}),
+        ("Basis", {'fields': ["question", "spieler",  "achieved_points", "in_module"]}),
         ("Antwort", {'fields': ["answer_mc", "answer_text", "answer_img", "answer_file"]}),
         ("Korrektur", {'fields': ["correct_mc", "correct_text", "correct_img", "correct_file"]})
     ]
-    readonly_fields = ["spieler", "question"]
+    readonly_fields = ["spieler", "question", "in_module"]
+
+    def in_module(self, obj):
+        return ", ".join(["{} (NR. {})".format(mq.module.title, mq.num) for mq in obj.moduleQuestions.all()])
 
 
 class RelQuizAdmin(admin.ModelAdmin):

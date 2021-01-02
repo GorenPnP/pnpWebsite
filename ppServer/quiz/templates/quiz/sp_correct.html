@@ -16,6 +16,18 @@
 <form method="POST" enctype="multipart/form-data">
 	{% csrf_token %}
 
+	<section class="paging">
+		<span>gehe zu Frage:</span>
+		{% for index in pages %}
+			{% if index == question_index %}
+				<span class="paging__current-page">{{ index|add:'1' }}</span>
+			{% else %}
+				<span class="link" onclick="submit_and_redirect(this)" data-redirect="{% url 'quiz:sp_correct_index' sp_mo_id index %}">{{ index|add:'1' }}</span>
+			{% endif %}
+		{% endfor %}
+		<span class="link" onclick="submit_and_redirect(this)" data-redirect="{% url 'quiz:sp_correct_index' sp_mo_id start_num_questions %}">Fertig</span>
+	</section>
+
 	<section class="info">
 			<div class="general">
 					<div class="info__item"><span class="label">Fach</span> {{ question.topic.subject.titel }}</div>
@@ -46,16 +58,12 @@
 	</section>
 
 
-	<input hidden id="redirect" type='text' value="{% url 'quiz:sp_old_answer' sp_mo_id spieler_question.question.id question_index %}">
+	<input hidden id="redirect" type='text'>
 
 	{% if display_old_answer %}
 	<div class="container-old-answer">
-		<input type="submit" class="btn btn--old-answer" value="Alte Antwort"
-			onclick="
-				event.preventDefault();
-				document.querySelector('#redirect').name = 'redirect' // add redirect to POST data
-				document.querySelector('form').submit()
-		">
+		<div class="btn btn--old-answer" data-redirect="{% url 'quiz:sp_old_answer' sp_mo_id spieler_question.question.id question_index %}"
+			onclick="submit_and_redirect(this)">Alte Antwort</div>
 	</div>
 	{% endif %}
 
@@ -130,19 +138,18 @@
             </div>
     </section>
 
-		<input type="checkbox" class="previous" name="previous" hidden>
+		<div class="flex-container flex-container--btn">
 
-		<!-- reverse order of buttons here, so that OK is the first input[type=submit] and therefore used on pressing enter -->
-    <div class="flex-container flex-container--reversed flex-container--btn">
-			{% if display_btn_done %}
-				<input type="submit" class="btn" value="Alles Fertig?">
-			{% else %}
-				<input type="submit" class="btn" value="OK">
-			{% endif %}
+			<div class="btn btn--back" onclick="submit_and_redirect(this)" data-redirect="{% url 'quiz:sp_modules' %}">Abbrechen</div>
+
 			{% if display_btn_previous %}
-				<button class="btn btn--previous" onclick="back_to_previous(event)">Zur Vorigen</button>
+				<div class="btn btn--previous" onclick="submit_and_redirect(this)" data-redirect="{% url 'quiz:sp_correct_index' sp_mo_id prev_question_index %}">Zur Vorigen</div>
 			{% endif %}
-			<a href="{% url 'quiz:sp_modules' %}" class="btn btn--back">Abbrechen</a>
+
+			<input
+				type="submit" class="btn"
+				value="{% if display_btn_done %}Alles Fertig?{% else %}OK{% endif %}"
+			>
     </div>
 
 </form>

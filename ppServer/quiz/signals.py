@@ -31,14 +31,13 @@ def save_picture_name(sender, instance, **kwargs):
 
 
 @receiver(post_save, sender=Spieler)
-def create_relQuiz(sender, instance, **qwargs):
-    if qwargs['created']:
+def create_relQuiz(sender, instance, **kwargs):
+    if kwargs['created']:
         RelQuiz.objects.get_or_create(spieler=instance)
 
         # use post_save signal of Module to add all SpielerModules for new spieler
         module = Module.objects.all().first()
         if module: module.save()
-
 
 
 # following: update module.max_points on:
@@ -84,16 +83,16 @@ def add_session(sender, instance, **kwargs):
         SpielerSession.objects.create(spielerModule=instance)
 
 
-# new session -> add SpielerQuestions
+# new session -> add SpielerQuestions TODO ordering with num
 @receiver(post_save, sender=SpielerSession)
-def add_questions(sender, instance, **kwargs):
-    if not kwargs["created"]:
-        return
+def add_spieler_questions(sender, instance, **kwargs):
+    if not kwargs["created"]: return
 
-    for q in instance.spielerModule.module.questions.all().order_by("id"):
-        instance.questions.create(
-            spieler=instance.spielerModule.spieler, question=q)
+    for mq in ModuleQuestion.objects.filter(module=instance.spielerModule.module).order_by("num"):
 
+        sp_q = instance.questions.create(spieler=instance.spielerModule.spieler, question=mq.question)
+        sp_q.moduleQuestions.add(mq)
+        sp_q.save()
 
 # create all missing sp_mods between all modules and all players
 def add_missing_spielermodules():
