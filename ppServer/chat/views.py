@@ -39,7 +39,7 @@ def index(request):
         elif "since" in json_dict.keys():
             since = json_dict["since"]
 
-            messages = Message.objects.filter(created_at__gt=since)
+            messages = Message.objects.filter(created_at__gt=since) if since else Message.objects.all()
             return JsonResponse(
                 {
                     "messages":

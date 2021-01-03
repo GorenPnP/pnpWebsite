@@ -11,7 +11,7 @@
 {% include 'base/header.html' with topic=topic %}
 <footer class="footer">
 		<input type="text" name="new_msg" class="footer__new-msg">
-		<input type="submit" value=">" class="footer__submit" onclick="send_new_msg()">
+		<div class="footer__submit" onclick="set_new_msg()">></div>
 </footer>
 {% endblock %}
 
@@ -29,7 +29,11 @@
 		</div>
 
 		{% if forloop.last %}
-		<input type="datetime" id="last_displayed_datetime" value="{{ message.created_at|date:'c'  }}">{% endif %}
+			<input type="datetime" id="last_displayed_datetime" value="{{ message.created_at|date:'c'  }}">
+		{% endif %}
+
+		{% empty %}
+			<input type="datetime" id="last_displayed_datetime" value="">
 	{% endfor %}
 </main>
 {% endblock %}
