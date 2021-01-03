@@ -14,3 +14,6 @@ class Message(models.Model):
     text = models.TextField(default="")
     author = models.ForeignKey(Spieler, on_delete=models.SET_NULL, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return "{} ({})".format(self.text[:50], self.author.get_real_name())
