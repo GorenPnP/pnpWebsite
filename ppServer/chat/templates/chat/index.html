@@ -1,0 +1,12 @@
+{% extends "base/main.html" %}
+{% load static %}
+
+{% block head %}
+<link rel="stylesheet" type="text/css" href="{% static 'polls/style.css' %}" />
+{% endblock %}
+
+{% block body %}
+	{% for message in messages %}
+		<span>{{ message.text }}</span>
+	{% endfor %}
+{% endblock %}

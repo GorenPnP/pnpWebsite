@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'quiz.apps.QuizConfig',
     'crafting.apps.CraftingConfig',
     'time_space.apps.TimeSpaceConfig',
+    'chat.apps.ChatConfig',
     'base.apps.BaseConfig',
     'service.apps.ServiceConfig',
     'django.contrib.admin',

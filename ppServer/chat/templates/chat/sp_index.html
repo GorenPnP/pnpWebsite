@@ -1,0 +1,13 @@
+{% extends "base/main.html" %}
+{% load static %}
+
+{% block head %}
+<link rel="stylesheet" type="text/css" href="{% static 'polls/style.css' %}" />
+{% endblock %}
+
+{% block body %}
+<h1>Spielleiter-Chat</h1>
+	{% for message in messages %}
+		<span>{{ message.author.get_real_name }}</span><span>{{ message.text }}</span>
+	{% endfor %}
+{% endblock %}

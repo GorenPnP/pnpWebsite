@@ -40,6 +40,7 @@ urlpatterns = [
     path('file/', include('fileserver.urls')),
     path('crafting/', include('crafting.urls')),
     path('time_space/', include('time_space.urls')),
+    path('chat/', include('chat.urls')),
 
     path('', include("base.urls")),
 ]
