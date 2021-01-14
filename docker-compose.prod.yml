@@ -35,6 +35,15 @@ services:
                         - 80:80
                 depends_on:
                         - web
+        
+        cron-backup:
+                container_name: pnp-cron-backup
+                build: ./cronjobs/backup
+                volumes:
+                        - ./ppServer/media:/usr/src/media/
+                        - ./backups:/usr/src/backups/
+                env_file:
+                        - ./.env.dev.db
 
 volumes:
         postgres_data:
