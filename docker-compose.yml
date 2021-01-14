@@ -20,5 +20,15 @@ services:
                 env_file:
                         - ./.env.dev.db
 
+
+        cron-backup:
+                container_name: pnp-cron-backup
+                build: ./cronjobs/backup
+                volumes:
+                        - ./ppServer/media:/usr/src/media/
+                        - ./backups:/usr/src/backups/
+                env_file:
+                        - ./.env.dev.db
+
 volumes:
   postgres_data:

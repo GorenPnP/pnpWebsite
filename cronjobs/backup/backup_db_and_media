@@ -1,0 +1,30 @@
+#!/bin/sh
+
+date=$(date +%y-%m-%d)
+
+# stop django container
+# TODO
+
+# prepare dump disk location and cd into it
+mkdir -p /usr/src/backups/$date/
+cd usr/src/backups
+
+# backup db
+export PGHOST="db"
+export PGDATABASE="${POSTGRES_DB}"
+export PGUSER="${POSTGRES_USER}"
+export PGPASSWORD="${POSTGRES_PASSWORD}"
+pg_dump -w > "/usr/src/backups/$date/db_dump_$date.sql"
+
+# backup media
+cp -r /usr/src/media/  ./$date/
+
+# compress backup
+tar -czf $date.tar.gz $date/
+rm -rf ./$date
+
+# remove all files (type f) modified longer than 30 days ago under /db_backups/backups
+find /usr/src/backups -type f -mtime +30 -delete
+
+# restart django container
+# TODO

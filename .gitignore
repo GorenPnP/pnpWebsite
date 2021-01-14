@@ -19,5 +19,5 @@ __pycache__/
 .vscode
 
 # other
-dumps/
+backups/
 node_modules/
