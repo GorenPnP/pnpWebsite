@@ -1,26 +1,40 @@
+#! /bin/bash
 
+BASEPATH_CONTAINER="/home/ppServer/web"
+BASEPATH_HOST="/home/debian/pnpWebsite"
 
 DATE="$(date +%y-%m-%d)"
 
-SCRIPTPATH="$(dirname `which $0`)"
-BASEPATH="$SCRIPTPATH/.."
 
-# prepare dump disk location and cd into it
-mkdir -p $BASEPATH/backups/$DATE/
+# prepare dump disk locations
+docker-compose exec web sh -c "mkdir -p ./backups/"
 
-# stop django container
+sudo mkdir -p $BASEPATH_HOST/backups/$DATE/
+chown -R debian:debian backups
+
+# move to base path on actual machine (in docker container already set by default, because of the last WORKDIR in corresponding Dockerfile)
+cd $BASEPATH_HOST
+
+# stop routing to ensure consistent backup data
 docker container stop pnp-nginx
 
 # backup db
-docker-compose exec web sh -c "python manage.py dumpdata > ../backups/$DATE/postgres_dump.json"
+docker-compose exec web sh -c "python manage.py dumpdata > ./backups/postgres_dump.json"
+docker cp pnp-web:$BASEPATH_CONTAINER/backups/postgres_dump.json ./backups/$DATE/postgres_dump.json
 
 # backup media
-docker cp pnp-web:/home/ppServer/web/media/  $BASEPATH/backups/$DATE/
+docker cp pnp-web:$BASEPATH_CONTAINER/media/  ./backups/$DATE/
 
-# restart django container
+# re-enable routing, rest can be done in parallel
 docker container start pnp-nginx
 
 # compress backup
-# remove originals of compressed files
-# remove all files (type f) modified longer than 30 days ago under /db_backups/backups
-docker-compose exec web sh -c "cd ../backups && tar -czf $DATE.tar.gz $DATE/ && rm -rf ./$DATE $DATE.json && find . -type f -mtime +30 -delete"
+cd ./backups
+tar -czf $DATE.tar.gz $DATE/
+
+# remove original backups inside docker-container
+docker-compose exec web sh -c "rm -rf ./backups"
+
+# remove all files (type f) modified longer than 30 days ago under ./backups
+rm -rf ./$DATE/
+find . -type f -mtime +30 -delete
