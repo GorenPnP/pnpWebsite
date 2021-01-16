@@ -1,0 +1,26 @@
+
+
+DATE="$(date +%y-%m-%d)"
+
+SCRIPTPATH="$(dirname `which $0`)"
+BASEPATH="$SCRIPTPATH/.."
+
+# prepare dump disk location and cd into it
+mkdir -p $BASEPATH/backups/$DATE/
+
+# stop django container
+docker container stop pnp-nginx
+
+# backup db
+docker-compose exec web sh -c "python manage.py dumpdata > ../backups/$DATE/postgres_dump.json"
+
+# backup media
+docker cp pnp-web:/home/ppServer/web/media/  $BASEPATH/backups/$DATE/
+
+# restart django container
+docker container start pnp-nginx
+
+# compress backup
+# remove originals of compressed files
+# remove all files (type f) modified longer than 30 days ago under /db_backups/backups
+docker-compose exec web sh -c "cd ../backups && tar -czf $DATE.tar.gz $DATE/ && rm -rf ./$DATE $DATE.json && find . -type f -mtime +30 -delete"

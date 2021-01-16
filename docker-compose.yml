@@ -2,33 +2,51 @@ version: '3'
 
 services:
         web:
-                container_name: pnp-server
+                container_name: pnp-web
                 build: ./ppServer
                 command: python manage.py runserver 0.0.0.0:8000
                 volumes:
-                        - ./ppServer/:/usr/src/ppServer/
+                        - static_volume:/home/ppServer/web/static
+                        - media_volume:/home/ppServer/web/media
+                        - ./backups:/home/ppServer/backups      # is mounted on dir ./backups
                 ports:
                         - '8000:8000'
                 env_file:
                         - ./.env.dev
+                depends_on:
+                        - db
 
         db:
                 container_name: pnp-db
                 image: postgres:12.0-alpine
                 volumes:
-                        - postgres_data:/var/lib/postgresql/data/
+                        - postgres_data:/var/lib/postgresql/data
                 env_file:
                         - ./.env.dev.db
-
-
-        cron-backup:
-                container_name: pnp-cron-backup
-                build: ./cronjobs/backup
+        
+        nginx:
+                container_name: pnp-nginx
+                build: ./nginx
                 volumes:
-                        - ./ppServer/media:/usr/src/media/
-                        - ./backups:/usr/src/backups/
-                env_file:
-                        - ./.env.dev.db
+                        - static_volume:/home/ppServer/web/static
+                        - media_volume:/home/ppServer/web/media
+                ports:
+                        - 80:80
+                depends_on:
+                        - web
+
+
+        # cron-backup:
+        #         container_name: pnp-cron-backup
+        #         build: ./cronjobs/backup
+        #         volumes:
+        #                 - ./ppServer/media:/usr/src/media
+        #                 - postgres_data:/var/lib/postgresql/data
+        #                 - ./backups:/usr/src/backups
+        #         env_file:
+        #                 - ./.env.dev.db
 
 volumes:
-  postgres_data:
+        postgres_data:
+        static_volume:
+        media_volume:
