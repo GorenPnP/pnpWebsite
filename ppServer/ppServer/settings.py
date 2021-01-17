@@ -22,7 +22,7 @@ SECRET_KEY = os.getenv('SECRET_KEY')
 DEBUG = int(os.getenv('DEBUG', 0))
 
 ALLOWED_HOSTS = [i.strip() for i in os.getenv('ALLOWED_HOSTS').split(",")]
-
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 # Application definition
 
@@ -138,7 +138,6 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
-#STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static'),)
 
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
@@ -151,3 +150,37 @@ DATA_UPLOAD_MAX_NUMBER_FIELDS = 2048 # higher than the count of fields
 
 USE_THOUSAND_SEPARATOR = True
 THOUSAND_SEPARATOR = "."
+
+
+from django.utils.log import DEFAULT_LOGGING
+
+LOGGING_CONFIG = None
+LOGLEVEL = os.getenv('DJ_LOGLEVEL', 'info').upper()
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        # Use JSON formatter as default
+        'default': {
+            '()': 'pythonjsonlogger.jsonlogger.JsonFormatter',
+        },
+        'django.server': DEFAULT_LOGGING['formatters']['django.server'],
+    },
+    'handlers': {
+        # Route console logs to stdout
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'default',
+        },
+        'django.server': DEFAULT_LOGGING['handlers']['django.server'],
+    },
+    'loggers': {
+        # Default logger for all modules
+        '': {
+            'level': LOGLEVEL,
+            'handlers': ['console', ],
+        },
+        # Default runserver request logging
+        'django.server': DEFAULT_LOGGING['loggers']['django.server'],
+    }
+}

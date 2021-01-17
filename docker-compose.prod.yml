@@ -27,20 +27,40 @@ services:
                 env_file:
                         - ./.env.prod.db
 
-        nginx:
-                container_name: pnp-nginx
-                build: ./nginx
+        nginx-proxy:
+                container_name: nginx-proxy
+                build: nginx
+                restart: always
+                ports:
+                        - 443:443       # https
+                        - 80:80         # http
                 volumes:
                         - static_volume:/home/ppServer/web/static
                         - media_volume:/home/ppServer/web/media
-                ports:
-                        - 80:80
-                expose:
-                        - 80
+                        - certs:/etc/nginx/certs
+                        - html:/usr/share/nginx/html
+                        - vhost:/etc/nginx/vhost.d
+                        - /var/run/docker.sock:/tmp/docker.sock:ro
                 depends_on:
                         - web
+
+        nginx-proxy-letsencrypt:
+                container_name: nginx-proxy-letsencrypt
+                image: jrcs/letsencrypt-nginx-proxy-companion
+                env_file:
+                        - .env.prod.proxy-companion
+                volumes:
+                        - /var/run/docker.sock:/var/run/docker.sock:ro
+                        - certs:/etc/nginx/certs
+                        - html:/usr/share/nginx/html
+                        - vhost:/etc/nginx/vhost.d
+                depends_on:
+                        - nginx-proxy
 
 volumes:
         postgres_data:
         static_volume:
         media_volume:
+        certs:
+        html:
+        vhost:
