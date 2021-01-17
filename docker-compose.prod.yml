@@ -35,6 +35,8 @@ services:
                         - media_volume:/home/ppServer/web/media
                 ports:
                         - 80:80
+                expose:
+                        - 80
                 depends_on:
                         - web
 
