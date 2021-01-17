@@ -10,7 +10,7 @@ DATE="$(date +%y-%m-%d)"
 docker-compose exec web sh -c "mkdir -p ./backups/"
 
 sudo mkdir -p $BASEPATH_HOST/backups/$DATE/
-chown -R debian:debian backups
+sudo chown -R debian:debian $BASEPATH_HOST/backups
 
 # move to base path on actual machine (in docker container already set by default, because of the last WORKDIR in corresponding Dockerfile)
 cd $BASEPATH_HOST
