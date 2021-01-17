@@ -1,47 +1,51 @@
 version: '3.7'
 
 services:
-        web:
-                container_name: pnp-server
-                build:
-                        context: ./ppServer
-                        dockerfile: Dockerfile.prod
-                command: gunicorn ppServer.wsgi:application --bind 0.0.0.0:8000 --workers=3
-                volumes:
-                        - static_volume:/home/ppServer/web/static
-                        - media_volume:/home/ppServer/web/media
-                expose:
-                        - 8000
-                env_file:
-                        - ./.env.staging
-                depends_on:
-                        - db
+        # web:
+        #         container_name: pnp-web
+        #         build:
+        #                 context: ./ppServer
+        #                 dockerfile: Dockerfile.prod
+        #         command: gunicorn ppServer.wsgi:application --bind 0.0.0.0:8000 --workers=3
+        #         volumes:
+        #                 - static_volume:/home/ppServer/web/static
+        #                 - media_volume:/home/ppServer/web/media
+        #         expose:
+        #                 - 8000
+        #         env_file:
+        #                 - ./.env.staging
+        #         depends_on:
+        #                 - db
 
-        db:
-                container_name: pnp-db
-                image: postgres:12.0-alpine
-                volumes:
-                        - postgres_data:/var/lib/postgresql/data/
-                env_file:
-                        - ./.env.staging.db
+        # db:
+        #         container_name: pnp-db
+        #         image: postgres:12.0-alpine
+        #         volumes:
+        #                 - postgres_data:/var/lib/postgresql/data/
+        #         expose:
+        #                 - 5432
+        #         env_file:
+        #                 - ./.env.staging.db
 
-        nginx-proxy:
-                container_name: nginx-proxy
+        nginx-proxy-staging:
+                container_name: nginx-proxy-staging
                 build: nginx
                 restart: always
                 ports:
                         - 443:443
-                        - 80:80
+                        - 81:80
                 volumes:
-                        - static_volume:/home/ppServer/web/staticfiles
-                        - media_volume:/home/ppServer/web/mediafiles
+                        - static_volume:/home/ppServer/web/static
+                        - media_volume:/home/ppServer/web/media
                         - certs:/etc/nginx/certs
                         - html:/usr/share/nginx/html
                         - vhost:/etc/nginx/vhost.d
                         - /var/run/docker.sock:/tmp/docker.sock:ro
-                depends_on:
-                        - web
+                # depends_on:
+                #         - web
+
         nginx-proxy-letsencrypt:
+                container_name: nginx-proxy-letsencrypt
                 image: jrcs/letsencrypt-nginx-proxy-companion
                 env_file:
                         - .env.staging.proxy-companion
@@ -51,7 +55,7 @@ services:
                         - html:/usr/share/nginx/html
                         - vhost:/etc/nginx/vhost.d
                 depends_on:
-                        - nginx-proxy
+                        - nginx-proxy-staging
 
 volumes:
         postgres_data:
