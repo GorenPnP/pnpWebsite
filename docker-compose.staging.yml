@@ -32,8 +32,8 @@ services:
                 build: nginx
                 restart: always
                 ports:
-                        - 443:443
-                        - 81:80
+                        - 444:443       # https
+                        - 81:80         # http
                 volumes:
                         - static_volume:/home/ppServer/web/static
                         - media_volume:/home/ppServer/web/media
