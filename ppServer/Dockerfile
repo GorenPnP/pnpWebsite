@@ -18,7 +18,9 @@ RUN apk update && \
     # for pillow
     apk add zlib-dev jpeg-dev && \
     # for dbbackup
-    apk add postgresql
+    apk add postgresql && \
+    # for channels
+    apk add gcc libffi-dev
 
 # install dependencies
 RUN pip install --upgrade pip

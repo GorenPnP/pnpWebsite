@@ -7,3 +7,6 @@ psycopg2>=2.8.6					# for postgresql usage
 pytz>=2018.4						# better handling for time/date types
 django-request>=1.5.5		# http-request logging in /admin/request/...
 django-dbbackup==3.*        # db + media backup utility
+
+cffi
+channels==3.*
