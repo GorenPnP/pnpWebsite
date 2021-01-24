@@ -7,10 +7,10 @@ DATE="$(date +%y-%m-%d)"
 
 
 # prepare dump disk locations
-docker-compose exec web sh -c "mkdir -p ./backups/"
+docker exec pnp-web mkdir -p ./backups/
 
-sudo mkdir -p $BASEPATH_HOST/backups/$DATE/
-sudo chown -R debian:debian $BASEPATH_HOST/backups
+mkdir -p $BASEPATH_HOST/backups/$DATE/media
+chown -R debian:debian $BASEPATH_HOST/backups
 
 # move to base path on actual machine (in docker container already set by default, because of the last WORKDIR in corresponding Dockerfile)
 cd $BASEPATH_HOST
@@ -19,7 +19,7 @@ cd $BASEPATH_HOST
 docker container stop pnp-nginx
 
 # backup db
-docker-compose exec web sh -c "python manage.py dumpdata > ./backups/postgres_dump.json"
+docker exec pnp-web sh -c "python manage.py dumpdata > ./backups/postgres_dump.json"
 docker cp pnp-web:$BASEPATH_CONTAINER/backups/postgres_dump.json ./backups/$DATE/postgres_dump.json
 
 # backup media
@@ -33,8 +33,11 @@ cd ./backups
 tar -czf $DATE.tar.gz $DATE/
 
 # remove original backups inside docker-container
-docker-compose exec web sh -c "rm -rf ./backups"
+docker-compose exec web rm -rf ./backups
 
 # remove all files (type f) modified longer than 30 days ago under ./backups
 rm -rf ./$DATE/
 find . -type f -mtime +30 -delete
+
+# copy backup over to firestore
+cd /home/debian/.local/bin && gsutil cp $BASEPATH_HOST/backups/$DATE.tar.gz gs://backup-goren-pnp.appspot.com/backups

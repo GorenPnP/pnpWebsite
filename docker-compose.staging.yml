@@ -28,7 +28,7 @@ services:
         #                 - ./.env.staging.db
 
         nginx-proxy-staging:
-                container_name: nginx-proxy-staging
+                container_name: pnp-nginx-staging
                 build: nginx
                 restart: always
                 ports:
@@ -45,7 +45,7 @@ services:
                 #         - web
 
         nginx-proxy-letsencrypt:
-                container_name: nginx-proxy-letsencrypt
+                container_name: pnp-nginx-letsencrypt
                 image: jrcs/letsencrypt-nginx-proxy-companion
                 env_file:
                         - .env.staging.proxy-companion
@@ -55,7 +55,7 @@ services:
                         - html:/usr/share/nginx/html
                         - vhost:/etc/nginx/vhost.d
                 depends_on:
-                        - nginx-proxy-staging
+                        - pnp-nginx-staging
 
 volumes:
         postgres_data:
