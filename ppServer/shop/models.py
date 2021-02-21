@@ -165,7 +165,7 @@ class BaseShop(models.Model):
                 ]
 
     def getIconUrl(self):
-        return self.icon.url if self.icon else "/static/res/img/icon-dice-account.svg"
+        return self.icon.url if self.icon else "/static/res/icon/icon-dice-account.svg"
 
 
     # resize icon
@@ -174,18 +174,21 @@ class BaseShop(models.Model):
 
         super().save(*args, **kwargs)
 
-        img = PilImage.open(self.img.path)
+        # proceed only if an image exists
+        if not self.icon or not self.icon.path: return
+
+        icon = PilImage.open(self.icon.path)
 
         # is smaller, leave it
-        if img.height <= MAX_SIZE and img.width <= MAX_SIZE:
+        if icon.height <= MAX_SIZE and icon.width <= MAX_SIZE:
             return
 
         # resize, longest is MAX_SIZE, scale the other accordingly while maintaining ratio
-        new_width = MAX_SIZE if img.width >= img.height else img.width * MAX_SIZE // img.height
-        new_height = MAX_SIZE if img.width <= img.height else img.height * MAX_SIZE // img.width
+        new_width = MAX_SIZE if icon.width >= icon.height else icon.width * MAX_SIZE // icon.height
+        new_height = MAX_SIZE if icon.width <= icon.height else icon.height * MAX_SIZE // icon.width
 
-        img.thumbnail((new_width, new_height), PilImage.BILINEAR)
-        img.save(self.img.path, "jpeg")
+        icon.thumbnail((new_width, new_height), PilImage.BILINEAR)
+        icon.save(self.icon.path, "jpeg")
 
 
 class Item(BaseShop):
