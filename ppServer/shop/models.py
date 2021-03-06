@@ -165,7 +165,7 @@ class BaseShop(models.Model):
                 ]
 
     def getIconUrl(self):
-        return self.icon.url if self.icon else "/static/res/icon/icon-dice-account.svg"
+        return self.icon.url if self.icon else "/static/res/img/icon-dice-account.svg"
 
 
     # resize icon
