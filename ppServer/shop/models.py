@@ -600,6 +600,7 @@ class Zauber(BaseShop):
             [{"val": "Schaden"}],
             [{"val": "Astralschaden"}],
             [{"val": "Flächenwirkung"}],
+            [{"val": "Kategorie"}],
             [{"val": "Günstigster Preis"}],
             [{"val": "Weiteres"}],
             [{"val": "Preis * Stufe?"}]
@@ -612,7 +613,8 @@ class Zauber(BaseShop):
             [
                 [{"val": self.schaden}],
                 [{"val": self.astralschaden}],
-                [{"val": "ja" if self.flächenzauber else ""}]
+                [{"val": "ja" if self.flächenzauber else ""}],
+                [{"val": self.get_kategorie_display()}],
             ] + fields[3:]
 
 
