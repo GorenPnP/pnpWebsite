@@ -1,85 +1,36 @@
-###########
-# BUILDER #
-###########
-
-# pull official base image
-FROM nikolaik/python-nodejs:python3.9-nodejs14-alpine as builder
-
-# set work directory
-WORKDIR /usr/src/ppServer
+# Dockerfile
+# The first instruction is what image we want to base our container on
+#FROM python:3.9-slim-buster
+FROM nikolaik/python-nodejs:python3.9-nodejs14-alpine
 
 # set environment variables
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
+WORKDIR /usr/src/ppServer
+
 # dependencies ...
 RUN apk update && \
-    # for psycopg2
+    # for psycopg2 && pillow
     apk add --virtual build-deps gcc musl-dev  && \
     # for psycopg2
     apk add postgresql-dev python3-dev && \
     apk add netcat-openbsd && \
     # for pillow
-    apk add zlib-dev jpeg-dev
+    apk add zlib-dev jpeg-dev && \
+    # for sass
+    apk add g++
 
-# lint
-RUN pip install --upgrade pip
-#RUN pip install flake8
-COPY . .
-#RUN flake8 --ignore=E501,F401 .
-
-# install dependencies
+# Allows docker to cache installed dependencies between builds
+RUN /usr/local/bin/python -m pip install --upgrade pip
 COPY ./requirements.txt .
-RUN pip wheel --no-cache-dir --no-deps --wheel-dir /usr/src/ppServer/wheels -r requirements.txt
-
-
-#########
-# FINAL #
-#########
-
-# pull official base image
-FROM nikolaik/python-nodejs:python3.9-nodejs14-alpine
-
-# create directory for the app user
-RUN mkdir -p /home/ppServer
-
-# create the app user
-RUN addgroup -S ppServer && adduser -S ppServer -G ppServer
-
-# create the appropriate directories
-ENV APP_HOME=/home/ppServer/web
-
-RUN mkdir $APP_HOME
-RUN [[ -d $APP_HOME/static ]] || mkdir $APP_HOME/static
-RUN [[ -d $APP_HOME/media ]] || mkdir $APP_HOME/media
-
-WORKDIR $APP_HOME
-
-# install dependencies
-RUN apk update && apk add libpq && \
-    # for pillow
-    apk add zlib-dev jpeg-dev
-
-COPY --from=builder /usr/src/ppServer/wheels /wheels
-COPY --from=builder /usr/src/ppServer/requirements.txt .
-RUN pip install --no-cache /wheels/*
+RUN pip install --no-cache-dir -r requirements.txt
 
 # copy entrypoint.sh
-COPY ./entrypoint.sh $APP_HOME
+COPY ./entrypoint.sh .
 
-# copy package*.json, install dependencies over npm
-COPY ./package*.json $APP_HOME/
-RUN npm update npm && npm i opencollective && npm i
-
-# copy project
-COPY . $APP_HOME
-
-# chown all the files to the app user
-RUN chown -R ppServer:ppServer $APP_HOME
-
-# change to the app user
-USER ppServer
+# Mounts the application code to the image
+COPY . .
 
 # run entrypoint.sh
-ENTRYPOINT ["/home/ppServer/web/entrypoint.sh"]
-
+ENTRYPOINT ["/usr/src/ppServer/entrypoint.sh"]

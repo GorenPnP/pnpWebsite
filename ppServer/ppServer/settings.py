@@ -152,35 +152,34 @@ USE_THOUSAND_SEPARATOR = True
 THOUSAND_SEPARATOR = "."
 
 
-from django.utils.log import DEFAULT_LOGGING
 
+# Logging Configuration
+import logging.config
+
+# Clear prev config
 LOGGING_CONFIG = None
-LOGLEVEL = os.getenv('DJ_LOGLEVEL', 'info').upper()
-LOGGING = {
+
+# Get loglevel from env
+LOGLEVEL = os.getenv('DJANGO_LOGLEVEL', 'info').upper()
+
+logging.config.dictConfig({
     'version': 1,
     'disable_existing_loggers': False,
     'formatters': {
-        # Use JSON formatter as default
-        'default': {
-            '()': 'pythonjsonlogger.jsonlogger.JsonFormatter',
+        'console': {
+            'format': '%(asctime)s %(levelname)s [%(name)s:%(lineno)s] %(module)s %(process)d %(thread)d %(message)s',
         },
-        'django.server': DEFAULT_LOGGING['formatters']['django.server'],
     },
     'handlers': {
-        # Route console logs to stdout
         'console': {
             'class': 'logging.StreamHandler',
-            'formatter': 'default',
+            'formatter': 'console',
         },
-        'django.server': DEFAULT_LOGGING['handlers']['django.server'],
     },
     'loggers': {
-        # Default logger for all modules
         '': {
             'level': LOGLEVEL,
-            'handlers': ['console', ],
+            'handlers': ['console',],
         },
-        # Default runserver request logging
-        'django.server': DEFAULT_LOGGING['loggers']['django.server'],
-    }
-}
+    },
+})
