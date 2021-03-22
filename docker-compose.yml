@@ -3,7 +3,7 @@ version: '3.7'
 services:
   web:
     build: ./ppServer
-    command: python manage.py runserver 0.0.0.0:8000
+    command: gunicorn ppServer.wsgi:application --bind 0.0.0.0:8000
     volumes:
       - ./ppServer/:/usr/src/ppServer/
     ports:
