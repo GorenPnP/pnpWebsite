@@ -71,7 +71,7 @@ header {z-index: 1;}		// on top of hero
 			"arrow-left . btn   arrow-right";
 }
 /* uncomplicated */
-.hero--shop__container {
+.hero--shop__container, .hero--monsterdex__container {
 	background-image: url('/static/res/img/hero-coal.png');
 	background-size: cover;
 
@@ -79,6 +79,13 @@ header {z-index: 1;}		// on top of hero
 	grid-template-areas:
 			"arrow-left . words arrow-right"
 			"arrow-left . btn   arrow-right";
+}
+.hero--monsterdex__container {
+	background-image: url('/static/res/img/hero-monsterdex.jpg');
+	.hero__words__heading {
+		color: #000;
+		text-shadow: #333 1px 1px 1px;
+	}
 }
 .hero--crafting__container {
 	background-image: url('/static/res/img/hero-crafting.jpg');
@@ -92,6 +99,7 @@ header {z-index: 1;}		// on top of hero
 
 	align-content: flex-start;
 }
+
 
 /* written content */
 .hero__words {
