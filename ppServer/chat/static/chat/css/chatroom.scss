@@ -1,5 +1,5 @@
 :root {
-	--footer-height: 50px;
+	--footer-height: 100px;
 }
 
 .main-container {
@@ -18,7 +18,7 @@
 	align-items: center;
 
 	background-color: cadetblue;
-	overflow-y:auto;
+	overflow-y: auto;
 }
 
 .message {
@@ -52,6 +52,7 @@
 
 	display: grid;
 	grid-template-columns: 1fr var(--footer-height);
+	grid-template-rows: auto auto;
 	justify-content: center;
 
 	height: var(--footer-height);
@@ -67,6 +68,9 @@
 	font-size: larger;
 }
 .footer__submit {
+	grid-row: 1 / -1;
+	grid-column-start: 2;
+
 	border: 0;
 	border-radius: 0;
 	background-color: orangered;

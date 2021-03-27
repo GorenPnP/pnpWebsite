@@ -1,5 +1,5 @@
 # pull official base image
-FROM nikolaik/python-nodejs:python3.9-nodejs14-alpine
+FROM nikolaik/python-nodejs:python3.8-nodejs14-slim
 
 # set work directory
 WORKDIR /usr/src/ppServer
@@ -8,19 +8,8 @@ WORKDIR /usr/src/ppServer
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
-# dependencies ...
-RUN apk update && \
-    # for psycopg2
-    apk add --virtual build-deps gcc musl-dev  && \
-    # for psycopg2
-    apk add postgresql-dev python3-dev && \
-    apk add netcat-openbsd && \
-    # for pillow
-    apk add zlib-dev jpeg-dev && \
-    # for dbbackup
-    apk add postgresql && \
-    # for channels
-    apk add gcc libffi-dev
+# dependencies for nc in entrypoint.sh
+RUN apt-get update && apt-get install -y netcat gcc
 
 # install dependencies
 RUN pip install --upgrade pip

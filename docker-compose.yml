@@ -4,7 +4,7 @@ services:
   web:
     container_name: pnp-web
     build: ./ppServer
-    command: gunicorn ppServer.wsgi:application --bind 0.0.0.0:8000
+    command: gunicorn ppServer.asgi:application -w 2 --bind 0.0.0.0:8000 -k uvicorn.workers.UvicornWorker
     volumes:
       - ./ppServer/:/usr/src/ppServer/
     env_file:

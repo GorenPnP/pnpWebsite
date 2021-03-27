@@ -3,29 +3,9 @@
 {% block title %}{{ topic }}{% endblock %}
 {% block extra-head %}
 <link rel="stylesheet" type="text/css" href="{% static 'chat/css/index.css' %}" />
-<script src='https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js' type='text/javascript'></script>
-<script src="{% static 'base/js/ajax.js' %}"></script>
-<script src="{% static 'chat/js/index.js' %}"></script>
 {% endblock %}
-{% block absolute %}
-{% include 'base/header.html' with topic=topic %}
-<footer class="footer">
-		<input type="text" name="new_msg" class="footer__new-msg">
-		<div class="footer__submit" onclick="set_new_msg()">></div>
-</footer>
-{% endblock %}
-
+{% block absolute %}{% include 'base/header.html' with topic=topic %}{% endblock %}
 {% block body %}
-<main class="message-container">
-	{% for message in messages %}
-		<div class="message">{{ message.text }}</div>
-
-		{% if forloop.last %}
-			<input type="datetime" id="last_displayed_datetime" value="{{ message.created_at|date:'c'  }}">
-		{% endif %}
-
-		{% empty %}
-			<input type="datetime" id="last_displayed_datetime" value="">
-	{% endfor %}
+<main>
 </main>
 {% endblock %}

@@ -1,0 +1,34 @@
+{% extends "base/main.html" %}
+{% load static %}
+{% block title %}{{ topic }}{% endblock %}
+{% block extra-head %}
+<link rel="stylesheet" type="text/css" href="{% static 'chat/css/chatroom.css' %}" />
+<script src='https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js' type='text/javascript'></script>
+<script src="{% static 'base/js/ajax.js' %}"></script>
+<script src="{% static 'chat/js/chatroom_ws.js' %}"></script>
+{% endblock %}
+{% block absolute %}
+{% include 'base/header.html' with topic=topic %}
+<footer class="footer">
+	<input type="text" name="character_name" placeholder="Name" class="input-name footer__new-msg">
+	<div class="footer__submit" onclick="set_new_msg()">></div>
+	<input type="text" name="new_msg" placeholder="..." class="input-message footer__new-msg">
+</footer>
+{% endblock %}
+
+{% block body %}
+<main class="message-container">
+	{% for message in messages %}
+		<div class="message">{{ message.text }}</div>
+
+		{% if forloop.last %}
+			<input type="datetime" id="last_displayed_datetime" value="{{ message.created_at|date:'c'  }}">
+		{% endif %}
+
+		{% empty %}
+			<input type="datetime" id="last_displayed_datetime" value="">
+	{% endfor %}
+
+	<div id="room_name" style="display: none">{{ room_name }}</div>
+</main>
+{% endblock %}
