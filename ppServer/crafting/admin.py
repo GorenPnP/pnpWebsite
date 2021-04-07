@@ -34,6 +34,11 @@ class WissenInLineAdmin(admin.TabularInline):
     extra = 1
 
 
+class MaterialDropInLineAdmin(admin.TabularInline):
+    model = MaterialDrop
+    extra = 1
+
+
 class RecipeAdmin(admin.ModelAdmin):
 
     list_display = ('icons_produkte', 'produkte', 'icons_zutaten', 'zutaten', 'table', 'duration', 'fertigkeiten')
@@ -64,6 +69,26 @@ class RecipeAdmin(admin.ModelAdmin):
         return ferts if ferts else "-"
 
 
+class MaterialAdmin(admin.ModelAdmin):
+    list_display = ('_icon', 'name', 'region', 'rigidity', 'spawn_chance', 'second_spawn_chance', '_drops')
+    list_display_links = ('_icon', 'name')
+    search_fields = ('name', 'region')
+
+    exclude = ('tools', )
+
+    inlines = [MaterialDropInLineAdmin]
+
+    def _icon(self, obj):
+        html = format_html('<img src="{0}" style="max-width: 32px; max-height:32px;" />'.format(obj.icon.url))
+        return html if html else "-"
+
+    def _drops(self, obj):
+        return ", ".join([drop.item.name for drop in MaterialDrop.objects.filter(material=obj)])
+
+
+
 admin.site.register(Profile, ProfileAdmin)
 admin.site.register(InventoryItem, InventoryAdmin)
 admin.site.register(Recipe, RecipeAdmin)
+admin.site.register(Material, MaterialAdmin)
+admin.site.register(Region)

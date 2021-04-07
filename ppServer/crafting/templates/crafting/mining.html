@@ -1,0 +1,32 @@
+{% extends 'base/main.html' %}
+{% load static %}
+{% block title %}{{ topic }}{% endblock %}
+{% block extra-head %}
+<link rel="stylesheet" href="{% static 'crafting/css/mining.css' %}">
+<script src='https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js' type='text/javascript'></script>
+<script src="{% static 'base/js/ajax.js' %}"></script>
+<script src="{% static 'crafting/js/mining_preparations.js' %}"></script>
+<script src="{% static 'crafting/js/mining.js' %}"></script>
+{% endblock %}
+{% block absolute %}{% include 'base/header.html' with topic=topic %}{% endblock %}
+
+{% block body %}
+<h2>Kissi flooft im Schmiedesystem</h2>
+<main>
+	<button id="mining-window">
+		<b>Click to Mine!</b>
+	</button>
+</main>
+<aside>
+	<b>Material:</b>
+	<span id="current-material">-</span>
+	
+	<b>Rigidity:</b>
+	<span id="current-rigidity">-</span>
+</aside>
+<aside id="amount-mined"></aside>
+
+
+<div id="materials" style="display: none">{{ materials }}</div>
+<div id="initial_material_id" style="display: none">{{ initial_material_id }}</div>
+{% endblock %}

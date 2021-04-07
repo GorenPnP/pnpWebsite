@@ -1,8 +1,9 @@
 from datetime import timedelta
 import json
+from PIL import Image as PilImage
 
 from django.db import models
-from django.core.validators import MinValueValidator
+from django.core.validators import MaxValueValidator, MinValueValidator
 
 from character.models import Spieler, Spezialfertigkeit, Wissensfertigkeit
 from shop.models import Tinker
@@ -19,7 +20,7 @@ class RelCrafting(models.Model):
 	profil = models.ForeignKey("Profile", on_delete=models.SET_NULL, null=True, blank=True)
 
 	def __str__(self):
-		return "{} aktiv mit {}".format(spieler.name, profil.name)
+		return "{} aktiv mit {}".format(self.spieler.name, self.profil.name)
 
 
 class Profile(models.Model):
@@ -175,3 +176,65 @@ class Recipe(models.Model):
 		d = h // 24
 		h = h % 24
 		return "{}:{}:{} min".format(d, h, m)
+
+
+
+
+
+
+class Region(models.Model):
+	class Meta:
+		verbose_name = "Region"
+		verbose_name_plural = "Regionen"
+
+	name = models.CharField(max_length=200, unique=True)
+
+	def __str__(self):
+		return "Region {}".format(self.name)
+
+class Material(models.Model):
+	class Meta:
+		verbose_name = "Material"
+		verbose_name_plural = "Materialien"
+
+	name = models.CharField(max_length=200)
+	icon = models.ImageField(null=False, blank=False)
+	region = models.ForeignKey(Region, on_delete=models.CASCADE)
+
+	rigidity = models.PositiveIntegerField(default=10, null=False, blank=False)
+
+	spawn_chance = models.FloatField(default=0.0)
+	second_spawn_chance = models.FloatField(default=0.0, validators=[MaxValueValidator(100), MinValueValidator(0)])
+
+	tier = models.PositiveIntegerField(default=0, null=False, blank=False)
+	tools = models.TextField(default="[]", blank=False, null=False)
+
+	def __str__(self):
+		return "{} in {}".format(self.name, self.region)
+
+	# resize icon
+	def save(self, *args, **kwargs):
+		MAX_SIZE = 64
+
+		super().save(*args, **kwargs)
+
+		# proceed only if an image exists
+		if not self.icon or not self.icon.path: return
+
+		icon = PilImage.open(self.icon.path)
+
+		# is smaller, leave it
+		if icon.height <= MAX_SIZE and icon.width <= MAX_SIZE:
+			return
+
+		# resize, longest is MAX_SIZE, scale the other accordingly while maintaining ratio
+		new_width = MAX_SIZE if icon.width >= icon.height else icon.width * MAX_SIZE // icon.height
+		new_height = MAX_SIZE if icon.width <= icon.height else icon.height * MAX_SIZE // icon.width
+
+		icon.thumbnail((new_width, new_height), PilImage.BILINEAR)
+		icon.save(self.icon.path, "png")
+
+class MaterialDrop(models.Model):
+	item = models.ForeignKey(Tinker, on_delete=models.CASCADE, default=Tinker.objects.first().pk)
+	amount = models.TextField(default="[1]")
+	material = models.ForeignKey(Material, on_delete=models.CASCADE)
