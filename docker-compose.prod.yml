@@ -54,6 +54,7 @@ services:
                         - certs:/etc/nginx/certs
                         - html:/usr/share/nginx/html
                         - vhost:/etc/nginx/vhost.d
+                        - acme:/etc/acme.sh
                 depends_on:
                         - nginx-proxy
 
@@ -62,5 +63,6 @@ volumes:
         static_volume:
         media_volume:
         certs:
+        acme:
         html:
         vhost:
