@@ -39,6 +39,15 @@ class MaterialDropInLineAdmin(admin.TabularInline):
     extra = 1
 
 
+class MaterialInLineAdmin(admin.TabularInline):
+    class Media:
+        js = ("crafting/js/dropsMissingTooltip.js",)
+    
+    model = Material
+    exclude = ["tools"]
+    extra = 1
+
+
 class RecipeAdmin(admin.ModelAdmin):
 
     list_display = ('icons_produkte', 'produkte', 'icons_zutaten', 'zutaten', 'table', 'duration', 'fertigkeiten')
@@ -86,9 +95,17 @@ class MaterialAdmin(admin.ModelAdmin):
         return ", ".join([drop.item.name for drop in MaterialDrop.objects.filter(material=obj)])
 
 
+class RegionAdmin(admin.ModelAdmin):
+    list_display = ('name', 'vorkommen')
+
+    inlines = [MaterialInLineAdmin]
+
+    def vorkommen(self, obj):
+        return ", ".join([m.name for m in sorted(Material.objects.filter(region=obj), key=lambda material: material.name)])
+
 
 admin.site.register(Profile, ProfileAdmin)
 admin.site.register(InventoryItem, InventoryAdmin)
 admin.site.register(Recipe, RecipeAdmin)
 admin.site.register(Material, MaterialAdmin)
-admin.site.register(Region)
+admin.site.register(Region, RegionAdmin)
