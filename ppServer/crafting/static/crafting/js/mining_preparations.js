@@ -141,13 +141,23 @@ function addEventListeners() {
   // }
 }
 
+var classList;
+var click_interval;
+var timer;
 
 window.addEventListener("DOMContentLoaded", () => {
-  addEventListeners();
+  classList = document.querySelector('#auto-clicker').classList;
 
-  setInterval(() => {
-    const event = new Event('click');
-    document.querySelector(`#mining-window`).dispatchEvent(event);
-  }, 100);
+  addEventListeners();
+  autoClick();
 });
 
+function autoClick() {
+  click_interval = parseInt(document.querySelector("#auto-click-speed").value);
+    if (classList.contains('checked')) {
+      const event = new Event('click');
+      document.querySelector(`#mining-window`).dispatchEvent(event);
+    }
+  
+    timer = setTimeout(autoClick, click_interval);
+}
