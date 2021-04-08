@@ -235,6 +235,6 @@ class Material(models.Model):
 		icon.save(self.icon.path, "png")
 
 class MaterialDrop(models.Model):
-	item = models.ForeignKey(Tinker, on_delete=models.CASCADE, default=Tinker.objects.first().pk)
+	item = models.ForeignKey(Tinker, on_delete=models.CASCADE, blank=False, null=True)
 	amount = models.TextField(default="[1]")
 	material = models.ForeignKey(Material, on_delete=models.CASCADE)

@@ -40,9 +40,6 @@ class MaterialDropInLineAdmin(admin.TabularInline):
 
 
 class MaterialInLineAdmin(admin.TabularInline):
-    class Media:
-        js = ("crafting/js/dropsMissingTooltip.js",)
-    
     model = Material
     exclude = ["tools"]
     extra = 1
