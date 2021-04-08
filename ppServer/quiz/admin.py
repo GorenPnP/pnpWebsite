@@ -27,7 +27,7 @@ class ModelStateFilter(admin.SimpleListFilter):
         human-readable name for the option that will appear
         in the right sidebar.
         """
-        return tuple([(None, "All")] + module_state + [(106, "Not passed")])
+        return tuple([(None, "All")] + module_state + [(106, "not passed")])
 
     def queryset(self, request, queryset):
         """
