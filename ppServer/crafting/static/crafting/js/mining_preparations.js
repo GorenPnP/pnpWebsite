@@ -125,7 +125,7 @@ function addEventListeners() {
   document.querySelector(`#mining-window`).addEventListener('click', () => mining())
 
   document.querySelector("body").addEventListener("keydown", e => {
-    if (e.keyCode === 32 && !keyLocked) mining();
+    if (e.keyCode === 32) mining();
   
     // if ([16, 17, 73, 123].includes(e.keyCode)) {
     //   console.log("gotten", e.keyCode)

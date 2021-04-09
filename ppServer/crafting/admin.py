@@ -78,7 +78,7 @@ class RecipeAdmin(admin.ModelAdmin):
 class MaterialAdmin(admin.ModelAdmin):
     list_display = ('_icon', 'name', 'region', 'rigidity', 'spawn_chance', 'second_spawn_chance', '_drops')
     list_display_links = ('_icon', 'name')
-    search_fields = ('name', 'region')
+    search_fields = ('name', 'region__name')
 
     exclude = ('tools', )
 

@@ -15,9 +15,9 @@
 	{% for table in tables %}
 		<div
 			class="item reorder-container__element table{% if forloop.first %} selected{% endif %}{% if table.available %} available{% endif %}"
-			id="tid-{{ table.id }}"
+			id="tid-{% localize off %}{{ table.id }}{% endlocalize %}"
 			draggable="true"
-			onclick="tableChange('tid-{{ table.id }}')"
+			onclick="tableChange('tid-{% localize off %}{{ table.id }}{% endlocalize %}')"
 			data-title="{{ table.name }}">
 
 			<img src="{{ table.icon }}" alt="{{ table.name }}">
