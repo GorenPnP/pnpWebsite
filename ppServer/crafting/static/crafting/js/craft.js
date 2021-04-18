@@ -145,7 +145,7 @@ function tableChange(id, display_spinner=true) {
 function craftChange({ currentTarget }) {
 
 	// amount of product
-	var num = parseInt(currentTarget.value)
+	var num = parseInt(currentTarget.value || 0)
 
 	// get common id (used as class on html)
 	var id_class = ""

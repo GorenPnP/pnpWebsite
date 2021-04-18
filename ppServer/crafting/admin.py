@@ -76,13 +76,18 @@ class RecipeAdmin(admin.ModelAdmin):
 
 
 class MaterialAdmin(admin.ModelAdmin):
-    list_display = ('_icon', 'name', 'region', 'rigidity', 'spawn_chance', 'second_spawn_chance', '_drops')
+    list_display = ('_icon', 'name', 'region', 'rigidity', '_spawn_chance', 'second_spawn_chance', '_drops')
     list_display_links = ('_icon', 'name')
     search_fields = ('name', 'region__name')
 
     exclude = ('tools', )
 
     inlines = [MaterialDropInLineAdmin]
+
+    def _spawn_chance(self, obj):
+        spawn_chance = obj.spawn_chance
+        sum_spawn_chance = sum([m['spawn_chance'] for m in Material.objects.filter(region=obj.region).values('spawn_chance')])
+        return "{}/{} ({:.1f}%)".format(spawn_chance, sum_spawn_chance, spawn_chance / sum_spawn_chance * 100)
 
     def _icon(self, obj):
         html = format_html('<img src="{0}" style="max-width: 32px; max-height:32px;" />'.format(obj.icon.url))
