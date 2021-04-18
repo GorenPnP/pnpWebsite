@@ -12,7 +12,7 @@
 <form method="post" class="container">
 	{% csrf_token %}
 	<label for="name">Crafting für Profil:</label>
-	<input list="profiles" name="name" id="name" placeholder="Name" required>
+	<input type="text" list="profiles" name="name" id="name" placeholder="Name" autocomplete="off" required>
 	<datalist id="profiles">
 		{% for p in profiles %}<option value="{{ p.name }}"></option>{% endfor %}
 	</datalist>
