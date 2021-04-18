@@ -397,9 +397,9 @@ def region_select(request):
 @login_required
 @spielleiter_only(redirect_to="crafting:craft")
 def mining(request, pk):
+	region = get_object_or_404(Region, pk=pk)
 
 	if request.method == "GET":
-		region = get_object_or_404(Region, pk=pk)
 		materials_query = Material.objects.filter(region=region)
 		
 		# if no materials defined for this region, redirect away
@@ -446,6 +446,6 @@ def mining(request, pk):
 
 
 		return JsonResponse({
-			"id": get_2nd_chance_material(prev_material, Material.objects.filter(region__name="Wesanien")).id,
+			"id": get_2nd_chance_material(prev_material, Material.objects.filter(region=region)).id,
 			"amount": json.dumps(log_drops)
 		})
