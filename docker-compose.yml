@@ -2,22 +2,26 @@ version: '3.7'
 
 services:
   web:
+    container_name: pnp-web
     build: ./ppServer
     command: gunicorn ppServer.wsgi:application --bind 0.0.0.0:8000
     volumes:
       - ./ppServer/:/usr/src/ppServer/
-    ports:
-      - 8000:8000
     env_file:
       - ./.env.dev
+    ports:
+      - 8000:8000
     depends_on:
       - db
   db:
+    container_name: pnp-db
     image: postgres:12.0-alpine
     volumes:
       - postgres_data:/var/lib/postgresql/data/
     env_file:
       - ./.env.dev.db
+    ports:
+      - 5432:5432
 
 volumes:
   postgres_data:

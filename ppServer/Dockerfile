@@ -16,7 +16,9 @@ RUN apk update && \
     apk add postgresql-dev python3-dev && \
     apk add netcat-openbsd && \
     # for pillow
-    apk add zlib-dev jpeg-dev
+    apk add zlib-dev jpeg-dev && \
+    # for dbbackup
+    apk add postgresql
 
 # install dependencies
 RUN pip install --upgrade pip

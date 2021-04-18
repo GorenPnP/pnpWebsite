@@ -19,8 +19,8 @@ cd $BASEPATH_HOST
 docker container stop pnp-nginx
 
 # backup db
-docker exec pnp-web sh -c "python manage.py dumpdata --exclude auth.permission --exclude contenttypes > ./backups/postgres_dump.json"
-docker cp pnp-web:$BASEPATH_CONTAINER/backups/postgres_dump.json ./backups/$DATE/postgres_dump.json
+docker exec pnp-web sh -c "python manage.py dbbackup"
+docker cp pnp-web:$BASEPATH_CONTAINER/backups/postgres_dump.psql ./backups/$DATE/postgres_dump.psql
 
 # backup media
 docker cp pnp-web:$BASEPATH_CONTAINER/media/  ./backups/$DATE/
