@@ -22,9 +22,10 @@ function openDetails(id) {
 
 		document.getElementById("overlay__stufe").innerHTML = data.ab_stufe || 0
 
-		document.getElementById("overlay__table").innerHTML =
-			`<img src="${data.table.icon}" alt="${data.table.name}">
-			<span>${data.table.name}</span>`
+		document.getElementById("overlay__table").innerHTML = data.table.icon || data.table.name ?
+		`<img src="${data.table.icon}" alt="${data.table.name}">
+		<span>${data.table.name}</span>` :
+		`-`
 
 		var ingredients = data.ingredients.map(i => { return `<div class="ingredient"><img src="${i.icon}" alt="${i.name}"><span>${parseFloat(i.num)?.toFixed(1).replace(".", ",").replace(",0", "") || "?"}x ${i.name}</span></div>` })
 		document.getElementById("overlay__ingredients").innerHTML = ingredients.join("") || "-"
