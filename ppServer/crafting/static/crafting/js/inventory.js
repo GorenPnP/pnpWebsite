@@ -29,7 +29,7 @@ function openDetails(id) {
 
 		var ingredients = data.ingredients.map(i => { return `<div class="ingredient"><img src="${i.icon}" alt="${i.name}"><span>${parseFloat(i.num)?.toFixed(1).replace(".", ",").replace(",0", "") || "?"}x ${i.name}</span></div>` })
 		document.getElementById("overlay__ingredients").innerHTML = ingredients.join("") || "-"
-		document.getElementById("overlay__num-prod").innerHTML = parseFloat(data.num_prod)?.toFixed(1).replace(".", ",").replace(",0", "") || "?"
+		document.getElementById("overlay__num-prod").innerHTML = parseFloat(data.num_prod)? parseFloat(data.num_prod).toFixed(1).replace(".", ",").replace(",0", "") : "-"
 
 		document.getElementById("overlay__link").href = data.link
 
