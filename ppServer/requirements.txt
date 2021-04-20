@@ -3,7 +3,7 @@
 Django==3.*							# need django for django. Makes sense, right?
 
 Twisted==20.3.0                 #set specific version to use in uvicorn (asgi-server)
-uvicorn[standard]               # asgi server, need async for websockets in chat
+uvicorn[standard]               # asgi server, need async for websockets in chat (does not exist in alpine version of docker-image)
 gunicorn>=20.0.4				# prod env for django
 
 Pillow>=8								# image library
@@ -12,5 +12,4 @@ pytz>=2018.4						# better handling for time/date types
 django-request>=1.5.5		# http-request logging in /admin/request/...
 django-dbbackup==3.*        # db + media backup utility
 
-cffi
 channels==3.*
