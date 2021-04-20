@@ -1,0 +1,45 @@
+{% extends 'base/main.html' %}
+{% load static %}
+{% block title %}{{ topic }}{% endblock %}
+{% block extra-head %}
+<link rel="stylesheet" href="{% static 'base/css/checkbox.css' %}">
+<link rel="stylesheet" href="{% static 'crafting/css/mining.css' %}">
+<script src='https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js' type='text/javascript'></script>
+<script src="{% static 'base/js/ajax.js' %}"></script>
+<script src="{% static 'crafting/js/mining_preparations.js' %}"></script>
+<script src="{% static 'crafting/js/mining.js' %}"></script>
+{% endblock %}
+{% block absolute %}{% include 'base/header.html' with topic=topic %}{% endblock %}
+
+{% block body %}
+<h2>Kissi flooft im Schmiedesystem</h2>
+
+<aside style="grid-gap: 2em;">
+	<div class="checkbox" id="auto-clicker" onclick="this.classList.toggle('checked')"></div>
+	<label onclick="document.querySelector('#auto-clicker').classList.toggle('checked')">Auto-Clicker</label>
+	
+	<label for="auto-click-speed">Auto-Click speed:</label>
+	<div style="display: flex; align-items: center">
+		<input type="range" id="auto-click-speed" min=10 max=1000 value="500" oninput="document.querySelector('#auto-click-speed-value').innerHTML = this.value">
+		<span id="auto-click-speed-value" style="margin: 0 .2em 0 1em">500</span> ms
+	</div>
+</aside>
+
+<main>
+	<button id="mining-window">
+		<b>Click to Mine!</b>
+	</button>
+</main>
+<aside>
+	<b>Material:</b>
+	<span id="current-material">-</span>
+	
+	<b>Rigidity:</b>
+	<span id="current-rigidity">-</span>
+</aside>
+<aside id="amount-mined"></aside>
+
+
+<div id="materials" style="display: none">{{ materials }}</div>
+<div id="initial_material_id" style="display: none">{{ initial_material_id }}</div>
+{% endblock %}

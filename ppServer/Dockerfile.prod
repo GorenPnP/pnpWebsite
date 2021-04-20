@@ -58,7 +58,9 @@ WORKDIR $APP_HOME
 # install dependencies
 RUN apk update && apk add libpq && \
     # for pillow
-    apk add zlib-dev jpeg-dev
+    apk add zlib-dev jpeg-dev && \
+    # for dbbackup
+    apk add postgresql
 
 COPY --from=builder /usr/src/ppServer/wheels /wheels
 COPY --from=builder /usr/src/ppServer/requirements.txt .

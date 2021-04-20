@@ -1,5 +1,5 @@
 {% extends 'base/main.html' %}
-{% load static %}
+{% load static %}{% load l10n %}
 {% block title %}{{ topic }}{% endblock %}
 {% block extra-head %}
 <link rel="stylesheet" type="text/css" href="{% static 'base/css/cards.css' %}">
@@ -31,7 +31,7 @@
 
 	<select id="items" autocomplete required>
 		{% for i in allItems %}
-			<option value="{{ i.id }}">
+			<option value="{% localize off %}{{ i.id }}{% endlocalize %}">
 				<img src="{{ i.icon }}" alt="{{ i.name }}">
 				<span>{{ i.name }}</span>
 			</option>
@@ -44,7 +44,7 @@
 
 <div class="grid">
 	{% for i in items %}
-		<div class=item onclick="openDetails({{ i.id }})">
+		<div class=item onclick="openDetails({% localize off %}{{ i.id }}{% endlocalize %})">
 			<img src="{{ i.item.getIconUrl }}" alt="{{ i.item.name }}">
 			<span class="num">{{ i.num|floatformat }}</span>
 		</div>

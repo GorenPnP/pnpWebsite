@@ -35,11 +35,13 @@ document.addEventListener("DOMContentLoaded", () => {
 	axios.defaults.headers.post['Content-Type'] = 'application/json';
 })
 
-function get(data, success = reaction, error = reaction, display_spinner = true) { send("get", data, success, error, display_spinner)}
-function post(data, success = reaction, error = reaction, display_spinner = true) { send("post", data, success, error, display_spinner)}
+function get(data, success, error, display_spinner = true) { send("get", data, success, error, display_spinner)}
+function post(data, success, error, display_spinner = true) { send("post", data, success, error, display_spinner)}
 
 
-function send(method='get', data, success=reaction, error=reaction, display_spinner=true) {
+function send(method='get', data, success, error, display_spinner=true) {
+	success = success || reaction;
+	error = error || reaction;
 
 	if (display_spinner) spinner.style.display = "flex";
 

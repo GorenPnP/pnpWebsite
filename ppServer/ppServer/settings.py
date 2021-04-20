@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'service.apps.ServiceConfig',
     'django.contrib.admin',
     'request',
+    'dbbackup',
 ]
 
 MIDDLEWARE = [
@@ -100,6 +101,14 @@ DATABASES = {
         'PORT': os.environ.get('DATABASE_PORT')
     }
 }
+
+# backup config
+DBBACKUP_STORAGE = 'django.core.files.storage.FileSystemStorage'
+DBBACKUP_STORAGE_OPTIONS = {
+    'location': os.path.join(BASE_DIR, 'backups')
+}
+DBBACKUP_FILENAME_TEMPLATE = 'postgres_{datetime}.{extension}'
+DBBACKUP_MEDIA_FILENAME_TEMPLATE = 'media_{datetime}.{extension}'
 
 # Password validation
 # https://docs.djangoproject.com/en/2.0/ref/settings/#auth-password-validators
@@ -153,33 +162,33 @@ THOUSAND_SEPARATOR = "."
 
 
 
-# # Logging Configuration
-# import logging.config
+# Logging Configuration
+import logging.config
 
-# # Clear prev config
-# LOGGING_CONFIG = None
+# Clear prev config
+LOGGING_CONFIG = None
 
-# # Get loglevel from env
-# LOGLEVEL = os.environ.get('DJANGO_LOGLEVEL', 'info').upper()
+# Get loglevel from env
+LOGLEVEL = os.environ.get('DJANGO_LOGLEVEL', 'info').upper()
 
-# logging.config.dictConfig({
-#     'version': 1,
-#     'disable_existing_loggers': False,
-#     'formatters': {
-#         'console': {
-#             'format': '%(asctime)s %(levelname)s [%(name)s:%(lineno)s] %(module)s %(process)d %(thread)d %(message)s',
-#         },
-#     },
-#     'handlers': {
-#         'console': {
-#             'class': 'logging.StreamHandler',
-#             'formatter': 'console',
-#         },
-#     },
-#     'loggers': {
-#         '': {
-#             'level': LOGLEVEL,
-#             'handlers': ['console',],
-#         },
-#     },
-# })
+logging.config.dictConfig({
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'console': {
+            'format': '%(asctime)s %(levelname)s [%(name)s:%(lineno)s] %(module)s %(process)d %(thread)d %(message)s',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'console',
+        },
+    },
+    'loggers': {
+        '': {
+            'level': LOGLEVEL,
+            'handlers': ['console',],
+        },
+    },
+})

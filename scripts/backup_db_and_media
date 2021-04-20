@@ -19,8 +19,8 @@ cd $BASEPATH_HOST
 docker container stop pnp-nginx
 
 # backup db
-docker exec pnp-web sh -c "python manage.py dbbackup"
-docker cp pnp-web:$BASEPATH_CONTAINER/backups/postgres_dump.psql ./backups/$DATE/postgres_dump.psql
+docker exec pnp-web python manage.py dbbackup
+docker cp pnp-web:$BASEPATH_CONTAINER/backups/ ./backups/$DATE/
 
 # backup media
 docker cp pnp-web:$BASEPATH_CONTAINER/media/  ./backups/$DATE/
@@ -28,8 +28,10 @@ docker cp pnp-web:$BASEPATH_CONTAINER/media/  ./backups/$DATE/
 # re-enable routing, rest can be done in parallel
 docker container start pnp-nginx
 
-# compress backup
+# organize & compress backup
 cd ./backups
+find . -name "postgres_*.psql" -exec mv '{}' ./$DATE \;
+rm -rf $DATE/backups
 tar -czf $DATE.tar.gz $DATE/
 
 # remove original backups inside docker-container
