@@ -1,5 +1,5 @@
 # pull official base image
-FROM nikolaik/python-nodejs:python3.8-nodejs14-slim
+FROM ubuntu
 
 # set work directory
 WORKDIR /usr/src/ppServer
@@ -8,19 +8,30 @@ WORKDIR /usr/src/ppServer
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
-# dependencies for nc in entrypoint.sh
-RUN apt-get update && apt-get install -y netcat gcc
+# dependencies:
+# - python3-pip for pip3
+# - netcat for nc in entrypoint.sh
+# - postgresql-client-12 for dbbackup
+# - curl for nodejs for npm
+RUN apt-get update && apt-get install -y python3-pip netcat postgresql-client-12 curl
+
+# exec install script for npm v14 by curl
+RUN curl -sL https://deb.nodesource.com/setup_14.x | bash
+# and install nodejs for npm
+RUN apt-get install -y nodejs
 
 # install dependencies
-RUN pip install --upgrade pip
 COPY ./requirements.txt .
-RUN pip install -r requirements.txt
+RUN pip3 install -r requirements.txt
 
 # copy entrypoint.sh
 COPY ./entrypoint.sh .
 
 # copy project
 COPY . .
+
+# install shit via npm
+RUN npm update npm && npm i
 
 # run entrypoint.sh
 ENTRYPOINT ["/usr/src/ppServer/entrypoint.sh"]
