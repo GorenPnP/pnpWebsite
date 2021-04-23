@@ -1,6 +1,5 @@
 import json
 
-from django.shortcuts import get_object_or_404
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
 
@@ -14,7 +13,7 @@ class ChatRoomConsumer(AsyncWebsocketConsumer):
 
     @database_sync_to_async
     def _db_get_spieler(self, user):
-        return get_object_or_404(Spieler, name=self.user.username)
+        return Spieler.objects.get(name=self.user.username)
 
 
     async def connect(self):
@@ -72,11 +71,17 @@ class ChatRoomConsumer(AsyncWebsocketConsumer):
     async def leave_chatroom_message(self, event):
         message = event['message']
         username = event['username']
+
         await self.send(text_data=json.dumps({
             'type': 'info',
             'message': message,
             'username': username,
         }))
+
+        # multiple windows of same user open? cut all connections to THIS CHAT on logout
+        if username == self.spieler.name:
+            self.close()
+            self.disconnect(none)
 
     async def chatroom_message(self, event):
         message = event['message']

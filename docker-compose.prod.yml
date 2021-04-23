@@ -41,8 +41,6 @@ services:
                         - html:/usr/share/nginx/html
                         - vhost:/etc/nginx/vhost.d
                         - /var/run/docker.sock:/tmp/docker.sock:ro
-                depends_on:
-                        - web
 
         nginx-proxy-letsencrypt:
                 container_name: pnp-nginx-letsencrypt

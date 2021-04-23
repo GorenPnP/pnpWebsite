@@ -22,13 +22,18 @@ document.addEventListener('DOMContentLoaded', () => {
 function initWsSocket() {
     const ws_scheme = window.location.protocol == "https:" ? "wss" : "ws";
     const wsUrl = `${ws_scheme}://${window.location.host}/ws/chat/${document.querySelector('#room_name').textContent}/`;
-    console.log(wsUrl)
     chatSocket = new WebSocket(wsUrl);
-    console.log(chatSocket)
 
     chatSocket.onmessage = receive_msg;
+    chatSocket.onclose = leave_chat;
 }
 
+
+// close this chat on logout
+function leave_chat() {
+    document.querySelector('.message-container').innerHTML += `<div class="info">Leaving this chat...</div>`;
+    setTimeout(() => location.href = `/chat`, 5000);
+}
 
 function set_new_msg() {
     const charactername = name_input.value || '';
@@ -65,7 +70,7 @@ function display_message(data) {
 }
 
 function display_info(data) {
-    const message = `<div class="info">${data.username} ${data.message}</div>`
+    const message = `<div class="info">${data.username === username ? "You" : data.username} ${data.message}</div>`
 
     document.querySelector('.message-container').innerHTML += message;
 }

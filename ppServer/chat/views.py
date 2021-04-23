@@ -66,6 +66,7 @@ def sp_index_get(request):
     return render(request, 'chat/sp_index.html', context)
 
 
+@login_required
 def room(request, room_name):
     context = {"topic": room_name, "room_name": room_name}
     return render(request, 'chat/chatroom.html', context)
