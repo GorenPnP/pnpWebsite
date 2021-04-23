@@ -2,9 +2,12 @@
 
 Django==3.*							# need django for django. Makes sense, right?
 
-Twisted==20.3.0                 #set specific version to use in uvicorn (asgi-server)
-uvicorn[standard]               # asgi server, need async for websockets in chat (does not exist in alpine version of docker-image)
-gunicorn>=20.0.4				# prod env for django
+#Twisted==20.3.0                 # set specific version to use in uvicorn (asgi-server)
+#uvicorn[standard]               # asgi server, need async for websockets in chat (does not exist in alpine version of docker-image)
+#gunicorn>=20.0.4				# prod env for django
+
+Twisted[tls,http2]==21.*        # needed for HTTP/2 support of daphne
+daphne==3.*                     # prod env for (sync django &) async django channels (via ws)
 
 Pillow>=8								# image library
 psycopg2-binary>=2.8.6					# for postgresql usage
