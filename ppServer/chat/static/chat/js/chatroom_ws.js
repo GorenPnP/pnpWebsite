@@ -20,10 +20,13 @@ document.addEventListener('DOMContentLoaded', () => {
 })
 
 function initWsSocket() {
-    const wsUrl = `ws://${window.location.host}/ws/chat/${document.querySelector('#room_name').textContent}/`;
+    const ws_scheme = window.location.protocol == "https:" ? "wss" : "ws";
+    const wsUrl = `${ws_scheme}://${window.location.host}/ws/chat/${document.querySelector('#room_name').textContent}/`;
+    console.log(wsUrl)
     chatSocket = new WebSocket(wsUrl);
+    console.log(chatSocket)
 
-    chatSocket.onmessage = receive_msg
+    chatSocket.onmessage = receive_msg;
 }
 
 
