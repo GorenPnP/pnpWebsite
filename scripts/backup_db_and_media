@@ -19,7 +19,7 @@ cd $BASEPATH_HOST
 docker container stop pnp-nginx
 
 # backup db
-docker exec pnp-web python manage.py dbbackup
+docker exec pnp-web python3 manage.py dbbackup
 docker cp pnp-web:$BASEPATH_CONTAINER/backups/ ./backups/$DATE/
 
 # backup media

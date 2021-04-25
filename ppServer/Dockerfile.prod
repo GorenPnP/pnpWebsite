@@ -1,86 +1,54 @@
-###########
-# BUILDER #
-###########
 
 # pull official base image
-FROM nikolaik/python-nodejs:python3.9-nodejs14-alpine as builder
-
-# set work directory
-WORKDIR /usr/src/ppServer
-
-# set environment variables
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV PYTHONUNBUFFERED 1
-
-# dependencies ...
-RUN apk update && \
-    # for psycopg2
-    apk add --virtual build-deps gcc musl-dev  && \
-    # for psycopg2
-    apk add postgresql-dev python3-dev && \
-    apk add netcat-openbsd && \
-    # for pillow
-    apk add zlib-dev jpeg-dev
-
-# lint
-RUN pip install --upgrade pip
-#RUN pip install flake8
-COPY . .
-#RUN flake8 --ignore=E501,F401 .
-
-# install dependencies
-COPY ./requirements.txt .
-RUN pip wheel --no-cache-dir --no-deps --wheel-dir /usr/src/ppServer/wheels -r requirements.txt
-
-
-#########
-# FINAL #
-#########
-
-# pull official base image
-FROM nikolaik/python-nodejs:python3.9-nodejs14-alpine
+FROM ubuntu
 
 # create directory for the app user
 RUN mkdir -p /home/ppServer
 
-# create the app user
-RUN addgroup -S ppServer && adduser -S ppServer -G ppServer
+# # create the app user
+# RUN adduser --force-badname ppServer
 
 # create the appropriate directories
 ENV APP_HOME=/home/ppServer/web
 
 RUN mkdir $APP_HOME
-RUN [[ -d $APP_HOME/static ]] || mkdir $APP_HOME/static
-RUN [[ -d $APP_HOME/media ]] || mkdir $APP_HOME/media
+RUN [ -d $APP_HOME/static ] || mkdir $APP_HOME/static
+RUN [ -d $APP_HOME/media ] || mkdir $APP_HOME/media
 
 WORKDIR $APP_HOME
 
-# install dependencies
-RUN apk update && apk add libpq && \
-    # for pillow
-    apk add zlib-dev jpeg-dev && \
-    # for dbbackup
-    apk add postgresql
 
-COPY --from=builder /usr/src/ppServer/wheels /wheels
-COPY --from=builder /usr/src/ppServer/requirements.txt .
-RUN pip install --no-cache /wheels/*
+# dependencies:
+# - python3-pip for pip3
+# - netcat for nc in entrypoint.sh
+# - postgresql-client-12 for dbbackup
+# - curl for nodejs for npm
+RUN apt-get update && apt-get install -y python3-pip netcat postgresql-client-12 curl
+
+# install dependencies
+COPY ./requirements.txt .
+RUN pip3 install -r requirements.txt
 
 # copy entrypoint-prod.sh
 COPY ./entrypoint.prod.sh $APP_HOME
 
 # copy package*.json, install dependencies over npm
 COPY ./package*.json $APP_HOME/
+# exec install script for npm v14 by curl
+RUN curl -sL https://deb.nodesource.com/setup_14.x | bash
+# and install nodejs for npm
+RUN apt-get install -y nodejs
+# install shit via npm
 RUN npm update npm && npm i opencollective && npm ci --only=production
 
 # copy project
 COPY . $APP_HOME
 
-# chown all the files to the app user
-RUN chown -R ppServer:ppServer $APP_HOME
+# # chown all the files to the app user
+# RUN chown -R ppServer:ppServer $APP_HOME
 
-# change to the app user
-USER ppServer
+# # change to the app user
+# USER ppServer
 
 # run entrypoint.prod.sh
 ENTRYPOINT ["/home/ppServer/web/entrypoint.prod.sh"]

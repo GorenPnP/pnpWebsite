@@ -4,15 +4,19 @@ services:
   web:
     container_name: pnp-web
     build: ./ppServer
-    command: gunicorn ppServer.wsgi:application --bind 0.0.0.0:8000
+    command: daphne -b 0.0.0.0 -p 8000 ppServer.asgi:application # gunicorn ppServer.asgi:application -w 2 --bind 0.0.0.0:8000 -k uvicorn.workers.UvicornWorker
     volumes:
       - ./ppServer/:/usr/src/ppServer/
+
+      - static_volume:/usr/src/ppServer/static
+      - media_volume:/usr/src/ppServer/media
     env_file:
       - ./.env.dev
     ports:
       - 8000:8000
     depends_on:
       - db
+
   db:
     container_name: pnp-db
     image: postgres:12.0-alpine
@@ -23,5 +27,25 @@ services:
     ports:
       - 5432:5432
 
+  nginx-proxy:
+    container_name: pnp-nginx
+    build: ./nginx
+    restart: always
+    ports:
+      - 80:80         # http
+    volumes:
+      - static_volume:/home/ppServer/web/static
+      - media_volume:/home/ppServer/web/media
+      - certs:/etc/nginx/certs
+      - html:/usr/share/nginx/html
+      - vhost:/etc/nginx/vhost.d
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+
 volumes:
   postgres_data:
+  static_volume:
+  media_volume:
+  certs:
+  acme:
+  html:
+  vhost:

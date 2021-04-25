@@ -15,10 +15,10 @@ def index(request):
 
     if request.method == "GET":
 
-        if request.user.groups.filter(name__iexact="spielleiter").exists():
-            return sp_index_get(request)
+        # if request.user.groups.filter(name__iexact="spielleiter").exists():
+        #     return sp_index_get(request)
 
-        context = {"topic": "Chat", "messages": Message.objects.all()}
+        context = {"topic": "Chat"}
         return render(request, 'chat/index.html', context)
 
     if request.method == "POST":
@@ -64,3 +64,9 @@ def sp_index_get(request):
         "own_name": get_object_or_404(Spieler, name=request.user.username).get_real_name()
     }
     return render(request, 'chat/sp_index.html', context)
+
+
+@login_required
+def room(request, room_name):
+    context = {"topic": room_name, "room_name": room_name}
+    return render(request, 'chat/chatroom.html', context)

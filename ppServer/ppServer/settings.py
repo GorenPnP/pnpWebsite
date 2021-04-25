@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     'django.contrib.admin',
     'request',
     'dbbackup',
+    'channels',
 ]
 
 MIDDLEWARE = [
@@ -82,6 +83,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'ppServer.wsgi.application'
+ASGI_APPLICATION = 'ppServer.routing.application'
 
 
 # Database
@@ -156,6 +158,12 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 2048 # higher than the count of fields
 
+# TODO use redis or similar?
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer"
+    }
+}
 
 USE_THOUSAND_SEPARATOR = True
 THOUSAND_SEPARATOR = "."

@@ -6,7 +6,7 @@ services:
                 build:
                         context: ./ppServer
                         dockerfile: Dockerfile.prod
-                command: gunicorn ppServer.wsgi:application --bind 0.0.0.0:8000 --workers=3
+                command: daphne -b 0.0.0.0 -p 8000 ppServer.asgi:application # gunicorn ppServer.wsgi:application --bind 0.0.0.0:8000 --workers=3
                 volumes:
                         - static_volume:/home/ppServer/web/static
                         - media_volume:/home/ppServer/web/media
@@ -41,8 +41,6 @@ services:
                         - html:/usr/share/nginx/html
                         - vhost:/etc/nginx/vhost.d
                         - /var/run/docker.sock:/tmp/docker.sock:ro
-                depends_on:
-                        - web
 
         nginx-proxy-letsencrypt:
                 container_name: pnp-nginx-letsencrypt

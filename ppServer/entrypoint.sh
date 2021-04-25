@@ -11,12 +11,10 @@ then
     echo "PostgreSQL started"
 fi
 
-# python manage.py flush --no-input
-# python manage.py migrate
+# python3 manage.py flush --no-input
+# python3 manage.py migrate
 
-python manage.py collectstatic --noinput && \
-
-npm update npm && npm i && \
-./node_modules/sass/sass.js ./static --update --no-source-map
+python3 manage.py collectstatic --noinput && \
+ ./node_modules/sass/sass.js ./static --update --no-source-map
 
 exec "$@"
