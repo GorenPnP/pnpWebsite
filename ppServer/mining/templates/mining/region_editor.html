@@ -1,0 +1,84 @@
+{% extends 'base/main.html' %}
+{% load static %}
+{% block title %}{{ topic }}{% endblock %}
+{% block extra-head %}
+<link rel="stylesheet" href="{% static 'base/css/checkbox.css' %}">
+<link rel="stylesheet" href="{% static 'mining/css/region_editor.css' %}">
+<script src='https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js' type='text/javascript'></script>
+<script src="{% static 'base/js/ajax.js' %}"></script>
+<script src="{% static 'mining/js/region_editor.js' %}"></script>
+{% endblock %}
+{% block absolute %}{% include 'base/header.html' with topic=topic %}{% endblock %}
+
+{% block body %}
+<aside class="toolbar">
+
+	<div class="name-container">
+		Name
+		<input type="text" id="name" value="{{ name }}">
+	</div>
+
+	<div class="field-size-container">
+		Size
+		<input type="number" id="field-width" min="1" max="50" value="{% if field and field.0 %}{{ field.0|length }}{% else %}10{% endif %}">
+		x
+		<input type="number" id="field-height" min="1" max="50" value="{% if field and field.0 %}{{ field|length }}{% else %}10{% endif %}">
+	</div>
+
+	<div class="zoom-container">
+		Zoom
+		<input type="range" id="zoom" min="10" max="500" value="64">
+		<button onClick="document.querySelector('#zoom').value = 64; document.querySelector('#zoom').dispatchEvent(new Event('input'))">Reset Zoom</button>
+	</div>
+
+	<div class="border-toggle">
+		<div class="checkbox checked" id="border-toggle" onClick="toggle_field_border()"></div>
+		<span onClick="toggle_field_border()" style="cursor: pointer;">Field Border</span>
+	</div>
+	
+	<div class="zoom-container">
+		Unselected Field Opacity
+		<input type="range" id="unselected-field-opacity" min="0" max="1" step=".1" value="1">
+	</div>
+
+	<div class="field-bg-container">
+		Background Color
+		<input type="color" id="field-bg-color" value="#b9fefd" style="min-height: 40px;">
+	</div>
+</aside>
+
+<aside class="material-container">
+	{% for material in materials %}
+	<div class="material" data-id="{{ material.id }}">
+		<img src="{{ material.icon.url }}" alt="{{ material.name }}">
+	</div>
+	{% endfor %}
+</aside>
+<aside class="layer-container">
+	{% for layer in layers %}
+	<div class="layer" data-id="{{ layer.id }}" data-index="{{ layer.index }}">
+		<span>{{ layer.name }} ({{ layer.index }})</span>
+	</div>
+	{% endfor %}
+</aside>
+<main>
+	<div class="field">
+		{% for layer in layers %}
+			<div class="field-container field-container--{{ layer.index }}" data-layer_id="{{ layer.id }}">
+			{% for row in layer.field %}{% for cell in row %}
+				<div class="cell"
+					data-y_pos="{{ forloop.parentloop.counter0 }}" data-x_pos="{{ forloop.counter0 }}"
+					{% if cell %}data-material_id="{{ cell }}"{% endif %}
+				></div>
+			{% endfor %}{% endfor %}
+			</div>
+		{% endfor %}
+	</div>
+</main>
+
+<div class="info-container">
+	<div class="checkbox" id="delete-toggle" onClick="toggle_delete_mode()"></div>
+	<span onClick="toggle_delete_mode()" style="cursor: pointer;">Delete Mode</span>
+</div>
+<button class="button--ok">OK</button>
+{% endblock %}

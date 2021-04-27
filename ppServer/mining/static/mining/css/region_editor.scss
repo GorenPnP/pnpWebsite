@@ -1,0 +1,130 @@
+:root {
+    --field-border-width: 1px;
+    --field-size: 64px;
+    --field-bg-color: #b9fefd;
+    --unselected-field-opacity: 1;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: -webkit-crisp-edges;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+}
+
+.main-container {
+    height: 100vh;
+    width: 100vw;
+    padding-left: 50px;
+    padding-right: 10px;
+
+    display: grid;
+    justify-content: start;
+    align-content: flex-start;
+    gap: 1em;
+
+    grid-template-areas:
+        "materials layers toolbar"
+        "materials layers field"
+        "info      info   ok";
+
+    grid-template-columns: 100px 100px 1fr;
+    grid-template-rows: auto 1fr auto;
+
+    color: #ddd;
+}
+
+main {
+    grid-area: field;
+    overflow: auto;
+}
+.field {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+.field-container {
+    position: absolute;
+
+    display: grid;
+    justify-content: start;
+    align-content: flex-start;
+
+    /* x-offset-keyword y-offset-keyword */
+    transform-origin: left top;
+
+
+    & > * {
+        border-right: solid var(--field-border-width) #fff;
+        border-bottom: solid var(--field-border-width) #fff;
+
+        background-position: center;
+        background-size: cover;
+        cursor: pointer;
+    }
+    &.field-container--0 > * { background-color: var(--field-bg-color); }
+
+    opacity: var(--unselected-field-opacity);
+    &.selected {
+        opacity: 1;
+    }
+}
+.field-container--0 { z-index: 1; }
+.field-container--1 { z-index: 2; }
+.field-container--2 { z-index: 3; }
+.field-container--3 { z-index: 4; }
+.field-container--4 { z-index: 5; }
+
+.toolbar {
+    grid-area: toolbar;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 1em;
+
+    & > * {
+        display: flex;
+        align-items: center;
+        gap: .5em;
+    }
+}
+.material-container { grid-area: materials; }
+.layer-container { grid-area: layers; }
+.material-container, .layer-container {
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: .5em 0;
+
+    display: flex;
+    flex-direction: column;
+
+    gap: .5em;
+    img { display: block; }
+
+    & > * {
+        cursor: pointer;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin: 0 5px;
+    }
+
+    .selected {
+        cursor: initial;
+        transform: scale(1.1);
+        & > * { border: solid 4px red; }
+    }
+}
+
+.info-container {
+    grid-area: info;
+    justify-self: center;
+    align-self: flex-end;
+
+    display: flex;
+    align-items: center;
+    gap: .5em;
+}
+.button--ok {
+    grid-area: ok;
+    justify-self: center;
+    align-self: flex-end;
+    padding: 1em 3em;
+}

@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'polls.apps.PollsConfig',
     'quiz.apps.QuizConfig',
     'crafting.apps.CraftingConfig',
+    'mining.apps.MiningConfig',
     'time_space.apps.TimeSpaceConfig',
     'chat.apps.ChatConfig',
     'base.apps.BaseConfig',

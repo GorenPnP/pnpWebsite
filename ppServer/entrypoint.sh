@@ -11,8 +11,8 @@ then
     echo "PostgreSQL started"
 fi
 
-# python3 manage.py flush --no-input
-# python3 manage.py migrate
+# python3 manage.py flush --no-input # deletes entire data in db. Use with caution!
+python3 manage.py migrate
 
 python3 manage.py collectstatic --noinput && \
  ./node_modules/sass/sass.js ./static --update --no-source-map

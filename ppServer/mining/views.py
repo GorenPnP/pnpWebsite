@@ -1,0 +1,114 @@
+from django.shortcuts import render, get_object_or_404, reverse
+from django.contrib.auth.decorators import login_required
+from django.http.response import JsonResponse
+
+from ppServer.decorators import spielleiter_only
+
+from .models import *
+
+
+@login_required
+@spielleiter_only(redirect_to="base:index")
+def region_select(request):
+	context = {
+		"topic": "Region",
+		"regions": [{"id": r.id, "name": r.name} for r in Region.objects.all()],
+		"plus_url": reverse("mining:create_region")}
+	return render(request, "mining/region_select.html", context)
+
+
+@login_required
+@spielleiter_only(redirect_to="mining:region_select")
+def region_editor(request, region_id=None):
+	region = get_object_or_404(Region, id=region_id) if region_id is not None else None
+
+	if request.method == "GET":
+
+		layers = []
+		if region:
+			layers = Layer.objects.filter(region=region)
+
+		context = {
+			"topic": region.name if region else "New Region",
+			"materials": Material.objects.all(),
+			"layers": layers,
+			"field": region.get_field(0) if region else [[]],
+			"name": region.name if region else ""
+		}
+		return render(request, "mining/region_editor.html", context)
+
+	if request.method == "POST":
+		json_dict = json.loads(request.body.decode("utf-8"))
+		name = json_dict["name"]
+		fields = json_dict["fields"]
+
+		if (not name or not fields):
+			return JsonResponse({"message": "Parameters name and material_grid are required"}, status=418)
+
+		if region is None: region = Region.objects.create(name=name)
+		region.name = name
+		region.save()
+
+		for layer_id, field in fields.items():
+			layer, _= Layer.objects.get_or_create(id=layer_id)
+			layer.field = field
+			layer.save()
+
+		return JsonResponse({"message": "ok"})
+
+
+@login_required
+@spielleiter_only(redirect_to="mining:region_select")
+def mining(request, pk):
+	region = get_object_or_404(Region, pk=pk)
+
+	if request.method == "GET":
+		materials_query = Material.objects.filter(region=region)
+		
+		# if no materials defined for this region, redirect away
+		if not materials_query: return redirect("mining:region_select")
+
+		materials = [{
+			"id": m.id,
+			"name": m.name,
+			"rigidity": m.rigidity,
+			"spawn_chance": m.spawn_chance,
+			"second_spawn_chance": m.second_spawn_chance,
+			"tier": m.tier,
+			"texture": m.icon.url
+		} for m in materials_query]
+
+		initial_material_id = get_rand_material(materials_query).id
+
+		context = {
+			"topic": region.name,
+			"materials": json.dumps(materials),
+			"initial_material_id": initial_material_id
+		}
+		return render(request, "crafting/mining.html", context)
+	
+	if request.method == "POST":
+		prev_material_id = json.loads(request.body.decode("utf-8"))['id']
+		prev_material = get_object_or_404(Material, id=prev_material_id)
+
+		spieler = get_object_or_404(Spieler, name=request.user.username)
+		rel = get_object_or_404(RelCrafting, spieler=spieler)
+
+		log_drops = []
+		for drop in MaterialDrop.objects.filter(material=prev_material):
+			item = drop.item
+			amount = choice(json.loads(drop.amount))
+
+			# add to inventory
+			iitem, _ = InventoryItem.objects.get_or_create(char=rel.profil, item=item)
+			iitem.num += amount
+			iitem.save()
+
+			# log drops
+			log_drops.append([amount, item.name])
+
+
+		return JsonResponse({
+			"id": get_2nd_chance_material(prev_material, Material.objects.filter(region=region)).id,
+			"amount": json.dumps(log_drops)
+		})

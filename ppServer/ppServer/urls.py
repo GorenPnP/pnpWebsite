@@ -39,6 +39,7 @@ urlpatterns = [
     path('service/', include('service.urls')),
     path('file/', include('fileserver.urls')),
     path('crafting/', include('crafting.urls')),
+    path('mining/', include('mining.urls')),
     path('time_space/', include('time_space.urls')),
     path('chat/', include('chat.urls')),
 
