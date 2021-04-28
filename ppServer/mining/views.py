@@ -32,14 +32,16 @@ def region_editor(request, region_id=None):
 		
 		ungrouped_materials = Material.objects.exclude(id__in=grouped_material_ids)
 
-		some_layer = Layer.objects.filter(region=region).first()
+		layers = Layer.objects.filter(region=region) if region else []
+		width = max([  max([len(row) for row in layer.field])  for layer in layers]) if region else 0
+		height = max([len(layer.field) for layer in layers]) if region else 0
 		context = {
 			"topic": region.name if region else "New Region",
 			"groups": groups + [{"name": "-", "materials": ungrouped_materials}],
 			"materials": Material.objects.all(),
-			"layers": Layer.objects.filter(region=region) if region else [],
-			"field_width": len(some_layer.field[0]),
-			"field_height": len(some_layer.field),
+			"layers": layers,
+			"field_width": width,
+			"field_height": height,
 			"name": region.name if region else ""
 		}
 		return render(request, "mining/region_editor.html", context)
