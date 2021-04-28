@@ -17,6 +17,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.querySelector("#field-bg-color").addEventListener('input',update_field_bg_color);
     document.querySelector('#zoom').addEventListener('input', zoom);
     document.querySelector('#unselected-field-opacity').addEventListener('input', update_unselected_field_opacity);
+    document.querySelector('#delete-on-layer').addEventListener('click', delete_all_on_layer);
     document.querySelectorAll('.material')
         .forEach(material => material.addEventListener('click', () => select_material(material)));
     document.querySelectorAll('.layer')
@@ -266,4 +267,10 @@ function update_unselected_field_opacity() {
 function update_field_bg_color() {
     const bg_color = document.querySelector('#field-bg-color').value;
     document.documentElement.style.setProperty("--field-bg-color", `${bg_color}`);
+}
+
+function delete_all_on_layer() {
+    if (!selected_layer) { return; }
+
+    get_field_of_selected_layer().querySelectorAll(".cell").forEach(cell => delete_material_on(cell));
 }
