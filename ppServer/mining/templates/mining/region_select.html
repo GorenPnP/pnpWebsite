@@ -9,7 +9,11 @@
 {% block body %}
 <ul>
 	{% for region in regions %}
-	<li><a href="{% url 'mining:region_editor' region.id %}">{{ region.name }}</a></li>
+	<li style="display: grid; grid-template-columns: repeat(3, 1fr); width: 70ch;">
+		{{ region.name }}
+		<a href="{% url 'mining:region_editor' region.id %}">Edit</a>
+		<a href="{% url 'mining:mining' region.id %}">Play</a>
+	</li>
 	{% endfor %}
 </ul>
 {% endblock %}

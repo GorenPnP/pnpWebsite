@@ -2,6 +2,12 @@
 {% load static %}
 {% block title %}{{ topic }}{% endblock %}
 {% block extra-head %}
+<style>
+:root {
+	--field-width: {{ field_width }};
+	--field-height: {{ field_height }};
+}
+</style>
 <link rel="stylesheet" href="{% static 'base/css/checkbox.css' %}">
 <link rel="stylesheet" href="{% static 'mining/css/mining.css' %}">
 <script src='https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js' type='text/javascript'></script>
@@ -11,21 +17,14 @@
 {% block absolute %}{% include 'base/header.html' with topic=topic %}{% endblock %}
 
 {% block body %}
-<h2>Kissi flooft im Schmiedesystem</h2>
-
 {% for material in materials %}
-<div class="material" data-id="{{ material.id }}" data-src="{{ material.icon.url }}"></div>
+<div hidden class="material" data-id="{{ material.id }}" data-src="{{ material.icon.url }}"></div>
 {% endfor %}
 
 <div class="field">
-	<!-- bg colors of cells -->
-	<div class="field-container field-container--bg">
-		<div class="cell" data-y_pos="0" data-x_pos="0"></div>
-	</div>
 
 	<!-- actual layers -->
 	{% for layer in layers %}
-	layer
 		<div class="field-container field-container--{{ layer.index }}" data-layer_id="{{ layer.id }}">
 		{% for row in layer.field %}
 			{% for cell in row %}
@@ -47,7 +46,7 @@
 	{% endfor %}
 </div>
 
-<aside class="detail-mine">
+<!-- <aside class="detail-mine">
 	<button id="mining-window">
 		<b>Click to Mine!</b>
 	</button>
@@ -59,9 +58,5 @@
 	<b>Rigidity:</b>
 	<span id="current-rigidity">-</span>
 </aside>
-<aside id="amount-mined"></aside>
-
-
-<div id="materials" style="display: none">{{ materials }}</div>
-<div id="initial_material_id" style="display: none">{{ initial_material_id }}</div>
+<aside id="amount-mined"></aside> -->
 {% endblock %}

@@ -86,11 +86,12 @@ def mining(request, pk):
 		# if no materials defined for this region, redirect away
 		if not region.layer_set.count(): return redirect("mining:region_select")
 
-		print(region.layer_set.all())
-
+		some_layer = region.layer_set.first()
 		context = {
 			"topic": region.name,
 			"layers": region.layer_set.all(),
+			"field_width": len(some_layer.field[0]),
+			"field_height": len(some_layer.field),
 			"materials": Material.objects.all()
 		}
 		return render(request, "mining/mining.html", context)
