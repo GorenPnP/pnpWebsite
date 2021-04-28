@@ -6,7 +6,6 @@
 <link rel="stylesheet" href="{% static 'mining/css/mining.css' %}">
 <script src='https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js' type='text/javascript'></script>
 <script src="{% static 'base/js/ajax.js' %}"></script>
-<script src="{% static 'mining/js/mining_preparations.js' %}"></script>
 <script src="{% static 'mining/js/mining.js' %}"></script>
 {% endblock %}
 {% block absolute %}{% include 'base/header.html' with topic=topic %}{% endblock %}
@@ -14,22 +13,45 @@
 {% block body %}
 <h2>Kissi flooft im Schmiedesystem</h2>
 
-<aside style="grid-gap: 2em;">
-	<div class="checkbox" id="auto-clicker" onclick="this.classList.toggle('checked')"></div>
-	<label onclick="document.querySelector('#auto-clicker').classList.toggle('checked')">Auto-Clicker</label>
-	
-	<label for="auto-click-speed">Auto-Click speed:</label>
-	<div style="display: flex; align-items: center">
-		<input type="range" id="auto-click-speed" min=10 max=1000 value="500" oninput="document.querySelector('#auto-click-speed-value').innerHTML = this.value">
-		<span id="auto-click-speed-value" style="margin: 0 .2em 0 1em">500</span> ms
-	</div>
-</aside>
+{% for material in materials %}
+<div class="material" data-id="{{ material.id }}" data-src="{{ material.icon.url }}"></div>
+{% endfor %}
 
-<main>
+<div class="field">
+	<!-- bg colors of cells -->
+	<div class="field-container field-container--bg">
+		<div class="cell" data-y_pos="0" data-x_pos="0"></div>
+	</div>
+
+	<!-- actual layers -->
+	{% for layer in layers %}
+	layer
+		<div class="field-container field-container--{{ layer.index }}" data-layer_id="{{ layer.id }}">
+		{% for row in layer.field %}
+			{% for cell in row %}
+				<div class="cell"
+					data-y_pos="{{ forloop.parentloop.counter0 }}" data-x_pos="{{ forloop.counter0 }}"
+					{% if cell %}data-material_id="{{ cell }}"{% endif %}
+				></div>
+			{% empty %}
+				<div class="cell" data-y_pos="{{ forloop.counter0 }}" data-x_pos="0"></div>
+			{% endfor %}
+		{% empty %}
+			<div class="cell" data-y_pos="0" data-x_pos="0"></div>
+		{% endfor %}
+		</div>
+	{% empty %}
+		<div class="field-container field-container--0" data-layer_id="0">
+			<div class="cell" data-y_pos="0" data-x_pos="0"></div>
+		</div>
+	{% endfor %}
+</div>
+
+<aside class="detail-mine">
 	<button id="mining-window">
 		<b>Click to Mine!</b>
 	</button>
-</main>
+</aside>
 <aside>
 	<b>Material:</b>
 	<span id="current-material">-</span>

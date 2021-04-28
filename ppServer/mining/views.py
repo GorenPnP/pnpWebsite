@@ -80,29 +80,18 @@ def mining(request, pk):
 	region = get_object_or_404(Region, pk=pk)
 
 	if request.method == "GET":
-		materials_query = Material.objects.filter(region=region)
 		
 		# if no materials defined for this region, redirect away
-		if not materials_query: return redirect("mining:region_select")
+		if not region.layer_set.count(): return redirect("mining:region_select")
 
-		materials = [{
-			"id": m.id,
-			"name": m.name,
-			"rigidity": m.rigidity,
-			"spawn_chance": m.spawn_chance,
-			"second_spawn_chance": m.second_spawn_chance,
-			"tier": m.tier,
-			"texture": m.icon.url
-		} for m in materials_query]
-
-		initial_material_id = get_rand_material(materials_query).id
+		print(region.layer_set.all())
 
 		context = {
 			"topic": region.name,
-			"materials": json.dumps(materials),
-			"initial_material_id": initial_material_id
+			"layers": region.layer_set.all(),
+			"materials": Material.objects.all()
 		}
-		return render(request, "crafting/mining.html", context)
+		return render(request, "mining/mining.html", context)
 	
 	if request.method == "POST":
 		prev_material_id = json.loads(request.body.decode("utf-8"))['id']

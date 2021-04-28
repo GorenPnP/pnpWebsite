@@ -2,7 +2,9 @@ body {
     color: #ddd;
 }
 
-main {
+@import './_common';
+
+.detail-mine {
     display: flex;
     justify-content: center;
 
@@ -15,8 +17,8 @@ main {
     image-rendering: pixelated;
     image-rendering: crisp-edges;
 
-    height: min(50vh, 50vw);
-    width: min(50vh, 50vw);
+    height: 200px;
+    width: 200px;
 
     display: flex;
     justify-content: center;
@@ -52,16 +54,10 @@ main {
     width: 100%;
     height: 100%;
 }
-.broken-1::after { background-image: url("/static/res/img/crafting/abbauoverlay/1.png"); }
-.broken-2::after { background-image: url("/static/res/img/crafting/abbauoverlay/2.png"); }
-.broken-3::after { background-image: url("/static/res/img/crafting/abbauoverlay/3.png"); }
-.broken-4::after { background-image: url("/static/res/img/crafting/abbauoverlay/4.png"); }
-.broken-5::after { background-image: url("/static/res/img/crafting/abbauoverlay/5.png"); }
-.broken-6::after { background-image: url("/static/res/img/crafting/abbauoverlay/6.png"); }
-.broken-7::after { background-image: url("/static/res/img/crafting/abbauoverlay/7.png"); }
-.broken-8::after { background-image: url("/static/res/img/crafting/abbauoverlay/8.png"); }
-.broken-9::after { background-image: url("/static/res/img/crafting/abbauoverlay/9.png"); }
-.broken-10::after { background-image: url("/static/res/img/crafting/abbauoverlay/10.png"); }
+
+@for $i from 1 through 10 {
+    .broken-#{$i}::after { background-image: url("/static/res/img/crafting/abbauoverlay/#{$i}.png"); }
+}
 
 aside {
     display: grid;
