@@ -59,18 +59,18 @@ main {
         background-size: cover;
         cursor: pointer;
     }
-    &.field-container--0 > * { background-color: var(--field-bg-color); }
+    &.field-container--bg > * { background-color: var(--field-bg-color); }
 
     opacity: var(--unselected-field-opacity);
     &.selected {
         opacity: 1;
     }
 }
-.field-container--0 { z-index: 1; }
-.field-container--1 { z-index: 2; }
-.field-container--2 { z-index: 3; }
-.field-container--3 { z-index: 4; }
-.field-container--4 { z-index: 5; }
+
+@for $i from -100 through 100 {
+    .field-container-#{$i} { z-index: $i + 101; }    
+}
+
 
 .toolbar {
     grid-area: toolbar;

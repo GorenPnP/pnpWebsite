@@ -20,9 +20,9 @@
 
 	<div class="field-size-container">
 		Size
-		<input type="number" id="field-width" min="1" max="50" value="{% if field and field.0 %}{{ field.0|length }}{% else %}10{% endif %}">
+		<input type="number" id="field-width" min="1" max="50" value="{{ field_width|default:'10' }}">
 		x
-		<input type="number" id="field-height" min="1" max="50" value="{% if field and field.0 %}{{ field|length }}{% else %}10{% endif %}">
+		<input type="number" id="field-height" min="1" max="50" value="{{ field_height|default:'10' }}">
 	</div>
 
 	<div class="zoom-container">
@@ -67,6 +67,12 @@
 </aside>
 <main>
 	<div class="field">
+		<!-- bg colors of cells -->
+		<div class="field-container field-container--bg">
+			<div class="cell" data-y_pos="0" data-x_pos="0"></div>
+		</div>
+
+		<!-- actual layers -->
 		{% for layer in layers %}
 			<div class="field-container field-container--{{ layer.index }}" data-layer_id="{{ layer.id }}">
 			{% for row in layer.field %}{% for cell in row %}
