@@ -7,6 +7,9 @@ from PIL import Image as PilImage
 
 from shop.models import Tinker
 
+def validate_not_zero(value):
+    if value == 0:
+        raise ValidationError( _('%(value)s is zero'), params={'value': value})
 
 class Region(models.Model):
 	class Meta:
@@ -46,7 +49,7 @@ class Layer(models.Model):
 		ordering = ["region", "index"]
 
 	region = models.ForeignKey(Region, on_delete=models.CASCADE)
-	index = models.IntegerField(default=0)
+	index = models.SmallIntegerField(validators=[MinValueValidator(-100), MaxValueValidator(100), validate_not_zero])
 
 	name = models.CharField(max_length=200)
 	field = models.JSONField(default=list)
@@ -99,3 +102,17 @@ class MaterialDrop(models.Model):
 	item = models.ForeignKey(Tinker, on_delete=models.CASCADE, blank=False, null=True)
 	amount = models.TextField(default="[1]")
 	material = models.ForeignKey(Material, on_delete=models.CASCADE)
+
+class MaterialGroup(models.Model):
+
+	class Meta:
+		verbose_name = "Materialgruppe"
+		verbose_name_plural = "Materialgruppen"
+
+		ordering = ["name"]
+
+	name = models.CharField(max_length=200)
+	materials = models.ManyToManyField(Material)
+
+	def __str__(self):
+		return "Materialgruppe {}".format(self.name)

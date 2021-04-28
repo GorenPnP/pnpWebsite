@@ -1,6 +1,7 @@
 from django.shortcuts import render, get_object_or_404, reverse
 from django.contrib.auth.decorators import login_required
 from django.http.response import JsonResponse
+from django.db.utils import IntegrityError
 
 from ppServer.decorators import spielleiter_only
 
@@ -24,14 +25,19 @@ def region_editor(request, region_id=None):
 
 	if request.method == "GET":
 
-		layers = []
-		if region:
-			layers = Layer.objects.filter(region=region)
+		groups = [g for g in MaterialGroup.objects.all()]
+		grouped_material_ids = []
+		for group in groups:
+			grouped_material_ids += [m.id for m in group.materials.all()]
+		
+		ungrouped_materials = Material.objects.exclude(id__in=grouped_material_ids)
+		print(grouped_material_ids, ungrouped_materials)
 
 		context = {
 			"topic": region.name if region else "New Region",
+			"groups": groups + [{"name": "-", "materials": ungrouped_materials}],
 			"materials": Material.objects.all(),
-			"layers": layers,
+			"layers": Layer.objects.filter(region=region) if region else [],
 			"field": region.get_field(0) if region else [[]],
 			"name": region.name if region else ""
 		}
@@ -40,17 +46,27 @@ def region_editor(request, region_id=None):
 	if request.method == "POST":
 		json_dict = json.loads(request.body.decode("utf-8"))
 		name = json_dict["name"]
-		fields = json_dict["fields"]
+		fields = json.loads(json_dict["fields"])
 
 		if (not name or not fields):
 			return JsonResponse({"message": "Parameters name and material_grid are required"}, status=418)
 
-		if region is None: region = Region.objects.create(name=name)
+		if region is None: 
+			try:
+				region = Region.objects.create(name=name)
+			except IntegrityError as e:
+				print(e)
+				return JsonResponse({"message": "Den Namen '{}' gibt es schon".format(name)}, status=418)
+
 		region.name = name
 		region.save()
 
 		for layer_id, field in fields.items():
-			layer, _= Layer.objects.get_or_create(id=layer_id)
+			layer_id = int(layer_id) if layer_id else None
+			layer = Layer.objects.get(id=layer_id, region=region) if layer_id and layer_id > 0 else None
+			if not layer:
+				layer = Layer.objects.create(region=region, field=field)
+
 			layer.field = field
 			layer.save()
 

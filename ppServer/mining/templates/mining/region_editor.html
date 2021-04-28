@@ -57,7 +57,11 @@
 <aside class="layer-container">
 	{% for layer in layers %}
 	<div class="layer" data-id="{{ layer.id }}" data-index="{{ layer.index }}">
-		<span>{{ layer.name }} ({{ layer.index }})</span>
+		<span>{{ layer.name|default:"unnamed Layer" }} ({{ layer.index }})</span>
+	</div>
+	{% empty %}
+	<div class="layer" data-id="0" data-index="0">
+		<span>Default</span>
 	</div>
 	{% endfor %}
 </aside>
@@ -70,7 +74,11 @@
 					data-y_pos="{{ forloop.parentloop.counter0 }}" data-x_pos="{{ forloop.counter0 }}"
 					{% if cell %}data-material_id="{{ cell }}"{% endif %}
 				></div>
-			{% endfor %}{% endfor %}
+				{% endfor %}{% endfor %}
+			</div>
+		{% empty %}
+			<div class="field-container field-container--0" data-layer_id="0">
+				<div class="cell" data-y_pos="0" data-x_pos="0"></div>
 			</div>
 		{% endfor %}
 	</div>

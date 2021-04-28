@@ -11,25 +11,7 @@ var delete_mode = false;
 document.addEventListener("DOMContentLoaded", () => {
     field_width_input = document.querySelector('#field-width');
     field_height_input = document.querySelector('#field-height');
-    
     field_containers = document.querySelectorAll('.field-container');
-    // add 1 field_container if none exists
-    if (!field_containers.length) {
-        const field_container = document.createElement("DIV");
-        field_container.classList.add("field-container", "field-container--0", "selected");
-        document.querySelector(".field").appendChild(field_container);
-        field_containers = [field_container];
-
-        // add layer
-        const default_layer = document.createElement("DIV");
-        default_layer.classList.add("layer")
-        default_layer.setAttribute("data-index", 0);
-        const layer_text = document.createElement("SPAN");
-        layer_text.innerHTML = "Default";
-        default_layer.appendChild(layer_text);
-        document.querySelector(".layer-container").appendChild(default_layer);
-    }
-
     field_width_input.addEventListener('input', update_field_size);
     field_height_input.addEventListener('input', update_field_size);
     document.querySelector("#field-bg-color").addEventListener('input',update_field_bg_color);
@@ -100,12 +82,6 @@ function add_cells(width, height) {
     // add cells
     field_containers.forEach(field_container => {
         let cells = [...field_container.querySelectorAll(".cell")];
-        // add one seed-cell to start from if no cell exists
-        if (!cells.length) {
-            const cell = create_filed_cell(0, 0);
-            field_container.appendChild(cell);
-            cells = [...field_container.querySelectorAll(".cell")];
-        }
 
         // get current x/y dimensions to expand from
         let last_cell = cells.reverse()[0];
@@ -115,7 +91,7 @@ function add_cells(width, height) {
         // add in x direction
         for (let border_cell of field_container.querySelectorAll(`.cell[data-x_pos="${max_x}"]`)) {
             for (let x = width - 1; x > max_x; x--) {
-                const cell = create_filed_cell(x, border_cell.dataset.y_pos);
+                const cell = create_field_cell(x, border_cell.dataset.y_pos);
                 border_cell.after(cell);
             }
         }
@@ -124,14 +100,14 @@ function add_cells(width, height) {
         last_cell = [...field_container.querySelectorAll(".cell")].reverse()[0];
         for (let y = height - 1; y > max_y; y--) {
             for(let x = width - 1; x >= 0; x--) {
-                const cell = create_filed_cell(x, y);
+                const cell = create_field_cell(x, y);
                 last_cell.after(cell);
             }
         }
     });
 }
 
-function create_filed_cell(x_pos, y_pos) {
+function create_field_cell(x_pos, y_pos) {
     const cell = document.createElement("DIV");
     cell.className = "cell";
     cell.setAttribute("data-x_pos", x_pos);
@@ -179,11 +155,11 @@ function set_material_on(cell_with_position) {
 
     const cell = get_cell_of_selected_layer_in_same_position(cell_with_position);
 
-    cell.style.backgroundImage = `url(${selected_material.querySelector("img").src})`;
+    cell.style.backgroundImage = `url(${selected_material.querySelector("img").src || ""})`;
     cell.dataset.material_id = selected_material.dataset.id;
 }
 function delete_material_on(cell_with_position) {
-    if (!cell_with_position || !selected_material || !selected_layer) { return; }
+    if (!cell_with_position || !selected_layer) { return; }
 
     const cell = get_cell_of_selected_layer_in_same_position(cell_with_position);
 
@@ -197,7 +173,7 @@ function get_field_of_selected_layer() {
     return document.querySelector(`.field-container--${ selected_layer.dataset.index }`);
 }
 function get_cell_of_selected_layer_in_same_position(cell_with_position) {
-    if (!cell_with_position || !selected_material || !selected_layer) { return undefined; }
+    if (!cell_with_position || !selected_layer) { return undefined; }
 
     const x = cell_with_position.dataset.x_pos;
     const y = cell_with_position.dataset.y_pos;
@@ -229,7 +205,7 @@ function submit() {
         }));
 
         // assign them to key = layer.id
-        acc[field.dataset.layer_id] = cells;
+        acc[parseInt(field.dataset.layer_id)] = cells;
         return acc;
     }, {});
     
@@ -250,9 +226,10 @@ function submit() {
         acc[layer_id] = field_2D;
         return acc;
     }, {});
-    console.log(fields_2D)
 
-    post({ name, fields: fields_2D }) //, () => window.location.href = `/mining`);
+    post({ name, fields: JSON.stringify(fields_2D) },
+        () => window.location.href = `/mining`,
+        error => alert(error.response.data.message));
 }
 
 function prepopulate_field() {
@@ -262,7 +239,10 @@ function prepopulate_field() {
             acc[material.dataset.id] = material.querySelector("img").src;
             return acc;
         }, {});
-    prepopulated_cells.forEach(cell => cell.style.backgroundImage = `url(${material_images[cell.dataset.material_id]})`);
+    prepopulated_cells.forEach(cell => {
+        const url = material_images[cell.dataset.material_id];
+        cell.style.backgroundImage = url ? `url(${url})` : "";
+    });
 }
 
 function toggle_field_border() {

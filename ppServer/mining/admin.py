@@ -40,6 +40,13 @@ class RegionAdmin(admin.ModelAdmin):
 
     inlines = [LayerInLineAdmin]
 
+class MaterialGroupAdmin(admin.ModelAdmin):
+    list_display = ('name', '_materials')
+
+    def _materials(self, obj):
+        return format_html("".join(['<img src="{0}" style="max-width: 32px; max-height:32px;" />'.format(m.icon.url) for m in obj.materials.all()]))
+
 
 admin.site.register(Material, MaterialAdmin)
+admin.site.register(MaterialGroup, MaterialGroupAdmin)
 admin.site.register(Region, RegionAdmin)
