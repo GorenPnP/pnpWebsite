@@ -15,7 +15,8 @@ function prepopulate_field() {
             return acc;
         }, {});
     prepopulated_cells.forEach(cell => {
-        const url = material_images[cell.dataset.material_id];
+        const material_id = cell.dataset.material_id;
+        const url = material_id != -1 ? material_images[material_id] : "/static/res/img/mining/char_front.png";
         cell.style.backgroundImage = url ? `url(${url})` : "";
     });
 }

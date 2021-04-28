@@ -33,8 +33,9 @@ def region_editor(request, region_id=None):
 		ungrouped_materials = Material.objects.exclude(id__in=grouped_material_ids)
 
 		layers = Layer.objects.filter(region=region) if region else []
-		width = max([  max([len(row) for row in layer.field])  for layer in layers]) if region else 0
-		height = max([len(layer.field) for layer in layers]) if region else 0
+		width = max([  max([len(row) for row in layer.field])  for layer in layers]) if layers else 0
+		height = max([len(layer.field) for layer in layers]) if layers and width else 0
+
 		context = {
 			"topic": region.name if region else "New Region",
 			"groups": groups + [{"name": "-", "materials": ungrouped_materials}],

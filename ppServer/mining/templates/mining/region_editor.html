@@ -49,10 +49,13 @@
 
 <aside class="material-container">
 	{% for material in materials %}
-	<div class="material" data-id="{{ material.id }}">
+	<div class="material material--noncharacter" data-id="{{ material.id }}">
 		<img src="{{ material.icon.url }}" alt="{{ material.name }}">
 	</div>
 	{% endfor %}
+	<div class="material material--character" data-id="-1">
+		<img src="{% static 'res/img/mining/char_front.png' %}" alt="Character">
+	</div>
 </aside>
 <aside class="layer-container">
 	{% for layer in layers %}

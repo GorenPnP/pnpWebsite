@@ -42,6 +42,8 @@ main {
     }
 }
 .material-container { grid-area: materials; }
+.material img { background: var(--field-bg-color); }
+
 .layer-container { grid-area: layers; }
 .material-container, .layer-container {
     overflow-y: auto;

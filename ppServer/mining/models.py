@@ -51,7 +51,7 @@ class Layer(models.Model):
 		ordering = ["region", "index"]
 
 	region = models.ForeignKey(Region, on_delete=models.CASCADE)
-	index = models.SmallIntegerField(validators=[MinValueValidator(-100), MaxValueValidator(100), validate_not_zero])
+	index = models.SmallIntegerField(validators=[MinValueValidator(-100), MaxValueValidator(100)])
 
 	name = models.CharField(max_length=200)
 	field = models.JSONField(default=list)

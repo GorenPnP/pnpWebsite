@@ -143,12 +143,21 @@ function select_layer(layer) {
 
     selected_layer && selected_layer.classList.remove(class_selected);
 
+    // if will switch between bars, select first one
+    if (selected_layer && ((selected_layer.dataset.index != 0 && layer.dataset.index == 0) || (selected_layer.dataset.index == 0 && layer.dataset.index != 0))) {
+        select_material(document.querySelector(layer.dataset.index != 0 ? ".material--noncharacter" : ".material--character"));
+    }
+
     selected_layer = layer;
     layer.classList.add(class_selected);
 
     // adapt field
     document.querySelectorAll(".field-container").forEach(field => field.classList.remove(class_selected));
     document.querySelector(`.field-container--${ layer.dataset.index }`).classList.add(class_selected);
+
+    // adapt material bar
+    document.querySelectorAll(".material--noncharacter").forEach(tag => tag.style.display = layer.dataset.index == 0 ? "none" : "");
+    document.querySelectorAll(".material--character").forEach(tag => tag.style.display = layer.dataset.index != 0 ? "none" : "");
 }
 
 function set_material_on(cell_with_position) {
@@ -241,7 +250,8 @@ function prepopulate_field() {
             return acc;
         }, {});
     prepopulated_cells.forEach(cell => {
-        const url = material_images[cell.dataset.material_id];
+        const material_id = cell.dataset.material_id;
+        const url = material_id != -1 ? material_images[material_id] : "/static/res/img/mining/char_front.png";
         cell.style.backgroundImage = url ? `url(${url})` : "";
     });
 }
