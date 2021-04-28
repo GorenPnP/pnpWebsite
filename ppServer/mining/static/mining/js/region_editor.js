@@ -195,7 +195,7 @@ function submit() {
         return;
     }
 
-    const fields = [...document.querySelectorAll(".field-container")].reduce((acc, field) => {
+    const fields = [...document.querySelectorAll(".field-container:not(.field-container--bg)")].reduce((acc, field) => {
 
         // get list of cells, map them to their material_ids (or null) and x/y positions
         const cells = [...field.querySelectorAll(".cell")].map(cell => ({

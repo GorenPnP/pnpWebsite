@@ -59,7 +59,11 @@ main {
         background-size: cover;
         cursor: pointer;
     }
-    &.field-container--bg > * { background-color: var(--field-bg-color); }
+    &.field-container--bg {
+        --unselected-field-opacity: 1;
+
+        & > * { background-color: var(--field-bg-color); }
+    }
 
     opacity: var(--unselected-field-opacity);
     &.selected {

@@ -75,12 +75,18 @@
 		<!-- actual layers -->
 		{% for layer in layers %}
 			<div class="field-container field-container--{{ layer.index }}" data-layer_id="{{ layer.id }}">
-			{% for row in layer.field %}{% for cell in row %}
-				<div class="cell"
-					data-y_pos="{{ forloop.parentloop.counter0 }}" data-x_pos="{{ forloop.counter0 }}"
-					{% if cell %}data-material_id="{{ cell }}"{% endif %}
-				></div>
-				{% endfor %}{% endfor %}
+			{% for row in layer.field %}
+				{% for cell in row %}
+					<div class="cell"
+						data-y_pos="{{ forloop.parentloop.counter0 }}" data-x_pos="{{ forloop.counter0 }}"
+						{% if cell %}data-material_id="{{ cell }}"{% endif %}
+					></div>
+				{% empty %}
+					<div class="cell" data-y_pos="{{ forloop.counter0 }}" data-x_pos="0"></div>
+				{% endfor %}
+			{% empty %}
+				<div class="cell" data-y_pos="0" data-x_pos="0"></div>
+			{% endfor %}
 			</div>
 		{% empty %}
 			<div class="field-container field-container--0" data-layer_id="0">
