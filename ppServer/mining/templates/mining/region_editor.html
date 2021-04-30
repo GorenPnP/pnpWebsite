@@ -4,6 +4,10 @@
 {% block extra-head %}
 <link rel="stylesheet" href="{% static 'base/css/checkbox.css' %}">
 <link rel="stylesheet" href="{% static 'mining/css/region_editor.css' %}">
+<style>
+	:root { --field-bg-color: {{ bg_color }}; }
+</style>
+
 <script src='https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js' type='text/javascript'></script>
 <script src="{% static 'base/js/ajax.js' %}"></script>
 <script src="{% static 'mining/js/region_editor.js' %}"></script>
@@ -43,7 +47,7 @@
 
 	<div class="field-bg-container">
 		Background Color
-		<input type="color" id="field-bg-color" value="#b9fefd" style="min-height: 40px;">
+		<input type="color" id="field-bg-color" value="{{ bg_color }}" style="min-height: 40px;">
 	</div>
 </aside>
 
@@ -59,7 +63,7 @@
 </aside>
 <aside class="layer-container">
 	{% for layer in layers %}
-	<div class="layer" data-id="{{ layer.id }}" data-index="{{ layer.index }}">
+	<div class="layer" data-id="{{ layer.id }}" data-index="{{ layer.index }}" data-char_layer="{%if layer.index == char_index %}true{% else %}false{% endif %}">
 		<span>{{ layer.name|default:"unnamed Layer" }} ({{ layer.index }})</span>
 	</div>
 	{% empty %}

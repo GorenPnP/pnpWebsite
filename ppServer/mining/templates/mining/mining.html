@@ -2,14 +2,16 @@
 {% load static %}
 {% block title %}{{ topic }}{% endblock %}
 {% block extra-head %}
+<link rel="stylesheet" href="{% static 'base/css/checkbox.css' %}">
+<link rel="stylesheet" href="{% static 'mining/css/mining.css' %}">
 <style>
 :root {
 	--field-width: {{ field_width }};
 	--field-height: {{ field_height }};
+	--field-bg-color:{{ bg_color }};
 }
 </style>
-<link rel="stylesheet" href="{% static 'base/css/checkbox.css' %}">
-<link rel="stylesheet" href="{% static 'mining/css/mining.css' %}">
+
 <script src='https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js' type='text/javascript'></script>
 <script src="{% static 'base/js/ajax.js' %}"></script>
 <script src="{% static 'mining/js/mining.js' %}"></script>
@@ -21,7 +23,14 @@
 <div hidden class="material" data-id="{{ material.id }}" data-src="{{ material.icon.url }}"></div>
 {% endfor %}
 
+{{ spawn_point|json_script:"spawn-point" }}
+{{ field_width|json_script:"width" }}
+{{ field_height|json_script:"height" }}
+
 <div class="field">
+	<div class="field-container field-container--{{ char_layer_index }} field-container--char">
+		<div id="char" class="cell"></div>
+	</div>
 
 	<!-- actual layers -->
 	{% for layer in layers %}

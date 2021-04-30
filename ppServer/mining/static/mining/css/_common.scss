@@ -49,5 +49,5 @@
 }
 
 @for $i from -100 through 100 {
-    .field-container-#{$i} { z-index: $i + 101; }    
+    .field-container--#{$i} { z-index: $i + 101; }    
 }

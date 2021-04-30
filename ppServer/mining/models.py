@@ -1,9 +1,8 @@
-import json
+import json, re
 
 from django.db import models
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.core.exceptions import ValidationError
-from django.utils.translation import gettext as _
 
 from PIL import Image as PilImage
 
@@ -13,6 +12,16 @@ def validate_not_zero(value):
     if value == 0:
         raise ValidationError( _('%(value)s is zero'), params={'value': value})
 
+def is_rgb_color(value):
+	if not value or not len(value): raise ValidationError("Color is missing")
+	if value[0] != "#": raise ValidationError("Leading '#' is missing")
+	if not len(value) in [4, 7]: raise ValidationError("Length is incorrect")
+
+	print(re.search("^#[0-9a-fA-F]+$", value))
+	return not not re.search("^#[0-9a-fA-F]+$", value)
+
+
+
 class Region(models.Model):
 	class Meta:
 		verbose_name = "Region"
@@ -20,7 +29,8 @@ class Region(models.Model):
 		ordering = ["name"]
 
 	name = models.CharField(max_length=200, unique=True)
-
+	layer_index_of_char = models.SmallIntegerField(default=0, validators=[MinValueValidator(-100), MaxValueValidator(100)])
+	bg_color_rgb = models.CharField(default="#b9fefd", max_length=7, validators=[is_rgb_color])
 
 	def __str__(self):
 		return "Region {}".format(self.name)

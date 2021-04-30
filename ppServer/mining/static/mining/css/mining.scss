@@ -1,8 +1,25 @@
+:root {
+    --char-img-front: url("/static/res/img/mining/char_skin_front.png");
+    --char-img-back: url("/static/res/img/mining/char_skin_back.png");
+    --char-img-left: url("/static/res/img/mining/char_skin_left.png");
+    --char-img-right: url("/static/res/img/mining/char_skin_right.png");
+
+    --char-img: var(--char-img-front);
+
+    --field-offset-x: 0;
+    --field-offset-y: 0;
+}
+
 body {
     color: #ddd;
 }
 
 @import './_common';
+
+#char {
+    background-image: var(--char-img);
+    position: relative;
+}
 
 .field {
     background-color: var(--field-bg-color);
@@ -12,13 +29,19 @@ body {
 
     width: calc(var(--field-width) * var(--field-size) + 8px);
     height: calc(var(--field-height) * var(--field-size) + 8px);
+
+    border: 4px solid #7f7f7f;
+    overflow: hidden;
 }
 .field-container {
     grid-template-columns: repeat(var(--field-width), var(--field-size));
     grid-template-rows: repeat(var(--field-height), var(--field-size));
 
     --field-border-width: 0;
-    border: 4px solid #7f7f7f;
+
+    left: var(--field-offset-x);
+    top: var(--field-offset-y);
+    transition: left 500ms, top 500ms;
 }
 
 .detail-mine {
