@@ -34,7 +34,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const pos_offset = move_map[key];
         if (pos_offset) { move_char_to(char.pos.x + pos_offset.x, char.pos.y + pos_offset.y); }
-    })
+    });
+
+
+    document.querySelector(".field-container--char").addEventListener('transitionend', e => {
+        if (["top", "left"].includes(e.propertyName)) {
+            document.documentElement.style.setProperty("--char-img", "var(--char-img-front)");
+        }
+      });
 
     prepopulate_field();
     spawn_char();
@@ -89,6 +96,13 @@ function move_char_to(field_x, field_y) {
     document.documentElement.style.setProperty("--field-offset-y", `calc(${game_y - field_y} * var(--field-size))`);
 
 
+    // css transitions
+    if (char.pos.x < field_x) { document.documentElement.style.setProperty("--char-img", "var(--char-img-right)"); }
+    if (char.pos.x > field_x) { document.documentElement.style.setProperty("--char-img", "var(--char-img-left)"); }
+    if (char.pos.y < field_y) { document.documentElement.style.setProperty("--char-img", "var(--char-img-back)"); }
+    if (char.pos.y > field_y) { document.documentElement.style.setProperty("--char-img", "var(--char-img-front)"); }
+
+    // set pos
     char.pos = {x: field_x, y: field_y};
     char.tag.parentNode.style.setProperty("--field-offset-x", `${game_x * field_size}px`);
     char.tag.parentNode.style.setProperty("--field-offset-y", `${game_y * field_size}px`);
