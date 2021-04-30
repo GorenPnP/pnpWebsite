@@ -240,10 +240,24 @@ function select_layer(layer) {
 
 function submit() {
     const name = document.querySelector("#name").value;
+    // check if name exists
     if (!name) {
         alert("Name missing");
         return;
     }
+
+    // check if spawnpoints exist
+    const char_field_containers = [...document.querySelectorAll(".layer[data-char_layer='true']")]
+        .map(tag => tag.dataset.index)
+        .map(index => document.querySelector(`.field-container--${index}`));
+    if (!char_field_containers.some(field_tag => {
+        return [...field_tag.querySelectorAll(".cell[data-material_id]")]
+            .some(cell => cell.dataset.material_id)
+    })) {
+        alert("Spawn point(s) missing");
+        return;
+    }
+
 
     const fields = [...document.querySelectorAll(".field-container:not(.field-container--bg)")].reduce((acc, field) => {
 

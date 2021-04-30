@@ -109,7 +109,9 @@ def mining(request, pk):
 			for x in range(len(char_field[y])):
 				if char_field[y][x] is not None:
 					char_spawns.append({"x": x, "y": y})
-		print(char_spawns)
+
+		# no spawn location set :(
+		if not len(char_spawns): return redirect("mining:region_select")
 
 
 		context = {
