@@ -34,7 +34,7 @@
 
 	<!-- actual layers -->
 	{% for layer in layers %}
-		<div class="field-container field-container--{{ layer.index }}" data-layer_id="{{ layer.id }}">
+		<div class="field-container field-container--{{ layer.index }}" data-layer_index="{{ layer.index }}" data-layer_id="{{ layer.id }}"{% if layer.is_collidable %} data-collidable{% endif %}>
 		{% for row in layer.field %}
 			{% for cell in row %}
 				<div class="cell"
