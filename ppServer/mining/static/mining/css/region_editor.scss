@@ -25,7 +25,38 @@ main {
     overflow: auto;
 }
 
-@import './_common';
+.field-container {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+
+    display: grid;
+    justify-content: start;
+    align-content: flex-start;
+
+    /* x-offset-keyword y-offset-keyword */
+    transform-origin: left top;
+
+
+    & > * {
+        border-right: solid var(--field-border-width) #fff;
+        border-bottom: solid var(--field-border-width) #fff;
+
+        background-position: center;
+        background-size: cover;
+        cursor: pointer;
+    }
+    &.field-container--bg {
+        --unselected-field-opacity: 1;
+
+        & > * { background-color: var(--field-bg-color); }
+    }
+
+    opacity: var(--unselected-field-opacity);
+    &.selected {
+        opacity: 1;
+    }
+}
 
 
 .toolbar {

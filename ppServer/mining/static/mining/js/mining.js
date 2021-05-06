@@ -18,7 +18,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // fill collision map
     init_collision_map();
-    apply_lighting(1, 2, 1);
+    apply_lighting(1, 2, 2);
 
     // setup keys to fire once on press
     document.addEventListener("keyup", e => {

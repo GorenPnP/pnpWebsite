@@ -103,6 +103,11 @@ def mining(request, pk):
 		layers = [model_to_dict(layer) for layer in region.layer_set.exclude(index=region.layer_index_of_char)]
 		char_field = get_object_or_404(Layer, region=region, index=region.layer_index_of_char).field
 
+		# make materials json-serializable
+		materials = [model_to_dict(material) for material in Material.objects.all()]
+		for material in materials:
+			material["icon"] = material["icon"].url
+
 		# get possible spawn points
 		char_spawns = []
 		for y in range(len(char_field)):
@@ -119,7 +124,7 @@ def mining(request, pk):
 			"layers": layers,
 			"field_width": len(layers[0]["field"][0]),
 			"field_height": len(layers[0]["field"]),
-			"materials": Material.objects.all(),
+			"materials": materials,
 			"bg_color": region.bg_color_rgb,
 			"spawn_point": random.choice(char_spawns),
 			"char_layer_index": region.layer_index_of_char
@@ -151,3 +156,49 @@ def mining(request, pk):
 			"id": get_2nd_chance_material(prev_material, Material.objects.filter(region=region)).id,
 			"amount": json.dumps(log_drops)
 		})
+
+
+def shooter(request):
+	return render(request, "mining/shooter.html", {})
+
+
+@login_required
+@spielleiter_only(redirect_to="mining:region_select")
+def game(request, pk):
+	region = get_object_or_404(Region, pk=pk)
+
+	if request.method == "GET":
+		
+		# if no materials defined for this region, redirect away
+		if not region.layer_set.count(): return redirect("mining:region_select")
+
+		layers = [model_to_dict(layer) for layer in region.layer_set.exclude(index=region.layer_index_of_char)]
+		char_field = get_object_or_404(Layer, region=region, index=region.layer_index_of_char).field
+
+		# make materials json-serializable
+		materials = [model_to_dict(material) for material in Material.objects.all()]
+		for material in materials:
+			material["icon"] = material["icon"].url
+
+		# get possible spawn points
+		char_spawns = []
+		for y in range(len(char_field)):
+			for x in range(len(char_field[y])):
+				if char_field[y][x] is not None:
+					char_spawns.append({"x": x, "y": y})
+
+		# no spawn location set :(
+		if not len(char_spawns): return redirect("mining:region_select")
+
+
+		context = {
+			"topic": region.name,
+			"layers": layers,
+			"field_width": len(layers[0]["field"][0]),
+			"field_height": len(layers[0]["field"]),
+			"materials": materials,
+			"bg_color": region.bg_color_rgb,
+			"spawn_point": random.choice(char_spawns),
+			"char_layer_index": region.layer_index_of_char
+		}
+	return render(request, "mining/game.html", context)

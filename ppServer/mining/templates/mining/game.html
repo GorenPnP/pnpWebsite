@@ -1,0 +1,21 @@
+{% extends 'base/main.html' %}
+{% load static %}
+{% block title %}{{ topic }}{% endblock %}
+{% block extra-head %}
+<link rel="stylesheet" href="{% static 'mining/game/css/app.css' %}">
+
+{{ spawn_point|json_script:"spawn-point" }}
+{{ field_width|json_script:"width" }}
+{{ field_height|json_script:"height" }}
+{{ bg_color|json_script:"bg-color" }}
+
+{{ materials|json_script:"materials" }}
+{{ layers|json_script:"layers" }}
+<script type="text/javascript" src="{% static 'mining/game/js/resources.js' %}"></script>
+<script type="text/javascript" src="{% static 'mining/game/js/sprite.js' %}"></script>
+<script type="text/javascript" src="{% static 'mining/game/js/app.js' %}"></script>
+<script type="text/javascript" src="{% static 'mining/game/js/input.js' %}"></script>
+{% endblock %}
+
+{% block body %}
+{% endblock %}
