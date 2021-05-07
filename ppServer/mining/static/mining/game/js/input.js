@@ -1,36 +1,46 @@
 
 (() => {
-    let pressedKeys = {};
+    const keyMap = {
+        32: 'UP',
+        37: 'LEFT',
+        38: 'UP',
+        39: 'RIGHT',
+        40: 'DOWN',
+        65: 'LEFT',
+        68: 'RIGHT',
+        83: 'DOWN',
+        87: 'UP',
+    }
 
-    function setKey(event, status) {
+    let pressedKeyCodes = new Set();
 
-        const keyMap = {
-            32: 'SPACE',
-            37: 'LEFT',
-            38: 'UP',
-            39: 'RIGHT',
-            40: 'DOWN'
-        }
-
-        const code = event.keyCode;
-        const key = keyMap[code] || String.fromCharCode(code);    // Default: Convert ASCII codes to letters
-
-        pressedKeys[key] = status;
+    function setKey(keyCode, is_pressed) {
+        is_pressed ? pressedKeyCodes.add(keyCode) : pressedKeyCodes.delete(keyCode);
     }
 
     document.addEventListener('keydown', e => {
-        setKey(e, true);
+        setKey(e.keyCode, true);
     });
 
     document.addEventListener('keyup', e => {
-        setKey(e, false);
+        setKey(e.keyCode, false);
     });
 
     window.addEventListener('blur', () => {
-        pressedKeys = {};
+        pressedKeyCodes.clear();
     });
 
     window.input = {
-        isDown: (key) => pressedKeys[key.toUpperCase()]
+        isDown: (keyName) => {
+            if (!Object.values(keyMap).some(k => k === keyName)) {
+                throw Error(`Key '${keyName}' not defined in keyMap`)
+            }
+
+            // get related keyCodes to direction / key name
+            const keyCodes = [...pressedKeyCodes].filter(keyCode => keyMap[keyCode] === keyName);
+
+            // true if one of them is pressed currently
+            return keyCodes.some(keyCode => pressedKeyCodes.has(keyCode));
+        }
     };
 })();

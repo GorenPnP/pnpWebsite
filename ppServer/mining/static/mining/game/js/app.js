@@ -24,10 +24,15 @@ let materials;
 // Game state
 var player = {
     pos: [0, 0],
-    direction: [0, 0],
+    speed: [0, 0],
     lastJump: Date.now(),
-    hitGround: false,
-    sprite: new Sprite('/static/res/img/mining/char_skin_front.png', [0, 0], [64, 64])
+    spriteMap: {
+        UP: new Sprite('/static/res/img/mining/char_skin_front.png', [0, 0], [64, 64]),
+        DOWN: new Sprite('/static/res/img/mining/char_skin_back.png', [0, 0], [64, 64]),
+        LEFT: new Sprite('/static/res/img/mining/char_skin_left.png', [0, 0], [64, 64]),
+        RIGHT: new Sprite('/static/res/img/mining/char_skin_right.png', [0, 0], [64, 64])
+    },
+    sprite: new Sprite('/static/res/img/mining/char_skin_front.png', [0, 0], [64, 64]),
 };
 
 var explosions = [];
@@ -35,15 +40,18 @@ var explosions = [];
 var entities = [];  // game logic, not for rendering directly
 var collidables = [];
 
-var lastFire = Date.now();
+var lastJump = Date.now();
+
 var gameTime = 0;
+var lastTime;
 
 // Speed in pixels per second
-var playerSpeed = 200;
-var bulletSpeed = 500;
-var enemySpeed = 100;
-
-var lastTime;
+var playerFriction = .15;    // float in [0, 1] (slowing % per s)
+var playerMaxSpeed = [2, 8];    // speed is already px/s, so on 'px per s' here :)
+var playerXAcceleration = 3; // px per s
+var playerFallAcceleration = 80; // px per s
+var playerJumpAcceleration = 100; // px per s
+var playerJumpDuration = 300;   // in ms
 
 
 window.addEventListener("resize", () => setCanvasSize());
@@ -56,12 +64,15 @@ document.addEventListener("DOMContentLoaded", () => {
     setCanvasSize();
 
     bg_color = JSON.parse(document.querySelector("#bg-color").innerHTML);
-    
     materials = JSON.parse(document.querySelector("#materials").innerHTML);
 
     resources.load(
         path_prefix + 'img/sprites.png',
         '/static/res/img/mining/char_skin_front.png',
+        '/static/res/img/mining/char_skin_front.png',
+        '/static/res/img/mining/char_skin_back.png',
+        '/static/res/img/mining/char_skin_left.png',
+        '/static/res/img/mining/char_skin_right.png',
         ...materials.map(material => material.icon));
     resources.onReady(init);
 });
@@ -101,51 +112,47 @@ function update(dt) {
     handleInput(dt);
     updateEntities(dt);
 
-    const playerPos1 = player.pos[1];
-
     checkCollisions();
 
-    const playerPos2 = player.pos[1];
-    player.hitGround = (playerPos1 > playerPos2 || player.hitGround === player.pos[1]) ? player.pos[1]: undefined;
-
-    // if (player.direction[1] <= 0) {
-    //     player.direction[1] = 1;
-    //     player.pos[1] += playerSpeed * dt;
-    //     checkCollisions();
-    // }
+    updatePlayerSprite();
 };
 
 function handleInput(dt) {
-    player.direction = [0, 0];
-    const unit = 1;
 
-    if (input.isDown('DOWN') || input.isDown('s')) {
-        player.pos[1] += playerSpeed * dt;
-        player.direction[1] += unit;
-    }
-
-    if (input.isDown('UP') || input.isDown('w')) {
-        player.pos[1] -= playerSpeed * dt;
-        player.direction[1] -= unit;
-    }
-    if (input.isDown('SPACE')) {
-        console.log(Date.now() - player.lastJump > 100, player.hitGround)
-        if (Date.now() - player.lastJump > 100 && player.hitGround) {
-            player.pos[1] -= playerSpeed * dt;
-            player.direction[1] -= unit;
-            player.lastJump = Date.now();
+    if (( input.isDown('DOWN') && !input.isDown('UP')) ||
+        (!input.isDown('DOWN') &&  input.isDown('UP'))) {
+        
+        // move/accelerate y
+        if (input.isDown('DOWN') && !input.isDown('UP')) { player.speed[1] += playerFallAcceleration * dt; }
+        const now = Date.now();
+        if (input.isDown('UP') && !input.isDown('DOWN')) {
+            // check if on ground
+            if (player.speed[1] === 0) { lastJump = now; }
+            
+            // jump for x seconds
+            if (lastJump === now || (lastJump + playerJumpDuration >= now && player.speed[1] < 0)) {
+                player.speed[1] -= playerJumpAcceleration * dt;
+            }
         }
     }
 
-    if (input.isDown('LEFT') || input.isDown('a')) {
-        player.pos[0] -= playerSpeed * dt;
-        player.direction[0] -= unit;
+    if (( input.isDown('LEFT') &&  input.isDown('RIGHT')) ||
+    (!input.isDown('LEFT') && !input.isDown('RIGHT'))) {
+        
+        // slow down x
+        player.speed[0] *= (1 - playerFriction) * dt;
+    } else {
+        // move/accelerate x
+        const accDiff = playerXAcceleration * dt;
+        player.speed[0] += input.isDown('RIGHT') ? accDiff  : (-1 * accDiff);
     }
 
-    if (input.isDown('RIGHT') || input.isDown('d')) {
-        player.pos[0] += playerSpeed * dt;
-        player.direction[0] += unit;
-    }
+    // apply gravity
+    player.speed[1] += playerFallAcceleration * dt;
+
+    // not faster than max speed
+    player.speed[0] = Math.min( Math.abs(player.speed[0]), playerMaxSpeed[0]) * Math.sign(player.speed[0]);
+    player.speed[1] = Math.min( Math.abs(player.speed[1]), playerMaxSpeed[1]) * Math.sign(player.speed[1]);
 }
 
 function updateEntities(dt) {
@@ -162,8 +169,8 @@ function updateEntities(dt) {
 // Collisions
 
 function collides(x, y, r, b, x2, y2, r2, b2) {
-    return !(r <= x2 || x > r2 ||
-             b <= y2 || y > b2);
+    return !(r <= x2 || x >= r2 ||
+             b <= y2 || y >= b2);
 }
 
 function boxCollides(pos, size, pos2, size2) {
@@ -173,86 +180,57 @@ function boxCollides(pos, size, pos2, size2) {
                     pos2[0] + size2[0], pos2[1] + size2[1]);
 }
 
-function boxCollidesX(pos2, size2) {
-    const x = player.pos[0];
-    const r = x + player.sprite.size[0];
-    const x2 = pos2[0];
-    const r2 = x2 + size2[0];
-    return !(r < x2 || x > r2);
-}
-
-function boxCollidesY(pos2, size2) {
-    const y = player.pos[1];
-    const b = y + player.sprite.size[1];
-    const y2 = pos2[1];
-    const b2 = y2 + size2[1];
-    return !(b < y2 || y > b2);
-}
-
-
 function checkCollisions() {
-    checkPlayerBounds();
+
+    let playerMovedXPos = [player.pos[0] + Math.round(player.speed[0]), player.pos[1]];
+    let playerMovedYPos = [player.pos[0], player.pos[1] + Math.round(player.speed[1])];
+
+    const playerSize = player.sprite.size;
     
     // Run collision detection for all enemies and bullets
-    for(var i = 0; i < collidables.length; i++) {
-        var pos = collidables[i].pos;
-        var size = collidables[i].sprite.size;
-
-        if (boxCollides(pos, size, player.pos, player.sprite.size)) {
-        //     // Remove the block
-        //     collidables.splice(i, 1);
-        //     i--;
-
+    for(const collidable of collidables) {
+        var pos = collidable.pos;
+        var size = collidable.sprite.size;
+        
+        if (boxCollides(pos, size, player.pos, playerSize)) {
+            
             // Add an explosion
             explosions.push({
                 pos,
                 sprite: new Sprite(path_prefix + 'img/sprites.png',
-                            [0, 117],
-                            [39, 39],
-                            16,
-                            [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
-                            null,
-                            true)
+                [0, 117],
+                [39, 39],
+                16,
+                [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+                null,
+                true)
             });
         }
 
-        // have a direction of some sort!
-        player.direction = player.direction[0] || player.direction[1] ? player.direction : [1, 1];
 
-        // As long as they are colliding (Be careful for infinite loops)
-        let coll_x = boxCollidesX(pos, size);
-        let coll_y = boxCollidesY(pos, size);
-        let x_first = false;
-        while(coll_x && coll_y) {
-   
-            if (x_first) {
-                coll_x = resolveCollisionX(pos, size);
-                coll_y = resolveCollisionY(pos, size);
-            } else {
-                coll_y = resolveCollisionY(pos, size);
-                coll_x = resolveCollisionX(pos, size);
+        // resolve collisions
+        // console.log(playerMovedYPos)
+        
+        // collide in x
+        if (boxCollides(pos, size, playerMovedXPos, playerSize)) {
+            while (boxCollides(pos, size, playerMovedXPos, playerSize) && player.speed[0]) {
+                playerMovedXPos[0] -= Math.sign(player.speed[0]);
             }
-            x_first = !x_first;
+            player.speed[0] = 0;
         }
-    }
-}
+        
+        // collide in y
+        if (boxCollides(pos, size, playerMovedYPos, playerSize)) {
+            while (boxCollides(pos, size, playerMovedYPos, playerSize) && player.speed[1]) {
+                playerMovedYPos[1] -= Math.sign(player.speed[1]);
+            }
+            player.speed[1] = 0;
+        }
 
-function resolveCollisionX(pos, size) {
-    return resolveCollision(pos, size, true);
-}
-function resolveCollisionY(pos, size) {
-    return resolveCollision(pos, size, false);
-}
-function resolveCollision(pos, size, dir_x) {
-    const collisionDetection = dir_x ? boxCollidesX : boxCollidesY;
-    const index = dir_x ? 0 : 1;
-
-    if (player.direction[index] && boxCollidesX(pos, size) && boxCollidesY(pos, size)) {
-    
-        // move the player 1 unit back the direction it came from
-        player.pos[index] -= player.direction[index];
+        player.pos[0] = Math.round(playerMovedXPos[0]);
+        player.pos[1] = Math.round(playerMovedYPos[1]);
     }
-    return collisionDetection(pos, size);
+    checkPlayerBounds();
 }
 
 function checkPlayerBounds() {
@@ -262,6 +240,9 @@ function checkPlayerBounds() {
 
     player.pos[0] = Math.max(0, Math.min(player.pos[0], max_right));
     player.pos[1] = Math.max(0, Math.min(player.pos[1], max_down));
+
+    // enable jumping from furthest buttom
+    if (player.pos[1] === max_down && player.speed[1] > 0) { player.speed[1] = 0; }
 }
 
 // Draw everything
@@ -285,6 +266,22 @@ function renderEntity(entity) {
     ctx.translate(entity.pos[0], entity.pos[1]);
     entity.sprite.render(ctx);
     ctx.restore();
+}
+
+function updatePlayerSprite() {
+
+    const limit = 0.25;
+    const speed_x = Math.abs(player.speed[0]) < limit ? 0 : player.speed[0];
+    const speed_y = Math.abs(player.speed[1]) < limit ? 0 : player.speed[1];
+
+    // look in x
+    if (Math.abs(speed_x) > Math.abs(speed_y)) {
+        player.sprite = speed_x > 0 ? player.spriteMap.RIGHT : player.spriteMap.LEFT;
+    }
+    // look in y
+    else {
+        player.sprite = speed_y > 0 ? player.spriteMap.DOWN : player.spriteMap.UP;
+    }
 }
 
 
