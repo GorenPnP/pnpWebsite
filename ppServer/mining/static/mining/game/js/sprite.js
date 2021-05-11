@@ -1,47 +1,41 @@
-(() => {
-    function Sprite(url, pos, size, speed, frames, dir, once) {
-        this.pos = pos;
-        this.size = size;
-        this.speed = typeof speed === 'number' ? speed : 0;
-        this.frames = frames;
-        this._index = 0;
+class Sprite {
+    constructor (url, pos, speed = 0, frames = [0], dir = 'horizontal', once = false) {
         this.url = url;
-        this.dir = dir || 'horizontal';
+        this.pos = pos;
+
+        this.speed = speed;
+        this.frames = frames;
+        this.dir = dir;
         this.once = once;
-    };
+        
+        this._index = 0;
+        this.done = false;
+    }
 
-    Sprite.prototype = {
-        update: function(dt) {
-            this._index += this.speed*dt;
-        },
+    update(dt) {
+        this._index += this.speed * dt;
+    }
 
-        render: function(ctx) {
-            var frame;
+    render(ctx) {
+        var frame;
 
-            if (this.speed > 0) {
-                var max = this.frames.length;
-                var idx = Math.floor(this._index);
-                frame = this.frames[idx % max];
+        if (this.speed <= 0) { frame = 0; }
+        else {
+            var max = this.frames.length;
+            var idx = Math.floor(this._index);
+            frame = this.frames[idx % max];
 
-                if (this.once && idx >= max) {
-                    this.done = true;
-                    return;
-                }
+            if (this.once && idx >= max) {
+                this.done = true;
+                return;
             }
-            else { frame = 0; }
-
-
-            let [x, y] = this.pos;
-            const [w, h] = this.size;
-
-            if (this.dir == 'vertical') { y += frame * h; }
-            else { x += frame * w; }
-
-            ctx.drawImage(resources.get(this.url),
-                          x, y, w, h,
-                          0, 0, w, h);
         }
-    };
 
-    window.Sprite = Sprite;
-})();
+        if (this.dir == 'vertical') { this.pos.y += frame * this.pos.h; }
+        else { this.pos.x += frame * this.pos.w; }
+
+        ctx.drawImage(resources.get(this.url),
+                    this.pos.x, this.pos.y, this.pos.w, this.pos.h,
+                    0,          0,          this.pos.w, this.pos.h);
+    }
+}

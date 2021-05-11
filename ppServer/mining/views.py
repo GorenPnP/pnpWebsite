@@ -199,6 +199,7 @@ def game(request, pk):
 			"materials": materials,
 			"bg_color": region.bg_color_rgb,
 			"spawn_point": random.choice(char_spawns),
-			"char_layer_index": region.layer_index_of_char
+			"char_layer_index": region.layer_index_of_char,
+			"region_id": region.id
 		}
 	return render(request, "mining/game.html", context)
