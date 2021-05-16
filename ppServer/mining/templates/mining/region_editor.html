@@ -4,17 +4,22 @@
 {% block extra-head %}
 <link rel="stylesheet" href="{% static 'base/css/checkbox.css' %}">
 <link rel="stylesheet" href="{% static 'mining/css/region_editor.css' %}">
-<style>
-	:root { --field-bg-color: {{ bg_color }}; }
-</style>
 
-<script src='https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js' type='text/javascript'></script>
-<script src="{% static 'base/js/ajax.js' %}"></script>
-<script src="{% static 'mining/js/region_editor.js' %}"></script>
+<script type="text/javascript" src='https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js' type='text/javascript'></script>
+<script type="text/javascript" src="{% static 'base/js/ajax.js' %}"></script>
+<script type="text/javascript" src="{% static 'mining/game/js/utils.js' %}"></script>
+<script type="text/javascript" src="{% static 'mining/game/js/input.js' %}"></script>
+<script type="text/javascript" src="{% static 'mining/js/region_editor.js' %}"></script>
 {% endblock %}
 {% block absolute %}{% include 'base/header.html' with topic=topic %}{% endblock %}
 
 {% block body %}
+
+{{ layers|json_script:"layers" }}
+{{ materials|json_script:"materials" }}
+{{ char_index|json_script:"char-layer-index" }}
+{{ bg_color|json_script:"bg-color" }}
+
 <aside class="toolbar">
 
 	<div class="name-container">
@@ -24,15 +29,14 @@
 
 	<div class="field-size-container">
 		Size
-		<input type="number" id="field-width" min="1" max="50" value="{{ field_width|default:'10' }}">
-		x
-		<input type="number" id="field-height" min="1" max="50" value="{{ field_height|default:'10' }}">
+		<input type="number" id="field-width" min="1" max="5000" value="{{ field_width|default:'640' }}"> px *
+		<input type="number" id="field-height" min="1" max="5000" value="{{ field_height|default:'320' }}"> px
 	</div>
 
-	<div class="zoom-container">
+	<div class="zoom-container" style="display: none">
 		Zoom
-		<input type="range" id="zoom" min="10" max="500" value="64">
-		<button onClick="document.querySelector('#zoom').value = 64; document.querySelector('#zoom').dispatchEvent(new Event('input'))">Reset Zoom</button>
+		<input type="range" id="zoom" min="0.2" max="5" value="1" step="0.1">
+		<button onClick="document.querySelector('#zoom').value = 1; document.querySelector('#zoom').dispatchEvent(new Event('input'))">Reset Zoom</button>
 	</div>
 
 	<div class="border-toggle">
@@ -49,21 +53,25 @@
 		Background Color
 		<input type="color" id="field-bg-color" value="{{ bg_color }}" style="min-height: 40px;">
 	</div>
+	<div class="grid-size-container">
+		Grid Size
+		<input type="number" id="grid-size" value="64" min="1" max="1024"> px
+	</div>
 </aside>
 
 <aside class="material-container">
 	{% for material in materials %}
 	<div class="material material--noncharacter" data-id="{{ material.id }}">
-		<img src="{{ material.icon.url }}" alt="{{ material.name }}">
+		<img src="{{ material.icon }}" alt="{{ material.name }}">
 	</div>
 	{% endfor %}
 	<div class="material material--character" data-id="-1">
-		<img src="{% static 'res/img/mining/char_front.png' %}" alt="Character">
+		<img src="{% static 'res/img/mining/char_skin_front.png' %}" alt="Character">
 	</div>
 </aside>
 <aside class="layer-container">
 	{% for layer in layers %}
-	<div class="layer" data-id="{{ layer.id }}" data-index="{{ layer.index }}" data-char_layer="{%if layer.index == char_index %}true{% else %}false{% endif %}">
+	<div class="layer" data-id="{{ layer.id }}" data-index="{{ layer.index }}">
 		<span>{{ layer.name|default:"unnamed Layer" }} ({{ layer.index }})</span>
 	</div>
 	{% empty %}
@@ -72,36 +80,8 @@
 	</div>
 	{% endfor %}
 </aside>
-<main>
-	<div class="field">
-		<!-- bg colors of cells -->
-		<div class="field-container field-container--bg">
-			<div class="cell" data-y_pos="0" data-x_pos="0"></div>
-		</div>
 
-		<!-- actual layers -->
-		{% for layer in layers %}
-			<div class="field-container field-container--{{ layer.index }}" data-layer_id="{{ layer.id }}">
-			{% for row in layer.field %}
-				{% for cell in row %}
-					<div class="cell"
-						data-y_pos="{{ forloop.parentloop.counter0 }}" data-x_pos="{{ forloop.counter0 }}"
-						{% if cell %}data-material_id="{{ cell }}"{% endif %}
-					></div>
-				{% empty %}
-					<div class="cell" data-y_pos="{{ forloop.counter0 }}" data-x_pos="0"></div>
-				{% endfor %}
-			{% empty %}
-				<div class="cell" data-y_pos="0" data-x_pos="0"></div>
-			{% endfor %}
-			</div>
-		{% empty %}
-			<div class="field-container field-container--0" data-layer_id="0">
-				<div class="cell" data-y_pos="0" data-x_pos="0"></div>
-			</div>
-		{% endfor %}
-	</div>
-</main>
+<canvas class="field"></canvas>
 
 <div class="info-container">
 	<div class="delete-mode-container">

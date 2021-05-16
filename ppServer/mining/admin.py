@@ -18,6 +18,10 @@ class LayerInLineAdmin(admin.TabularInline):
     model = Layer
     extra = 1
 
+class EntityInLineAdmin(admin.TabularInline):
+    model = Entity
+    extra = 1
+
 
 class MaterialAdmin(admin.ModelAdmin):
     list_display = ('_icon', 'name', 'rigidity', '_drops')
@@ -47,6 +51,13 @@ class MaterialGroupAdmin(admin.ModelAdmin):
         return format_html("".join(['<img src="{0}" style="max-width: 32px; max-height:32px;" />'.format(m.icon.url) for m in obj.materials.all()]))
 
 
+class LayerAdmin(admin.ModelAdmin):
+    list_display = ('region', 'index')
+
+    inlines = [EntityInLineAdmin]
+
+
 admin.site.register(Material, MaterialAdmin)
 admin.site.register(MaterialGroup, MaterialGroupAdmin)
 admin.site.register(Region, RegionAdmin)
+admin.site.register(Layer, LayerAdmin)

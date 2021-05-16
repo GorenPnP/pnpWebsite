@@ -5,12 +5,13 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.core.exceptions import ValidationError
 
 from PIL import Image as PilImage
+from django.forms.models import model_to_dict
 
 from shop.models import Tinker
 
 def validate_not_zero(value):
     if value == 0:
-        raise ValidationError( _('%(value)s is zero'), params={'value': value})
+        raise ValidationError('{} is zero'.format(value))
 
 def is_rgb_color(value):
 	if not value or not len(value): raise ValidationError("Color is missing")
@@ -19,6 +20,13 @@ def is_rgb_color(value):
 
 	print(re.search("^#[0-9a-fA-F]+$", value))
 	return not not re.search("^#[0-9a-fA-F]+$", value)
+
+def validate_angle_multiple_90(value):
+    if value % 90 != 0:
+        raise ValidationError(
+            '{} is not an angle which is a multiple of 90°'.format(value),
+            params={'value': value},
+        )
 
 
 
@@ -34,22 +42,6 @@ class Region(models.Model):
 
 	def __str__(self):
 		return "Region {}".format(self.name)
-
-	def get_field(self, index=0):
-		layer = Layer.objects.get(region=self, index=index)
-		if not layer: return [[]]
-
-		material_ids_2D = layer.field
-
-		all_materials = {} # {id: material}
-		for material in Material.objects.all():
-			all_materials[material.id] = material
-
-		for row in material_ids_2D:
-			for cell in row:
-				cell = all_materials[cell] if cell in all_materials.keys() else None
-
-		return material_ids_2D
 
 
 class Layer(models.Model):
@@ -67,10 +59,15 @@ class Layer(models.Model):
 	field = models.JSONField(default=list)
 
 	is_collidable = models.BooleanField(default=True)
-	is_mineable = models.BooleanField(default=True)
+	is_breakable = models.BooleanField(default=True)
 
 	def __str__(self):
 		return "Layer {} ({}) of {}".format(self.index, self.name, self.region.name)
+
+	def toDict(self):
+		l = model_to_dict(self)
+		l["entities"] = [entity.toDict() for entity in self.entity_set.all()]
+		return l
 
 
 
@@ -90,7 +87,7 @@ class Material(models.Model):
 
 	# resize icon
 	def save(self, *args, **kwargs):
-		MAX_SIZE = 64
+		MAX_SIZE = 1024
 
 		super().save(*args, **kwargs)
 
@@ -110,6 +107,21 @@ class Material(models.Model):
 		icon.thumbnail((new_width, new_height), PilImage.BILINEAR)
 		icon.save(self.icon.path, "png")
 
+	def w(self):
+		if not self.icon or not self.icon.path: return 0
+		return PilImage.open(self.icon.path).width
+
+	def h(self):
+		if not self.icon or not self.icon.path: return 0
+		return PilImage.open(self.icon.path).height
+
+	def toDict(self):
+		m = model_to_dict(self)
+		m["icon"] = self.icon.url
+		m["h"] = self.h()
+		m["w"] = self.w()
+		return m
+
 class MaterialDrop(models.Model):
 	item = models.ForeignKey(Tinker, on_delete=models.CASCADE, blank=False, null=True)
 	amount = models.TextField(default="[1]")
@@ -128,3 +140,38 @@ class MaterialGroup(models.Model):
 
 	def __str__(self):
 		return "Materialgruppe {}".format(self.name)
+
+
+class Entity(models.Model):
+	class Meta:
+		verbose_name = "Objekt"
+		verbose_name_plural = "Objekte"
+
+		ordering = ["layer", "x", "y"]
+
+	material = models.ForeignKey(Material, on_delete=models.CASCADE)
+	layer = models.ForeignKey(Layer, on_delete=models.CASCADE)
+
+	x = models.PositiveSmallIntegerField(default=0)
+	y = models.PositiveSmallIntegerField(default=0)
+
+	mirrored = models.BooleanField(default=False)
+	rotation_angle = models.PositiveSmallIntegerField(default=0, validators=[validate_angle_multiple_90, MaxValueValidator(3)])
+	scale = models.FloatField(default=1.0)
+
+
+	def __str__(self):
+		return "Objekt {} in Layer {} von {}".format(self.material.name, self.layer.index, self.layer.region.name)
+	
+	def w(self):
+		return self.material.w() * self.scale
+
+	def h(self):
+		return self.material.h() * self.scale
+
+	def toDict(self):
+		e = model_to_dict(self)
+		e["w"] = self.material.w()
+		e["h"] = self.material.h()
+		e["material"] = self.material.toDict()
+		return e

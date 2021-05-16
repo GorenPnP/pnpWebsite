@@ -4,14 +4,14 @@
 {% block extra-head %}
 <link rel="stylesheet" href="{% static 'mining/game/css/app.css' %}">
 
-{{ spawn_point|json_script:"spawn-point" }}
 {{ field_width|json_script:"width" }}
 {{ field_height|json_script:"height" }}
-{{ bg_color|json_script:"bg-color" }}
 {{ region_id|json_script:"region-id" }}
 
-{{ materials|json_script:"materials" }}
 {{ layers|json_script:"layers" }}
+{{ materials|json_script:"materials" }}
+{{ char_index|json_script:"char-layer-index" }}
+{{ bg_color|json_script:"bg-color" }}
 <script type="text/javascript" src="{% static 'mining/game/js/utils.js' %}"></script>
 <script type="text/javascript" src="{% static 'mining/game/js/websocket.js' %}"></script>
 <script type="text/javascript" src="{% static 'mining/game/js/config.js' %}"></script>

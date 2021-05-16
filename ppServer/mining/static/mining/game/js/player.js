@@ -71,9 +71,10 @@ class Player extends Entity {
         super.render(ctx);
     }
 
-    static reset() {
-        const pos = JSON.parse(document.querySelector("#spawn-point").innerHTML);
-        const playerPos = new Rectangle(pos.x * tile_size, pos.y * tile_size, tile_size, tile_size);
+    static reset(player_layer) {
+        // random position
+        const pos = player_layer.entities[Math.floor(Math.random() * player_layer.entities.length)];
+        const playerPos = new Rectangle(pos.x, pos.y, tile_size, tile_size);
         return new Player(playerPos);
     }
 }

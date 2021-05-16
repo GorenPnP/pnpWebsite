@@ -17,6 +17,15 @@ class Sprite {
     }
 
     render(ctx) {
+
+        this.updateAnimation();
+
+        ctx.drawImage(resources.get(this.url),
+                    this.pos.x, this.pos.y, this.pos.w, this.pos.h,
+                    0,          0,          this.pos.w, this.pos.h);
+    }
+
+    updateAnimation() {
         var frame;
 
         if (this.speed <= 0) { frame = 0; }
@@ -33,9 +42,5 @@ class Sprite {
 
         if (this.dir == 'vertical') { this.pos.y += frame * this.pos.h; }
         else { this.pos.x += frame * this.pos.w; }
-
-        ctx.drawImage(resources.get(this.url),
-                    this.pos.x, this.pos.y, this.pos.w, this.pos.h,
-                    0,          0,          this.pos.w, this.pos.h);
     }
 }

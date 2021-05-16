@@ -22,10 +22,13 @@ function renderMarkForBreakables() {
 
 
 class Entity {
-    constructor(pos, sprite, layer, material) {
+    constructor(pos, sprite, layer, material, rotation_angle, mirrored) {
         this.pos = pos;
         this.sprite = sprite;
         this.layer = layer;
+        this.material = material;
+        this.rotation_angle = rotation_angle;
+        this.mirrored = mirrored;
 
         this.rigidity = material?.rigidity;
         this.lost_rigidity = 0;
@@ -37,36 +40,65 @@ class Entity {
 
     render(ctx) {
         ctx.save();
-        ctx.translate(this.pos.x, this.pos.y);
-        this.sprite.render(ctx);
+
+
+
+        //----- canvas pos -------
+        let x = this.pos.x;
+        let y = this.pos.y;
+        let w = this.pos.w;
+        let h = this.pos.h;
+        
+        // rotate
+        ctx.translate(x + w/2, y + h/2);
+        ctx.rotate(this.rotation_angle/2 * Math.PI);
+        
+        // mirror with y-axis. Because canvas is rotated previously, choose x-axis if rotation is 90° or 270°
+        if (this.mirrored) {
+            if (this.rotation_angle % 2) {
+                ctx.scale(1, -1);
+                h *= -1;
+            } else {
+                ctx.scale(-1, 1);
+                w *= -1;
+            }
+        }
+
+
+        // x, y = 0 would be the center of the entity. compute offset for upper left corner
+        // in respect to rotation & mirroring
+        x = -w/2;
+        y = -h/2;
+
+        //----- sprite ------
+        this.sprite.updateAnimation();
+    
+        // translate & scale
+        ctx.drawImage(resources.get(this.sprite.url),
+            this.sprite.pos.x, this.sprite.pos.y, this.sprite.pos.w, this.sprite.pos.h,
+            x, y, w, h);
+
         ctx.restore();
     }
 
-    static reset(layers, materials) {
+    static reset(layers) {
         entities = [];
     
         for (const layer of layers) {
-            const field = layer.field;
-    
-            for (let y = 0; y < field.length; y++) {
-                for (let x = 0; x < field[y].length; x++) {
-                    const material_id = field[y][x];
-    
-                    if (!material_id) { continue; }
+            for (const entity of layer.entities) {
 
-                    const material = materials.find(material => material.id === material_id)
-                    const sprite_url = material.icon;
-                    const rigidity = material.rigidity;
-                    const pos = new Rectangle(x * tile_size, y * tile_size, tile_size, tile_size);
+                    const rigidity = entity.material.rigidity;
+                    const pos = new Rectangle(entity.x, entity.y, entity.w * entity.scale, entity.h * entity.scale);
 
                     entities.push(new Entity(
                         pos,
-                        new Sprite(sprite_url, new Rectangle(0, 0, tile_size, tile_size)),
+                        new Sprite(entity.material.icon, new Rectangle(0, 0, entity.w, entity.h)),
                         layer,
-                        material
+                        entity.material,
+                        entity.rotation_angle,
+                        entity.mirrored
                     ));
                 }
-            }
         }
         return entities;
     }

@@ -1,6 +1,8 @@
 function initWsSocket() {
     const ws_scheme = window.location.protocol == "https:" ? "wss" : "ws";
-    const wsUrl = `${ws_scheme}://${window.location.host}/ws/mining/game/${document.querySelector('#region-id').textContent}/`;
+    const region_id = JSON.parse(document.querySelector('#region-id').innerHTML);
+
+    const wsUrl = `${ws_scheme}://${window.location.host}/ws/mining/game/${region_id}/`;
     webSocket = new WebSocket(wsUrl);
 
     webSocket.onmessage = receiveMsg;

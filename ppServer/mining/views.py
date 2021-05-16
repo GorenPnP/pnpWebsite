@@ -28,7 +28,7 @@ def region_editor(request, region_id=None):
 	# make sure region exists
 	if region_id is None:
 		region = Region.objects.create()
-		return redirect("mining:region_editor", args=[region.id])
+		return redirect(reverse("mining:region_editor", args=[region.id]))
 
 	region = get_object_or_404(Region, id=region_id)
 
@@ -42,16 +42,19 @@ def region_editor(request, region_id=None):
 		
 		ungrouped_materials = Material.objects.exclude(id__in=grouped_material_ids)
 
-		layers = Layer.objects.filter(region=region)
+		# serializeable layers & their entities & their materials :)
+		layers = [layer.toDict() for layer in Layer.objects.filter(region=region)]
+		materials = [material.toDict() for material in Material.objects.all()]
 
-		# get max x & y coords of all fields (each layer has one)
-		width = max([  max([len(row) for row in layer.field])  for layer in layers])
-		height = max([len(layer.field) for layer in layers]) if width else 0
+
+		# get max x & y coords of all entities of all layers
+		width = max([ max([entity["x"] + entity["w"] for entity in layer["entities"]])  for layer in layers if len(layer["entities"])] + [0])
+		height = max([ max([entity["y"] + entity["h"] for entity in layer["entities"]])  for layer in layers if len(layer["entities"])] + [0])
 
 		context = {
 			"topic": region.name if region.name else "New Region",
 			"groups": groups + [{"name": "-", "materials": ungrouped_materials}],
-			"materials": Material.objects.all(),
+			"materials": materials,
 			"layers": layers,
 			"field_width": width,
 			"field_height": height,
@@ -65,11 +68,11 @@ def region_editor(request, region_id=None):
 	if request.method == "POST":
 		json_dict = json.loads(request.body.decode("utf-8"))
 		name = json_dict["name"]
-		fields = json.loads(json_dict["fields"])
+		entities = json.loads(json_dict["fields"])
 		bg_color = json_dict["bg_color"]
 
-		if (not name or not fields):
-			return JsonResponse({"message": "Parameters name and material_grid are required"}, status=418)
+		if (not name or not entities):
+			return JsonResponse({"message": "Parameters name and fields are required"}, status=418)
 			
 
 		region.name = name
@@ -80,12 +83,21 @@ def region_editor(request, region_id=None):
 			print(e)
 			return JsonResponse({"message": "Den Namen '{}' gibt es schon".format(name)}, status=418)
 
-		for layer_id, field in fields.items():
-			layer_id = int(layer_id) if layer_id else None
-			layer = Layer.objects.get(id=layer_id, region=region) if layer_id and layer_id > 0 else Layer.objects.create(region=region)
 
-			layer.field = field
-			layer.save()
+		for layer in Layer.objects.filter(region=region):
+			layer.entity_set.all().delete()
+
+		for entity in entities:
+			layer_id = int(entity["layer"])
+			layer = Layer.objects.get(id=layer_id, region=region)
+
+			if region.layer_index_of_char != layer.index:
+				material_id = int(entity["material"]["id"])
+				material = Material.objects.get(id=material_id)
+			else: material = Material.objects.first()
+
+			Entity.objects.create(layer=layer, x=entity["x"], y=entity["y"],
+				material=material, mirrored=entity["mirrored"], scale=entity["scale"], rotation_angle=entity["rotation_angle"])
 
 		return JsonResponse({"message": "ok"})
 
@@ -171,35 +183,23 @@ def game(request, pk):
 		
 		# if no materials defined for this region, redirect away
 		if not region.layer_set.count(): return redirect("mining:region_select")
+		
+		# serializeable layers & their entities & their materials :)
+		layers = [layer.toDict() for layer in Layer.objects.filter(region=region)]
 
-		layers = [model_to_dict(layer) for layer in region.layer_set.exclude(index=region.layer_index_of_char)]
-		char_field = get_object_or_404(Layer, region=region, index=region.layer_index_of_char).field
 
-		# make materials json-serializable
-		materials = [model_to_dict(material) for material in Material.objects.all()]
-		for material in materials:
-			material["icon"] = material["icon"].url
-
-		# get possible spawn points
-		char_spawns = []
-		for y in range(len(char_field)):
-			for x in range(len(char_field[y])):
-				if char_field[y][x] is not None:
-					char_spawns.append({"x": x, "y": y})
-
-		# no spawn location set :(
-		if not len(char_spawns): return redirect("mining:region_select")
-
+		# get max x & y coords of all entities of layers
+		width = max([ max([entity["x"] + entity["w"] for entity in layer["entities"]])  for layer in layers if len(layer["entities"])] + [0])
+		height = max([ max([entity["y"] + entity["h"] for entity in layer["entities"]])  for layer in layers if len(layer["entities"])] + [0])
 
 		context = {
-			"topic": region.name,
+			"topic": region.name if region.name else "New Region",
 			"layers": layers,
-			"field_width": len(layers[0]["field"][0]),
-			"field_height": len(layers[0]["field"]),
-			"materials": materials,
+			"field_width": width,
+			"field_height": height,
+			"name": region.name,
+			"region_id": region.id,
 			"bg_color": region.bg_color_rgb,
-			"spawn_point": random.choice(char_spawns),
-			"char_layer_index": region.layer_index_of_char,
-			"region_id": region.id
+			"char_index": region.layer_index_of_char
 		}
 	return render(request, "mining/game.html", context)

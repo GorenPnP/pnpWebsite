@@ -1,5 +1,5 @@
 .main-container {
-    height: 100vh;
+    min-height: 100vh;
     width: 100vw;
     padding-left: 50px;
     padding-right: 10px;
@@ -20,19 +20,9 @@
     color: #ddd;
 }
 
-main {
+.field {
     grid-area: field;
     overflow: auto;
-}
-
-.field-container {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-
-    display: grid;
-    justify-content: start;
-    align-content: flex-start;
 
     /* x-offset-keyword y-offset-keyword */
     transform-origin: left top;
@@ -66,6 +56,9 @@ main {
     justify-content: space-between;
     gap: 1em;
 
+    border: 2px solid #ddd;
+    padding: .5em;
+
     & > * {
         display: flex;
         align-items: center;
@@ -85,7 +78,10 @@ main {
     flex-direction: column;
 
     gap: .5em;
-    img { display: block; }
+    img {
+        display: block;
+        max-width: 100%;
+    }
 
     & > * {
         cursor: pointer;

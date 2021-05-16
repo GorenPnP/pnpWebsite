@@ -4,6 +4,7 @@ let ctx;
 
 let bg_color;
 let materials;
+var char_layer_index;
 
 // Game state
 var entities = [];  // game logic, not for rendering directly
@@ -17,7 +18,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // some const things
     bg_color = JSON.parse(document.querySelector("#bg-color").innerHTML);
-    materials = JSON.parse(document.querySelector("#materials").innerHTML);
+    layers = JSON.parse(document.querySelector("#layers").innerHTML);
+    char_layer_index = JSON.parse(document.querySelector("#char-layer-index").innerHTML);
 
     // load assets
     resources.load(
@@ -26,7 +28,7 @@ document.addEventListener("DOMContentLoaded", () => {
         '/static/res/img/mining/char_skin_back.png',
         '/static/res/img/mining/char_skin_left.png',
         '/static/res/img/mining/char_skin_right.png',
-        ...materials.map(material => material.icon));
+        ...layers.reduce((acc, l) => [...acc, ...l.entities], []).map(entity => entity.material.icon));
     
     resources.onReady(init);
 });
@@ -120,13 +122,13 @@ function reset() {
     ctx = canvas.getContext("2d");
     
     // init player
-    player = Player.reset();
+    player = Player.reset(layers.find(l => l.index === char_layer_index));
 
     // init layers
     layers = Layer.reset();
 
     // init field with all entities
-    entities = Entity.reset(layers, materials);
+    entities = Entity.reset(layers.filter(l => l.index != char_layer_index));
     updateFromEntities();
 }
 

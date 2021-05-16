@@ -18,6 +18,13 @@ class Input {
         68: 'RIGHT',
         83: 'DOWN',
         87: 'UP',
+        16: 'SHIFT',
+
+        // transforms in editor
+        82: 'R',
+        84: 'T',
+        77: 'M',
+
     }
     static pressedKeyCodes = new Set();
 
@@ -31,6 +38,10 @@ class Input {
 
         // true if one of them is pressed currently
         return keyCodes.some(keyCode => Input.pressedKeyCodes.has(keyCode));
+    }
+
+    static isEmpty() {
+        return !Input.pressedKeyCodes.size;
     }
 }
 
