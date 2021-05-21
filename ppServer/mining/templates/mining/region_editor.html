@@ -1,5 +1,5 @@
 {% extends 'base/main.html' %}
-{% load static %}
+{% load static %}{% load l10n %}
 {% block title %}{{ topic }}{% endblock %}
 {% block extra-head %}
 <link rel="stylesheet" href="{% static 'base/css/checkbox.css' %}">
@@ -30,8 +30,8 @@
 
 	<div class="field-size-container">
 		Size
-		<input type="number" id="field-width" min="1" max="5000" value="{{ field_width|default:'640' }}"> px *
-		<input type="number" id="field-height" min="1" max="5000" value="{{ field_height|default:'320' }}"> px
+		<input type="number" id="field-width" min="1" max="5000" value="{% localize off %}{{ field_width|default:'640' }}{% endlocalize %}"> px *
+		<input type="number" id="field-height" min="1" max="5000" value="{% localize off %}{{ field_height|default:'320' }}{% endlocalize %}"> px
 	</div>
 
 	<div class="zoom-container" style="display: none">
@@ -70,7 +70,7 @@
 			</span>
 
 			{% for material in group.materials %}
-				<div class="material material--noncharacter" data-id="{{ material.id }}">
+				<div class="material material--noncharacter" data-id="{% localize off %}{{ material.id }}{% endlocalize %}">
 					<img src="{{ material.icon }}" alt="{{ material.name }}">
 				</div>
 			{% endfor %}
