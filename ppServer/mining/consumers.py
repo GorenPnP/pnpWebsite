@@ -1,10 +1,11 @@
 import json
+from random import choice
 
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
 
 from character.models import Spieler
-from crafting.models import RelCrafting
+from crafting.models import RelCrafting, InventoryItem
 from .models import *
 
 class MiningGameConsumer(AsyncWebsocketConsumer):
@@ -24,6 +25,21 @@ class MiningGameConsumer(AsyncWebsocketConsumer):
     @database_sync_to_async
     def _db_get_region(self, region_id):
         return Region.objects.get(id=region_id)
+
+    @database_sync_to_async
+    def _db_delete_entity(self, entity_id):
+        return Entity.objects.get(id=entity_id).delete()
+
+    @database_sync_to_async
+    def _db_add_random_loot_of(self, entity_id):
+        material = Entity.objects.get(id=entity_id).material
+        drops = MaterialDrop.objects.filter(material=material)
+        if (len(drops) == 0): return
+
+        loot = choice(MaterialDrop.objects.filter(material=material))
+        iitem, _ = InventoryItem.objects.get_or_create(char=self.profile, item=loot.item)
+        iitem.num += choice(json.loads(loot.amount))
+        iitem.save()
 
 
     async def connect(self):
@@ -59,17 +75,33 @@ class MiningGameConsumer(AsyncWebsocketConsumer):
 
 
     async def receive(self, text_data):
-        message_text = json.loads(text_data)['message']
-        charactername = json.loads(text_data)['charactername']
+        type = json.loads(text_data)['type']
+        entity_id = json.loads(text_data)['message']
 
         await self.channel_layer.group_send(self.room_group_name,
             {
-                'type': 'chatroom_message',
-                'message': message_text,
-                'username': self.user.username,
-                'charactername': charactername,
+                'type': type,
+                'message': entity_id,
+                'username': self.user.username
             }
         )
+
+    async def break_entity_message(self, event):
+        entity_id = event['message']
+
+        # add loot
+        await self._db_add_random_loot_of(entity_id)
+
+        # remove entity
+        await self._db_delete_entity(entity_id)
+
+        # send message
+        username = event['username']
+        await self.send(text_data=json.dumps({
+            'type': 'break_entity_message',
+            'message': entity_id,
+            'username': username,
+        }))
 
     
     async def enter_message(self, event):
@@ -78,7 +110,7 @@ class MiningGameConsumer(AsyncWebsocketConsumer):
         await self.send(text_data=json.dumps({
             'type': 'info',
             'message': message,
-            'username': username,
+            'username': username
         }))
 
     async def leave_message(self, event):
@@ -94,14 +126,4 @@ class MiningGameConsumer(AsyncWebsocketConsumer):
         # multiple windows of same user open? cut all connections to THIS CHAT on logout
         if username == self.spieler.name:
             self.close()
-            self.disconnect(none)
-
-    async def chatroom_message(self, event):
-        message = event['message']
-        username = event['username']
-
-        await self.send(text_data=json.dumps({
-            'type': 'message',
-            'message': message,
-            'username': username
-        }))
+            self.disconnect(None)

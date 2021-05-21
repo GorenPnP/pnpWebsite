@@ -56,7 +56,6 @@ class Layer(models.Model):
 	index = models.SmallIntegerField(validators=[MinValueValidator(-100), MaxValueValidator(100)])
 
 	name = models.CharField(max_length=200)
-	field = models.JSONField(default=list)
 
 	is_collidable = models.BooleanField(default=True)
 	is_breakable = models.BooleanField(default=True)

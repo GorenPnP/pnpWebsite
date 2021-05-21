@@ -1,7 +1,7 @@
 // CLASS
 class Player extends Entity {
     constructor(pos) {
-        super(pos, new Sprite('/static/res/img/mining/char_skin_front.png', new Rectangle(0, 0, tile_size, tile_size)), 0);
+        super(-1, pos, new Sprite('/static/res/img/mining/char_skin_front.png', new Rectangle(0, 0, tile_size, tile_size)), 0);
 
         this.speed = new Vector(0, 0);
         this.lastJump = Date.now();

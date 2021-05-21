@@ -38,6 +38,9 @@ document.addEventListener("DOMContentLoaded", () => {
     materials = JSON.parse(document.querySelector("#materials").innerHTML);
     bg_color = JSON.parse(document.querySelector("#bg-color").innerHTML);
 
+    const img_urls = [...document.querySelectorAll(".material img")].map(img => img.src.replace(`${window.location.protocol}//${window.location.host}`, ''));
+    resources.load(...img_urls);
+
     // toolbar listeners
     field_width_input.addEventListener('input', update_field_size);
     field_height_input.addEventListener('input', update_field_size);
@@ -108,9 +111,10 @@ document.addEventListener("DOMContentLoaded", () => {
     update_field_size();
     zoom();
 
-    start_keyevent_loop();
-
-    setTimeout(render, rendering_cooldown);
+    resources.onReady(() => {
+        start_keyevent_loop();
+        setTimeout(render, rendering_cooldown);
+    });
 });
 
 function change_material_at(point) {
@@ -215,87 +219,78 @@ function render() {
     }
     ctx.restore();
 
-    let num_entities = layers.map(l => l.entities.length).reduce((sum, num) => sum + num, 0);
 
     // paint entities
     for (const layer of layers.sort((a, b) => a.index - b.index)) {        
         for (const entity of layer.entities) {
             
             // render img
-            const img = new Image();
-            const url = layer.index !== char_layer_index ? entity.material.icon : "/static/res/img/mining/char_skin_front.png";
-            img.src = url;
-
-            img.onload = () => {
-
-                ctx.save();
-                ctx.globalAlpha = layer.index == selected_layer.dataset.index ? 1 : opacity;
+            ctx.save();
+            ctx.globalAlpha = layer.index == selected_layer.dataset.index ? 1 : opacity;
 
 
-                let x = entity.x;
-                let y = entity.y;
-                let w = entity.w * entity.scale;
-                let h = entity.h * entity.scale;
-                
-                // rotate
-                ctx.translate(x + w/2, y + h/2);
-                ctx.rotate(entity.rotation_angle/2 * Math.PI);
-                
-                // mirror with y-axis. Because canvas is rotated previously, choose x-axis if rotation is 90° or 270°
-                if (entity.mirrored) {
-                    if (entity.rotation_angle % 2) {
-                        ctx.scale(1, -1);
-                        h *= -1;
-                    } else {
-                        ctx.scale(-1, 1);
-                        w *= -1;
-                    }
-                }
-
-
-                // x, y = 0 would be the center of the entity. compute offset for upper left corner
-                // in respect to rotation & mirroring
-                x = -w/2;
-                y = -h/2;
-
-                // translate & scale
-                ctx.drawImage(img,
-                    0, 0, entity.w, entity.h,
-                    x, y, w, h);
-
-                ctx.restore();
-
-                // draw outline around selected_entity as last thing to render
-                if (--num_entities === 0 && selected_entity) {
-
-                    const e = selected_entity;
-                
-                    // render img
-                    ctx.save();
-                    ctx.strokeStyle = "#fff";
-                    ctx.lineWidth = 5;
-                    let x = e.x;
-                    let y = e.y;
-                    let w = e.w * e.scale;
-                    let h = e.h * e.scale;
-                    
-                    // rotate
-                    ctx.translate(x + w/2, y + h/2);
-                    ctx.rotate(e.rotation_angle/2 * Math.PI);
-    
-    
-                    // x, y = 0 would be the center of the entity. compute offset for upper left corner
-                    // in respect to rotation
-                    x = -w/2;
-                    y = -h/2;
-    
-                    // translate & scale
-                    ctx.strokeRect(x, y, w, h);
-                    ctx.restore();
+            let x = entity.x;
+            let y = entity.y;
+            let w = entity.w * entity.scale;
+            let h = entity.h * entity.scale;
+            
+            // rotate
+            ctx.translate(x + w/2, y + h/2);
+            ctx.rotate(entity.rotation_angle/2 * Math.PI);
+            
+            // mirror with y-axis. Because canvas is rotated previously, choose x-axis if rotation is 90° or 270°
+            if (entity.mirrored) {
+                if (entity.rotation_angle % 2) {
+                    ctx.scale(1, -1);
+                    h *= -1;
+                } else {
+                    ctx.scale(-1, 1);
+                    w *= -1;
                 }
             }
+
+
+            // x, y = 0 would be the center of the entity. compute offset for upper left corner
+            // in respect to rotation & mirroring
+            x = -w/2;
+            y = -h/2;
+
+            // translate & scale
+            const url = layer.index !== char_layer_index ? entity.material.icon : "/static/res/img/mining/char_skin_front.png";
+            ctx.drawImage(resources.get(url),
+                0, 0, entity.w, entity.h,
+                x, y, w, h);
+
+            ctx.restore();
         }
     }
+
+    // draw outline around selected_entity as last thing to render
+    if (!selected_entity) { return; }
+    const e = selected_entity;
+
+    // render img
+    ctx.save();
+    ctx.strokeStyle = "#fff";
+    ctx.lineWidth = 5;
+    let x = e.x;
+    let y = e.y;
+    let w = e.w * e.scale;
+    let h = e.h * e.scale;
+    
+    // rotate
+    ctx.translate(x + w/2, y + h/2);
+    ctx.rotate(e.rotation_angle/2 * Math.PI);
+
+
+    // x, y = 0 would be the center of the entity. compute offset for upper left corner
+    // in respect to rotation
+    x = -w/2;
+    y = -h/2;
+
+    // translate & scale
+    ctx.strokeRect(x, y, w, h);
+    ctx.restore();
 }
 
 

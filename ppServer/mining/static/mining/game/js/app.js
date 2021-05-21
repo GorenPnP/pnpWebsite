@@ -21,14 +21,15 @@ document.addEventListener("DOMContentLoaded", () => {
     layers = JSON.parse(document.querySelector("#layers").innerHTML);
     char_layer_index = JSON.parse(document.querySelector("#char-layer-index").innerHTML);
 
-    // load assets
-    resources.load(
-        '/static/res/img/mining/char_skin_front.png',
+    const img_urls = [
         '/static/res/img/mining/char_skin_front.png',
         '/static/res/img/mining/char_skin_back.png',
         '/static/res/img/mining/char_skin_left.png',
         '/static/res/img/mining/char_skin_right.png',
-        ...layers.reduce((acc, l) => [...acc, ...l.entities], []).map(entity => entity.material.icon));
+        ...new Set(layers.reduce((acc, l) => [...acc, ...l.entities], []).map(entity => entity.material.icon))
+    ];
+    // load assets
+    resources.load(...img_urls);
     
     resources.onReady(init);
 });
@@ -68,7 +69,6 @@ function update(dt) {
 
 
 function updateEntities(dt) {
-
     // Update all non-player sprites
     [...entities, player].forEach(e => e.updateSprite(dt));
 }
@@ -105,10 +105,11 @@ function render() {
             // remove block
             entities = entities.filter(e => e !== Canvas.clicked_breakable);
             updateFromEntities();
-            Canvas.clicked_breakable = undefined;
-
+            
             // add loot to inventory
-            // TODO with websockets
+            ws_break(Canvas.clicked_breakable);
+
+            Canvas.clicked_breakable = undefined;
         }
     }
 }

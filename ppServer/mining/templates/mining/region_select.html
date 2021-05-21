@@ -12,7 +12,6 @@
 	<li style="display: grid; grid-template-columns: repeat(4, 1fr); width: 70ch;">
 		{{ region.name }}
 		<a href="{% url 'mining:region_editor' region.id %}">Edit</a>
-		<a href="{% url 'mining:mining' region.id %}">Look</a>
 		<a href="{% url 'mining:game' region.id %}">Play</a>
 	</li>
 	{% endfor %}

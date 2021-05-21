@@ -22,7 +22,8 @@ function renderMarkForBreakables() {
 
 
 class Entity {
-    constructor(pos, sprite, layer, material, rotation_angle, mirrored) {
+    constructor(id, pos, sprite, layer, material, rotation_angle, mirrored) {
+        this.id = id;
         this.pos = pos;
         this.sprite = sprite;
         this.layer = layer;
@@ -91,6 +92,7 @@ class Entity {
                     const pos = new Rectangle(entity.x, entity.y, entity.w * entity.scale, entity.h * entity.scale);
 
                     entities.push(new Entity(
+                        entity.id,
                         pos,
                         new Sprite(entity.material.icon, new Rectangle(0, 0, entity.w, entity.h)),
                         layer,

@@ -1,4 +1,3 @@
-
 (() => {
     var resourceCache = {};
     var readyCallbacks = [];

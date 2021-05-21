@@ -7,6 +7,7 @@ from django.db.utils import IntegrityError
 from django.forms.models import model_to_dict
 
 from ppServer.decorators import spielleiter_only
+from crafting.models import RelCrafting
 
 from .models import *
 
@@ -102,74 +103,6 @@ def region_editor(request, region_id=None):
 		return JsonResponse({"message": "ok"})
 
 
-@login_required
-@spielleiter_only(redirect_to="mining:region_select")
-def mining(request, pk):
-	region = get_object_or_404(Region, pk=pk)
-
-	if request.method == "GET":
-		
-		# if no materials defined for this region, redirect away
-		if not region.layer_set.count(): return redirect("mining:region_select")
-
-		layers = [model_to_dict(layer) for layer in region.layer_set.exclude(index=region.layer_index_of_char)]
-		char_field = get_object_or_404(Layer, region=region, index=region.layer_index_of_char).field
-
-		# make materials json-serializable
-		materials = [model_to_dict(material) for material in Material.objects.all()]
-		for material in materials:
-			material["icon"] = material["icon"].url
-
-		# get possible spawn points
-		char_spawns = []
-		for y in range(len(char_field)):
-			for x in range(len(char_field[y])):
-				if char_field[y][x] is not None:
-					char_spawns.append({"x": x, "y": y})
-
-		# no spawn location set :(
-		if not len(char_spawns): return redirect("mining:region_select")
-
-
-		context = {
-			"topic": region.name,
-			"layers": layers,
-			"field_width": len(layers[0]["field"][0]),
-			"field_height": len(layers[0]["field"]),
-			"materials": materials,
-			"bg_color": region.bg_color_rgb,
-			"spawn_point": random.choice(char_spawns),
-			"char_layer_index": region.layer_index_of_char
-		}
-		return render(request, "mining/mining.html", context)
-	
-	if request.method == "POST":
-		prev_material_id = json.loads(request.body.decode("utf-8"))['id']
-		prev_material = get_object_or_404(Material, id=prev_material_id)
-
-		spieler = get_object_or_404(Spieler, name=request.user.username)
-		rel = get_object_or_404(RelCrafting, spieler=spieler)
-
-		log_drops = []
-		for drop in MaterialDrop.objects.filter(material=prev_material):
-			item = drop.item
-			amount = choice(json.loads(drop.amount))
-
-			# add to inventory
-			iitem, _ = InventoryItem.objects.get_or_create(char=rel.profil, item=item)
-			iitem.num += amount
-			iitem.save()
-
-			# log drops
-			log_drops.append([amount, item.name])
-
-
-		return JsonResponse({
-			"id": get_2nd_chance_material(prev_material, Material.objects.filter(region=region)).id,
-			"amount": json.dumps(log_drops)
-		})
-
-
 def shooter(request):
 	return render(request, "mining/shooter.html", {})
 
@@ -200,6 +133,8 @@ def game(request, pk):
 			"name": region.name,
 			"region_id": region.id,
 			"bg_color": region.bg_color_rgb,
-			"char_index": region.layer_index_of_char
+			"char_index": region.layer_index_of_char,
+			"profile": "Profil " + RelCrafting.objects.get(spieler__name=request.user.username).profil.name
 		}
 	return render(request, "mining/game.html", context)
+	
