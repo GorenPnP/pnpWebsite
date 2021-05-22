@@ -139,6 +139,14 @@ class MaterialGroup(models.Model):
 
 	def __str__(self):
 		return "Materialgruppe {}".format(self.name)
+	
+	def toDict(self):
+		m = {
+			"id": self.id,
+			"name": self.name,
+			"materials": [m.toDict() for m in self.materials.all()]
+		}
+		return m
 
 
 class Entity(models.Model):

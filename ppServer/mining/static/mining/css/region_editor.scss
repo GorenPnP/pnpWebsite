@@ -90,19 +90,30 @@
         max-width: 100%;
     }
 
-    & > * {
+    .material, .layer {
         cursor: pointer;
         display: flex;
         justify-content: center;
         align-items: center;
-        margin: 0 5px;
+        margin: 1em 5px;
     }
-
     .selected {
         cursor: initial;
         transform: scale(1.1);
         & > * { border: solid 4px red; }
     }
+
+    .materialgroup {
+        border: 2px solid #fff;
+
+        &:not(.expanded) .material { display: none; }
+
+        .groupname {
+            display: block;
+            margin: .5em 5px 1em;
+        }
+    }
+
 }
 
 .info-container {

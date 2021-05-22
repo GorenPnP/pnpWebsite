@@ -61,11 +61,22 @@
 </aside>
 
 <aside class="material-container">
-	{% for material in materials %}
-	<div class="material material--noncharacter" data-id="{{ material.id }}">
-		<img src="{{ material.icon }}" alt="{{ material.name }}">
-	</div>
+	{% for group in groups %}
+		<div class="materialgroup{% if forloop.first %} expanded{% endif %}">
+			<span class="groupname"
+				onclick="document.querySelectorAll('.materialgroup.expanded').forEach(g => g.classList.remove('expanded')); this.parentNode.classList.add('expanded')">
+				
+				{{ group.name }} ({{group.materials|length}})
+			</span>
+
+			{% for material in group.materials %}
+				<div class="material material--noncharacter" data-id="{{ material.id }}">
+					<img src="{{ material.icon }}" alt="{{ material.name }}">
+				</div>
+			{% endfor %}
+		</div>
 	{% endfor %}
+
 	<div class="material material--character" data-id="-1">
 		<img src="{% static 'res/img/mining/char_skin_front.png' %}" alt="Character">
 	</div>

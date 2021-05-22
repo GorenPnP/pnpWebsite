@@ -36,12 +36,12 @@ def region_editor(request, region_id=None):
 
 	if request.method == "GET":
 
-		groups = [g for g in MaterialGroup.objects.all()]
+		groups = [g.toDict() for g in MaterialGroup.objects.all()]
 		grouped_material_ids = []
 		for group in groups:
-			grouped_material_ids += [m.id for m in group.materials.all()]
+			grouped_material_ids += [m["id"] for m in group["materials"]]
 		
-		ungrouped_materials = Material.objects.exclude(id__in=grouped_material_ids)
+		ungrouped_materials = [m.toDict() for m in Material.objects.exclude(id__in=grouped_material_ids)]
 
 		# serializeable layers & their entities & their materials :)
 		layers = [layer.toDict() for layer in Layer.objects.filter(region=region)]
