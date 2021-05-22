@@ -75,6 +75,8 @@ class Material(models.Model):
 		verbose_name = "Material"
 		verbose_name_plural = "Materialien"
 
+		ordering= ["name"]
+
 	name = models.CharField(max_length=200)
 	icon = models.ImageField(null=False, blank=False)
 	
