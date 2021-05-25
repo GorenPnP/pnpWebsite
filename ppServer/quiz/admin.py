@@ -58,6 +58,14 @@ class QuestionsInLine(admin.TabularInline):
 
     extra = 1
 
+class ModuleInLine(admin.TabularInline):
+    model = ModuleQuestion
+    verbose_name = "Module"
+    verbose_name_plural = "Modules"
+    fields = ["module"]
+
+    extra = 1
+
 
 class SessionQuestionsInLine(admin.TabularInline):
     model = SpielerSession.questions.through
@@ -89,7 +97,7 @@ class QuestionAdmin(admin.ModelAdmin):
         ("Permissions", {"fields": ["allow_text", "allow_upload"]})
         ]
 
-    inlines = [MultipleChoiceFieldInLine]
+    inlines = [MultipleChoiceFieldInLine, ModuleInLine]
 
     def images_included(self, obj):
         if obj.images.exists(): return True
