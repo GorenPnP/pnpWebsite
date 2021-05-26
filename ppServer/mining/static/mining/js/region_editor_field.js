@@ -148,8 +148,18 @@ function get_entity_at(point, layer_tag) {
 
 function update_rectangle_select_mode(point) {
 
-    const entity = get_entity_at(point, selected_layer);
-    if (!entity) { return; }
+    let entity = get_entity_at(point, selected_layer);
+    if (!entity) {
+        if (!fill_rect_mode) { return; }
+
+        // include current point as dummy entity into selected area, even though there is no entity
+        entity = {
+            ...point,
+            h: 1,
+            w: 1,
+            scale: 1
+        }
+    }
     highlight_entity = entity;
 
     const layer = layers.find(layer => layer.id === parseInt(selected_layer.dataset.id));
@@ -172,6 +182,8 @@ function update_rectangle_select_mode(point) {
         layer: layer.id
     };
 
+    if (fill_rect_mode) { fill_up_missing_entities(rect); }
+
     // add entities to selected_entities_rect_select_mode
     selected_entities_rect_select_mode = layer.entities.filter(e => is_intersecting(e, rect));
 
@@ -187,4 +199,25 @@ function reset_rectangle_select_mode() {
     selected_entities_rect_select_mode.forEach(e => selected_entities.add(e));
     selected_entities_rect_select_mode = [];
     highlight_entity = undefined;
+}
+
+
+function fill_up_missing_entities(rect) {
+    const material = materials.find(material => material.id == selected_material.dataset.id);
+
+    const start_x = Math.floor(rect.x / grid_size) * grid_size;
+    const start_y = Math.floor(rect.y / grid_size) * grid_size;
+    const w = rect.w;
+    const h = rect.h;
+
+    for (let x = start_x; x < rect.x + w; x += material.w) {
+        for (let y = start_y; y < rect.y + h; y += material.h) {
+            const entity = {
+                point: { x, y },
+                material: selected_material,
+                layer: selected_layer,
+            };
+            queue_place_entity.push(entity);
+        }
+    }
 }
