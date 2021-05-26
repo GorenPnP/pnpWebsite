@@ -11,6 +11,9 @@
 <script type="text/javascript" src="{% static 'mining/game/js/input.js' %}"></script>
 <script type="text/javascript" src="{% static 'mining/game/js/resources.js' %}"></script>
 <script type="text/javascript" src="{% static 'mining/js/region_editor.js' %}"></script>
+<script type="text/javascript" src="{% static 'mining/js/region_editor_field.js' %}"></script>
+<script type="text/javascript" src="{% static 'mining/js/region_editor_toolbar.js' %}"></script>
+<script type="text/javascript" src="{% static 'mining/js/region_editor_sidebars.js' %}"></script>
 {% endblock %}
 {% block absolute %}{% include 'base/header.html' with topic=topic %}{% endblock %}
 
@@ -58,27 +61,28 @@
 		Grid Size
 		<input type="number" id="grid-size" value="64" min="1" max="1024"> px
 	</div>
+	<button id="delete-on-layer">Delete all on Layer</button>
+	<button id="random-rotate-selected">Random rotate Selected</button>
 </aside>
 
 <aside class="material-container">
 	{% for group in groups %}
-		<div class="materialgroup{% if forloop.first %} expanded{% endif %}">
-			<span class="groupname"
-				onclick="document.querySelectorAll('.materialgroup.expanded').forEach(g => g.classList.remove('expanded')); this.parentNode.classList.add('expanded')">
-				
-				{{ group.name }} ({{group.materials|length}})
-			</span>
+		<div class="materialgroup materialgroup--noncharacter">
+			<span class="groupname">{{ group.name }} ({{group.materials|length}})</span>
 
 			{% for material in group.materials %}
-				<div class="material material--noncharacter" data-id="{% localize off %}{{ material.id }}{% endlocalize %}">
+				<div class="material" data-id="{% localize off %}{{ material.id }}{% endlocalize %}">
 					<img src="{{ material.icon }}" alt="{{ material.name }}">
 				</div>
 			{% endfor %}
 		</div>
 	{% endfor %}
-
-	<div class="material material--character" data-id="-1">
-		<img src="{% static 'res/img/mining/char_skin_front.png' %}" alt="Character">
+	
+	<div class="materialgroup materialgroup--character">
+		<span class="groupname">Character</span>
+		<div class="material" data-id="-1">
+			<img src="{% static 'res/img/mining/char_skin_front.png' %}" alt="Character">
+		</div>
 	</div>
 </aside>
 <aside class="layer-container">
@@ -100,7 +104,10 @@
 		<div class="checkbox" id="delete-toggle" onClick="toggle_delete_mode()"></div>
 		<span onClick="toggle_delete_mode()" style="cursor: pointer;">Delete Mode</span>
 	</div>
-	<button id="delete-on-layer">Delete all on Layer</button>
+	<!-- <div class="rect-fill-mode-container">
+		<div class="checkbox" id="rect-fill" onClick="toggle_rect_fill_mode()"></div>
+		<span onClick="toggle_rect_fill_mode()" style="cursor: pointer;">Fill in Rectangle-Mode</span>
+	</div> -->
 </div>
 <button class="button--ok">OK</button>
 {% endblock %}

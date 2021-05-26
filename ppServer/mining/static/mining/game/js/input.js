@@ -1,9 +1,14 @@
 // event listeners
 document.addEventListener('keydown', e => Input.pressedKeyCodes.add(e.keyCode));
-document.addEventListener('keyup',   e => Input.pressedKeyCodes.delete(e.keyCode));
+document.addEventListener('keyup',   e => {
+    Input.pressedKeyCodes.delete(e.keyCode);
+    Input.blockedKeyCodes.delete(e.keyCode);
+});
 
-window.addEventListener('blur', () => Input.pressedKeyCodes.clear());
-
+window.addEventListener('blur', () => {
+    Input.pressedKeyCodes.clear();
+    Input.blockedKeyCodes.clear();
+});
 
 // CLASS / NAMESPACE
 class Input {
@@ -24,9 +29,11 @@ class Input {
         82: 'R',
         84: 'T',
         77: 'M',
+        16: 'SHIFT'
 
     }
     static pressedKeyCodes = new Set();
+    static blockedKeyCodes = new Set();
 
     static isDown(keyName) {
         if (!Object.values(Input.keyMap).some(k => k === keyName)) {
@@ -37,11 +44,17 @@ class Input {
         const keyCodes = [...Input.pressedKeyCodes].filter(keyCode => Input.keyMap[keyCode] === keyName);
 
         // true if one of them is pressed currently
-        return keyCodes.some(keyCode => Input.pressedKeyCodes.has(keyCode));
+        return keyCodes.some(keyCode => Input.pressedKeyCodes.has(keyCode)) && keyCodes.every(keyCode => !Input.blockedKeyCodes.has(keyCode));
     }
 
     static isEmpty() {
         return !Input.pressedKeyCodes.size;
+    }
+
+    static blockKey(keyname) {
+        const keycode = Object.entries(Input.keyMap).reduce((keycode, [curr_keycode, curr_keyname]) => keyname === curr_keyname ? parseInt(curr_keycode) : keycode, undefined);
+        
+        if (keycode !== undefined) { Input.blockedKeyCodes.add(keycode); }
     }
 }
 

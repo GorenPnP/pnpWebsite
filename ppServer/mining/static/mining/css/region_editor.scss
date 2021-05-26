@@ -96,17 +96,18 @@
         justify-content: center;
         align-items: center;
         margin: 1em 5px;
-    }
-    .selected {
-        cursor: initial;
-        transform: scale(1.1);
-        & > * { border: solid 4px red; }
+
+        &.selected {
+            cursor: initial;
+            transform: scale(1.1);
+            & > * { border: solid 4px red; }
+        }
     }
 
     .materialgroup {
         border: 2px solid #fff;
 
-        &:not(.expanded) .material { display: none; }
+        &:not(.selected) .material { display: none; }
 
         .groupname {
             display: block;
