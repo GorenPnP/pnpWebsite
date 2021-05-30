@@ -40,6 +40,11 @@ class MaterialAdmin(admin.ModelAdmin):
 
 
 class RegionAdmin(admin.ModelAdmin):
+
+    # auto-add layers on load
+    class Media:
+        js = ('mining/js/admin_region_create.js',)
+
     list_display = ('name',)
 
     inlines = [LayerInLineAdmin]
