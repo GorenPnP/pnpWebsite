@@ -62,7 +62,13 @@ class LayerAdmin(admin.ModelAdmin):
     inlines = [EntityInLineAdmin]
 
 
+class CraftingOriginatedMaterialAdmin(admin.ModelAdmin):
+    list_display = ('item', 'material', 'is_collidable', 'is_breakable')
+
+
 admin.site.register(Material, MaterialAdmin)
 admin.site.register(MaterialGroup, MaterialGroupAdmin)
 admin.site.register(Region, RegionAdmin)
 admin.site.register(Layer, LayerAdmin)
+admin.site.register(CraftingOriginatedMaterial, CraftingOriginatedMaterialAdmin)
+admin.site.register(ProfileEntity)

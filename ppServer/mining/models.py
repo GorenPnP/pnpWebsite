@@ -1,4 +1,5 @@
-import json, re
+from datetime import date
+import re
 
 from django.db import models
 from django.core.validators import MaxValueValidator, MinValueValidator
@@ -8,6 +9,7 @@ from PIL import Image as PilImage
 from django.forms.models import model_to_dict
 
 from shop.models import Tinker
+from crafting.models import Profile
 
 def validate_not_zero(value):
     if value == 0:
@@ -168,6 +170,8 @@ class Entity(models.Model):
 	rotation_angle = models.PositiveSmallIntegerField(default=0, validators=[validate_angle_multiple_90, MaxValueValidator(3)])
 	scale = models.FloatField(default=1.0)
 
+	last_changed_at = models.DateTimeField(auto_now=True)
+
 
 	def __str__(self):
 		return "Objekt {} in Layer {} von {}".format(self.material.name, self.layer.index, self.layer.region.name)
@@ -184,3 +188,47 @@ class Entity(models.Model):
 		e["h"] = self.material.h()
 		e["material"] = self.material.toDict()
 		return e
+
+
+class CraftingOriginatedMaterial(models.Model):
+
+	class Meta:
+		unique_together = ('item', 'material')
+
+	item = models.ForeignKey(Tinker, on_delete=models.CASCADE)
+	material = models.ForeignKey(Material, on_delete=models.CASCADE)
+
+	is_collidable = models.BooleanField(default=True)
+	is_breakable = models.BooleanField(default=True)
+
+
+class ProfileEntity(models.Model):
+	profil = models.ForeignKey(Profile, on_delete=models.CASCADE)
+	
+	# needed if editor-placed
+	entity = models.ForeignKey(Entity, on_delete=models.CASCADE, null=True, blank=True)
+	last_synced_at = models.DateTimeField(auto_now=True)
+
+	# needed if player-placed
+	crafting_originated_material = models.ForeignKey(CraftingOriginatedMaterial, on_delete=models.CASCADE, null=True, blank=True)
+	x = models.SmallIntegerField(null=True, blank=True)
+	y = models.SmallIntegerField(null=True, blank=True)
+	region = models.ForeignKey(Region, on_delete=models.CASCADE, null=True, blank=True)
+
+	def __str__(self):
+		return "Entity {} of Profile {}".format(self.entity, self.profil)
+
+	@classmethod
+	def update(cls, region, profile):
+		profile_entities = cls.objects.exclude(entity=None).filter(entity__layer__region=region, profil=profile)
+		last_sync_at = profile_entities.first().last_synced_at if len(profile_entities) else date(1900, 1, 1)
+
+		new_entities = Entity.objects\
+			.filter(layer__region=region, last_changed_at__gt=last_sync_at)\
+			.exclude(id__in=[pe.entity.id for pe in profile_entities])
+
+		for entity in new_entities:
+			cls.objects.create(profil=profile, entity=entity)
+		
+		# update last_synced_at
+		for pe in profile_entities: pe.save()

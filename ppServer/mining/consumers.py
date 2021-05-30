@@ -28,7 +28,7 @@ class MiningGameConsumer(AsyncWebsocketConsumer):
 
     @database_sync_to_async
     def _db_delete_entity(self, entity_id):
-        return Entity.objects.get(id=entity_id).delete()
+        return ProfileEntity.objects.get(entity__id=entity_id, profil=self.profile).delete()
 
     @database_sync_to_async
     def _db_add_random_loot_of(self, entity_id):

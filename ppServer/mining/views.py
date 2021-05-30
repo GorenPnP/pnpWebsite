@@ -1,4 +1,4 @@
-import random
+import json
 
 from django.shortcuts import render, get_object_or_404, reverse, redirect
 from django.contrib.auth.decorators import login_required
@@ -113,12 +113,21 @@ def game(request, pk):
 	region = get_object_or_404(Region, pk=pk)
 
 	if request.method == "GET":
-		
-		# if no materials defined for this region, redirect away
-		if not region.layer_set.count(): return redirect("mining:region_select")
-		
+
+		profile = RelCrafting.objects.get(spieler__name=request.user.username).profil
+		ProfileEntity.update(region, profile)
+
+		# no spawn point, redirect
+		if not ProfileEntity.objects.filter(profil=profile, entity__layer__index=region.layer_index_of_char).count():
+			return redirect("mining:region_select")
+
 		# serializeable layers & their entities & their materials :)
+		existing_entity_ids = [pe.entity.id for pe in ProfileEntity.objects.exclude(entity=None).filter(profil=profile, entity__layer__region=region)]
 		layers = [layer.toDict() for layer in Layer.objects.filter(region=region)]
+
+		# remove already mined entities
+		for layer in layers:
+			layer["entities"] = [e for e in layer["entities"] if e["id"] in existing_entity_ids]
 
 
 		# get max x & y coords of all entities of layers
@@ -134,7 +143,7 @@ def game(request, pk):
 			"region_id": region.id,
 			"bg_color": region.bg_color_rgb,
 			"char_index": region.layer_index_of_char,
-			"profile": "Profil " + RelCrafting.objects.get(spieler__name=request.user.username).profil.name
+			"profile": "Profil " + profile.name
 		}
 	return render(request, "mining/game.html", context)
 	

@@ -63,6 +63,7 @@ class Canvas {
 // EVENT LISTENERS
 function hitBreakable(clicked_point) {
     if (Canvas.lastHit + miningCooldown >= Date.now()) { return; }
+
     Canvas.lastHit = Date.now();
     Canvas.lastPoint = clicked_point;
 
@@ -77,5 +78,7 @@ function hitBreakable(clicked_point) {
     breakables.forEach(b => {
         b.breaking = b === Canvas.clicked_breakable;
         b.lost_rigidity = b.breaking ? b.lost_rigidity + 1 : 0;
+
+        console.log(b.breaking && b.lost_rigidity)
     });
 }
