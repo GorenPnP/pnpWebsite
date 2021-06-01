@@ -66,4 +66,10 @@ class NewCharakterAdmin(admin.ModelAdmin):
             return super().get_queryset(request)
 
 
+class PriotableAdmin(admin.ModelAdmin):
+    list_display = ['priority', 'ip', 'ap', 'sp', 'fp', 'fg', 'zauber', 'drachmen']
+    list_editable = ['ip', 'ap', 'sp', 'fp', 'fg', 'zauber', 'drachmen']
+
+
 admin.site.register(NewCharakter, NewCharakterAdmin)
+admin.site.register(Priotable, PriotableAdmin)

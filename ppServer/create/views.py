@@ -247,16 +247,11 @@ def landing_page(request):
 
 
 def get_entries_of_prio():
-        # rows of priotable:
-        # [priority, IP, AP, SP, FP, FG, Zauber, Drachmen]      Note: FP & FG together in one field!
-        return [
-            ['A', 7, 15, 10, 20, 5, 5, 100000],
-            ['B', 5, 13,  7, 17, 4, 4,  80000],
-            ["C", 3, 11,  4, 14, 3, 3,  60000],
-            ["D", 2,  9,  2, 11, 2, 2,  40000],
-            ["E", 1,  7,  1,  8, 1, 1,  20000],
-            ["F", 0,  5,  0,  5, 0, 0,  10000]
-        ]
+    # Note: FP & FG together in one field!
+    return [
+        [row.get_priority_display(), row.ip, row.ap, row.sp, row.fp, row.fg, row.zauber, row.drachmen]
+        for row in Priotable.objects.all()
+    ]
 
 
 @login_required
@@ -320,7 +315,7 @@ def new_priotable(request):
     if request.method == 'POST':
 
         # collect data
-        num_entries = 6
+        num_entries = len(entries)
         new_char, error = get_own_NewCharakter(request)
         if error:
             return JsonResponse({"message": "Charakter konnte nicht gefunden werden"}, status=418)

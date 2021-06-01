@@ -171,3 +171,32 @@ class NewCharakterZauber(models.Model):
 
     item = models.ForeignKey("shop.Zauber", on_delete=models.CASCADE)
     char = models.ForeignKey(NewCharakter, on_delete=models.CASCADE)
+
+
+
+priority_enum = [
+    ('A', 'A'),
+    ('B', 'B'),
+    ('C', 'C'),
+    ('D', 'D'),
+    ('E', 'E'),
+    ('F', 'F'),
+]
+class Priotable(models.Model):
+
+    class Meta:
+        ordering = ['priority']
+        verbose_name = "Priotable Zeile"
+        verbose_name_plural = "Priotable Zeilen"
+
+    priority = models.CharField(choices=priority_enum, null=False, unique=True, max_length=1)
+    ip = models.PositiveSmallIntegerField(default=0, null=False)
+    ap = models.PositiveSmallIntegerField(default=0, null=False)
+    sp = models.PositiveSmallIntegerField(default=0, null=False)
+    fp = models.PositiveSmallIntegerField(default=0, null=False)
+    fg = models.PositiveSmallIntegerField(default=0, null=False)
+    zauber = models.PositiveSmallIntegerField(default=0, null=False)
+    drachmen = models.PositiveIntegerField(default=0, null=False)
+
+    def __str__(self):
+        return "Priotable row {}".format(self.get_priority_display())
