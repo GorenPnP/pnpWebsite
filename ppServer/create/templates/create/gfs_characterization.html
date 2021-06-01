@@ -1,0 +1,47 @@
+{% extends 'base/main.html' %}
+{% load static %}
+{% block title %}Gfs Wahlfilter{% endblock %}
+{% block extra-head %}
+<link rel="stylesheet" href="{% static 'base/css/table.css' %}">
+<link rel="stylesheet" href="{% static 'base/css/checkbox.css' %}">
+<link rel="stylesheet" href="{% static 'create/css/gfs_characterization.css' %}">
+<script src="{% static 'create/js/gfs_characterization.js' %}"></script>
+{% endblock %}
+{% block absolute %}{% include 'base/header.html' with topic='Gfs Wahlfilter' %}{% endblock %}
+
+{% block body %}
+{{ gfs_characterizations|json_script:"gfs_characterizations" }}
+
+<h2>Soll dein Charakter</h2>
+<div class="filter-container">
+    {% for filter in filters %}
+    <div class="filter">
+        <label for="{{ filter.name }}">{{ filter.text }}</label>
+
+        <select onchange="filterChange(this)" id="{{ filter.name }}">
+            <option value="" id="option0" selected>mir egal</option>
+            {% for choice in filter.choices %}
+                <option value="{{ choice.id }}" id="option{{ forloop.counter }}">{{ choice.titel }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    {% endfor %}
+</div>
+
+<a class="link-back" href="{% url 'create:gfs' %}">Zurück zur Gfs-Wahl</a>
+
+<div class="grid-container gfs-container">
+    <div class="col1 heading">Gfs</div>
+    <div class="col3 heading heading--last">Beschreibung</div>
+
+    <!-- content -->
+    {% for g in gfs %}
+    <div class="col1 gfs" data-gfs_id="{{ g.id }}"><a href="{% url 'wiki:stufenplan' g.id %}" target="_blank">{{ g.titel }}</a></div>
+    <div class="gfs" data-gfs_id="{{ g.id }}">{{ g.beschreibung }}</div>
+    {% endfor %}
+</div>
+
+<h3 class="none-found" style="text-align: center; display: {% if gfs|length %}none{% else %}block{% endif %}">Keine gefunden :(</h3>
+
+<a class="link-back" href="{% url 'create:gfs' %}">Zurück zur Gfs-Wahl</a>
+{% endblock %}

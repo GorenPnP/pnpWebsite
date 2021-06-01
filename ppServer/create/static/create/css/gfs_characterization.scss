@@ -1,0 +1,35 @@
+.filter-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5em 2em;
+    justify-content: space-between;
+}
+
+.filter {
+    display: flex;
+
+    width: 400px;
+    gap: .5em .5em;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: solid 1px #555;
+
+    label {
+        justify-self: flex-start;
+        display: flex;
+        align-items: center;
+    }
+    select {
+        flex-basis: 100px;
+    }
+}
+
+.grid-container {
+	grid-template-columns: auto auto;
+}
+
+.link-back {
+    display: block;
+    margin: 3em;
+    text-align: center;
+}

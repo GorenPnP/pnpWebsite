@@ -24,7 +24,8 @@
 </div>
 
 <button class="btn" onclick="submit()">Weiter</button>
-<p><a href="{% url 'wiki:gfs' %}" target="_blank">Alle Infos zu wählbaren Gfs/Klassen</a></p>
+<h3 class="link"><a href="{% url 'create:gfs_characterization' %}" target="_blank">Noch keinen konkreten Plan? Hole dir deine Inspiration hier</a></h3>
+<p class="link"><a href="{% url 'wiki:gfs' %}" target="_blank">Alle Infos zu wählbaren Gfs/Klassen</a></p>
 
 
 {% if old_scetches %}
