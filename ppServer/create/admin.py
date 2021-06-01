@@ -66,6 +66,10 @@ class NewCharakterAdmin(admin.ModelAdmin):
             return super().get_queryset(request)
 
 
+class GfsCharacterizationAdmin(admin.ModelAdmin):
+    list_display = ['gfs', 'state', 'social', 'magical', 'can_punch', 'can_shoot', 'gets_pricy_skills', 'can_fly', 'attitude']
+    list_editable = ['state', 'social', 'magical', 'can_punch', 'can_shoot', 'gets_pricy_skills', 'can_fly', 'attitude']
+
 class PriotableAdmin(admin.ModelAdmin):
     list_display = ['priority', 'ip', 'ap', 'sp', 'fp', 'fg', 'zauber', 'drachmen']
     list_editable = ['ip', 'ap', 'sp', 'fp', 'fg', 'zauber', 'drachmen']
@@ -73,3 +77,4 @@ class PriotableAdmin(admin.ModelAdmin):
 
 admin.site.register(NewCharakter, NewCharakterAdmin)
 admin.site.register(Priotable, PriotableAdmin)
+admin.site.register(GfsCharacterization, GfsCharacterizationAdmin)
