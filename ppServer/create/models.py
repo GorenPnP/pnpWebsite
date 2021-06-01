@@ -223,8 +223,8 @@ class GfsCharacterization(models.Model):
         verbose_name = "Gfs Charakterisierung"
         verbose_name_plural = "Gfs Charakterisierungen"
 
-    gfs = models.ForeignKey(Gfs, on_delete=models.CASCADE)
-    state = models.CharField(help_text=".. lebend oder (un)tot sein?", choices=alive_dead_enum, null=True, max_length=1, unique=True)
+    gfs = models.ForeignKey(Gfs, on_delete=models.CASCADE, unique=True)
+    state = models.CharField(help_text=".. lebend oder (un)tot sein?", choices=alive_dead_enum, null=True, max_length=1)
     social = models.CharField(help_text=".. sozial/umgänglich sein?", choices=yes_neutral_no_enum, null=True, max_length=1)
     magical = models.CharField(help_text=".. magisch sein?", choices=yes_neutral_no_enum, null=True, max_length=1)
     can_punch = models.CharField(help_text=".. Nahkampf haben?", choices=yes_neutral_no_enum, null=True, max_length=1)
