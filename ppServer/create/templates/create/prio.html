@@ -49,6 +49,8 @@
 <button id='submit' class="btn" disabled onclick="submitPrio()">Weiter</button>
 
 <div id="notes">
+    <p style="margin-bottom: 1em"><a href="{% url 'wiki:stufenplan' gfs.id %}" target="_blank">{{ gfs.titel }} öffnen</a></p>
+
     {% if notizen %}<h4>Notizen:</h4>{% endif %}
     {% for n in notizen %}{{ n }}<br>{% endfor %}
 </div>

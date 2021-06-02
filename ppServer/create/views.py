@@ -428,7 +428,7 @@ def new_priotable(request):
             "FG = Fertigkeitsgruppen",
             ]
 
-        context = {"topic": "Prioritätentabelle", 'table': entries, 'notizen': notes, "id": new_char.id, "ap_cost": ap_cost}
+        context = {"topic": "Prioritätentabelle", 'table': entries, 'notizen': notes, "id": new_char.id, "ap_cost": ap_cost, "gfs": new_char.gfs}
         return render(request, "create/prio.html", context)
 
 
