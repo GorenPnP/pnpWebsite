@@ -9,14 +9,14 @@
 {% block absolute %}
 
 <section class="hero">
-    {% include 'base/hero_monsterdex.html' %}
-    {% if open_quiz %}
-        {% include 'base/hero_quiz.html' %}
-    {% endif %}
-    {% include 'base/hero_crafting.html' %}
     {% if list_vote and list_vote|length %}
         {% include 'base/hero_poll.html' with polls=list_vote %}
     {% endif %}
+    {% if open_quiz %}
+        {% include 'base/hero_quiz.html' %}
+    {% endif %}
+    {% include 'base/hero_monsterdex.html' %}
+    {% include 'base/hero_crafting.html' %}
     {% if shop_review and shop_review|length %}
         {% include 'base/hero_shop.html' with items=shop_review %}
     {% endif %}
