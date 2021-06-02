@@ -26,17 +26,20 @@ function filterChange(select_tag) {
 
 function updateDisplayed() {
     const allGfsTags = [...document.querySelectorAll(".gfs-container .gfs")];
-    const no_gfs_displayed = allGfsTags.map(gfs_tag => {
+    const are_gfs_displayed = allGfsTags.map(gfs_tag => {
         const characterization = gfs_characterizations[gfs_tag.dataset.gfs_id];
 
         const is_displayed = Object.entries(active_filters)
             .map(([fieldname, value]) => characterization[fieldname] == value)
             .every(t => t);
 
-        gfs_tag.style.display = is_displayed ? "flex" : "none";
-        return is_displayed;
-    }).every(is_displayed => !is_displayed);
+        is_displayed ? gfs_tag.classList.add("displayed") : gfs_tag.classList.remove("displayed");
+        return is_displayed && gfs_tag.classList.contains("col1");
+    });
 
-    document.querySelector(".gfs-container").style.display = no_gfs_displayed ? "none" : "grid";
-    document.querySelector(".none-found").style.display = !no_gfs_displayed ? "none" : "block";
+    const num_gfs_displayed = are_gfs_displayed.reduce((num, is_displayed) => is_displayed ? ++num : num, 0);
+
+    document.querySelector(".gfs-container").style.display = num_gfs_displayed ? "grid" : "none";
+    document.querySelector("#num-displayed").innerHTML = num_gfs_displayed;
+    document.querySelector(".link-back").style.display = num_gfs_displayed ? "block" : "none";
 }

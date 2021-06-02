@@ -28,6 +28,7 @@
     {% endfor %}
 </div>
 
+<b class="num-displayed-container"><span id="num-displayed">{{ gfs|length }}</span> Gfs gefunden.</b>
 <a class="link-back" href="{% url 'create:gfs' %}">Zurück zur Gfs-Wahl</a>
 
 <div class="grid-container gfs-container">
@@ -36,12 +37,10 @@
 
     <!-- content -->
     {% for g in gfs %}
-    <div class="col1 gfs" data-gfs_id="{{ g.id }}"><a href="{% url 'wiki:stufenplan' g.id %}" target="_blank">{{ g.titel }}</a></div>
-    <div class="gfs" data-gfs_id="{{ g.id }}">{{ g.beschreibung }}</div>
+    <div class="col1 gfs displayed" data-gfs_id="{{ g.id }}"><a href="{% url 'wiki:stufenplan' g.id %}" target="_blank">{{ g.titel }}</a></div>
+    <div class="gfs displayed" data-gfs_id="{{ g.id }}">{{ g.beschreibung }}</div>
     {% endfor %}
 </div>
-
-<h3 class="none-found" style="text-align: center; display: {% if gfs|length %}none{% else %}block{% endif %}">Keine gefunden :(</h3>
 
 <a class="link-back" href="{% url 'create:gfs' %}">Zurück zur Gfs-Wahl</a>
 {% endblock %}
