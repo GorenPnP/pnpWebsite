@@ -44,8 +44,8 @@ class Player extends Entity {
 
     stayInBounds(bounds) {
         // Check bounds
-        const max_right = bounds.w - this.pos.w;
-        const max_down = bounds.h - this.pos.h;
+        const max_right = bounds.w - this.pos.w - Canvas.canvas.getBoundingClientRect().x;
+        const max_down = bounds.h - this.pos.h - Canvas.canvas.getBoundingClientRect().y;
 
         this.pos.x = Math.max(0, Math.min(this.pos.x, max_right));
         this.pos.y = Math.max(0, Math.min(this.pos.y, max_down));

@@ -6,8 +6,9 @@
 }
 
 .main-container {
-    min-height: 100vh;
+    height: 100vh;
     width: 100vw;
+    overflow: hidden;
     padding-left: 50px;
     padding-right: 10px;
 
@@ -22,14 +23,19 @@
         "info      info   ok";
 
     grid-template-columns: 100px 100px 1fr;
-    grid-template-rows: auto 1fr auto;
+    grid-template-rows: auto auto auto;
 
     color: #ddd;
 }
 
-.field {
-    grid-area: field;
+.field-container {
+    height: 100%;
+    width: 100%;
     overflow: auto;
+    grid-area: field;
+}
+.field {
+    // overflow: auto;
 
     /* x-offset-keyword y-offset-keyword */
     transform-origin: left top;

@@ -61,11 +61,24 @@ class Canvas {
 
 
 // EVENT LISTENERS
-function hitBreakable(clicked_point) {
-    if (Canvas.lastHit + miningCooldown >= Date.now()) { return; }
 
+/**
+ * 
+ * @param {x: number, y: number} clicked_point determined by (mouseEvent).layerX & (mouseEvent).layerY
+ * @returns 
+ */
+function hitBreakable(clicked_point) {
+    
+    if (Canvas.lastHit + miningCooldown >= Date.now()) { return; }
+    
     Canvas.lastHit = Date.now();
+    
     Canvas.lastPoint = clicked_point;
+    // subtract canvas x/y positioning
+    clicked_point = {
+        x: clicked_point.x - Canvas.canvas.getBoundingClientRect().x,
+        y: clicked_point.y - Canvas.canvas.getBoundingClientRect().y
+    };
 
     Canvas.clicked_breakable = breakables
         .filter(b => b.is_in_reach)
@@ -78,7 +91,5 @@ function hitBreakable(clicked_point) {
     breakables.forEach(b => {
         b.breaking = b === Canvas.clicked_breakable;
         b.lost_rigidity = b.breaking ? b.lost_rigidity + 1 : 0;
-
-        console.log(b.breaking && b.lost_rigidity)
     });
 }

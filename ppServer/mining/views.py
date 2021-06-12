@@ -22,6 +22,37 @@ def region_select(request):
 	return render(request, "mining/region_select.html", context)
 
 
+
+def get_modified_fields(fields):
+	criteria = [
+		{"path": ["material", "id"], "value": lambda f: int(f["material"]["id"])},
+		{"path": ["layer", "id"], "value": lambda f: int(f["layer"])},
+		{"path": ["x"], "value": lambda f: f["x"]},
+		{"path": ["y"], "value": lambda f: f["y"]},
+		{"path": ["mirrored"], "value": lambda f: f["mirrored"]},
+		{"path": ["scale"], "value": lambda f: f["scale"]},
+		{"path": ["rotation_angle"], "value": lambda f: f["rotation_angle"]},
+	]
+
+	modified_fields = []
+	for field in [field for field in fields if "id" in field.keys()]:
+		entity = Entity.objects.get(id=field["id"])
+
+		# go though all criteria
+		for criterium in criteria:
+			obj = entity
+			equal = True
+			for part in criterium["path"]: obj = getattr(obj, part)
+
+			if obj != criterium["value"](field):
+				equal = False
+				break
+		
+		# if >= 1 difference found, add the entity(old)-field(new) pair to return them
+		if not equal: modified_fields.append({"field": field, "entity": entity})
+	return modified_fields
+
+
 @login_required
 @spielleiter_only(redirect_to="mining:region_select")
 def region_editor(request, region_id=None):
@@ -84,11 +115,34 @@ def region_editor(request, region_id=None):
 			print(e)
 			return JsonResponse({"message": "Den Namen '{}' gibt es schon".format(name)}, status=418)
 
+		# all remaining entities (all that have ids) 
+		remaining_entity_ids = [int(entity["id"]) for entity in entities if "id" in entity.keys()]
 
+
+		# delete all persistent ones which are not in remaining entities
 		for layer in Layer.objects.filter(region=region):
-			layer.entity_set.all().delete()
+			layer.entity_set.exclude(id__in=remaining_entity_ids).delete()
 
-		for entity in entities:
+
+		# all modified entities
+		for mod in get_modified_fields(entities):
+			field = mod["field"]
+			entity = mod["entity"]
+
+			entity.layer =  Layer.objects.get(id=field["layer"])
+			entity.x = field["x"]
+			entity.y = field["y"]
+			entity.material = Material.objects.get(id=field["material"]["id"])
+			entity.mirrored = field["mirrored"]
+			entity.scale = field["scale"]
+			entity.rotation_angle = field["rotation_angle"]
+			entity.save()
+
+
+
+		# all new entities
+		for entity in [e for e in entities if "id" not in e.keys()]:
+
 			layer_id = int(entity["layer"])
 			layer = Layer.objects.get(id=layer_id, region=region)
 
