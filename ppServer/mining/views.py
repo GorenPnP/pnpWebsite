@@ -162,7 +162,7 @@ def shooter(request):
 
 
 @login_required
-@spielleiter_only(redirect_to="mining:region_select")
+# @spielleiter_only(redirect_to="mining:region_select")
 def game(request, pk):
 	region = get_object_or_404(Region, pk=pk)
 
@@ -197,7 +197,8 @@ def game(request, pk):
 			"region_id": region.id,
 			"bg_color": region.bg_color_rgb,
 			"char_index": region.layer_index_of_char,
-			"profile": "Profil " + profile.name
+			"profile": "Profil " + profile.name,
+			"username": request.user.username
 		}
 	return render(request, "mining/game.html", context)
 	

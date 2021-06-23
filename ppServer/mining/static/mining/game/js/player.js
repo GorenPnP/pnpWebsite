@@ -1,8 +1,9 @@
 // CLASS
 class Player extends Entity {
-    constructor(pos) {
+    constructor(pos, username) {
         super(-1, pos, new Sprite('/static/res/img/mining/char_skin_front.png', new Rectangle(0, 0, tile_size, tile_size)), 0);
 
+        this.username = username;
         this.speed = new Vector(0, 0);
         this.lastJump = Date.now();
 
@@ -12,9 +13,12 @@ class Player extends Entity {
             LEFT: new Sprite('/static/res/img/mining/char_skin_left.png', new Rectangle(0, 0, tile_size, tile_size)),
             RIGHT: new Sprite('/static/res/img/mining/char_skin_right.png', new Rectangle(0, 0, tile_size, tile_size))
         };
+
+        ws_player_pos({position: this.pos, speed: this.speed});
     }
 
     resolveCollisions() {
+        const old_speed = {...this.speed};
         const playerXRect = new Rectangle(this.pos.x + Math.round(this.speed.x), this.pos.y, this.pos.w, this.pos.h);
         const playerYRect = new Rectangle(this.pos.x, this.pos.y + Math.round(this.speed.y), this.pos.w, this.pos.h);
         
@@ -38,6 +42,13 @@ class Player extends Entity {
             }
     
         }
+
+        // difference in x & y comes from gravity
+        if ((old_speed.x !== this.speed.x || this.speed.x) ||
+            (old_speed.y !== this.speed.y && (this.speed.y < 0 || this.speed.y > 0.5))) {
+            ws_player_pos({position: {...this.pos, x: playerXRect.x, y: playerYRect.y}, speed: this.speed});
+        }
+
         this.pos.x = playerXRect.x;
         this.pos.y = playerYRect.y;
     }
@@ -75,6 +86,6 @@ class Player extends Entity {
         // random position
         const pos = player_layer.entities[Math.floor(Math.random() * player_layer.entities.length)];
         const playerPos = new Rectangle(pos.x, pos.y, tile_size, tile_size);
-        return new Player(playerPos);
+        return new Player(playerPos, JSON.parse(document.querySelector("#username").innerHTML));
     }
 }

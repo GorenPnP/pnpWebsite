@@ -12,19 +12,39 @@ function initWsSocket() {
 }
 
 function leave() {
-
+    console.log("Your Web socket connection is terminated");
 }
 
 function receiveMsg(e) {
     const data = JSON.parse(e.data);
-    const entity_id = data.message;
-
+    
     switch (data.type) {
         case "break_entity_message":
+            const entity_id = data.message;
+
             // delete entity from game
             entities = entities.filter(entity => entity.id !== entity_id);
             collidables = entities.filter(entity => entity.id !== entity_id);
             breakables = entities.filter(entity => entity.id !== entity_id);
+            break;
+        case "player_position_message":
+            const username = data.username;
+            const {position, speed} = data.message;
+            if (username === player.username) { return; }
+            
+            let other_player = other_players.find(p => p.username === username);
+            if (!other_player) {
+                other_player = new Player(position, username);
+            } else {
+                other_players = other_players.filter(p => p !== other_player);
+                other_player.speed = {
+                    x: position.x - other_player.pos.x,
+                    y: position.y - other_player.pos.y
+                };
+                other_player.pos = position;
+            }
+            other_player.speed = speed;
+            other_players.push(other_player);
             break;
         default:
             console.log(data);
@@ -32,5 +52,28 @@ function receiveMsg(e) {
 }
 
 function ws_break(clicked_breakable) {
-    webSocket.send(JSON.stringify({ type: "break_entity_message", message: clicked_breakable.id }));
+    const timer_handle = setInterval(() => {
+        if (webSocket.readyState === 1) {
+            webSocket.send(JSON.stringify({ type: "break_entity_message", message: clicked_breakable.id }));
+            clearInterval(timer_handle);
+        }
+    }, 100);
+}
+
+function ws_player_pos({position, speed}) {
+    const timer_handle = setInterval(() => {
+        if (webSocket.readyState === 1) {
+            webSocket.send(JSON.stringify({ type: "player_position_message", message: {position, speed} }));
+            clearInterval(timer_handle);
+        }
+    }, 100);
+}
+
+function ws_save_player_position(position) {
+    const timer_handle = setInterval(() => {
+        if (webSocket.readyState === 1) {
+            webSocket.send(JSON.stringify({ type: "save_player_position_message", message: position }));
+            clearInterval(timer_handle);
+        }
+    }, 100);
 }

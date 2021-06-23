@@ -11,6 +11,9 @@ var entities = [];  // game logic, not for rendering directly
 var collidables = [];
 var breakables = [];
 
+var player;
+var other_players = [];
+
 var lastTime;
 
 // startup
@@ -92,6 +95,7 @@ function render() {
 
     entities.filter(e => e.layer.index < 0).forEach(e => e.render(ctx));
     player.render(ctx);
+    other_players.forEach(p => p.render(ctx));
     entities.filter(e => e.layer.index >= 0).forEach(e => e.render(ctx));
 
     renderMarkForBreakables();
@@ -124,6 +128,17 @@ function reset() {
     
     // init player
     player = Player.reset(layers.find(l => l.index === char_layer_index));
+
+    let last_pos = new Vector();
+
+    // save update of player position every 1s
+    setInterval(() => {
+        if (last_pos.x !== player.pos.x || last_pos.y !== player.pos.y) {
+            const position = {x: player.pos.x, y: player.pos.y};
+            ws_save_player_position(position);
+            last_pos = position;
+        }
+    }, 1000);
 
     // init layers
     layers = Layer.reset();

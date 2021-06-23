@@ -40,6 +40,11 @@ class MiningGameConsumer(AsyncWebsocketConsumer):
         iitem, _ = InventoryItem.objects.get_or_create(char=self.profile, item=loot.item)
         iitem.num += choice(json.loads(loot.amount))
         iitem.save()
+    
+    @database_sync_to_async
+    def _db_save_player_position(self, position):
+        print("save {} of {}".format(position, self.user.username))
+        return
 
 
     async def connect(self):
@@ -76,12 +81,15 @@ class MiningGameConsumer(AsyncWebsocketConsumer):
 
     async def receive(self, text_data):
         type = json.loads(text_data)['type']
-        entity_id = json.loads(text_data)['message']
+        message = json.loads(text_data)['message']
+
+        if type == "save_player_position_message":
+            return await self._db_save_player_position(json.loads(text_data)['message'])
 
         await self.channel_layer.group_send(self.room_group_name,
             {
                 'type': type,
-                'message': entity_id,
+                'message': message,
                 'username': self.user.username
             }
         )
@@ -100,6 +108,18 @@ class MiningGameConsumer(AsyncWebsocketConsumer):
         await self.send(text_data=json.dumps({
             'type': 'break_entity_message',
             'message': entity_id,
+            'username': username,
+        }))
+
+    
+    async def player_position_message(self, event):
+        position_and_speed = event['message']
+
+        # send message
+        username = event['username']
+        await self.send(text_data=json.dumps({
+            'type': 'player_position_message',
+            'message': position_and_speed,
             'username': username,
         }))
 
