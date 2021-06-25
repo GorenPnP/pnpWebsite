@@ -54,6 +54,7 @@ function receiveMsg(e) {
 function ws_break(clicked_breakable) {
     const timer_handle = setInterval(() => {
         if (webSocket.readyState === 1) {
+            console.log("break_entity_message:", clicked_breakable.id)
             webSocket.send(JSON.stringify({ type: "break_entity_message", message: clicked_breakable.id }));
             clearInterval(timer_handle);
         }

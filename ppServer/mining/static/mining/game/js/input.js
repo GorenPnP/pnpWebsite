@@ -62,6 +62,7 @@ class Input {
 
 // FUNCTIONS
 function handleInput(dt, player) {
+    const now = Date.now();
 
     if (( Input.isDown('DOWN') && !Input.isDown('UP')) ||
     (!Input.isDown('DOWN') &&  Input.isDown('UP'))) {
@@ -69,7 +70,6 @@ function handleInput(dt, player) {
         // move/accelerate y
         if (Input.isDown('DOWN') && !Input.isDown('UP')) { player.speed.y += playerFallAcceleration * dt; }
         
-        const now = Date.now();
         if (Input.isDown('UP') && !Input.isDown('DOWN')) {
             // check if on ground
             if (player.speed.y === 0) { player.lastJump = now; }
