@@ -6,6 +6,8 @@ let bg_color;
 let materials;
 var char_layer_index;
 
+var levelPosition = new Rectangle();
+
 // Game state
 var entities = [];  // game logic, not for rendering directly
 var collidables = [];
@@ -33,7 +35,19 @@ document.addEventListener("DOMContentLoaded", () => {
     ];
     // load assets
     resources.load(...img_urls);
-    
+
+    // calc game dimensions
+    const max_coords = layers
+        .filter(layer => layer.index !== char_layer_index)
+        .reduce((entities, layer) => [...entities, ...(layer.entities || [])], [])
+        .reduce((max, entity) => {
+            max.x = Math.max(max.x, entity.x + entity.w);
+            max.y = Math.max(max.y, entity.y + entity.h);
+            return max;
+        }, new Vector());
+    levelPosition = {x: 0, y : 0, w: max_coords.x, h: max_coords.y};
+
+
     resources.onReady(init);
 });
 
@@ -64,7 +78,8 @@ function update(dt) {
     updateEntities(dt);
 
     player.resolveCollisions();
-    player.stayInBounds(new Rectangle(0, 0, canvas.width, canvas.height));
+    Canvas.setRenderOffset();
+    player.stayInBounds(levelPosition);
 
     markReachableBreakableBlocks();
 };
@@ -89,16 +104,20 @@ function markReachableBreakableBlocks() {
 }
 
 // Draw everything
-function render() {
-    ctx.fillStyle = bg_color;
+function render() {    
+    ctx.fillStyle = '#3a3d40';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = bg_color;
+    ctx.fillRect(Canvas.renderOffset.x, Canvas.renderOffset.y, levelPosition.w, levelPosition.h);
+    
+    entities.filter(e => e.layer.index < 0).forEach(e => e.render(ctx, Canvas.renderOffset));
+    other_players.forEach(p => p.render(ctx, Canvas.renderOffset));
 
-    entities.filter(e => e.layer.index < 0).forEach(e => e.render(ctx));
     player.render(ctx);
-    other_players.forEach(p => p.render(ctx));
-    entities.filter(e => e.layer.index >= 0).forEach(e => e.render(ctx));
 
-    renderMarkForBreakables();
+    entities.filter(e => e.layer.index >= 0).forEach(e => e.render(ctx, Canvas.renderOffset));
+
+    renderMarkForBreakables(Canvas.renderOffset);
 
     if (Canvas.clicked_breakable) {
         const centerPoint = new Vector(player.pos.x + player.pos.w/2, player.pos.y - 30 - 10);

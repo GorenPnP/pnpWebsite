@@ -65,7 +65,7 @@ class Player extends Entity {
         if (this.pos.y === max_down && this.speed.y > 0) { this.speed.y = 0; }
     }
 
-    render(ctx) {
+    render(ctx, offset = {x: 0, y: 0}) {
         const limit = 0.25;
         const speed_x = Math.abs(this.speed.x) < limit ? 0 : this.speed.x;
         const speed_y = Math.abs(this.speed.y) < limit ? 0 : this.speed.y;
@@ -79,7 +79,14 @@ class Player extends Entity {
             this.sprite = speed_y > 0 ? this.spriteMap.DOWN : this.spriteMap.UP;
         }
 
-        super.render(ctx);
+        // if entity is the currently playing player, render it in the center of the screen
+        if (this === player) {
+            offset = new Vector(
+                Math.floor((canvas.width - this.pos.w) / 2 - this.pos.x),
+                Math.floor((canvas.height - this.pos.h) / 2 - this.pos.y)
+            );
+        }
+        super.render(ctx, offset);
     }
 
     static reset(player_layer) {

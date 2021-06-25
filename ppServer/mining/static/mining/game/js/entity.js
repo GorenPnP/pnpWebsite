@@ -1,8 +1,8 @@
-function renderMarkForBreakables() {
+function renderMarkForBreakables(offset) {
     const breaking = breakables.filter(b => b.breaking);
     for (el of breaking) {
         ctx.fillStyle = `rgba(255, 255, 255, ${(el.lost_rigidity) / el.rigidity})`;
-        ctx.fillRect(el.pos.x, el.pos.y, el.pos.w, el.pos.h)
+        ctx.fillRect(el.pos.x + offset.x, el.pos.y + offset.y, el.pos.w, el.pos.h)
     }
 
 
@@ -13,7 +13,7 @@ function renderMarkForBreakables() {
       
         // Define clickable area
         ctx.beginPath();
-        ctx.rect(el.pos.x, el.pos.y, el.pos.w, el.pos.h);
+        ctx.rect(el.pos.x + offset.x, el.pos.y + offset.y, el.pos.w, el.pos.h);
       
         // Draw focus ring, if appropriate
         ctx.stroke();
@@ -39,14 +39,14 @@ class Entity {
         this.sprite.update(dt);
     }
 
-    render(ctx) {
+    render(ctx, offset) {
         ctx.save();
 
 
 
         //----- canvas pos -------
-        let x = this.pos.x;
-        let y = this.pos.y;
+        let x = this.pos.x + offset.x;
+        let y = this.pos.y + offset.y;
         let w = this.pos.w;
         let h = this.pos.h;
         

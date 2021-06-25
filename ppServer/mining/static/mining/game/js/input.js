@@ -64,23 +64,31 @@ class Input {
 function handleInput(dt, player) {
 
     if (( Input.isDown('DOWN') && !Input.isDown('UP')) ||
-        (!Input.isDown('DOWN') &&  Input.isDown('UP'))) {
+    (!Input.isDown('DOWN') &&  Input.isDown('UP'))) {
         
         // move/accelerate y
         if (Input.isDown('DOWN') && !Input.isDown('UP')) { player.speed.y += playerFallAcceleration * dt; }
-
+        
         const now = Date.now();
         if (Input.isDown('UP') && !Input.isDown('DOWN')) {
             // check if on ground
             if (player.speed.y === 0) { player.lastJump = now; }
             
-            // jump for x seconds
-            if (player.lastJump === now || (player.lastJump + playerJumpDuration >= now && player.speed.y < 0)) {
-                player.speed.y -= playerJumpAcceleration * dt;
+            // start jumping
+            if (player.lastJump === now) {
+                player.speed.y = -0.1 * dt;
+            
+            // continue jumping
+            } else if (player.lastJump + playerJumpDuration >= now) {
+                const jump_time = now - player.lastJump;
+                const remaining_time = playerJumpDuration - jump_time;
+                const speed_y = -1 * playerJumpDamping * jump_time * remaining_time * dt;
+                player.speed.y = Math.min(speed_y, -0.1);
             }
         }
     }
-
+    if (!Input.isDown('DOWN') && player.lastJump + playerJumpDuration < now) player.speed.y = 0;
+    
     if (( Input.isDown('LEFT') &&  Input.isDown('RIGHT')) ||
     (!Input.isDown('LEFT') && !Input.isDown('RIGHT'))) {
         
@@ -91,10 +99,12 @@ function handleInput(dt, player) {
         const accDiff = playerXAcceleration * dt;
         player.speed.x += Input.isDown('RIGHT') ? accDiff  : (-1 * accDiff);
     }
-
-    // apply gravity
-    player.speed.y += playerFallAcceleration * dt;
-
+    
+    // apply gravity if player on ground
+    if (player.speed.y >= 0) {
+        player.speed.y += playerFallAcceleration * dt;
+    }
+    
     // not faster than max speed
     player.speed.x = Math.min( Math.abs(player.speed.x), playerMaxSpeed.x) * Math.sign(player.speed.x);
     player.speed.y = Math.min( Math.abs(player.speed.y), playerMaxSpeed.y) * Math.sign(player.speed.y);

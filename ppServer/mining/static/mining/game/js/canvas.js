@@ -6,6 +6,8 @@ class Canvas {
     static lastPoint;
     static clicked_breakable;
     static hittingTimer;
+
+    static renderOffset = new Vector();
     
     static reset() {
         Canvas.canvas = document.createElement("canvas");
@@ -56,6 +58,13 @@ class Canvas {
         Canvas.canvas.height = main_container.offsetHeight;
         Canvas.canvas.style.width = `${main_container.offsetWidth}px`;
         Canvas.canvas.style.height = `${main_container.offsetHeight}px`;
+    }
+
+    static setRenderOffset() {
+        Canvas.renderOffset = new Vector(
+            Math.floor(-1* (player.pos.x - (canvas.width - player.pos.w) / 2)),
+            Math.floor(-1* (player.pos.y - (canvas.height - player.pos.h) / 2))
+        );
     }
 }
 
