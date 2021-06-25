@@ -28,7 +28,7 @@ class Canvas {
         // Add the event listeners for mousedown, mousemove, and mouseup
         Canvas.canvas.addEventListener('mousedown', e => {
             Canvas.isHitting = true;
-            const point = new Vector(e.layerX, e.layerY);
+            const point = new Vector(e.clientX - Canvas.renderOffset.x, e.clientY - Canvas.renderOffset.y);
             hitBreakable(point);
 
             Canvas.hittingTimer = setInterval(() => hitBreakable(Canvas.lastPoint), miningCooldown / 2);
@@ -36,7 +36,8 @@ class Canvas {
         
         Canvas.canvas.addEventListener('mousemove', e => {
             if (Canvas.isHitting) {
-                const point = new Vector(e.layerX, e.layerY);
+                const point = new Vector(e.clientX - Canvas.renderOffset.x, e.clientY - Canvas.renderOffset.y);
+                console.log(point)
                 hitBreakable(point);
             }
         });
@@ -73,7 +74,7 @@ class Canvas {
 
 /**
  * 
- * @param {x: number, y: number} clicked_point determined by (mouseEvent).layerX & (mouseEvent).layerY
+ * @param {x: number, y: number} clicked_point determined by (mouseEvent).clientX, (mouseEvent).clientY & renderOffset
  * @returns 
  */
 function hitBreakable(clicked_point) {
@@ -83,11 +84,6 @@ function hitBreakable(clicked_point) {
     Canvas.lastHit = Date.now();
     
     Canvas.lastPoint = clicked_point;
-    // subtract canvas x/y positioning
-    clicked_point = {
-        x: clicked_point.x - Canvas.canvas.getBoundingClientRect().x,
-        y: clicked_point.y - Canvas.canvas.getBoundingClientRect().y
-    };
 
     Canvas.clicked_breakable = breakables
         .filter(b => b.is_in_reach)

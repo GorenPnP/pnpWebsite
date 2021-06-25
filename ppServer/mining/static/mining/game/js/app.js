@@ -120,9 +120,9 @@ function render() {
     renderMarkForBreakables(Canvas.renderOffset);
 
     if (Canvas.clicked_breakable) {
-        const centerPoint = new Vector(player.pos.x + player.pos.w/2, player.pos.y - 30 - 10);
+        const centerPoint = new Vector(canvas.width / 2, (canvas.height - player.pos.h) / 2 - 10);
         const percentFilled = Canvas.clicked_breakable.lost_rigidity / Canvas.clicked_breakable.rigidity * 100;
-        drawPie(ctx, centerPoint, 30, percentFilled);
+        drawPie(ctx, centerPoint, 20, percentFilled);
 
         if (percentFilled >= 100) {
             // remove block
