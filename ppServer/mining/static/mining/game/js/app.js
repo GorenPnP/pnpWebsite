@@ -37,15 +37,7 @@ document.addEventListener("DOMContentLoaded", () => {
     resources.load(...img_urls);
 
     // calc game dimensions
-    const max_coords = layers
-        .filter(layer => layer.index !== char_layer_index)
-        .reduce((entities, layer) => [...entities, ...(layer.entities || [])], [])
-        .reduce((max, entity) => {
-            max.x = Math.max(max.x, entity.x + entity.w);
-            max.y = Math.max(max.y, entity.y + entity.h);
-            return max;
-        }, new Vector());
-    levelPosition = {x: 0, y : 0, w: max_coords.x, h: max_coords.y};
+    levelPosition = get_level_dimensions(layers);
 
 
     resources.onReady(init);

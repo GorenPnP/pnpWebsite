@@ -4,6 +4,7 @@ var ctx;
 var layers;
 var char_layer_index;
 var materials;
+var level_dimensions = new Rectangle(); // in px
 
 const class_selected = "selected";
 
@@ -25,7 +26,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // init all other components
     initSidebars();
-    initToolbar();
+    initToolbar(layers);
     initField();
 
     // start running
@@ -99,7 +100,7 @@ function update() {
     queue_place_entity = [];
     queue.forEach(entry => {
         const layer = layers.find(layer => entry.layer.dataset.index == layer.index);
-        const material = layer.index === char_layer_index ? {w: 64, h: 64, icon: "/static/res/img/mining/char_skin_front.png"} : materials.find(m => m.id == entry.material.dataset.id)
+        const material = layer.index === char_layer_index ? {w: grid_size, h: grid_size, icon: "/static/res/img/mining/char_skin_front.png"} : materials.find(m => m.id == entry.material.dataset.id)
         
         set_material_at(entry.point, layer, material);
     });
@@ -119,11 +120,12 @@ function render() {
     // paint background & grid
     ctx.save();
     ctx.fillStyle = "#000";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.fillRect(level_dimensions.x, level_dimensions.y, level_dimensions.w, level_dimensions.h);
 
     ctx.fillStyle = bg_color;
-    for (let x = 0; x * grid_size < canvas.width; x++) {
-        for (let y = 0; y * grid_size < canvas.width; y++) {
+    for (let x = 0; x * grid_size < level_dimensions.w; x++) {
+        for (let y = 0; y * grid_size < level_dimensions.h; y++) {
             const strokeThickness = new Vector(1, 1);
             if ((x+1) % 5 === 0) { strokeThickness.x = 2; }
             if ((y+1) % 5 === 0) { strokeThickness.y = 2; }

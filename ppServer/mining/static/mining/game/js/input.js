@@ -82,12 +82,12 @@ function handleInput(dt, player) {
             } else if (player.lastJump + playerJumpDuration >= now) {
                 const jump_time = now - player.lastJump;
                 const remaining_time = playerJumpDuration - jump_time;
-                const speed_y = -1 * playerJumpDamping * jump_time * remaining_time * dt;
+                const speed_y = -1 * playerJumpForce * jump_time * remaining_time * dt;
                 player.speed.y = Math.min(speed_y, -0.1);
             }
         }
     }
-    if (!Input.isDown('DOWN') && player.lastJump + playerJumpDuration < now) player.speed.y = 0;
+    if (!Input.isDown('DOWN') && player.speed.y < 0 && player.lastJump + playerJumpDuration < now) player.speed.y = 0;
     
     if (( Input.isDown('LEFT') &&  Input.isDown('RIGHT')) ||
     (!Input.isDown('LEFT') && !Input.isDown('RIGHT'))) {
@@ -100,7 +100,7 @@ function handleInput(dt, player) {
         player.speed.x += Input.isDown('RIGHT') ? accDiff  : (-1 * accDiff);
     }
     
-    // apply gravity if player on ground
+    // apply gravity if player is on ground
     if (player.speed.y >= 0) {
         player.speed.y += playerFallAcceleration * dt;
     }

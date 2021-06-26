@@ -28,7 +28,20 @@ class Rectangle {
 }
 
 
+// calc game dimensions
+function get_level_dimensions(layers) {
+    const max_coords = layers
+        .filter(layer => layer.index !== char_layer_index)
+        .reduce((entities, layer) => [...entities, ...(layer.entities || [])], [])
+        .reduce((max, entity) => {
+            max.x = Math.max(max.x, entity.x + entity.w);
+            max.y = Math.max(max.y, entity.y + entity.h);
+            return max;
+        }, new Vector());
+    return {x: 0, y : 0, w: max_coords.x, h: max_coords.y};
+}
 
+// pie chart (for progress of breaking blocks)
 function drawPie(ctx, centerPoint, r, percentFilled) {
 
     var lastEnd = Math.PI * 3/2;

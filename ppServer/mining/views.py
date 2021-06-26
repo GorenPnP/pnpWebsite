@@ -183,16 +183,9 @@ def game(request, pk):
 		for layer in layers:
 			layer["entities"] = [e for e in layer["entities"] if e["id"] in existing_entity_ids]
 
-
-		# get max x & y coords of all entities of layers
-		width = max([ max([entity["x"] + entity["w"] for entity in layer["entities"]])  for layer in layers if len(layer["entities"])] + [0])
-		height = max([ max([entity["y"] + entity["h"] for entity in layer["entities"]])  for layer in layers if len(layer["entities"])] + [0])
-
 		context = {
 			"topic": region.name if region.name else "New Region",
 			"layers": layers,
-			"field_width": width,
-			"field_height": height,
 			"name": region.name,
 			"region_id": region.id,
 			"bg_color": region.bg_color_rgb,

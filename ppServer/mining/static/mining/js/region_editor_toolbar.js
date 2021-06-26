@@ -7,7 +7,7 @@ var zooming = 1;
 var grid_size = 64;
 var show_border = true;
 
-function initToolbar() {
+function initToolbar(layers) {
 
     // init globals
     field_width_input = document.querySelector('#field-width');
@@ -24,6 +24,11 @@ function initToolbar() {
     document.querySelector('#delete-on-layer').addEventListener('click', delete_all_on_layer);
     document.querySelector('#random-rotate-selected').addEventListener('click', random_rotate_selected);
 
+    // calc level width & height
+    level_dimensions = get_level_dimensions(layers);
+    field_width_input.value = Math.ceil(level_dimensions.w/grid_size) || 1;
+    field_height_input.value = Math.ceil(level_dimensions.h/grid_size) || 1;
+
     // init field
     update_field_size();
     zoom();
@@ -32,13 +37,23 @@ function initToolbar() {
 
 // HELPERS //
 
+function get_number_input_value(input) {
+    let { value, min, max } = input;
+    min = parseInt(min || 1);
+    max = parseInt(max || 1000);
+    value = parseInt(value || min);
+    value = Math.max(min, Math.min(value, max));
+    input.value = value;
+    return value;
+}
 
 
 // TOOLBAR CALLBACKS //
 
 function update_field_size() {
-    let width = parseInt(field_width_input.value || 0);
-    let height = parseInt(field_height_input.value || 0);
+    const width = get_number_input_value(field_width_input) * grid_size;
+    const height = get_number_input_value(field_height_input) * grid_size;
+    level_dimensions = new Rectangle(0, 0, width, height);
 
     canvas.width = width;
     canvas.height = height;
@@ -78,6 +93,7 @@ function update_field_bg_color() {
 
 function update_grid_size() {
     grid_size = parseInt(document.querySelector("#grid-size").value);
+    update_field_size();
 }
 
 function delete_all_on_layer() {
