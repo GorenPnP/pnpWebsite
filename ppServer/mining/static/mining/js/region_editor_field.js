@@ -6,6 +6,7 @@ var delete_mode = false;
 var fill_rect_mode = false;
 var selected_entities_rect_select_mode = [];
 var rect_select_mode_coords;
+var rect_select_mode_start_point;
 
 const pressed_mouse_buttons = new Set();
 
@@ -19,7 +20,10 @@ function initField() {
         pressed_mouse_buttons.add(e.button);
         
         const point = new Vector(e.offsetX, e.offsetY);
-        if (Input.isDown('SHIFT')) { update_rectangle_select_mode(point); }
+        if (Input.isDown('SHIFT')) {
+            rect_select_mode_start_point = point;
+            update_rectangle_select_mode(point);
+        }
         else { change_material_at(point); }
     });
     
@@ -34,11 +38,17 @@ function initField() {
     
     window.addEventListener('mouseup', e => {
         pressed_mouse_buttons.delete(e.button);
-        if (Input.isDown('SHIFT')) { reset_rectangle_select_mode(); }
+        if (Input.isDown('SHIFT')) {
+            if (fill_rect_mode) { fill_up_missing_entities(); }
+            reset_rectangle_select_mode();
+        }
     });
     window.addEventListener('blur', () => {
         pressed_mouse_buttons.clear();
-        if (Input.isDown('SHIFT')) { reset_rectangle_select_mode(); }
+        if (Input.isDown('SHIFT')) {
+            if (!fill_rect_mode) { fill_up_missing_entities(); }
+            reset_rectangle_select_mode();
+        }
     });
     window.addEventListener('click', e => {
         if (e.target !== canvas && e.target.id !== "random-rotate-selected") {
@@ -145,7 +155,6 @@ function get_entity_at(point, layer_tag) {
     return layers.find(layer => layer.id === new_entity.layer).entities.find(e => is_intersecting(e, new_entity));
 }
 
-
 function update_rectangle_select_mode(point) {
 
     let entity = get_entity_at(point, selected_layer);
@@ -165,25 +174,20 @@ function update_rectangle_select_mode(point) {
     const layer = layers.find(layer => layer.id === parseInt(selected_layer.dataset.id));
 
     // coordinates of selected area
-    rect_select_mode_coords = {
-        minx: Math.min(rect_select_mode_coords.minx, entity.x),
-        maxx: Math.max(rect_select_mode_coords.maxx, entity.x + (entity.w * entity.scale)),
-        miny: Math.min(rect_select_mode_coords.miny, entity.y),
-        maxy: Math.max(rect_select_mode_coords.maxy, entity.y + (entity.h * entity.scale))
-    };
+    const start = grid_cell_of_point(rect_select_mode_start_point);
+    const current = grid_cell_of_point(point);
+    rect_select_mode_coords = new Rectangle(
+        Math.min(start.x, current.x),
+        Math.min(start.y, current.y),
+        Math.max(start.x, current.x) - Math.min(start.x, current.x) + grid_size,
+        Math.max(start.y, current.y) - Math.min(start.y, current.y) + grid_size
+    );
 
-    // selected area
     const rect = {
-        x: rect_select_mode_coords.minx,
-        y: rect_select_mode_coords.miny,
-        w: rect_select_mode_coords.maxx - rect_select_mode_coords.minx,
-        h: rect_select_mode_coords.maxy - rect_select_mode_coords.miny,
+        ...rect_select_mode_coords,
         scale: 1,
         layer: layer.id
     };
-
-    if (fill_rect_mode) { fill_up_missing_entities(rect); }
-
     // add entities to selected_entities_rect_select_mode
     selected_entities_rect_select_mode = layer.entities.filter(e => is_intersecting(e, rect));
 
@@ -193,7 +197,17 @@ function update_rectangle_select_mode(point) {
     reduced_selected_entities.forEach(e => selected_entities.add(e));
 }
 
+function grid_cell_of_point(point) {
+    return new Rectangle(
+        Math.floor(point.x / grid_size) * grid_size,
+        Math.floor(point.y / grid_size) * grid_size,
+        grid_size,
+        grid_size,
+    );
+}
+
 function reset_rectangle_select_mode() {
+    rect_select_mode_start_point = undefined;
     rect_select_mode_coords = {minx: Number.MAX_SAFE_INTEGER, maxx: -10, miny: Number.MAX_SAFE_INTEGER, maxy: -10};
 
     selected_entities_rect_select_mode.forEach(e => selected_entities.add(e));
@@ -202,16 +216,15 @@ function reset_rectangle_select_mode() {
 }
 
 
-function fill_up_missing_entities(rect) {
+function fill_up_missing_entities() {
     const material = materials.find(material => material.id == selected_material.dataset.id);
 
-    const start_x = Math.floor(rect.x / grid_size) * grid_size;
-    const start_y = Math.floor(rect.y / grid_size) * grid_size;
-    const w = rect.w;
-    const h = rect.h;
+    const max_x = rect_select_mode_coords.x + rect_select_mode_coords.w;
+    const max_y = rect_select_mode_coords.y + rect_select_mode_coords.h;
 
-    for (let x = start_x; x < rect.x + w; x += material.w) {
-        for (let y = start_y; y < rect.y + h; y += material.h) {
+    for (let x = rect_select_mode_coords.x; x < max_x; x += material.w) {
+        for (let y = rect_select_mode_coords.y; y < max_y; y += material.h) {
+
             const entity = {
                 point: { x, y },
                 material: selected_material,

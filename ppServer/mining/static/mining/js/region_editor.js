@@ -189,10 +189,7 @@ function render() {
 
     ctx.strokeStyle = '#0f0';
     ctx.lineWidth = 5;
-    let x = rect_select_mode_coords.minx;
-    let y = rect_select_mode_coords.miny;
-    let w = rect_select_mode_coords.maxx - rect_select_mode_coords.minx;
-    let h = rect_select_mode_coords.maxy - rect_select_mode_coords.miny;
+    const {x, y, w, h} = rect_select_mode_coords;
     ctx.strokeRect(x, y, w, h);
 }
 
