@@ -23,13 +23,13 @@ class Input {
         68: 'RIGHT',
         83: 'DOWN',
         87: 'UP',
-        16: 'SHIFT',
 
         // transforms in editor
         82: 'R',
         84: 'T',
         77: 'M',
-        16: 'SHIFT'
+        16: 'SHIFT',
+        17: 'CMD',
 
     }
     static pressedKeyCodes = new Set();
@@ -40,11 +40,13 @@ class Input {
             throw Error(`Key '${keyName}' not defined in keyMap`)
         }
 
-        // get related keyCodes to direction / key name
-        const keyCodes = [...Input.pressedKeyCodes].filter(keyCode => Input.keyMap[keyCode] === keyName);
+        // get one related keyCode to key name
+        const aKeyCode = [...Input.pressedKeyCodes]
+            .filter(keyCode => Input.keyMap[keyCode] === keyName)
+            .find(keyCode => Input.pressedKeyCodes.has(keyCode));
 
         // true if one of them is pressed currently
-        return keyCodes.some(keyCode => Input.pressedKeyCodes.has(keyCode)) && keyCodes.every(keyCode => !Input.blockedKeyCodes.has(keyCode));
+        return aKeyCode && !Input.blockedKeyCodes.has(aKeyCode);
     }
 
     static isEmpty() {
@@ -52,9 +54,9 @@ class Input {
     }
 
     static blockKey(keyname) {
-        const keycode = Object.entries(Input.keyMap).reduce((keycode, [curr_keycode, curr_keyname]) => keyname === curr_keyname ? parseInt(curr_keycode) : keycode, undefined);
-        
-        if (keycode !== undefined) { Input.blockedKeyCodes.add(keycode); }
+        Object.entries(Input.keyMap)
+            .filter(([_, curr_keyname]) => keyname === curr_keyname)
+            .forEach(([curr_keycode, _]) => Input.blockedKeyCodes.add(parseInt(curr_keycode, 10)));
     }
 }
 

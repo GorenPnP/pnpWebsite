@@ -53,16 +53,23 @@ function handle_input(dt) {
         selected_entities.forEach(e => handle_input_of(e, dt));
         if (Input.isDown('M')) { Input.blockKey('M'); }
         if (Input.isDown('R')) { Input.blockKey('R'); }
+        if (Input.isDown('CMD')) {
+            if (Input.isDown('UP')) { Input.blockKey('UP'); }
+            if (Input.isDown('DOWN')) { Input.blockKey('DOWN'); }
+            if (Input.isDown('LEFT')) { Input.blockKey('LEFT'); }
+            if (Input.isDown('RIGHT')) { Input.blockKey('RIGHT'); }
+        }
     }
 }
 
 function handle_input_of(entity, dt) {
 
-    const dt_translate = dt * 50;
+    const dt_translate = Input.isDown('CMD') ? grid_size : dt * 50;
     const dt_scale = dt * 2;
 
     // translate
-    if (Input.isDown('T')) {
+    if (Input.isDown('T') || Input.isDown('CMD')) {
+
         // down
         if (Input.isDown('DOWN') && !Input.isDown('UP')) { entity.y += dt_translate; }
         // up
