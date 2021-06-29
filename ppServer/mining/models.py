@@ -1,5 +1,5 @@
-from datetime import date
 import re
+from datetime import date
 
 from django.db import models
 from django.core.validators import MaxValueValidator, MinValueValidator
@@ -10,6 +10,7 @@ from django.forms.models import model_to_dict
 
 from shop.models import Tinker
 from crafting.models import Profile
+from shop.models import Tinker
 
 def validate_not_zero(value):
     if value == 0:
@@ -170,6 +171,8 @@ class Entity(models.Model):
 	rotation_angle = models.PositiveSmallIntegerField(default=0, validators=[validate_angle_multiple_90, MaxValueValidator(3)])
 	scale = models.FloatField(default=1.0)
 
+	inventory = models.ForeignKey('Inventory', on_delete=models.SET_NULL, null=True, blank=True)
+
 	last_changed_at = models.DateTimeField(auto_now=True)
 
 
@@ -215,6 +218,9 @@ class ProfileEntity(models.Model):
 	y = models.SmallIntegerField(null=True, blank=True)
 	region = models.ForeignKey(Region, on_delete=models.CASCADE, null=True, blank=True)
 
+	# TODO copy from self.entity.inventory on create
+	inventory = models.ForeignKey('Inventory', on_delete=models.SET_NULL, null=True, blank=True)
+
 	def __str__(self):
 		return "Entity {} of Profile {}".format(self.entity, self.profil)
 
@@ -232,3 +238,58 @@ class ProfileEntity(models.Model):
 		
 		# update last_synced_at
 		for pe in profile_entities: pe.save()
+
+
+
+
+
+
+
+######## GAME INVENTORY #########
+
+class Item(models.Model):
+
+	class Meta:
+		verbose_name = "Item Model fürs Inventar"
+		verbose_name_plural = "Item Models fürs Inventar"
+
+		ordering = ['crafting_item__name']
+
+	crafting_item = models.OneToOneField(Tinker, on_delete=models.CASCADE)
+	width = models.PositiveSmallIntegerField(default=1)
+	height= models.PositiveSmallIntegerField(default=1)
+	max_amount = models.PositiveSmallIntegerField(default=1)
+	bg_color = models.CharField(default="#555555", max_length=7, validators=[is_rgb_color])
+
+	def __str__(self):
+		return self.crafting_item.name
+
+class Inventory(models.Model):
+
+	class Meta:
+		verbose_name = "Inventar"
+		verbose_name_plural = "Inventare"
+
+	width  = models.PositiveSmallIntegerField(default=1, blank=False, null=False)
+	height = models.PositiveSmallIntegerField(default=1, blank=False, null=False)
+
+	def __str__(self):
+		return "Ein Inventar der Größe {} x {}".format(self.width, self.height)
+
+
+class InventoryItem(models.Model):
+
+	class Meta:
+		verbose_name = "Inventar-Item"
+		verbose_name_plural = "Inventar-Items"
+
+		ordering = ["inventory"]
+
+	amount = models.PositiveSmallIntegerField(default=0)
+	item = models.ForeignKey(Item, on_delete=models.CASCADE)
+	position = models.JSONField(default=dict)
+	rotated = models.BooleanField(default=False)
+	inventory = models.ForeignKey(Inventory, on_delete=models.CASCADE)
+
+	def __str__(self):
+		return "{}x {} von {}".format(self.amount, self.item.name, self.inventory)

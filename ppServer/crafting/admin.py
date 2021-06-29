@@ -10,6 +10,7 @@ class ProfileAdmin(admin.ModelAdmin):
 
 class InventoryAdmin(admin.ModelAdmin):
     list_display = ["char", "item", "num"]
+    search_fields = ("char__name", "item__name")
 
 
 class IngredientInLineAdmin(admin.TabularInline):

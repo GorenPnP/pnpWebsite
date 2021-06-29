@@ -122,7 +122,6 @@ class FirmaTinker(FirmaShop):
 class BaseShop(models.Model):
     class Meta:
         abstract = True
-        ordering = ['name']
 
     name = models.CharField(max_length=50, default='', unique=True)
     beschreibung = models.TextField(max_length=1500, default='', blank=True)
@@ -196,6 +195,8 @@ class Item(BaseShop):
         verbose_name = "Item"
         verbose_name_plural = "Items"
 
+        ordering = ['name']
+
     kategorie = models.CharField(choices=enums.item_enum, max_length=2, default=enums.item_enum[0][0])
     firmen = models.ManyToManyField('Firma', through='FirmaItem', blank=True, related_name='firmen')
 
@@ -210,6 +211,8 @@ class Waffen_Werkzeuge(BaseShop):
     class Meta:
         verbose_name = "Waffe/Werkzeug"
         verbose_name_plural = "Waffen & Werkzeuge"
+
+        ordering = ['name']
 
     erfolge = models.PositiveIntegerField(default=0)
     bs = models.CharField(max_length=20, default=0)
@@ -255,6 +258,8 @@ class Magazin(BaseShop):
         verbose_name = "Magazin"
         verbose_name_plural = "Magazine"
 
+        ordering = ['name']
+
     schuss = models.PositiveIntegerField(default=0)
     firmen = models.ManyToManyField('Firma', through='FirmaMagazin', blank=True)
 
@@ -283,6 +288,8 @@ class Pfeil_Bolzen(BaseShop):
     class Meta:
         verbose_name = "Pfeil/Bolzen"
         verbose_name_plural = "Pfeile & Bolzen"
+
+        ordering = ['name']
 
     bs = models.CharField(max_length=20, default='')
     zs = models.CharField(max_length=20, default='')
@@ -318,6 +325,8 @@ class Schusswaffen(BaseShop):
     class Meta:
         verbose_name = "Schusswaffe"
         verbose_name_plural = "Schusswaffen"
+
+        ordering = ['name']
 
     erfolge = models.PositiveIntegerField(default=0)
     bs = models.CharField(max_length=20, default='')
@@ -375,6 +384,8 @@ class Magische_Ausrüstung(BaseShop):
         verbose_name = "magische Ausrüstung"
         verbose_name_plural = "magische Ausrüstung"
 
+        ordering = ['name']
+
     kategorie = models.CharField(choices=enums.magische_Ausrüstung_enum, max_length=2, default=enums.magische_Ausrüstung_enum[0][0])
     firmen = models.ManyToManyField('Firma', through='FirmaMagische_Ausrüstung', blank=True)
 
@@ -389,6 +400,8 @@ class Rituale_Runen(BaseShop):
     class Meta:
         verbose_name = "Ritual/Rune"
         verbose_name_plural = "Rituale & Runen"
+
+        ordering = ['name']
 
     kategorie = models.CharField(choices=enums.rituale_enum, max_length=2, default=enums.rituale_enum[0][0])
     firmen = models.ManyToManyField('Firma', through='FirmaRituale_Runen', blank=True)
@@ -452,6 +465,8 @@ class Rüstungen(BaseShop):
         verbose_name = "Rüstung"
         verbose_name_plural = "Rüstung"
 
+        ordering = ['name']
+
     schutz = models.PositiveIntegerField(default=0)
     stärke = models.PositiveIntegerField(default=0)
     haltbarkeit = models.PositiveIntegerField(default=0)
@@ -491,6 +506,8 @@ class Ausrüstung_Technik(BaseShop):
         verbose_name = "Ausrüstung/Technik"
         verbose_name_plural = "Ausrüstung & Technik"
 
+        ordering = ['name']
+
     manifestverlust_str = models.CharField(max_length=20, null=True, blank=True)
     manifestverlust = models.DecimalField('manifestverlust', max_digits=4, decimal_places=2,
                                           default=0.0, blank=True, null=True,
@@ -509,6 +526,8 @@ class Fahrzeug(BaseShop):
     class Meta:
         verbose_name = "Fahrzeug"
         verbose_name_plural = "Fahrzeuge"
+
+        ordering = ['name']
 
     schnelligkeit = models.PositiveIntegerField(blank=True, null=True)
     rüstung = models.PositiveIntegerField(blank=True, null=True)
@@ -550,6 +569,8 @@ class Einbauten(BaseShop):
         verbose_name = "Einbauten"
         verbose_name_plural = "Einbauten"
 
+        ordering = ['name']
+
     manifestverlust = models.CharField(max_length=20, null=True, blank=True)
     kategorie = models.CharField(choices=enums.einbauten_enum, max_length=2, default=enums.einbauten_enum[0][0])
     firmen = models.ManyToManyField('Firma', through='FirmaEinbauten', blank=True)
@@ -579,6 +600,8 @@ class Zauber(BaseShop):
     class Meta:
         verbose_name = "Zauber"
         verbose_name_plural = "Zauber"
+
+        ordering = ['name']
 
     schaden = models.CharField(max_length=20, default='')
     astralschaden = models.CharField(max_length=20, default='')
@@ -623,6 +646,8 @@ class Alchemie(BaseShop):
         verbose_name = "Alchemie"
         verbose_name_plural = "Alchemie"
 
+        ordering = ['name']
+
     kategorie = models.CharField(choices=enums.alchemie_enum, max_length=2, default=enums.alchemie_enum[0][0])
     firmen = models.ManyToManyField('Firma', through='FirmaAlchemie', blank=True)
 
@@ -637,6 +662,8 @@ class Tinker(BaseShop):
     class Meta:
         verbose_name = "Für Selbstständige"
         verbose_name_plural = "Für Selbstständige"
+
+        ordering = ['name']
 
     werte = models.TextField(max_length=1500, default='', blank=True)
     kategorie = models.CharField(choices=enums.tinker_enum, max_length=2, default=enums.tinker_enum[0][0])

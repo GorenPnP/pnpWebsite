@@ -66,9 +66,33 @@ class CraftingOriginatedMaterialAdmin(admin.ModelAdmin):
     list_display = ('item', 'material', 'is_collidable', 'is_breakable')
 
 
+
+### inventory ###
+class InventoryItemInLineAdmin(admin.TabularInline):
+    model = InventoryItem
+    extra = 1
+
+class InventoryAdmin(admin.ModelAdmin):
+    list_display = ('width', 'height')
+
+    inlines = [InventoryItemInLineAdmin]
+
+
+class ItemAdmin(admin.ModelAdmin):
+    list_display = ('_icon', 'crafting_item', 'width', 'height', 'max_amount', 'bg_color')
+    list_display_links = ('_icon', 'crafting_item')
+    search_fields = ('crafting_item__name',)
+    list_editable = ['width', 'height', 'max_amount', 'bg_color']
+
+    def _icon(self, obj):
+        return format_html('<img src="{0}" style="max-width: 32px; max-height:32px;" />'.format(obj.crafting_item.icon.url))
+
 admin.site.register(Material, MaterialAdmin)
 admin.site.register(MaterialGroup, MaterialGroupAdmin)
 admin.site.register(Region, RegionAdmin)
 admin.site.register(Layer, LayerAdmin)
 admin.site.register(CraftingOriginatedMaterial, CraftingOriginatedMaterialAdmin)
 admin.site.register(ProfileEntity)
+
+admin.site.register(Inventory, InventoryAdmin)
+admin.site.register(Item, ItemAdmin)

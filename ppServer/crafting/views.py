@@ -257,7 +257,7 @@ def craft(request):
 		# save new ordering of tables in profile model
 		if "table_ordering" in json_dict.keys():
 
-			rel.profil.tableOrdering = json_dict["table_ordering"]
+			rel.profil.tableOrdering = [to for to in json_dict["table_ordering"] if to is not None]
 			rel.profil.save()
 
 			return JsonResponse({})

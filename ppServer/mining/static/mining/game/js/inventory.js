@@ -1,7 +1,8 @@
 // startup
 document.addEventListener("DOMContentLoaded", () => {
     
-    document.querySelector(".backdrop").style.display = 'grid';
+    // TODO continue here
+    // document.querySelector(".backdrop").style.display = 'grid';
     window.addEventListener("resize", Inventory.resize);
 
     Inventory.init();
