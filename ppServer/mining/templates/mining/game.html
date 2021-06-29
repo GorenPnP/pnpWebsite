@@ -25,6 +25,15 @@
 <script type="text/javascript" src="{% static 'mining/game/js/input.js' %}"></script>
 <script type="text/javascript" src="{% static 'mining/game/js/app.js' %}"></script>
 <script type="text/javascript" src="{% static 'mining/game/js/websocket.js' %}"></script>
+<script type="text/javascript" src="{% static 'mining/game/js/inventory.js' %}"></script>
 {% endblock %}
 
+{% block absolute %}
+<div class="backdrop">
+    <div class="inventory">
+        <div class="background-grid"></div>
+        <div class="items"></div>
+    </div>
+</div>
+{% endblock %}
 {% block body %}{% endblock %}

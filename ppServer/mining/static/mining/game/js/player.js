@@ -66,7 +66,7 @@ class Player extends Entity {
     }
 
     render(ctx, offset = {x: 0, y: 0}) {
-        const limit = 0.25;
+        const limit = 0.5;
         const speed_x = Math.abs(this.speed.x) < limit ? 0 : this.speed.x;
         const speed_y = Math.abs(this.speed.y) < limit ? 0 : this.speed.y;
     
