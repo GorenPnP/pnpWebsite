@@ -1,11 +1,12 @@
 import json
 from random import choice
+from asgiref.sync import sync_to_async
 
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
 
 from character.models import Spieler
-from crafting.models import RelCrafting, InventoryItem
+from crafting.models import RelCrafting
 from .models import *
 
 class MiningGameConsumer(AsyncWebsocketConsumer):
@@ -28,19 +29,46 @@ class MiningGameConsumer(AsyncWebsocketConsumer):
 
     @database_sync_to_async
     def _db_delete_entity(self, entity_id):
-        return ProfileEntity.objects.get(entity__id=entity_id, profil=self.profile).delete()
+        return ProfileEntity.objects.filter(entity__id=entity_id, profil=self.profile).delete()
 
     @database_sync_to_async
     def _db_add_random_loot_of(self, entity_id):
+
+        # get possible drops
         material = Entity.objects.get(id=entity_id).material
         drops = MaterialDrop.objects.filter(material=material)
         if (len(drops) == 0): return
 
         loot = choice(MaterialDrop.objects.filter(material=material))
-        iitem, _ = InventoryItem.objects.get_or_create(char=self.profile, item=loot.item)
-        iitem.num += choice(json.loads(loot.amount))
+
+        # get inventory
+        rel_profile, _ = RelProfile.objects.get_or_create(profile=self.profile, spieler=self.spieler)
+        if rel_profile.inventory is None:
+            inventory = Inventory.objects.create()
+            rel_profile.inventory = inventory
+            rel_profile.save()
+
+        # get inventory item
+        iitems = InventoryItem.objects.filter(inventory=rel_profile.inventory, item__crafting_item=loot.item)
+        if not len(iitems):
+            item, _ = Item.objects.get_or_create(crafting_item=loot.item)
+            iitem = InventoryItem.objects.create(inventory=rel_profile.inventory, item=item)
+        else:
+            iitem = iitems[0]
+
+        # add amount to inventpry item
+        amount = choice(json.loads(loot.amount))
+        iitem.amount += amount
+
         iitem.save()
-    
+
+        # return loot
+        return amount, iitem
+
+    @database_sync_to_async
+    def _db_get_item_dict_of_inventory_item(self, iitem):
+        return Item.objects.get(id=iitem.item_id).toDict()
+
     @database_sync_to_async
     def _db_save_player_position(self, position):
         print("save {} of {}".format(position, self.user.username))
@@ -98,7 +126,11 @@ class MiningGameConsumer(AsyncWebsocketConsumer):
         entity_id = event['message']
 
         # add loot
-        await self._db_add_random_loot_of(entity_id)
+        loot = await self._db_add_random_loot_of(entity_id)
+        amount = loot[0]
+        iitem = loot[1]
+
+        item_dict = await self._db_get_item_dict_of_inventory_item(iitem)
 
         # remove entity
         await self._db_delete_entity(entity_id)
@@ -107,7 +139,7 @@ class MiningGameConsumer(AsyncWebsocketConsumer):
         username = event['username']
         await self.send(text_data=json.dumps({
             'type': 'break_entity_message',
-            'message': entity_id,
+            'message': {"entity_id": entity_id, "amount": amount, "total_amount": iitem.amount, "item": item_dict},
             'username': username,
         }))
 

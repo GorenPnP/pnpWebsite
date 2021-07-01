@@ -696,3 +696,6 @@ class Tinker(BaseShop):
                 [{"val": self.werte}],
                 [{"val": weiteres}]
                 ]
+
+    def toDict(self):
+        return {"id": self.id, "name": self.name, "icon_url": self.getIconUrl()}

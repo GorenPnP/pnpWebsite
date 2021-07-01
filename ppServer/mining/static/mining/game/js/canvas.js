@@ -37,7 +37,6 @@ class Canvas {
         Canvas.canvas.addEventListener('mousemove', e => {
             if (Canvas.isHitting) {
                 const point = new Vector(e.clientX - Canvas.renderOffset.x, e.clientY - Canvas.renderOffset.y);
-                console.log(point)
                 hitBreakable(point);
             }
         });

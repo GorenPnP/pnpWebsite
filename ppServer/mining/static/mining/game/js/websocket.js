@@ -20,12 +20,36 @@ function receiveMsg(e) {
     
     switch (data.type) {
         case "break_entity_message":
-            const entity_id = data.message;
+            const {entity_id} = data.message;
 
             // delete entity from game
             entities = entities.filter(entity => entity.id !== entity_id);
             collidables = entities.filter(entity => entity.id !== entity_id);
             breakables = entities.filter(entity => entity.id !== entity_id);
+
+            if (data.username = player.username) {
+                // data.message = {
+                //     amount: number,
+                //     total_amount: number,
+                //     entity_id: number,
+                //     bg_color: string,   // rgb-hex
+                //     crafting_item: { id, name, icon_url },
+                //     height: number,
+                //     id: number,
+                //     max_amount: number,
+                //     width: number
+                // }
+                const {id, height, width, bg_color, crafting_item} = data.message.item;
+                const item = {
+                    id,
+                    h: height,
+                    w: width,
+                    amount: data.message.total_amount,
+                    bg_color,
+                    image_href: crafting_item.icon_url
+                }
+                Inventory.setItem(item);
+            }
             break;
         case "player_position_message":
             const username = data.username;
@@ -54,7 +78,6 @@ function receiveMsg(e) {
 function ws_break(clicked_breakable) {
     const timer_handle = setInterval(() => {
         if (webSocket.readyState === 1) {
-            console.log("break_entity_message:", clicked_breakable.id)
             webSocket.send(JSON.stringify({ type: "break_entity_message", message: clicked_breakable.id }));
             clearInterval(timer_handle);
         }

@@ -1,72 +1,27 @@
 // startup
 document.addEventListener("DOMContentLoaded", () => {
-    
-    // TODO continue here
-    // document.querySelector(".backdrop").style.display = 'grid';
+
     window.addEventListener("resize", Inventory.resize);
 
     Inventory.init();
-    Inventory.updateGrid(9, 9);
+    const inventory = JSON.parse(document.querySelector("#inventory").innerHTML)
+    Inventory.updateGrid(inventory.width, inventory.height);
 
-    const items = []
-    //     Array.from({length: 10}).map((_, i) => ({
-    //         id: i+1,
-    //         bg_color: '#555',
-    //         amount: i+1,
-    //         w: Math.floor(Math.random() * Inventory.col_num / 3) + 1,
-    //         h: Math.floor(Math.random() * Inventory.row_num / 3) + 1,
-    // }));
-    // items.push({
-    //     id: 500,
-    //     x: 6,
-    //     y: 4,
-    //     w: 4,
-    //     h: 4,
-    //     bg_color: '#555',
-    //     amount: 500
-    // });
-    // items.push({
-    //     id: 400,
-    //     x: 6,
-    //     y: 1,
-    //     w: 4,
-    //     h: 4,
-    //     bg_color: '#555',
-    //     amount: 400
-    // });
-
-    Array.from({length: 9}).map((_, x) =>
-        Array.from({length: 9}).map((_, y) => 
-            items.push({
-                id: 10 * (x+1) + y+1,
-                x: x+1,
-                y: y+1,
-                w: 1,
-                h: 1,
-                bg_color: '#555',
-                amount: 10 * (x+1) + y+1
-            })
-        )
-    );
-    // items.push({
-    //     id: 1,
-    //     x: 1,
-    //     y: 2,
-    //     w: 1,
-    //     h: 1,
-    //     bg_color: '#555',
-    //     amount: 12
-    // });
-    // items.push({
-    //     id: 2,
-    //     x: 8,
-    //     y: 4,
-    //     w: 1,
-    //     h: 1,
-    //     bg_color: '#555',
-    //     amount: 84
-    // });
-    items.forEach(item => Inventory.setItem(item));
+    const inventory_items = JSON.parse(document.querySelector("#inventory-items").innerHTML)
+        .map(inventory_item => {
+            const {id, height, width, bg_color, crafting_item} = inventory_item.item;
+            return {
+                id,
+                x: inventory_item.position ? inventory_item.position.x : undefined,
+                y: inventory_item.position ? inventory_item.position.y : undefined,
+                h: height,
+                w: width,
+                amount: inventory_item.amount,
+                bg_color,
+                image_href: crafting_item.icon_url
+            }
+        });
+    inventory_items.forEach(item => Inventory.setItem(item));
 });
 
 
@@ -75,6 +30,7 @@ class Inventory {
     static col_num = 1;
     static row_num = 1;
     
+    static backdrop;
     static inventory;
     
     static item_grid = [[]];
@@ -88,11 +44,13 @@ class Inventory {
     
     static init() {
         Inventory.inventory = document.querySelector(".inventory");
+        Inventory.backdrop = document.querySelector(".backdrop");
     }
     
     static resize() {
         const container = document.querySelector(".backdrop");
         const slot_size = Math.min(container.offsetWidth / Inventory.col_num, container.offsetHeight / Inventory.row_num, tile_size);
+
         document.documentElement.style.setProperty('--slot-size', `${slot_size}px`);
     }
 
@@ -133,7 +91,7 @@ class Inventory {
         Inventory.updateItemGridSize();
     }
 
-    static setItem(item) {  // item = {...rect, bg-color, image-href, id, amount}
+    static setItem(item) {  // item = {...rect, bg_color, image_href, id, amount}
 
         if (!Inventory.isPlaceFree(item)) {
             console.log("already occupied. Cannot place ", item);
@@ -164,7 +122,8 @@ class Inventory {
         if (item.y) tag.style.gridRowStart = item.y;
         if (item.h) tag.style.gridRowEnd = `span ${item.h}`;
 
-        tag.style.setProperty('--bg-color', item.bg_color);
+        if (item.bg_color) tag.style.setProperty('--bg-color', item.bg_color);
+        if (item.image_href) tag.style.setProperty('--img', `url('${item.image_href}')`);
         amount.innerHTML = item.amount || amount.innerHTML;
 
         Inventory.updateItemGridPlacement(item);
@@ -201,8 +160,6 @@ class Inventory {
                 return isPointInRect({x: col_index + 1, y: row_index + 1}, item) ? item.id : cell;
             })
         );
-
-        console.table(Inventory.item_grid)
     }
 }
 

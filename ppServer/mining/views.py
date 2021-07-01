@@ -4,7 +4,6 @@ from django.shortcuts import render, get_object_or_404, reverse, redirect
 from django.contrib.auth.decorators import login_required
 from django.http.response import JsonResponse
 from django.db.utils import IntegrityError
-from django.forms.models import model_to_dict
 
 from ppServer.decorators import spielleiter_only
 from crafting.models import RelCrafting
@@ -168,7 +167,8 @@ def game(request, pk):
 
 	if request.method == "GET":
 
-		profile = RelCrafting.objects.get(spieler__name=request.user.username).profil
+		spieler = Spieler.objects.get(name=request.user.username)
+		profile = RelCrafting.objects.get(spieler=spieler).profil
 		ProfileEntity.update(region, profile)
 
 		# no spawn point, redirect
@@ -183,6 +183,10 @@ def game(request, pk):
 		for layer in layers:
 			layer["entities"] = [e for e in layer["entities"] if e["id"] in existing_entity_ids]
 
+		# collect inventory
+		inventory = RelProfile.objects.get_or_create(spieler=spieler, profile=profile)[0].inventory
+		inventory_items = [iitem.toDict() for iitem in InventoryItem.objects.filter(inventory=inventory)]
+
 		context = {
 			"topic": region.name if region.name else "New Region",
 			"layers": layers,
@@ -191,7 +195,9 @@ def game(request, pk):
 			"bg_color": region.bg_color_rgb,
 			"char_index": region.layer_index_of_char,
 			"profile": "Profil " + profile.name,
-			"username": request.user.username
+			"username": request.user.username,
+			"inventory": {"width": inventory.width, "height": inventory.height},
+			"inventory_items": inventory_items,
 		}
 	return render(request, "mining/game.html", context)
 	

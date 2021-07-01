@@ -21,11 +21,12 @@ html, body {
 }
 
 .backdrop {
-    display: none;  // else: grid
+    display: grid;
+    z-index: -1;    // >= 2 to show
 
     position: absolute;
-    height: 100vh;
-    width: 100vw;
+    height: 100%;
+    width: 100%;
     background-color: rgba(0, 0, 0, 0.5);
 
     justify-content: center;

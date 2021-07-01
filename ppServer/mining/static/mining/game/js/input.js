@@ -31,6 +31,9 @@ class Input {
         16: 'SHIFT',
         17: 'CMD',
 
+        // inventory
+        73: 'I',
+
     }
     static pressedKeyCodes = new Set();
     static blockedKeyCodes = new Set();
@@ -110,4 +113,13 @@ function handleInput(dt, player) {
     // not faster than max speed
     player.speed.x = Math.min( Math.abs(player.speed.x), playerMaxSpeed.x) * Math.sign(player.speed.x);
     player.speed.y = Math.min( Math.abs(player.speed.y), playerMaxSpeed.y) * Math.sign(player.speed.y);
+
+
+    if (Input.isDown('I')) {
+        Input.blockKey('I');
+
+        // open inventory
+        Inventory.open = !Inventory.open;
+        Inventory.backdrop.style.zIndex = Inventory.open? "2" : "-1";
+    }
 }

@@ -8,7 +8,7 @@ from django.core.exceptions import ValidationError
 from PIL import Image as PilImage
 from django.forms.models import model_to_dict
 
-from shop.models import Tinker
+from character.models import Spieler
 from crafting.models import Profile
 from shop.models import Tinker
 
@@ -21,13 +21,12 @@ def is_rgb_color(value):
 	if value[0] != "#": raise ValidationError("Leading '#' is missing")
 	if not len(value) in [4, 7]: raise ValidationError("Length is incorrect")
 
-	print(re.search("^#[0-9a-fA-F]+$", value))
 	return not not re.search("^#[0-9a-fA-F]+$", value)
 
 def validate_angle_multiple_90(value):
     if value % 90 != 0:
         raise ValidationError(
-            '{} is not an angle which is a multiple of 90°'.format(value),
+            '{}° is not an angle which is a multiple of 90°'.format(value),
             params={'value': value},
         )
 
@@ -264,6 +263,12 @@ class Item(models.Model):
 	def __str__(self):
 		return self.crafting_item.name
 
+	def toDict(self):
+		l = model_to_dict(self)
+		l["crafting_item"] = self.crafting_item.toDict()
+		return l
+
+
 class Inventory(models.Model):
 
 	class Meta:
@@ -274,7 +279,7 @@ class Inventory(models.Model):
 	height = models.PositiveSmallIntegerField(default=1, blank=False, null=False)
 
 	def __str__(self):
-		return "Ein Inventar der Größe {} x {}".format(self.width, self.height)
+		return "Inventar der Größe {} x {}".format(self.width, self.height)
 
 
 class InventoryItem(models.Model):
@@ -292,4 +297,24 @@ class InventoryItem(models.Model):
 	inventory = models.ForeignKey(Inventory, on_delete=models.CASCADE)
 
 	def __str__(self):
-		return "{}x {} von {}".format(self.amount, self.item.name, self.inventory)
+		return "{}x {} von {}".format(self.amount, self.item, self.inventory)
+
+	def toDict(self):
+		l = model_to_dict(self)
+		l["item"] = self.item.toDict()
+		return l
+
+
+class RelProfile(models.Model):
+
+	class Meta:
+		ordering = ["spieler", "profile"]
+		unique_together = ["spieler", "profile"]
+
+	spieler = models.ForeignKey(Spieler, on_delete=models.CASCADE)
+	profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
+
+	inventory = models.ForeignKey(Inventory, on_delete=models.CASCADE, null=True)
+
+	def __str__(self):
+		return "Inventar von {} in Profil {}".format(self.spieler.name, self.profile.name)
