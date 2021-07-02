@@ -77,6 +77,16 @@ class MiningGameConsumer(AsyncWebsocketConsumer):
         return
 
 
+    @database_sync_to_async
+    def _db_save_inventory_item(self, inventory_item):
+        iitem, _ = InventoryItem.objects.get_or_create(item__id=inventory_item["item_id"], inventory__id=inventory_item["inventory_id"])
+
+        iitem.position = {"x": inventory_item["x"], "y": inventory_item["y"]}
+        iitem.rotated = inventory_item["rotated"]
+
+        iitem.save()
+
+
     async def connect(self):
         self.user = self.scope["user"]
         self.spieler = await self._db_get_spieler(self.user)
@@ -115,6 +125,8 @@ class MiningGameConsumer(AsyncWebsocketConsumer):
 
         if type == "save_player_position_message":
             return await self._db_save_player_position(json.loads(text_data)['message'])
+        if type == "save_inventory_item_message":
+            return await self._db_save_inventory_item(json.loads(text_data)['message'])
 
         await self.channel_layer.group_send(self.room_group_name,
             {

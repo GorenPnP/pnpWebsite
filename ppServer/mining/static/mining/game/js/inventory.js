@@ -5,6 +5,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     Inventory.init();
     const inventory = JSON.parse(document.querySelector("#inventory").innerHTML)
+    Inventory.inventory.dataset.id = inventory.id;
     Inventory.updateGrid(inventory.width, inventory.height);
 
     const inventory_items = JSON.parse(document.querySelector("#inventory-items").innerHTML)
@@ -45,6 +46,7 @@ class Inventory {
     static init() {
         Inventory.inventory = document.querySelector(".inventory");
         Inventory.backdrop = document.querySelector(".backdrop");
+        init_draggable_reorder();
     }
     
     static resize() {
@@ -92,9 +94,9 @@ class Inventory {
     }
 
     static setItem(item) {  // item = {...rect, bg_color, image_href, id, amount}
-
         if (!Inventory.isPlaceFree(item)) {
             console.log("already occupied. Cannot place ", item);
+            console.table(Inventory.item_grid)
             return;
         }
 
@@ -106,13 +108,15 @@ class Inventory {
         if (!tag) {
             tag = document.createElement('div');
             tag.id = `item-${item.id}`;
-            tag.classList.add('item');
+            tag.classList.add('item', 'reorder-container__element');
+            tag.setAttribute("draggable", "true");
 
             amount = document.createElement('span');
             amount.classList.add('amount');
 
             tag.appendChild(amount);
             items.appendChild(tag);
+            add_draggable(tag);
         } else { amount = tag.querySelector(".amount"); }
 
         // set properties
@@ -133,18 +137,18 @@ class Inventory {
         // TODO
     }
     static isPlaceFree(item) {
+        let {x, y, w, h} = item;
+        x--; y--;
 
         // collect all cells that would be covered by the item
         return Inventory.item_grid.reduce((cells, row, row_index) => {
 
             // decide by y-axis
-            const y = row_index + 1;
-            if (y < item.y || y >= item.y + item.h) { return cells; }
+            if (row_index < y || row_index >= y + h) { return cells; }
 
             // decide by x-axis
             const row_cells = row.filter((_, col_index) => {
-                const x = col_index + 1;
-                return x >= item.x && x < item.x + item.w;
+                return col_index >= x && col_index < x + w;
             });
 
             // collect the cells
@@ -157,7 +161,7 @@ class Inventory {
     static updateItemGridPlacement(item) {
         Inventory.item_grid = Inventory.item_grid.map((row, row_index) =>
             row.map((cell, col_index) => {
-                return isPointInRect({x: col_index + 1, y: row_index + 1}, item) ? item.id : cell;
+                return isPointInRect({x: col_index + 1, y: row_index + 1}, item) ? item.id : (cell === item.id ? null : cell);
             })
         );
     }
@@ -166,4 +170,33 @@ class Inventory {
 function isPointInRect(point, rect) {
     return (point.x >= rect.x && point.x < rect.x + rect.w) &&
            (point.y >= rect.y && point.y < rect.y + rect.h);
+}
+
+
+function drag_start_callback(element) { }
+function drag_end_callback(element) {
+    // get rect of element
+    const item_id = parseInt(/\d+/.exec(element.id), 10);
+    const w = parseInt(/\d+/.exec(element.style.gridColumnEnd)) || 1;
+    const h = parseInt(/\d+/.exec(element.style.gridRowEnd)) || 1;
+    let x = Math.floor(offsetTouchX / tile_size);
+    let y = Math.floor(offsetTouchY / tile_size);
+    
+    // stay in inventory rect
+    x = Math.max(0, x);
+    y = Math.max(0, y);
+    if (x + w > Inventory.col_num) x = Inventory.col_num - w;
+    if (y + h > Inventory.row_num) y = Inventory.row_num - h;
+
+    // set element
+    const item = {
+        x: x+1, y: y+1, w, h,
+        id: item_id
+    };
+    Inventory.setItem(item);
+
+    // TODO inform backend over position change
+    const inventory_id = parseInt(Inventory.inventory.dataset.id, 10);
+    ws_save_inventory_item_position({x: x+1, y: y+1, rotated: false, item_id: item_id, inventory_id});
+
 }

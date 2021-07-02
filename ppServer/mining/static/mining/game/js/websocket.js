@@ -101,3 +101,12 @@ function ws_save_player_position(position) {
         }
     }, 100);
 }
+
+function ws_save_inventory_item_position(inventory_item) {
+    const timer_handle = setInterval(() => {
+        if (webSocket.readyState === 1) {
+            webSocket.send(JSON.stringify({ type: "save_inventory_item_message", message: inventory_item }));
+            clearInterval(timer_handle);
+        }
+    }, 100);
+}

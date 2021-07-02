@@ -196,7 +196,7 @@ def game(request, pk):
 			"char_index": region.layer_index_of_char,
 			"profile": "Profil " + profile.name,
 			"username": request.user.username,
-			"inventory": {"width": inventory.width, "height": inventory.height},
+			"inventory": {"width": inventory.width, "height": inventory.height, "id": inventory.id},
 			"inventory_items": inventory_items,
 		}
 	return render(request, "mining/game.html", context)
