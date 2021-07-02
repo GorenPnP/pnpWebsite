@@ -257,7 +257,7 @@ class Item(models.Model):
 	crafting_item = models.OneToOneField(Tinker, on_delete=models.CASCADE)
 	width = models.PositiveSmallIntegerField(default=1)
 	height= models.PositiveSmallIntegerField(default=1)
-	max_amount = models.PositiveSmallIntegerField(default=1)
+	max_amount = models.PositiveSmallIntegerField(default=0)
 	bg_color = models.CharField(default="#555555", max_length=7, validators=[is_rgb_color])
 
 	def __str__(self):
@@ -275,10 +275,18 @@ class Inventory(models.Model):
 		verbose_name = "Inventar"
 		verbose_name_plural = "Inventare"
 
-	width  = models.PositiveSmallIntegerField(default=1, blank=False, null=False)
-	height = models.PositiveSmallIntegerField(default=1, blank=False, null=False)
+	width  = models.PositiveSmallIntegerField(default=3, blank=False, null=False)
+	height = models.PositiveSmallIntegerField(default=3, blank=False, null=False)
 
 	def __str__(self):
+		rel_profile = RelProfile.objects.filter(inventory=self)
+		if len(rel_profile):
+			return "Inventar von {} im Profil {}".format(rel_profile[0].spieler, rel_profile[0].profile)
+
+		profile_entity = ProfileEntity.objects.filter(inventory=self)
+		if len(rel_profile):
+			return "Inventar einer Entity in {} im Profil {}".format(profile_entity[0].region, profile_entity[0].region)
+
 		return "Inventar der Größe {} x {}".format(self.width, self.height)
 
 

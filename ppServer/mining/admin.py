@@ -73,9 +73,12 @@ class InventoryItemInLineAdmin(admin.TabularInline):
     extra = 1
 
 class InventoryAdmin(admin.ModelAdmin):
-    list_display = ('width', 'height')
+    list_display = ('name', 'width', 'height')
 
     inlines = [InventoryItemInLineAdmin]
+
+    def name(self, obj):
+        return obj.__str__()
 
 
 class ItemAdmin(admin.ModelAdmin):

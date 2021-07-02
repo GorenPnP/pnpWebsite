@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from django.utils.html import format_html
 
 from .models import *
+from mining.models import Item as MiningItem
 
 
 class SchussMagazineInLine(admin.TabularInline):
@@ -69,6 +70,9 @@ class FirmaZauberInLine(FirmaShopInLine):
 
 class FirmaAlchemieInLine(FirmaShopInLine):
     model = FirmaAlchemie
+
+class MiningItemInLine(admin.TabularInline):
+    model = MiningItem
 
 
 
@@ -289,6 +293,7 @@ class TinkerAdmin(BaseAdmin):
 
     fields = ['icon', 'name', 'beschreibung', 'ab_stufe', 'illegal', 'lizenz_benötigt', 'frei_editierbar', 'werte', 'kategorie']
 
+    inlines = [MiningItemInLine]
 
 
     def icon_(self, obj):
