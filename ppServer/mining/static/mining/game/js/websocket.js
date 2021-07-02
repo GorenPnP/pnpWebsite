@@ -24,10 +24,10 @@ function receiveMsg(e) {
 
             // delete entity from game
             entities = entities.filter(entity => entity.id !== entity_id);
-            collidables = entities.filter(entity => entity.id !== entity_id);
-            breakables = entities.filter(entity => entity.id !== entity_id);
+            collidables = collidables.filter(entity => entity.id !== entity_id);
+            breakables = breakables.filter(entity => entity.id !== entity_id);
 
-            if (data.username = player.username) {
+            if (data.username = player.username && data.message.amount) {
                 // data.message = {
                 //     amount: number,
                 //     total_amount: number,

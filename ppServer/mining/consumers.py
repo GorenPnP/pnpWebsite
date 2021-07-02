@@ -40,6 +40,8 @@ class MiningGameConsumer(AsyncWebsocketConsumer):
         if (len(drops) == 0): return
 
         loot = choice(MaterialDrop.objects.filter(material=material))
+        if loot.amount == 0:
+            return 0, None
 
         # get inventory
         rel_profile, _ = RelProfile.objects.get_or_create(profile=self.profile, spieler=self.spieler)
@@ -130,16 +132,17 @@ class MiningGameConsumer(AsyncWebsocketConsumer):
         amount = loot[0]
         iitem = loot[1]
 
-        item_dict = await self._db_get_item_dict_of_inventory_item(iitem)
+        if amount:
+            item_dict = await self._db_get_item_dict_of_inventory_item(iitem)
 
-        # remove entity
-        await self._db_delete_entity(entity_id)
+            # remove entity
+            await self._db_delete_entity(entity_id)
 
         # send message
         username = event['username']
         await self.send(text_data=json.dumps({
             'type': 'break_entity_message',
-            'message': {"entity_id": entity_id, "amount": amount, "total_amount": iitem.amount, "item": item_dict},
+            'message': {"entity_id": entity_id, "amount": amount, "total_amount": iitem.amount if amount else None, "item": item_dict if item_dict else None},
             'username': username,
         }))
 
