@@ -184,7 +184,12 @@ def game(request, pk):
 			layer["entities"] = [e for e in layer["entities"] if e["id"] in existing_entity_ids]
 
 		# collect inventory
-		inventory = RelProfile.objects.get_or_create(spieler=spieler, profile=profile)[0].inventory
+		rel_profile, _ = RelProfile.objects.get_or_create(spieler=spieler, profile=profile)
+		if not rel_profile.inventory:
+			rel_profile.inventory = Inventory.objects.create()
+			rel_profile.save()
+
+		inventory = rel_profile.inventory
 		inventory_items = [iitem.toDict() for iitem in InventoryItem.objects.filter(inventory=inventory)]
 
 		context = {
