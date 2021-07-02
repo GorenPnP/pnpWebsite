@@ -57,12 +57,13 @@ html, body {
                 height: var(--slot-size);
             }
         }
-        .items { grid-auto-flow: dense; }
+        .items { grid-auto-flow: row dense; }
         .item {
             --bg-color: #ff0;
             --img: url('/media/Sand_aVmEdTZ.png');
 
             margin: var(--inventory-item-margin);
+            cursor: move;
 
             border: 5px solid #fff;
             background: var(--bg-color) no-repeat center var(--img);
@@ -71,6 +72,8 @@ html, body {
             display: flex;
             justify-content: flex-end;
             align-items: flex-end;
+
+            &.dragging {opacity: .5;}
         }
         .amount {
             font-family: Quicksand, "sans-serif";

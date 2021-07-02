@@ -40,6 +40,8 @@ class MiningGameConsumer(AsyncWebsocketConsumer):
         if (len(drops) == 0): return
 
         loot = choice(MaterialDrop.objects.filter(material=material))
+        if loot.amount == 0:
+            return 0, None
 
         # get inventory
         rel_profile, _ = RelProfile.objects.get_or_create(profile=self.profile, spieler=self.spieler)
@@ -73,6 +75,16 @@ class MiningGameConsumer(AsyncWebsocketConsumer):
     def _db_save_player_position(self, position):
         print("save {} of {}".format(position, self.user.username))
         return
+
+
+    @database_sync_to_async
+    def _db_save_inventory_item(self, inventory_item):
+        iitem, _ = InventoryItem.objects.get_or_create(item__id=inventory_item["item_id"], inventory__id=inventory_item["inventory_id"])
+
+        iitem.position = {"x": inventory_item["x"], "y": inventory_item["y"]}
+        iitem.rotated = inventory_item["rotated"]
+
+        iitem.save()
 
 
     async def connect(self):
@@ -113,6 +125,8 @@ class MiningGameConsumer(AsyncWebsocketConsumer):
 
         if type == "save_player_position_message":
             return await self._db_save_player_position(json.loads(text_data)['message'])
+        if type == "save_inventory_item_message":
+            return await self._db_save_inventory_item(json.loads(text_data)['message'])
 
         await self.channel_layer.group_send(self.room_group_name,
             {
@@ -130,16 +144,17 @@ class MiningGameConsumer(AsyncWebsocketConsumer):
         amount = loot[0]
         iitem = loot[1]
 
-        item_dict = await self._db_get_item_dict_of_inventory_item(iitem)
+        if amount:
+            item_dict = await self._db_get_item_dict_of_inventory_item(iitem)
 
-        # remove entity
-        await self._db_delete_entity(entity_id)
+            # remove entity
+            await self._db_delete_entity(entity_id)
 
         # send message
         username = event['username']
         await self.send(text_data=json.dumps({
             'type': 'break_entity_message',
-            'message': {"entity_id": entity_id, "amount": amount, "total_amount": iitem.amount, "item": item_dict},
+            'message': {"entity_id": entity_id, "amount": amount, "total_amount": iitem.amount if amount else None, "item": item_dict if item_dict else None},
             'username': username,
         }))
 

@@ -111,7 +111,9 @@ function drag_start_callback(element) {
 
 function drag_end_callback() {
 	// save new ordering to db
-	var tables = [...document.getElementsByClassName('table')].map(table => { return parseInt(/\d+/.exec(table.id)) })
+	var tables = [...document.getElementsByClassName('table')]
+		.map(table => { return parseInt(/\d+/.exec(table.id)) })
+		.filter(table_id => typeof table_id === 'number');
 
 	post({ table_ordering: tables }, reaction, reaction, false)
 }

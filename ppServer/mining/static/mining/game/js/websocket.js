@@ -24,10 +24,10 @@ function receiveMsg(e) {
 
             // delete entity from game
             entities = entities.filter(entity => entity.id !== entity_id);
-            collidables = entities.filter(entity => entity.id !== entity_id);
-            breakables = entities.filter(entity => entity.id !== entity_id);
+            collidables = collidables.filter(entity => entity.id !== entity_id);
+            breakables = breakables.filter(entity => entity.id !== entity_id);
 
-            if (data.username = player.username) {
+            if (data.username = player.username && data.message.amount) {
                 // data.message = {
                 //     amount: number,
                 //     total_amount: number,
@@ -97,6 +97,15 @@ function ws_save_player_position(position) {
     const timer_handle = setInterval(() => {
         if (webSocket.readyState === 1) {
             webSocket.send(JSON.stringify({ type: "save_player_position_message", message: position }));
+            clearInterval(timer_handle);
+        }
+    }, 100);
+}
+
+function ws_save_inventory_item_position(inventory_item) {
+    const timer_handle = setInterval(() => {
+        if (webSocket.readyState === 1) {
+            webSocket.send(JSON.stringify({ type: "save_inventory_item_message", message: inventory_item }));
             clearInterval(timer_handle);
         }
     }, 100);
