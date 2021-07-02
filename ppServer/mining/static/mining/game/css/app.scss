@@ -57,7 +57,7 @@ html, body {
                 height: var(--slot-size);
             }
         }
-        .items { grid-auto-flow: row dense; }
+        .items { grid-auto-flow: dense; }
         .item {
             --bg-color: #ff0;
             --img: url('/media/Sand_aVmEdTZ.png');

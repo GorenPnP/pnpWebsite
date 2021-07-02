@@ -143,7 +143,7 @@ class MiningGameConsumer(AsyncWebsocketConsumer):
         loot = await self._db_add_random_loot_of(entity_id)
         amount = loot[0]
         iitem = loot[1]
-
+        item_dict = None
         if amount:
             item_dict = await self._db_get_item_dict_of_inventory_item(iitem)
 
