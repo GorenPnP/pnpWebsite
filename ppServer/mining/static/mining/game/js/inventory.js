@@ -172,31 +172,38 @@ function isPointInRect(point, rect) {
            (point.y >= rect.y && point.y < rect.y + rect.h);
 }
 
-
-function drag_start_callback(element) { }
-function drag_end_callback(element) {
-    // get rect of element
+function drag_start_callback() { }
+function drag_end_callback(element, _) {
+    // get id of element
     const item_id = parseInt(/\d+/.exec(element.id), 10);
-    const w = parseInt(/\d+/.exec(element.style.gridColumnEnd)) || 1;
-    const h = parseInt(/\d+/.exec(element.style.gridRowEnd)) || 1;
-    let x = Math.floor(offsetTouchX / tile_size);
-    let y = Math.floor(offsetTouchY / tile_size);
+
+    // get drag vector
+    let offset_grid_x = Math.floor(offsetX / tile_size);
+    let offset_grid_y = Math.floor(offsetY / tile_size);
     
-    // stay in inventory rect
-    x = Math.max(0, x);
-    y = Math.max(0, y);
-    if (x + w > Inventory.col_num) x = Inventory.col_num - w;
-    if (y + h > Inventory.row_num) y = Inventory.row_num - h;
+    // apply it & stay in grid
+    const element_rect = get_element_rect_in_grid(element);
+    element_rect.x = Math.min(Math.max(1, element_rect.x + offset_grid_x), Inventory.col_num - element_rect.w + 1);
+    element_rect.y = Math.min(Math.max(1, element_rect.y + offset_grid_y), Inventory.row_num - element_rect.h + 1);
 
     // set element
     const item = {
-        x: x+1, y: y+1, w, h,
+        ...element_rect,
         id: item_id
     };
     Inventory.setItem(item);
 
-    // TODO inform backend over position change
+    // inform backend over position change
     const inventory_id = parseInt(Inventory.inventory.dataset.id, 10);
-    ws_save_inventory_item_position({x: x+1, y: y+1, rotated: false, item_id: item_id, inventory_id});
+    ws_save_inventory_item_position({x: element_rect.x, y: element_rect.y, rotated: false, item_id: item_id, inventory_id});
+}
 
+function get_element_rect_in_grid(element) {
+    const bounds_rect = element.getBoundingClientRect();
+    return {
+        x: parseInt(/\d+/.exec(element.style.gridColumnStart)) || bounds_rect.x || 1,
+        y: parseInt(/\d+/.exec(element.style.gridRowStart)) || bounds_rect.y || 1,
+        w: parseInt(/\d+/.exec(element.style.gridColumnEnd)) || bounds_rect.width / tile_size || 1,
+        h: parseInt(/\d+/.exec(element.style.gridRowEnd)) || bounds_rect.height / tile_size || 1
+    };
 }

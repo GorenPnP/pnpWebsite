@@ -1,7 +1,7 @@
 // May use callbacks on dragstart and dragend:
 //
-// drag_start_callback(of_element)
-// drag_end_callback(of_element)
+// drag_start_callback(of_element, event)
+// drag_end_callback(of_element, event)
 //
 // Basic structure:
 //
@@ -14,8 +14,8 @@
 /*
 	VARIABLES
 */
-var offsetTouchX = null;
-var offsetTouchY = null;
+var offsetX = null
+var offsetY = null
 
 var container;
 
@@ -63,8 +63,10 @@ function init_draggable_reorder() {
 		// set moving element before the element or at the absolute bottom if null
 		afterElement == null ? container.appendChild(draggable) : container.insertBefore(draggable, afterElement)
 
-		offsetTouchX = e.layerX
-		offsetTouchY = e.layerY
+		// offset to start-drag point
+		const draggable_rect = draggable.getBoundingClientRect()
+		offsetX = e.clientX ? e.clientX - draggable_rect.x : offsetX
+		offsetY = e.clientY ? e.clientY - draggable_rect.y : offsetY
 	});
 
 	// set class dragging on drag of element
@@ -73,16 +75,16 @@ function init_draggable_reorder() {
 
 
 function add_draggable(draggable) {
-	draggable.addEventListener('dragstart', () => {
+	draggable.addEventListener('dragstart', e => {
 		draggable.classList.add('dragging')
 		
-		drag_start_callback(draggable)
+		drag_start_callback(draggable, e)
 	})
-	draggable.addEventListener('dragend', () => {
+	draggable.addEventListener('dragend', e => {
 		draggable.classList.remove('dragging')
 
 		// callback
-		drag_end_callback(draggable)
+		drag_end_callback(draggable, e)
 	})
 
 
@@ -102,7 +104,7 @@ function add_draggable(draggable) {
 		draggable.dispatchEvent(new TouchEvent("touchmove", { targetTouches: [touch] }))
 
 		// callback
-		drag_start_callback(draggable)
+		drag_start_callback(draggable, e)
 	})
 
 	draggable.addEventListener("touchmove", e => {
@@ -135,7 +137,12 @@ function add_draggable(draggable) {
 		else copy = copy[0]
 
 		// set moving element before the element or at the absolute bottom if null
-		afterElement == null ? container.appendChild(copy) : container.insertBefore(copy, afterElement)
+		afterElement == null ? container.appendChild(copy) : container.insertBefore(copy, afterElement);
+
+		// offset to start-drag point
+		const draggable_rect = draggable.getBoundingClientRect()
+		offsetX = touch.clientX ? touch.clientX - draggable_rect.x : offsetX
+		offsetY = touch.clientY ? touch.clientY - draggable_rect.y : offsetY
 	})
 
 	draggable.addEventListener("touchend", e => {
@@ -153,6 +160,6 @@ function add_draggable(draggable) {
 		afterElement == null ? container.appendChild(draggable) : container.insertBefore(draggable, afterElement)
 
 		// callback
-		drag_end_callback(draggable)
+		drag_end_callback(draggable, e)
 	})
 }
