@@ -12,12 +12,13 @@ document.addEventListener("DOMContentLoaded", () => {
         .map(inventory_item => {
             const {id, height, width, bg_color, crafting_item} = inventory_item.item;
             return {
-                id,
+                id: `${id}-${get_random_hash()}`,
                 x: inventory_item.position ? inventory_item.position.x : undefined,
                 y: inventory_item.position ? inventory_item.position.y : undefined,
                 h: height,
                 w: width,
                 amount: inventory_item.amount,
+                max_amount: inventory_item.item.max_amount,
                 bg_color,
                 image_href: crafting_item.icon_url
             }
@@ -93,8 +94,43 @@ class Inventory {
         Inventory.updateItemGridSize();
     }
 
-    static setItem(item) {  // item = {...rect, bg_color, image_href, id, amount}
-        if (!Inventory.isPlaceFree(item)) {
+    static setItem(item) {  // item = {...rect, bg_color, image_href, id, amount, max_amount}
+        
+        // divide item into several stacks if exceeds stack size
+        while (item.amount > item.max_amount) {
+            const new_stack = {
+                ...item,
+                amount: item.max_amount,
+                id: `${item.id}-${get_random_hash()}`
+            };
+            item.amount -= item.max_amount;
+            Inventory.setItem(new_stack);
+        }
+        
+        // pin position
+        let has_valid_pos = !(
+            [item.x, item.y].some(coord => [undefined, null].includes(coord)) ||    // ..none given
+            item.x < 1 || item.x > Inventory.col_num - item.w + 1 ||                // ..invalid position 
+            item.y < 1 || item.y > Inventory.row_num - item.h + 1 ||                //   that's not in grid
+            !Inventory.isPlaceFree(item)
+        );
+        
+        // find a position if invalid
+        if (!has_valid_pos) {                                         // ..pos is already occupied
+            item = {...item, x: undefined, y: undefined};
+
+            for (let y = 1; !has_valid_pos && y <= Inventory.row_num - item.h + 1; y++) {
+                for (let x = 1; !has_valid_pos && x <= Inventory.col_num - item.w + 1; x++) {
+                    if (Inventory.isPlaceFree({...item, x, y})) {
+                        item = {...item, x, y};
+                        has_valid_pos = true;
+                    }
+                }
+            }
+        }
+
+        // if no free space left
+        if (!has_valid_pos) {
             console.log("already occupied. Cannot place ", item);
             console.table(Inventory.item_grid)
             return;
@@ -120,11 +156,11 @@ class Inventory {
         } else { amount = tag.querySelector(".amount"); }
 
         // set properties
-        if (item.x) tag.style.gridColumnStart = item.x;
-        if (item.w) tag.style.gridColumnEnd = `span ${item.w}`;
+        tag.style.gridColumnStart = item.x;
+        tag.style.gridColumnEnd = `span ${item.w}`;
         
-        if (item.y) tag.style.gridRowStart = item.y;
-        if (item.h) tag.style.gridRowEnd = `span ${item.h}`;
+        tag.style.gridRowStart = item.y;
+        tag.style.gridRowEnd = `span ${item.h}`;
 
         if (item.bg_color) tag.style.setProperty('--bg-color', item.bg_color);
         if (item.image_href) tag.style.setProperty('--img', `url('${item.image_href}')`);
@@ -206,4 +242,8 @@ function get_element_rect_in_grid(element) {
         w: parseInt(/\d+/.exec(element.style.gridColumnEnd)) || bounds_rect.width / tile_size || 1,
         h: parseInt(/\d+/.exec(element.style.gridRowEnd)) || bounds_rect.height / tile_size || 1
     };
+}
+
+function get_random_hash(length = 5) {
+    return Math.random().toString(36).replace(/[^a-z]+/g, '').substr(0, length);
 }
