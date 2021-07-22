@@ -8,22 +8,24 @@ document.addEventListener("DOMContentLoaded", () => {
     Inventory.inventory.dataset.id = inventory.id;
     Inventory.updateGrid(inventory.width, inventory.height);
 
-    const inventory_items = JSON.parse(document.querySelector("#inventory-items").innerHTML)
-        .map(inventory_item => {
-            const {id, height, width, bg_color, crafting_item} = inventory_item.item;
+    const inventory_stacks = JSON.parse(document.querySelector("#inventory-items").innerHTML)
+        .map(stack => {
+            const {id, height, width, bg_color, crafting_item} = stack.item;
             return {
-                id: `${id}-${get_random_hash()}`,
-                x: inventory_item.position ? inventory_item.position.x : undefined,
-                y: inventory_item.position ? inventory_item.position.y : undefined,
+                id: stack.id,
+                item_id: id,
+                x: stack.position ? stack.position.x : undefined,
+                y: stack.position ? stack.position.y : undefined,
                 h: height,
                 w: width,
-                amount: inventory_item.amount,
-                max_amount: inventory_item.item.max_amount,
+                amount: stack.amount,
+                max_amount: stack.item.max_amount,
                 bg_color,
                 image_href: crafting_item.icon_url
             }
         });
-    inventory_items.forEach(item => Inventory.setItem(item));
+        
+    inventory_stacks.forEach(stack => Inventory.setStack(stack));
 });
 
 
@@ -35,7 +37,7 @@ class Inventory {
     static backdrop;
     static inventory;
     
-    static item_grid = [[]];
+    static stack_grid = [[]];
 
         // const img_urls = [
         //     '/static/res/img/mining/char_skin_front.png',
@@ -62,7 +64,7 @@ class Inventory {
         Inventory.row_num = row_num;
 
         const grid = Inventory.inventory.querySelector(".background-grid");
-        const items = Inventory.inventory.querySelector(".items");
+        const stacks = Inventory.inventory.querySelector(".stacks");
 
         // background
         grid.innerHTML = null;
@@ -72,57 +74,57 @@ class Inventory {
             grid.appendChild(slot);
         }
 
-        // items
-        items.style.width = `calc(${Inventory.col_num} * var(--slot-size))`;
-        items.style.height = `calc(${Inventory.row_num} * var(--slot-size))`;
+        // stacks
+        stacks.style.width = `calc(${Inventory.col_num} * var(--slot-size))`;
+        stacks.style.height = `calc(${Inventory.row_num} * var(--slot-size))`;
 
         // both
-        for (let tag of [grid, items]) {
+        for (let tag of [grid, stacks]) {
             const style = tag.style;
             style.gridTemplateColumns = `repeat(${col_num}, 1fr)`;
             style.gridTemplateRows = `repeat(${row_num}, 1fr)`;
         }
 
         // js-intern coverage-logic
-        Inventory.item_grid = Array.from({length: Inventory.row_num}).map(() =>
+        Inventory.stack_grid = Array.from({length: Inventory.row_num}).map(() =>
                                 Array.from({length: Inventory.row_num}).map(() =>
                                     null
                                 )
                             );
 
         Inventory.resize();
-        Inventory.updateItemGridSize();
+        Inventory.updateStackGridSize();
     }
 
-    static setItem(item) {  // item = {...rect, bg_color, image_href, id, amount, max_amount}
+    static setStack(stack) {  // stack = {...rect, bg_color, image_href, id, amount, max_amount}
         
-        // divide item into several stacks if exceeds stack size
-        while (item.amount > item.max_amount) {
+        // divide stack into several if exceeds stack size
+        while (stack.amount > stack.max_amount) {
             const new_stack = {
-                ...item,
-                amount: item.max_amount,
-                id: `${item.id}-${get_random_hash()}`
+                ...stack,
+                amount: stack.max_amount,
+                id: get_random_hash(),
             };
-            item.amount -= item.max_amount;
-            Inventory.setItem(new_stack);
+            stack.amount -= stack.max_amount;
+            Inventory.setStack(new_stack);
         }
         
         // pin position
         let has_valid_pos = !(
-            [item.x, item.y].some(coord => [undefined, null].includes(coord)) ||    // ..none given
-            item.x < 1 || item.x > Inventory.col_num - item.w + 1 ||                // ..invalid position 
-            item.y < 1 || item.y > Inventory.row_num - item.h + 1 ||                //   that's not in grid
-            !Inventory.isPlaceFree(item)
+            [stack.x, stack.y].some(coord => [undefined, null].includes(coord)) ||    // ..none given
+            stack.x < 1 || stack.x > Inventory.col_num - stack.w + 1 ||                // ..invalid position 
+            stack.y < 1 || stack.y > Inventory.row_num - stack.h + 1 ||                //   that's not in grid
+            !Inventory.isPlaceFree(stack)
         );
         
         // find a position if invalid
         if (!has_valid_pos) {                                         // ..pos is already occupied
-            item = {...item, x: undefined, y: undefined};
+            stack = {...stack, x: undefined, y: undefined};
 
-            for (let y = 1; !has_valid_pos && y <= Inventory.row_num - item.h + 1; y++) {
-                for (let x = 1; !has_valid_pos && x <= Inventory.col_num - item.w + 1; x++) {
-                    if (Inventory.isPlaceFree({...item, x, y})) {
-                        item = {...item, x, y};
+            for (let y = 1; !has_valid_pos && y <= Inventory.row_num - stack.h + 1; y++) {
+                for (let x = 1; !has_valid_pos && x <= Inventory.col_num - stack.w + 1; x++) {
+                    if (Inventory.isPlaceFree({...stack, x, y})) {
+                        stack = {...stack, x, y};
                         has_valid_pos = true;
                     }
                 }
@@ -131,53 +133,63 @@ class Inventory {
 
         // if no free space left
         if (!has_valid_pos) {
-            console.log("already occupied. Cannot place ", item);
-            console.table(Inventory.item_grid)
+            console.log("already occupied. Cannot place ", stack);
+            console.table(Inventory.stack_grid)
             return;
         }
 
-        const items = Inventory.inventory.querySelector(".items");
-        let tag = items.querySelector(`#item-${item.id}`);
+        const stacks = Inventory.inventory.querySelector(".stacks");
+        let tag = stacks.querySelector(`#stack-${stack.id}`);
         let amount;
 
         // create new tag
         if (!tag) {
             tag = document.createElement('div');
-            tag.id = `item-${item.id}`;
-            tag.classList.add('item', 'reorder-container__element');
+            tag.id = `stack-${stack.id}`;
+            tag.classList.add('stack', 'reorder-container__element');
             tag.setAttribute("draggable", "true");
+            tag.dataset.item_id = stack.item_id;
 
             amount = document.createElement('span');
             amount.classList.add('amount');
 
             tag.appendChild(amount);
-            items.appendChild(tag);
+            stacks.appendChild(tag);
             add_draggable(tag);
         } else { amount = tag.querySelector(".amount"); }
 
         // set properties
-        tag.style.gridColumnStart = item.x;
-        tag.style.gridColumnEnd = `span ${item.w}`;
+        tag.style.gridColumnStart = stack.x;
+        tag.style.gridColumnEnd = `span ${stack.w}`;
         
-        tag.style.gridRowStart = item.y;
-        tag.style.gridRowEnd = `span ${item.h}`;
+        tag.style.gridRowStart = stack.y;
+        tag.style.gridRowEnd = `span ${stack.h}`;
 
-        if (item.bg_color) tag.style.setProperty('--bg-color', item.bg_color);
-        if (item.image_href) tag.style.setProperty('--img', `url('${item.image_href}')`);
-        amount.innerHTML = item.amount || amount.innerHTML;
+        if (stack.bg_color) tag.style.setProperty('--bg-color', stack.bg_color);
+        if (stack.image_href) tag.style.setProperty('--img', `url('${stack.image_href}')`);
+        amount.innerHTML = stack.amount || amount.innerHTML;
 
-        Inventory.updateItemGridPlacement(item);
+        Inventory.updateStackGridPlacement(stack);
     }
 
-    static updateItemGridSize() {
+
+    static removeStack(id) {
+        document.querySelector(`#stack-${id}`).remove();
+
+        Inventory.stack_grid = Inventory.stack_grid.map(row =>
+            row.map(cell => cell == id ? null : cell)
+        );
+    }
+
+    static updateStackGridSize() {
         // TODO
     }
-    static isPlaceFree(item) {
-        let {x, y, w, h} = item;
+    static isPlaceFree(stack) {
+        let {x, y, w, h} = stack;
         x--; y--;
 
-        // collect all cells that would be covered by the item
-        return Inventory.item_grid.reduce((cells, row, row_index) => {
+        // collect all cells that would be covered by the stack
+        return Inventory.stack_grid.reduce((cells, row, row_index) => {
 
             // decide by y-axis
             if (row_index < y || row_index >= y + h) { return cells; }
@@ -192,12 +204,12 @@ class Inventory {
         }, [])
 
         // all of them have to be empty
-        .every(cell => !cell || cell === item.id);
+        .every(cell => !cell || cell === stack.id);
     }
-    static updateItemGridPlacement(item) {
-        Inventory.item_grid = Inventory.item_grid.map((row, row_index) =>
+    static updateStackGridPlacement(stack) {
+        Inventory.stack_grid = Inventory.stack_grid.map((row, row_index) =>
             row.map((cell, col_index) => {
-                return isPointInRect({x: col_index + 1, y: row_index + 1}, item) ? item.id : (cell === item.id ? null : cell);
+                return isPointInRect({x: col_index + 1, y: row_index + 1}, stack) ? stack.id : (cell == stack.id ? null : cell);
             })
         );
     }
@@ -210,8 +222,9 @@ function isPointInRect(point, rect) {
 
 function drag_start_callback() { }
 function drag_end_callback(element, _) {
+
     // get id of element
-    const item_id = parseInt(/\d+/.exec(element.id), 10);
+    let id = element.id.split('-').reverse()[0];
 
     // get drag vector
     let offset_grid_x = Math.floor(offsetX / tile_size);
@@ -223,15 +236,28 @@ function drag_end_callback(element, _) {
     element_rect.y = Math.min(Math.max(1, element_rect.y + offset_grid_y), Inventory.row_num - element_rect.h + 1);
 
     // set element
-    const item = {
+    const item_id = parseInt(element.dataset.item_id, 10);
+    const amount = parseInt(element.querySelector('.amount').innerHTML, 10);
+    const stack = {
         ...element_rect,
-        id: item_id
+        id,
+        item_id,
+        amount
     };
-    Inventory.setItem(item);
+    Inventory.setStack(stack);
 
     // inform backend over position change
+    const stack_id = id;
+    id = parseInt(id, 10) || undefined;
     const inventory_id = parseInt(Inventory.inventory.dataset.id, 10);
-    ws_save_inventory_item_position({x: element_rect.x, y: element_rect.y, rotated: false, item_id: item_id, inventory_id});
+    ws_save_inventory_item_position({
+            ...stack,
+            rotated: false,
+            inventory_id,
+            id,
+            stack_id
+        },
+        element);
 }
 
 function get_element_rect_in_grid(element) {
@@ -242,8 +268,4 @@ function get_element_rect_in_grid(element) {
         w: parseInt(/\d+/.exec(element.style.gridColumnEnd)) || bounds_rect.width / tile_size || 1,
         h: parseInt(/\d+/.exec(element.style.gridRowEnd)) || bounds_rect.height / tile_size || 1
     };
-}
-
-function get_random_hash(length = 5) {
-    return Math.random().toString(36).replace(/[^a-z]+/g, '').substr(0, length);
 }

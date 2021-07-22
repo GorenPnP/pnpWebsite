@@ -79,12 +79,26 @@ class MiningGameConsumer(AsyncWebsocketConsumer):
 
     @database_sync_to_async
     def _db_save_inventory_item(self, inventory_item):
-        iitem, _ = InventoryItem.objects.get_or_create(item__id=inventory_item["item_id"], inventory__id=inventory_item["inventory_id"])
 
+        # prepare
+        item = Item.objects.get(id=inventory_item["item_id"])
+        inventory = Inventory.objects.get(id=inventory_item["inventory_id"])
+
+        # get iitem
+        if "id" in inventory_item.keys() and inventory_item["id"]:
+            iitem, _ = InventoryItem.objects.get_or_create(id=inventory_item["id"])
+        else:
+            iitem = InventoryItem.objects.create(inventory=inventory, item=item)
+
+        # set its properties
+        iitem.item = item
+        iitem.inventory = inventory
         iitem.position = {"x": inventory_item["x"], "y": inventory_item["y"]}
         iitem.rotated = inventory_item["rotated"]
+        iitem.amount = inventory_item["amount"]
 
         iitem.save()
+        return iitem
 
 
     async def connect(self):
@@ -126,7 +140,8 @@ class MiningGameConsumer(AsyncWebsocketConsumer):
         if type == "save_player_position_message":
             return await self._db_save_player_position(json.loads(text_data)['message'])
         if type == "save_inventory_item_message":
-            return await self._db_save_inventory_item(json.loads(text_data)['message'])
+            saved_iitem = await self._db_save_inventory_item(json.loads(text_data)['message'])
+            message = saved_iitem.id
 
         await self.channel_layer.group_send(self.room_group_name,
             {
@@ -167,6 +182,17 @@ class MiningGameConsumer(AsyncWebsocketConsumer):
         await self.send(text_data=json.dumps({
             'type': 'player_position_message',
             'message': position_and_speed,
+            'username': username,
+        }))
+    
+    async def save_inventory_item_message(self, event):
+        iitem_id = event['message']
+
+        # send message
+        username = event['username']
+        await self.send(text_data=json.dumps({
+            'type': 'save_inventory_item_message',
+            'message': iitem_id,
             'username': username,
         }))
 

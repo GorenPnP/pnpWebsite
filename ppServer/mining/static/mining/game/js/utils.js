@@ -63,3 +63,7 @@ function drawPie(ctx, centerPoint, r, percentFilled) {
       lastEnd += Math.PI * 2 * (sector.size / total);
     }
 }
+
+function get_random_hash(length = 5) {
+    return Math.random().toString(36).replace(/[^a-z]+/g, '').substr(0, length);
+}

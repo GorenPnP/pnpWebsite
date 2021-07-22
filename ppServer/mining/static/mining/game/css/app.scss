@@ -35,7 +35,7 @@ html, body {
     .inventory {
         position: relative;
 
-        .background-grid, .items {
+        .background-grid, .stacks {
             top: 50%;  /* position the top  edge of the element at the middle of the parent */
             left: 50%; /* position the left edge of the element at the middle of the parent */
             transform: translate(-50%, -50%); /* This is a shorthand of translateX(-50%) and translateY(-50%) */
@@ -57,8 +57,7 @@ html, body {
                 height: var(--slot-size);
             }
         }
-        .items { grid-auto-flow: dense; }
-        .item {
+        .stack {
             --bg-color: #ff0;
             --img: url('/media/Sand_aVmEdTZ.png');
 

@@ -1,4 +1,5 @@
 var webSocket;
+var ws_saving_stack;
 
 function initWsSocket() {
     const ws_scheme = window.location.protocol == "https:" ? "wss" : "ws";
@@ -17,6 +18,7 @@ function leave() {
 
 function receiveMsg(e) {
     const data = JSON.parse(e.data);
+    const username = data.username;
     
     switch (data.type) {
         case "break_entity_message":
@@ -27,7 +29,7 @@ function receiveMsg(e) {
             collidables = collidables.filter(entity => entity.id !== entity_id);
             breakables = breakables.filter(entity => entity.id !== entity_id);
 
-            if (data.username = player.username && data.message.amount) {
+            if (username = player.username && data.message.amount) {
                 // data.message = {
                 //     amount: number,
                 //     total_amount: number,
@@ -40,7 +42,7 @@ function receiveMsg(e) {
                 //     width: number
                 // }
                 const {id, height, width, bg_color, crafting_item} = data.message.item;
-                const item = {
+                const stack = {
                     id,
                     h: height,
                     w: width,
@@ -48,11 +50,12 @@ function receiveMsg(e) {
                     bg_color,
                     image_href: crafting_item.icon_url
                 }
-                Inventory.setItem(item);
+                Inventory.setStack(stack);
             }
             break;
+        
+        
         case "player_position_message":
-            const username = data.username;
             const {position, speed} = data.message;
             if (username === player.username) { return; }
             
@@ -69,6 +72,20 @@ function receiveMsg(e) {
             }
             other_player.speed = speed;
             other_players.push(other_player);
+            break;
+
+        case "save_inventory_item_message":
+            const stack_id = data.message;
+
+            if (username === player.username && stack_id != ws_saving_stack.stack_id) {;
+                const old_id = ws_saving_stack.stack_id;
+                ws_saving_stack.id = stack_id;
+
+                Inventory.removeStack(old_id);
+
+                Inventory.setStack(ws_saving_stack);
+                ws_saving_stack = undefined;
+            }
             break;
         default:
             console.log(data);
@@ -106,6 +123,7 @@ function ws_save_inventory_item_position(inventory_item) {
     const timer_handle = setInterval(() => {
         if (webSocket.readyState === 1) {
             webSocket.send(JSON.stringify({ type: "save_inventory_item_message", message: inventory_item }));
+            ws_saving_stack = inventory_item;
             clearInterval(timer_handle);
         }
     }, 100);
