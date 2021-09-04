@@ -1,6 +1,7 @@
 from django.db import models
 from django.shortcuts import get_object_or_404
 
+from character.models import Gfs
 
 class NewCharakter(models.Model):
     eigentümer = models.ForeignKey("character.Spieler", on_delete=models.CASCADE, null=True)
@@ -171,3 +172,63 @@ class NewCharakterZauber(models.Model):
 
     item = models.ForeignKey("shop.Zauber", on_delete=models.CASCADE)
     char = models.ForeignKey(NewCharakter, on_delete=models.CASCADE)
+
+
+
+priority_enum = [
+    ('A', 'A'),
+    ('B', 'B'),
+    ('C', 'C'),
+    ('D', 'D'),
+    ('E', 'E'),
+    ('F', 'F'),
+]
+class Priotable(models.Model):
+
+    class Meta:
+        ordering = ['priority']
+        verbose_name = "Priotable Zeile"
+        verbose_name_plural = "Priotable Zeilen"
+
+    priority = models.CharField(choices=priority_enum, null=False, unique=True, max_length=1)
+    ip = models.PositiveSmallIntegerField(default=0, null=False)
+    ap = models.PositiveSmallIntegerField(default=0, null=False)
+    sp = models.PositiveSmallIntegerField(default=0, null=False)
+    fp = models.PositiveSmallIntegerField(default=0, null=False)
+    fg = models.PositiveSmallIntegerField(default=0, null=False)
+    zauber = models.PositiveSmallIntegerField(default=0, null=False)
+    drachmen = models.PositiveIntegerField(default=0, null=False)
+
+    def __str__(self):
+        return "Priotable row {}".format(self.get_priority_display())
+
+
+yes_neutral_no_enum = [
+    ("y", "gut"),
+    ("m", "durchschnittlich"),
+    ("n", "schlecht")
+]
+alive_dead_enum = [
+    ("l", "lebend"),
+    ("t", "tot oder untot")
+]
+attitude_enum = [
+    ("g", "gut"),
+    ("n", "neutral"),
+    ("e", "böse")
+]
+class GfsCharacterization(models.Model):
+    class Meta:
+        ordering = ['gfs']
+        verbose_name = "Gfs Charakterisierung"
+        verbose_name_plural = "Gfs Charakterisierungen"
+
+    gfs = models.OneToOneField(Gfs, on_delete=models.CASCADE)
+    state = models.CharField(help_text=".. lebend oder (un)tot sein?", choices=alive_dead_enum, null=True, max_length=1)
+    social = models.CharField(help_text=".. sozial/umgänglich sein?", choices=yes_neutral_no_enum, null=True, max_length=1)
+    magical = models.CharField(help_text=".. magisch sein?", choices=yes_neutral_no_enum, null=True, max_length=1)
+    can_punch = models.CharField(help_text=".. Nahkampf haben?", choices=yes_neutral_no_enum, null=True, max_length=1)
+    can_shoot = models.CharField(help_text=".. Fernkampf haben?", choices=yes_neutral_no_enum, null=True, max_length=1)
+    gets_pricy_skills = models.CharField(help_text=".. krasse (dafür teure) Fähigkeiten bekommen?", choices=yes_neutral_no_enum, null=True, max_length=1)
+    can_fly = models.CharField(help_text=".. fliegen können?", choices=yes_neutral_no_enum, null=True, max_length=1)
+    attitude = models.CharField(help_text=".. gut/neutral/böse gesinnt sein?", choices=attitude_enum, null=True, max_length=1)

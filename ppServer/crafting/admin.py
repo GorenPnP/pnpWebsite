@@ -10,6 +10,7 @@ class ProfileAdmin(admin.ModelAdmin):
 
 class InventoryAdmin(admin.ModelAdmin):
     list_display = ["char", "item", "num"]
+    search_fields = ("char__name", "item__name")
 
 
 class IngredientInLineAdmin(admin.TabularInline):
@@ -31,17 +32,6 @@ class SpezialInLineAdmin(admin.TabularInline):
 
 class WissenInLineAdmin(admin.TabularInline):
     model = Recipe.wissen.through
-    extra = 1
-
-
-class MaterialDropInLineAdmin(admin.TabularInline):
-    model = MaterialDrop
-    extra = 1
-
-
-class MaterialInLineAdmin(admin.TabularInline):
-    model = Material
-    exclude = ["tools"]
     extra = 1
 
 
@@ -75,39 +65,7 @@ class RecipeAdmin(admin.ModelAdmin):
         return ferts if ferts else "-"
 
 
-class MaterialAdmin(admin.ModelAdmin):
-    list_display = ('_icon', 'name', 'region', 'rigidity', '_spawn_chance', 'second_spawn_chance', '_drops')
-    list_display_links = ('_icon', 'name')
-    search_fields = ('name', 'region__name')
-
-    exclude = ('tools', )
-
-    inlines = [MaterialDropInLineAdmin]
-
-    def _spawn_chance(self, obj):
-        spawn_chance = obj.spawn_chance
-        sum_spawn_chance = sum([m['spawn_chance'] for m in Material.objects.filter(region=obj.region).values('spawn_chance')])
-        return "{}/{} ({:.1f}%)".format(spawn_chance, sum_spawn_chance, spawn_chance / sum_spawn_chance * 100)
-
-    def _icon(self, obj):
-        html = format_html('<img src="{0}" style="max-width: 32px; max-height:32px;" />'.format(obj.icon.url))
-        return html if html else "-"
-
-    def _drops(self, obj):
-        return ", ".join([drop.item.name for drop in MaterialDrop.objects.filter(material=obj)])
-
-
-class RegionAdmin(admin.ModelAdmin):
-    list_display = ('name', 'vorkommen')
-
-    inlines = [MaterialInLineAdmin]
-
-    def vorkommen(self, obj):
-        return ", ".join([m.name for m in sorted(Material.objects.filter(region=obj), key=lambda material: material.name)])
-
 
 admin.site.register(Profile, ProfileAdmin)
 admin.site.register(InventoryItem, InventoryAdmin)
 admin.site.register(Recipe, RecipeAdmin)
-admin.site.register(Material, MaterialAdmin)
-admin.site.register(Region, RegionAdmin)

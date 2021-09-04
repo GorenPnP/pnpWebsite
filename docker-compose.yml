@@ -4,7 +4,7 @@ services:
   web:
     container_name: pnp-web
     build: ./ppServer
-    command: daphne -b 0.0.0.0 -p 8000 ppServer.asgi:application # gunicorn ppServer.asgi:application -w 2 --bind 0.0.0.0:8000 -k uvicorn.workers.UvicornWorker
+    command: daphne -b 0.0.0.0 -p 8000 ppServer.asgi:application
     volumes:
       - ./ppServer/:/usr/src/ppServer/
 
@@ -40,6 +40,8 @@ services:
       - html:/usr/share/nginx/html
       - vhost:/etc/nginx/vhost.d
       - /var/run/docker.sock:/tmp/docker.sock:ro
+    depends_on:
+      - web
 
 volumes:
   postgres_data:

@@ -44,7 +44,7 @@ class SpielerInline(admin.TabularInline):
 
 
 class QuestionAdmin(admin.ModelAdmin):
-    fields = ['text', "anz_stimmen", 'pub_date', "deadline"]#, 'classes': ['collapse']}),
+    fields = ['text', "anz_stimmen", 'pub_date', "deadline", "show_result_to_user"]#, 'classes': ['collapse']}),
     inlines = [OldChoiceInline, NewChoiceInline, SpielerInline]
     list_display = ('text', 'pub_date', 'deadline', "umfrage_läuft")
     list_filter = ['pub_date']

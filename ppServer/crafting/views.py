@@ -257,7 +257,7 @@ def craft(request):
 		# save new ordering of tables in profile model
 		if "table_ordering" in json_dict.keys():
 
-			rel.profil.tableOrdering = json_dict["table_ordering"]
+			rel.profil.tableOrdering = [to for to in json_dict["table_ordering"] if to is not None]
 			rel.profil.save()
 
 			return JsonResponse({})
@@ -384,68 +384,3 @@ def get_rand_material(materials):
 
 		if chance <= 0:
 			return  material
-
-
-
-@login_required
-@spielleiter_only(redirect_to="crafting:craft")
-def region_select(request):
-	context = {"topic": "Region", "regions": [{"id": r.id, "name": r.name} for r in Region.objects.all()]}
-	return render(request, "crafting/region_select.html", context)
-
-
-@login_required
-@spielleiter_only(redirect_to="crafting:craft")
-def mining(request, pk):
-	region = get_object_or_404(Region, pk=pk)
-
-	if request.method == "GET":
-		materials_query = Material.objects.filter(region=region)
-		
-		# if no materials defined for this region, redirect away
-		if not materials_query: return redirect("crafting:region_select")
-
-		materials = [{
-			"id": m.id,
-			"name": m.name,
-			"rigidity": m.rigidity,
-			"spawn_chance": m.spawn_chance,
-			"second_spawn_chance": m.second_spawn_chance,
-			"tier": m.tier,
-			"texture": m.icon.url
-		} for m in materials_query]
-
-		initial_material_id = get_rand_material(materials_query).id
-
-		context = {
-			"topic": region.name,
-			"materials": json.dumps(materials),
-			"initial_material_id": initial_material_id
-		}
-		return render(request, "crafting/mining.html", context)
-	
-	if request.method == "POST":
-		prev_material_id = json.loads(request.body.decode("utf-8"))['id']
-		prev_material = get_object_or_404(Material, id=prev_material_id)
-
-		spieler = get_object_or_404(Spieler, name=request.user.username)
-		rel = get_object_or_404(RelCrafting, spieler=spieler)
-
-		log_drops = []
-		for drop in MaterialDrop.objects.filter(material=prev_material):
-			item = drop.item
-			amount = choice(json.loads(drop.amount))
-
-			# add to inventory
-			iitem, _ = InventoryItem.objects.get_or_create(char=rel.profil, item=item)
-			iitem.num += amount
-			iitem.save()
-
-			# log drops
-			log_drops.append([amount, item.name])
-
-
-		return JsonResponse({
-			"id": get_2nd_chance_material(prev_material, Material.objects.filter(region=region)).id,
-			"amount": json.dumps(log_drops)
-		})

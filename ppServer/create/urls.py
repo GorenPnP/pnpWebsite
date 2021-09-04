@@ -7,6 +7,7 @@ app_name = 'create'
 urlpatterns = [
         path('', views.landing_page, name='landing_page'),
         path('gfs', views.new_gfs, name='gfs'),
+        path('gfs_characterization', views.new_gfs_characterization, name='gfs_characterization'),
         path('priotable', views.new_priotable, name='prio'),
         path('ap', views.new_ap, name='ap'),
         path('fert', views.new_fert, name='fert'),

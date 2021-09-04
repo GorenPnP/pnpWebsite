@@ -1,0 +1,41 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+
+    <title></title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width">
+
+    <link rel="stylesheet" href="{% static 'mining/shooter/css/app.css' %}">
+  </head>
+  <body>
+    <div id="game-over-overlay">
+    </div>
+
+    <div id="game-over">
+      <h1>GAME OVER</h1>
+      <button id="play-again">Play Again</button>
+    </div>
+
+    <div class="wrapper">
+      <div id="instructions">
+        <div>
+          move with <span class="key">arrows</span> or <span class="key">wasd</span>
+        </div>
+        <div>
+          shoot with <span class="key">space</span>
+        </div>
+      </div>
+
+      <div id="score"></div>
+    </div>
+
+    <script type="text/javascript" src="{% static 'mining/shooter/js/resources.js' %}"></script>
+    <script type="text/javascript" src="{% static 'mining/shooter/js/sprite.js' %}"></script>
+    <script type="text/javascript" src="{% static 'mining/shooter/js/app.js' %}"></script>
+    <script type="text/javascript" src="{% static 'mining/shooter/js/input.js' %}"></script>
+  </body>
+</html>

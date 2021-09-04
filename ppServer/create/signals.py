@@ -69,3 +69,10 @@ def collect_data(sender, **kwargs):
 
             for m in GfsNachteil.objects.filter(gfs=gfs):
                 NewCharakterNachteil.objects.get_or_create(char=new_char, teil=m.teil)
+
+
+# trigger to post_save: add gfs characterization on creation of gfs
+@receiver(post_save, sender=Gfs)
+def change_fert(sender, **kwargs):
+    if kwargs['created']:
+        GfsCharacterization.objects.create(gfs=kwargs["instance"])

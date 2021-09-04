@@ -1,12 +1,12 @@
 // May use callbacks on dragstart and dragend:
 //
-// drag_start_callback(of_element)
-// drag_end_callback()
+// drag_start_callback(of_element, event)
+// drag_end_callback(of_element, event)
 //
 // Basic structure:
 //
 // <div class="reorder-container">
-//		<div class="reorder-container__element"></div>
+//		<div class="reorder-container__element" draggable="true"></div>
 //		...
 // </div>
 
@@ -14,9 +14,10 @@
 /*
 	VARIABLES
 */
-var offsetTouchX = null;
-var offsetTouchY = null;
+var offsetX = null
+var offsetY = null
 
+var container;
 
 /*
 	HELPER FUNCTIONS
@@ -41,12 +42,12 @@ function getDragAfterElement(container, y) {
 
 
 /*
-		event handlers for dragging elements
+	event handlers for dragging elements
 */
 function init_draggable_reorder() {
 
 	// handle dragging
-	const container = document.getElementsByClassName("reorder-container")[0]
+	container = document.getElementsByClassName("reorder-container")[0]
 	const draggables = [...container.getElementsByClassName('reorder-container__element')]
 
 	// fires constantly if dragging over container (.reorder-container)
@@ -61,92 +62,104 @@ function init_draggable_reorder() {
 
 		// set moving element before the element or at the absolute bottom if null
 		afterElement == null ? container.appendChild(draggable) : container.insertBefore(draggable, afterElement)
-	})
+
+		// offset to start-drag point
+		const draggable_rect = draggable.getBoundingClientRect()
+		offsetX = e.clientX ? e.clientX - draggable_rect.x : offsetX
+		offsetY = e.clientY ? e.clientY - draggable_rect.y : offsetY
+	});
 
 	// set class dragging on drag of element
-	draggables.forEach(draggable => {
-		draggable.addEventListener('dragstart', () => {
-			draggable.classList.add('dragging')
-
-			drag_start_callback(draggable)
-		})
-		draggable.addEventListener('dragend', () => {
-
-			draggable.classList.remove('dragging')
-
-			// callback
-			drag_end_callback()
-		})
+	draggables.forEach(draggable => add_draggable(draggable))
+}
 
 
+function add_draggable(draggable) {
+	draggable.addEventListener('dragstart', e => {
+		draggable.classList.add('dragging')
+		
+		drag_start_callback(draggable, e)
+	})
+	draggable.addEventListener('dragend', e => {
+		draggable.classList.remove('dragging')
+
+		// callback
+		drag_end_callback(draggable, e)
+	})
 
 
-		/*
-				... for mobile
-		*/
-		draggable.addEventListener("touchstart", e => {
-			e.preventDefault();
-			draggable.classList.add('dragging')
-			draggable.classList.add('dragging--mobile')
 
-			const touch = e.targetTouches[0]
-			offsetTouchY = draggable.getBoundingClientRect().height * .5
 
-			draggable.dispatchEvent(new TouchEvent("touchmove", { targetTouches: [touch] }))
+	/*
+		... for mobile
+	*/
+	draggable.addEventListener("touchstart", e => {
+		e.preventDefault();
+		draggable.classList.add('dragging')
+		draggable.classList.add('dragging--mobile')
 
-			// callback
-			drag_start_callback(draggable)
-		})
+		const touch = e.targetTouches[0]
+		offsetTouchY = draggable.getBoundingClientRect().height * .5
 
-		draggable.addEventListener("touchmove", e => {
+		draggable.dispatchEvent(new TouchEvent("touchmove", { targetTouches: [touch] }))
 
-			const touch = e.targetTouches[0]
+		// callback
+		drag_start_callback(draggable, e)
+	})
 
-			// container position relative to whole document
-			var containerTop = window.scrollY + container.offsetTop
-			draggable.style.top = `${touch.pageY - containerTop - offsetTouchY}px`
-			draggable.style.left = `${container.style.paddingLeft}px`
+	draggable.addEventListener("touchmove", e => {
 
-			// work on elements
-			// get moving element and the one below its position
-			const afterElement = getDragAfterElement(container, e.targetTouches[0].clientY)
+		const touch = e.targetTouches[0]
 
-			var copy = container.getElementsByClassName("copy")
-			if (!(copy?.length)) {
+		// container position relative to whole document
+		var containerTop = window.scrollY + container.offsetTop
+		draggable.style.top = `${touch.pageY - containerTop - offsetTouchY}px`
+		draggable.style.left = `${container.style.paddingLeft}px`
 
-				// (mark as) copy
-				copy = draggable.cloneNode(true);
-				copy.classList.add("copy")
+		// work on elements
+		// get moving element and the one below its position
+		const afterElement = getDragAfterElement(container, e.targetTouches[0].clientY)
 
-				// unset fields of original
-				copy.id = "";
-				copy.style.position = "unset";
-				copy.style.left = "unset"
-				copy.style.top = "unset";
-			}
-			// get existing copy of dragged element
-			else copy = copy[0]
+		var copy = container.getElementsByClassName("copy")
+		if (!(copy?.length)) {
 
-			// set moving element before the element or at the absolute bottom if null
-			afterElement == null ? container.appendChild(copy) : container.insertBefore(copy, afterElement)
-		})
+			// (mark as) copy
+			copy = draggable.cloneNode(true);
+			copy.classList.add("copy")
 
-		draggable.addEventListener("touchend", e => {
-			e.preventDefault();
-			draggable.classList.remove('dragging')
-			draggable.classList.remove('dragging--mobile')
+			// unset fields of original
+			copy.id = "";
+			copy.style.position = "unset";
+			copy.style.left = "unset"
+			copy.style.top = "unset";
+		}
+		// get existing copy of dragged element
+		else copy = copy[0]
 
-			var copies = [...container.getElementsByClassName("copy")]
-			copies.forEach(c => c.remove())
+		// set moving element before the element or at the absolute bottom if null
+		afterElement == null ? container.appendChild(copy) : container.insertBefore(copy, afterElement);
 
-			// get moving element and the one below its position
-			const afterElement = getDragAfterElement(container, e.changedTouches[0].clientY)
+		// offset to start-drag point
+		const draggable_rect = draggable.getBoundingClientRect()
+		offsetX = touch.clientX ? touch.clientX - draggable_rect.x : offsetX
+		offsetY = touch.clientY ? touch.clientY - draggable_rect.y : offsetY
+	})
 
-			// set moving element before the element or at the absolute bottom if null
-			afterElement == null ? container.appendChild(draggable) : container.insertBefore(draggable, afterElement)
+	draggable.addEventListener("touchend", e => {
+		e.preventDefault();
+		draggable.classList.remove('dragging')
+		draggable.classList.remove('dragging--mobile')
 
-			// callback
-			drag_end_callback()
-		})
+		var copies = [...container.getElementsByClassName("copy")]
+		copies.forEach(c => c.remove())
+
+		// get moving element and the one below its position
+		const afterElement = getDragAfterElement(container, e.changedTouches[0].clientY)
+
+		// set moving element before the element or at the absolute bottom if null
+		afterElement == null ? container.appendChild(draggable) : container.insertBefore(draggable, afterElement)
+
+		// callback
+		drag_end_callback(draggable, e)
 	})
 }

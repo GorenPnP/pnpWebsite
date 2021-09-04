@@ -119,7 +119,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 // set to submittable form value & handle btn
                 //formData.value = JSON.stringify(selected_fields)
-                submit_btn.disabled =  Object.values(selected_fields).includes(-1)
+                submit_btn.disabled = Object.values(selected_fields).includes(-1) || parseInt(apDept.innerHTML) > 0
             });
         }
     }

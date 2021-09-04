@@ -1,0 +1,115 @@
+{% extends 'base/main.html' %}
+{% load static %}{% load l10n %}
+{% block title %}{{ topic }}{% endblock %}
+{% block extra-head %}
+<link rel="stylesheet" href="{% static 'base/css/checkbox.css' %}">
+<link rel="stylesheet" href="{% static 'mining/css/region_editor.css' %}">
+
+<script type="text/javascript" src='https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js' type='text/javascript'></script>
+<script type="text/javascript" src="{% static 'base/js/ajax.js' %}"></script>
+<script type="text/javascript" src="{% static 'mining/game/js/utils.js' %}"></script>
+<script type="text/javascript" src="{% static 'mining/game/js/input.js' %}"></script>
+<script type="text/javascript" src="{% static 'mining/game/js/resources.js' %}"></script>
+<script type="text/javascript" src="{% static 'mining/js/region_editor.js' %}"></script>
+<script type="text/javascript" src="{% static 'mining/js/region_editor_field.js' %}"></script>
+<script type="text/javascript" src="{% static 'mining/js/region_editor_toolbar.js' %}"></script>
+<script type="text/javascript" src="{% static 'mining/js/region_editor_sidebars.js' %}"></script>
+{% endblock %}
+{% block absolute %}{% include 'base/header.html' with topic=topic %}{% endblock %}
+
+{% block body %}
+
+{{ layers|json_script:"layers" }}
+{{ materials|json_script:"materials" }}
+{{ char_index|json_script:"char-layer-index" }}
+{{ bg_color|json_script:"bg-color" }}
+
+<aside class="toolbar">
+
+	<div class="name-container">
+		Name
+		<input type="text" id="name" value="{{ name }}">
+	</div>
+
+	<div class="field-size-container">
+		Size
+		<input type="number" id="field-width"  min="1" max="500"> w *
+		<input type="number" id="field-height" min="1" max="500"> h
+	</div>
+
+	<div class="zoom-container" style="display: none">
+		Zoom
+		<input type="range" id="zoom" min="0.2" max="5" value="1" step="0.1">
+		<button onClick="document.querySelector('#zoom').value = 1; document.querySelector('#zoom').dispatchEvent(new Event('input'))">Reset Zoom</button>
+	</div>
+
+	<div class="border-toggle">
+		<div class="checkbox checked" id="border-toggle" onClick="toggle_field_border()"></div>
+		<span onClick="toggle_field_border()" style="cursor: pointer;">Field Border</span>
+	</div>
+	
+	<div class="zoom-container">
+		Unselected Field Opacity
+		<input type="range" id="unselected-field-opacity" min="0" max="1" step=".1" value="1">
+	</div>
+
+	<div class="field-bg-container">
+		Background Color
+		<input type="color" id="field-bg-color" value="{{ bg_color }}" style="min-height: 40px;">
+	</div>
+	<div class="grid-size-container">
+		Grid Size
+		<input type="number" id="grid-size" value="64" min="1" max="1024"> px
+	</div>
+	<button id="delete-on-layer">Delete all on Layer</button>
+	<button id="random-rotate-selected">Random rotate Selected</button>
+</aside>
+
+<aside class="material-container">
+	{% for group in groups %}
+		<div class="materialgroup materialgroup--noncharacter">
+			<span class="groupname">{{ group.name }} ({{group.materials|length}})</span>
+
+			{% for material in group.materials %}
+				<div class="material" data-id="{% localize off %}{{ material.id }}{% endlocalize %}">
+					<img src="{{ material.icon }}" alt="{{ material.name }}">
+				</div>
+			{% endfor %}
+		</div>
+	{% endfor %}
+	
+	<div class="materialgroup materialgroup--character">
+		<span class="groupname">Character</span>
+		<div class="material" data-id="-1">
+			<img src="{% static 'res/img/mining/char_skin_front.png' %}" alt="Character">
+		</div>
+	</div>
+</aside>
+<aside class="layer-container">
+	{% for layer in layers %}
+	<div class="layer" data-id="{{ layer.id }}" data-index="{{ layer.index }}">
+		<span>{{ layer.name|default:"unnamed Layer" }} ({{ layer.index }})</span>
+	</div>
+	{% empty %}
+	<div class="layer" data-id="0" data-index="0">
+		<span>Default</span>
+	</div>
+	{% endfor %}
+</aside>
+
+<div class="field-container">
+	<canvas class="field"></canvas>
+</div>
+
+<div class="info-container">
+	<div class="delete-mode-container">
+		<div class="checkbox" id="delete-toggle" onClick="toggle_delete_mode()"></div>
+		<span onClick="toggle_delete_mode()" style="cursor: pointer;">Delete Mode</span>
+	</div>
+	<div class="rect-fill-mode-container">
+		<div class="checkbox" id="rect-fill" onClick="toggle_rect_fill_mode()"></div>
+		<span onClick="toggle_rect_fill_mode()" style="cursor: pointer;">Fill in Rectangle-Mode</span>
+	</div>
+</div>
+<button class="button--ok">OK</button>
+{% endblock %}

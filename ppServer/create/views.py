@@ -247,16 +247,39 @@ def landing_page(request):
 
 
 def get_entries_of_prio():
-        # rows of priotable:
-        # [priority, IP, AP, SP, FP, FG, Zauber, Drachmen]      Note: FP & FG together in one field!
-        return [
-            ['A', 7, 15, 10, 20, 5, 5, 100000],
-            ['B', 5, 13,  7, 17, 4, 4,  80000],
-            ["C", 3, 11,  4, 14, 3, 3,  60000],
-            ["D", 2,  9,  2, 11, 2, 2,  40000],
-            ["E", 1,  7,  1,  8, 1, 1,  20000],
-            ["F", 0,  5,  0,  5, 0, 0,  10000]
-        ]
+    # Note: FP & FG together in one field!
+    return [
+        [row.get_priority_display(), row.ip, row.ap, row.sp, row.fp, row.fg, row.zauber, row.drachmen]
+        for row in Priotable.objects.all()
+    ]
+
+
+@login_required
+@verified_account
+def new_gfs_characterization(request):
+    gfs_characterizations = []
+    for gfs_characterization in GfsCharacterization.objects.all():
+        serialized_dict = {}
+        for field in GfsCharacterization._meta.fields:
+            serialized_dict[field.attname] = getattr(gfs_characterization, field.attname)
+        gfs_characterizations.append(serialized_dict)
+
+    filters = []
+    for field in GfsCharacterization._meta.fields:
+        if field.attname in ["id", "gfs_id"]: continue
+
+        filters.append({
+            "text": field.help_text,
+            "name": field.attname,
+            "choices": [{"id": choice[0], "titel": choice[1]} for choice in field.choices]
+        })
+
+    context = {
+        "filters": filters,
+        "gfs": [{"id": gfs.id, "titel": gfs.titel, "beschreibung": gfs.beschreibung} for gfs in Gfs.objects.all()],
+        "gfs_characterizations": gfs_characterizations
+    }
+    return render(request, "create/gfs_characterization.html", context)
 
 
 @login_required
@@ -320,7 +343,7 @@ def new_priotable(request):
     if request.method == 'POST':
 
         # collect data
-        num_entries = 6
+        num_entries = len(entries)
         new_char, error = get_own_NewCharakter(request)
         if error:
             return JsonResponse({"message": "Charakter konnte nicht gefunden werden"}, status=418)
@@ -405,7 +428,7 @@ def new_priotable(request):
             "FG = Fertigkeitsgruppen",
             ]
 
-        context = {"topic": "Prioritätentabelle", 'table': entries, 'notizen': notes, "id": new_char.id, "ap_cost": ap_cost}
+        context = {"topic": "Prioritätentabelle", 'table': entries, 'notizen': notes, "id": new_char.id, "ap_cost": ap_cost, "gfs": new_char.gfs}
         return render(request, "create/prio.html", context)
 
 

@@ -1,0 +1,23 @@
+:root {
+    --field-border-width: 1px;
+    --field-size: 64px;
+    --field-bg-color: #b9fefd;
+    --unselected-field-opacity: 1;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: -webkit-crisp-edges;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+}
+.spinner-container { z-index: 1000; }
+
+.field {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+
+
+@for $i from -100 through 100 {
+    .field-container--#{$i} { z-index: $i + 101; }    
+}
