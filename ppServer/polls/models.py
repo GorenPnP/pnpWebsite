@@ -19,6 +19,7 @@ class Question(models.Model):
     anz_stimmen = models.PositiveIntegerField("Stimmen pro Person", default=1)
     pub_date = models.DateTimeField('date published', default=timezone.now)
     deadline = models.DateTimeField('deadline', default=default_deadline)
+    show_result_to_user = models.BooleanField(default=False)
 
     spieler_voted = models.ManyToManyField(Spieler, through="QuestionSpieler")
 

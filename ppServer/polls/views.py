@@ -3,14 +3,11 @@ import json
 from django.contrib.auth.decorators import login_required
 
 from django.http.response import JsonResponse
-from django.shortcuts import get_object_or_404, render, get_list_or_404, redirect
-from django.http import HttpResponseRedirect
+from django.shortcuts import get_object_or_404, render, redirect
 from django.urls import reverse
-from django.views import generic
 from django.utils import timezone
 
 from character.models import Spieler
-from django.views.decorators.http import require_POST
 
 from .models import Choice, Question, QuestionSpieler
 
@@ -18,9 +15,13 @@ from .models import Choice, Question, QuestionSpieler
 @login_required
 @verified_account
 def detail(request, pk):
+    question = get_object_or_404(Question, id=pk)
+    spieler = get_object_or_404(Spieler, name=request.user.username)
+    if QuestionSpieler.objects.filter(question=question, spieler=spieler).count():
+        return redirect("base:index")
 
     if request.method == "GET":
-        return render(request, 'polls/detail.html', {"question": get_object_or_404(Question, id=pk)})
+        return render(request, 'polls/detail.html', {"question": question})
 
     if request.method == "POST":
         question = get_object_or_404(Question, id=pk)
@@ -57,12 +58,16 @@ def detail(request, pk):
         # Always return an HttpResponseRedirect after successfully dealing
         # with POST data. This prevents data from being posted twice if a
         # user hits the Back button.
-        return JsonResponse({"url": reverse('polls:results', args=(question.id,))})
+        url = reverse('polls:results', args=(question.id,)) if question.show_result_to_user else reverse('base:index')
+        return JsonResponse({"url": url})
 
 
 @login_required
 @verified_account
 def results(request, pk):
+    question = get_object_or_404(Question, id=pk)
+    if not question.show_result_to_user:
+        return redirect("base:index")
 
     spieler = get_object_or_404(Spieler, name=request.user.username)
     now = timezone.now()
