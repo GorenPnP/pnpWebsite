@@ -49,6 +49,19 @@ form p {
 .signup {
 	margin: auto 0;
 }
+.links {
+	margin-top: 2em;
+
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	gap: 1em;
+
+	& > * {
+		flex: 142px;
+		text-align: center;
+	}
+ }
 
 .form__footer {
 	display: grid;
