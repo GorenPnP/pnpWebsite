@@ -16,3 +16,5 @@ django-request>=1.5.5		# http-request logging in /admin/request/...
 django-dbbackup==3.*        # db + media backup utility
 
 channels==3.*
+
+six==1.* # generate token for email confirmation on signup
