@@ -1,0 +1,11 @@
+{% extends 'base/main.html' %}
+{% load static %}
+{% block title %}Registrieren{% endblock %}
+{% block extra-head %}
+<link rel="stylesheet" href="{% static 'auth/css/signup.css' %}">{% endblock %}
+{% block body %}
+<div class="text-container">
+	<h1 class="heading">Registrieren</h1>
+	<p>Eine Email ist auf dem Weg zu dir. Klicke auf den darin enthaltenen Link um Registrierung abzuschließen.</p>
+</div>
+{% endblock %}
