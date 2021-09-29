@@ -10,4 +10,11 @@ class SignupForm(UserCreationForm):
         fields = ('username', 'email', 'password1', 'password2')
 
     email = forms.EmailField(max_length=200, validators=[EmailValidator], required=True)
-    
+
+
+class ChangeEmailForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ('email',)
+
+    email = forms.EmailField(max_length=200, validators=[EmailValidator], required=True)

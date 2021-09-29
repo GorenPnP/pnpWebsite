@@ -13,6 +13,9 @@ urlpatterns = [
     # signup with email confirmation
     path('signup/', views.signup, name='signup'),
     path('signup/done/', TemplateView.as_view(template_name="auth/signup_done.html"), name='signup_done'),
+    # change email with confirmation
+    path('change_email/', views.change_email, name='change_email'),
+    path('change_email/done/', TemplateView.as_view(template_name="auth/change_email_done.html"), name='change_email_done'),
     path('activate/<uidb64>/<token>', views.activate, name='activate'),
 
     # forgot password

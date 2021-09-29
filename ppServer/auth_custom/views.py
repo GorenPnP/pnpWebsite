@@ -1,4 +1,5 @@
 from django.contrib.auth import login
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import Group, User
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.contrib.sites.shortcuts import get_current_site
@@ -10,7 +11,7 @@ import six
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_text
 
-from .forms import SignupForm
+from .forms import ChangeEmailForm, SignupForm
 
 
 class TokenGenerator(PasswordResetTokenGenerator):
@@ -29,9 +30,16 @@ def signup(request):
         form = SignupForm(request.POST)
         if form.is_valid():
             user = form.save(commit=False)
+
+            # give user spieler permissions
             user.is_active = False
+            user.is_staff = True
             user.save()
 
+            my_group = Group.objects.get(name='spieler') 
+            my_group.user_set.add(user)
+
+            # send email
             current_site = get_current_site(request)
             mail_subject = 'Account bestätigen'
             message = render_to_string('auth/email/email_confirmation.html', {
@@ -51,6 +59,40 @@ def signup(request):
     return render(request, 'auth/signup.html', {'form': form})
 
 
+
+@login_required
+def change_email(request):
+    old_email = request.user.email
+    
+    if request.method == 'POST':
+        form = ChangeEmailForm(request.POST)
+        if form.is_valid():
+            new_email = form.cleaned_data['email']
+            if new_email == old_email:
+                return redirect('auth:change_email')
+
+            user = request.user
+            user.email = new_email
+            user.save()
+
+            current_site = get_current_site(request)
+            mail_subject = 'Neue Email bestätigen'
+            message = render_to_string('auth/email/email_confirmation.html', {
+                'user': user,
+                'domain': current_site.domain,
+                'uid': urlsafe_base64_encode(force_bytes(user.pk)),
+                'token':account_activation_token.make_token(user),
+            })
+            to_email = form.cleaned_data.get('email')
+            email = EmailMessage(mail_subject, message, to=[to_email])
+            email.send()
+            return redirect('auth:change_email_done')
+    else:
+        form = ChangeEmailForm(initial={"email": old_email})
+    return render(request, 'auth/change_email.html', {'form': form})
+
+
+
 def activate(request, uidb64, token):
     try:
         uid = force_text(urlsafe_base64_decode(uidb64))
@@ -61,15 +103,10 @@ def activate(request, uidb64, token):
         
         # activate user
         user.is_active = True
-        user.is_staff = True
         user.save()
-
-        # add user to spieler
-        my_group = Group.objects.get(name='spieler') 
-        my_group.user_set.add(user)
 
         # auto-login
         login(request, user)
         return redirect('base:index')
     else:
-        return HttpResponse('Activation link is invalid!')
+        return HttpResponse('Aktivierungslink ist nicht korrekt!')

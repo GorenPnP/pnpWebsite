@@ -11,12 +11,24 @@
         background: #c8c8c8 !important;
         color: black;
     }
+    .error {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1.5em;
+    }
 </style>
 {% endblock %}
 {% block absolute %}{% include 'base/header.html' with topic=topic %}{% endblock %}
 {% block body %}
 
+{% if no_birthdate %}
+<main class="error">
+    <h2>Dein Geburtstag fehlt noch</h2>
 
+    <p>Teile ihn uns mit, damit du die Liste aller Geburtstage sehen kannst.</p>
+</main>
+{% else %}
 <div class="grid-container">
     <div class="col1 heading">Name</div>
     <div class="col2 heading">Geburtstag</div>
@@ -28,4 +40,7 @@
     <div class="col3 {% if s.next_party %}next-party{% endif %}">{{ s.next_age }}</div>
     {% endfor %}
 </div>
+{% endif %}
+
+
 {% endblock %}

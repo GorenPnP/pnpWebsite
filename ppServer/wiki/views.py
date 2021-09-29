@@ -265,6 +265,13 @@ def age(birthdate: datetime.date):
 @verified_account
 def geburtstage(request):
 
+    if not Spieler.objects.get(name=request.user.username).geburtstag:
+        context = {
+            "no_birthdate": "Uns fehlt dein Geburtstag noch.",
+            "topic": "Geburtstage"
+        }
+        return render(request, "wiki/geburtstage.html", context)
+
     # collect all birthdays in here
     spieler_birthdays = []
 

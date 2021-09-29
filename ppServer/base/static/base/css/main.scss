@@ -71,6 +71,22 @@ a.btn {
 	padding: 0 15% 2em;
 	background: #3a3d40;
 	min-width: fit-content;
+
+	padding-bottom: 100px !important;
+}
+
+.footer {
+	position: fixed;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	height: fit-content;
+	padding: .5em 1em;
+	z-index: 100;
+
+	background-color: #ffdab9;
+
+	a { color: #8b0000; }
 }
 
 
