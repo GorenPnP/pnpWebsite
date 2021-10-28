@@ -767,7 +767,7 @@ class RelTeil(models.Model):
     teil = None
 
     anzahl = models.PositiveSmallIntegerField(default=1)
-    notizen = models.CharField(max_length=100, blank=True, null=True)
+    notizen = models.CharField(max_length=500, blank=True, null=True)
 
     def __str__(self):
         return "'{}' zu Charakter '{}'".format(self.teil.titel, self.char.name)

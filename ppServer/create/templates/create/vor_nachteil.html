@@ -36,6 +36,7 @@
         <div class="row-v-{{ forloop.counter0 }}">
             <input class="notizen row-v-{{ forloop.counter0 }} teil-vor teilid-{{ e.item.id }}"
                     type="text"
+                    maxlength="500"
                     onchange="updateNotizen(event)"
                     value="{{ e.notizen }}"/>
         </div>
@@ -67,6 +68,7 @@
     <div class="row-n-{{ forloop.counter0 }}">
         <input class="notizen row-n-{{ forloop.counter0 }} teil-nach teilid-{{ e.item.id }}"
                 type="text" {% if e.checked %}disabled{% endif %}
+                maxlength="500"
                 onchange="updateNotizen(event)"
                 value="{{ e.notizen }}" />
     </div>
