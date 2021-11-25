@@ -156,10 +156,6 @@ def region_editor(request, region_id=None):
 		return JsonResponse({"message": "ok"})
 
 
-def shooter(request):
-	return render(request, "mining/shooter.html", {})
-
-
 @login_required
 # @spielleiter_only(redirect_to="mining:region_select")
 def game(request, pk):
