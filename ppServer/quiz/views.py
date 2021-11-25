@@ -103,7 +103,7 @@ def index(request, spieler_id=None):
         return render(request, "quiz/index.html", context)
 
     if request.method == "POST":
-        sp_mo_id = int(request.POST.get("id"))
+        sp_mo_id = int(request.POST.get("id").replace(".", ""))
         sp_mo = get_object_or_404(models.SpielerModule, id=sp_mo_id)
 
         # opened
