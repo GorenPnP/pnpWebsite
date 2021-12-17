@@ -19,6 +19,10 @@ from django.urls import include, path
 from django.conf import settings
 from django.conf.urls.static import static
 
+from rest_framework.documentation import include_docs_urls
+from rest_framework.schemas import get_schema_view
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+
 from . import views
 
 
@@ -42,6 +46,20 @@ urlpatterns = [
     path('mining/', include('mining.urls')),
     path('time_space/', include('time_space.urls')),
     path('chat/', include('chat.urls')),
+
+    path('__debug__/', include('debug_toolbar.urls')),
+
+    path('api/token', TokenObtainPairView.as_view()),
+    path('api/token/refresh', TokenRefreshView.as_view()),
+    path('api/auth/', include('rest_framework.urls')),
+    path('api/mining/', include('mining_api.urls')),
+
+    path('schema', get_schema_view(
+        title="Goren PnP",
+        description="API for parts of the awesome Goren PnP",
+        version="1.0.0"
+    ), name="openapi-schema"),
+    path('docs/', include_docs_urls(title="Goren PnP API")),
 
     path('', include("base.urls")),
 ]

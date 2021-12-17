@@ -21,3 +21,4 @@ __pycache__/
 # other
 backups/
 node_modules/
+ppServer/venv/
