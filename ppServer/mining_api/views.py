@@ -7,7 +7,7 @@ from .serializers import *
 
 
 class MaterialViews(viewsets.ViewSet):
-	permission_classes = [permissions.IsAuthenticated]
+	# permission_classes = [permissions.IsAuthenticated]
 	queryset = Material.objects.all()
 	
 	def list (self, request):
@@ -15,7 +15,6 @@ class MaterialViews(viewsets.ViewSet):
 		return Response(serializer_class.data)
 
 	def retrieve(self, request, pk=None):
-		print(pk, type(pk))
 		material = get_object_or_404(self.queryset, pk=pk) if pk.isnumeric() else get_object_or_404(self.queryset, name=pk)
 		serializer_class = MaterialSerializer(material)
 		return Response(serializer_class.data)

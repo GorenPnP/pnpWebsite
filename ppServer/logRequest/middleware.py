@@ -1,3 +1,5 @@
+import re
+
 from .models import Request
 
 
@@ -5,13 +7,14 @@ class RequestMiddleware:
     def __init__(self, get_response):
         self.get_response = get_response
         self.path_blacklist = ("/static", "/media", "/admin")
+        self.favicon_filename = "favicon.ico"
         # One-time configuration and initialization.
 
     def __call__(self, request):
         # Code to be executed for each request before
         # the view (and later middleware) are called.
 
-        if request.scope["path"].startswith(self.path_blacklist):
+        if request.scope["path"].startswith(self.path_blacklist) or self.favicon_filename in request.scope["path"]:
             return self.get_response(request)
 
         response = self.get_response(request)
