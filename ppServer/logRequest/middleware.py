@@ -23,7 +23,7 @@ class RequestMiddleware:
             antwort=getattr(response, 'status_code', None),
             methode=request.scope["method"],
             user=request.user.username or request.scope["client"][0],
-            user_agent=request.META["HTTP_USER_AGENT"]
+            user_agent=request.META["HTTP_USER_AGENT"] if "HTTP_USER_AGENT" in request.META.keys() else None
         )
 
         return response
