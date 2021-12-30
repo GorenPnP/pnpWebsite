@@ -6,7 +6,7 @@ from .models import Request
 class RequestMiddleware:
     def __init__(self, get_response):
         self.get_response = get_response
-        self.path_blacklist = ("/static", "/media", "/admin")
+        self.path_blacklist = ("/static", "/media", "/admin", "/api")
         self.favicon_filename = "favicon.ico"
         # One-time configuration and initialization.
 
