@@ -21,8 +21,13 @@ module_state = [
 
 # used before save on Question.picture and Answer.picture to hide real name in src-path of img-tag in HTML (anti-cheat)
 def upload_and_rename_picture(instance, filename):
+    file_extension = filename.split('.')[::-1][0]
+
     today = date.today()
-    path = "quiz/{}-{}-{}/".format(today.year, today.month, today.day) + "".join([random.choice(string.ascii_letters + string.digits) for _ in range(20)])
+    path =\
+        "quiz/{}-{}-{}/".format(today.year, today.month, today.day) +\
+        "".join([random.choice(string.ascii_letters + string.digits) for _ in range(20)]) +\
+        "." + file_extension
     return path
 
 

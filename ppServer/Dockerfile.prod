@@ -1,6 +1,6 @@
 
 # pull official base image
-FROM ubuntu
+FROM ubuntu:latest
 
 # create directory for the app user
 RUN mkdir -p /home/ppServer
