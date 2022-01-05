@@ -12,4 +12,4 @@ class Request(models.Model):
     antwort = models.PositiveSmallIntegerField(default=200, null=False, blank=False)
     methode = models.CharField(max_length=8, default="GET", null=False, blank=False)
     user = models.CharField(default="", max_length=200, null=False, blank=False)
-    user_agent = models.CharField(max_length=200)
+    user_agent = models.CharField(max_length=200, null=True)
