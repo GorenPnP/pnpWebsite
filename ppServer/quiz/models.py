@@ -81,7 +81,7 @@ class Image(models.Model):
         new_height = MAX_SIZE if img.width <= img.height else img.height * MAX_SIZE // img.width
 
         img.thumbnail((new_width, new_height), PilImage.BILINEAR)
-        img.save(self.img.path, "jpeg")
+        img.save(self.img.path)
 
 
 class File(models.Model):

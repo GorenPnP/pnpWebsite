@@ -187,7 +187,7 @@ class BaseShop(models.Model):
         new_height = MAX_SIZE if icon.width <= icon.height else icon.height * MAX_SIZE // icon.width
 
         icon.thumbnail((new_width, new_height), PilImage.BILINEAR)
-        icon.save(self.icon.path, "jpeg")
+        icon.save(self.icon.path)
 
 
 class Item(BaseShop):
