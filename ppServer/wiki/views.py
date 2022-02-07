@@ -42,7 +42,7 @@ def talente(request):
 @verified_account
 def gfs(request):
     return render(request, 'wiki/gfs.html', {'topic': 'Gfs/Klassen', "heading": Attribut.objects.all(),
-                                               "gfs": Gfs.objects.all()})
+                                               "gfs": Gfs.objects.all().order_by("titel")})
 
 
 @login_required
