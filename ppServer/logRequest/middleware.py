@@ -18,13 +18,22 @@ class RequestMiddleware:
             return self.get_response(request)
 
         response = self.get_response(request)
+        user_agent = request.META["HTTP_USER_AGENT"] if "HTTP_USER_AGENT" in request.META.keys() else None
+        if user_agent and len(user_agent) > 200:
+            user_agent = user_agent[:297] + "..."
+
         Request.objects.create(
-            pfad=request.scope["path"],
+            pfad=self.cap_string(request.scope["path"], 500),
             antwort=getattr(response, 'status_code', None),
             methode=request.scope["method"],
-            user=request.user.username or request.scope["client"][0],
-            user_agent=request.META["HTTP_USER_AGENT"] if "HTTP_USER_AGENT" in request.META.keys() else None
+            user=self.cap_string(request.user.username or request.scope["client"][0], 200),
+            user_agent=self.cap_string(user_agent, 200)
         )
 
         return response
 
+    def cap_string(self, string, limit):
+        if string and type(str) is str and len(string) > limit:
+            return string[:limit-3] + "..."
+
+        return string

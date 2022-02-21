@@ -74,7 +74,7 @@ class Spezies(models.Model):
 class Gfs(models.Model):
 
     class Meta:
-        ordering = ['wesen', 'titel']
+        ordering = ['titel']
         verbose_name = "Gfs/Klasse"
         verbose_name_plural = "Gfs/Klassen"
 
