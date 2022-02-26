@@ -2,11 +2,8 @@
 # pull official base image
 FROM ubuntu:latest
 
-# create directory for the app user
-RUN mkdir -p /home/ppServer
-
-# # create the app user
-# RUN adduser --force-badname ppServer
+# create the app user
+RUN adduser --force-badname ppServer
 
 # create the appropriate directories
 ENV APP_HOME=/home/ppServer/web
@@ -44,11 +41,12 @@ RUN npm update npm && npm i opencollective && npm ci --only=production
 # copy project
 COPY . $APP_HOME
 
-# # chown all the files to the app user
-# RUN chown -R ppServer:ppServer $APP_HOME
 
-# # change to the app user
-# USER ppServer
+# chown all the files to the app user
+RUN chown -R ppServer:ppServer $APP_HOME
+
+# change to the app user
+USER ppServer
 
 # run entrypoint.prod.sh
 ENTRYPOINT ["/home/ppServer/web/entrypoint.prod.sh"]
