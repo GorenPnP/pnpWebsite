@@ -33,7 +33,7 @@ class RequestMiddleware:
         return response
 
     def cap_string(self, string, limit):
-        if string and type(str) is str and len(string) > limit:
-            return string[:limit-3] + "..."
+        if string and type(string) is str and len(string) > limit:
+            return string[:(limit-3)] + "..."
 
         return string
