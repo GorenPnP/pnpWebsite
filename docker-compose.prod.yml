@@ -3,6 +3,7 @@ version: '3.7'
 services:
         web:
                 container_name: pnp-web
+                restart: unless-stopped
                 build:
                         context: ./ppServer
                         dockerfile: Dockerfile.prod
@@ -20,6 +21,7 @@ services:
         db:
                 container_name: pnp-db
                 image: postgres:12.0-alpine
+                restart: unless-stopped
                 volumes:
                         - postgres_data:/var/lib/postgresql/data/
                 expose:
@@ -27,40 +29,23 @@ services:
                 env_file:
                         - ./.env.prod.db
 
-        nginx-proxy:
-                container_name: pnp-nginx
-                build: nginx
-                restart: always
+        nginx:
+                container_name: pnp-webserver
+                image: nginx:latest
+                restart: unless-stopped
                 ports:
-                        - 443:443       # https
-                        - 80:80         # http
+                        - 80:80
+                        - 443:443
                 volumes:
+                        - /home/debian/pnpWebsite/nginx/nginx.conf:/etc/nginx/nginx.conf
+                        - /home/debian/pnpWebsite/nginx/certs:/etc/ssl/certs
+                        - /home/debian/pnpWebsite/nginx/logs:/var/log/nginx/
                         - static_volume:/home/ppServer/web/static
                         - media_volume:/home/ppServer/web/media
-                        - certs:/etc/nginx/certs
-                        - html:/usr/share/nginx/html
-                        - vhost:/etc/nginx/vhost.d
-                        - /var/run/docker.sock:/tmp/docker.sock:ro
-
-        nginx-proxy-letsencrypt:
-                container_name: pnp-nginx-letsencrypt
-                image: jrcs/letsencrypt-nginx-proxy-companion
-                env_file:
-                        - .env.prod.proxy-companion
-                volumes:
-                        - /var/run/docker.sock:/var/run/docker.sock:ro
-                        - certs:/etc/nginx/certs
-                        - html:/usr/share/nginx/html
-                        - vhost:/etc/nginx/vhost.d
-                        - acme:/etc/acme.sh
                 depends_on:
-                        - nginx-proxy
+                        - web
 
 volumes:
         postgres_data:
         static_volume:
         media_volume:
-        certs:
-        acme:
-        html:
-        vhost:

@@ -27,35 +27,21 @@ services:
         #         env_file:
         #                 - ./.env.staging.db
 
-        nginx-proxy-staging:
-                container_name: pnp-nginx-staging
-                build: nginx
-                restart: always
+        nginx-staging:
+                container_name: pnp-webserver-staging
+                image: nginx:latest
+                restart: unless-stopped
                 ports:
-                        - 444:443       # https
-                        - 81:80         # http
+                        - 81:80
+                        - 444:443
                 volumes:
+                        - /home/debian/pnpWebsite/nginx/nginx.conf:/etc/nginx/nginx.conf
+                        - /home/debian/pnpWebsite/nginx/certs:/etc/ssl/certs
+                        - /home/debian/pnpWebsite/nginx/logs:/var/log/nginx/
                         - static_volume:/home/ppServer/web/static
                         - media_volume:/home/ppServer/web/media
-                        - certs:/etc/nginx/certs
-                        - html:/usr/share/nginx/html
-                        - vhost:/etc/nginx/vhost.d
-                        - /var/run/docker.sock:/tmp/docker.sock:ro
                 depends_on:
                         - web
-
-        nginx-proxy-letsencrypt-staging:
-                container_name: pnp-nginx-letsencrypt-staging
-                image: jrcs/letsencrypt-nginx-proxy-companion
-                env_file:
-                        - .env.staging.proxy-companion
-                volumes:
-                        - /var/run/docker.sock:/var/run/docker.sock:ro
-                        - certs:/etc/nginx/certs
-                        - html:/usr/share/nginx/html
-                        - vhost:/etc/nginx/vhost.d
-                depends_on:
-                        - nginx-proxy-staging
 
 volumes:
         postgres_data:

@@ -20,5 +20,8 @@ __pycache__/
 
 # other
 backups/
+nginx/logs/
+nginx/certs/cert.pem
+nginx/certs/key.pem
 node_modules/
 ppServer/venv/

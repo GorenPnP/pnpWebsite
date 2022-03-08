@@ -2,8 +2,8 @@
 {% load static %}
 {% block title %}Wiki{% endblock %}
 {% block extra-head %}
-<link rel="stylesheet" href="{% static 'base/css/cards.css' %}">
-<link rel="stylesheet" href="{% static 'wiki/css/index.css' %}">
+<link rel="stylesheet" href="{% static 'base/css/cards.css' %}" type="text/css">
+<link rel="stylesheet" href="{% static 'wiki/css/index.css' %}" type="text/css">
 {% endblock %}
 {% block absolute %}{% include 'base/header.html' with topic='Wiki' %}{% endblock %}
 {% block body %}

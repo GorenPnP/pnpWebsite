@@ -2,8 +2,8 @@
 {% load static %}
 {% block title %}{{ topic }}{% endblock %}
 {% block extra-head %}
-<link rel="stylesheet" href="{% static 'base/css/checkbox.css' %}">
-<link rel="stylesheet" href="{% static 'crafting/css/index.css' %}">
+<link rel="stylesheet" href="{% static 'base/css/checkbox.css' %}" type="text/css">
+<link rel="stylesheet" href="{% static 'crafting/css/index.css' %}" type="text/css">
 <script src="{% static 'crafting/js/index.js' %}"></script>
 {% endblock %}
 {% block absolute %}{% include 'base/header.html' with topic=topic %}{% endblock %}
