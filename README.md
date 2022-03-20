@@ -111,6 +111,7 @@ insert `0 2 * * * cd ~ && ./pnpWebsite/scripts/backup_db_and_media`
 1. clone [git-repo](https://github.com/GorenPnP/pnpWebsite) to /home/debian
 1. add previously saved .env files
 1. add cronjob for backups
+1. protect against ssh bruteforce attacks with fail2ban `sudo apt install fail2ban` + configure for sshd [see this](https://www.golinuxcloud.com/fail2ban-ssh)
 1. restore db & media
 1. run in prod
 1. fiddle with DNS if different IP
