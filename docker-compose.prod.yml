@@ -11,6 +11,7 @@ services:
                 volumes:
                         - static_volume:/home/ppServer/web/static
                         - media_volume:/home/ppServer/web/media
+                        # - /home/debian/pnpWebsite/backups:/home/ppServer/web/backups
                 expose:
                         - 8000
                 env_file:
@@ -38,6 +39,7 @@ services:
                         - 443:443
                 volumes:
                         - /home/debian/pnpWebsite/nginx/nginx.conf:/etc/nginx/nginx.conf
+                        - /home/debian/pnpWebsite/nginx/cloudflare-real_ip.conf:/etc/nginx/cloudflare-real_ip.conf
                         - /home/debian/pnpWebsite/nginx/certs:/etc/ssl/certs
                         - /home/debian/pnpWebsite/nginx/logs:/var/log/nginx/
                         - static_volume:/home/ppServer/web/static

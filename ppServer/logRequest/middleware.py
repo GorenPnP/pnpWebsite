@@ -26,7 +26,7 @@ class RequestMiddleware:
             pfad=self.cap_string(request.scope["path"], 500),
             antwort=getattr(response, 'status_code', None),
             methode=request.scope["method"],
-            user=self.cap_string(request.user.username or request.scope["client"][0], 200),
+            user=self.cap_string(request.user.username or request.META["HTTP_X_FORWARDED_FOR"], 200),
             user_agent=self.cap_string(user_agent, 200)
         )
 

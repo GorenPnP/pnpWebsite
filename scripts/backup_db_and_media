@@ -16,7 +16,7 @@ chown -R debian:debian $BASEPATH_HOST/backups
 cd $BASEPATH_HOST
 
 # stop routing to ensure consistent backup data
-docker container stop pnp-nginx
+docker container stop pnp-webserver
 
 # backup db
 docker exec pnp-web python3 manage.py dbbackup
@@ -26,7 +26,7 @@ docker cp pnp-web:$BASEPATH_CONTAINER/backups/ ./backups/$DATE/
 docker cp pnp-web:$BASEPATH_CONTAINER/media/  ./backups/$DATE/
 
 # re-enable routing, rest can be done in parallel
-docker container start pnp-nginx
+docker container start pnp-webserver
 
 # organize & compress backup
 cd ./backups
