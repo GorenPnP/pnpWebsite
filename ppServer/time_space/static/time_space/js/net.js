@@ -2,6 +2,7 @@ var network = null;
 var nodeChoices = null;
 
 var nextId = -1	// handle new ids (all negative, desc) of nodes to replace in backend
+var nextNodeType;
 
 const locales = {
 	de: {
@@ -38,6 +39,7 @@ const options = {
 	edges: {
 		smooth: true,
 		arrows: { to: true },
+		color: "white"
 	},
 	interaction: {
 		hover: true,
@@ -47,8 +49,8 @@ const options = {
 	},
 	manipulation: {
 		addNode: (nodeData, callback) => {
-			nodeData.label = 'Mirror';
-			nodeData.id=`100-${nextId--}`
+			nodeData = {...nodeData, ...nextNodeType, id: `${nextNodeType.id}-${nextId--}`};
+
 			callback(nodeData);
 		},
 		addEdge: function (edgeData, callback) {
@@ -60,7 +62,7 @@ const options = {
 			}
 		},
 		editNode: function (nodeData, callback) {
-			nodeData.label = 'bye world';
+			nodeData.label = '...';
 			callback(nodeData);
 		},
 		editEdge: true,
@@ -79,6 +81,9 @@ var blockToFlexObserver = new MutationObserver(function (mutations) {
 	});
 });
 
+function loadStyles() {
+	return fetch('/time_space/netDesign').then(res => res.json());
+}
 
 function loadGraph(nodes, edges) {
 
@@ -94,7 +99,32 @@ function loadGraph(nodes, edges) {
 	network = new vis.Network(container, {nodes, edges}, options);
 }
 
-document.addEventListener("DOMContentLoaded", _ => {
+document.addEventListener("DOMContentLoaded", async _ => {
+
+	nodeStyles = await loadStyles();
+	document.querySelector("#add-node-select").addEventListener("change", function(event) {
+		const nodeType_id = event.target.value;
+		nextNodeType = nodeStyles[nodeType_id];
+	});
+	document.querySelector("#add-node-select").dispatchEvent(new Event('change'))
+	
+
+	document.querySelector('#terminal form').addEventListener("keydown", function(event) {
+		if (event.key === "Enter") {
+			event.preventDefault();
+			post({
+					cause: "command",
+					command: this.querySelector('#command').value
+				},
+				({status, outputs}) => {
+					if (status === "valid") {
+						document.querySelector("output").innerHTML = outputs.join("<br>")
+					}
+				},
+				err => {console.error(err)}
+			);
+		}
+	});
 
 	post({cause: "load"}, data => {
 		loadGraph(data.nodes, data.edges)
@@ -104,6 +134,8 @@ document.addEventListener("DOMContentLoaded", _ => {
 		const targetEdit = document.querySelector('.vis-edit-mode')
 		blockToFlexObserver.observe(targetManipulation, { attributes: true, attributeFilter: ['style'] })
 		blockToFlexObserver.observe(targetEdit, { attributes: true, attributeFilter: ['style'] })
+		
+
 
 
 
@@ -120,8 +152,13 @@ document.addEventListener("DOMContentLoaded", _ => {
 			const nodes = network.body.data.nodes.map(n => ({ id: n.id }))
 			const edges = network.body.data.edges.map(e => ({ from: e.from, to: e.to }))
 
-			post({ cause: "save", nodes, edges }, save_data => {
+			post({ cause: "save", nodes, edges },
+			save_data => {
 				loadGraph(save_data.nodes, save_data.edges)
+			},
+			err => {
+				console.error(err)
+				alert("Konnte nicht gespeichert werden. " + err.message)
 			})
 		})
 	})

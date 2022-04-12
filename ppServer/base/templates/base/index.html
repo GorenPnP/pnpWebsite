@@ -8,23 +8,38 @@
 {% endblock %}
 {% block absolute %}
 
-<section class="hero">
-    {% if list_vote and list_vote|length %}
-        {% include 'base/hero_poll.html' with polls=list_vote %}
-    {% endif %}
-    {% if open_quiz %}
-        {% include 'base/hero_quiz.html' %}
-    {% endif %}
-    {% include 'base/hero_monsterdex.html' %}
-    {% include 'base/hero_crafting.html' %}
-    {% if shop_review and shop_review|length %}
-        {% include 'base/hero_shop.html' with items=shop_review %}
-    {% endif %}
+<section class="hero-container">
+    <button class="arrow--left">
+        <img src="/static/res/img/hero-arrow-left.png" alt="previous">
+    </button>
+    
+    <button class="arrow--right">
+        <img src="/static/res/img/hero-arrow-right.png" alt="next">
+    </button>
+
+    <div class="slider">
+        {% if todays_fact %}
+            {% include 'base/hero_daily_fact.html' with fact=todays_fact %}
+        {% endif %}
+        {% if list_vote and list_vote|length %}
+            {% include 'base/hero_poll.html' with polls=list_vote %}
+        {% endif %}
+        {% if open_quiz %}
+            {% include 'base/hero_quiz.html' %}
+        {% endif %}
+        {% include 'base/hero_monsterdex.html' %}
+        {% include 'base/hero_crafting.html' %}
+        {% if shop_review and shop_review|length %}
+            {% include 'base/hero_shop.html' with items=shop_review %}
+        {% endif %}
+    </div>
 </section>
 
 {% include 'base/header.html' with topic="" %}
 {% endblock %}
+
 {% block body %}
+
 <section class="cards">
 
     <!-- wiki -->

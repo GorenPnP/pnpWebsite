@@ -1,8 +1,10 @@
 from abc import abstractmethod
 import json
+from random import choice
+from typing import List, Tuple
 
+from django.core.validators import MinValueValidator
 from django.db import models
-from django.shortcuts import get_object_or_404
 
 from time_space.enums import NodeType, Signal
 
@@ -34,10 +36,13 @@ class Node(models.Model):
 		self.before = json.dumps([Node.toSpecs(n) for n in before])
 		self.save()
 
+	def postprocessSignal(self, outputs: List[str]) -> List[str]:
+		return outputs
+
 
 	# returns null if the signal didn't pass through
 	@abstractmethod
-	def processSignal(self, signals):
+	def processSignal(self, signals) -> Tuple[Signal, str]:
 		raise NotImplementedError()
 
 
@@ -151,6 +156,47 @@ class TemporalFissure(Node):
 
 	class Meta:
 		abstract = True
+
+	net_id = models.PositiveSmallIntegerField(default=1)
+	stufe = models.PositiveSmallIntegerField(default=1, validators=[MinValueValidator(1)])
+	next_required_input_at = models.PositiveSmallIntegerField(default=0)
+
+
+	_output = {}
+	_required_input = []
+
+	def _get_output(self, signals = []):
+
+		if self.next_required_input_at >= len(self._required_input):
+			return "dead"
+
+		# update required input index based on incoming signals
+		if self._required_input[self.next_required_input_at] not in signals:
+			self.next_required_input_at = 0
+		else:
+			self.next_required_input_at += 1
+		
+		self.save()
+
+		# killed
+		if self.next_required_input_at >= len(self._required_input):
+			# self.destroy()
+			return choice(self._output["killed"]) if "killed" in self._output else choice(self._output["always"])
+			# return "killed"
+
+		# hit
+		if self.next_required_input_at != 0:
+			return choice(self._output["hit"]) if "hit" in self._output else choice(self._output["always"])
+			# return "hit"
+
+		# missed
+		return choice(self._output["always"])
+		# return "missed"
+
+
+	def processSignal(self, signals) -> Tuple[Signal, str]:
+		output = self._get_output(signals)
+		return None, "#{}: {}".format(self.net_id, output)
 
 
 	def addNodeToNext(self, node):

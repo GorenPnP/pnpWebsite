@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     'mining_api.apps.MiningApiConfig',
     'time_space.apps.TimeSpaceConfig',
     'chat.apps.ChatConfig',
+    'todays_fact.apps.TodaysFactConfig',
     'base.apps.BaseConfig',
     'service.apps.ServiceConfig',
     'django.contrib.admin',

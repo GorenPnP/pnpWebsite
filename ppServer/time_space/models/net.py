@@ -1,10 +1,10 @@
 import json
-
-from time_space.models.interfaces import Node
+from typing import List, Tuple
 
 from django.db import models
 
 from time_space.enums import NodeType, Signal
+from time_space.models.interfaces import Node
 
 
 class Net(models.Model):
@@ -15,10 +15,9 @@ class Net(models.Model):
 
 	startNode = models.TextField(default="")
 	text = models.TextField(null=True, blank=True)
-	#layers = []
 
 	def __str__(self):
-		return "{} (Netz)".format(self.text[:50])
+		return "{} (Netz)".format(self.text[:50] if self.text else '')
 
 	def getStartNode(self):
 		if not self.startNode or not len(self.startNode): return None
@@ -58,16 +57,28 @@ class Net(models.Model):
 		if not self.getStartNode():
 			return
 
+		# process input signal
 		initialLayer = {self.getStartNode(): [signal]}
-		self._sendSignal(initialLayer)
+		outputs, nodes = self._sendSignal(initialLayer)
 
-	def _sendSignal(self, layer):
+		# postprocess (outputs)
+		outputs = sorted(outputs, key=lambda output: int(output.split(":")[0].replace("#", "").strip()))
+		for node in nodes:
+			outputs = node.postprocessSignal(outputs)
+
+		return outputs
+
+	def _sendSignal(self, layer) -> Tuple[List[str], List[Node]]:
 
 		nextLayer = {}
+		outputs = []
+
 		for toNode, signals in layer.items():
 
 			# gate processes signal
-			processedSignal = toNode.processSignal(signals)
+			processedSignal, output = toNode.processSignal(signals)
+			if output: outputs.append(output)
+			print("{} : {} -> {}".format(toNode, signals, output))
 
 			# signal did not pass through, stop here
 			if processedSignal is None:
@@ -81,9 +92,15 @@ class Net(models.Model):
 
 				nextLayer[node].append(processedSignal)
 		print()
+		allNodes = list(layer.keys())
+
 		# process underlying layers
 		if nextLayer:
-			self._sendSignal(nextLayer)
+			deeper_outputs, deeper_nodes = self._sendSignal(nextLayer)
+			outputs += deeper_outputs
+			allNodes += deeper_nodes
+		
+		return outputs, allNodes
 
 
 	# randomGate, random location (set next[] on new and existing nodes)
@@ -93,8 +110,8 @@ class Net(models.Model):
 		pass
 
 
-	# random fissue after random gate (no fissure should not have nodes after)
-	def _addTemporalFissue(self):
+	# random fissure after random gate (no fissure should not have nodes after)
+	def _addTemporalFissure(self):
 		# TODO implement logic
 		# TODO save new fissure
 		pass

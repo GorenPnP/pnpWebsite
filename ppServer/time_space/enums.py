@@ -75,7 +75,21 @@ class NodeType(IntEnum):
 
 @unique
 class Signal(Enum):
-	analyze = 0
+	analyze = "//analyze"
+	returns = "//return"
+	crystallize = "//crystallize"
+	normalize = "//normalize"
+	drag = "//drag"
+	drop = "//drop"
+	naturalize = "//naturalize"
+	delete = "//delete"
+	forward = "//forward"
+	inject = "//inject"
+	skip = "//skip"
+	mdv = "//mdv"
+	bdv = "//bdv"
+	mdbv = "//mdbv"
+	restart = "//restart"
 
 
 @unique

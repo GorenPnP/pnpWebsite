@@ -4,7 +4,7 @@
 {% block extra-head %}
 <link rel="stylesheet" href="{% static 'base/css/list.css' %}">
 {% endblock %}
-{% block absolute %}{% include 'base/header.html' with topic=topic %}{% endblock %}
+{% block absolute %}{% include 'base/header.html' with topic=topic plus_url=plus_url %}{% endblock %}
 
 {% block body %}
 	{% if nets %}
