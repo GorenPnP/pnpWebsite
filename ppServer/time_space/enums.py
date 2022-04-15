@@ -19,6 +19,7 @@ class NodeType(IntEnum):
 	Timelagger = 5
 	Timedelayer = 6
 	Runner = 7
+	Metasplinter = 8
 
 	# zeitannomalien (30-69)
 	Consumer = 30

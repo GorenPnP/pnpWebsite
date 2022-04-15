@@ -12,32 +12,46 @@
 {% block absolute %}{% include 'base/header.html' with topic=topic %}{% endblock %}
 
 {% block body %}
-<aside>
+<section class="non-terminal">
+
+    <aside class="controls">
+        
+        <div class="add-node">
     
-    <label for="add-node-select" style="color: #ddd; margin-right: 10px">Nächstes Element ist:</label>
-    <select id="add-node-select">
-        <optgroup label="Gatter">
-            {% for nodeStyle in design.gates %}<option value="{{nodeStyle.id}}">{{nodeStyle.label}}</option>{% endfor %}
-        </optgroup>
-        <optgroup label="Zeitrisse">
-            {% for nodeStyle in design.time_fissures %}<option value="{{nodeStyle.id}}">{{nodeStyle.label}}</option>{% endfor %}
-        </optgroup>
-        <optgroup label="Zeitannanomalien">
-            {% for nodeStyle in design.time_annanomalies %}<option value="{{nodeStyle.id}}">{{nodeStyle.label}}</option>{% endfor %}
-        </optgroup>
-        <optgroup label="Raumrisse">
-            {% for nodeStyle in design.room_fissures %}<option value="{{nodeStyle.id}}">{{nodeStyle.label}}</option>{% endfor %}
-        </optgroup>
-    </select>
-</aside>
+            <label for="add-node-select">Nächstes Element ist:</label>
+            <select id="add-node-select">
+                <optgroup label="Gatter">
+                    {% for nodeStyle in design.gates %}<option value="{{nodeStyle.id}}">{{nodeStyle.label}}</option>{% endfor %}
+                </optgroup>
+                <optgroup label="Zeitrisse">
+                    {% for nodeStyle in design.time_fissures %}<option value="{{nodeStyle.id}}">{{nodeStyle.label}}</option>{% endfor %}
+                </optgroup>
+                <optgroup label="Zeitannanomalien">
+                    {% for nodeStyle in design.time_annanomalies %}<option value="{{nodeStyle.id}}">{{nodeStyle.label}}</option>{% endfor %}
+                </optgroup>
+                <optgroup label="Raumrisse">
+                    {% for nodeStyle in design.room_fissures %}<option value="{{nodeStyle.id}}">{{nodeStyle.label}}</option>{% endfor %}
+                </optgroup>
+            </select>
+        </div>
+    
+        <div class="rotation">
+            <label for="rotation-select">Fokus auf:</label>
+            <select id="rotation-select">
+                <option value="vert">Abbildung</option>
+                <option value="horiz">Terminal</option>
+            </select>
+        </div>
+    </aside>
+    
+    <main><div id="mynetwork"></div></main>
+</section>
 
-<main id="mynetwork"></main>
-
-<footer id="terminal">
+<section id="terminal">
     <output>terminal output...</output>
     <form method="post" autocomplete="off">
         <label for="command" aria-label="Command Prompt">></label>
         <input id="command" name="command">
     </form>
-</footer>
+</section>
 {% endblock %}

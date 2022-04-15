@@ -152,6 +152,11 @@ def netDesign():
 		"shape": "box",
 		"font": { "color": "white" }
 	}
+	time_fissure_yellow = {
+		"color": "#FFB61E",
+		"shape": "box",
+		"font": { "color": "black" }
+	}
 	time_fissure_black = {
 		"color": "black",
 		"shape": "box",
@@ -188,6 +193,7 @@ def netDesign():
 		NodeType.Timelagger: time_fissure_transparent,
 		NodeType.Timedelayer: time_fissure_blue,
 		NodeType.Runner: time_fissure_blue,
+		NodeType.Metasplinter: time_fissure_yellow,
 	}
 
 	designs = {}

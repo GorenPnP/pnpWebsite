@@ -1,11 +1,49 @@
 .main-container {
 	height: 100vh;
+	padding: 6em 5% 0 !important;
+
+	gap: 2em;
+	display: flex;
+
+	&.orientation-vert {
+		flex-direction: column;
+
+		.non-terminal { display: contents; }
+	}
+	&.orientation-horiz {
+		flex-direction: row;
+
+		.non-terminal {
+			display: flex;
+			flex-direction: column;
+			gap: 1em;
+		}
+	}
 }
 
-#mynetwork {
-	width: 100%;
-	height: 100%;
+main {
 	border: 1px solid lightgray;
+
+	height: 100%;
+	width: 100%;
+	position: relative;
+
+	// ging nicht auf dem üblichen weg. Height war iwie immer relativ zum viewport >:(
+	#mynetwork {
+		position: absolute;
+		width: 100%;
+		height: 100%;
+	}
+}
+
+.controls {
+	display: flex;
+	justify-content: space-between;
+
+	label {
+		color: #ddd;
+		margin-right: 10px
+	}
 }
 
 .vis-manipulation {
@@ -65,11 +103,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
 #terminal {
 	font-family: 'Share Tech Mono', monospace;
-	position: sticky;
-	bottom: 0;
-	display: block;
-	min-height: 100px;
-	width: 100%;
 	border: 2px solid #fff;
 
 	padding: 1em;
@@ -80,6 +113,8 @@
 	display: flex;
 	flex-direction: column;
 	justify-content: space-between;
+
+	width: 100%;
 }
 
 #terminal form {

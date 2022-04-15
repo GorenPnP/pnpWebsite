@@ -68,6 +68,10 @@ class Splinter(TemporalFissure):
 		return ''.join(choice(alphabet) for _ in range(randint(3, 50)))
 
 
+class Metasplinter(Splinter):
+	pass
+
+
 class Duplikator(TemporalFissure):
 
 	_output = {
@@ -112,6 +116,7 @@ class Looper(TemporalFissure):
 class Timelagger(TemporalFissure):
 
 	_output = {
+		"always": [None],
 		"hit": ["it says", "I guess", "maybe", "it shouldn't be", "I assume"]
 	}
 	_required_input = [Signal.analyze, Signal.drag, Signal.drop, Signal.normalize]

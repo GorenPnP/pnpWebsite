@@ -101,6 +101,15 @@ function loadGraph(nodes, edges) {
 
 document.addEventListener("DOMContentLoaded", async _ => {
 
+	// orientation-select
+	document.querySelector(".main-container").classList.add("orientation-vert");
+	document.querySelector("#rotation-select").addEventListener("change", function(event) {
+		const rotation = event.target.value;
+		document.querySelector(".main-container").classList.replace(`orientation-${rotation === "vert"? "horiz" : "vert"}`, `orientation-${rotation}`);
+		console.log(rotation, document.querySelector(".main-container"));
+	
+	});
+
 	nodeStyles = await loadStyles();
 	document.querySelector("#add-node-select").addEventListener("change", function(event) {
 		const nodeType_id = event.target.value;
