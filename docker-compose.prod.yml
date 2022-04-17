@@ -38,16 +38,49 @@ services:
                         - 80:80
                         - 443:443
                 volumes:
-                        - /home/debian/pnpWebsite/nginx/nginx.conf:/etc/nginx/nginx.conf
-                        - /home/debian/pnpWebsite/nginx/cloudflare-real_ip.conf:/etc/nginx/cloudflare-real_ip.conf
-                        - /home/debian/pnpWebsite/nginx/certs:/etc/ssl/certs
+                        - /home/debian/pnpWebsite/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+                        - /home/debian/pnpWebsite/nginx/conf.d:/etc/nginx/conf.d:ro
+                        - /home/debian/pnpWebsite/nginx/cloudflare-real_ip.conf:/etc/nginx/cloudflare-real_ip.conf:ro
+                        - /home/debian/pnpWebsite/nginx/certs:/etc/ssl/certs:ro
                         - /home/debian/pnpWebsite/nginx/logs:/var/log/nginx/
-                        - static_volume:/home/ppServer/web/static
-                        - media_volume:/home/ppServer/web/media
+                        - static_volume:/home/ppServer/web/static:ro
+                        - media_volume:/home/ppServer/web/media:ro
                 depends_on:
                         - web
+
+
+        cadvisor:
+                container_name: pnp-cadvisor
+                image: google/cadvisor:latest
+                volumes:
+                        - /:/rootfs:ro
+                        - /var/run:/var/run:ro
+                        - /sys:/sys:ro
+                        - /var/lib/docker:/var/lib/docker:ro
+                        - /dev/disk:/dev/disk:ro
+                devices:
+                        - /dev/kmsg
+                ports:
+                        - 8080:8080
+
+        prometheus:
+                container_name: pnp-prometheus
+                image: prom/prometheus:latest
+                volumes:
+                        - ./prometheus/:/etc/prometheus/
+                ports:
+                        - 9090:9090
+
+        grafana:
+                container_name: pnp-grafana
+                image: grafana/grafana:latest
+                ports:
+                        - 3000:3000
+                volumes:
+                        - grafana-data:/var/lib/grafana
 
 volumes:
         postgres_data:
         static_volume:
         media_volume:
+        grafana-data:
