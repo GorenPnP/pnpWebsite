@@ -27,21 +27,53 @@ services:
     ports:
       - 5432:5432
 
-  nginx-proxy:
-    container_name: pnp-nginx
-    build: ./nginx
-    restart: always
-    ports:
-      - 80:80         # http
+  # nginx-proxy:
+  #   container_name: pnp-nginx
+  #   build: ./nginx
+  #   restart: always
+  #   ports:
+  #     - 80:80         # http
+  #   volumes:
+  #     - static_volume:/home/ppServer/web/static:ro
+  #     - media_volume:/home/ppServer/web/media:ro
+  #     - certs:/etc/nginx/certs
+  #     - html:/usr/share/nginx/html
+  #     - vhost:/etc/nginx/vhost.d
+  #     - /var/run/docker.sock:/tmp/docker.sock:ro
+  #   depends_on:
+  #     - web
+
+
+
+  cadvisor:
+    container_name: pnp-cadvisor
+    image: google/cadvisor:latest
     volumes:
-      - static_volume:/home/ppServer/web/static
-      - media_volume:/home/ppServer/web/media
-      - certs:/etc/nginx/certs
-      - html:/usr/share/nginx/html
-      - vhost:/etc/nginx/vhost.d
-      - /var/run/docker.sock:/tmp/docker.sock:ro
-    depends_on:
-      - web
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker:/var/lib/docker:ro
+      - /dev/disk:/dev/disk:ro
+    devices:
+      - /dev/kmsg
+    ports:
+      - "8080:8080"
+
+  prometheus:
+    container_name: pnp-prometheus
+    image: prom/prometheus:latest
+    volumes:
+      - ./prometheus/:/etc/prometheus/
+    ports:
+      - "9090:9090"
+
+  grafana:
+    container_name: pnp-grafana
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana
 
 volumes:
   postgres_data:
@@ -51,3 +83,4 @@ volumes:
   acme:
   html:
   vhost:
+  grafana-data:
