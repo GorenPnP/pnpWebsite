@@ -20,8 +20,7 @@ __pycache__/
 
 # other
 backups/
-nginx/logs/
-nginx/certs/cert.pem
-nginx/certs/key.pem
+certbot/cloudflare.ini
+log/
 node_modules/
 ppServer/venv/

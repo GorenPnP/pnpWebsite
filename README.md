@@ -116,6 +116,17 @@ insert `0 2 * * * cd ~ && ./pnpWebsite/scripts/backup_db_and_media`
 1. restore db & media
 1. run in prod
 1. fiddle with DNS if different IP
+1. Setup ssl-certs with certbot
+    1. install snap for certbot
+        * `sudo apt update && sudo apt install snapd`
+        * `sudo snap install core; sudo snap refresh core`
+    1. install certbot with cloudflare-extension
+        * `sudo snap install --classic certbot`
+        * `sudo ln -s /snap/bin/certbot /usr/bin/certbot`
+        * `sudo snap set certbot trust-plugin-with-root=ok`
+        * `sudo snap install certbot-dns-cloudflare`
+1. issue certs: `sudo certbot certonly --email "v.steinbr@gmail.com" --agree-tos --dns-cloudflare --dns-cloudflare-credentials /root/.secrets/cloudflare.ini -d goren-pnp.de -d www.goren-pnp.de --dry-run`
+1. (add cronjob for `certbot renew`) -> was already configured for me in /etc/cron.d/certbot
 
 ## update os on OVH
 [Guide](https://docs.ovh.com/de/public-cloud/upgrade-os/)
