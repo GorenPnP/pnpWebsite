@@ -6,6 +6,8 @@ from django.contrib.auth.decorators import login_required
 
 from django.shortcuts import get_object_or_404, redirect, render
 
+from ppServer.decorators import spielleiter_only
+
 from .models import Message
 
 
@@ -52,7 +54,7 @@ def index(request):
 
 
 @login_required
-# @spielleiter_only     <-- breaks
+@spielleiter_only()
 def sp_index_get(request):
 
     if not request.user.groups.filter(name__iexact="spielleiter").exists():

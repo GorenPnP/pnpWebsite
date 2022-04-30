@@ -12,12 +12,13 @@ from django.utils.datetime_safe import date
 from log.views import logShop
 from character.models import *
 from base.views import reviewable_shop
+from ppServer.decorators import spielleiter_only
 
 from .models import *
 
 
 @login_required
-# @spielleiter_only     --> breaks
+@spielleiter_only()
 def review_items(request):
 
     if not request.user.groups.filter(name="spielleiter").exists():

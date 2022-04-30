@@ -280,7 +280,7 @@ def sp_correct(request, id, question_index=0):
 
 
 @verified_account
-# @spielleiter_only     <-- breaks
+@spielleiter_only()
 def old_answer(request, sp_mo_id, question_id, question_index):    # id of currently answered SpielerQuestion
 
     if not request.user.groups.filter(name="spielleiter").exists():

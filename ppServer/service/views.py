@@ -11,7 +11,7 @@ from quiz.views import get_grade_score
 
 # dice roll
 @login_required
-# @spielleiter_only     --> breaks
+@spielleiter_only()
 def random(request):
 
     if not request.user.groups.filter(name="spielleiter").exists():
@@ -37,7 +37,7 @@ def random(request):
 
 # quiz big brother
 @login_required
-# @spielleiter_only     <-- breaks
+@spielleiter_only()
 def quiz_BB(request):
 
     if not request.user.groups.filter(name="spielleiter").exists():

@@ -24,7 +24,7 @@ def index(request):
 	return render(request, "time_space/index.html", context)
 
 @login_required
-@spielleiter_only
+@spielleiter_only()
 def net(request, id):
 
 	net = get_object_or_404(Net, id=id)
@@ -135,7 +135,7 @@ def net(request, id):
 
 
 @login_required
-@spielleiter_only
+@spielleiter_only()
 def createNet(request):
 	net = Net.objects.create()
 	return redirect(reverse("time_space:net", args=[net.id]))
