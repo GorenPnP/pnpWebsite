@@ -415,10 +415,6 @@ def new_priotable(request):
 
         # get MA maximum
         max_MA = max_MA = GfsAttribut.objects.get(gfs=new_char.gfs, attribut__titel="MA").maxWert
-        wesen = new_char.gfs.wesen
-        if wesen:
-            max_MA += SpeziesAttribut.objects.get(spezies=wesen, attribut__titel="MA").maxWert
-
 
         if (max_MA == 0):      # mundan => keine Zauber wählbar (nur 0 Zauber in prio F)
             for k in range(len(entries)):

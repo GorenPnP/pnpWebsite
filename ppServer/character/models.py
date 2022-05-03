@@ -60,15 +60,9 @@ class Spezies(models.Model):
 
     komplexität = models.PositiveIntegerField(default=0)
     titel = models.CharField(max_length=20, unique=True)
-    beschreibung = models.TextField(max_length=3000, blank=True, default='')
-
-    attribute = models.ManyToManyField('Attribut', through='SpeziesAttribut')
 
     def __str__(self):
         return self.titel
-
-    def relAttributQueryset(self):
-        return SpeziesAttribut.objects.filter(spezies=self)
 
 
 class Gfs(models.Model):
@@ -115,15 +109,9 @@ class Gfs(models.Model):
         attr = []
         gfsAttrs = GfsAttribut.objects.filter(gfs=self)
         for gfsAttr in gfsAttrs:
-            if self.wesen:
-                wesenAttr = get_object_or_404(SpeziesAttribut, attribut__id=gfsAttr.attribut.id, spezies=self.wesen)
-                entry = {'id': gfsAttr.attribut.id,
-                         'aktuellerWert': gfsAttr.aktuellerWert + wesenAttr.aktuellerWert,
-                         'maxWert': gfsAttr.maxWert + wesenAttr.maxWert}
-            else:
-                entry = {'id': gfsAttr.attribut.id,
-                         'aktuellerWert': gfsAttr.aktuellerWert,
-                         'maxWert': gfsAttr.maxWert}
+            entry = {'id': gfsAttr.attribut.id,
+                        'aktuellerWert': gfsAttr.aktuellerWert,
+                        'maxWert': gfsAttr.maxWert}
             attr.append(entry)
         return attr
 
@@ -150,20 +138,6 @@ class Profession(models.Model):
 
     def relAttributQueryset(self):
         return ProfessionAttribut.objects.filter(profession=self)
-
-
-class SpeziesAttribut(models.Model):
-    class Meta:
-        ordering = ['attribut']
-        verbose_name = "Startattribut"
-        verbose_name_plural = "Startattribute"
-        unique_together = ["attribut", "spezies"]
-
-    attribut = models.ForeignKey('Attribut', on_delete=models.CASCADE)
-    spezies = models.ForeignKey(Spezies, on_delete=models.CASCADE)
-
-    aktuellerWert = models.PositiveIntegerField(default=0)
-    maxWert = models.PositiveIntegerField(default=0)
 
 
 class GfsAttribut(models.Model):
@@ -319,30 +293,6 @@ class ProfessionTalent(models.Model):
 
     talent = models.ForeignKey('Talent', on_delete=models.CASCADE)
     profession = models.ForeignKey(Profession, on_delete=models.CASCADE)
-
-
-# TODO delete later
-class Stufenplan(models.Model):
-    class Meta:
-        ordering = ['wesen', "stufe"]
-        verbose_name = "Stufenplan"
-        verbose_name_plural = "Stufenpläne"
-        unique_together = ["wesen", "stufe"]
-
-    wesen = models.ForeignKey(Spezies, on_delete=models.CASCADE)
-    stufe = models.PositiveIntegerField(default=0)
-    ep = models.PositiveIntegerField(default=0)
-
-    vorteile = models.ManyToManyField("Vorteil", blank=True)
-    ap = models.PositiveSmallIntegerField(default=0)
-    ap_max = models.PositiveSmallIntegerField(default=0)
-    fp = models.PositiveSmallIntegerField(default=0)
-    fg = models.PositiveSmallIntegerField(default=0)
-    zauber = models.PositiveSmallIntegerField(default=0)
-    wesenkräfte = models.ManyToManyField("Wesenkraft", blank=True)
-    spezial = models.PositiveSmallIntegerField(default=0)
-    wissensp = models.PositiveSmallIntegerField(default=0)
-    weiteres = models.TextField(max_length=50, default=None, blank=True, null=True)
 
 
 class GfsStufenplanBase(models.Model):
@@ -643,7 +593,6 @@ class Charakter(models.Model):
     persönlicheZiele = models.TextField(blank=True)
 
     wesenkräfte = models.ManyToManyField(Wesenkraft, through="RelWesenkraft", blank=True)
-    verwandlungen = models.ManyToManyField(Spezies, related_name='verwandlungen', blank=True)
 
     attribute = models.ManyToManyField(Attribut, through='RelAttribut', blank=True)
     fertigkeiten = models.ManyToManyField(Fertigkeit, through='RelFertigkeit', blank=True)
@@ -1163,19 +1112,6 @@ class SkilltreeBase(models.Model):
 
     def __str__(self):
         return "{} (Stufe {}, {} SP)".format(self.get_kind_display(), self.stufe, self.sp)
-
-
-class SkilltreeEntryWesen(models.Model):
-    class Meta:
-        unique_together = ["context", "wesen"]
-
-    context = models.ForeignKey(SkilltreeBase, on_delete=models.CASCADE, null=True)
-
-    wesen = models.ForeignKey(Spezies, on_delete=models.CASCADE, null=True)
-    text = models.TextField(max_length=100)
-
-    def __str__(self):
-        return "{} (Stufe {})".format(self.wesen, self.context.stufe)
 
 
 class SkilltreeEntryGfs(models.Model):

@@ -19,15 +19,6 @@ def delete_spieler(sender, **qwargs):
         s.delete()
 
 
-@receiver(post_save, sender=Spezies)
-def init_spezies(sender, **kwargs):
-    if kwargs['created']:
-        instance = kwargs['instance']
-
-        for a in Attribut.objects.all():
-            SpeziesAttribut.objects.get_or_create(spezies=instance, attribut=a)
-
-
 @receiver(post_save, sender=Gfs)
 def init_gfs(sender, **kwargs):
     instance = kwargs['instance']
@@ -82,9 +73,6 @@ def add_attr(sender, **kwargs):
 
         for char in Charakter.objects.all():
             RelAttribut.objects.get_or_create(char=char, attribut=instance)
-
-        for sp in Spezies.objects.all():
-            SpeziesAttribut.objects.get_or_create(spezies=sp, attribut=instance)
 
         for gfs in Gfs.objects.all():
             GfsAttribut.objects.get_or_create(gfs=gfs, attribut=instance)

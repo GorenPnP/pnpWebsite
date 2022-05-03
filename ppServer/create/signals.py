@@ -45,12 +45,6 @@ def collect_data(sender, **kwargs):
                 relAttr.aktuellerWert = gfsAttr.aktuellerWert
                 relAttr.maxWert = gfsAttr.maxWert
 
-                # set spezies vals
-                if wesen:
-                    wesenAttr = get_object_or_404(SpeziesAttribut, spezies=wesen, attribut=attr)
-                    relAttr.aktuellerWert += wesenAttr.aktuellerWert
-                    relAttr.maxWert += wesenAttr.maxWert
-
                 # save
                 relAttr.save()
 

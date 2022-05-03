@@ -8,23 +8,6 @@ class WesenkraftZusatzWesenspInLine(admin.TabularInline):
     extra = 1
 
 
-class SpeziesAttributInLine(admin.TabularInline):
-    model = SpeziesAttribut
-    fields = ["attribut", "aktuellerWert", "maxWert"]
-    readonly_fields = ["attribut"]
-    extra = 0
-
-    def has_add_permission(self, request, obj=None):
-        return False
-
-
-class SpeziesStufenplanInLine(admin.TabularInline):
-    model = Stufenplan
-    fields = ["stufe", "ep", "vorteile", "ap", "ap_max", "fp", "fg", "zauber", "wesenkräfte",
-            "spezial", "wissensp", "weiteres"]
-    extra = 0
-
-
 class GfsAttributInLine(admin.TabularInline):
     model = GfsAttribut
     fields = ["attribut", "aktuellerWert", "maxWert"]
@@ -290,7 +273,6 @@ class CharakterAdmin(admin.ModelAdmin):
         ("Basischaden im Waffenlosen Kampf", {"fields": ["wesenschaden_waff_kampf", "wesenschaden_andere_gestalt"]}),
         ('Ressourcen', {'fields': ['sp', "geld", 'ip', 'tp', "nutzt_magie", 'useEco', 'eco', 'morph']}),
         ('Geschreibsel', {'fields': ['persönlicheZiele', 'notizen', 'sonstige_items']}),
-        ('Verwandlungen', {'fields': ['verwandlungen']}),
     ]
 
     inlines = [
@@ -401,17 +383,8 @@ class WissensfertigkeitAdmin(admin.ModelAdmin):
 
 
 class SpeziesAdmin(admin.ModelAdmin):
-    list_display = ('titel', 'beschreibung_')
-    search_fields = ('titel',)
-
-    inlines = [SpeziesAttributInLine #, SpeziesStufenplanInLine
-    ]
-
-    def beschreibung_(self, obj):
-        str = obj.beschreibung[:100]
-        if len(obj.beschreibung) > 100: str += "..."
-        return str
-
+    list_display = ('komplexität', 'titel',)
+    search_fields = ('komplexität', 'titel',)
 
 class GfsAdmin(admin.ModelAdmin):
     list_display = ('titel', 'ap', 'beschreibung_', 'vorteil_', 'nachteil_',
@@ -538,8 +511,6 @@ admin.site.register(Wissensfertigkeit, WissensfertigkeitAdmin)
 admin.site.register(Begleiter, BegleiterAdmin)
 
 admin.site.register(SkilltreeBase, admin.ModelAdmin)
-#admin.site.register(SkilltreeEntryWesen, SkilltreeEntryWesenAdmin)
-#admin.site.register(SkilltreeEntryKategorie, admin.ModelAdmin)
 admin.site.register(Talent, TalentAdmin)
 
 admin.site.register(GfsStufenplanBase, GfsStufenplanBaseAdmin)
@@ -547,5 +518,3 @@ admin.site.register(ProfessionStufenplanBase, ProfessionStufenplanBaseAdmin)
 
 admin.site.register(RangRankingEntry, RangRankingEntryAdmin)
 admin.site.register(Spieler, SpielerAdmin)
-
-#admin.site.register(Stufenplan, StufenplanAdmin)

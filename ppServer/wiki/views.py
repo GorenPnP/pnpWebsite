@@ -84,12 +84,7 @@ def stufenplan(request, gfs_id):
     start = []
     gAttrs = GfsAttribut.objects.filter(gfs=gfs)
     for gAttr in gAttrs:
-        if gfs.wesen:
-            sAttr = SpeziesAttribut.objects.get(attribut=gAttr.attribut, spezies=gfs.wesen)
-        aktuellerWert = gAttr.aktuellerWert + (sAttr.aktuellerWert if gfs.wesen else 0)
-        maxWert = gAttr.maxWert + (sAttr.maxWert if gfs.wesen else 0)
-
-        start.append("{} ({} | {})".format(gAttr.attribut.titel, aktuellerWert, maxWert))
+        start.append("{} ({} | {})".format(gAttr.attribut.titel, gAttr.aktuellerWert, gAttr.maxWert))
 
     boni.append({"field": "Attribute", "val": ", ".join(start)})
 
