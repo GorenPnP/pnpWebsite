@@ -603,8 +603,9 @@ class Zauber(BaseShop):
 
         ordering = ['name']
 
-    schaden = models.CharField(max_length=20, default='')
-    astralschaden = models.CharField(max_length=20, default='')
+    schaden = models.CharField(max_length=100, default='', null=True, blank=True)
+    astralschaden = models.CharField(max_length=100, default='', null=True, blank=True)
+    manaverbrauch = models.CharField(max_length=100, default='', null=True, blank=True)
 
     kategorie = models.CharField(choices=enums.zauber_enum, max_length=2, null=True, blank=True)
     flächenzauber = models.BooleanField(default=False)
@@ -622,6 +623,7 @@ class Zauber(BaseShop):
             [{"val": "Ab Stufe"}],
             [{"val": "Schaden"}],
             [{"val": "Astralschaden"}],
+            [{"val": "Manaverbrauch"}],
             [{"val": "Flächenwirkung"}],
             [{"val": "Kategorie"}],
             [{"val": "Günstigster Preis"}],
@@ -636,6 +638,7 @@ class Zauber(BaseShop):
             [
                 [{"val": self.schaden}],
                 [{"val": self.astralschaden}],
+                [{"val": self.manaverbrauch}],
                 [{"val": "ja" if self.flächenzauber else ""}],
                 [{"val": self.get_kategorie_display()}],
             ] + fields[3:]
