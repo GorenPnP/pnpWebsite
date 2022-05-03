@@ -249,7 +249,7 @@ def landing_page(request):
 def get_entries_of_prio():
     # Note: FP & FG together in one field!
     return [
-        [row.get_priority_display(), row.ip, row.ap, row.sp, row.fp, row.fg, row.zauber, row.drachmen]
+        [row.get_priority_display(), row.ip, row.ap, row.sp, row.konzentration, row.fp, row.fg, row.zauber, row.drachmen]
         for row in Priotable.objects.all()
     ]
 
@@ -364,13 +364,15 @@ def new_priotable(request):
             if val < 0 or val >= num_entries:
                 return JsonResponse({"message": "Falsche Auswahl (Inhalt Felder)"}, status=418)
 
+        print(fields)
+
         # start logic
         ap = new_char.gfs.ap * -1
         for category in fields.keys():
             row = fields[category]
             col = int(category) + 1
 
-            # row: [priority, IP, AP, SP, FP, FG, Zauber, Drachmen]
+            # row: [priority, IP, AP, (SP, konzentration), (FP, FG), Zauber, Drachmen]
             if col == 1:
                 new_char.ip = entries[row][col]
             elif col == 2:
@@ -378,13 +380,14 @@ def new_priotable(request):
 
             elif col == 3:
                 new_char.sp = entries[row][col]
+                new_char.konzentration = entries[row][col + 1]
             elif col == 4:
-                new_char.fp = entries[row][col]
-                new_char.fg = entries[row][col + 1]
+                new_char.fp = entries[row][col + 1]
+                new_char.fg = entries[row][col + 2]
             elif col == 5:
-                new_char.zauber = entries[row][col + 1]
+                new_char.zauber = entries[row][col + 2]
             else:
-                new_char.geld = entries[row][col + 1]
+                new_char.geld = entries[row][col + 2]
 
         ap -= new_char.gfs.ap
         if ap < 0:
@@ -422,8 +425,10 @@ def new_priotable(request):
                 entries[k][6] = 0 if k + 1 == len(entries) else None
 
         notes = [
-            "AP = Aufwerten eines Attributs",
             "IP = für Vor- und Nachteile",
+            "AP = Aufwerten eines Attributs",
+            "SP = für alles Mögliche, vor Allem um nicht zu sterben",
+            "Konz. = Konzentration, um Proben besser zu würfeln als sonst",
             "FP = Fertigkeitspunkte",
             "FG = Fertigkeitsgruppen",
             ]
@@ -807,9 +812,9 @@ def new_cp(request):
 
 
             # transition from NewCharacter to Charakter
-            c = Charakter.objects.create(sp=new_char.sp, geld=new_char.geld, eigentümer=new_char.eigentümer,
-                                        manifest=new_char.gfs.startmanifest, gfs=new_char.gfs, larp=new_char.larp,
-                                        wesenschaden_andere_gestalt=new_char.gfs.wesenschaden_andere_gestalt,
+            c = Charakter.objects.create(sp=new_char.sp, konzentration=new_char.konzentration, geld=new_char.geld,
+                                        eigentümer=new_char.eigentümer, manifest=new_char.gfs.startmanifest, gfs=new_char.gfs,
+                                        larp=new_char.larp, wesenschaden_andere_gestalt=new_char.gfs.wesenschaden_andere_gestalt,
                                         wesenschaden_waff_kampf=new_char.gfs.wesenschaden_waff_kampf,
                                         ep_system=new_char.ep_system, ip=new_char.ip, profession=new_char.profession,
                                         HPplus=new_char.HPplus, HPplus_fix=new_char.HPplus_fix)

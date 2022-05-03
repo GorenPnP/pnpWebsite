@@ -625,6 +625,7 @@ class Charakter(models.Model):
     ip = models.IntegerField(default=0)
     tp = models.IntegerField(default=0)
     geld = models.IntegerField(default=0)
+    konzentration = models.PositiveSmallIntegerField(null=True, blank=True)
 
     ep = models.PositiveIntegerField(default=0)
 
@@ -670,6 +671,9 @@ class Charakter(models.Model):
 
     def HP_plus_(self):
         return self.HPplus
+
+    def get_konzentration(self):
+        return self.konzentration if self.konzentration is not None else RelAttribut.objects.get(char=self, attribut__titel="IN").aktuell() * 5
 
 
 

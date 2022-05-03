@@ -72,7 +72,7 @@ def show(request, pk):
             "maxHp": base_hp * 50 + char.rang + char.HPplus,
             "wkHp": get_object_or_404(RelAttribut, char=char, attribut__titel="WK").aktuell() * 50,
             "humor": get_object_or_404(RelAttribut, char=char, attribut__titel="UM").aktuell() * 5,
-            "konzentration": get_object_or_404(RelAttribut, char=char, attribut__titel="IN").aktuell() * 5
+            "konzentration": char.get_konzentration()
         }
 
         return render(request, "character/show.html", context)
@@ -110,7 +110,7 @@ def show(request, pk):
             context["maxHp"] = base_hp * 50 + char.rang + char.HPplus
             context["wkHp"] = get_object_or_404(RelAttribut, char=char, attribut__titel="WK").aktuell() * 50
             context["humor"] = get_object_or_404(RelAttribut, char=char, attribut__titel="UM").aktuell() * 5
-            context["konzentration"] = get_object_or_404(RelAttribut, char=char, attribut__titel="IN").aktuell() * 5
+            context["konzentration"] = char.get_konzentration()
 
 
         # attribute

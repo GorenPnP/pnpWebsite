@@ -73,7 +73,7 @@ insert `0 2 * * * cd ~ && ./pnpWebsite/scripts/backup_db_and_media`
 1. run `python3 manage.py dbrestore` to use the latest or `python3 manage.py dbrestore -i *.psql` for a specific one
 
     * if that doesn't work,try this:
-        1. clear the db first: run `python3 dbshell` and paste
+        1. clear the db first: run `python3 manage.py dbshell` and paste
             ```sql
             DO $$ DECLARE
                 r RECORD;
