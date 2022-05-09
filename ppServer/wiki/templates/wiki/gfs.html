@@ -36,8 +36,8 @@ div.grid-container {
     <!-- attribute -->
     {% for a in e.attr_calc %}
     <div class="
-        {% if a.maxWert > 9 %}high-max">
-        {% elif a.maxWert < 4 %}low-max">
+        {% if a.maxWert > 6 %}high-max">
+        {% elif a.maxWert < 2 %}low-max">
         {% else %}">{% endif %}
 
         {{ a.aktuellerWert }}/{{ a.maxWert }}
