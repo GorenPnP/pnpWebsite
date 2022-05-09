@@ -12,7 +12,7 @@
 }
 
 div.grid-container {
-    grid-template-columns: repeat({{ heading|length|add:2 }}, auto);
+    grid-template-columns: repeat({{ heading|length|add:3 }}, auto);
 }
 </style>
 {% endblock %}
@@ -23,8 +23,10 @@ div.grid-container {
 <div class="heading">Ap-Kosten</div>
 
 {% for h in heading %}
-<div class="heading {% if forloop.last %}heading--last{% endif %}">{{ h.titel }}</div>
+<div class="heading">{{ h.titel }}</div>
 {% endfor %}
+
+<div class="heading heading--last">Power-Level</div>
 
 {% for e in gfs %}
     <!-- Gfs -->
@@ -34,14 +36,17 @@ div.grid-container {
     <div>{{ e.ap }} AP</div>
 
     <!-- attribute -->
-    {% for a in e.attr_calc %}
+    {% for a in e.attrs %}
     <div class="
-        {% if a.maxWert > 6 %}high-max">
-        {% elif a.maxWert < 2 %}low-max">
+        {% if a.maxWert > 5 %}high-max">
+        {% elif a.maxWert < 3 %}low-max">
         {% else %}">{% endif %}
 
         {{ a.aktuellerWert }}/{{ a.maxWert }}
     </div>
     {% endfor %}
+
+    <!-- Power-Level -->
+    <div>{{ e.powerLevel }} AP</div>
 {% endfor %}
 {% endblock %}

@@ -41,8 +41,21 @@ def talente(request):
 @login_required
 @verified_account
 def gfs(request):
+    all_gfs: list = []
+    for gfs in Gfs.objects.all():
+        attrs = gfs.attr_calc()
+        powerLevel = sum([val["aktuellerWert"] + 2*val["maxWert"] for val in attrs]) - gfs.ap
+
+        all_gfs.append({
+            "id": gfs.id,
+            "titel": gfs.titel,
+            "ap": gfs.ap,
+            "attrs": attrs,
+            "powerLevel": powerLevel
+        })
+
     return render(request, 'wiki/gfs.html', {'topic': 'Gfs/Klassen', "heading": Attribut.objects.all(),
-                                               "gfs": Gfs.objects.all()})
+                                               "gfs": all_gfs})
 
 
 @login_required
