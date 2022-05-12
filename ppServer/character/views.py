@@ -165,7 +165,7 @@ def show(request, pk):
                     {"titel": "Schadenswiderstand", "val": attrs["ST"].aktuell() + attrs["VER"].aktuell()},
                     {"titel": "Astralwiderstand", "val": attrs["MA"].aktuell() + attrs["WK"].aktuell()},
                     {"titel": "Initiative", "val": "{} + {} W4".format(
-                        attrs["WK"].aktuell() + attrs["N"].aktuell(), attrs["SCH"].aktuell())
+                        attrs["WK"].aktuell() + attrs["ST"].aktuell(), attrs["SCH"].aktuell())
                      },
                     {"titel": "Initiative Astral", "val": "{} + {} W4".format(
                         attrs["SCH"].aktuell() + attrs["WK"].aktuell(), floor(attrs["MA"].aktuell() / 2 + .5))
@@ -174,7 +174,7 @@ def show(request, pk):
                     {"titel": "Laufrate", "val": attrs["SCH"].aktuell() * 4},
                     {"titel": "Sprinten", "val": attrs["SCH"].aktuell() * 4 + ferts["Laufen"]},
 
-                    {"titel": "Reaktion", "val": (attrs["SCH"].aktuell() + attrs["IN"].aktuell() + attrs["WK"].aktuell()) / 2},
+                    {"titel": "Reaktion", "val": (attrs["SCH"].aktuell() + attrs["GES"].aktuell() + attrs["WK"].aktuell()) / 2},
                     {"titel": "Intuition", "val": (attrs["IN"].aktuell() + 2 * attrs["SCH"].aktuell()) / 2},
                     {"titel": "Bewegung Astral", "val": 2 * attrs["MA"].aktuell() * (attrs["WK"].aktuell() + attrs["SCH"].aktuell())},
                     {"titel": "Tragfähigkeit", "val": 3 * attrs["ST"].aktuell() + attrs["GES"].aktuell()},
