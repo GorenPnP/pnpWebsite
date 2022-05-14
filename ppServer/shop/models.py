@@ -110,6 +110,10 @@ class FirmaZauber(FirmaShop):
     item = models.ForeignKey('Zauber', on_delete=models.CASCADE)
 
 
+class FirmaVergessenerZauber(FirmaShop):
+    item = models.ForeignKey('VergessenerZauber', on_delete=models.CASCADE)
+
+
 class FirmaAlchemie(FirmaShop):
     item = models.ForeignKey('Alchemie', on_delete=models.CASCADE)
 
@@ -641,6 +645,51 @@ class Zauber(BaseShop):
                 [{"val": self.manaverbrauch}],
                 [{"val": "ja" if self.flächenzauber else ""}],
                 [{"val": self.get_kategorie_display()}],
+            ] + fields[3:]
+
+
+class VergessenerZauber(BaseShop):
+    class Meta:
+        verbose_name = "Vergessener Zauber"
+        verbose_name_plural = "Vergessene Zauber"
+
+        ordering = ['name']
+
+    schaden = models.CharField(max_length=100, default='', null=True, blank=True)
+    astralschaden = models.CharField(max_length=100, default='', null=True, blank=True)
+    manaverbrauch = models.CharField(max_length=100, default='', null=True, blank=True)
+
+    flächenzauber = models.BooleanField(default=False)
+
+    firmen = models.ManyToManyField('Firma', through='FirmaVergessenerZauber', blank=True)
+
+    def __str__(self):
+        return "{} (vergessener Zauber)".format(self.name)
+
+    @staticmethod
+    def get_fields():
+        return [
+            [{"val": "Name"}],
+            [{"val": "Beschreibung"}],
+            [{"val": "Ab Stufe"}],
+            [{"val": "Schaden"}],
+            [{"val": "Astralschaden"}],
+            [{"val": "Manaverbrauch"}],
+            [{"val": "Flächenwirkung"}],
+            [{"val": "Günstigster Preis"}],
+            [{"val": "Weiteres"}],
+            [{"val": "Preis * Stufe?"}]
+            ]
+
+    def get_values(self, firma_model=FirmaVergessenerZauber, url_prefix="shop:buy_vergessener_zauber"):
+
+        fields = super().get_values(firma_model, url_prefix)
+        return fields[:3] +\
+            [
+                [{"val": self.schaden}],
+                [{"val": self.astralschaden}],
+                [{"val": self.manaverbrauch}],
+                [{"val": "ja" if self.flächenzauber else ""}],
             ] + fields[3:]
 
 

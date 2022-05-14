@@ -20,6 +20,7 @@ urlpatterns = [
     path('fahrzeuge', views.fahrzeuge, name='fahrzeuge'),
     path('einbauten', views.einbauten, name='einbauten'),
     path('zauber', views.zauber, name='zauber'),
+    path('vergessene_zauber', views.vergessene_zauber, name='vergessene_zauber'),
     path('alchemie', views.alchemie, name='alchemie'),
     path('tinker', views.tinker, name='tinker'),
 
@@ -35,5 +36,6 @@ urlpatterns = [
     path('buy_fahrzeuge/<int:id>', views.buy_fahrzeug, name="buy_fahrzeug"),
     path('buy_einbauten/<int:id>', views.buy_einbauten, name="buy_einbauten"),
     path('buy_zauber/<int:id>', views.buy_zauber, name="buy_zauber"),
+    path('buy_vergessener_zauber/<int:id>', views.buy_vergessener_zauber, name="buy_vergessener_zauber"),
     path('buy_alchemie/<int:id>', views.buy_alchemie, name="buy_alchemie")
 ]

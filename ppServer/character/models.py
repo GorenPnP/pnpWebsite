@@ -946,6 +946,17 @@ class RelZauber(RelShop):
         return "{}".format(self.item)
 
 
+class RelVergessenerZauber(RelShop):
+    class Meta:
+        verbose_name = "vergessener Zauber"
+        verbose_name_plural = "vergessene Zauber"
+
+    item = models.ForeignKey('shop.VergessenerZauber', on_delete=models.CASCADE)
+
+    def __str__(self):
+        return "{}".format(self.item)
+
+
 class RelAlchemie(RelShop):
     class Meta:
         verbose_name = "Alchemie"
@@ -1071,6 +1082,17 @@ class RelFirmaZauber(RelFirmaShop):
         verbose_name_plural = "Zauber Verfügbarkeiten"
 
     firma_shop = models.ForeignKey('shop.FirmaZauber', on_delete=models.CASCADE)
+
+    def __str__(self):
+        return "{}".format(self.firma_shop)
+
+
+class RelFirmaVergessenerZauber(RelFirmaShop):
+    class Meta:
+        verbose_name = "vergessener Zauber Verfügbarkeit"
+        verbose_name_plural = "vergessener Zauber Verfügbarkeiten"
+
+    firma_shop = models.ForeignKey('shop.FirmaVergessenerZauber', on_delete=models.CASCADE)
 
     def __str__(self):
         return "{}".format(self.firma_shop)

@@ -64,6 +64,7 @@ def index(request):
                       (Fahrzeug, "fahrzeuge"),
                       (Einbauten, "einbauten"),
                       (Zauber, "zauber"),
+                      (VergessenerZauber, "vergessene_zauber"),
                       (Alchemie, "alchemie"),
                       (Tinker, "tinker"),
                     ]
@@ -146,6 +147,12 @@ def einbauten(request):
 @verified_account
 def zauber(request):
     return show_shop(request, "Zauber", Zauber, FirmaZauber, reverse("admin:shop_zauber_add"))
+
+
+@login_required
+@verified_account
+def vergessene_zauber(request):
+    return show_shop(request, "Vergessene Zauber", VergessenerZauber, FirmaVergessenerZauber, reverse("admin:shop_vergessenerzauber_add"))
 
 
 @login_required
@@ -332,6 +339,18 @@ def buy_zauber(request, id):
 
 @login_required
 @verified_account
+def buy_vergessener_zauber(request, id):
+    if request.method == 'GET':
+        context = buy_item_get(request, id, VergessenerZauber, RelVergessenerZauber, FirmaVergessenerZauber)
+        return render(request, "shop/buy_shop.html", context)
+
+    if request.method == 'POST':
+        item = get_object_or_404(VergessenerZauber, id=id)
+        return buy_item_post(request, item, FirmaVergessenerZauber, RelVergessenerZauber, RelFirmaVergessenerZauber)
+
+
+@login_required
+@verified_account
 def buy_alchemie(request, id):
     if request.method == 'GET':
         context = buy_item_get(request, id, Alchemie, RelAlchemie, FirmaAlchemie)
@@ -385,7 +404,7 @@ def buy_item_post(request, item, firma_shop_model, rel_shop_model, verf_model, r
     spieler = get_object_or_404(Spieler, name=request.user.username)
     char = get_object_or_404(Charakter, id=char_id)
     if char.eigentümer != spieler and not User.objects.filter(username=request.user.username, groups__name='spielleiter').exists():
-        return JsonResopnse({"message": "Keine Erlaubnis einzukaufen"}, status=418)
+        return JsonResponse({"message": "Keine Erlaubnis einzukaufen"}, status=418)
 
     if not extra:
         firma_shop = get_object_or_404(firma_shop_model, id=firma_shop_id)

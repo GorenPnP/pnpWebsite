@@ -68,6 +68,10 @@ class FirmaEinbautenInLine(FirmaShopInLine):
 class FirmaZauberInLine(FirmaShopInLine):
     model = FirmaZauber
 
+
+class FirmaVergessenerZauberInLine(FirmaShopInLine):
+    model = FirmaVergessenerZauber
+
 class FirmaAlchemieInLine(FirmaShopInLine):
     model = FirmaAlchemie
 
@@ -270,6 +274,18 @@ class ZauberAdmin(BaseAdmin):
     inlines = [FirmaZauberInLine]
 
 
+class VergessenerZauberAdmin(BaseAdmin):
+
+    shop_model = VergessenerZauber
+    firma_shop_model = FirmaVergessenerZauber
+
+    list_display = ('name', 'beschreibung', "ab_stufe", 'schaden', 'astralschaden', 'manaverbrauch', 'billigste',
+                    "flächenzauber_", 'illegal_', 'lizenz_benötigt_', "frei_editierbar_")
+    list_filter = ["flächenzauber", 'schaden', 'astralschaden', 'manaverbrauch', 'illegal', 'lizenz_benötigt', "frei_editierbar"]
+
+    inlines = [FirmaVergessenerZauberInLine]
+
+
 class AlchemieAdmin(BaseAdmin):
 
     shop_model = Alchemie
@@ -318,6 +334,7 @@ admin.site.register(Ausrüstung_Technik, Ausrüstung_TechnikAdmin)
 admin.site.register(Fahrzeug, FahrzeugAdmin)
 admin.site.register(Einbauten, EinbautenAdmin)
 admin.site.register(Zauber, ZauberAdmin)
+admin.site.register(VergessenerZauber, VergessenerZauberAdmin)
 admin.site.register(Alchemie, AlchemieAdmin)
 admin.site.register(Tinker, TinkerAdmin)
 

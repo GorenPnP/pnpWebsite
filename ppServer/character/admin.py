@@ -250,6 +250,10 @@ class RelZauberInLine(RelShopInLine):
     model = RelZauber
 
 
+class RelVergessenerZauberInLine(RelShopInLine):
+    model = RelVergessenerZauber
+
+
 class RelAlchemieInLine(RelShopInLine):
     model = RelAlchemie
 
@@ -294,6 +298,7 @@ class CharakterAdmin(admin.ModelAdmin):
                RelFahrzeugInLine,
                RelEinbautenInLine,
                RelZauberInLine,
+               RelVergessenerZauberInLine,
                RelAlchemieInLine,
                RelTinkerInLine,
     ]
