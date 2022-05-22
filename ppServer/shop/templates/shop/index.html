@@ -11,22 +11,13 @@
 {% block absolute %}{% include 'base/header.html' with topic=topic %}{% endblock %}
 
 {% block body %}
-<!-- EP-Filter -->
-<section class="ep-filter">
-
-    <div class="searchbar">
-        <h3>Itemsuche</h3>
-        <input id="search" type="text" title="Für '.' bitte '\.' eingeben"
-            placeholder="klingen" /><br>
-        <button id="search_btn" class="btn">Suchen</button>
-    </div>
-</section>
-<section id="search-results" class="list-container"></section>
 
 <section class="shop-overview list-container">
     <h2>Kategorien</h2>
 
     <ul>
+        <li><a href="{% url 'shop:all' %}">ganzer Shop</a></li>
+        <br>
         <li><a href="{% url 'shop:items' %}">Items</a></li>
         <li><a href="{% url 'shop:waffen_werkzeuge' %}">Waffen & Werkzeuge</a></li>
         <li><a href="{% url 'shop:magazine' %}">Magazine</a></li>

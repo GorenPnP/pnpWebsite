@@ -17,6 +17,25 @@ from ppServer.decorators import spielleiter_only
 from .models import *
 
 
+model_list = [
+    (Item, "items"),
+    (Waffen_Werkzeuge, "waffen_werkzeuge"),
+    (Magazin, "magazine"),
+    (Pfeil_Bolzen, "pfeile_bolzen"),
+    (Schusswaffen, "schusswaffen"),
+    (Magische_Ausrüstung, "mag_ausrüstung"),
+    (Rituale_Runen, "rituale_runen"),
+    (Rüstungen, "rüstungen"),
+    (Ausrüstung_Technik, "ausr_technik"),
+    (Fahrzeug, "fahrzeuge"),
+    (Einbauten, "einbauten"),
+    (Zauber, "zauber"),
+    (VergessenerZauber, "vergessene_zauber"),
+    (Alchemie, "alchemie"),
+    (Tinker, "tinker"),
+]
+
+
 @login_required
 @spielleiter_only()
 def review_items(request):
@@ -35,159 +54,114 @@ def review_items(request):
 @login_required
 @verified_account
 def index(request):
-    if request.method == "GET":
-        return render(request, "shop/index.html", {"topic": "Shop"})
-
-    if request.method == "POST":
-        try:
-            search_text = json.loads(request.body.decode("utf-8"))["search_text"]
-        except:
-            return JsonResponse({"message": "Suchtext ist nicht angekommen"}, status=418)
-
-        if len(search_text) == 0: return JsonResponse({"item_list": []})
-        try:
-            re.compile(search_text)
-        except sre_constants.error as e:
-            search_text = re.escape(search_text)
-
-        item_list = []
-        model_list = [
-                      (Item, "items"),
-                      (Waffen_Werkzeuge, "waffen_werkzeuge"),
-                      (Magazin, "magazine"),
-                      (Pfeil_Bolzen, "pfeile_bolzen"),
-                      (Schusswaffen, "schusswaffen"),
-                      (Magische_Ausrüstung, "mag_ausrüstung"),
-                      (Rituale_Runen, "rituale_runen"),
-                      (Rüstungen, "rüstungen"),
-                      (Ausrüstung_Technik, "ausr_technik"),
-                      (Fahrzeug, "fahrzeuge"),
-                      (Einbauten, "einbauten"),
-                      (Zauber, "zauber"),
-                      (VergessenerZauber, "vergessene_zauber"),
-                      (Alchemie, "alchemie"),
-                      (Tinker, "tinker"),
-                    ]
-        for model, url_frag in model_list:
-            for item in model.objects.filter(name__iregex=search_text, frei_editierbar__exact=False):
-                view = "shop:{}".format(url_frag)
-                item_list.append({"name": item.__str__(), "url": "{}#{}".format(reverse(view), item.id)})
-
-        return JsonResponse({"item_list": item_list})
+    return render(request, "shop/index.html", {"topic": "Shop"})
 
 
 # specific show_shop
 @login_required
 @verified_account
-def item(request):
-    return show_shop(request, "Items", Item, FirmaItem, reverse("admin:shop_item_add"))
+def all(request):
+    items = []
+    for model, url in model_list:
+        items += show_shop("", model, "shop:"+url)["rows"]
 
+    context = {
+        "headings": BaseShop.get_table_headings(),
+        "rows": items,
+        "topic": "Shop",
+        "buyable": True
+    }
+    return render(request, "shop/show_shop.html", context)
+
+
+@login_required
+@verified_account
+def item(request):
+    return render(request, "shop/show_shop.html", show_shop("Items", Item, "admin:shop_item_add"))
 
 @login_required
 @verified_account
 def waffen_werkzeuge(request):
-    return show_shop(request, "Waffen & Werkzeuge", Waffen_Werkzeuge, FirmaWaffen_Werkzeuge, reverse("admin:shop_waffen_werkzeuge_add"))
-
+    return render(request, "shop/show_shop.html", show_shop("Waffen & Werkzeuge", Waffen_Werkzeuge, "admin:shop_waffen_werkzeuge_add"))
 
 @login_required
 @verified_account
 def magazine(request):
-    return show_shop(request, "Magazine", Magazin, FirmaMagazin, reverse("admin:shop_magazin_add"))
-
+    return render(request, "shop/show_shop.html", show_shop("Magazine", Magazin, "admin:shop_magazin_add"))
 
 @login_required
 @verified_account
 def pfeile_bolzen(request):
-    return show_shop(request, "Pfeile & Bolzen", Pfeil_Bolzen, FirmaPfeil_Bolzen, reverse("admin:shop_pfeil_bolzen_add"))
-
+    return render(request, "shop/show_shop.html", show_shop("Pfeile & Bolzen", Pfeil_Bolzen, "admin:shop_pfeil_bolzen_add"))
 
 @login_required
 @verified_account
 def schusswaffen(request):
-    return show_shop(request, "Schusswaffen", Schusswaffen, FirmaSchusswaffen, reverse("admin:shop_schusswaffen_add"))
-
+    return render(request, "shop/show_shop.html", show_shop("Schusswaffen", Schusswaffen, "admin:shop_schusswaffen_add"))
 
 @login_required
 @verified_account
 def mag_ausrüstung(request):
-    return show_shop(request, "Magische Ausrüstung", Magische_Ausrüstung, FirmaMagische_Ausrüstung, reverse("admin:shop_magische_ausrüstung_add"))
-
+    return render(request, "shop/show_shop.html", show_shop("Magische Ausrüstung", Magische_Ausrüstung, "admin:shop_magische_ausrüstung_add"))
 
 @login_required
 @verified_account
 def rituale_runen(request):
-    return show_shop(request, "Rituale & Runen", Rituale_Runen, FirmaRituale_Runen, reverse("admin:shop_rituale_runen_add"))
-
+    return render(request, "shop/show_shop.html", show_shop("Rituale & Runen", Rituale_Runen, "admin:shop_rituale_runen_add"))
 
 @login_required
 @verified_account
 def rüstungen(request):
-    return show_shop(request, "Rüstungen", Rüstungen, FirmaRüstungen, reverse("admin:shop_rüstungen_add"))
-
+    return render(request, "shop/show_shop.html", show_shop("Rüstungen", Rüstungen, "admin:shop_rüstungen_add"))
 
 @login_required
 @verified_account
 def ausrüstung_technik(request):
-    return show_shop(request, "Ausrüstung & Technik", Ausrüstung_Technik, FirmaAusrüstung_Technik, reverse("admin:shop_ausrüstung_technik_add"))
-
+    return render(request, "shop/show_shop.html", show_shop("Ausrüstung & Technik", Ausrüstung_Technik, "admin:shop_ausrüstung_technik_add"))
 
 @login_required
 @verified_account
 def fahrzeuge(request):
-    return show_shop(request, "Fahrzeuge", Fahrzeug, FirmaFahrzeug, reverse("admin:shop_fahrzeug_add"))
-
+    return render(request, "shop/show_shop.html", show_shop("Fahrzeuge", Fahrzeug, "admin:shop_fahrzeug_add"))
 
 @login_required
 @verified_account
 def einbauten(request):
-    return show_shop(request, "Einbauten", Einbauten, FirmaEinbauten, reverse("admin:shop_einbauten_add"))
-
+    return render(request, "shop/show_shop.html", show_shop("Einbauten", Einbauten, "admin:shop_einbauten_add"))
 
 @login_required
 @verified_account
 def zauber(request):
-    return show_shop(request, "Zauber", Zauber, FirmaZauber, reverse("admin:shop_zauber_add"))
-
+    return render(request, "shop/show_shop.html", show_shop("Zauber", Zauber, "admin:shop_zauber_add"))
 
 @login_required
 @verified_account
 def vergessene_zauber(request):
-    return show_shop(request, "Vergessene Zauber", VergessenerZauber, FirmaVergessenerZauber, reverse("admin:shop_vergessenerzauber_add"))
-
+    return render(request, "shop/show_shop.html", show_shop("Vergessene Zauber", VergessenerZauber, "admin:shop_vergessenerzauber_add"))
 
 @login_required
 @verified_account
 def alchemie(request):
-    return show_shop(request, "Alchemie", Alchemie, FirmaAlchemie, reverse("admin:shop_alchemie_add"))
-
+    return render(request, "shop/show_shop.html", show_shop("Alchemie", Alchemie, "admin:shop_alchemie_add"))
 
 @login_required
 @verified_account
 def tinker(request):
-    return show_shop(request, "Für Selbstständige", Tinker, FirmaTinker, reverse("admin:shop_tinker_add"))
+    return render(request, "shop/show_shop.html", show_shop("Für Selbstständige", Tinker, "admin:shop_tinker_add", False))
 
 
-# generic show_shop
-def show_shop(request, topic, shop_model, firma_shop_model, plus_url=""):
+def show_shop(topic, model, plus_url, buyable=True):
+    context = {
+        "headings": model.get_table_headings(),
+        "rows": model.get_all_serialized(),
 
-    # get min + max ep from filter
-    try:
-        min_ep_rang = int(request.GET.get("min_ep_rang"))
-    except: min_ep_rang = -1
-    try:
-        max_ep_rang = int(request.GET.get("max_ep_rang"))
-    except: max_ep_rang = 1000
+        "topic": topic,
+        "plus_url": reverse(plus_url)
+    }
+    if buyable:
+        context["buyable"] = True
 
-    # collect fields for table
-    fields = [shop_model.get_fields()]
-
-    items = shop_model.objects.filter(frei_editierbar=False, ab_stufe__gte=min_ep_rang, ab_stufe__lte=max_ep_rang).order_by("name")
-    for i in items:
-        fields.append(i.get_values(firma_shop_model))
-
-    context = {"fields": fields, "topic": topic, "min_ep_rang": min_ep_rang if min_ep_rang != -1 else None,
-               "max_ep_rang": max_ep_rang if max_ep_rang != 1000 else None, "plus_url": plus_url}
-    return render(request, "shop/show.html", context)
+    return context
 
 
 # specific buy_shop
@@ -421,7 +395,7 @@ def buy_item_post(request, item, firma_shop_model, rel_shop_model, verf_model, r
     # price of one item (at Stufe 1)
     if extra: debt = price
     elif rit_run: debt = getattr(firma_shop, "stufe_{}".format(stufe))
-    else: debt = firma_shop.current_price()
+    else: debt = firma_shop.preis
 
     # multiply num_items and stufe
     if item.stufenabhängig and not rit_run: debt *= num_items * stufe

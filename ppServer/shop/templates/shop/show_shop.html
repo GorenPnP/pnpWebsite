@@ -1,0 +1,27 @@
+{% extends 'base/main.html' %}
+{% load static %}
+{% block title %}{{ topic }}{% endblock %}
+{% block extra-head %}
+<link rel="stylesheet" href="{% static 'shop/css/show_shop.css' %}">
+<link rel="stylesheet" href="https://unpkg.com/ag-grid-community/dist/styles/ag-grid.css"/>
+<link rel="stylesheet" href="https://unpkg.com/ag-grid-community/dist/styles/ag-theme-alpine.css"/>
+
+<script src="https://unpkg.com/ag-grid-community/dist/ag-grid-community.min.noStyle.js" defer></script>
+<script src="{% static 'shop/js/show_shop.js' %}" defer></script>
+
+{{ headings|json_script:"headings" }}
+{{ rows|json_script:"rows" }}
+{{ buyable|json_script:"buyable" }}
+{% endblock %}
+
+{% block absolute %}
+{% include 'base/header.html' with topic=topic plus_url=plus_url %}
+{% endblock %}
+
+{% block body %}
+	{%  if rows|length == 0 %}
+		<h3 style="text-align: center">Hier gibt es nix. Tja, Thaddäus.</h3>
+	{% else %}
+		<main id="table" style="height: 100%; --ag-line-height: 1.5em;" class="ag-theme-alpine"></main>
+	{% endif %}
+{% endblock %}

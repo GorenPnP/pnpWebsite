@@ -1,4 +1,4 @@
-import math
+from itertools import chain
 from PIL import Image as PilImage
 
 from django.core.validators import MinValueValidator, MaxValueValidator
@@ -18,8 +18,6 @@ class Firma(models.Model):
     name = models.CharField(max_length=50, default='')
     beschreibung = models.TextField(max_length=1000, default='', blank=True)
 
-    price_factor = models.FloatField(default=1.0)
-
     def __str__(self):
         return "{}".format(self.name)
 
@@ -34,15 +32,12 @@ class FirmaShop(models.Model):
         verbose_name_plural = "Firmen"
 
     firma = models.ForeignKey(Firma, on_delete=models.CASCADE)
-    preis = models.IntegerField(default=0, null=True)       # dont use this property, instead self.current_price()
+    preis = models.IntegerField(default=0, null=True)
 
     verfügbarkeit = models.PositiveIntegerField(default=0)
 
     def __str__(self):
         return "{} von {} ({}%)".format(self.item, self.firma, self.verfügbarkeit)
-
-    def current_price(self):
-        return math.floor(self.preis * self.firma.price_factor + .5)
 
 
 class FirmaItem(FirmaShop):
@@ -140,32 +135,62 @@ class BaseShop(models.Model):
 
 
     @staticmethod
-    def get_fields():
+    def get_table_headings():
         return [
-            [{"val": "Name"}],
-            [{"val": "Beschreibung"}],
-            [{"val": "Ab Stufe"}],
-            [{"val": "Günstigster Preis"}],
-            [{"val": "Weiteres"}],
-            [{"val": "Preis * Stufe?"}]
-            ]
+            {"headerName": "Icon", "field": "icon", "type": "image"},
+            {"headerName": "Name", "field": "name", "type": "text"},
+            {"headerName": "Beschreibung", "field": "beschreibung", "type": "text--long"},
+            {"headerName": "Ab Stufe", "field": "ab_stufe", "type": "number"},
+            {"headerName": "Günstigster Preis", "field": "billigster", "type": "price"},
+            {"headerName": "Weiteres", "field": "weiteres", "type": "text"},
+            {"headerName": "Preis * Stufe?", "field": "stufenabhängig", "type": "boolean"}
+        ]
 
-    def get_values(self, firma_model, url_prefix=None):
+    @classmethod
+    def get_all_serialized(cls, url_prefix=None):
+        fields = [heading["field"] for heading in cls.get_table_headings()] + ["pk"]
 
-        weiteres = "illegal" if self.illegal else ""
-        if self.lizenz_benötigt and not weiteres: weiteres = "Lizenz"
-        if self.lizenz_benötigt and self.illegal: weiteres += ", Lizenz"
+        objects = cls.objects.filter(frei_editierbar=False)
+        if len(objects) == 0: return []
 
-        offers = firma_model.objects.filter(item=self)
-        billigster = sorted([o.current_price() for o in offers])[0] if offers.count() else None
+        firma_model = objects[0].firmen.through
 
-        return [[{"val": self.name, "icon_url": self.getIconUrl(), "url": reverse(url_prefix, args=[self.id]), "name": self.id}],
-                [{"val": self.beschreibung}],
-                [{"val": self.ab_stufe}],
-                [{"val": billigster}],
-                [{"val": weiteres}],
-                [{"val": "ja" if self.stufenabhängig else ""}]
-                ]
+        serialized = []
+
+        for object in objects:
+            object_dict = object.__dict__
+
+            serialized_object = {}
+            for field in fields:
+                serialized_object[field] = object_dict[field] if field in object_dict else None
+
+            # add pk
+            serialized_object["pk"] = object.pk
+
+            # add "weiteres"
+            weiteres = "illegal" if object.illegal else ""
+            if object.lizenz_benötigt and not weiteres: weiteres = "Lizenz"
+            if object.lizenz_benötigt and object.illegal: weiteres += ", Lizenz"
+
+            serialized_object["weiteres"] = weiteres
+
+
+            # add "billigster"
+            billigster = firma_model.objects.filter(item=object).order_by("preis").first()
+            billigster_preis = billigster.preis if billigster else None
+            serialized_object["billigster"] = billigster_preis
+
+            
+            # add "icon"
+            serialized_object["icon"] = object.getIconUrl()
+
+            # add "url"
+            serialized_object["url"] = reverse(url_prefix, args=[object.pk]) if url_prefix else None
+
+            serialized.append(serialized_object)
+
+        return serialized
+
 
     def getIconUrl(self):
         return self.icon.url if self.icon else "/static/res/img/icon-dice-account.svg"
@@ -207,8 +232,9 @@ class Item(BaseShop):
     def __str__(self):
         return "{} (item)".format(self.name)
 
-    def get_values(self, firma_model=FirmaItem, url_prefix="shop:buy_item"):
-        return super().get_values(firma_model, url_prefix)
+    @classmethod
+    def get_all_serialized(cls, url_prefix="shop:buy_item"):
+        return super().get_all_serialized(url_prefix)
 
 
 class Waffen_Werkzeuge(BaseShop):
@@ -228,33 +254,26 @@ class Waffen_Werkzeuge(BaseShop):
 
     def __str__(self):
         return "{} (Waffen & Werkzeuge)".format(self.name)
-
+    
     @staticmethod
-    def get_fields():
+    def get_table_headings():
         return [
-            [{"val": "Name"}],
-            [{"val": "Beschreibung"}],
-            [{"val": "Ab Stufe"}],
-            [{"val": "Erfolge"}],
-            [{"val": "BS"}],
-            [{"val": "ZS"}],
-            [{"val": "DK"}],
-            [{"val": "Günstigster Preis"}],
-            [{"val": "Weiteres"}],
-            [{"val": "Preis * Stufe?"}]
+            {"headerName": "Icon", "field": "icon", "type": "image"},
+            {"headerName": "Name", "field": "name", "type": "text"},
+            {"headerName": "Beschreibung", "field": "beschreibung", "type": "text--long"},
+            {"headerName": "Ab Stufe", "field": "ab_stufe", "type": "number"},
+            {"headerName": "Erfolge", "field": "erfolge", "type": "number"},
+            {"headerName": "BS", "field": "bs", "type": "text"},
+            {"headerName": "ZS", "field": "zs", "type": "text"},
+            {"headerName": "DK", "field": "dk", "type": "number"},
+            {"headerName": "Günstigster Preis", "field": "billigster", "type": "price"},
+            {"headerName": "Weiteres", "field": "weiteres", "type": "text"},
+            {"headerName": "Preis * Stufe?", "field": "stufenabhängig", "type": "boolean"}
         ]
 
-    def get_values(self, firma_model=FirmaWaffen_Werkzeuge, url_prefix="shop:buy_waffen_werkzeuge"):
-        fields = super().get_values(firma_model, url_prefix)
-
-        return fields[:3] +\
-            [
-                [{"val": self.erfolge}],
-                [{"val": self.bs}],
-                [{"val": self.zs}],
-                [{"val": self.dk}],
-            ]\
-            + fields[3:]
+    @classmethod
+    def get_all_serialized(cls, url_prefix="shop:buy_waffen_werkzeuge"):
+        return super().get_all_serialized(url_prefix)
 
 
 class Magazin(BaseShop):
@@ -271,21 +290,21 @@ class Magazin(BaseShop):
         return "{}, {} Schuss (Magazine)".format(self.name, self.schuss)
 
     @staticmethod
-    def get_fields():
-
+    def get_table_headings():
         return [
-            [{"val": "Name"}],
-            [{"val": "Beschreibung"}],
-            [{"val": "Ab Stufe"}],
-            [{"val": "Schuss"}],
-            [{"val": "Günstigster Preis"}],
-            [{"val": "Weiteres"}],
-            [{"val": "Preis * Stufe?"}]
+            {"headerName": "Icon", "field": "icon", "type": "image"},
+            {"headerName": "Name", "field": "name", "type": "text"},
+            {"headerName": "Beschreibung", "field": "beschreibung", "type": "text--long"},
+            {"headerName": "Ab Stufe", "field": "ab_stufe", "type": "number"},
+            {"headerName": "Schuss", "field": "schuss", "type": "number"},
+            {"headerName": "Günstigster Preis", "field": "billigster", "type": "price"},
+            {"headerName": "Weiteres", "field": "weiteres", "type": "text"},
+            {"headerName": "Preis * Stufe?", "field": "stufenabhängig", "type": "boolean"}
         ]
 
-    def get_values(self, firma_model=FirmaMagazin, url_prefix="shop:buy_magazine"):
-        fields = super().get_values(firma_model, url_prefix)
-        return fields[:3] + [ [{"val": self.schuss}] ] + fields[3:]
+    @classmethod
+    def get_all_serialized(cls, url_prefix="shop:buy_magazine"):
+        return super().get_all_serialized(url_prefix)
 
 
 class Pfeil_Bolzen(BaseShop):
@@ -301,28 +320,24 @@ class Pfeil_Bolzen(BaseShop):
 
     def __str__(self):
         return "{} (Pfeile & Bolzen)".format(self.name)
-
+    
     @staticmethod
-    def get_fields():
+    def get_table_headings():
         return [
-            [{"val": "Name"}],
-            [{"val": "Beschreibung"}],
-            [{"val": "Ab Stufe"}],
-            [{"val": "BS"}],
-            [{"val": "ZS"}],
-            [{"val": "Günstigster Preis"}],
-            [{"val": "Weiteres"}],
-            [{"val": "Preis * Stufe?"}]
+            {"headerName": "Icon", "field": "icon", "type": "image"},
+            {"headerName": "Name", "field": "name", "type": "text"},
+            {"headerName": "Beschreibung", "field": "beschreibung", "type": "text--long"},
+            {"headerName": "Ab Stufe", "field": "ab_stufe", "type": "number"},
+            {"headerName": "BS", "field": "bs", "type": "text"},
+            {"headerName": "ZS", "field": "zs", "type": "text"},
+            {"headerName": "Günstigster Preis", "field": "billigster", "type": "price"},
+            {"headerName": "Weiteres", "field": "weiteres", "type": "text"},
+            {"headerName": "Preis * Stufe?", "field": "stufenabhängig", "type": "boolean"}
         ]
 
-    def get_values(self, firma_model=FirmaPfeil_Bolzen, url_prefix="shop:buy_pfeil_bolzen"):
-        fields = super().get_values(firma_model, url_prefix)
-
-        return fields[:3] +\
-            [
-                [{"val": self.bs}],
-                [{"val": self.zs}]
-            ] + fields[3:]
+    @classmethod
+    def get_all_serialized(cls, url_prefix="shop:buy_pfeil_bolzen"):
+        return super().get_all_serialized(url_prefix)
 
 
 class Schusswaffen(BaseShop):
@@ -349,38 +364,70 @@ class Schusswaffen(BaseShop):
         return "{} (Schusswaffen)".format(self.name)
 
     @staticmethod
-    def get_fields():
+    def get_table_headings():
         return [
-            [{"val": "Name"}],
-            [{"val": "Beschreibung"}],
-            [{"val": "Ab Stufe"}],
-            [{"val": "Erfolge"}],
-            [{"val": "BS"}],
-            [{"val": "ZS"}],
-            [{"val": "Magazine"}],
-            [{"val": "Pfeile & Bolzen"}],
-            [{"val": "DK"}],
-            [{"val": "Präzision"}],
-            [{"val": "Günstigster Preis"}],
-            [{"val": "Weiteres"}],
-            [{"val": "Preis * Stufe?"}]
+            {"headerName": "Icon", "field": "icon", "type": "image"},
+            {"headerName": "Name", "field": "name", "type": "text"},
+            {"headerName": "Beschreibung", "field": "beschreibung", "type": "text--long"},
+            {"headerName": "Ab Stufe", "field": "ab_stufe", "type": "number"},
+            {"headerName": "Erfolge", "field": "erfolge", "type": "number"},
+            {"headerName": "BS", "field": "bs", "type": "text"},
+            {"headerName": "ZS", "field": "zs", "type": "text"},
+            {"headerName": "DK", "field": "dk", "type": "number"},
+            {"headerName": "Präzision", "field": "präzision", "type": "number"},
+            {"headerName": "Munition", "field": "munition", "type": "text"},
+            {"headerName": "Günstigster Preis", "field": "billigster", "type": "price"},
+            {"headerName": "Weiteres", "field": "weiteres", "type": "text"},
+            {"headerName": "Preis * Stufe?", "field": "stufenabhängig", "type": "boolean"}
         ]
+    
+    @classmethod
+    def get_all_serialized(cls, url_prefix=None):
+        fields = [heading["field"] for heading in cls.get_table_headings()] + ["pk"]
 
-    def get_values(self, firma_model=FirmaSchusswaffen, url_prefix="shop:buy_schusswaffen"):
-        fields = super().get_values(firma_model, url_prefix)
-        magazin_url = reverse("shop:magazine")
-        pf_bol_url = reverse("shop:pfeile_bolzen")
+        objects = cls.objects.filter(frei_editierbar=False)
+        if len(objects) == 0: return []
 
-        return fields[:3] +\
-            [
-                [{"val": self.erfolge}],
-                [{"val": self.bs}],
-                [{"val": self.zs}],
-                [{"val": i.name, "url": "{}#{}".format(magazin_url, i.id)} for i in self.magazine.all()],
-                [{"val": i.name, "url": "{}#{}".format(pf_bol_url, i.id)} for i in self.pfeile_bolzen.all()],
-                [{"val": self.dk}],
-                [{"val": self.präzision}],
-            ] + fields[3:]
+        firma_model = objects[0].firmen.through
+
+        serialized = []
+
+        for object in objects:
+            object_dict = object.__dict__
+
+            serialized_object = {}
+            for field in fields:
+                serialized_object[field] = object_dict[field] if field in object_dict else None
+
+            # add pk
+            serialized_object["pk"] = object.pk
+
+            # add "weiteres"
+            weiteres = "illegal" if object.illegal else ""
+            if object.lizenz_benötigt and not weiteres: weiteres = "Lizenz"
+            if object.lizenz_benötigt and object.illegal: weiteres += ", Lizenz"
+
+            serialized_object["weiteres"] = weiteres
+
+            # add "munition"
+            serialized_object["munition"] = ", ".join([m.name for m in chain(object.magazine.all(), object.pfeile_bolzen.all())])
+
+
+            # add "billigster"
+            billigster = firma_model.objects.filter(item=object).order_by("preis").first()
+            billigster_preis = billigster.preis if billigster else None
+            serialized_object["billigster"] = billigster_preis
+
+            
+            # add "icon"
+            serialized_object["icon"] = object.getIconUrl()
+
+            # add "url"
+            serialized_object["url"] = reverse(url_prefix, args=[object.pk]) if url_prefix else None
+
+            serialized.append(serialized_object)
+
+        return serialized
 
 
 class Magische_Ausrüstung(BaseShop):
@@ -396,8 +443,9 @@ class Magische_Ausrüstung(BaseShop):
     def __str__(self):
         return "{} (Magische Ausrüstung)".format(self.name)
 
-    def get_values(self, firma_model=FirmaMagische_Ausrüstung, url_prefix="shop:buy_mag_ausrüstung"):
-        return super().get_values(firma_model, url_prefix)
+    @classmethod
+    def get_all_serialized(cls, url_prefix="shop:buy_mag_ausrüstung"):
+        return super().get_all_serialized(url_prefix)
 
 
 class Rituale_Runen(BaseShop):
@@ -414,54 +462,66 @@ class Rituale_Runen(BaseShop):
         return "{} (Rituale & Runen)".format(self.name)
 
     @staticmethod
-    def get_fields():
+    def get_table_headings():
         return [
-            [{"val": "Name"}],
-            [{"val": "Beschreibung"}],
-            [{"val": "Ab Stufe"}],
-            [{"val": "Günstigster Preis für Stufe 1"}],
-            [{"val": "... für Stufe 2"}],
-            [{"val": "... für Stufe 3"}],
-            [{"val": "... für Stufe 4"}],
-            [{"val": "... für Stufe 5"}],
-            [{"val": "Weiteres"}],
-            [{"val": "Preis * Stufe?"}]
+            {"headerName": "Icon", "field": "icon", "type": "image"},
+            {"headerName": "Name", "field": "name", "type": "text"},
+            {"headerName": "Beschreibung", "field": "beschreibung", "type": "text--long"},
+            {"headerName": "Ab Stufe", "field": "ab_stufe", "type": "number"},
+            {"headerName": "Stufe 1", "field": "stufe1", "type": "price"},
+            {"headerName": "Stufe 2", "field": "stufe2", "type": "price"},
+            {"headerName": "Stufe 3", "field": "stufe3", "type": "price"},
+            {"headerName": "Stufe 4", "field": "stufe4", "type": "price"},
+            {"headerName": "Stufe 5", "field": "stufe5", "type": "price"},
+            {"headerName": "Weiteres", "field": "weiteres", "type": "text"}
         ]
+    
+    @classmethod
+    def get_all_serialized(cls, url_prefix=None):
+        fields = [heading["field"] for heading in cls.get_table_headings()] + ["pk"]
 
-    def get_values(self, firma_model=FirmaRituale_Runen, url_prefix="shop:buy_rituale_runen"):
+        objects = cls.objects.filter(frei_editierbar=False)
+        if len(objects) == 0: return []
 
-        weiteres = "illegal" if self.illegal else ""
-        if self.lizenz_benötigt and not weiteres:
-            weiteres = "Lizenz"
-        if self.lizenz_benötigt and self.illegal:
-            weiteres += ", Lizenz"
+        firma_model = objects[0].firmen.through
 
-        offers1 = firma_model.objects.filter(item=self).order_by("stufe_1")
-        billig1 = offers1[0].stufe_1 if offers1.count() else None
+        serialized = []
 
-        offers2 = firma_model.objects.filter(item=self).order_by("stufe_2")
-        billig2 = offers2[0].stufe_2 if offers2.count() else None
+        for object in objects:
+            object_dict = object.__dict__
 
-        offers3 = firma_model.objects.filter(item=self).order_by("stufe_3")
-        billig3 = offers3[0].stufe_3 if offers3.count() else None
+            serialized_object = {}
+            for field in fields:
+                serialized_object[field] = object_dict[field] if field in object_dict else None
 
-        offers4 = firma_model.objects.filter(item=self).order_by("stufe_4")
-        billig4 = offers4[0].stufe_4 if offers4.count() else None
+            # add pk
+            serialized_object["pk"] = object.pk
 
-        offers5 = firma_model.objects.filter(item=self).order_by("stufe_5")
-        billig5 = offers5[0].stufe_5 if offers5.count() else None
+            # add "weiteres"
+            weiteres = "illegal" if object.illegal else ""
+            if object.lizenz_benötigt and not weiteres: weiteres = "Lizenz"
+            if object.lizenz_benötigt and object.illegal: weiteres += ", Lizenz"
 
-        return [[{"val": self.name, "icon_url": self.getIconUrl(), "url": reverse(url_prefix, args=[self.id])}],
-                [{"val": self.beschreibung}],
-                [{"val": self.ab_stufe}],
-                [{"val": billig1}],
-                [{"val": billig2}],
-                [{"val": billig3}],
-                [{"val": billig4}],
-                [{"val": billig5}],
-                [{"val": weiteres}],
-                [{"val": "ja" if self.stufenabhängig else ""}]
-                ]
+            serialized_object["weiteres"] = weiteres
+
+
+            # add "billigster"
+            if firma_model.objects.filter(item=object).count():
+                serialized_object["stufe1"] = firma_model.objects.filter(item=object).order_by("stufe_1").first().stufe_1
+                serialized_object["stufe2"] = firma_model.objects.filter(item=object).order_by("stufe_2").first().stufe_2
+                serialized_object["stufe3"] = firma_model.objects.filter(item=object).order_by("stufe_3").first().stufe_3
+                serialized_object["stufe4"] = firma_model.objects.filter(item=object).order_by("stufe_4").first().stufe_4
+                serialized_object["stufe5"] = firma_model.objects.filter(item=object).order_by("stufe_5").first().stufe_5
+
+            # add "icon"
+            serialized_object["icon"] = object.getIconUrl()
+
+            # add "url"
+            serialized_object["url"] = reverse(url_prefix, args=[object.pk]) if url_prefix else None
+
+            serialized.append(serialized_object)
+
+        return serialized
 
 
 class Rüstungen(BaseShop):
@@ -479,30 +539,25 @@ class Rüstungen(BaseShop):
 
     def __str__(self):
         return "{} (Rüstungen)".format(self.name)
-
+    
     @staticmethod
-    def get_fields():
+    def get_table_headings():
         return [
-            [{"val": "Name"}],
-            [{"val": "Beschreibung"}],
-            [{"val": "Ab Stufe"}],
-            [{"val": "Schutz"}],
-            [{"val": "Stärke"}],
-            [{"val": "Haltbarkeit"}],
-            [{"val": "Günstigster Preis"}],
-            [{"val": "Weiteres"}],
-            [{"val": "Preis * Stufe?"}]
+            {"headerName": "Icon", "field": "icon", "type": "image"},
+            {"headerName": "Name", "field": "name", "type": "text"},
+            {"headerName": "Beschreibung", "field": "beschreibung", "type": "text--long"},
+            {"headerName": "Ab Stufe", "field": "ab_stufe", "type": "number"},
+            {"headerName": "Schutz", "field": "schutz", "type": "number"},
+            {"headerName": "Stärke", "field": "stärke", "type": "number"},
+            {"headerName": "Haltbarkeit", "field": "haltbarkeit", "type": "number"},
+            {"headerName": "Günstigster Preis", "field": "billigster", "type": "price"},
+            {"headerName": "Weiteres", "field": "weiteres", "type": "text"},
+            {"headerName": "Preis * Stufe?", "field": "stufenabhängig", "type": "boolean"}
         ]
 
-    def get_values(self, firma_model=FirmaMagische_Ausrüstung, url_prefix="shop:buy_rüstungen"):
-        fields = super().get_values(firma_model, url_prefix)
-
-        return fields[:3] +\
-            [
-                [{"val": self.schutz}],
-                [{"val": self.stärke}],
-                [{"val": self.haltbarkeit}]
-            ] + fields[3:]
+    @classmethod
+    def get_all_serialized(cls, url_prefix="shop:buy_rüstungen"):
+        return super().get_all_serialized(url_prefix)
 
 
 class Ausrüstung_Technik(BaseShop):
@@ -522,8 +577,9 @@ class Ausrüstung_Technik(BaseShop):
     def __str__(self):
         return "{} (Ausrüstung & Technik)".format(self.name)
 
-    def get_values(self, firma_model=FirmaAusrüstung_Technik, url_prefix="shop:buy_ausrüstung_technik"):
-        return super().get_values(firma_model, url_prefix)
+    @classmethod
+    def get_all_serialized(cls, url_prefix="shop:buy_ausrüstung_technik"):
+        return super().get_all_serialized(url_prefix)
 
 
 class Fahrzeug(BaseShop):
@@ -542,30 +598,25 @@ class Fahrzeug(BaseShop):
 
     def __str__(self):
         return "{} (Fahrzeuge)".format(self.name)
-
+    
     @staticmethod
-    def get_fields():
+    def get_table_headings():
         return [
-            [{"val": "Name"}],
-            [{"val": "Beschreibung"}],
-            [{"val": "Ab Stufe"}],
-            [{"val": "Schnelligkeit"}],
-            [{"val": "Rüstung"}],
-            [{"val": "Erfolge"}],
-            [{"val": "Günstigster Preis"}],
-            [{"val": "Weiteres"}],
-            [{"val": "Preis * Stufe?"}]
-            ]
-
-    def get_values(self, firma_model=FirmaFahrzeug, url_prefix="shop:buy_fahrzeug"):
-
-        fields = super().get_values(firma_model, url_prefix)
-        return fields[:3] +\
-            [
-                [{"val": self.schnelligkeit}],
-                [{"val": self.rüstung}],
-                [{"val": self.erfolge}]
-            ] + fields[3:]
+            {"headerName": "Icon", "field": "icon", "type": "image"},
+            {"headerName": "Name", "field": "name", "type": "text"},
+            {"headerName": "Beschreibung", "field": "beschreibung", "type": "text--long"},
+            {"headerName": "Ab Stufe", "field": "ab_stufe", "type": "number"},
+            {"headerName": "Schnelligkeit", "field": "schnelligkeit", "type": "number"},
+            {"headerName": "Rüstung", "field": "rüstung", "type": "number"},
+            {"headerName": "Erfolge", "field": "erfolge", "type": "number"},
+            {"headerName": "Günstigster Preis", "field": "billigster", "type": "price"},
+            {"headerName": "Weiteres", "field": "weiteres", "type": "text"},
+            {"headerName": "Preis * Stufe?", "field": "stufenabhängig", "type": "boolean"}
+        ]
+    
+    @classmethod
+    def get_all_serialized(cls, url_prefix="shop:buy_fahrzeug"):
+        return super().get_all_serialized(url_prefix)
 
 
 class Einbauten(BaseShop):
@@ -583,21 +634,21 @@ class Einbauten(BaseShop):
         return "{} (Einbauten)".format(self.name)
 
     @staticmethod
-    def get_fields():
+    def get_table_headings():
         return [
-            [{"val": "Name"}],
-            [{"val": "Beschreibung"}],
-            [{"val": "Ab Stufe"}],
-            [{"val": "Manifestverlust"}],
-            [{"val": "Günstigster Preis"}],
-            [{"val": "Weiteres"}],
-            [{"val": "Preis * Stufe?"}]
+            {"headerName": "Icon", "field": "icon", "type": "image"},
+            {"headerName": "Name", "field": "name", "type": "text"},
+            {"headerName": "Beschreibung", "field": "beschreibung", "type": "text--long"},
+            {"headerName": "Ab Stufe", "field": "ab_stufe", "type": "number"},
+            {"headerName": "Manifestverlust", "field": "manifestverlust", "type": "text"},
+            {"headerName": "Günstigster Preis", "field": "billigster", "type": "price"},
+            {"headerName": "Weiteres", "field": "weiteres", "type": "text"},
+            {"headerName": "Preis * Stufe?", "field": "stufenabhängig", "type": "boolean"}
         ]
-
-    def get_values(self, firma_model=FirmaEinbauten, url_prefix="shop:buy_einbauten"):
-
-        fields = super().get_values(firma_model, url_prefix)
-        return fields[:3] + [[{"val": self.manifestverlust}]] + fields[3:]
+    
+    @classmethod
+    def get_all_serialized(cls, url_prefix="shop:buy_einbauten"):
+        return super().get_all_serialized(url_prefix)
 
 
 class Zauber(BaseShop):
@@ -620,32 +671,25 @@ class Zauber(BaseShop):
         return "{} (Zauber)".format(self.name)
 
     @staticmethod
-    def get_fields():
+    def get_table_headings():
         return [
-            [{"val": "Name"}],
-            [{"val": "Beschreibung"}],
-            [{"val": "Ab Stufe"}],
-            [{"val": "Schaden"}],
-            [{"val": "Astralschaden"}],
-            [{"val": "Manaverbrauch"}],
-            [{"val": "Flächenwirkung"}],
-            [{"val": "Kategorie"}],
-            [{"val": "Günstigster Preis"}],
-            [{"val": "Weiteres"}],
-            [{"val": "Preis * Stufe?"}]
-            ]
-
-    def get_values(self, firma_model=FirmaZauber, url_prefix="shop:buy_zauber"):
-
-        fields = super().get_values(firma_model, url_prefix)
-        return fields[:3] +\
-            [
-                [{"val": self.schaden}],
-                [{"val": self.astralschaden}],
-                [{"val": self.manaverbrauch}],
-                [{"val": "ja" if self.flächenzauber else ""}],
-                [{"val": self.get_kategorie_display()}],
-            ] + fields[3:]
+            {"headerName": "Icon", "field": "icon", "type": "image"},
+            {"headerName": "Name", "field": "name", "type": "text"},
+            {"headerName": "Beschreibung", "field": "beschreibung", "type": "text--long"},
+            {"headerName": "Ab Stufe", "field": "ab_stufe", "type": "number"},
+            {"headerName": "Schaden", "field": "schaden", "type": "text"},
+            {"headerName": "Astralschaden", "field": "astralschaden", "type": "text"},
+            {"headerName": "Manaverbrauch", "field": "manaverbrauch", "type": "text"},
+            {"headerName": "Flächenwirkung", "field": "flächenzauber", "type": "boolean"},
+            {"headerName": "Kategorie", "field": "kategorie", "type": "text"},
+            {"headerName": "Günstigster Preis", "field": "billigster", "type": "price"},
+            {"headerName": "Weiteres", "field": "weiteres", "type": "text"},
+            {"headerName": "Preis * Stufe?", "field": "stufenabhängig", "type": "boolean"}
+        ]
+    
+    @classmethod
+    def get_all_serialized(cls, url_prefix="shop:buy_zauber"):
+        return super().get_all_serialized(url_prefix)
 
 
 class VergessenerZauber(BaseShop):
@@ -667,30 +711,24 @@ class VergessenerZauber(BaseShop):
         return "{} (vergessener Zauber)".format(self.name)
 
     @staticmethod
-    def get_fields():
+    def get_table_headings():
         return [
-            [{"val": "Name"}],
-            [{"val": "Beschreibung"}],
-            [{"val": "Ab Stufe"}],
-            [{"val": "Schaden"}],
-            [{"val": "Astralschaden"}],
-            [{"val": "Manaverbrauch"}],
-            [{"val": "Flächenwirkung"}],
-            [{"val": "Günstigster Preis"}],
-            [{"val": "Weiteres"}],
-            [{"val": "Preis * Stufe?"}]
-            ]
-
-    def get_values(self, firma_model=FirmaVergessenerZauber, url_prefix="shop:buy_vergessener_zauber"):
-
-        fields = super().get_values(firma_model, url_prefix)
-        return fields[:3] +\
-            [
-                [{"val": self.schaden}],
-                [{"val": self.astralschaden}],
-                [{"val": self.manaverbrauch}],
-                [{"val": "ja" if self.flächenzauber else ""}],
-            ] + fields[3:]
+            {"headerName": "Icon", "field": "icon", "type": "image"},
+            {"headerName": "Name", "field": "name", "type": "text"},
+            {"headerName": "Beschreibung", "field": "beschreibung", "type": "text--long"},
+            {"headerName": "Ab Stufe", "field": "ab_stufe", "type": "number"},
+            {"headerName": "Schaden", "field": "schaden", "type": "text"},
+            {"headerName": "Astralschaden", "field": "astralschaden", "type": "text"},
+            {"headerName": "Manaverbrauch", "field": "manaverbrauch", "type": "text"},
+            {"headerName": "Flächenwirkung", "field": "flächenzauber", "type": "boolean"},
+            {"headerName": "Günstigster Preis", "field": "billigster", "type": "price"},
+            {"headerName": "Weiteres", "field": "weiteres", "type": "text"},
+            {"headerName": "Preis * Stufe?", "field": "stufenabhängig", "type": "boolean"}
+        ]
+    
+    @classmethod
+    def get_all_serialized(cls, url_prefix="shop:buy_vergessener_zauber"):
+        return super().get_all_serialized(url_prefix)
 
 
 class Alchemie(BaseShop):
@@ -705,9 +743,10 @@ class Alchemie(BaseShop):
 
     def __str__(self):
         return "{} (Alchemie)".format(self.name)
-
-    def get_values(self, firma_model=FirmaAlchemie, url_prefix="shop:buy_alchemie"):
-        return super().get_values(firma_model, url_prefix)
+    
+    @classmethod
+    def get_all_serialized(cls, url_prefix="shop:buy_alchemie"):
+        return super().get_all_serialized(url_prefix)
 
 
 class Tinker(BaseShop):
@@ -724,30 +763,17 @@ class Tinker(BaseShop):
     def __str__(self):
         return "{} (für Selbstständige)".format(self.name)
 
-    @staticmethod
-    def get_fields():
-        return [
-            [{"val": "Name"}],
-            [{"val": "Beschreibung"}],
-            [{"val": "Ab Stufe"}],
-            [{"val": "Werte"}],
-            [{"val": "Weiteres"}]
-        ]
-
-    def get_values(self, firma_model=FirmaTinker, url_prefix=None):
-
-        weiteres = "illegal" if self.illegal else ""
-        if self.lizenz_benötigt and not weiteres:
-            weiteres = "Lizenz"
-        if self.lizenz_benötigt and self.illegal:
-            weiteres += ", Lizenz"
-
-        return [[{"val": self.name, "icon_url": self.getIconUrl(), "name": self.id}],
-                [{"val": self.beschreibung}],
-                [{"val": self.ab_stufe}],
-                [{"val": self.werte}],
-                [{"val": weiteres}]
-                ]
-
     def toDict(self):
         return {"id": self.id, "name": self.name, "icon_url": self.getIconUrl()}
+
+    @staticmethod
+    def get_table_headings():
+        return [
+            {"headerName": "Icon", "field": "icon", "type": "image"},
+            {"headerName": "Name", "field": "name", "type": "text"},
+            {"headerName": "Beschreibung", "field": "beschreibung", "type": "text--long"},
+            {"headerName": "Ab Stufe", "field": "ab_stufe", "type": "number"},
+            {"headerName": "Werte", "field": "werte", "type": "text"},
+            {"headerName": "Weiteres", "field": "weiteres", "type": "text"},
+            {"headerName": "Preis * Stufe?", "field": "stufenabhängig", "type": "boolean"}
+        ]

@@ -1,5 +1,7 @@
 import re
 
+from ppServer.settings import DEBUG
+
 from .models import Request
 
 
@@ -14,7 +16,7 @@ class RequestMiddleware:
         # Code to be executed for each request before
         # the view (and later middleware) are called.
 
-        if request.scope["path"].startswith(self.path_blacklist) or self.favicon_filename in request.scope["path"]:
+        if DEBUG or request.scope["path"].startswith(self.path_blacklist) or self.favicon_filename in request.scope["path"]:
             return self.get_response(request)
 
         response = self.get_response(request)

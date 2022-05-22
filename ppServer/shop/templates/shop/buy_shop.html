@@ -35,8 +35,7 @@
             <div><input class="stufe row-{{ forloop.counter0 }}" type="number" value="1" min="1"></div>
         {% endif %}
 
-        <!-- e.preis * e.firma.price_factor -->
-        <div>{{ e.current_price }} Dr.</div>
+        <div>{{ e.preis }} Dr.</div>
         <div>
             {% if charaktere %}
                 <select class="character row-{{ forloop.counter0 }}">

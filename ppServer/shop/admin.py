@@ -110,7 +110,7 @@ class BaseAdmin(admin.ModelAdmin):
         offers = self.firma_shop_model.objects.filter(item=obj)
         if not offers: return None
 
-        return sorted([o.current_price() for o in offers])[0]
+        return sorted([o.preis for o in offers])[0]
 
 ########### ShopAdmin ###############
 
