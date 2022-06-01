@@ -25,6 +25,7 @@ urlpatterns = [
     path('vergessene_zauber', views.vergessene_zauber, name='vergessene_zauber'),
     path('alchemie', views.alchemie, name='alchemie'),
     path('tinker', views.tinker, name='tinker'),
+    path('begleiter', views.begleiter, name='begleiter'),
 
     path('buy_item/<int:id>', views.buy_item, name="buy_item"),
     path('buy_waffen_werkzeuge/<int:id>', views.buy_waffen_werkzeuge, name="buy_waffen_werkzeuge"),
@@ -39,5 +40,6 @@ urlpatterns = [
     path('buy_einbauten/<int:id>', views.buy_einbauten, name="buy_einbauten"),
     path('buy_zauber/<int:id>', views.buy_zauber, name="buy_zauber"),
     path('buy_vergessener_zauber/<int:id>', views.buy_vergessener_zauber, name="buy_vergessener_zauber"),
-    path('buy_alchemie/<int:id>', views.buy_alchemie, name="buy_alchemie")
+    path('buy_alchemie/<int:id>', views.buy_alchemie, name="buy_alchemie"),
+    path('buy_begleiter/<int:id>', views.buy_begleiter, name="buy_begleiter")
 ]

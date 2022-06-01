@@ -24,7 +24,7 @@ function send_new_msg() {
 	if (!new_msg) return;
 
 	post(
-		{ new_msg: new_msg },
+		{ new_msg },
 		_ => new_msg = null,
 		error => setTimeout(send_new_msg, 1000),
 		false)

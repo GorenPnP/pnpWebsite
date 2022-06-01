@@ -116,6 +116,21 @@ class Gfs(models.Model):
         return attr
 
 
+class Persönlichkeit(models.Model):
+    
+    class Meta:
+        ordering = ['titel']
+        verbose_name = "Persönlichkeit"
+        verbose_name_plural = "Persönlichkeiten"
+
+    titel = models.CharField(max_length=30, unique=True)
+    positiv = models.TextField()
+    negativ = models.TextField()
+
+    def __str__(self):
+        return self.titel
+
+
 class Profession(models.Model):
 
     class Meta:
@@ -599,8 +614,6 @@ class Charakter(models.Model):
     spezialfertigkeiten = models.ManyToManyField(Spezialfertigkeit, through='RelSpezialfertigkeit', blank=True)
     wissensfertigkeiten = models.ManyToManyField(Wissensfertigkeit, through='RelWissensfertigkeit', blank=True)
 
-    begleiter = models.ManyToManyField(Begleiter, through='RelBegleiter', blank=True)
-
     items = models.ManyToManyField('shop.Item', through='RelItem', blank=True)
     waffenWerkzeuge = models.ManyToManyField('shop.Waffen_Werkzeuge', through='RelWaffen_Werkzeuge', blank=True)
     magazine = models.ManyToManyField('shop.Magazin', through='RelMagazin', blank=True)
@@ -612,6 +625,8 @@ class Charakter(models.Model):
     fahrzeuge = models.ManyToManyField('shop.Fahrzeug', through='RelFahrzeug', blank=True)
     einbauten = models.ManyToManyField('shop.Einbauten', through='RelEinbauten', blank=True)
     zauber = models.ManyToManyField('shop.Zauber', through='RelZauber', blank=True)
+    vergessene_zauber = models.ManyToManyField('shop.VergessenerZauber', through='RelVergessenerZauber', blank=True)
+    begleiter = models.ManyToManyField('shop.Begleiter', through='RelBegleiter', blank=True)
 
     sonstige_items = models.TextField(max_length=1000, default='', blank=True)
 
@@ -640,24 +655,6 @@ class RelWesenkraft(models.Model):
 
     def __str__(self):
         return "'{}' von Charakter '{}'".format(self.wesenkraft, self.char)
-
-
-class RelBegleiter(models.Model):
-
-    class Meta:
-        ordering = ['char', 'begleiter']
-        verbose_name = "Begleiter"
-        verbose_name_plural = "Begleiter"
-
-        unique_together = (('char', 'begleiter'),)
-
-    char = models.ForeignKey(Charakter, on_delete=models.CASCADE)
-    begleiter = models.ForeignKey(Begleiter, on_delete=models.CASCADE)
-    status = models.CharField(max_length=60, choices=enums.status_enum)
-    notizen = models.CharField(max_length=100, blank=True, default='')
-
-    def __str__(self):
-        return "'{}' von Charakter '{}'".format(self.begleiter, self.char)
 
 
 class Affektivität(models.Model):
@@ -691,6 +688,21 @@ class RelSpezies(models.Model):
 
     def __str__(self):
         return "Charakter '{}' ist ein/e '{}'".format(self.char.name, self.spezies.titel)
+
+
+class RelPersönlichkeit(models.Model):
+    class Meta:
+        ordering = ['char', 'persönlichkeit']
+        verbose_name = "Persönlichkeit"
+        verbose_name_plural = "Persönlichkeiten"
+
+        unique_together = (('char', 'persönlichkeit'),)
+
+    char = models.ForeignKey(Charakter, on_delete=models.CASCADE)
+    persönlichkeit = models.ForeignKey(Persönlichkeit, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return "Charakter '{}' ist '{}'".format(self.char.name, self.persönlichkeit.titel)
 
 
 class RelTalent(models.Model):
@@ -973,6 +985,14 @@ class RelTinker(RelShop):
     item = models.ForeignKey('shop.Tinker', on_delete=models.CASCADE)
 
 
+class RelBegleiter(RelShop):
+    class Meta:
+        verbose_name = "Begleiter"
+        verbose_name_plural = "Begleiter"
+
+    item = models.ForeignKey('shop.Begleiter', on_delete=models.CASCADE, null=True)
+
+
 class RelRituale_Runen(RelShop):
     class Meta:
         verbose_name = "Ritual/Rune"
@@ -1112,6 +1132,14 @@ class RelFirmaTinker(RelFirmaShop):
         verbose_name_plural = "Für Selbstständige Verfügbarkeiten"
 
     firma_shop = models.ForeignKey('shop.FirmaTinker', on_delete=models.CASCADE)
+
+
+class RelFirmaBegleiter(RelFirmaShop):
+    class Meta:
+        verbose_name = "Begleiter Verfügbarkeit"
+        verbose_name_plural = "Begleiter Verfügbarkeiten"
+
+    firma_shop = models.ForeignKey('shop.FirmaBegleiter', on_delete=models.CASCADE)
 
 
 class RelFirmaRituale_Runen(RelFirmaShop):

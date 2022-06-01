@@ -116,6 +116,10 @@ class FirmaAlchemie(FirmaShop):
 class FirmaTinker(FirmaShop):
     item = models.ForeignKey('Tinker', on_delete=models.CASCADE)
 
+
+class FirmaBegleiter(FirmaShop):
+    item = models.ForeignKey('Begleiter', on_delete=models.CASCADE)
+
 ################ Base Shop ####################
 
 class BaseShop(models.Model):
@@ -777,3 +781,20 @@ class Tinker(BaseShop):
             {"headerName": "Weiteres", "field": "weiteres", "type": "text"},
             {"headerName": "Preis * Stufe?", "field": "stufenabhängig", "type": "boolean"}
         ]
+
+
+class Begleiter(BaseShop):
+    class Meta:
+        verbose_name = "Begleiter"
+        verbose_name_plural = "Begleiter"
+
+        ordering = ['name']
+
+    firmen = models.ManyToManyField('Firma', through='FirmaBegleiter', blank=True)
+
+    def __str__(self):
+        return "{} (Begleiter)".format(self.name)
+    
+    @classmethod
+    def get_all_serialized(cls, url_prefix="shop:buy_begleiter"):
+        return super().get_all_serialized(url_prefix)

@@ -4,20 +4,17 @@
 {% block extra-head %}
 <link rel="stylesheet" href="{% static 'base/css/list.css' %}" type="text/css">
 <link rel="stylesheet" href="{% static 'shop/css/index.css' %}" type="text/css">
-<script src='https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js' type='text/javascript'></script>
-<script src="{% static 'base/js/ajax.js' %}"></script>
-<script type="text/javascript" src="{% static 'shop/js/index.js' %}"></script>
 {% endblock %}
 {% block absolute %}{% include 'base/header.html' with topic=topic %}{% endblock %}
 
 {% block body %}
 
 <section class="shop-overview list-container">
+    <a href="{% url 'shop:all' %}" style="display: block; margin-bottom: 3em">ganzer Shop</a>
+
     <h2>Kategorien</h2>
 
     <ul>
-        <li><a href="{% url 'shop:all' %}">ganzer Shop</a></li>
-        <br>
         <li><a href="{% url 'shop:items' %}">Items</a></li>
         <li><a href="{% url 'shop:waffen_werkzeuge' %}">Waffen & Werkzeuge</a></li>
         <li><a href="{% url 'shop:magazine' %}">Magazine</a></li>
@@ -32,6 +29,7 @@
         <li><a href="{% url 'shop:zauber' %}">Zauber</a></li>
         <li><a href="{% url 'shop:vergessene_zauber' %}">Vergessene Zauber</a></li>
         <li><a href="{% url 'shop:alchemie' %}">Alchemie</a></li>
+        <li><a href="{% url 'shop:begleiter' %}">Begleiter</a></li>
         <li><a href="{% url 'shop:tinker' %}">Für Selbstständige</a></li>
     </ul>
 </section>

@@ -78,6 +78,9 @@ class FirmaAlchemieInLine(FirmaShopInLine):
 class MiningItemInLine(admin.TabularInline):
     model = MiningItem
 
+class FirmaBegleiterInLine(FirmaShopInLine):
+    model = FirmaBegleiter
+
 
 
 ######### BaseAdmin ##################
@@ -317,6 +320,17 @@ class TinkerAdmin(BaseAdmin):
     icon_.allow_tags = True
 
 
+class BegleiterAdmin(BaseAdmin):
+
+    shop_model = Begleiter
+    firma_shop_model = FirmaBegleiter
+
+    list_display = ('name', 'beschreibung', "ab_stufe", 'billigste', 'illegal_', 'lizenz_benötigt_', "frei_editierbar_")
+    list_filter = ['illegal', 'lizenz_benötigt', "frei_editierbar"]
+
+    inlines = [FirmaBegleiterInLine]
+
+
 
 class FirmaAdmin(admin.ModelAdmin):
     list_display = ('name', 'beschreibung')
@@ -337,5 +351,6 @@ admin.site.register(Zauber, ZauberAdmin)
 admin.site.register(VergessenerZauber, VergessenerZauberAdmin)
 admin.site.register(Alchemie, AlchemieAdmin)
 admin.site.register(Tinker, TinkerAdmin)
+admin.site.register(Begleiter, BegleiterAdmin)
 
 admin.site.register(Firma, FirmaAdmin)

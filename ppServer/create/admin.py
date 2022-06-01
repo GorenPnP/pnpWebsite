@@ -48,10 +48,10 @@ class NewCharakterZauberInLine(admin.TabularInline):
 class NewCharakterAdmin(admin.ModelAdmin):
     fieldsets = [
         ("Settings (Finger weg)", {'fields': ['eigentümer', "ep_system", "larp", "gfs", "profession"]}),
-        ("Aus der Prioritätentabelle", {"fields": ["zauber", "ap", "sp", "konzentration", "fp", "fg", "geld", "ip"]}),
-        ]
+        ("Aus der Prioritätentabelle", {"fields": ["zauber", "ap", "sp", "konzentration", "fp", "fg", "geld", "ip", "spF_wF"]}),
+    ]
 
-    list_display = ["eigentümer", "gfs", "profession", "ip", 'ap', 'sp', "konzentration", "fp", "fg", "geld", "zauber", "larp"]
+    list_display = ["eigentümer", "gfs", "profession", "ip", 'ap', 'sp', "konzentration", "fp", "fg", "geld", "zauber", "spF_wF", "larp"]
     inlines = [NewCharakterAttributInLine, NewCharakterFertInLine,
                NewCharakterVorteilInLine, NewCharakterNachteilInLine,
                NewCharakterSpezialfertigkeitInLine, NewCharakterWissensfertigkeitInLine,
@@ -71,8 +71,8 @@ class GfsCharacterizationAdmin(admin.ModelAdmin):
     list_editable = ['state', 'social', 'magical', 'can_punch', 'can_shoot', 'gets_pricy_skills', 'can_fly', 'attitude']
 
 class PriotableAdmin(admin.ModelAdmin):
-    list_display = ['priority', 'ip', 'ap', 'sp', 'konzentration', 'fp', 'fg', 'zauber', 'drachmen']
-    list_editable = ['ip', 'ap', 'sp', 'konzentration', 'fp', 'fg', 'zauber', 'drachmen']
+    list_display = ['priority', 'ip', 'ap', 'sp', 'konzentration', 'fp', 'fg', 'zauber', 'drachmen', 'spF_wF']
+    list_editable = ['ip', 'ap', 'sp', 'konzentration', 'fp', 'fg', 'zauber', 'drachmen', 'spF_wF']
 
 
 admin.site.register(NewCharakter, NewCharakterAdmin)

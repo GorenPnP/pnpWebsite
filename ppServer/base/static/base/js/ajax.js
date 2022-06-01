@@ -1,6 +1,6 @@
 /*
 import in html:
-	<script src='https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js' type='text/javascript'></script>
+	<script src="{% static 'res/js/axios.min.js' %}" type='text/javascript'></script>
 	<script src="{% static 'base/js/ajax.js' %}"></script>
 
 

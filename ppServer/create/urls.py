@@ -11,6 +11,7 @@ urlpatterns = [
         path('priotable', views.new_priotable, name='prio'),
         path('ap', views.new_ap, name='ap'),
         path('fert', views.new_fert, name='fert'),
+        path('spF_wF', views.new_spF_wF, name='spF_wF'),
         path('zauber', views.new_zauber, name='zauber'),
         path('cp', views.new_cp, name='cp'),
 

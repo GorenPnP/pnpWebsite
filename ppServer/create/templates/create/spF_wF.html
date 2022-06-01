@@ -1,0 +1,35 @@
+{% extends 'base/main.html' %}
+{% load static %}
+{% block title %}{{ topic }}{% endblock %}
+{% block extra-head %}
+<link rel="stylesheet" href="{% static 'ag-grid/css/ag-grid.css' %}"/>
+<link rel="stylesheet" href="{% static 'ag-grid/css/ag-theme-alpine.css' %}"/>
+<link rel="stylesheet" href="{% static 'create/css/spF_wF.css' %}"/>
+
+<script src="{% static 'ag-grid/js/ag-grid-community.min.noStyle.js' %}"></script>
+<script type="text/javascript" src="{% static 'ag-grid/js/ag_grid_de_locale.js' %}"></script>
+
+<script src="{% static 'res/js/axios.min.js' %}" type='text/javascript'></script>
+<script src="{% static 'base/js/ajax.js' %}"></script>
+
+<script type="text/javascript" src="{% static 'create/js/spF_wF.js' %}" defer></script>
+{{ headings_spF|json_script:"headings_spF" }}
+{{ spezialfertigkeiten|json_script:"spezialfertigkeiten" }}
+
+{{ headings_wF|json_script:"headings_wF" }}
+{{ wissensfertigkeiten|json_script:"wissensfertigkeiten" }}
+{% endblock %}
+
+{% block absolute %}
+{% include 'base/header.html' with topic=topic plus_url=plus_url %}
+{% endblock %}
+
+{% block body %}
+<p class="pool"><b id="fert_pool">{{ spF_wF }}</b> Fertigkeit/en übrig</p>
+<p class="pool"><b id="wp_pool">{{ wp }}</b> WP übrig</p>
+
+<main id="table_spF" class="table ag-theme-alpine"></main>
+<main id="table_wF" class="table ag-theme-alpine"></main>
+
+<button id="submit" class="btn" onclick="submit()">Wählen</button>
+{% endblock %}

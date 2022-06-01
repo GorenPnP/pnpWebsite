@@ -1,3 +1,4 @@
+from hashlib import new
 import json
 from math import floor
 
@@ -9,10 +10,13 @@ from django.urls import reverse
 
 from ppServer.decorators import verified_account
 
+from character.enums import würfelart_enum
 from character.models import *
 from shop.models import Zauber
 
 from .models import *
+
+WP_FACTOR = 4
 
 
 def get_own_NewCharakter(request):
@@ -60,6 +64,8 @@ def new_zauber_done(new_char):
 def new_vor_nacht_done(new_char):
     return new_char.ip >= 0
 
+def new_spF_and_wF_done(new_char):
+    return new_char.spF_wF == 0
 
 @login_required
 @verified_account
@@ -84,6 +90,7 @@ def landing_page(request):
 
         if not new_char.larp:
             list.append({"done": new_zauber_done(new_char), "link": reverse("create:zauber"), "text": "Suche dir hier Zauber aus", "werte": "noch {} zu vergeben".format(new_char.zauber)})
+            list.append({"done": new_spF_and_wF_done(new_char), "link": reverse("create:spF_wF"), "text": "Wähle hier Spezial- und Wissensfertigkeiten aus", "werte": "noch {} zu vergeben".format(new_char.spF_wF)})
             list.append({"done": new_vor_nacht_done(new_char), "link": reverse("create:vor_nachteil"), "text": "Verwalte hier Vor- und Nachteile", "werte": "{} IP".format(new_char.ip)})
 
         infos = []
@@ -95,15 +102,17 @@ def landing_page(request):
                         new_fert_done(new_char) and\
                         new_zauber_done(new_char) and\
                         new_vor_nacht_done(new_char) and\
-                        (not not new_char.profession or new_char.larp)
+                        new_spF_and_wF_done(new_char) and\
+                        (NewCharakterPersönlichkeit.objects.filter(char=new_char).count() or new_char.larp)
 
+        pers = [rel.persönlichkeit.id for rel in NewCharakterPersönlichkeit.objects.filter(char=new_char)]
         context = {
             "larp": new_char.larp,
             "list": list,
             "infos": infos,
             "done": done_completely,
-            "professionen": Profession.objects.all(),
-            "prof_row": {"link": reverse("wiki:profession"), "wert": new_char.profession}
+            "persönlichkeiten": Persönlichkeit.objects.all(),
+            "persönlichkeit_row": {"link": reverse("wiki:persönlichkeiten"), "wert": pers}
             }
         return render(request, "create/landing_page.html", context=context)
 
@@ -116,140 +125,28 @@ def landing_page(request):
             return JsonResponse({"message": "Konnte Charakter nicht finden"}, status=418)
 
         try:
-            p_id = int(json.loads(request.body.decode("utf-8"))['p_id'])
+            p_ids = [int(p_id) for p_id in json.loads(request.body.decode("utf-8"))['p_ids']]
         except:
-            return JsonResponse({"message": "Keine Profession angekommen"}, status=418)
+            return JsonResponse({"message": "Keine Persönlichkeit angekommen"}, status=418)
 
-        prof = get_object_or_404(Profession, id=p_id)
-        attr_aktuell_changes = {}       # {id: diff}
-        attr_max_changes = {}
-        fert_changes = {}
-
-        # lengthy checks if attrs, ferts are still valid
-        if new_char.profession:
-
-            for pAttr in ProfessionAttribut.objects.filter(profession=new_char.profession):
-                attr_aktuell_changes[pAttr.attribut.id] = pAttr.aktuellerWert * -1
-                attr_max_changes[pAttr.attribut.id] = pAttr.maxWert * -1
-
-            for pFert in ProfessionFertigkeit.objects.filter(profession=new_char.profession):
-                fert_changes[pFert.fertigkeit.id] = pFert.fp * -1
-
-            # delete talente, spezial, wissen
-            NewCharakterTalent.objects.filter(talent__in=new_char.profession.talente.all(), char=new_char).delete()
-            NewCharakterSpezialfertigkeit.objects.filter(spezialfertigkeit__in=new_char.profession.spezial.all(), char=new_char).delete()
-            NewCharakterWissensfertigkeit.objects.filter(wissensfertigkeit__in=new_char.profession.wissen.all(), char=new_char).delete()
-
-        # newly selected profession
-        for pAttr in ProfessionAttribut.objects.filter(profession=prof):
-            if pAttr.attribut.id in attr_aktuell_changes.keys():
-                attr_aktuell_changes[pAttr.attribut.id] += pAttr.aktuellerWert
-                attr_max_changes[pAttr.attribut.id] += pAttr.maxWert
-            else:
-                attr_aktuell_changes[pAttr.attribut.id] = pAttr.aktuellerWert
-                attr_max_changes[pAttr.attribut.id] = pAttr.maxWert
+        print(p_ids)
+        persönlichkeiten = [get_object_or_404(Persönlichkeit, id=p_id) for p_id in p_ids]
+        toggle_check = NewCharakterPersönlichkeit.objects.filter(char=new_char).count() == 0     # if persönlichkeit chosen, tick that box!
 
 
-        for pFert in ProfessionFertigkeit.objects.filter(profession=prof):
-            if pFert.fertigkeit.id in fert_changes.keys():
-                fert_changes[pFert.fertigkeit.id] += pFert.fp
-            else:
-                fert_changes[pFert.fertigkeit.id] = pFert.fp
-
-        # collected all changes in attrs, ferts, check now for problematic developments
-        attention = []
-        redo_sections = ["prof"] if not new_char.profession else []     # if first profession, tick that box!
-
-        aktuelle_werte = {}
-        for relAttr in NewCharakterAttribut.objects.filter(char=new_char):
-            aktuell_diff = attr_aktuell_changes[relAttr.attribut.id]
-            max_diff = attr_max_changes[relAttr.attribut.id]
-
-            # check if aktuellerWert still valid
-            if max_diff < 0 and relAttr.ges_aktuell() < relAttr.ges_max_bonus() + max_diff:
-
-                give_back = relAttr.ges_max_bonus() + max_diff - relAttr.ges_aktuell()   # always positive (> 0)
-
-                attention.append("Maximum von {} sinkt um {}. Nun ist der Attributswert zu hoch. Ernidrige um {}"
-                                 .format(relAttr.attribut.titel, max_diff * -1, give_back))
-                redo_sections.append("attr")
-
-                # lower aktuellerWert and give ap back
-                relAttr.aktuellerWert_ap -= give_back
-
-                new_char.ap += give_back
-                new_char.save()
-
-            # set new vals for aktuell & maxWert
-            relAttr.aktuellerWert_bonus += aktuell_diff
-            relAttr.maxWert_bonus += max_diff
-            relAttr.save()
-
-            aktuelle_werte[relAttr.attribut.id] = relAttr.ges_aktuell_bonus()
-
-
-            # check if fg still valid
-            if relAttr.fg > relAttr.ges_aktuell_bonus():
-
-                give_back = relAttr.fg - relAttr.ges_aktuell_bonus()
-                attention.append("FG zum Attribut {} sind nun zu hoch, da sich der Attributsbonus verringert. Setze die FG um {} herab."
-                                 .format(relAttr.attribut.titel, give_back))
-                redo_sections.append("fert")
-
-                # lower fg and give them back
-                relAttr.fg -= give_back
-                relAttr.save()
-
-                new_char.fg += give_back
-                new_char.save()
-
-
-        for relFert in NewCharakterFertigkeit.objects.filter(char=new_char):
-            fp_diff = fert_changes[relFert.fertigkeit.id]
-
-            # calc limit for fp (not fp_diff->fp_bonus, just those affected in decreasing aktuellerWert of Attrs)
-            limit = aktuelle_werte[relFert.fertigkeit.attr1.id]
-            limit += aktuelle_werte[relFert.fertigkeit.attr2.id] if relFert.fertigkeit.attr2 else limit
-            limit = min(floor(limit / 2 + .5), 12)
-
-            # check if fp still valid
-            if relFert.fp > limit:
-                give_back = relFert.fp - limit
-                attention.append("FP der Fertigkeit {} sind nun zu hoch, da sich Attributsboni erniedrigt haben. Setze die FP um {} herab."
-                                 .format(relFert.fertigkeit.titel, give_back))
-
-                if not "fert" in redo_sections:
-                    redo_sections.append("fert")
-
-                # lower fp of fert and give them back
-                relFert.fp -= give_back
-
-                new_char.fp += give_back
-                new_char.save()
-
-            # set new val for fp_bonus
-            relFert.fp_bonus += fp_diff
-            relFert.save()
-
-
-        # talente, spezial, wissen new
-        for t in prof.talente.all(): NewCharakterTalente.objects.get_or_create(talent=t)
-        for t in prof.spezial.all(): NewCharakterSpezialfertigkeit.objects.get_or_create(char=new_char, spezialfertigkeit=t)
-        for t in prof.wissen.all(): NewCharakterWissensfertigkeit.objects.get_or_create(wissensfertigkeit=t, char=new_char)
-
-
-        # profession tauschen
-        new_char.profession = prof
-        new_char.save()
+        # persönlichkeit hinzufügen
+        NewCharakterPersönlichkeit.objects.filter(char=new_char).delete()
+        for persönlichkeit in persönlichkeiten:
+            NewCharakterPersönlichkeit.objects.create(char=new_char, persönlichkeit=persönlichkeit)
 
         # done
-        return JsonResponse({"message": " ".join(attention), "redo": redo_sections, "ap": new_char.ap, "fp": new_char.fp, "fg": new_char.fg})
+        return JsonResponse({"toggle_check": toggle_check})
 
 
 def get_entries_of_prio():
     # Note: FP & FG together in one field!
     return [
-        [row.get_priority_display(), row.ip, row.ap, row.sp, row.konzentration, row.fp, row.fg, row.zauber, row.drachmen]
+        [row.get_priority_display(), row.ip, row.ap, row.sp, row.konzentration, row.fp, row.fg, row.zauber, row.drachmen, row.spF_wF]
         for row in Priotable.objects.all()
     ]
 
@@ -388,6 +285,7 @@ def new_priotable(request):
                 new_char.zauber = entries[row][col + 2]
             else:
                 new_char.geld = entries[row][col + 2]
+                new_char.spF_wF = entries[row][col + 3]
 
         ap -= new_char.gfs.ap
         if ap < 0:
@@ -778,6 +676,97 @@ def new_zauber(request):
         return JsonResponse({"url": reverse("create:landing_page")})
 
 
+def new_spF_wF(request):
+    new_char, error = get_own_NewCharakter(request)
+    if error:
+        return JsonResponse({"message": "Charakter konnte nicht gefunden werden"}, status=418)
+
+    if not new_gfs_done(new_char):
+        return redirect("create:gfs")
+
+    if not new_prio_done(new_char):
+        return redirect("create:prio")
+
+
+    if request.method == "GET":
+
+        spFerts = []
+        for spF in Spezialfertigkeit.objects.all():
+            relFert = NewCharakterSpezialfertigkeit.objects.filter(char=new_char, spezialfertigkeit=spF).first()
+            sp = {
+                "pk": spF.pk,
+                "titel": spF.titel,
+                "beschreibung": spF.beschreibung,
+                "attrs": "{}, {}".format(spF.attr1.titel, spF.attr2.titel),
+                "ausgleich": ", ".join([fert.titel for fert in spF.ausgleich.all()]),
+                "punkte": relFert.stufe if relFert else None
+            }
+            spFerts.append(sp)
+
+        wFerts = []
+        for wF in Wissensfertigkeit.objects.all():
+            relFert = NewCharakterWissensfertigkeit.objects.filter(char=new_char, wissensfertigkeit=wF).first()
+            w = {
+                "pk": wF.pk,
+                "titel": wF.titel,
+                "beschreibung": wF.beschreibung,
+                "attrs": "{}, {}, {}".format(wF.attr1.titel, wF.attr2.titel, wF.attr3.titel),
+                "fert": ", ".join([fert.titel for fert in wF.fertigkeit.all()]),
+                "punkte": relFert.stufe if relFert else None
+            }
+            wFerts.append(w)
+
+        context = { 
+            "topic": "Spezial- & Wissensf.",
+            "spezialfertigkeiten": spFerts,
+            "wissensfertigkeiten": wFerts,
+            "wp": new_char.spF_wF * WP_FACTOR,
+            "spF_wF": new_char.spF_wF,
+            "headings_spF": [
+                {"headerName": "Name", "field": "titel", "type": "text"},
+                {"headerName": "Attribute", "field": "attrs", "type": "text"},
+                {"headerName": "Fertigkeit/en", "field": "ausgleich", "type": "text"},
+            ],
+            "headings_wF": [
+                {"headerName": "Name", "field": "titel", "type": "text"},
+                {"headerName": "Attribute", "field": "attrs", "type": "text"},
+                {"headerName": "Fertigkeit/en", "field": "fert", "type": "text"},
+            ]
+        }
+        return render(request, "create/spF_wF.html", context)
+
+    if request.method == "POST":
+        try:
+            selected = json.loads(request.body.decode("utf-8"))["selected"]
+        except:
+            return JsonResponse({"message": "Ausgewählte Fertigkeiten sind nicht angekommen"}, status=418)
+
+        # test
+        if len(selected) != new_char.spF_wF:
+            return JsonResponse({"message": "Anzahl der ausgewählten Fertigkeiten passt nicht"}, status=418)
+
+        if sum([fert["wp"] for fert in selected]) != new_char.spF_wF * WP_FACTOR:
+            return JsonResponse({"message": "WP in den Fertigkeiten passen nicht"}, status=418)
+
+
+        # apply
+        new_char.spF_wF = 0
+        new_char.save()
+
+        NewCharakterSpezialfertigkeit.objects.filter(char=new_char).delete()
+        NewCharakterWissensfertigkeit.objects.filter(char=new_char).delete()
+
+        for fert in selected:
+            if fert["kind_of_fert"] == "spF":
+                base = get_object_or_404(Spezialfertigkeit, pk=fert["pk"])
+                NewCharakterSpezialfertigkeit.objects.create(char=new_char, spezialfertigkeit=base, stufe=fert["wp"])
+            else:
+                base = get_object_or_404(Wissensfertigkeit, pk=fert["pk"])
+                NewCharakterWissensfertigkeit.objects.create(char=new_char, wissensfertigkeit=base, stufe=fert["wp"])
+
+        # redirect
+        return JsonResponse({"url": reverse("create:landing_page")})
+
 @login_required
 @verified_account
 @csrf_protect
@@ -807,7 +796,7 @@ def new_cp(request):
                 return redirect("create:vor_nachteil")
 
 
-            # transition from NewCharacter to Charakter
+            # transition from NewCharakter to Charakter
             c = Charakter.objects.create(sp=new_char.sp, konzentration=new_char.konzentration, geld=new_char.geld,
                                         eigentümer=new_char.eigentümer, manifest=new_char.gfs.startmanifest, gfs=new_char.gfs,
                                         larp=new_char.larp, wesenschaden_andere_gestalt=new_char.gfs.wesenschaden_andere_gestalt,
@@ -830,6 +819,10 @@ def new_cp(request):
                 RelFertigkeit.objects.create(
                     char=c, fertigkeit=rel.fertigkeit, fp=rel.fp, fp_bonus=rel.fp_bonus)
 
+            
+            for rel in NewCharakterPersönlichkeit.objects.filter(char=new_char):
+                RelPersönlichkeit.objects.create(char=c, persönlichkeit=rel.persönlichkeit)
+
             for rel in NewCharakterVorteil.objects.filter(char=new_char):
                 RelVorteil.objects.create(char=c, teil=rel.teil, notizen=rel.notizen, anzahl=rel.anzahl)
 
@@ -843,7 +836,7 @@ def new_cp(request):
                 RelSpezialfertigkeit.objects.create(char=c, spezialfertigkeit=rel.spezialfertigkeit, stufe=rel.stufe)
 
             for rel in NewCharakterWissensfertigkeit.objects.filter(char=new_char):
-                RelWissensfertigkeit.objects.create(char=c, wissensfertigkeit=rel.wissensfertigkeit)
+                RelWissensfertigkeit.objects.create(char=c, wissensfertigkeit=rel.wissensfertigkeit, würfel2=würfelart_enum[rel.stufe][0])
 
             for rel in GfsWesenkraft.objects.filter(gfs=new_char.gfs):
                 RelWesenkraft.objects.create(char=c, wesenkraft=rel.wesenkraft)

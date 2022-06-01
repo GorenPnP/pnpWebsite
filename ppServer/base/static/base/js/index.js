@@ -7,7 +7,6 @@ var max_index
 
 // slide all slides to the left or right by 100vw, relative to their index and the next slide visible
 function reposition() {
-	console.log(current)
 	// hide left- and rightmost arrows
 	document.getElementsByClassName("arrow--left")[0].style.visibility = current <= 0 ? 'hidden' : 'visible'
 	document.getElementsByClassName("arrow--right")[0].style.visibility = current >= max_index ? 'hidden' : 'visible'

@@ -13,6 +13,7 @@ __pycache__/
 *.css**
 *.sass.map
 *.scss.map
+!ppServer/base/static/ag-grid/css/*.css
 
 # IDEs
 .idea

@@ -72,7 +72,8 @@ def show(request, pk):
             "maxHp": base_hp * 50 + char.rang + char.HPplus,
             "wkHp": get_object_or_404(RelAttribut, char=char, attribut__titel="WK").aktuell() * 50,
             "humor": get_object_or_404(RelAttribut, char=char, attribut__titel="UM").aktuell() * 5,
-            "konzentration": char.get_konzentration()
+            "konzentration": char.get_konzentration(),
+            "persönlichkeiten": ", ".join([rel.persönlichkeit.titel for rel in RelPersönlichkeit.objects.filter(char=char)])
         }
 
         return render(request, "character/show.html", context)
@@ -344,10 +345,10 @@ def show(request, pk):
         # items/shop
         elif section == sections[11]["name"]:
             shop_models = [
-                RelItem, RelWaffen_Werkzeuge, RelMagazin,
-                RelPfeil_Bolzen, RelSchusswaffen, RelMagische_Ausrüstung,
-                RelRituale_Runen, RelRüstung, RelAusrüstung_Technik, RelFahrzeug,
-                RelEinbauten, RelZauber, RelVergessenerZauber, RelAlchemie, RelTinker
+                RelItem, RelWaffen_Werkzeuge, RelMagazin, RelPfeil_Bolzen,
+                RelSchusswaffen, RelMagische_Ausrüstung, RelRituale_Runen,
+                RelRüstung, RelAusrüstung_Technik, RelFahrzeug, RelEinbauten,
+                RelZauber, RelVergessenerZauber, RelAlchemie, RelTinker, RelBegleiter
             ]
 
             items = []

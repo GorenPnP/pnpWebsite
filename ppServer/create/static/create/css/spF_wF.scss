@@ -1,0 +1,28 @@
+.main-container {
+    width: 100%;
+    min-height: 100vh;
+    height: 100vh;
+
+    padding-inline: 2em;
+    padding-bottom: 1em !important;
+}
+
+.pool { color: #c8c8c8; }
+
+.table {
+    --ag-line-height: 1.5em;
+    min-height: 500px;
+    height: 50%;
+    max-height: 100vh;
+    
+    margin-block: 2em;
+}
+
+input:invalid { border: 2px dashed red; }
+
+.btn {
+	margin: 4em auto;
+	padding: 1em 8em;
+	font-size: 1.1rem;
+    display: block;
+}

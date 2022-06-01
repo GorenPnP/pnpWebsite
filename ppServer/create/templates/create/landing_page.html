@@ -5,7 +5,7 @@
 <link rel="stylesheet" href="{% static 'base/css/table.css' %}">
 <link rel="stylesheet" href="{% static 'base/css/checkbox.css' %}">
 <link rel="stylesheet" href="{% static 'create/css/landing_page.css' %}">
-<script src='https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js' type='text/javascript'></script>
+<script src="{% static 'res/js/axios.min.js' %}" type='text/javascript'></script>
 <script src="{% static 'base/js/ajax.js' %}"></script>
 <script src="{% static 'create/js/landing_page.js' %}"></script>
 {% endblock %}
@@ -17,18 +17,18 @@
     <div class="col2 heading">Links</div>
     <div class="col3 heading heading--last">Werte</div>
 
-    <!-- extra for profession -->
+    <!-- extra for persönlichkeiten -->
     {% if not larp %}
     <div class="col1">
-        <a href="{{ prof_row.link }}">
-            <div class="checkbox{% if prof_row.wert %} checked{% endif %}"></div>
+        <a href="{{ persönlichkeit_row.link }}">
+            <div class="checkbox{% if persönlichkeit_row.wert %} checked{% endif %}"></div>
         </a>
     </div>
-    <div>Wähle eine <strong>Profession</strong>, die Übersicht aller ist <a href="{{ prof_row.link }}" target="_blank">hier</a>.</div>
+    <div>Wähle eine <strong>Persönlichkeit</strong>, die Übersicht aller ist <a href="{{ persönlichkeit_row.link }}" target="_blank">hier</a>.</div>
     <div>
-    <select name="profession" id="profession" onchange="professionChange(event)">
-        {% for p in professionen %}
-        <option value="{{ p.id }}" id="option{{ forloop.counter0 }}"{% if p.id == prof_row.wert.id %}selected{% endif %}>
+    <select name="persönlichkeit" onchange="persönlichkeitChange(event)">
+        {% for p in persönlichkeiten %}
+        <option value="{{ p.id }}" id="option{{ forloop.counter0 }}"{% if p.id in persönlichkeit_row.wert %}selected{% endif %}>
             {{ p.titel }}
         </option>
         {% endfor %}

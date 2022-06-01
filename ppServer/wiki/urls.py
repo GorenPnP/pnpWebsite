@@ -13,6 +13,7 @@ urlpatterns = [
 
     path('gfs', views.gfs, name='gfs'),
     path('gfs/<int:gfs_id>', views.stufenplan, name='stufenplan'),
+    path('persönlichkeiten', views.persönlichkeit, name='persönlichkeiten'),
     path('profession', views.profession, name='profession'),
     path('profession/<int:profession_id>', views.stufenplan_profession, name='stufenplan_profession'),
 

@@ -119,6 +119,11 @@ class RelSpeziesInline(admin.TabularInline):
     extra = 1
 
 
+class RelPersönlichkeitInline(admin.TabularInline):
+    model = RelPersönlichkeit
+    extra = 1
+
+
 class RelAttributInline(admin.TabularInline):
     fields = ['attribut', 'aktuellerWert', 'aktuellerWert_bonus', 'maxWert', 'maxWert_bonus', 'fg']
     readonly_fields = ['attribut']
@@ -164,11 +169,6 @@ class AffektivitätInLine(admin.TabularInline):
     model = Affektivität
     extra = 1
     exclude = ['grad', 'umgang']
-
-
-class RelBegleiterInLine(admin.TabularInline):
-    model = RelBegleiter
-    extra = 1
 
 
 class RelVorteilInLine(admin.TabularInline):
@@ -262,6 +262,10 @@ class RelTinkerInLine(RelShopInLine):
     model = RelTinker
 
 
+class RelBegleiterInLine(RelShopInLine):
+    model = RelBegleiter
+
+
 
 class CharakterAdmin(admin.ModelAdmin):
 
@@ -280,6 +284,7 @@ class CharakterAdmin(admin.ModelAdmin):
     ]
 
     inlines = [
+               RelPersönlichkeitInline,
                RelSpeziesInline, RelWesenkraftInLine,
                RelAttributInline, RelFertigkeitInLine,
                RelSpezialfertigkeitInLine,
@@ -301,6 +306,7 @@ class CharakterAdmin(admin.ModelAdmin):
                RelVergessenerZauberInLine,
                RelAlchemieInLine,
                RelTinkerInLine,
+               RelBegleiterInLine
     ]
 
     list_display = ['name', 'eigentümer', "gfs", "wesen_", "profession", "ep_system", "larp", "in_erstellung"]
@@ -434,6 +440,11 @@ class ProfessionAdmin(admin.ModelAdmin):
         return str
 
 
+class PersönlichkeitAdmin(admin.ModelAdmin):
+    list_display = ('titel', 'positiv', 'negativ')
+    search_fields = ('titel', 'positiv', 'negativ')
+
+
 class VorNachteilAdmin(admin.ModelAdmin):
 
     list_display = ('titel', 'ip', 'beschreibung', "wann_wählbar")
@@ -504,6 +515,7 @@ admin.site.register(Charakter, CharakterAdmin)
 admin.site.register(Spezies, SpeziesAdmin)
 admin.site.register(Gfs, GfsAdmin)
 admin.site.register(Profession, ProfessionAdmin)
+admin.site.register(Persönlichkeit, PersönlichkeitAdmin)
 admin.site.register(Attribut, AttributAdmin)
 admin.site.register(Fertigkeit, FertigkeitAdmin)
 admin.site.register(Wesenkraft, WesenkraftAdmin)

@@ -2,11 +2,12 @@
 {% load static %}
 {% block title %}{{ topic }}{% endblock %}
 {% block extra-head %}
+<link rel="stylesheet" href="{% static 'ag-grid/css/ag-grid.css' %}"/>
+<link rel="stylesheet" href="{% static 'ag-grid/css/ag-theme-alpine.css' %}"/>
 <link rel="stylesheet" href="{% static 'shop/css/show_shop.css' %}">
-<link rel="stylesheet" href="https://unpkg.com/ag-grid-community/dist/styles/ag-grid.css"/>
-<link rel="stylesheet" href="https://unpkg.com/ag-grid-community/dist/styles/ag-theme-alpine.css"/>
 
-<script src="https://unpkg.com/ag-grid-community/dist/ag-grid-community.min.noStyle.js" defer></script>
+<script src="{% static 'ag-grid/js/ag-grid-community.min.noStyle.js' %}"></script>
+<script src="{% static 'ag-grid/js/ag_grid_de_locale.js' %}"></script>
 <script src="{% static 'shop/js/show_shop.js' %}" defer></script>
 
 {{ headings|json_script:"headings" }}

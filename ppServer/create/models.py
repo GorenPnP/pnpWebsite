@@ -1,7 +1,7 @@
 from django.db import models
 from django.shortcuts import get_object_or_404
 
-from character.models import Gfs
+from character.models import Gfs, Persönlichkeit
 
 class NewCharakter(models.Model):
     eigentümer = models.ForeignKey("character.Spieler", on_delete=models.CASCADE, null=True)
@@ -16,12 +16,13 @@ class NewCharakter(models.Model):
     fg = models.PositiveIntegerField(null=True, blank=True)
     geld = models.PositiveIntegerField(null=True, blank=True)
     ip = models.IntegerField(default=0, blank=True)
+    spF_wF = models.IntegerField(default=0, blank=True)
 
     HPplus = models.IntegerField(default=0, blank=True)
     HPplus_fix = models.IntegerField(default=None, null=True, blank=True)
 
     gfs = models.ForeignKey("character.Gfs", on_delete=models.SET_NULL, null=True)
-    profession = models.ForeignKey("character.Profession", on_delete=models.SET_NULL, null=True)
+    profession = models.ForeignKey("character.Profession", on_delete=models.SET_NULL, null=True, blank=True)
     attribute = models.ManyToManyField("character.Attribut", through="NewCharakterAttribut")
     fertigkeiten = models.ManyToManyField("character.Fertigkeit", through="NewCharakterFertigkeit")
 
@@ -34,6 +35,14 @@ class NewCharakter(models.Model):
 
     gratis_zauber = models.ManyToManyField("shop.Zauber", through="NewCharakterZauber")
 
+
+class NewCharakterPersönlichkeit(models.Model):
+    class Meta:
+        ordering = ['char', 'persönlichkeit']
+        unique_together = ["persönlichkeit", "char"]
+
+    persönlichkeit = models.ForeignKey(Persönlichkeit, on_delete=models.CASCADE)
+    char = models.ForeignKey(NewCharakter, on_delete=models.CASCADE)
 
 class NewCharakterAttribut(models.Model):
     class Meta:
@@ -200,6 +209,7 @@ class Priotable(models.Model):
     fg = models.PositiveSmallIntegerField(default=0, null=False)
     zauber = models.PositiveSmallIntegerField(default=0, null=False)
     drachmen = models.PositiveIntegerField(default=0, null=False)
+    spF_wF = models.PositiveIntegerField(default=0, null=False, verbose_name="Anz. Sp-F und Wissens-F.")
 
     def __str__(self):
         return "Priotable row {}".format(self.get_priority_display())

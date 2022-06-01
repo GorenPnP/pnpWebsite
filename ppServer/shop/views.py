@@ -33,6 +33,7 @@ model_list = [
     (VergessenerZauber, "vergessene_zauber"),
     (Alchemie, "alchemie"),
     (Tinker, "tinker"),
+    (Begleiter, "begleiter")
 ]
 
 
@@ -148,6 +149,11 @@ def alchemie(request):
 @verified_account
 def tinker(request):
     return render(request, "shop/show_shop.html", show_shop("Für Selbstständige", Tinker, "admin:shop_tinker_add", False))
+
+@login_required
+@verified_account
+def begleiter(request):
+    return render(request, "shop/show_shop.html", show_shop("Begleiter", Begleiter, "admin:shop_begleiter_add"))
 
 
 def show_shop(topic, model, plus_url, buyable=True):
@@ -333,6 +339,18 @@ def buy_alchemie(request, id):
     if request.method == 'POST':
         item = get_object_or_404(Alchemie, id=id)
         return buy_item_post(request, item, FirmaAlchemie, RelAlchemie, RelFirmaAlchemie)
+
+
+@login_required
+@verified_account
+def buy_begleiter(request, id):
+    if request.method == 'GET':
+        context = buy_item_get(request, id, Begleiter, RelBegleiter, FirmaBegleiter)
+        return render(request, "shop/buy_shop.html", context)
+
+    if request.method == 'POST':
+        item = get_object_or_404(Begleiter, id=id)
+        return buy_item_post(request, item, FirmaBegleiter, RelBegleiter, RelFirmaBegleiter)
 
 
 # generic things for bying item in shop

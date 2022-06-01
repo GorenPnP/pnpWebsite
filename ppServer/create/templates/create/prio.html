@@ -8,7 +8,7 @@
     breakpoint = 550;
     window.dispatchEvent(new Event('resize'))
 </script>
-<script src='https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js' type='text/javascript'></script>
+<script src="{% static 'res/js/axios.min.js' %}" type='text/javascript'></script>
 <script src="{% static 'base/js/ajax.js' %}"></script>
 <script src="{% static 'create/js/prio.js' %}" type="text/javascript"></script>
 {% endblock %}
@@ -43,8 +43,11 @@
             <div id="4|{{ forloop.counter0 }}" {% if row.7 is None %}class="grayed_out"></div>
             {% else %}>{{ row.7 }} Zauber</div>{% endif %}
 
-            <div id="5|{{ forloop.counter0 }}" {% if row.8 is None %}class="grayed_out"></div>
-            {% else %}>{{ row.8 }} Drachmen</div>{% endif %}
+            <div id="5|{{ forloop.counter0 }}" {% if row.8 is None and row.9 is None %}class="grayed_out"></div>
+            {% else %}>
+                {% if row.8 %}{{ row.8 }} Drachmen{% endif %}{% if row.8 and row.9 %},{% endif %}
+                {% if row.9 %}{{ row.9 }} Sp-Fert/W-Fert{% endif %}
+            </div>{% endif %}
         {% endfor %}
     </div>
 </div>

@@ -119,6 +119,12 @@ def stufenplan(request, gfs_id):
 
 @login_required
 @verified_account
+def persönlichkeit(request):
+    return render(request, "wiki/persönlichkeiten.html", {"topic": "Persönlichkeiten", "rows": Persönlichkeit.objects.all()})
+
+
+@login_required
+@verified_account
 def profession(request):
     profs = Profession.objects.all()
     entries = []
