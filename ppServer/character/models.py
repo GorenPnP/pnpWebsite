@@ -323,6 +323,7 @@ class GfsStufenplanBase(models.Model):
     ap = models.PositiveSmallIntegerField(default=0)
     fp = models.PositiveSmallIntegerField(default=0)
     fg = models.PositiveSmallIntegerField(default=0)
+    tp = models.PositiveSmallIntegerField(default=0)
 
     def __str__(self):
         return "{} (EP: {})".format(self.stufe, self.ep)

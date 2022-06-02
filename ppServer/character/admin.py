@@ -500,7 +500,8 @@ class StufenplanAdmin(admin.ModelAdmin):
 
 
 class GfsStufenplanBaseAdmin(admin.ModelAdmin):
-    list_display = ["stufe", "ep", "ap", "fp", "fg"]
+    list_display = ["stufe", "ep", "ap", "fp", "fg", "tp"]
+    list_editable = ["ep", "ap", "fp", "fg", "tp"]
 
 
 class ProfessionStufenplanBaseAdmin(admin.ModelAdmin):

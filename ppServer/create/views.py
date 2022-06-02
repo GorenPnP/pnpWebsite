@@ -723,12 +723,12 @@ def new_spF_wF(request):
             "wp": new_char.spF_wF * WP_FACTOR,
             "spF_wF": new_char.spF_wF,
             "headings_spF": [
-                {"headerName": "Name", "field": "titel", "type": "text"},
+                {"headerName": "Spezialfertigkeit", "field": "titel", "type": "text"},
                 {"headerName": "Attribute", "field": "attrs", "type": "text"},
                 {"headerName": "Fertigkeit/en", "field": "ausgleich", "type": "text"},
             ],
             "headings_wF": [
-                {"headerName": "Name", "field": "titel", "type": "text"},
+                {"headerName": "Wissensfertigkeit", "field": "titel", "type": "text"},
                 {"headerName": "Attribute", "field": "attrs", "type": "text"},
                 {"headerName": "Fertigkeit/en", "field": "fert", "type": "text"},
             ]

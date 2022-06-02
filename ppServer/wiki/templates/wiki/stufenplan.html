@@ -10,6 +10,7 @@
         window.dispatchEvent(new Event('resize'));
     });
 </script>
+<style>.col5 { font-style: italic; }</style>
 {% endblock %}
 {% block absolute %}{% include 'base/header.html' with topic=topic %}{% endblock %}
 {% block body %}
@@ -64,9 +65,9 @@
         <div class="col2 heading">Vorteile</div>
         <div class="col3 heading">AP</div>
         <div class="col4 heading">FP, FG</div>
-        <div class="col5 heading">Zauber</div>
-        <div class="col6 heading">Wesenkräfte</div>
-        <div class="col7 heading">Spez.-& Wissensfert.</div>
+        <div class="col5 heading">TP</div>
+        <div class="col6 heading">Zauber</div>
+        <div class="col7 heading">Wesenkräfte</div>
         <div class="col8 heading heading--last">Weiteres</div>
 
         {% for e in stufenplan_entries %}
@@ -80,16 +81,11 @@
                 {% elif e.fert.1 %}{{ e.fert.1 }}
                 {% else %}-{% endif %}
             </div>
+            
+            <div class="col5">{{ e.tp|default:"-" }}</div>
+            <div class="col6">{{ e.zauber|default:"-" }}</div>
+            <div class="col7">{{ e.wesenkräfte|default:"-" }}</div>
 
-            <div class="col5">{{ e.zauber|default:"-" }}</div>
-            <div class="col6">{{ e.wesenkräfte|default:"-" }}</div>
-
-            <div class="col7">
-                {% if e.spezial.0 %}{{ e.spezial.0 }}
-                    {% if e.spezial.1 %}, {{ e.spezial.1 }}{% endif %}
-                {% elif e.spezial.1 %}{{ e.spezial.1 }}
-                {% else %}-{% endif %}
-            </div>
 
             <div class="col8">{{ e.weiteres|default:"-" }}</div>
         {% endfor %}

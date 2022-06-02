@@ -73,6 +73,7 @@ def stufenplan(request, gfs_id):
                           None if e.basis.fg == 0 else "+{} Gr.".format(e.basis.fg)],
                  "weiteres": e.weiteres,
                  "zauber": "+{}".format(e.zauber) if e.zauber else None,
+                 "tp": None if e.basis.tp == 0 else "+{}".format(e.basis.tp),
                  "wesenkräfte": ", ".join([i.titel for i in e.wesenkräfte.all()]),
                  "vorteile": ", ".join([i.titel for i in e.vorteile.all()])
                 }
