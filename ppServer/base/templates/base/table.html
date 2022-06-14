@@ -1,0 +1,23 @@
+{% load static %}
+
+{% comment %}
+html snippet for generic table
+{% endcomment %}
+
+{% block extra-head %}
+<link rel="stylesheet" href="{% static 'base/css/pure_table.css' %}" type="text/css">
+<script src="{% static 'base/js/table.js' %}" defer></script>
+
+{{ headings|json_script:"headings" }}
+{{ rows|json_script:"rows" }}
+{{ buyable|json_script:"buyable" }}
+{% if rows && rows|length < 150 %}{{ "true"|json_script:"sortable" }}{% else %}{{ "false"|json_script:"sortable" }}{% endif %}
+{% endblock %}
+
+{%  if rows|length == 0 %}
+<h3 style="text-align: center">Hier gibt es nix. Tja, Thaddäus.</h3>
+{% else %}
+{{ rows|length }} Einträge
+<table id="table">
+</table>
+{% endif %}

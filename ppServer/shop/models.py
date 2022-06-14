@@ -141,13 +141,13 @@ class BaseShop(models.Model):
     @staticmethod
     def get_table_headings():
         return [
-            {"headerName": "Icon", "field": "icon", "type": "image"},
-            {"headerName": "Name", "field": "name", "type": "text"},
-            {"headerName": "Beschreibung", "field": "beschreibung", "type": "text--long"},
-            {"headerName": "Ab Stufe", "field": "ab_stufe", "type": "number"},
-            {"headerName": "Günstigster Preis", "field": "billigster", "type": "price"},
-            {"headerName": "Weiteres", "field": "weiteres", "type": "text"},
-            {"headerName": "Preis * Stufe?", "field": "stufenabhängig", "type": "boolean"}
+            {"display": "Icon", "field": "icon", "type": "image"},
+            {"display": "Name", "field": "name", "type": "text"},
+            {"display": "Beschreibung", "field": "beschreibung", "type": "text--long"},
+            {"display": "Ab Stufe", "field": "ab_stufe", "type": "number"},
+            {"display": "Günstigster Preis", "field": "billigster", "type": "price"},
+            {"display": "Weiteres", "field": "weiteres", "type": "text"},
+            {"display": "Preis * Stufe?", "field": "stufenabhängig", "type": "boolean"}
         ]
 
     @classmethod
@@ -262,17 +262,17 @@ class Waffen_Werkzeuge(BaseShop):
     @staticmethod
     def get_table_headings():
         return [
-            {"headerName": "Icon", "field": "icon", "type": "image"},
-            {"headerName": "Name", "field": "name", "type": "text"},
-            {"headerName": "Beschreibung", "field": "beschreibung", "type": "text--long"},
-            {"headerName": "Ab Stufe", "field": "ab_stufe", "type": "number"},
-            {"headerName": "Erfolge", "field": "erfolge", "type": "number"},
-            {"headerName": "BS", "field": "bs", "type": "text"},
-            {"headerName": "ZS", "field": "zs", "type": "text"},
-            {"headerName": "DK", "field": "dk", "type": "number"},
-            {"headerName": "Günstigster Preis", "field": "billigster", "type": "price"},
-            {"headerName": "Weiteres", "field": "weiteres", "type": "text"},
-            {"headerName": "Preis * Stufe?", "field": "stufenabhängig", "type": "boolean"}
+            {"display": "Icon", "field": "icon", "type": "image"},
+            {"display": "Name", "field": "name", "type": "text"},
+            {"display": "Beschreibung", "field": "beschreibung", "type": "text--long"},
+            {"display": "Ab Stufe", "field": "ab_stufe", "type": "number"},
+            {"display": "Erfolge", "field": "erfolge", "type": "number"},
+            {"display": "BS", "field": "bs", "type": "text"},
+            {"display": "ZS", "field": "zs", "type": "text"},
+            {"display": "DK", "field": "dk", "type": "number"},
+            {"display": "Günstigster Preis", "field": "billigster", "type": "price"},
+            {"display": "Weiteres", "field": "weiteres", "type": "text"},
+            {"display": "Preis * Stufe?", "field": "stufenabhängig", "type": "boolean"}
         ]
 
     @classmethod
@@ -296,14 +296,14 @@ class Magazin(BaseShop):
     @staticmethod
     def get_table_headings():
         return [
-            {"headerName": "Icon", "field": "icon", "type": "image"},
-            {"headerName": "Name", "field": "name", "type": "text"},
-            {"headerName": "Beschreibung", "field": "beschreibung", "type": "text--long"},
-            {"headerName": "Ab Stufe", "field": "ab_stufe", "type": "number"},
-            {"headerName": "Schuss", "field": "schuss", "type": "number"},
-            {"headerName": "Günstigster Preis", "field": "billigster", "type": "price"},
-            {"headerName": "Weiteres", "field": "weiteres", "type": "text"},
-            {"headerName": "Preis * Stufe?", "field": "stufenabhängig", "type": "boolean"}
+            {"display": "Icon", "field": "icon", "type": "image"},
+            {"display": "Name", "field": "name", "type": "text"},
+            {"display": "Beschreibung", "field": "beschreibung", "type": "text--long"},
+            {"display": "Ab Stufe", "field": "ab_stufe", "type": "number"},
+            {"display": "Schuss", "field": "schuss", "type": "number"},
+            {"display": "Günstigster Preis", "field": "billigster", "type": "price"},
+            {"display": "Weiteres", "field": "weiteres", "type": "text"},
+            {"display": "Preis * Stufe?", "field": "stufenabhängig", "type": "boolean"}
         ]
 
     @classmethod
@@ -328,15 +328,15 @@ class Pfeil_Bolzen(BaseShop):
     @staticmethod
     def get_table_headings():
         return [
-            {"headerName": "Icon", "field": "icon", "type": "image"},
-            {"headerName": "Name", "field": "name", "type": "text"},
-            {"headerName": "Beschreibung", "field": "beschreibung", "type": "text--long"},
-            {"headerName": "Ab Stufe", "field": "ab_stufe", "type": "number"},
-            {"headerName": "BS", "field": "bs", "type": "text"},
-            {"headerName": "ZS", "field": "zs", "type": "text"},
-            {"headerName": "Günstigster Preis", "field": "billigster", "type": "price"},
-            {"headerName": "Weiteres", "field": "weiteres", "type": "text"},
-            {"headerName": "Preis * Stufe?", "field": "stufenabhängig", "type": "boolean"}
+            {"display": "Icon", "field": "icon", "type": "image"},
+            {"display": "Name", "field": "name", "type": "text"},
+            {"display": "Beschreibung", "field": "beschreibung", "type": "text--long"},
+            {"display": "Ab Stufe", "field": "ab_stufe", "type": "number"},
+            {"display": "BS", "field": "bs", "type": "text"},
+            {"display": "ZS", "field": "zs", "type": "text"},
+            {"display": "Günstigster Preis", "field": "billigster", "type": "price"},
+            {"display": "Weiteres", "field": "weiteres", "type": "text"},
+            {"display": "Preis * Stufe?", "field": "stufenabhängig", "type": "boolean"}
         ]
 
     @classmethod
@@ -370,19 +370,19 @@ class Schusswaffen(BaseShop):
     @staticmethod
     def get_table_headings():
         return [
-            {"headerName": "Icon", "field": "icon", "type": "image"},
-            {"headerName": "Name", "field": "name", "type": "text"},
-            {"headerName": "Beschreibung", "field": "beschreibung", "type": "text--long"},
-            {"headerName": "Ab Stufe", "field": "ab_stufe", "type": "number"},
-            {"headerName": "Erfolge", "field": "erfolge", "type": "number"},
-            {"headerName": "BS", "field": "bs", "type": "text"},
-            {"headerName": "ZS", "field": "zs", "type": "text"},
-            {"headerName": "DK", "field": "dk", "type": "number"},
-            {"headerName": "Präzision", "field": "präzision", "type": "number"},
-            {"headerName": "Munition", "field": "munition", "type": "text"},
-            {"headerName": "Günstigster Preis", "field": "billigster", "type": "price"},
-            {"headerName": "Weiteres", "field": "weiteres", "type": "text"},
-            {"headerName": "Preis * Stufe?", "field": "stufenabhängig", "type": "boolean"}
+            {"display": "Icon", "field": "icon", "type": "image"},
+            {"display": "Name", "field": "name", "type": "text"},
+            {"display": "Beschreibung", "field": "beschreibung", "type": "text--long"},
+            {"display": "Ab Stufe", "field": "ab_stufe", "type": "number"},
+            {"display": "Erfolge", "field": "erfolge", "type": "number"},
+            {"display": "BS", "field": "bs", "type": "text"},
+            {"display": "ZS", "field": "zs", "type": "text"},
+            {"display": "DK", "field": "dk", "type": "number"},
+            {"display": "Präzision", "field": "präzision", "type": "number"},
+            {"display": "Munition", "field": "munition", "type": "text"},
+            {"display": "Günstigster Preis", "field": "billigster", "type": "price"},
+            {"display": "Weiteres", "field": "weiteres", "type": "text"},
+            {"display": "Preis * Stufe?", "field": "stufenabhängig", "type": "boolean"}
         ]
     
     @classmethod
@@ -468,16 +468,16 @@ class Rituale_Runen(BaseShop):
     @staticmethod
     def get_table_headings():
         return [
-            {"headerName": "Icon", "field": "icon", "type": "image"},
-            {"headerName": "Name", "field": "name", "type": "text"},
-            {"headerName": "Beschreibung", "field": "beschreibung", "type": "text--long"},
-            {"headerName": "Ab Stufe", "field": "ab_stufe", "type": "number"},
-            {"headerName": "Stufe 1", "field": "stufe1", "type": "price"},
-            {"headerName": "Stufe 2", "field": "stufe2", "type": "price"},
-            {"headerName": "Stufe 3", "field": "stufe3", "type": "price"},
-            {"headerName": "Stufe 4", "field": "stufe4", "type": "price"},
-            {"headerName": "Stufe 5", "field": "stufe5", "type": "price"},
-            {"headerName": "Weiteres", "field": "weiteres", "type": "text"}
+            {"display": "Icon", "field": "icon", "type": "image"},
+            {"display": "Name", "field": "name", "type": "text"},
+            {"display": "Beschreibung", "field": "beschreibung", "type": "text--long"},
+            {"display": "Ab Stufe", "field": "ab_stufe", "type": "number"},
+            {"display": "Stufe 1", "field": "stufe1", "type": "price"},
+            {"display": "Stufe 2", "field": "stufe2", "type": "price"},
+            {"display": "Stufe 3", "field": "stufe3", "type": "price"},
+            {"display": "Stufe 4", "field": "stufe4", "type": "price"},
+            {"display": "Stufe 5", "field": "stufe5", "type": "price"},
+            {"display": "Weiteres", "field": "weiteres", "type": "text"}
         ]
     
     @classmethod
@@ -547,16 +547,16 @@ class Rüstungen(BaseShop):
     @staticmethod
     def get_table_headings():
         return [
-            {"headerName": "Icon", "field": "icon", "type": "image"},
-            {"headerName": "Name", "field": "name", "type": "text"},
-            {"headerName": "Beschreibung", "field": "beschreibung", "type": "text--long"},
-            {"headerName": "Ab Stufe", "field": "ab_stufe", "type": "number"},
-            {"headerName": "Schutz", "field": "schutz", "type": "number"},
-            {"headerName": "Stärke", "field": "stärke", "type": "number"},
-            {"headerName": "Haltbarkeit", "field": "haltbarkeit", "type": "number"},
-            {"headerName": "Günstigster Preis", "field": "billigster", "type": "price"},
-            {"headerName": "Weiteres", "field": "weiteres", "type": "text"},
-            {"headerName": "Preis * Stufe?", "field": "stufenabhängig", "type": "boolean"}
+            {"display": "Icon", "field": "icon", "type": "image"},
+            {"display": "Name", "field": "name", "type": "text"},
+            {"display": "Beschreibung", "field": "beschreibung", "type": "text--long"},
+            {"display": "Ab Stufe", "field": "ab_stufe", "type": "number"},
+            {"display": "Schutz", "field": "schutz", "type": "number"},
+            {"display": "Stärke", "field": "stärke", "type": "number"},
+            {"display": "Haltbarkeit", "field": "haltbarkeit", "type": "number"},
+            {"display": "Günstigster Preis", "field": "billigster", "type": "price"},
+            {"display": "Weiteres", "field": "weiteres", "type": "text"},
+            {"display": "Preis * Stufe?", "field": "stufenabhängig", "type": "boolean"}
         ]
 
     @classmethod
@@ -606,16 +606,16 @@ class Fahrzeug(BaseShop):
     @staticmethod
     def get_table_headings():
         return [
-            {"headerName": "Icon", "field": "icon", "type": "image"},
-            {"headerName": "Name", "field": "name", "type": "text"},
-            {"headerName": "Beschreibung", "field": "beschreibung", "type": "text--long"},
-            {"headerName": "Ab Stufe", "field": "ab_stufe", "type": "number"},
-            {"headerName": "Schnelligkeit", "field": "schnelligkeit", "type": "number"},
-            {"headerName": "Rüstung", "field": "rüstung", "type": "number"},
-            {"headerName": "Erfolge", "field": "erfolge", "type": "number"},
-            {"headerName": "Günstigster Preis", "field": "billigster", "type": "price"},
-            {"headerName": "Weiteres", "field": "weiteres", "type": "text"},
-            {"headerName": "Preis * Stufe?", "field": "stufenabhängig", "type": "boolean"}
+            {"display": "Icon", "field": "icon", "type": "image"},
+            {"display": "Name", "field": "name", "type": "text"},
+            {"display": "Beschreibung", "field": "beschreibung", "type": "text--long"},
+            {"display": "Ab Stufe", "field": "ab_stufe", "type": "number"},
+            {"display": "Schnelligkeit", "field": "schnelligkeit", "type": "number"},
+            {"display": "Rüstung", "field": "rüstung", "type": "number"},
+            {"display": "Erfolge", "field": "erfolge", "type": "number"},
+            {"display": "Günstigster Preis", "field": "billigster", "type": "price"},
+            {"display": "Weiteres", "field": "weiteres", "type": "text"},
+            {"display": "Preis * Stufe?", "field": "stufenabhängig", "type": "boolean"}
         ]
     
     @classmethod
@@ -640,14 +640,14 @@ class Einbauten(BaseShop):
     @staticmethod
     def get_table_headings():
         return [
-            {"headerName": "Icon", "field": "icon", "type": "image"},
-            {"headerName": "Name", "field": "name", "type": "text"},
-            {"headerName": "Beschreibung", "field": "beschreibung", "type": "text--long"},
-            {"headerName": "Ab Stufe", "field": "ab_stufe", "type": "number"},
-            {"headerName": "Manifestverlust", "field": "manifestverlust", "type": "text"},
-            {"headerName": "Günstigster Preis", "field": "billigster", "type": "price"},
-            {"headerName": "Weiteres", "field": "weiteres", "type": "text"},
-            {"headerName": "Preis * Stufe?", "field": "stufenabhängig", "type": "boolean"}
+            {"display": "Icon", "field": "icon", "type": "image"},
+            {"display": "Name", "field": "name", "type": "text"},
+            {"display": "Beschreibung", "field": "beschreibung", "type": "text--long"},
+            {"display": "Ab Stufe", "field": "ab_stufe", "type": "number"},
+            {"display": "Manifestverlust", "field": "manifestverlust", "type": "text"},
+            {"display": "Günstigster Preis", "field": "billigster", "type": "price"},
+            {"display": "Weiteres", "field": "weiteres", "type": "text"},
+            {"display": "Preis * Stufe?", "field": "stufenabhängig", "type": "boolean"}
         ]
     
     @classmethod
@@ -677,18 +677,18 @@ class Zauber(BaseShop):
     @staticmethod
     def get_table_headings():
         return [
-            {"headerName": "Icon", "field": "icon", "type": "image"},
-            {"headerName": "Name", "field": "name", "type": "text"},
-            {"headerName": "Beschreibung", "field": "beschreibung", "type": "text--long"},
-            {"headerName": "Ab Stufe", "field": "ab_stufe", "type": "number"},
-            {"headerName": "Schaden", "field": "schaden", "type": "text"},
-            {"headerName": "Astralschaden", "field": "astralschaden", "type": "text"},
-            {"headerName": "Manaverbrauch", "field": "manaverbrauch", "type": "text"},
-            {"headerName": "Flächenwirkung", "field": "flächenzauber", "type": "boolean"},
-            {"headerName": "Kategorie", "field": "kategorie", "type": "text"},
-            {"headerName": "Günstigster Preis", "field": "billigster", "type": "price"},
-            {"headerName": "Weiteres", "field": "weiteres", "type": "text"},
-            {"headerName": "Preis * Stufe?", "field": "stufenabhängig", "type": "boolean"}
+            {"display": "Icon", "field": "icon", "type": "image"},
+            {"display": "Name", "field": "name", "type": "text"},
+            {"display": "Beschreibung", "field": "beschreibung", "type": "text--long"},
+            {"display": "Ab Stufe", "field": "ab_stufe", "type": "number"},
+            {"display": "Schaden", "field": "schaden", "type": "text"},
+            {"display": "Astralschaden", "field": "astralschaden", "type": "text"},
+            {"display": "Manaverbrauch", "field": "manaverbrauch", "type": "text"},
+            {"display": "Flächenwirkung", "field": "flächenzauber", "type": "boolean"},
+            {"display": "Kategorie", "field": "kategorie", "type": "text"},
+            {"display": "Günstigster Preis", "field": "billigster", "type": "price"},
+            {"display": "Weiteres", "field": "weiteres", "type": "text"},
+            {"display": "Preis * Stufe?", "field": "stufenabhängig", "type": "boolean"}
         ]
     
     @classmethod
@@ -717,17 +717,17 @@ class VergessenerZauber(BaseShop):
     @staticmethod
     def get_table_headings():
         return [
-            {"headerName": "Icon", "field": "icon", "type": "image"},
-            {"headerName": "Name", "field": "name", "type": "text"},
-            {"headerName": "Beschreibung", "field": "beschreibung", "type": "text--long"},
-            {"headerName": "Ab Stufe", "field": "ab_stufe", "type": "number"},
-            {"headerName": "Schaden", "field": "schaden", "type": "text"},
-            {"headerName": "Astralschaden", "field": "astralschaden", "type": "text"},
-            {"headerName": "Manaverbrauch", "field": "manaverbrauch", "type": "text"},
-            {"headerName": "Flächenwirkung", "field": "flächenzauber", "type": "boolean"},
-            {"headerName": "Günstigster Preis", "field": "billigster", "type": "price"},
-            {"headerName": "Weiteres", "field": "weiteres", "type": "text"},
-            {"headerName": "Preis * Stufe?", "field": "stufenabhängig", "type": "boolean"}
+            {"display": "Icon", "field": "icon", "type": "image"},
+            {"display": "Name", "field": "name", "type": "text"},
+            {"display": "Beschreibung", "field": "beschreibung", "type": "text--long"},
+            {"display": "Ab Stufe", "field": "ab_stufe", "type": "number"},
+            {"display": "Schaden", "field": "schaden", "type": "text"},
+            {"display": "Astralschaden", "field": "astralschaden", "type": "text"},
+            {"display": "Manaverbrauch", "field": "manaverbrauch", "type": "text"},
+            {"display": "Flächenwirkung", "field": "flächenzauber", "type": "boolean"},
+            {"display": "Günstigster Preis", "field": "billigster", "type": "price"},
+            {"display": "Weiteres", "field": "weiteres", "type": "text"},
+            {"display": "Preis * Stufe?", "field": "stufenabhängig", "type": "boolean"}
         ]
     
     @classmethod
@@ -773,13 +773,13 @@ class Tinker(BaseShop):
     @staticmethod
     def get_table_headings():
         return [
-            {"headerName": "Icon", "field": "icon", "type": "image"},
-            {"headerName": "Name", "field": "name", "type": "text"},
-            {"headerName": "Beschreibung", "field": "beschreibung", "type": "text--long"},
-            {"headerName": "Ab Stufe", "field": "ab_stufe", "type": "number"},
-            {"headerName": "Werte", "field": "werte", "type": "text"},
-            {"headerName": "Weiteres", "field": "weiteres", "type": "text"},
-            {"headerName": "Preis * Stufe?", "field": "stufenabhängig", "type": "boolean"}
+            {"display": "Icon", "field": "icon", "type": "image"},
+            {"display": "Name", "field": "name", "type": "text"},
+            {"display": "Beschreibung", "field": "beschreibung", "type": "text--long"},
+            {"display": "Ab Stufe", "field": "ab_stufe", "type": "number"},
+            {"display": "Werte", "field": "werte", "type": "text"},
+            {"display": "Weiteres", "field": "weiteres", "type": "text"},
+            {"display": "Preis * Stufe?", "field": "stufenabhängig", "type": "boolean"}
         ]
 
 
