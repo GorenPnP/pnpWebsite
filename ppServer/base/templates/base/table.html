@@ -11,7 +11,7 @@ html snippet for generic table
 {{ headings|json_script:"headings" }}
 {{ rows|json_script:"rows" }}
 {{ buyable|json_script:"buyable" }}
-{% if rows && rows|length < 150 %}{{ "true"|json_script:"sortable" }}{% else %}{{ "false"|json_script:"sortable" }}{% endif %}
+{% if rows and rows|length < 150 %}{{ "true"|json_script:"sortable" }}{% else %}{{ "false"|json_script:"sortable" }}{% endif %}
 {% endblock %}
 
 {%  if rows|length == 0 %}
