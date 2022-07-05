@@ -398,10 +398,12 @@ class SpeziesAdmin(admin.ModelAdmin):
     search_fields = ('komplexität', 'titel',)
 
 class GfsAdmin(admin.ModelAdmin):
-    list_display = ('titel', 'ap', 'beschreibung_', 'vorteil_', 'nachteil_',
+    list_display = ('titel', 'ap', 'beschreibung', 'vorteil_', 'nachteil_',
                     "wesenschaden_waff_kampf", "wesenschaden_andere_gestalt", "wesenkraft_", "startmanifest",)
     list_filter = ['ap', 'startmanifest', "wesenschaden_waff_kampf"]
     search_fields = ('titel', 'ap')
+
+    list_editable = ['beschreibung', 'wesenschaden_waff_kampf', 'wesenschaden_andere_gestalt']
 
     inlines = [GfsAttributInLine, GfsFertigkeitInLine,
                GfsVorteilInLine, GfsNachteilInLine,
@@ -417,12 +419,25 @@ class GfsAdmin(admin.ModelAdmin):
     def wesenkraft_(self, obj):
         return ', '.join([a.titel for a in obj.wesenkraft.all()])
 
-    def beschreibung_(self, obj):
-        str = obj.beschreibung[:100]
-        if len(obj.beschreibung) > 100:
-            str += "..."
-        return str
 
+class GfsSkilltreeAdmin(admin.ModelAdmin):
+    list_display = ('gfs', 'stufe_', 'text')
+
+    list_editable = ['text']
+
+    def stufe_(self, obj):
+        return obj.context.stufe
+
+class GfsStufenplanAdmin(admin.ModelAdmin):
+    list_display = ('gfs_', 'stufe_', 'weiteres')
+
+    list_editable = ['weiteres']
+
+    def stufe_(self, obj):
+        return obj.basis.stufe
+
+    def gfs_(self, obj):
+        return obj.gfs.titel
 
 class ProfessionAdmin(admin.ModelAdmin):
     list_display = ('titel', 'beschreibung_')
@@ -536,3 +551,6 @@ admin.site.register(ProfessionStufenplanBase, ProfessionStufenplanBaseAdmin)
 
 admin.site.register(RangRankingEntry, RangRankingEntryAdmin)
 admin.site.register(Spieler, SpielerAdmin)
+
+admin.site.register(SkilltreeEntryGfs, GfsSkilltreeAdmin)
+admin.site.register(GfsStufenplan, GfsStufenplanAdmin)
