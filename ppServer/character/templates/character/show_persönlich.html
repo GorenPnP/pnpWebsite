@@ -40,8 +40,6 @@
         <div class="val">{{ char.wesenschaden_waff_kampf|default_if_none:'-' }} HP
             {% if char.wesenschaden_andere_gestalt is not None %}({{ char.wesenschaden_andere_gestalt }} HP){% endif %}
         </div>
-        <label>Humor</label>
-        <div class="val">{{ humor|default:'-' }}</div>
         <label>Konzentration</label>
         <div class="val">{{ konzentration|default:'-' }}</div>
     </section>

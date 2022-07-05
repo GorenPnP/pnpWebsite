@@ -68,10 +68,9 @@ def show(request, pk):
             "sections": sections,
             'char': char,
             'wesen': wesen,
-            "totAb": base_hp * -10,
-            "maxHp": base_hp * 50 + char.rang + char.HPplus,
-            "wkHp": get_object_or_404(RelAttribut, char=char, attribut__titel="WK").aktuell() * 50,
-            "humor": get_object_or_404(RelAttribut, char=char, attribut__titel="UM").aktuell() * 5,
+            "totAb": base_hp * -1,
+            "maxHp": base_hp * 5 + floor(char.rang /10 + .5) + char.HPplus,
+            "wkHp": get_object_or_404(RelAttribut, char=char, attribut__titel="WK").aktuell() * 5,
             "konzentration": char.get_konzentration(),
             "persönlichkeiten": ", ".join([rel.persönlichkeit.titel for rel in RelPersönlichkeit.objects.filter(char=char)])
         }
@@ -107,10 +106,9 @@ def show(request, pk):
 
             # get sums for hp
             base_hp = get_object_or_404(RelAttribut, char=char, attribut__titel="ST").aktuell()
-            context["totAb"] = base_hp * -10
-            context["maxHp"] = base_hp * 50 + char.rang + char.HPplus
-            context["wkHp"] = get_object_or_404(RelAttribut, char=char, attribut__titel="WK").aktuell() * 50
-            context["humor"] = get_object_or_404(RelAttribut, char=char, attribut__titel="UM").aktuell() * 5
+            context["totAb"] = base_hp * -1
+            context["maxHp"] = base_hp * 5 + floor(char.rang /10 + .5) + char.HPplus
+            context["wkHp"] = get_object_or_404(RelAttribut, char=char, attribut__titel="WK").aktuell() * 5
             context["konzentration"] = char.get_konzentration()
 
 
