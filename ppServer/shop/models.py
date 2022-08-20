@@ -141,7 +141,7 @@ class BaseShop(TableSerializableModel):
 
 
     @staticmethod
-    def get_table_headings() -> list[TableHeading]:
+    def get_table_headings():
         return [
             TableHeading("Icon", "icon", TableFieldType.IMAGE),
             TableHeading("Name", "name", TableFieldType.TEXT),
@@ -262,7 +262,7 @@ class Waffen_Werkzeuge(BaseShop):
         return "{} (Waffen & Werkzeuge)".format(self.name)
     
     @staticmethod
-    def get_table_headings() -> list[TableHeading]:
+    def get_table_headings():
         return [
             TableHeading("Icon", "icon", TableFieldType.IMAGE),
             TableHeading("Name", "name", TableFieldType.TEXT),
@@ -296,7 +296,7 @@ class Magazin(BaseShop):
         return "{}, {} Schuss (Magazine)".format(self.name, self.schuss)
 
     @staticmethod
-    def get_table_headings() -> list[TableHeading]:
+    def get_table_headings():
         return [
             TableHeading("Icon", "icon", TableFieldType.IMAGE),
             TableHeading("Name", "name", TableFieldType.TEXT),
@@ -328,7 +328,7 @@ class Pfeil_Bolzen(BaseShop):
         return "{} (Pfeile & Bolzen)".format(self.name)
     
     @staticmethod
-    def get_table_headings() -> list[TableHeading]:
+    def get_table_headings():
         return [
             TableHeading("Icon", "icon", TableFieldType.IMAGE),
             TableHeading("Name", "name", TableFieldType.TEXT),
@@ -370,7 +370,7 @@ class Schusswaffen(BaseShop):
         return "{} (Schusswaffen)".format(self.name)
 
     @staticmethod
-    def get_table_headings() -> list[TableHeading]:
+    def get_table_headings():
         return [
             TableHeading("Icon", "icon", TableFieldType.IMAGE),
             TableHeading("Name", "name", TableFieldType.TEXT),
@@ -468,7 +468,7 @@ class Rituale_Runen(BaseShop):
         return "{} (Rituale & Runen)".format(self.name)
 
     @staticmethod
-    def get_table_headings() -> list[TableHeading]:
+    def get_table_headings():
         return [
             TableHeading("Icon", "icon", TableFieldType.IMAGE),
             TableHeading("Name", "name", TableFieldType.TEXT),
@@ -547,7 +547,7 @@ class Rüstungen(BaseShop):
         return "{} (Rüstungen)".format(self.name)
     
     @staticmethod
-    def get_table_headings() -> list[TableHeading]:
+    def get_table_headings():
         return [
             TableHeading("Icon", "icon", TableFieldType.IMAGE),
             TableHeading("Name", "name", TableFieldType.TEXT),
@@ -606,7 +606,7 @@ class Fahrzeug(BaseShop):
         return "{} (Fahrzeuge)".format(self.name)
     
     @staticmethod
-    def get_table_headings() -> list[TableHeading]:
+    def get_table_headings():
         return [
             TableHeading("Icon", "icon", TableFieldType.IMAGE),
             TableHeading("Name", "name", TableFieldType.TEXT),
@@ -640,7 +640,7 @@ class Einbauten(BaseShop):
         return "{} (Einbauten)".format(self.name)
 
     @staticmethod
-    def get_table_headings() -> list[TableHeading]:
+    def get_table_headings():
         return [
             TableHeading("Icon", "icon", TableFieldType.IMAGE),
             TableHeading("Name", "name", TableFieldType.TEXT),
@@ -677,7 +677,7 @@ class Zauber(BaseShop):
         return "{} (Zauber)".format(self.name)
 
     @staticmethod
-    def get_table_headings() -> list[TableHeading]:
+    def get_table_headings():
         return [
             TableHeading("Icon", "icon", TableFieldType.IMAGE),
             TableHeading("Name", "name", TableFieldType.TEXT),
@@ -717,7 +717,7 @@ class VergessenerZauber(BaseShop):
         return "{} (vergessener Zauber)".format(self.name)
 
     @staticmethod
-    def get_table_headings() -> list[TableHeading]:
+    def get_table_headings():
         return [
             TableHeading("Icon", "icon", TableFieldType.IMAGE),
             TableHeading("Name", "name", TableFieldType.TEXT),
@@ -773,7 +773,7 @@ class Tinker(BaseShop):
         return {"id": self.id, "name": self.name, "icon_url": self.getIconUrl()}
 
     @staticmethod
-    def get_table_headings() -> list[TableHeading]:
+    def get_table_headings():
         return [
             TableHeading("Icon", "icon", TableFieldType.IMAGE),
             TableHeading("Name", "name", TableFieldType.TEXT),

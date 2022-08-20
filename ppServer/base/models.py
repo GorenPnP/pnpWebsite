@@ -28,7 +28,7 @@ class TableSerializableModel(models.Model):
         abstract = True
 
     @staticmethod
-    def get_table_headings() -> list[TableHeading]:
+    def get_table_headings():
         return [
             TableHeading("PK", "pk", TableFieldType.NUMBER)
         ]

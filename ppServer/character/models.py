@@ -53,7 +53,7 @@ class Wesenkraft(TableSerializableModel):
         return "{} (Rang {})".format(self.titel, self.min_rang)
 
     @staticmethod
-    def get_table_headings() -> list[TableHeading]:
+    def get_table_headings():
         return [
             TableHeading("Titel", "titel", TableFieldType.TEXT),
             TableHeading("Probe", "probe", TableFieldType.TEXT),
@@ -162,7 +162,7 @@ class Persönlichkeit(TableSerializableModel):
         return self.titel
 
     @staticmethod
-    def get_table_headings() -> list[TableHeading]:
+    def get_table_headings():
         return [
             TableHeading("Titel", "titel", TableFieldType.TEXT),
             TableHeading("Positiv", "positiv", TableFieldType.TEXT),
@@ -428,7 +428,7 @@ class Talent(TableSerializableModel):
         return self.titel
 
     @staticmethod
-    def get_table_headings() -> list[TableHeading]:
+    def get_table_headings():
         return [
             TableHeading("Titel", "titel", TableFieldType.TEXT),
             TableHeading("TP", "tp", TableFieldType.NUMBER),
@@ -450,7 +450,7 @@ class Religion(TableSerializableModel):
         return self.titel
 
     @staticmethod
-    def get_table_headings() -> list[TableHeading]:
+    def get_table_headings():
         return [
             TableHeading("Titel", "titel", TableFieldType.TEXT),
             TableHeading("Beschreibung", "beschreibung", TableFieldType.TEXT)
@@ -470,7 +470,7 @@ class Teil(TableSerializableModel):
     wann_wählbar = models.CharField(max_length=1, choices=enums.teil_erstellung_enum, default=enums.teil_erstellung_enum[0][0])
 
     @staticmethod
-    def get_table_headings() -> list[TableHeading]:
+    def get_table_headings():
         return [
             TableHeading("Titel", "titel", TableFieldType.TEXT),
             TableHeading("IP", "ip", TableFieldType.NUMBER),
@@ -527,7 +527,7 @@ class Beruf(TableSerializableModel):
         return self.titel
 
     @staticmethod
-    def get_table_headings() -> list[TableHeading]:
+    def get_table_headings():
         return [
             TableHeading("Titel", "titel", TableFieldType.TEXT),
             TableHeading("Beschreibung", "beschreibung", TableFieldType.TEXT)
@@ -579,7 +579,7 @@ class Wissensfertigkeit(TableSerializableModel):
         return "{} ({}, {}, {})".format(self.titel, st, nd, rd)
 
     @staticmethod
-    def get_table_headings() -> list[TableHeading]:
+    def get_table_headings():
         return [
             TableHeading("Titel", "titel", TableFieldType.TEXT),
             TableHeading("Attr 1", "attr1", TableFieldType.TEXT),
@@ -622,7 +622,7 @@ class Spezialfertigkeit(TableSerializableModel):
         return "{} ({}, {})".format(self.titel, st, nd)
 
     @staticmethod
-    def get_table_headings() -> list[TableHeading]:
+    def get_table_headings():
         return [
             TableHeading("Titel", "titel", TableFieldType.TEXT),
             TableHeading("Attr 1", "attr1", TableFieldType.TEXT),
@@ -1338,7 +1338,7 @@ class RangRankingEntry(TableSerializableModel):
         return "Rang {} ({} - {})".format(self.ranking, self.min_rang, self.max_rang)
 
     @staticmethod
-    def get_table_headings() -> list[TableHeading]:
+    def get_table_headings():
         return [
             TableHeading("Ranking", "ranking", TableFieldType.TEXT),
             TableHeading("Rang", "rang", TableFieldType.TEXT),
