@@ -5,6 +5,8 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 from django.urls import reverse
 
+from base.models import TableFieldType, TableHeading, TableSerializableModel
+
 from . import enums
 
 
@@ -122,7 +124,7 @@ class FirmaBegleiter(FirmaShop):
 
 ################ Base Shop ####################
 
-class BaseShop(models.Model):
+class BaseShop(TableSerializableModel):
     class Meta:
         abstract = True
 
@@ -139,20 +141,20 @@ class BaseShop(models.Model):
 
 
     @staticmethod
-    def get_table_headings():
+    def get_table_headings() -> list[TableHeading]:
         return [
-            {"display": "Icon", "field": "icon", "type": "image"},
-            {"display": "Name", "field": "name", "type": "text"},
-            {"display": "Beschreibung", "field": "beschreibung", "type": "text--long"},
-            {"display": "Ab Stufe", "field": "ab_stufe", "type": "number"},
-            {"display": "Günstigster Preis", "field": "billigster", "type": "price"},
-            {"display": "Weiteres", "field": "weiteres", "type": "text"},
-            {"display": "Preis * Stufe?", "field": "stufenabhängig", "type": "boolean"}
+            TableHeading("Icon", "icon", TableFieldType.IMAGE),
+            TableHeading("Name", "name", TableFieldType.TEXT),
+            TableHeading("Beschreibung", "beschreibung", TableFieldType.TEXT),
+            TableHeading("Ab Stufe", "ab_stufe", TableFieldType.NUMBER),
+            TableHeading("Günstigster Preis", "billigster", TableFieldType.PRICE),
+            TableHeading("Weiteres", "weiteres", TableFieldType.TEXT),
+            TableHeading("Preis * Stufe?", "stufenabhängig", TableFieldType.BOOLEAN)
         ]
 
     @classmethod
     def get_all_serialized(cls, url_prefix=None):
-        fields = [heading["field"] for heading in cls.get_table_headings()] + ["pk"]
+        fields = [heading.field for heading in cls.get_table_headings()] + ["pk"]
 
         objects = cls.objects.filter(frei_editierbar=False)
         if len(objects) == 0: return []
@@ -260,19 +262,19 @@ class Waffen_Werkzeuge(BaseShop):
         return "{} (Waffen & Werkzeuge)".format(self.name)
     
     @staticmethod
-    def get_table_headings():
+    def get_table_headings() -> list[TableHeading]:
         return [
-            {"display": "Icon", "field": "icon", "type": "image"},
-            {"display": "Name", "field": "name", "type": "text"},
-            {"display": "Beschreibung", "field": "beschreibung", "type": "text--long"},
-            {"display": "Ab Stufe", "field": "ab_stufe", "type": "number"},
-            {"display": "Erfolge", "field": "erfolge", "type": "number"},
-            {"display": "BS", "field": "bs", "type": "text"},
-            {"display": "ZS", "field": "zs", "type": "text"},
-            {"display": "DK", "field": "dk", "type": "number"},
-            {"display": "Günstigster Preis", "field": "billigster", "type": "price"},
-            {"display": "Weiteres", "field": "weiteres", "type": "text"},
-            {"display": "Preis * Stufe?", "field": "stufenabhängig", "type": "boolean"}
+            TableHeading("Icon", "icon", TableFieldType.IMAGE),
+            TableHeading("Name", "name", TableFieldType.TEXT),
+            TableHeading("Beschreibung", "beschreibung", TableFieldType.TEXT),
+            TableHeading("Ab Stufe", "ab_stufe", TableFieldType.NUMBER),
+            TableHeading("Erfolge", "erfolge", TableFieldType.NUMBER),
+            TableHeading("BS", "bs", TableFieldType.TEXT),
+            TableHeading("ZS", "zs", TableFieldType.TEXT),
+            TableHeading("DK", "dk", TableFieldType.NUMBER),
+            TableHeading("Günstigster Preis", "billigster", TableFieldType.PRICE),
+            TableHeading("Weiteres", "weiteres", TableFieldType.TEXT),
+            TableHeading("Preis * Stufe?", "stufenabhängig", TableFieldType.BOOLEAN)
         ]
 
     @classmethod
@@ -294,16 +296,16 @@ class Magazin(BaseShop):
         return "{}, {} Schuss (Magazine)".format(self.name, self.schuss)
 
     @staticmethod
-    def get_table_headings():
+    def get_table_headings() -> list[TableHeading]:
         return [
-            {"display": "Icon", "field": "icon", "type": "image"},
-            {"display": "Name", "field": "name", "type": "text"},
-            {"display": "Beschreibung", "field": "beschreibung", "type": "text--long"},
-            {"display": "Ab Stufe", "field": "ab_stufe", "type": "number"},
-            {"display": "Schuss", "field": "schuss", "type": "number"},
-            {"display": "Günstigster Preis", "field": "billigster", "type": "price"},
-            {"display": "Weiteres", "field": "weiteres", "type": "text"},
-            {"display": "Preis * Stufe?", "field": "stufenabhängig", "type": "boolean"}
+            TableHeading("Icon", "icon", TableFieldType.IMAGE),
+            TableHeading("Name", "name", TableFieldType.TEXT),
+            TableHeading("Beschreibung", "beschreibung", TableFieldType.TEXT),
+            TableHeading("Ab Stufe", "ab_stufe", TableFieldType.NUMBER),
+            TableHeading("Schuss", "schuss", TableFieldType.NUMBER),
+            TableHeading("Günstigster Preis", "billigster", TableFieldType.PRICE),
+            TableHeading("Weiteres", "weiteres", TableFieldType.TEXT),
+            TableHeading("Preis * Stufe?", "stufenabhängig", TableFieldType.BOOLEAN)
         ]
 
     @classmethod
@@ -326,17 +328,17 @@ class Pfeil_Bolzen(BaseShop):
         return "{} (Pfeile & Bolzen)".format(self.name)
     
     @staticmethod
-    def get_table_headings():
+    def get_table_headings() -> list[TableHeading]:
         return [
-            {"display": "Icon", "field": "icon", "type": "image"},
-            {"display": "Name", "field": "name", "type": "text"},
-            {"display": "Beschreibung", "field": "beschreibung", "type": "text--long"},
-            {"display": "Ab Stufe", "field": "ab_stufe", "type": "number"},
-            {"display": "BS", "field": "bs", "type": "text"},
-            {"display": "ZS", "field": "zs", "type": "text"},
-            {"display": "Günstigster Preis", "field": "billigster", "type": "price"},
-            {"display": "Weiteres", "field": "weiteres", "type": "text"},
-            {"display": "Preis * Stufe?", "field": "stufenabhängig", "type": "boolean"}
+            TableHeading("Icon", "icon", TableFieldType.IMAGE),
+            TableHeading("Name", "name", TableFieldType.TEXT),
+            TableHeading("Beschreibung", "beschreibung", TableFieldType.TEXT),
+            TableHeading("Ab Stufe", "ab_stufe", TableFieldType.NUMBER),
+            TableHeading("BS", "bs", TableFieldType.TEXT),
+            TableHeading("ZS", "zs", TableFieldType.TEXT),
+            TableHeading("Günstigster Preis", "billigster", TableFieldType.PRICE),
+            TableHeading("Weiteres", "weiteres", TableFieldType.TEXT),
+            TableHeading("Preis * Stufe?", "stufenabhängig", TableFieldType.BOOLEAN)
         ]
 
     @classmethod
@@ -368,26 +370,26 @@ class Schusswaffen(BaseShop):
         return "{} (Schusswaffen)".format(self.name)
 
     @staticmethod
-    def get_table_headings():
+    def get_table_headings() -> list[TableHeading]:
         return [
-            {"display": "Icon", "field": "icon", "type": "image"},
-            {"display": "Name", "field": "name", "type": "text"},
-            {"display": "Beschreibung", "field": "beschreibung", "type": "text--long"},
-            {"display": "Ab Stufe", "field": "ab_stufe", "type": "number"},
-            {"display": "Erfolge", "field": "erfolge", "type": "number"},
-            {"display": "BS", "field": "bs", "type": "text"},
-            {"display": "ZS", "field": "zs", "type": "text"},
-            {"display": "DK", "field": "dk", "type": "number"},
-            {"display": "Präzision", "field": "präzision", "type": "number"},
-            {"display": "Munition", "field": "munition", "type": "text"},
-            {"display": "Günstigster Preis", "field": "billigster", "type": "price"},
-            {"display": "Weiteres", "field": "weiteres", "type": "text"},
-            {"display": "Preis * Stufe?", "field": "stufenabhängig", "type": "boolean"}
+            TableHeading("Icon", "icon", TableFieldType.IMAGE),
+            TableHeading("Name", "name", TableFieldType.TEXT),
+            TableHeading("Beschreibung", "beschreibung", TableFieldType.TEXT),
+            TableHeading("Ab Stufe", "ab_stufe", TableFieldType.NUMBER),
+            TableHeading("Erfolge", "erfolge", TableFieldType.NUMBER),
+            TableHeading("BS", "bs", TableFieldType.TEXT),
+            TableHeading("ZS", "zs", TableFieldType.TEXT),
+            TableHeading("DK", "dk", TableFieldType.NUMBER),
+            TableHeading("Präzision", "präzision", TableFieldType.NUMBER),
+            TableHeading("Munition", "munition", TableFieldType.TEXT),
+            TableHeading("Günstigster Preis", "billigster", TableFieldType.PRICE),
+            TableHeading("Weiteres", "weiteres", TableFieldType.TEXT),
+            TableHeading("Preis * Stufe?", "stufenabhängig", TableFieldType.BOOLEAN)
         ]
     
     @classmethod
-    def get_all_serialized(cls, url_prefix=None):
-        fields = [heading["field"] for heading in cls.get_table_headings()] + ["pk"]
+    def get_all_serialized(cls, url_prefix="shop:buy_schusswaffen"):
+        fields = [heading.field for heading in cls.get_table_headings()] + ["pk"]
 
         objects = cls.objects.filter(frei_editierbar=False)
         if len(objects) == 0: return []
@@ -466,23 +468,23 @@ class Rituale_Runen(BaseShop):
         return "{} (Rituale & Runen)".format(self.name)
 
     @staticmethod
-    def get_table_headings():
+    def get_table_headings() -> list[TableHeading]:
         return [
-            {"display": "Icon", "field": "icon", "type": "image"},
-            {"display": "Name", "field": "name", "type": "text"},
-            {"display": "Beschreibung", "field": "beschreibung", "type": "text--long"},
-            {"display": "Ab Stufe", "field": "ab_stufe", "type": "number"},
-            {"display": "Stufe 1", "field": "stufe1", "type": "price"},
-            {"display": "Stufe 2", "field": "stufe2", "type": "price"},
-            {"display": "Stufe 3", "field": "stufe3", "type": "price"},
-            {"display": "Stufe 4", "field": "stufe4", "type": "price"},
-            {"display": "Stufe 5", "field": "stufe5", "type": "price"},
-            {"display": "Weiteres", "field": "weiteres", "type": "text"}
+            TableHeading("Icon", "icon", TableFieldType.IMAGE),
+            TableHeading("Name", "name", TableFieldType.TEXT),
+            TableHeading("Beschreibung", "beschreibung", TableFieldType.TEXT),
+            TableHeading("Ab Stufe", "ab_stufe", TableFieldType.NUMBER),
+            TableHeading("Stufe 1", "stufe1", TableFieldType.PRICE),
+            TableHeading("Stufe 2", "stufe2", TableFieldType.PRICE),
+            TableHeading("Stufe 3", "stufe3", TableFieldType.PRICE),
+            TableHeading("Stufe 4", "stufe4", TableFieldType.PRICE),
+            TableHeading("Stufe 5", "stufe5", TableFieldType.PRICE),
+            TableHeading("Weiteres", "weiteres", TableFieldType.TEXT)
         ]
     
     @classmethod
-    def get_all_serialized(cls, url_prefix=None):
-        fields = [heading["field"] for heading in cls.get_table_headings()] + ["pk"]
+    def get_all_serialized(cls, url_prefix="shop:buy_rituale_runen"):
+        fields = [heading.field for heading in cls.get_table_headings()] + ["pk"]
 
         objects = cls.objects.filter(frei_editierbar=False)
         if len(objects) == 0: return []
@@ -545,18 +547,18 @@ class Rüstungen(BaseShop):
         return "{} (Rüstungen)".format(self.name)
     
     @staticmethod
-    def get_table_headings():
+    def get_table_headings() -> list[TableHeading]:
         return [
-            {"display": "Icon", "field": "icon", "type": "image"},
-            {"display": "Name", "field": "name", "type": "text"},
-            {"display": "Beschreibung", "field": "beschreibung", "type": "text--long"},
-            {"display": "Ab Stufe", "field": "ab_stufe", "type": "number"},
-            {"display": "Schutz", "field": "schutz", "type": "number"},
-            {"display": "Stärke", "field": "stärke", "type": "number"},
-            {"display": "Haltbarkeit", "field": "haltbarkeit", "type": "number"},
-            {"display": "Günstigster Preis", "field": "billigster", "type": "price"},
-            {"display": "Weiteres", "field": "weiteres", "type": "text"},
-            {"display": "Preis * Stufe?", "field": "stufenabhängig", "type": "boolean"}
+            TableHeading("Icon", "icon", TableFieldType.IMAGE),
+            TableHeading("Name", "name", TableFieldType.TEXT),
+            TableHeading("Beschreibung", "beschreibung", TableFieldType.TEXT),
+            TableHeading("Ab Stufe", "ab_stufe", TableFieldType.NUMBER),
+            TableHeading("Schutz", "schutz", TableFieldType.NUMBER),
+            TableHeading("Stärke", "stärke", TableFieldType.NUMBER),
+            TableHeading("Haltbarkeit", "haltbarkeit", TableFieldType.NUMBER),
+            TableHeading("Günstigster Preis", "billigster", TableFieldType.PRICE),
+            TableHeading("Weiteres", "weiteres", TableFieldType.TEXT),
+            TableHeading("Preis * Stufe?", "stufenabhängig", TableFieldType.BOOLEAN)
         ]
 
     @classmethod
@@ -604,18 +606,18 @@ class Fahrzeug(BaseShop):
         return "{} (Fahrzeuge)".format(self.name)
     
     @staticmethod
-    def get_table_headings():
+    def get_table_headings() -> list[TableHeading]:
         return [
-            {"display": "Icon", "field": "icon", "type": "image"},
-            {"display": "Name", "field": "name", "type": "text"},
-            {"display": "Beschreibung", "field": "beschreibung", "type": "text--long"},
-            {"display": "Ab Stufe", "field": "ab_stufe", "type": "number"},
-            {"display": "Schnelligkeit", "field": "schnelligkeit", "type": "number"},
-            {"display": "Rüstung", "field": "rüstung", "type": "number"},
-            {"display": "Erfolge", "field": "erfolge", "type": "number"},
-            {"display": "Günstigster Preis", "field": "billigster", "type": "price"},
-            {"display": "Weiteres", "field": "weiteres", "type": "text"},
-            {"display": "Preis * Stufe?", "field": "stufenabhängig", "type": "boolean"}
+            TableHeading("Icon", "icon", TableFieldType.IMAGE),
+            TableHeading("Name", "name", TableFieldType.TEXT),
+            TableHeading("Beschreibung", "beschreibung", TableFieldType.TEXT),
+            TableHeading("Ab Stufe", "ab_stufe", TableFieldType.NUMBER),
+            TableHeading("Schnelligkeit", "schnelligkeit", TableFieldType.NUMBER),
+            TableHeading("Rüstung", "rüstung", TableFieldType.NUMBER),
+            TableHeading("Erfolge", "erfolge", TableFieldType.NUMBER),
+            TableHeading("Günstigster Preis", "billigster", TableFieldType.PRICE),
+            TableHeading("Weiteres", "weiteres", TableFieldType.TEXT),
+            TableHeading("Preis * Stufe?", "stufenabhängig", TableFieldType.BOOLEAN)
         ]
     
     @classmethod
@@ -638,16 +640,16 @@ class Einbauten(BaseShop):
         return "{} (Einbauten)".format(self.name)
 
     @staticmethod
-    def get_table_headings():
+    def get_table_headings() -> list[TableHeading]:
         return [
-            {"display": "Icon", "field": "icon", "type": "image"},
-            {"display": "Name", "field": "name", "type": "text"},
-            {"display": "Beschreibung", "field": "beschreibung", "type": "text--long"},
-            {"display": "Ab Stufe", "field": "ab_stufe", "type": "number"},
-            {"display": "Manifestverlust", "field": "manifestverlust", "type": "text"},
-            {"display": "Günstigster Preis", "field": "billigster", "type": "price"},
-            {"display": "Weiteres", "field": "weiteres", "type": "text"},
-            {"display": "Preis * Stufe?", "field": "stufenabhängig", "type": "boolean"}
+            TableHeading("Icon", "icon", TableFieldType.IMAGE),
+            TableHeading("Name", "name", TableFieldType.TEXT),
+            TableHeading("Beschreibung", "beschreibung", TableFieldType.TEXT),
+            TableHeading("Ab Stufe", "ab_stufe", TableFieldType.NUMBER),
+            TableHeading("Manifestverlust", "manifestverlust", TableFieldType.TEXT),
+            TableHeading("Günstigster Preis", "billigster", TableFieldType.PRICE),
+            TableHeading("Weiteres", "weiteres", TableFieldType.TEXT),
+            TableHeading("Preis * Stufe?", "stufenabhängig", TableFieldType.BOOLEAN)
         ]
     
     @classmethod
@@ -675,20 +677,20 @@ class Zauber(BaseShop):
         return "{} (Zauber)".format(self.name)
 
     @staticmethod
-    def get_table_headings():
+    def get_table_headings() -> list[TableHeading]:
         return [
-            {"display": "Icon", "field": "icon", "type": "image"},
-            {"display": "Name", "field": "name", "type": "text"},
-            {"display": "Beschreibung", "field": "beschreibung", "type": "text--long"},
-            {"display": "Ab Stufe", "field": "ab_stufe", "type": "number"},
-            {"display": "Schaden", "field": "schaden", "type": "text"},
-            {"display": "Astralschaden", "field": "astralschaden", "type": "text"},
-            {"display": "Manaverbrauch", "field": "manaverbrauch", "type": "text"},
-            {"display": "Flächenwirkung", "field": "flächenzauber", "type": "boolean"},
-            {"display": "Kategorie", "field": "kategorie", "type": "text"},
-            {"display": "Günstigster Preis", "field": "billigster", "type": "price"},
-            {"display": "Weiteres", "field": "weiteres", "type": "text"},
-            {"display": "Preis * Stufe?", "field": "stufenabhängig", "type": "boolean"}
+            TableHeading("Icon", "icon", TableFieldType.IMAGE),
+            TableHeading("Name", "name", TableFieldType.TEXT),
+            TableHeading("Beschreibung", "beschreibung", TableFieldType.TEXT),
+            TableHeading("Ab Stufe", "ab_stufe", TableFieldType.NUMBER),
+            TableHeading("Schaden", "schaden", TableFieldType.TEXT),
+            TableHeading("Astralschaden", "astralschaden", TableFieldType.TEXT),
+            TableHeading("Manaverbrauch", "manaverbrauch", TableFieldType.TEXT),
+            TableHeading("Flächenwirkung", "flächenzauber", TableFieldType.BOOLEAN),
+            TableHeading("Kategorie", "kategorie", TableFieldType.TEXT),
+            TableHeading("Günstigster Preis", "billigster", TableFieldType.PRICE),
+            TableHeading("Weiteres", "weiteres", TableFieldType.TEXT),
+            TableHeading("Preis * Stufe?", "stufenabhängig", TableFieldType.BOOLEAN)
         ]
     
     @classmethod
@@ -715,19 +717,19 @@ class VergessenerZauber(BaseShop):
         return "{} (vergessener Zauber)".format(self.name)
 
     @staticmethod
-    def get_table_headings():
+    def get_table_headings() -> list[TableHeading]:
         return [
-            {"display": "Icon", "field": "icon", "type": "image"},
-            {"display": "Name", "field": "name", "type": "text"},
-            {"display": "Beschreibung", "field": "beschreibung", "type": "text--long"},
-            {"display": "Ab Stufe", "field": "ab_stufe", "type": "number"},
-            {"display": "Schaden", "field": "schaden", "type": "text"},
-            {"display": "Astralschaden", "field": "astralschaden", "type": "text"},
-            {"display": "Manaverbrauch", "field": "manaverbrauch", "type": "text"},
-            {"display": "Flächenwirkung", "field": "flächenzauber", "type": "boolean"},
-            {"display": "Günstigster Preis", "field": "billigster", "type": "price"},
-            {"display": "Weiteres", "field": "weiteres", "type": "text"},
-            {"display": "Preis * Stufe?", "field": "stufenabhängig", "type": "boolean"}
+            TableHeading("Icon", "icon", TableFieldType.IMAGE),
+            TableHeading("Name", "name", TableFieldType.TEXT),
+            TableHeading("Beschreibung", "beschreibung", TableFieldType.TEXT),
+            TableHeading("Ab Stufe", "ab_stufe", TableFieldType.NUMBER),
+            TableHeading("Schaden", "schaden", TableFieldType.TEXT),
+            TableHeading("Astralschaden", "astralschaden", TableFieldType.TEXT),
+            TableHeading("Manaverbrauch", "manaverbrauch", TableFieldType.TEXT),
+            TableHeading("Flächenwirkung", "flächenzauber", TableFieldType.BOOLEAN),
+            TableHeading("Günstigster Preis", "billigster", TableFieldType.PRICE),
+            TableHeading("Weiteres", "weiteres", TableFieldType.TEXT),
+            TableHeading("Preis * Stufe?", "stufenabhängig", TableFieldType.BOOLEAN)
         ]
     
     @classmethod
@@ -771,15 +773,15 @@ class Tinker(BaseShop):
         return {"id": self.id, "name": self.name, "icon_url": self.getIconUrl()}
 
     @staticmethod
-    def get_table_headings():
+    def get_table_headings() -> list[TableHeading]:
         return [
-            {"display": "Icon", "field": "icon", "type": "image"},
-            {"display": "Name", "field": "name", "type": "text"},
-            {"display": "Beschreibung", "field": "beschreibung", "type": "text--long"},
-            {"display": "Ab Stufe", "field": "ab_stufe", "type": "number"},
-            {"display": "Werte", "field": "werte", "type": "text"},
-            {"display": "Weiteres", "field": "weiteres", "type": "text"},
-            {"display": "Preis * Stufe?", "field": "stufenabhängig", "type": "boolean"}
+            TableHeading("Icon", "icon", TableFieldType.IMAGE),
+            TableHeading("Name", "name", TableFieldType.TEXT),
+            TableHeading("Beschreibung", "beschreibung", TableFieldType.TEXT),
+            TableHeading("Ab Stufe", "ab_stufe", TableFieldType.NUMBER),
+            TableHeading("Werte", "werte", TableFieldType.TEXT),
+            TableHeading("Weiteres", "weiteres", TableFieldType.TEXT),
+            TableHeading("Preis * Stufe?", "stufenabhängig", TableFieldType.BOOLEAN)
         ]
 
 

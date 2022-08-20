@@ -29,7 +29,6 @@ class TableSerializableModel(models.Model):
 
     @staticmethod
     def get_table_headings() -> list[TableHeading]:
-        print(TableHeading("PK", "pk", TableFieldType.NUMBER).serialize())
         return [
             TableHeading("PK", "pk", TableFieldType.NUMBER)
         ]

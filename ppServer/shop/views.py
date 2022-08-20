@@ -67,7 +67,7 @@ def all(request):
         items += show_shop("", model, "shop:"+url)["rows"]
 
     context = {
-        "headings": BaseShop.get_table_headings(),
+        "headings": BaseShop.get_serialized_table_headings(),
         "rows": items,
         "topic": "Shop",
         "buyable": True
@@ -156,9 +156,9 @@ def begleiter(request):
     return render(request, "shop/show_shop.html", show_shop("Begleiter", Begleiter, "admin:shop_begleiter_add"))
 
 
-def show_shop(topic, model, plus_url, buyable=True):
+def show_shop(topic, model: BaseShop, plus_url, buyable=True):
     context = {
-        "headings": model.get_table_headings(),
+        "headings": model.get_serialized_table_headings(),
         "rows": model.get_all_serialized(),
 
         "topic": topic,
