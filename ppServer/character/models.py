@@ -7,6 +7,8 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.shortcuts import get_object_or_404
 
+from base.models import TableSerializableModel, TableFieldType, TableHeading
+
 from . import enums
 
 
@@ -31,7 +33,7 @@ class Spieler(models.Model):
         return name
 
 
-class Wesenkraft(models.Model):
+class Wesenkraft(TableSerializableModel):
     class Meta:
         ordering = ['titel']
         verbose_name = "Wesenkraft"
@@ -49,6 +51,35 @@ class Wesenkraft(models.Model):
 
     def __str__(self):
         return "{} (Rang {})".format(self.titel, self.min_rang)
+
+    @staticmethod
+    def get_table_headings() -> list[TableHeading]:
+        return [
+            TableHeading("Titel", "titel", TableFieldType.TEXT),
+            TableHeading("Probe", "probe", TableFieldType.TEXT),
+            TableHeading("Wirkung", "wirkung", TableFieldType.TEXT),
+            TableHeading("Wesen", "wesen", TableFieldType.TEXT),
+        ]
+
+    @classmethod
+    def get_table_rows(cls):
+        rows = super().get_table_rows()
+        objects = Wesenkraft.objects.all()
+
+        for i in range(len(objects)):
+            wesenkraft = objects[i]
+            wesen = wesenkraft.get_wesen_display()
+
+            if wesenkraft.wesen == "w":
+                wesen = ", ".join([z.titel for z in wesenkraft.zusatz_wesenspezifisch.all()])
+                
+        
+            elif wesenkraft.wesen == "f":
+                wesen = "Manifest kleiner gleich {}".format(wesenkraft.zusatz_manifest)
+
+            rows[i]["wesen"] = wesen
+
+        return rows
 
 
 class Spezies(models.Model):
@@ -116,7 +147,7 @@ class Gfs(models.Model):
         return attr
 
 
-class Persönlichkeit(models.Model):
+class Persönlichkeit(TableSerializableModel):
     
     class Meta:
         ordering = ['titel']
@@ -129,6 +160,14 @@ class Persönlichkeit(models.Model):
 
     def __str__(self):
         return self.titel
+
+    @staticmethod
+    def get_table_headings() -> list[TableHeading]:
+        return [
+            TableHeading("Titel", "titel", TableFieldType.TEXT),
+            TableHeading("Positiv", "positiv", TableFieldType.TEXT),
+            TableHeading("Negativ", "negativ", TableFieldType.TEXT),
+        ]
 
 
 class Profession(models.Model):
@@ -373,7 +412,7 @@ class ProfessionStufenplan(models.Model):
     weiteres = models.TextField(max_length=1000, default=None, blank=True, null=True)
 
 
-class Talent(models.Model):
+class Talent(TableSerializableModel):
     class Meta:
         ordering = ['titel']
         verbose_name = "Talent"
@@ -388,8 +427,16 @@ class Talent(models.Model):
     def __str__(self):
         return self.titel
 
+    @staticmethod
+    def get_table_headings() -> list[TableHeading]:
+        return [
+            TableHeading("Titel", "titel", TableFieldType.TEXT),
+            TableHeading("TP", "tp", TableFieldType.NUMBER),
+            TableHeading("Beschreibung", "beschreibung", TableFieldType.TEXT)
+        ]
 
-class Religion(models.Model):
+
+class Religion(TableSerializableModel):
     class Meta:
         ordering = ['titel']
         verbose_name = "Religion"
@@ -402,8 +449,15 @@ class Religion(models.Model):
     def __str__(self):
         return self.titel
 
+    @staticmethod
+    def get_table_headings() -> list[TableHeading]:
+        return [
+            TableHeading("Titel", "titel", TableFieldType.TEXT),
+            TableHeading("Beschreibung", "beschreibung", TableFieldType.TEXT)
+        ]
 
-class Teil(models.Model):
+
+class Teil(TableSerializableModel):
     """super for Vorteil, Nachteil"""
     class Meta:
         abstract = True
@@ -414,6 +468,14 @@ class Teil(models.Model):
     ip = models.PositiveIntegerField(default=0, validators=[MaxValueValidator(1000)])
     beschreibung = models.TextField(max_length=1000, blank=True, default="")
     wann_wählbar = models.CharField(max_length=1, choices=enums.teil_erstellung_enum, default=enums.teil_erstellung_enum[0][0])
+
+    @staticmethod
+    def get_table_headings() -> list[TableHeading]:
+        return [
+            TableHeading("Titel", "titel", TableFieldType.TEXT),
+            TableHeading("IP", "ip", TableFieldType.NUMBER),
+            TableHeading("Beschreibung", "beschreibung", TableFieldType.TEXT)
+        ]
 
 
 
@@ -451,7 +513,7 @@ class Attribut(models.Model):
         return "{}".format(self.titel)
 
 
-class Beruf(models.Model):
+class Beruf(TableSerializableModel):
 
     class Meta:
         ordering = ['titel']
@@ -463,6 +525,13 @@ class Beruf(models.Model):
 
     def __str__(self):
         return self.titel
+
+    @staticmethod
+    def get_table_headings() -> list[TableHeading]:
+        return [
+            TableHeading("Titel", "titel", TableFieldType.TEXT),
+            TableHeading("Beschreibung", "beschreibung", TableFieldType.TEXT)
+        ]
 
 
 class Fertigkeit(models.Model):
@@ -489,7 +558,7 @@ class Fertigkeit(models.Model):
             raise ValidationError("Erstes Attribut wählen, wenn nur eins gebraucht wird!")
 
 
-class Wissensfertigkeit(models.Model):
+class Wissensfertigkeit(TableSerializableModel):
 
     class Meta:
         verbose_name = "Wissensfertigkeit"
@@ -509,8 +578,32 @@ class Wissensfertigkeit(models.Model):
         rd = self.attr3.__str__()
         return "{} ({}, {}, {})".format(self.titel, st, nd, rd)
 
+    @staticmethod
+    def get_table_headings() -> list[TableHeading]:
+        return [
+            TableHeading("Titel", "titel", TableFieldType.TEXT),
+            TableHeading("Attr 1", "attr1", TableFieldType.TEXT),
+            TableHeading("Attr 2", "attr2", TableFieldType.TEXT),
+            TableHeading("Attr 3", "attr3", TableFieldType.TEXT),
+            TableHeading("Fertigkeiten", "fertigkeit", TableFieldType.TEXT),
+            TableHeading("Beschreibung", "beschreibung", TableFieldType.TEXT),
+        ]
 
-class Spezialfertigkeit(models.Model):
+    @classmethod
+    def get_table_rows(cls):
+        rows = super().get_table_rows()
+
+        objects = cls.objects.all()
+        for i in range(len(objects)):
+            rows[i]["attr1"] = objects[i].attr1.titel
+            rows[i]["attr2"] = objects[i].attr2.titel
+            rows[i]["attr3"] = objects[i].attr3.titel
+            rows[i]["fertigkeit"] = ", ".join([fert.titel for fert in objects[i].fertigkeit.all()])
+        
+        return rows
+
+
+class Spezialfertigkeit(TableSerializableModel):
 
     class Meta:
         verbose_name_plural = "Spezialfertigkeiten"
@@ -527,6 +620,29 @@ class Spezialfertigkeit(models.Model):
         st = self.attr1.__str__()
         nd = self.attr2.__str__()
         return "{} ({}, {})".format(self.titel, st, nd)
+
+    @staticmethod
+    def get_table_headings() -> list[TableHeading]:
+        return [
+            TableHeading("Titel", "titel", TableFieldType.TEXT),
+            TableHeading("Attr 1", "attr1", TableFieldType.TEXT),
+            TableHeading("Attr 2", "attr2", TableFieldType.TEXT),
+            TableHeading("Ausgleich", "ausgleich", TableFieldType.TEXT),
+            TableHeading("Beschreibung", "beschreibung", TableFieldType.TEXT),
+        ]
+
+    @classmethod
+    def get_table_rows(cls):
+        rows = super().get_table_rows()
+
+        objects = cls.objects.all()
+        for i in range(len(objects)):
+            rows[i]["attr1"] = objects[i].attr1.titel
+            rows[i]["attr2"] = objects[i].attr2.titel
+            rows[i]["ausgleich"] = ", ".join([fert.titel for fert in objects[i].ausgleich.all()])
+        
+        return rows
+
 
 
 class Begleiter(models.Model):
@@ -1204,7 +1320,7 @@ class SkilltreeEntryKategorie(models.Model):
         return "{}, {} (Stufe {})".format(self.context.get_kind_display(), self.get_kategorie_display(), self.context.stufe)
 
 
-class RangRankingEntry(models.Model):
+class RangRankingEntry(TableSerializableModel):
     class Meta:
         ordering = ["order"]
 
@@ -1220,3 +1336,24 @@ class RangRankingEntry(models.Model):
 
     def __str__(self):
         return "Rang {} ({} - {})".format(self.ranking, self.min_rang, self.max_rang)
+
+    @staticmethod
+    def get_table_headings() -> list[TableHeading]:
+        return [
+            TableHeading("Ranking", "ranking", TableFieldType.TEXT),
+            TableHeading("Rang", "rang", TableFieldType.TEXT),
+            TableHeading("Surival-Belohnung", "survival", TableFieldType.TEXT),
+            TableHeading("Power-Belohnung", "power", TableFieldType.TEXT),
+            TableHeading("Skill-Belohnung", "skills", TableFieldType.TEXT),
+            TableHeading("Specials-Belohnung", "specials", TableFieldType.TEXT)
+    ]
+
+    @classmethod
+    def get_table_rows(cls):
+        rows = super().get_table_rows()
+        objects = cls.objects.all()
+
+        for i in range(len(objects)):
+            rows[i]["rang"] = "{} bis {}".format(objects[i].min_rang, objects[i].max_rang)
+
+        return rows

@@ -20,6 +20,7 @@ class Question(models.Model):
     pub_date = models.DateTimeField('date published', default=timezone.now)
     deadline = models.DateTimeField('deadline', default=default_deadline)
     show_result_to_user = models.BooleanField(default=False)
+    allow_multiple_selection = models.BooleanField(default=False)
 
     spieler_voted = models.ManyToManyField(Spieler, through="QuestionSpieler")
 

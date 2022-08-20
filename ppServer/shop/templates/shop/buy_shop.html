@@ -47,7 +47,7 @@
         </div>
         <div>{{ e.firma }}</div>
         <div>{{ e.verfügbarkeit }}%</div>
-        <div><input class="notizen row-{{ forloop.counter0 }}" type="text" placeholder="Eigene Notizen"></div>
+        <div><input class="notizen row-{{ forloop.counter0 }}" type="text" placeholder="Eigene Notizen" maxlength="50"></div>
         <div><button onclick="submit(event)" class="btn row-{{ forloop.counter0 }}">Jetzt kaufen</button></div>
     {% endfor %}
 

@@ -13,16 +13,22 @@
 {% block body %}
 <div>
     <h1>{{ question.text }}</h1>
-
+    
     <p><b id="votes">{{ question.anz_stimmen }}</b> Stimme<span id="plural" {% if question.anz_stimmen == 1 %}style="display:none"{% endif %}>n</span></p>
-
+    
     <div class="list">
+        {% with ''|center:question.anz_stimmen as range %}
         {% for choice in question.choice_set.all %}
             <div class="row">
-                <div class="checkbox" id="{{ choice.id }}" onclick="toggle(this)"></div>
+                {% if question.allow_multiple_selection %}
+                    {% for _ in range %}<div class="checkbox" id="{{ choice.id }}" onclick="toggle(this)"></div>{% endfor %}
+                {% else %}
+                    <div class="checkbox" id="{{ choice.id }}" onclick="toggle(this)"></div>
+                {% endif %}
                 <label for="{{ choice.id }}" onclick="toggle(currentTarget=document.getElementById({{choice.id}}))">{{ choice.text }}</label>
             </div>
         {% endfor %}
+        {% endwith %}
     </div>
 
     <button class="btn" disabled id="submit">OK</button>

@@ -26,6 +26,8 @@ function get_headings(buyable) {
             switch(def.type) {
                 case "image":
                     return {...def, filter: false, sortable: false, cellRenderer: params => `<img src="${params.value}" class="icon">` };
+                case "date":
+                    return {...def, filter: false, sortable: false, cellRenderer: params => params.value ? params.value.split("-").reverse().join(".") : '-'};
                 case "number":
                     return {...def, filter: true, sortable, cellRenderer: params => params.value ? new Intl.NumberFormat("de").format(params.value) : '-'};
                 case "price":

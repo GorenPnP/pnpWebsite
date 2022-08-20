@@ -45,13 +45,13 @@ def detail(request, pk):
             choices.append(choice)
 
         spieler = get_object_or_404(Spieler, name=request.user.username)
-        #if QuestionSpieler.objects.filter(question=question, spieler=spieler).exists():
-        #    return JsonResponse({"message": "Bereits über diese Frage abgestimmt"}, status=418)
+        if QuestionSpieler.objects.filter(question=question, spieler=spieler).exists():
+           return JsonResponse({"message": "Bereits über diese Frage abgestimmt"}, status=418)
 
         # valid since here
 
-        for c in choices:
-            c.votes += 1
+        for c in set(choices):
+            c.votes += choices.count(c)
             c.save()
         QuestionSpieler.objects.get_or_create(spieler=spieler, question=question)
 

@@ -1,4 +1,3 @@
-import math
 from ppServer.decorators import verified_account
 from functools import cmp_to_key
 
@@ -20,22 +19,37 @@ def index(request):
 @login_required
 @verified_account
 def vorteile(request):
-    context = {'topic': 'Vorteile', 'list': Vorteil.objects.all().order_by("titel")}
-    return render(request, 'wiki/vor_nachteile.html', context)
+    context = {
+        "headings": Vorteil.get_serialized_table_headings(),
+        "rows": Vorteil.get_table_rows(),
+
+        "topic": "Vorteile"
+    }
+    return render(request, 'wiki/generic_table_view.html', context)
 
 
 @login_required
 @verified_account
 def nachteile(request):
-    context = {'topic': 'Nachteile', 'list': Nachteil.objects.all().order_by("titel")}
-    return render(request, 'wiki/vor_nachteile.html', context)
+    context = {
+        "headings": Nachteil.get_serialized_table_headings(),
+        "rows": Nachteil.get_table_rows(),
+
+        "topic": "Nachteile"
+    }
+    return render(request, 'wiki/generic_table_view.html', context)
 
 
 @login_required
 @verified_account
 def talente(request):
-    context = {"topic": "Talente", "list": Talent.objects.all()}
-    return render(request, "wiki/talent.html", context)
+    context = {
+        "headings": Talent.get_serialized_table_headings(),
+        "rows": Talent.get_table_rows(),
+
+        "topic": "Talente"
+    }
+    return render(request, "wiki/generic_table_view.html", context)
 
 
 @login_required
@@ -121,7 +135,13 @@ def stufenplan(request, gfs_id):
 @login_required
 @verified_account
 def persönlichkeit(request):
-    return render(request, "wiki/persönlichkeiten.html", {"topic": "Persönlichkeiten", "rows": Persönlichkeit.objects.all()})
+    context = {
+        "headings": Persönlichkeit.get_serialized_table_headings(),
+        "rows": Persönlichkeit.get_table_rows(),
+
+        "topic": "Persönlichkeiten"
+    }
+    return render(request, "wiki/generic_table_view.html", context)
 
 
 @login_required
@@ -210,49 +230,74 @@ def stufenplan_profession(request, profession_id):
 @login_required
 @verified_account
 def spezial(request):
-    return render(request, 'wiki/spezial.html', {'topic': 'Spezialfertigkeiten', "spezial": Spezialfertigkeit.objects.all().order_by("titel")})
+    context = {
+        "headings": Spezialfertigkeit.get_serialized_table_headings(),
+        "rows": Spezialfertigkeit.get_table_rows(),
+
+        "topic": "Spezialfertigkeiten"
+    }
+    return render(request, 'wiki/generic_table_view.html', context)
 
 
 @login_required
 @verified_account
 def wissen(request):
-    return render(request, 'wiki/wissen.html', {'topic': 'Wissensfertigkeiten', 'wissen': Wissensfertigkeit.objects.all().order_by("titel")})
+    context = {
+        "headings": Wissensfertigkeit.get_serialized_table_headings(),
+        "rows": Wissensfertigkeit.get_table_rows(),
+
+        "topic": "Wissensfertigkeiten"
+    }
+    return render(request, 'wiki/generic_table_view.html', context)
 
 
 @login_required
 @verified_account
 def wesenkräfte(request):
-    wesenkraft = []
-    for w in Wesenkraft.objects.all().order_by("titel"):
-        wesen = w.get_wesen_display()
-        zusatz = []
-        if w.wesen == "w":
-            for z in w.zusatz_wesenspezifisch.all():
-                zusatz.append(z.titel)
-        elif w.wesen == "f":
-            zusatz.append(w.zusatz_manifest)
-            wesen = "Manifest kleiner gleich "
+    context = {
+        "headings": Wesenkraft.get_serialized_table_headings(),
+        "rows": Wesenkraft.get_table_rows(),
 
-        wesenkraft.append({"kraft": w, "für": wesen, "zusatz": zusatz})
-    return render(request, "wiki/wesenkraft.html", {"wesenkräfte": wesenkraft, "topic": "Wesenkräfte"})
+        "topic": "Wesenkräfte"
+    }
+    return render(request, "wiki/generic_table_view.html", context)
 
 
 @login_required
 @verified_account
 def religion(request):
-    return render(request, "wiki/religion.html", {'topic': "Religionen", "religionen": Religion.objects.all().order_by("titel")})
+    context = {
+        "headings": Religion.get_serialized_table_headings(),
+        "rows": Religion.get_table_rows(),
+
+        "topic": "Religionen"
+    }
+    return render(request, "wiki/generic_table_view.html", context)
 
 
 @login_required
 @verified_account
 def beruf(request):
-    return render(request, "wiki/beruf.html", {'topic': "Berufe", "berufe": Beruf.objects.all().order_by("titel")})
+    context = {
+        "headings": Beruf.get_serialized_table_headings(),
+        "rows": Beruf.get_table_rows(),
+
+        "topic": "Berufe"
+    }
+
+    return render(request, "wiki/generic_table_view.html", context)
 
 
 @login_required
 @verified_account
 def rang_ranking(request):
-    return render(request, "wiki/rang_ranking.html", {"list": RangRankingEntry.objects.all().order_by("order"), "topic": "Erfahrungsranking"})
+    context = {
+        "headings": RangRankingEntry.get_serialized_table_headings(),
+        "rows": RangRankingEntry.get_table_rows(),
+
+        "topic": "Erfahrungsranking"
+    }
+    return render(request, "wiki/generic_table_view.html", context)
 
 
 def compare_dates(a, b):
@@ -304,7 +349,7 @@ def geburtstage(request):
         spieler_birthdays.append({
             "name": real_name,
             "date": s.geburtstag,
-            "next_age": age(s.geburtstag) + 1,
+            "next_age": age(s.geburtstag),
             "next_party": False
         })
 

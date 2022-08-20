@@ -5,9 +5,9 @@ function toggle(el) {
     el.classList.toggle("checked")
 
     var num_checked = document.getElementsByClassName("checkbox checked").length
-    var remaning = initial_votes - num_checked
-    document.getElementById("votes").innerHTML = remaning
-    document.getElementById("plural").style.display = Math.abs(remaning) === 1 ? 'none' : 'inline'
+    var remaining = initial_votes - num_checked
+    document.getElementById("votes").innerHTML = remaining
+    document.getElementById("plural").style.display = Math.abs(remaining) === 1 ? 'none' : 'inline'
 
     document.getElementById("submit").disabled = num_checked !== initial_votes
 }
