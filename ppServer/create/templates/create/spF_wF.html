@@ -13,23 +13,18 @@
 <script src="{% static 'base/js/ajax.js' %}"></script>
 
 <script type="text/javascript" src="{% static 'create/js/spF_wF.js' %}" defer></script>
-{{ headings_spF|json_script:"headings_spF" }}
-{{ spezialfertigkeiten|json_script:"spezialfertigkeiten" }}
-
-{{ headings_wF|json_script:"headings_wF" }}
-{{ wissensfertigkeiten|json_script:"wissensfertigkeiten" }}
+{{ fertigkeiten|json_script:"fertigkeiten" }}
 {% endblock %}
 
 {% block absolute %}
-{% include 'base/header.html' with topic=topic plus_url=plus_url %}
+{% include 'base/header.html' with topic=topic %}
 {% endblock %}
 
 {% block body %}
 <p class="pool"><b id="fert_pool">{{ spF_wF }}</b> Fertigkeit/en übrig</p>
 <p class="pool"><b id="wp_pool">{{ wp }}</b> WP übrig</p>
 
-<main id="table_spF" class="table ag-theme-alpine"></main>
-<main id="table_wF" class="table ag-theme-alpine"></main>
+{% include 'base/table.html' with rows=fertigkeiten headings=headings %}
 
 <button id="submit" class="btn" onclick="submit()">Wählen</button>
 {% endblock %}

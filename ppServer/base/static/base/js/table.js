@@ -36,6 +36,8 @@ function get_headings(buyable) {
                     return {...def, filter: true, sortable, cellRenderer: params => params.value ? "ja" : "-"};
                 case "text": case "text--long":
                     return {...def, filter: true, sortable, cellRenderer: params => params.value || "-"};
+                case "number input":
+                    return {...def, filter: true, sortable, cellRenderer: params => `<input type="number" placeholder="0" value="${params.value}">`};
                 default: return def;
             }
         });

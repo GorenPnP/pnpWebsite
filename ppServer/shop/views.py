@@ -1,6 +1,5 @@
 from ppServer.decorators import verified_account
-import random, json, re
-import sre_constants
+import random, json
 
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User

@@ -10,6 +10,8 @@ class TableFieldType(Enum):
     PRICE = "price"
     BOOLEAN = "boolean"
 
+    NUMBER_INPUT = "number input"
+
 class TableHeading():
 
     def __init__(self, display: str, field: str, fieldType: TableFieldType):

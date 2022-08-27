@@ -676,6 +676,8 @@ def new_zauber(request):
         return JsonResponse({"url": reverse("create:landing_page")})
 
 
+@login_required
+@verified_account
 def new_spF_wF(request):
     new_char, error = get_own_NewCharakter(request)
     if error:
@@ -690,47 +692,44 @@ def new_spF_wF(request):
 
     if request.method == "GET":
 
-        spFerts = []
+        ferts = []
         for spF in Spezialfertigkeit.objects.all():
             relFert = NewCharakterSpezialfertigkeit.objects.filter(char=new_char, spezialfertigkeit=spF).first()
             sp = {
-                "pk": spF.pk,
+                "kind": "Spezial",
+                "pk": "spF{}".format(spF.pk),
                 "titel": spF.titel,
                 "beschreibung": spF.beschreibung,
                 "attrs": "{}, {}".format(spF.attr1.titel, spF.attr2.titel),
-                "ausgleich": ", ".join([fert.titel for fert in spF.ausgleich.all()]),
+                "ferts": ", ".join([fert.titel for fert in spF.ausgleich.all()]),
                 "punkte": relFert.stufe if relFert else None
             }
-            spFerts.append(sp)
+            ferts.append(sp)
 
-        wFerts = []
         for wF in Wissensfertigkeit.objects.all():
             relFert = NewCharakterWissensfertigkeit.objects.filter(char=new_char, wissensfertigkeit=wF).first()
             w = {
-                "pk": wF.pk,
+                "kind": "Wissen",
+                "pk": "wF{}".format(wF.pk),
                 "titel": wF.titel,
                 "beschreibung": wF.beschreibung,
                 "attrs": "{}, {}, {}".format(wF.attr1.titel, wF.attr2.titel, wF.attr3.titel),
-                "fert": ", ".join([fert.titel for fert in wF.fertigkeit.all()]),
+                "ferts": ", ".join([fert.titel for fert in wF.fertigkeit.all()]),
                 "punkte": relFert.stufe if relFert else None
             }
-            wFerts.append(w)
+            ferts.append(w)
 
         context = { 
             "topic": "Spezial- & Wissensf.",
-            "spezialfertigkeiten": spFerts,
-            "wissensfertigkeiten": wFerts,
+            "fertigkeiten": ferts,
             "wp": new_char.spF_wF * WP_FACTOR,
             "spF_wF": new_char.spF_wF,
-            "headings_spF": [
-                {"headerName": "Spezialfertigkeit", "field": "titel", "type": "text"},
-                {"headerName": "Attribute", "field": "attrs", "type": "text"},
-                {"headerName": "Fertigkeit/en", "field": "ausgleich", "type": "text"},
-            ],
-            "headings_wF": [
-                {"headerName": "Wissensfertigkeit", "field": "titel", "type": "text"},
-                {"headerName": "Attribute", "field": "attrs", "type": "text"},
-                {"headerName": "Fertigkeit/en", "field": "fert", "type": "text"},
+            "headings": [
+                TableHeading("Fertigkeit", "titel", TableFieldType.TEXT).serialize(),
+                TableHeading("Art", "kind", TableFieldType.TEXT).serialize(),
+                TableHeading("Attribute", "attrs", TableFieldType.TEXT).serialize(),
+                TableHeading("Fertigkeit/en", "ferts", TableFieldType.TEXT).serialize(),
+                TableHeading("WP", "punkte", TableFieldType.NUMBER_INPUT).serialize(),
             ]
         }
         return render(request, "create/spF_wF.html", context)
@@ -742,10 +741,18 @@ def new_spF_wF(request):
             return JsonResponse({"message": "Ausgewählte Fertigkeiten sind nicht angekommen"}, status=418)
 
         # test
-        if len(selected) != new_char.spF_wF:
+
+
+        # get pool
+        current_spF = NewCharakterSpezialfertigkeit.objects.filter(char=new_char)
+        current_wF = NewCharakterWissensfertigkeit.objects.filter(char=new_char)
+
+        spF_wF = new_char.spF_wF + current_spF.count() + current_wF.count()
+        wp = new_char.spF_wF * WP_FACTOR + sum([spF.stufe for spF in current_spF]) + sum([wF.stufe for wF in current_wF])
+        if len(selected) != spF_wF:
             return JsonResponse({"message": "Anzahl der ausgewählten Fertigkeiten passt nicht"}, status=418)
 
-        if sum([fert["wp"] for fert in selected]) != new_char.spF_wF * WP_FACTOR:
+        if sum([fert["wp"] for fert in selected]) != wp:
             return JsonResponse({"message": "WP in den Fertigkeiten passen nicht"}, status=418)
 
 
