@@ -21,8 +21,10 @@
 {% endblock %}
 
 {% block body %}
-<p class="pool"><b id="fert_pool">{{ spF_wF }}</b> Fertigkeit/en übrig</p>
-<p class="pool"><b id="wp_pool">{{ wp }}</b> WP übrig</p>
+<aside class="pools">
+    <p class="pool"><b id="fert_pool">{{ spF_wF }}</b> Fertigkeit/en übrig</p>
+    <p class="pool"><b id="wp_pool">{{ wp }}</b> WP übrig</p>
+</aside>
 
 {% include 'base/table.html' with rows=fertigkeiten headings=headings %}
 

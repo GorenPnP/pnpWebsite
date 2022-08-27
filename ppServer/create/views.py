@@ -443,9 +443,9 @@ def new_ap(request):
         ap_diff = 0
         relAttrs = NewCharakterAttribut.objects.filter(char=new_char)
         for relAttr in relAttrs:
-            curr = attr_dict[str(relAttr.attribut.id)]
-            ap_diff += curr["aktuell"] - relAttr.aktuellerWert_ap
-            ap_diff += 2 * (curr["max"] - relAttr.maxWert_ap)
+            curr = attr_dict[str(relAttr.pk)]
+            ap_diff += curr["aktuell_ap"] - relAttr.aktuellerWert_ap
+            ap_diff += 2 * (curr["max_ap"] - relAttr.maxWert_ap)
 
             if relAttr.ges_aktuell() > relAttr.ges_max_bonus():
                 return JsonResponse({"message": "Wert von {} ist über dem Maximum".format(relAttr.attribut.titel)})
@@ -457,9 +457,9 @@ def new_ap(request):
         # all save since here
         # set aktuell_ap and max_ap to attributes
         for relAttr in relAttrs:
-            curr = attr_dict[str(relAttr.attribut.id)]
-            relAttr.aktuellerWert_ap = curr["aktuell"]
-            relAttr.maxWert_ap = curr["max"]
+            curr = attr_dict[str(relAttr.pk)]
+            relAttr.aktuellerWert_ap = curr["aktuell_ap"]
+            relAttr.maxWert_ap = curr["max_ap"]
             relAttr.save()
 
         new_char.ap = 0
@@ -482,9 +482,41 @@ def new_ap(request):
         if not new_prio_done(new_char):
             return redirect("create:prio")
 
-        li = [new_a for new_a in NewCharakterAttribut.objects.filter(char=new_char)]
+        headings = [
+            TableHeading("Attribut", "attr", TableFieldType.TEXT).serialize(),
+            TableHeading("Aktuell", "aktuell", TableFieldType.TEXT).serialize(),
+            TableHeading("+", "aktuell_ap", TableFieldType.NUMBER_INPUT).serialize(),
+            TableHeading("Maximum", "maximum", TableFieldType.TEXT).serialize(),
+            TableHeading("+", "maximum_ap", TableFieldType.NUMBER_INPUT).serialize(),
+            TableHeading("Stand", "result", TableFieldType.TEXT).serialize(),
+        ]
+        rows = []
+        attributes = []
+        for new_a in NewCharakterAttribut.objects.filter(char=new_char):
+            aktuell_bonus = "+{}".format(new_a.aktuellerWert_bonus) if new_a.aktuellerWert_bonus else ""
+            max_bonus = "+{}".format(new_a.maxWert_bonus) if new_a.maxWert_bonus else ""
+            row = {
+                "pk": new_a.pk,
+                "attr": "{} ({})".format(new_a.attribut.titel, new_a.attribut.beschreibung),
+                "aktuell": "{}{}".format(new_a.aktuellerWert, aktuell_bonus),
+                "aktuell_ap": new_a.aktuellerWert_ap,
+                "maximum": "{}{}".format(new_a.maxWert, max_bonus),
+                "maximum_ap": new_a.maxWert_ap,
+                "result": ""
 
-        context = {"formset": li, "ap_pool": new_char.ap, "id": new_char.id}
+            }
+            rows.append(row)
+
+            attribute = {
+                "pk": new_a.pk,
+                "aktuell": new_a.aktuellerWert + new_a.aktuellerWert_bonus,
+                "aktuell_ap": new_a.aktuellerWert_ap,
+                "max": new_a.maxWert + new_a.maxWert_bonus,
+                "max_ap": new_a.maxWert_ap
+            }
+            attributes.append(attribute)
+
+        context = {"headings": headings, "rows": rows, "attributes": attributes, "ap_pool": new_char.ap, "id": new_char.id}
         return render(request, "create/ap.html", context)
 
 

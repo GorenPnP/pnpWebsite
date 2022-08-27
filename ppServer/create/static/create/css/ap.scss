@@ -1,7 +1,9 @@
-.grid-container {
-	grid-template-columns: repeat(6, auto);
+.pool { margin-bottom: 1em; }
+
+.main-container {
+	margin-inline: auto;
+	width: fit-content;
 }
-.alert {color: red; display: None}
 
 .btn {
 	margin: 4em auto;

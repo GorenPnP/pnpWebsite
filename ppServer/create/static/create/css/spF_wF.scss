@@ -1,21 +1,17 @@
 .main-container {
-    width: 100%;
+    max-width: 100%;
     min-height: 100vh;
-    height: 100vh;
-
+    
     padding-inline: 2em;
     padding-bottom: 1em !important;
+    
+    margin-inline: auto;
+    width: fit-content;
 }
 
-.pool { color: #c8c8c8; }
-
-.table {
-    --ag-line-height: 1.5em;
-    min-height: 500px;
-    height: 50%;
-    max-height: 100vh;
-    
-    margin-block: 2em;
+.pools {
+    margin-bottom: 1em;
+    color: #c8c8c8;
 }
 
 input:invalid { border: 2px dashed red; }
