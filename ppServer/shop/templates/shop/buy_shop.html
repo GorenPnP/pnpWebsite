@@ -1,5 +1,6 @@
 {% extends 'base/main.html' %}
 {% load static %}
+{% load subtract %}
 {% block title %}{{ topic }}{% endblock %}
 {% block extra-head %}
 <link rel="stylesheet" href="{% static 'base/css/table.css' %}">
@@ -35,7 +36,7 @@
             <div><input class="stufe row-{{ forloop.counter0 }}" type="number" value="1" min="1"></div>
         {% endif %}
 
-        <div>{{ e.preis }} Dr.</div>
+        <div>{{ e.getPrice }} Dr. {% if e.getPrice != e.preis %}<small>(enthält +{{ e.getPrice|subtract:e.preis }} Dr.)</small>{% endif %}</div>
         <div>
             {% if charaktere %}
                 <select class="character row-{{ forloop.counter0 }}">

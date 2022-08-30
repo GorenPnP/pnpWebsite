@@ -1,5 +1,6 @@
 {% extends 'base/main.html' %}
 {% load static %}
+{% load subtract %}
 {% block title %}{{ topic }}{% endblock %}
 {% block extra-head %}
 <link rel="stylesheet" href="{% static 'base/css/table.css' %}">
@@ -45,11 +46,11 @@
         </select>
         {% else %}Du hast keine Charaktere{% endif %}
     </div>
-    <div>{{ e.stufe_1 }} Dr.</div>
-    <div>{{ e.stufe_2 }} Dr.</div>
-    <div>{{ e.stufe_3 }} Dr.</div>
-    <div>{{ e.stufe_4 }} Dr.</div>
-    <div>{{ e.stufe_5 }} Dr.</div>
+    <div>{{ e.getPriceStufe1 }} Dr. {% if e.getPriceStufe1 != e.stufe_1 %}<small>(enthält +{{ e.getPriceStufe1|subtract:e.stufe_1 }} Dr.)</small>{% endif %}</div>
+    <div>{{ e.getPriceStufe2 }} Dr. {% if e.getPriceStufe2 != e.stufe_2 %}<small>(enthält +{{ e.getPriceStufe2|subtract:e.stufe_2 }} Dr.)</small>{% endif %}</div>
+    <div>{{ e.getPriceStufe3 }} Dr. {% if e.getPriceStufe3 != e.stufe_3 %}<small>(enthält +{{ e.getPriceStufe3|subtract:e.stufe_3 }} Dr.)</small>{% endif %}</div>
+    <div>{{ e.getPriceStufe4 }} Dr. {% if e.getPriceStufe4 != e.stufe_4 %}<small>(enthält +{{ e.getPriceStufe4|subtract:e.stufe_4 }} Dr.)</small>{% endif %}</div>
+    <div>{{ e.getPriceStufe5 }} Dr. {% if e.getPriceStufe5 != e.stufe_5 %}<small>(enthält +{{ e.getPriceStufe5|subtract:e.stufe_5 }} Dr.)</small>{% endif %}</div>
     <div>{{ e.firma }}</div>
     <div>{{ e.verfügbarkeit }}%</div>
     <div><input class="notizen row-{{ forloop.counter0 }}" type="text" placeholder="Eigene Notizen"></div>

@@ -1,20 +1,39 @@
+category_enum = [
+    ('i', 'Items'),
+    ('w', 'Waffen & Werkzeuge'),
+    ('m', 'Magazine'),
+    ('p', 'Pfeile & Bolzen'),
+    ('s', 'Schusswaffen'),
+    ('a', 'magische Ausrüstung'),
+    ('r', 'Rituale & Runen'),
+    ('u', 'Rüstungen'),
+    ('n', 'Ausrüstung & Technik'),
+    ('f', 'Fahrzeuge'),
+    ('e', 'Einbauten'),
+    ('z', 'Zauber'),
+    ('v', 'vergessene Zauber'),
+    ('l', 'Alchemie'),
+    ('b', 'Begleiter'),
+    ('t', 'für Selbstständige')
+]
+
+item_enum = [
+    ('n', 'Nahrungsmittel'),
+    ('h', 'Heilung'),
+    ('t', 'Tränke'),
+    ('bt', 'besondere Tränke'),
+    ('d', 'Drogen'),
+    ('hd', 'harte Drogen'),
+    ('g', 'Mono-/Oligo-/Polygrome'),
+    ('a', 'Ausrüstung & Technik - Verschiedenes'),
+    ('p', 'Ausrüstung & Technik - Programme'),
+]
 
 
-item_enum = [('n', 'Nahrungsmittel'),
-             ('h', 'Heilung'),
-             ('t', 'Tränke'),
-             ('bt', 'besondere Tränke'),
-             ('d', 'Drogen'),
-             ('hd', 'harte Drogen'),
-             ('g', 'Mono-/Oligo-/Polygrome'),
-             ('a', 'Ausrüstung & Technik - Verschiedenes'),
-             ('p', 'Ausrüstung & Technik - Programme'),
-             ]
-
-
-werkzeuge_enum = [('k', 'Im Kampf'),
-                  ('w', 'weitere Waffen'),
-                  ]
+werkzeuge_enum = [
+    ('k', 'Im Kampf'),
+    ('w', 'weitere Waffen'),
+]
 
 
 schusswaffen_enum = [
@@ -23,7 +42,7 @@ schusswaffen_enum = [
     ('ss', 'Schusswaffen und Sniper'),
     ('m', 'Maschinengewehre'),
     ('g', 'Geschütze')
-    ]
+]
 
 
 magische_Ausrüstung_enum = [
@@ -63,7 +82,6 @@ einbauten_enum = [
     ('co', 'Cyberohren'),
     ('k', 'Körpereinbauten'),
     ('b', 'Bioware'),
-
 ]
 
 
@@ -73,7 +91,7 @@ zauber_enum = [
     ('p', 'Projektionszauber'),
     ('h', 'Heil- und Schutzzauber'),
     ('g', 'Geistermagie')
-    ]
+]
 
 
 alchemie_enum = [
@@ -81,7 +99,7 @@ alchemie_enum = [
     ('r', 'Rezepte'),
     ('z', 'Zutaten'),
     ('b', 'Zubehör')
-    ]
+]
 
 tinker_enum = [
     ('m', 'Maschinen/Technik'),
@@ -99,4 +117,4 @@ tinker_enum = [
     ('p', 'Produktionsstätten'),
     ('u', 'Müll'),
     ('e', 'Energie')
-    ]
+]

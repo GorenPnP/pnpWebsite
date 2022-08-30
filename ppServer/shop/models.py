@@ -1,14 +1,72 @@
 from itertools import chain
 from PIL import Image as PilImage
 
+from django.shortcuts import get_object_or_404
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
+from django.db.models import Count
 from django.urls import reverse
 
 from base.models import TableFieldType, TableHeading, TableSerializableModel
 
 from . import enums
 
+
+class ShopCategory(models.Model):
+    kategorie = models.CharField(max_length=1, choices=enums.category_enum, null=False, blank=False, default=enums.category_enum[0][0], unique=True)
+
+    def __str__(self):
+        return self.get_kategorie_display()
+
+
+class Modifier(models.Model):
+
+    class Meta:
+        ordering = ['prio']
+        verbose_name = "Modifier"
+        verbose_name_plural = "Modifier"
+
+    prio = models.FloatField(validators=[MinValueValidator(1.0)], default=100, unique=True)
+
+    price_modifier = models.FloatField(null=False, blank=False, default=1.0)
+    is_factor_not_addition = models.BooleanField(default=True)
+    active = models.BooleanField(default=True)
+
+    firmen = models.ManyToManyField("Firma")
+    kategorien = models.ManyToManyField(ShopCategory)
+
+    def __str__(self):
+        return "#{} {}{} ({})({})".format(
+            self.prio,
+            "*" if self.is_factor_not_addition else "+",
+            self.price_modifier,
+            ", ".join([f.name for f in self.firmen.all()]),
+            ", ".join([k.get_kategorie_display() for k in self.kategorien.all()])
+        )
+
+    @classmethod
+    def getModifier(cls, firma, shopCategory):
+        catName = shopCategory._meta.verbose_name_plural
+        catEnumValue = ''
+        for letter, cat in enums.category_enum:
+            if cat == catName:
+                catEnumValue = letter
+                break
+
+        kategorie = get_object_or_404(ShopCategory, kategorie=catEnumValue) if catEnumValue else None
+        modifiers =\
+            (Modifier.objects.filter(firmen__id__exact=firma.id) if firma else Modifier.objects.none()) |\
+            (Modifier.objects.filter(kategorien__id__exact=kategorie.id) if kategorie else Modifier.objects.none())
+
+        baseModifier = Modifier.objects.annotate(Count('firmen')).annotate(Count('kategorien')).filter(firmen__count=0, kategorien__count=0)
+        allModifiers = (baseModifier | modifiers).order_by("prio")
+        if allModifiers.count() == 0:
+            return lambda price: price
+
+        modifier = allModifiers.first()
+
+        return lambda price: price * modifier.price_modifier if modifier.is_factor_not_addition else price + modifier.price_modifier
+     
 
 # Firma
 class Firma(models.Model):
@@ -41,6 +99,8 @@ class FirmaShop(models.Model):
     def __str__(self):
         return "{} von {} ({}%)".format(self.item, self.firma, self.verfügbarkeit)
 
+    def getPrice(self):
+        return Modifier.getModifier(self.firma, self.item.__class__)(self.preis)
 
 class FirmaItem(FirmaShop):
     item = models.ForeignKey('Item', on_delete=models.CASCADE)
@@ -86,6 +146,16 @@ class FirmaRituale_Runen(models.Model):
     def __str__(self):
         return "{} von {} ({}%)".format(self.item, self.firma, self.verfügbarkeit)
 
+    def getPriceStufe1(self):
+        return Modifier.getModifier(self.firma, self.item.__class__)(self.stufe_1)
+    def getPriceStufe2(self):
+        return Modifier.getModifier(self.firma, self.item.__class__)(self.stufe_2)
+    def getPriceStufe3(self):
+        return Modifier.getModifier(self.firma, self.item.__class__)(self.stufe_3)
+    def getPriceStufe4(self):
+        return Modifier.getModifier(self.firma, self.item.__class__)(self.stufe_4)
+    def getPriceStufe5(self):
+        return Modifier.getModifier(self.firma, self.item.__class__)(self.stufe_5)
 
 class FirmaRüstungen(FirmaShop):
     item = models.ForeignKey('Rüstungen', on_delete=models.CASCADE)
@@ -182,8 +252,9 @@ class BaseShop(TableSerializableModel):
 
 
             # add "billigster"
-            billigster = firma_model.objects.filter(item=object).order_by("preis").first()
-            billigster_preis = billigster.preis if billigster else None
+            prices = [obj.getPrice() for obj in firma_model.objects.filter(item=object)]
+            billigster = sorted(prices)[0] if len(prices) else None
+            billigster_preis = billigster if billigster else None
             serialized_object["billigster"] = billigster_preis
 
             
@@ -420,8 +491,9 @@ class Schusswaffen(BaseShop):
 
 
             # add "billigster"
-            billigster = firma_model.objects.filter(item=object).order_by("preis").first()
-            billigster_preis = billigster.preis if billigster else None
+            prices = [obj.getPrice() for obj in firma_model.objects.filter(item=object)]
+            billigster = sorted(prices)[0] if len(prices) else None
+            billigster_preis = billigster if billigster else None
             serialized_object["billigster"] = billigster_preis
 
             
@@ -513,11 +585,12 @@ class Rituale_Runen(BaseShop):
 
             # add "billigster"
             if firma_model.objects.filter(item=object).count():
-                serialized_object["stufe1"] = firma_model.objects.filter(item=object).order_by("stufe_1").first().stufe_1
-                serialized_object["stufe2"] = firma_model.objects.filter(item=object).order_by("stufe_2").first().stufe_2
-                serialized_object["stufe3"] = firma_model.objects.filter(item=object).order_by("stufe_3").first().stufe_3
-                serialized_object["stufe4"] = firma_model.objects.filter(item=object).order_by("stufe_4").first().stufe_4
-                serialized_object["stufe5"] = firma_model.objects.filter(item=object).order_by("stufe_5").first().stufe_5
+                firma_models = firma_model.objects.filter(item=object)
+                serialized_object["stufe1"] = sorted([fm.getPriceStufe1() for fm in firma_models])[0]
+                serialized_object["stufe2"] = sorted([fm.getPriceStufe2() for fm in firma_models])[0]
+                serialized_object["stufe3"] = sorted([fm.getPriceStufe3() for fm in firma_models])[0]
+                serialized_object["stufe4"] = sorted([fm.getPriceStufe4() for fm in firma_models])[0]
+                serialized_object["stufe5"] = sorted([fm.getPriceStufe5() for fm in firma_models])[0]
 
             # add "icon"
             serialized_object["icon"] = object.getIconUrl()
@@ -533,7 +606,7 @@ class Rituale_Runen(BaseShop):
 class Rüstungen(BaseShop):
     class Meta:
         verbose_name = "Rüstung"
-        verbose_name_plural = "Rüstung"
+        verbose_name_plural = "Rüstungen"
 
         ordering = ['name']
 
@@ -700,8 +773,8 @@ class Zauber(BaseShop):
 
 class VergessenerZauber(BaseShop):
     class Meta:
-        verbose_name = "Vergessener Zauber"
-        verbose_name_plural = "Vergessene Zauber"
+        verbose_name = "vergessener Zauber"
+        verbose_name_plural = "vergessene Zauber"
 
         ordering = ['name']
 
@@ -757,8 +830,8 @@ class Alchemie(BaseShop):
 
 class Tinker(BaseShop):
     class Meta:
-        verbose_name = "Für Selbstständige"
-        verbose_name_plural = "Für Selbstständige"
+        verbose_name = "für Selbstständige"
+        verbose_name_plural = "für Selbstständige"
 
         ordering = ['name']
 

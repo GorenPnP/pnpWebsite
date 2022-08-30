@@ -113,7 +113,7 @@ class BaseAdmin(admin.ModelAdmin):
         offers = self.firma_shop_model.objects.filter(item=obj)
         if not offers: return None
 
-        return sorted([o.preis for o in offers])[0]
+        return sorted([o.getPrice() for o in offers])[0]
 
 ########### ShopAdmin ###############
 
@@ -364,6 +364,35 @@ class FirmaAdmin(admin.ModelAdmin):
     list_display = ('name', 'beschreibung')
 
 
+
+class ShopCategoryInline(admin.TabularInline):
+    model = Modifier.kategorien.through
+    verbose_name = 'Kategorie'
+    verbose_name_plural = 'Kategorien'
+    extra = 1
+class FirmaInLine(admin.TabularInline):
+    model = Modifier.firmen.through
+    verbose_name = 'Firma'
+    verbose_name_plural = 'Firmen'
+    extra = 1
+class ModifierAdmin(admin.ModelAdmin):
+    list_display = ['prio', 'price_modification', '_firmen', '_kategorien', 'active']
+    exclude = ['kategorien', 'firmen']
+    list_filter = ['kategorien', 'firmen']
+
+    inlines = [ShopCategoryInline, FirmaInLine]
+
+    def price_modification(self, obj):
+        return '{} {}'.format('*' if obj.is_factor_not_addition else '+', obj.price_modifier)
+    
+    def _firmen(self, obj):
+        if not obj.firmen.count(): return '-'
+        return ", ".join([e.name for e in obj.firmen.all()])
+
+    def _kategorien(self, obj):
+        if not obj.kategorien.count(): return '-'
+        return ", ".join([e.__str__() for e in obj.kategorien.all()])
+
 admin.site.register(Item, ItemAdmin)
 admin.site.register(Waffen_Werkzeuge, Waffen_WerkzeugeAdmin)
 admin.site.register(Magazin, MagazinAdmin)
@@ -382,3 +411,4 @@ admin.site.register(Tinker, TinkerAdmin)
 admin.site.register(Begleiter, BegleiterAdmin)
 
 admin.site.register(Firma, FirmaAdmin)
+admin.site.register(Modifier, ModifierAdmin)

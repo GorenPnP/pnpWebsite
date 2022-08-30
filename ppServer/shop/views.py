@@ -411,8 +411,8 @@ def buy_item_post(request, item, firma_shop_model, rel_shop_model, verf_model, r
 
     # price of one item (at Stufe 1)
     if extra: debt = price
-    elif rit_run: debt = getattr(firma_shop, "stufe_{}".format(stufe))
-    else: debt = firma_shop.preis
+    elif rit_run: debt = getattr(firma_shop, "getPriceStufe{}".format(stufe))()
+    else: debt = firma_shop.getPrice()
 
     # multiply num_items and stufe
     if item.stufenabhängig and not rit_run: debt *= num_items * stufe
