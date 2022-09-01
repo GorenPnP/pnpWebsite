@@ -1,4 +1,5 @@
 from itertools import chain
+import math
 from PIL import Image as PilImage
 
 from django.shortcuts import get_object_or_404
@@ -65,7 +66,15 @@ class Modifier(models.Model):
 
         modifier = allModifiers.first()
 
-        return lambda price: price * modifier.price_modifier if modifier.is_factor_not_addition else price + modifier.price_modifier
+        # return function that calculates the modified value of a passed price
+        def calcPrice(price: int) -> int:
+            if modifier.is_factor_not_addition:
+                price *= modifier.price_modifier
+            else:
+                price += modifier.price_modifier
+
+            return math.floor(price + 0.5)
+        return calcPrice
      
 
 # Firma
