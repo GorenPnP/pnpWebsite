@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     'time_space.apps.TimeSpaceConfig',
     'chat.apps.ChatConfig',
     'todays_fact.apps.TodaysFactConfig',
+    'news.apps.NewsConfig',
     'base.apps.BaseConfig',
     'service.apps.ServiceConfig',
     'django.contrib.admin',

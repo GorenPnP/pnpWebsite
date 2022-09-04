@@ -45,6 +45,7 @@ urlpatterns = [
     path('crafting/', include('crafting.urls')),
     path('mining/', include('mining.urls')),
     path('time_space/', include('time_space.urls')),
+    path('news/', include('news.urls')),
     path('chat/', include('chat.urls')),
 
     path('__debug__/', include('debug_toolbar.urls')),

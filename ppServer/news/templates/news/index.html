@@ -1,0 +1,41 @@
+{% extends 'base/main.html' %}
+{% load static %}
+{% block title %}{{ topic }}{% endblock %}
+{% block extra-head %}
+<link rel="stylesheet" href="{% static 'news/css/index.css' %}">
+{% endblock %}
+{% block absolute %}{% include 'base/header.html' %}{% endblock %}
+
+{% block body %}
+<main>
+
+    <nav class="table-of-content">
+        <h2>Artikel</h2>
+        <ul>
+            {% for n in news %}
+            <li><a href="#{{ n.titel }}">{{ n.titel }}</a></li>
+            {% endfor %}
+        </ul>
+    </nav>
+
+    <hr>
+
+    {% for n in news %}
+    <a id="{{n.titel}}"></a>
+    <article>
+        <h2>{{ n.titel }}</h2>
+        <summary><b>{{ n.summary }}</b></summary>
+        {% if n.text %}<details>{{ n.text }}</details>{% endif %}
+        
+        <cite>- {{ n.publisher.name }} ({{ n.creation|date:"d.m.Y" }})</cite>
+        
+        <ul class="categories">
+            {% for cat in n.categories.all %}
+            <li><i class="category">#{{ cat.name }}</i></li>
+            {% endfor %}
+        </ul>
+    </article>
+    {% if not forloop.last %}<hr>{% endif %}
+    {% endfor %}
+</main>
+{% endblock %}
