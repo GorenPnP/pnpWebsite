@@ -168,7 +168,12 @@
             <div class="btns">
                 <a href="/admin/logRequest/request">
                     <button class="card__btn card__btn--first">
-                        <p class="btn__text">Server</p>
+                        <p class="btn__text">Aufrufe</p>
+                    </button>
+                </a>
+                <a href="{% url 'log:admin' %}">
+                    <button class="card__btn">
+                        <p class="btn__text">im Admin</p>
                     </button>
                 </a>
                 <a href="{% url 'log:index' %}">

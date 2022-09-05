@@ -1,13 +1,15 @@
-from ppServer.decorators import spielleiter_only
 import json
+
+from django.contrib.admin.models import LogEntry
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import User
 from django.core.paginator import Paginator
 from django.http.response import JsonResponse
-from django.shortcuts import get_object_or_404, redirect, render
+from django.shortcuts import redirect, render
+
 from functools import cmp_to_key
 
-from character.models import Attribut, Fertigkeit, Charakter, Spieler
+from base.models import TableFieldType, TableHeading
+from ppServer.decorators import spielleiter_only
 
 from .models import Log, kind_enum
 
@@ -94,7 +96,7 @@ def sort_by_name(a, b):
 
 
 @login_required
-# @spielleiter_only     <-- breaks
+@spielleiter_only()
 def userLog(request):
 
     if not request.user.groups.filter(name="spielleiter").exists():
@@ -168,3 +170,34 @@ def userLog(request):
 
 
         return JsonResponse({"logs": logs, "paging": paging})
+
+
+@login_required
+@spielleiter_only()
+def adminLog(request):
+
+    headings = [
+        TableHeading("Zeitpunkt", "action_time", TableFieldType.DATE_TIME).serialize(),
+        TableHeading("User", "user", TableFieldType.TEXT).serialize(),
+        TableHeading("Charakter", "object", TableFieldType.TEXT).serialize(),
+        TableHeading("Beschreibung", "change_message", TableFieldType.TEXT).serialize(),
+    ]
+
+    rows = []
+    query = LogEntry.objects.exclude(user__username="spielleiter").filter(content_type__app_label="character", content_type__model="charakter")
+    for e in query:
+        rows.append({
+            "pk": e.id,
+            "user": e.user.username,
+            "action_time": e.action_time,
+            "object": e.object_repr,
+            "change_message": e.get_change_message()
+        })
+
+    context = {
+        "topic": "Changes in Admin area",
+        "headings": headings,
+        "rows": rows
+    }
+
+    return render(request, "log/adminLog.html", context)

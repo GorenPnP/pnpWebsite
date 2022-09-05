@@ -1,0 +1,20 @@
+{% extends 'base/main.html' %}
+{% load static %}
+{% block title %}Logs{% endblock %}
+{% block extra-head %}
+<link rel="stylesheet" href="{% static 'base/css/table.css' %}">
+<link rel="stylesheet" href="{% static 'log/css/userLog.css' %}">
+
+<script src='https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js' type='text/javascript'></script>
+<script src="{% static 'base/js/ajax.js' %}"></script>
+<script src="{% static 'shop/js/show.js' %}"></script>
+{% endblock %}
+{% block absolute %}
+{% include 'base/header.html' with topic=topic %}
+{% endblock %}
+
+
+{% block body %}
+    <p>Alle Änderungen an Charakteren in der Admin-Übersicht, die nicht vom Spielleiter stammen:)</p>
+    {% include 'base/table.html' with rows=rows headings=headings %}
+{% endblock %}

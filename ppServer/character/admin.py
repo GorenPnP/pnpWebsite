@@ -321,10 +321,8 @@ class CharakterAdmin(admin.ModelAdmin):
 
     def get_readonly_fields(self, request, obj=None):
         if request.user.groups.filter(name__iexact="spieler"):
-            return ['eigentümer', "in_erstellung", "ep_system", "larp", "gfs", "profession", "manifest",
-                    "sonstiger_manifestverlust", "notizen_sonstiger_manifestverlust", 'rang', 'HPplus',
-                    "wesenschaden_waff_kampf", "wesenschaden_andere_gestalt", 'sp', "geld", 'ip', 'tp',
-                    "nutzt_magie", 'useEco', 'eco', 'morph']
+            return ['eigentümer', "in_erstellung", "ep_system", "larp", "gfs", 'HPplus', 'ip',
+                    "wesenschaden_waff_kampf", "wesenschaden_andere_gestalt"]
         return super().get_readonly_fields(request, obj)
 
     def get_queryset(self, request):

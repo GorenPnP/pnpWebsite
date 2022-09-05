@@ -27,7 +27,9 @@ function get_headings(buyable) {
                 case "image":
                     return {...def, filter: false, sortable: false, cellRenderer: params => `<img src="${params.value}" class="icon">` };
                 case "date":
-                    return {...def, filter: false, sortable: false, cellRenderer: params => params.value ? params.value.split("-").reverse().join(".") : '-'};
+                    return {...def, filter: false, sortable, cellRenderer: params => params.value ? params.value.split("-").reverse().join(".") : '-'};
+                case "datetime":
+                    return {...def, filter: false, sortable, cellRenderer: params => { date = new Date(params.value); return `${date.toLocaleDateString("de-DE")} ${date.toLocaleTimeString("de-DE")}` }};// ? params.value.split("-").reverse().join(".") : '-'};
                 case "number":
                     return {...def, filter: true, sortable, cellRenderer: params => params.value ? new Intl.NumberFormat("de").format(params.value) : '-'};
                 case "price":
@@ -187,6 +189,8 @@ function callback_sort_by(event) {
                 result = parseFloat(a) <= parseFloat(b) ? -1 : 1; break;
             case "boolean": case "image":
                 result = !a || (a && b) ? -1 : 1; break;
+            case "date": case "datetime":
+                new Date(a) <= new Date(b) ? -1 : 1; break;
         }
         return result;
     }

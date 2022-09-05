@@ -7,6 +7,7 @@ class TableFieldType(Enum):
     TEXT = "text"
     IMAGE = "image"
     DATE = "date"
+    DATE_TIME = "datetime"
     PRICE = "price"
     BOOLEAN = "boolean"
 
