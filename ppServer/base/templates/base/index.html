@@ -4,6 +4,13 @@
 {% block extra-head %}
 <link rel="stylesheet" href="{% static 'base/css/index.css' %}" type="text/css">
 <link rel="stylesheet" href="{% static 'base/css/cards.css' %}" type="text/css">
+
+<style>
+    .news-ticker .text {
+        --amount-of-messages: {{ news|length }};
+        --length: {{ news_character_count }};
+    }
+</style>
 <script src="{% static 'base/js/index.js' %}"></script>
 {% endblock %}
 {% block absolute %}
@@ -39,6 +46,9 @@
 {% endblock %}
 
 {% block body %}
+<aside class="news-ticker">
+    <div class="text">{% for n in news %}<a href="{% url 'news:index' %}#{{ n.titel }}">{{ n.titel }}</a><span>+++</span>{% endfor %}</div>
+</aside>
 
 <section class="cards">
 

@@ -6,6 +6,7 @@ from django.shortcuts import render, get_object_or_404, reverse
 from shop.models import Ausrüstung_Technik, Einbauten, Fahrzeug, Item, Magazin, Magische_Ausrüstung, Pfeil_Bolzen,\
                         Rituale_Runen, Rüstungen, Schusswaffen, Waffen_Werkzeuge, Zauber
 from character.models import Spieler
+from news.models import News
 from todays_fact.models import History
 
 # clashing Question-models, so in separate namespaces
@@ -64,6 +65,8 @@ def index(request):
         # got open questions in quiz? (state = open)
         context["open_quiz"] = SpielerModule.objects.filter(spieler=spieler, state__in=[2, 4]).exists() # opened or corrected
 
+        context["news"] = News.objects.filter(published=True)[:10]
+        context["news_character_count"] = sum([len(n.titel) for n in context["news"]])
         context["todays_fact"] = History.get_fact()
 
         return render(request, 'base/index.html', context)

@@ -55,23 +55,22 @@ class Modifier(models.Model):
                 break
 
         kategorie = get_object_or_404(ShopCategory, kategorie=catEnumValue) if catEnumValue else None
-        modifiers =\
+        specificModifiers =\
             (Modifier.objects.filter(firmen__id__exact=firma.id) if firma else Modifier.objects.none()) |\
             (Modifier.objects.filter(kategorien__id__exact=kategorie.id) if kategorie else Modifier.objects.none())
 
         baseModifier = Modifier.objects.annotate(Count('firmen')).annotate(Count('kategorien')).filter(firmen__count=0, kategorien__count=0)
-        allModifiers = (baseModifier | modifiers).order_by("prio")
+        allModifiers = (baseModifier | specificModifiers).filter(active=True).order_by("prio")
         if allModifiers.count() == 0:
             return lambda price: price
 
-        modifier = allModifiers.first()
-
         # return function that calculates the modified value of a passed price
         def calcPrice(price: int) -> int:
-            if modifier.is_factor_not_addition:
-                price *= modifier.price_modifier
-            else:
-                price += modifier.price_modifier
+            for modifier in allModifiers:
+                if modifier.is_factor_not_addition:
+                    price *= modifier.price_modifier
+                else:
+                    price += modifier.price_modifier
 
             return math.floor(price + 0.5)
         return calcPrice

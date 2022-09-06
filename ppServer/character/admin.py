@@ -126,7 +126,7 @@ class RelPersönlichkeitInline(admin.TabularInline):
 
 class RelAttributInline(admin.TabularInline):
     fields = ['attribut', 'aktuellerWert', 'aktuellerWert_bonus', 'maxWert', 'maxWert_bonus', 'fg']
-    readonly_fields = ['attribut']
+    readonly_fields = ['attribut', 'aktuellerWert_bonus', 'maxWert_bonus']
     model = RelAttribut
     extra = 0
 
