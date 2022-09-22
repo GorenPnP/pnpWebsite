@@ -330,13 +330,13 @@ class TinkerAdmin(BaseAdmin):
     shop_model = Tinker
     firma_shop_model = FirmaTinker
 
-    list_display = ('icon_', 'name', 'beschreibung', "werte", "ab_stufe", 'billigste', 'kategorie', 'illegal_', 'lizenz_benötigt_', "frei_editierbar_")
+    list_display = ('icon_', 'name', 'beschreibung', "minecraft_mod_id", "werte", "ab_stufe", 'billigste', 'kategorie', 'illegal_', 'lizenz_benötigt_', "frei_editierbar_")
     list_display_links = ('icon_', 'name')
     list_filter = ['kategorie', 'illegal', 'lizenz_benötigt', "frei_editierbar"]
 
     fields = ['icon', 'name', 'beschreibung', 'ab_stufe', 'illegal', 'lizenz_benötigt', 'frei_editierbar', 'werte', 'kategorie']
 
-    list_editable = ['beschreibung', 'werte']
+    list_editable = ['beschreibung', 'werte', "minecraft_mod_id"]
 
     inlines = [MiningItemInLine]
 

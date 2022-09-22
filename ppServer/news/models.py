@@ -33,7 +33,7 @@ class News(models.Model):
         verbose_name = "News"
         verbose_name_plural = "News"
 
-        ordering = ['-importance', '-creation']
+        ordering = ['-creation', '-importance']
 
     titel = models.CharField(max_length=300)
     summary = models.CharField(max_length=300)

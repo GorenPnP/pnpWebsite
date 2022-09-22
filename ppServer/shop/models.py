@@ -1,4 +1,3 @@
-from itertools import chain
 import math
 from PIL import Image as PilImage
 
@@ -846,6 +845,8 @@ class Tinker(BaseShop):
     werte = models.TextField(max_length=1500, default='', blank=True)
     kategorie = models.CharField(choices=enums.tinker_enum, max_length=2, default=enums.tinker_enum[0][0])
     firmen = models.ManyToManyField('Firma', through='FirmaTinker', blank=True)
+
+    minecraft_mod_id = models.CharField(max_length=512, null=True, blank=True)
 
     def __str__(self):
         return "{} (für Selbstständige)".format(self.name)
