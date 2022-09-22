@@ -16,6 +16,5 @@ def populate_categories(sender, *args, **kwargs):
 @receiver(post_init, sender=Tinker)
 def add_minecraft_mod_id(sender, instance, **kwargs):
     
-        print(instance.minecraft_mod_id)
-        if (not instance.minecraft_mod_id):
-            instance.minecraft_mod_id = instance.name.lower().replace(" ", "_").replace("-", "_")
+    if (not instance.minecraft_mod_id):
+        instance.minecraft_mod_id = instance.name.lower().replace(" ", "_").replace("-", "_").replace("/", "_")

@@ -851,6 +851,13 @@ class Tinker(BaseShop):
     def __str__(self):
         return "{} (für Selbstständige)".format(self.name)
 
+    @staticmethod
+    def getIdOdMod():
+        return "sc"
+
+    def getMinecraftModId(self):
+        return self.minecraft_mod_id if ":" in self.minecraft_mod_id else Tinker.getIdOdMod() + ":" + self.minecraft_mod_id
+
     def toDict(self):
         return {"id": self.id, "name": self.name, "icon_url": self.getIconUrl()}
 
