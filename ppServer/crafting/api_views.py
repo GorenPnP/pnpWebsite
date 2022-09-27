@@ -35,13 +35,13 @@ def get_mc_recipes(request):
     # init zip archive. add all json files of recipes
     with zipfile.ZipFile("recipes.zip", mode="w", compression=zipfile.ZIP_DEFLATED) as zip_file:
 
-        for recipe in Recipe.objects.all():
+        for i, recipe in enumerate(Recipe.objects.all()):
 
             productName = re.sub('.*:', '', recipe.product_set.first().item.getMinecraftModId().replace("/", "_"))
             tableName = re.sub('.*:', '', recipe.table.getMinecraftModId() if recipe.table else HANDWERK_ID)
 
             dirPath = "recipes/{}".format(tableName)
-            filename = "{}/{}.json".format(dirPath, productName)
+            filename = "{}/{}-{}.json".format(dirPath, i, productName)
             
             makedirs(dirPath)
             with open(filename, "w") as file:
@@ -58,6 +58,4 @@ def get_mc_recipes(request):
             zip_file.write(filename)
 
 
-    response = FileResponse(open('recipes.zip', 'rb'))
-    response['Content-Disposition'] = 'attachment; filename=recipes.zip'
-    return response
+    return FileResponse(open('recipes.zip', 'rb'), filename="recipes.zip", as_attachment=True)

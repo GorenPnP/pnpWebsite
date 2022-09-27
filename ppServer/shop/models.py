@@ -1,4 +1,5 @@
 import math
+from itertools import chain
 from PIL import Image as PilImage
 
 from django.shortcuts import get_object_or_404
