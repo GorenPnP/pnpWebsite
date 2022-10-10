@@ -91,7 +91,7 @@ def landing_page(request):
         if not new_char.larp:
             list.append({"done": new_zauber_done(new_char), "link": reverse("create:zauber"), "text": "Suche dir hier Zauber aus", "werte": "noch {} zu vergeben".format(new_char.zauber)})
             list.append({"done": new_spF_and_wF_done(new_char), "link": reverse("create:spF_wF"), "text": "Wähle hier Spezial- und Wissensfertigkeiten aus", "werte": "noch {} zu vergeben".format(new_char.spF_wF)})
-            list.append({"done": new_vor_nacht_done(new_char), "link": reverse("create:vor_nachteil"), "text": "Verwalte hier Vor- und Nachteile", "werte": "{} IP".format(new_char.ip)})
+        list.append({"done": new_vor_nacht_done(new_char), "link": reverse("create:vor_nachteil"), "text": "Verwalte hier Vor- und Nachteile", "werte": "{} IP".format(new_char.ip)})
 
         infos = []
         infos.append("<strong>Deine Gfs/Klasse</strong> kannst du dir <a href='{}' target='_blank'>hier</a> nochmal angucken.".format(reverse("wiki:stufenplan", args=[new_char.gfs.id])))
@@ -482,14 +482,23 @@ def new_ap(request):
         if not new_prio_done(new_char):
             return redirect("create:prio")
 
-        headings = [
-            TableHeading("Attribut", "attr", TableFieldType.TEXT).serialize(),
-            TableHeading("Aktuell", "aktuell", TableFieldType.TEXT).serialize(),
-            TableHeading("+", "aktuell_ap", TableFieldType.NUMBER_INPUT).serialize(),
-            TableHeading("Maximum", "maximum", TableFieldType.TEXT).serialize(),
-            TableHeading("+", "maximum_ap", TableFieldType.NUMBER_INPUT).serialize(),
-            TableHeading("Stand", "result", TableFieldType.TEXT).serialize(),
-        ]
+
+        if new_char.larp:
+            headings = [
+                TableHeading("Attribut", "attr", TableFieldType.TEXT).serialize(),
+                TableHeading("Aktuell", "aktuell_ap", TableFieldType.NUMBER_INPUT).serialize(),
+                TableHeading("Maximum", "maximum_ap", TableFieldType.NUMBER_INPUT).serialize(),
+                TableHeading("Stand", "result", TableFieldType.TEXT).serialize(),
+            ]
+        else:
+            headings = [
+                TableHeading("Attribut", "attr", TableFieldType.TEXT).serialize(),
+                TableHeading("Aktuell", "aktuell", TableFieldType.TEXT).serialize(),
+                TableHeading("+", "aktuell_ap", TableFieldType.NUMBER_INPUT).serialize(),
+                TableHeading("Maximum", "maximum", TableFieldType.TEXT).serialize(),
+                TableHeading("+", "maximum_ap", TableFieldType.NUMBER_INPUT).serialize(),
+                TableHeading("Stand", "result", TableFieldType.TEXT).serialize(),
+            ]
         rows = []
         attributes = []
         for new_a in NewCharakterAttribut.objects.filter(char=new_char):
