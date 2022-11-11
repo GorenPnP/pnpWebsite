@@ -33,9 +33,11 @@ def sp_questions(request):
 
     if request.method == "GET":
         mq = models.ModuleQuestion.objects.all()
-        context = {"topic": "Fragen sortieren", "mqs": mq,
-                   "questions": models.Question.objects.exclude(id__in=[model.question.id for model in mq]),
-                   "mods": models.Module.objects.all()}
+        context = {
+            "topic": "Fragen sortieren", "mqs": mq,
+            "questions": models.Question.objects.exclude(id__in=[model.question.id for model in mq]),
+            "mods": models.Module.objects.all()
+        }
         return render(request, "quiz/sp_questions.html", context)
 
     if request.method == "POST":
@@ -150,14 +152,15 @@ def sp_modules(request):
             })
 
     if request.method == "POST":
-        context = {"modules": modules,
+        context = {
+            "modules": modules,
 
-                   "selectOnStates": selectOnStates,
-                   "optionsLocked": optionsLocked,
-                   "optionsUnlocked": optionsUnlocked,
-                   "optionsOpened": optionsOpened,
-                   "optionsSeen": optionsSeen,
-                   "optionsPassed": optionsPassed
+            "selectOnStates": selectOnStates,
+            "optionsLocked": optionsLocked,
+            "optionsUnlocked": optionsUnlocked,
+            "optionsOpened": optionsOpened,
+            "optionsSeen": optionsSeen,
+            "optionsPassed": optionsPassed
         }
 
         return JsonResponse({"html": render(request, "quiz/sp_module_list.html", context).content.decode("utf-8")})

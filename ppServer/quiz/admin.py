@@ -95,7 +95,7 @@ class QuestionAdmin(admin.ModelAdmin):
         ("Context", {'fields': ['topic', "grade", "points"]}),
         ("Question", {"fields": ["text", "answer_note", "images", "files"]}),
         ("Permissions", {"fields": ["allow_text", "allow_upload"]})
-        ]
+    ]
 
     inlines = [MultipleChoiceFieldInLine, ModuleInLine]
 
