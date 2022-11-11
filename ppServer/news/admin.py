@@ -9,7 +9,7 @@ class CategoryInlineAdmin(admin.TabularInline):
     verbose_name_plural = "Kategorien"
 
 class NewsAdmin(admin.ModelAdmin):
-    fields = ["published", "titel", "summary", "text", "importance", "publisher"]
+    fields = ["published", "breaking_news", "titel", "summary", "text", "importance", "publisher"]
 
     list_display = ('titel', 'creation', "published", "importance")
 

@@ -46,6 +46,7 @@ class News(models.Model):
     creation = models.DateField(auto_now_add=True)
     last_edit = models.DateField(auto_now=True)
 
+    breaking_news = models.BooleanField(default=False)
     published = models.BooleanField(default=False)
 
     def __str__(self):

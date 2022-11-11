@@ -47,7 +47,7 @@
 
 {% block body %}
 <aside class="news-ticker">
-    <div class="text">{% for n in news %}<a href="{% url 'news:index' %}#{{ n.titel }}">{{ n.titel }}</a><span>+++</span>{% endfor %}</div>
+    <div class="text">{% for n in news %}<a {% if n.breaking_news %}class="breaking-news"{% endif %} href="{% url 'news:index' %}#{{ n.titel }}">{{ n.titel }}</a><span>+++</span>{% endfor %}</div>
 </aside>
 
 <section class="cards">
