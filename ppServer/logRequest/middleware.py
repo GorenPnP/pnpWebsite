@@ -16,7 +16,13 @@ class RequestMiddleware:
         # Code to be executed for each request before
         # the view (and later middleware) are called.
 
-        if DEBUG or request.scope["path"].startswith(self.path_blacklist) or self.favicon_filename in request.scope["path"]:
+        print(request.user.groups.filter(name__iexact="spielleiter").exists())
+
+        if DEBUG or\
+            request.scope["path"].startswith(self.path_blacklist) or\
+            self.favicon_filename in request.scope["path"] or\
+            request.user.groups.filter(name__iexact="spielleiter").exists():
+
             return self.get_response(request)
 
         response = self.get_response(request)
@@ -28,7 +34,7 @@ class RequestMiddleware:
             pfad=self.cap_string(request.scope["path"], 500),
             antwort=getattr(response, 'status_code', None),
             methode=request.scope["method"],
-            user=self.cap_string(request.user.username or request.META["HTTP_X_FORWARDED_FOR"], 200),
+            user=self.cap_string(request.user.username or (request.META["HTTP_X_FORWARDED_FOR"] if "HTTP_X_FORWARDED_FOR" in request.META else "someone?"), 200),
             user_agent=self.cap_string(user_agent, 200)
         )
 
