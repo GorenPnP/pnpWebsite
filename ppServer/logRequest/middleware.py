@@ -16,8 +16,6 @@ class RequestMiddleware:
         # Code to be executed for each request before
         # the view (and later middleware) are called.
 
-        print(request.user.groups.filter(name__iexact="spielleiter").exists())
-
         if DEBUG or\
             request.scope["path"].startswith(self.path_blacklist) or\
             self.favicon_filename in request.scope["path"] or\

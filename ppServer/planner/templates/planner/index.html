@@ -1,0 +1,17 @@
+{% extends 'base/main.html' %}
+
+{% block title %}{{ topic }}{% endblock %}
+{% block absolute %}{% include 'base/header.html' %}{% endblock %}
+
+{% block body %}
+<main>
+    {% include './calendar.html' with today=today month_data=this_month %}
+    {% include './calendar.html' with today=today month_data=next_month load_styles=False %}
+    {% include './calendar.html' with today=today month_data=far_month load_styles=False%}
+</main>
+
+
+<aside class="popover">
+    
+</aside>
+{% endblock %}

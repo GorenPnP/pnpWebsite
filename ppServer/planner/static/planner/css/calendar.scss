@@ -1,0 +1,71 @@
+.calendar-container {
+    --day-size: 35px;
+
+    max-width: calc(7 * var(--day-size));
+
+    text-align: center;
+}
+
+.calendar {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 2px;
+}
+
+.month-title {
+    color: #ddd;
+    font-size: 1.5rem;
+}
+
+.weekday {
+    padding: 5px;
+    margin-bottom: 1px;
+    
+    background-color: #999;
+    font-weight: 800;
+    border-radius: 4px;
+
+    cursor: not-allowed;
+}
+.day {
+    padding: 5px;
+
+    border-radius: 4px;
+    max-height: var(--day-size);
+    aspect-ratio: 1;
+
+    cursor: pointer;
+    transition: all 100ms ease-in;
+
+    &:not(.blocked):hover {
+        filter: brightness(1.2);
+        scale: 1.1;
+    }
+}
+.blocked {
+    cursor: not-allowed;
+
+    background-position: center;
+    background-repeat: no-repeat;
+    background-image: url("/static/planner/assets/cross.svg");
+
+    & > * { display: none !important; }
+}
+
+.day     { background-color: hsl(  0,  2%, 100%); }
+.blocked { background-color: hsl(  0,  2%,  70%);}
+.open    { background-color: hsl(120, 81%,  70%); }
+.half    { background-color: hsl( 60, 81%,  70%); }
+.full    { background-color: hsl(  0, 81%,  70%); }
+
+
+
+@media only screen and (max-width: 527px) {
+    .day .day-title {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+}

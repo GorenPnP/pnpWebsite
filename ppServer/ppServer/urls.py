@@ -43,6 +43,7 @@ urlpatterns = [
     path('time_space/', include('time_space.urls')),
     path('news/', include('news.urls')),
     path('chat/', include('chat.urls')),
+    path('planner/', include('planner.urls')),
 
     path('__debug__/', include('debug_toolbar.urls')),
 
