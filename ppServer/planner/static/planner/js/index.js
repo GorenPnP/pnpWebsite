@@ -19,7 +19,6 @@ function update_appointment(iso_date, days_by_iso) {
     }
     document.querySelector("#appointment-section").innerHTML = `<h2>${day.appointment.title}</h2><p>${day.appointment.tags} startet um ${format_time(day.appointment.start)}</p>`;
     document.querySelector("#appointment-section").style.display = "block";
-    
 }
 
 function update_proposals(iso_date, days_by_iso) {
@@ -72,8 +71,4 @@ document.addEventListener("DOMContentLoaded", function () {
         update_blocked(day.dataset.date, days_by_iso);
         document.querySelector(".popover").style.display = "block";
     }))
-
-
-    // select first bookable day
-    bookable_days[0].click();
 });
