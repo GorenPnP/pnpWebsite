@@ -1,7 +1,13 @@
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 
 from datetime import date, timedelta
+
+from character.models import Spieler
+
+from .models import *
+from .forms import ProposalForm
+
 
 days = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"]
 months = ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"]
@@ -33,6 +39,24 @@ def get_month(date_in_month: date):
 
 @login_required
 def index(request):
+
+    if request.method == "POST":
+        form = ProposalForm(request.POST)
+        if form.is_valid():
+            proposal = form.save(commit=False)
+            
+            proposal.player = request.user
+            
+            chosen_date, created = Day.objects.get_or_create(date=request.POST["date"])
+            proposal.day = chosen_date
+            
+            prev_player = chosen_date.proposal_set.order_by("-order").first()
+            proposal.order = prev_player.order+1 if prev_player else 1
+            proposal.save()
+
+        return redirect("planner:index")
+
+
     today = date.today()
     
     day_in_next_month = get_1st_day_of_next_month(today)
@@ -44,7 +68,10 @@ def index(request):
         "today": today,
         "this_month": get_month(today),
         "next_month": get_month(day_in_next_month),
-        "far_month":  get_month(day_in_far_month)
+        "far_month":  get_month(day_in_far_month),
+        "days": [day.to_dict() for day in Day.objects.filter(date__gte=today)],
+
+        "form": ProposalForm()
     }
 
     return render(request, "planner/index.html", context)

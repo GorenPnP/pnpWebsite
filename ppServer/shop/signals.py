@@ -7,7 +7,6 @@ from . import enums
 @receiver(post_save, sender=Modifier)
 def populate_categories(sender, *args, **kwargs):
     allCategories = [k.kategorie for k in ShopCategory.objects.all()]
-    print(allCategories)
 
     for char, _ in enums.category_enum:
         if not char in allCategories:

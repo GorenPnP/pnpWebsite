@@ -25,6 +25,10 @@ needs base/main.css for styling
 		<div class="nav__change-data nav-block">Daten ändern</div>
 	</a>
 
+	<a class="nav--large" href="{% url 'planner:index' %}">
+		<div class="nav__change-data nav-block">Planer</div>
+	</a>
+
 	<a class="nav--large" href="{% url 'auth:logout' %}">
 		<div class="nav__logout nav-block">Logout</div>
 	</a>
@@ -35,6 +39,7 @@ needs base/main.css for styling
 		<div class="dropdown-content">
 			<a href="{% url 'base:index' %}">Home</a>
 			<a href="{% url 'admin:index' %}">Daten ändern</a>
+			<a href="{% url 'planner:index' %}">Planer</a>
 			<a href="{% url 'auth:logout' %}">Logout</a>
 		</div>
 	</div>

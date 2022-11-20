@@ -1,7 +1,15 @@
 
 {% load static calendar_utils %}
 
-{% if load_styles is not False %}<link rel="stylesheet" href="{% static 'planner/css/calendar.css' %}">{% endif %}
+{% if load_styles is not False %}
+    <link rel="stylesheet" href="{% static 'planner/css/calendar.css' %}">
+    <script>
+        function date_clicked(date_tag, iso_date) {
+            document.querySelectorAll(".day.selected").forEach(day=> day.classList.remove("selected"));
+            date_tag.classList.add("selected");
+        }
+    </script>
+{% endif %}
 
 <section class="calendar-container">
 
@@ -20,19 +28,13 @@
 
             {% if not date|is_past:today %}
 
-            <div class="day {{ date|day_state }}"
+            <div class="day"
                 {% if not forloop.counter0 %}style="grid-column-start: {{month_data.first_weekday|add:'1'}};"{% endif %}
                 {% if date|is_same_day:today %}style="grid-column-start: {{today.weekday|add:'1'}};"{% endif %}
                 data-date="{{ date }}"
-                onclick="alert(this.dataset.date)"
+                onclick="date_clicked(this, this.dataset.date)"
             >   
                 <span class="day-title">{{ forloop.counter }}</span>
-                <!-- <ul class="appointments">
-                    <li class="blocked">blocked</li>
-                    <li class="open">open</li>
-                    <li class="half">half</li>
-                    <li class="full">full</li>
-                </ul> -->
             </div>
             {% endif %}
         {% endfor %}

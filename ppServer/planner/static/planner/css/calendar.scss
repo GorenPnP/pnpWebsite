@@ -10,6 +10,7 @@
     display: grid;
     grid-template-columns: repeat(7, 1fr);
     gap: 2px;
+    color: black;
 }
 
 .month-title {
@@ -37,35 +38,43 @@
     cursor: pointer;
     transition: all 100ms ease-in;
 
-    &:not(.blocked):hover {
+    &:hover {
         filter: brightness(1.2);
         scale: 1.1;
     }
+    &.selected {
+        @extend :hover;
+        font-weight: 900;
+        text-decoration: underline;
+    }
 }
-.blocked {
+.blocked, .cancelled {
     cursor: not-allowed;
 
     background-position: center;
     background-repeat: no-repeat;
+    background-size: contain;
     background-image: url("/static/planner/assets/cross.svg");
 
     & > * { display: none !important; }
-}
 
-.day     { background-color: hsl(  0,  2%, 100%); }
-.blocked { background-color: hsl(  0,  2%,  70%);}
-.open    { background-color: hsl(120, 81%,  70%); }
-.half    { background-color: hsl( 60, 81%,  70%); }
-.full    { background-color: hsl(  0, 81%,  70%); }
-
-
-
-@media only screen and (max-width: 527px) {
-    .day .day-title {
-        width: 100%;
-        height: 100%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+    &:hover {
+        filter: none;
+        scale: none;
     }
 }
+.takes-place {
+
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: 90%;
+    background-image: url("/static/planner/assets/star.svg");
+}
+
+.day         { background-color: hsl(  0,  2%,100%); }
+.blocked     { background-color: hsl(  0,  2%, 70%); }
+.open        { background-color: hsl(120, 81%, 70%); }
+.half        { background-color: hsl( 60, 80%, 70%); }
+.full        { background-color: hsl(  0, 81%, 70%); }
+.cancelled   { background-color: hsl(  0, 81%, 70%); }
+.takes-place { background-color: hsl(244, 81%, 75%); }

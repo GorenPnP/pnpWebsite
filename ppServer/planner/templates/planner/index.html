@@ -1,17 +1,48 @@
 {% extends 'base/main.html' %}
+{% load static %}
 
 {% block title %}{{ topic }}{% endblock %}
+{% block extra-head %}
+    <link rel="stylesheet" href="{% static 'planner/css/index.css' %}">
+    <script src="{% static 'planner/js/index.js' %}"></script>
+{% endblock %}
+
 {% block absolute %}{% include 'base/header.html' %}{% endblock %}
 
 {% block body %}
+{{ days|json_script:"days" }}
+{{ request.user.username|json_script:"username" }}
+
 <main>
-    {% include './calendar.html' with today=today month_data=this_month %}
-    {% include './calendar.html' with today=today month_data=next_month load_styles=False %}
-    {% include './calendar.html' with today=today month_data=far_month load_styles=False%}
-</main>
+    <nav class="calendars">
+        {% include './calendar.html' with today=today month_data=this_month %}
+        {% include './calendar.html' with today=today month_data=next_month load_styles=False %}
+        {% include './calendar.html' with today=today month_data=far_month load_styles=False%}
+    </nav>
 
+    <div class="popover">
+        <div id="appointment-section"></div>
 
-<aside class="popover">
+        <div id="participant-section">
+            <h2>Teilnehmer</h2>
+            <ol id="participants"></ol>
+        </div>
     
-</aside>
+        <div id="blocked-section"></div>
+
+
+        <div id="participate-form">
+
+            <h2>Ich möchte am <span class="long_date"></span> teilnehmen</h2>
+            <form method="post" action="">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <input type="date" id="id_date" name="date" hidden>
+
+                <input type="submit" value="Teilnehmen" class="btn">
+            </form>
+        </div>
+        <button type="button" class="btn back-btn" onclick="document.querySelector('.popover').style.display = 'none'">Abbrechen</button>
+    </div>
+</main>
 {% endblock %}

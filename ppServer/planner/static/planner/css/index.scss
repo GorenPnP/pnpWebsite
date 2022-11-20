@@ -1,0 +1,47 @@
+main {
+    color: #ddd;
+
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 3em;
+}
+
+.calendar-container { margin: auto; }
+
+form {
+    p { margin: 1em 0; }
+    label { display: block; }
+}
+
+
+.popover {
+    .btn { margin: 1em; }
+    .back-btn {
+        background-color: transparent;
+        border: 2px solid #ddd;
+        color: #ddd;
+        display: none;
+    }
+}
+
+@media only screen and (max-width: 880px) {
+    main { display: block; }
+
+    .popover {
+        z-index: 10000;
+        position: absolute;
+
+        width: 80%;
+        margin:  5em 10%;
+        padding: 1.5em;
+        
+        background-color: #333;
+        border: 2px solid black;
+        top: 0;
+        left: 0;
+
+        * { width: 100%; }
+        .btn { width: 90%; }
+        .back-btn { display: block; }
+    }
+}
