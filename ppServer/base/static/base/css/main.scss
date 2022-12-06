@@ -89,6 +89,22 @@ a.btn {
 	a { color: #8b0000; }
 }
 
+.planner {
+	position: fixed;
+	top: 75px;
+	right: 0;
+	
+	background-color: #ffdab9;
+	a, a:visited { color: black; }
+	font-size: 1.2rem;
+	text-decoration: underline;
+	
+	padding: .25em .5em .25em 1em;
+	clip-path: polygon(0 0, 100% 0%, 100% 100%, 0 100%, 20% 49%);
+	opacity: 0.75;
+	z-index: 1000;
+}
+
 
 @media only screen and (max-width: 1017px) {
 	.main-container {

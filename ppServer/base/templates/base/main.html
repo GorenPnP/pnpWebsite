@@ -28,5 +28,11 @@
 	{% if request.user.is_authenticated and not request.user.email %}
 	<footer class="footer">Magst du eine <a href="{% url 'auth:change_email' %}">Email angeben</a>? Falls du das Passwort vergisst kannst du es über die Email zurücksetzen.</footer>
 	{% endif %}
+
+	{% if request.user.is_authenticated %}
+	<aside class="planner">
+		<a href="{% url 'planner:index' %}">Planer</a>
+	</aside>
+	{% endif %}
 </html>
 {% endspaceless %}
