@@ -1,82 +1,71 @@
 version: '3.7'
 
 services:
-        web:
-                container_name: pnp-web
-                restart: unless-stopped
-                build:
-                        context: ./ppServer
-                        dockerfile: Dockerfile.prod
-                command: daphne -b 0.0.0.0 -p 8000 ppServer.asgi:application # gunicorn ppServer.wsgi:application --bind 0.0.0.0:8000 --workers=3
-                volumes:
-                        - static_volume:/home/ppServer/web/static
-                        - media_volume:/home/ppServer/web/media
-                expose:
-                        - 8000
-                env_file:
-                        - ./.env.prod
-                depends_on:
-                        - db
+  web:
+    container_name: pnp-web
+    restart: unless-stopped
+    build:
+      context: ./ppServer
+      dockerfile: Dockerfile.prod
+    command: daphne -b 0.0.0.0 -p 8000 ppServer.asgi:application # gunicorn ppServer.wsgi:application --bind 0.0.0.0:8000 --workers=3
+    volumes:
+      - static_volume:/home/ppServer/web/static
+      - media_volume:/home/ppServer/web/media
+    expose:
+      - 8000
+    env_file:
+      - ./.env.prod
+    depends_on:
+      - db
 
-        db:
-                container_name: pnp-db
-                image: postgres:12.0-alpine
-                restart: unless-stopped
-                volumes:
-                        - postgres_data:/var/lib/postgresql/data/
-                expose:
-                        - 5432
-                env_file:
-                        - ./.env.prod.db
+  db:
+    container_name: pnp-db
+    image: postgres:12.0-alpine
+    restart: unless-stopped
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    expose:
+      - 5432
+    env_file:
+      - ./.env.prod.db
 
-        nginx:
-                container_name: pnp-webserver
-                image: nginx:latest
-                restart: unless-stopped
-                ports:
-                        - 80:80
-                        - 443:443
-                volumes:
-                        - /home/debian/pnpWebsite/nginx:/etc/nginx:ro
-                        - /home/debian/pnpWebsite/log/nginx:/var/log/nginx/
+  nginx:
+    container_name: pnp-webserver
+    image: nginx:latest
+    restart: unless-stopped
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - /home/debian/pnpWebsite/nginx:/etc/nginx:ro
+      - /home/debian/pnpWebsite/log/nginx:/var/log/nginx/
 
-                        - static_volume:/home/ppServer/web/static:ro
-                        - media_volume:/home/ppServer/web/media:ro
+      - static_volume:/home/ppServer/web/static:ro
+      - media_volume:/home/ppServer/web/media:ro
+      - monsterdex_app:/home/monsterdex/:ro
 
-                        - /etc/letsencrypt:/etc/letsencrypt:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro
 
-        cadvisor:
-                container_name: pnp-cadvisor
-                image: gcr.io/cadvisor/cadvisor:latest
-                volumes:
-                        - /:/rootfs:ro
-                        - /var/run:/var/run:ro
-                        - /sys:/sys:ro
-                        - /var/lib/docker:/var/lib/docker:ro
-                        - /dev/disk:/dev/disk:ro
-                devices:
-                        - /dev/kmsg
-                ports:
-                        - 8080:8080
 
-        prometheus:
-                container_name: pnp-prometheus
-                image: prom/prometheus:latest
-                volumes:
-                        - ./prometheus/:/etc/prometheus/
-                ports:
-                        - 9090:9090
+  monsterdex-backend:
+    container_name: monsterdex-backend
+    build: ./monsterdexBackend
+    env_file:
+      - ./.env.dev
+    ports:
+      - 5000:5000
 
-        grafana:
-                container_name: pnp-grafana
-                image: grafana/grafana:latest
-                ports:
-                        - 3000:3000
-                volumes:
-                        - grafana-data:/var/lib/grafana
+  monsterdex-app-build:
+    container_name: monsterdex-app-build
+    build: ./monsterdexApp
+    env_file:
+      - ./.env.dev
+    volumes:
+      - monsterdex_app:/usr/angular-workdir/www
+
 
 volumes:
-        postgres_data:
-        static_volume:
-        media_volume:
-        grafana-data:
+  postgres_data:
+  static_volume:
+  media_volume:
+  monsterdex_app:

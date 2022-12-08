@@ -1,86 +1,68 @@
 version: '3.7'
 
 services:
-  web:
-    container_name: pnp-web
-    build: ./ppServer
-    command: daphne -b 0.0.0.0 -p 8000 ppServer.asgi:application
-    volumes:
-      - ./ppServer/:/usr/src/ppServer/
+  # web:
+  #   container_name: pnp-web
+  #   build: ./ppServer
+  #   command: daphne -b 0.0.0.0 -p 8000 ppServer.asgi:application
+  #   volumes:
+  #     - ./ppServer/:/usr/src/ppServer/
 
-      - static_volume:/usr/src/ppServer/static
-      - media_volume:/usr/src/ppServer/media
+  #     - static_volume:/usr/src/ppServer/static
+  #     - media_volume:/usr/src/ppServer/media
+  #   env_file:
+  #     - ./.env.dev
+  #   ports:
+  #     - 8000:8000
+  #   depends_on:
+  #     - db
+
+  # db:
+  #   container_name: pnp-db
+  #   image: postgres:12.0-alpine
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data/
+  #   env_file:
+  #     - ./.env.dev.db
+  #   ports:
+  #     - 5432:5432
+
+  # nginx:
+  #   container_name: pnp-webserver
+  #   image: nginx:latest
+  #   restart: unless-stopped
+  #   ports:
+  #     - 80:80
+  #     - 443:443
+  #   volumes:
+  #     - /home/debian/pnpWebsite/nginx:/etc/nginx:ro
+  #     - /home/debian/pnpWebsite/log/nginx:/var/log/nginx/
+
+  #     - static_volume:/home/ppServer/web/static:ro
+  #     - media_volume:/home/ppServer/web/media:ro
+  #     - monsterdex_app:/home/monsterdex/:ro
+
+  #     - /etc/letsencrypt:/etc/letsencrypt:ro
+
+
+  monsterdex-backend:
+    container_name: monsterdex-backend
+    build: ./monsterdexBackend
     env_file:
       - ./.env.dev
     ports:
-      - 8000:8000
-    depends_on:
-      - db
+      - 5000:5000
 
-  db:
-    container_name: pnp-db
-    image: postgres:12.0-alpine
-    volumes:
-      - postgres_data:/var/lib/postgresql/data/
+  monsterdex-app-build:
+    container_name: monsterdex-app-build
+    build: ./monsterdexApp
     env_file:
-      - ./.env.dev.db
-    ports:
-      - 5432:5432
-
-  # nginx-proxy:
-  #   container_name: pnp-nginx
-  #   build: ./nginx
-  #   restart: always
-  #   ports:
-  #     - 80:80         # http
-  #   volumes:
-  #     - static_volume:/home/ppServer/web/static:ro
-  #     - media_volume:/home/ppServer/web/media:ro
-  #     - certs:/etc/nginx/certs
-  #     - html:/usr/share/nginx/html
-  #     - vhost:/etc/nginx/vhost.d
-  #     - /var/run/docker.sock:/tmp/docker.sock:ro
-  #   depends_on:
-  #     - web
-
-
-
-  cadvisor:
-    container_name: pnp-cadvisor
-    image: google/cadvisor:latest
+      - ./.env.dev
     volumes:
-      - /:/rootfs:ro
-      - /var/run:/var/run:ro
-      - /sys:/sys:ro
-      - /var/lib/docker:/var/lib/docker:ro
-      - /dev/disk:/dev/disk:ro
-    devices:
-      - /dev/kmsg
-    ports:
-      - "8080:8080"
-
-  prometheus:
-    container_name: pnp-prometheus
-    image: prom/prometheus:latest
-    volumes:
-      - ./prometheus/:/etc/prometheus/
-    ports:
-      - "9090:9090"
-
-  grafana:
-    container_name: pnp-grafana
-    image: grafana/grafana:latest
-    ports:
-      - "3000:3000"
-    volumes:
-      - grafana-data:/var/lib/grafana
+      - monsterdex_app:/usr/angular-workdir/www
 
 volumes:
   postgres_data:
   static_volume:
   media_volume:
-  certs:
-  acme:
-  html:
-  vhost:
-  grafana-data:
+  monsterdex_app:
