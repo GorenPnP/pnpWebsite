@@ -22,6 +22,8 @@ form {
         color: #ddd;
         display: none;
     }
+
+    display: none;
 }
 
 @media only screen and (max-width: 880px) {
@@ -39,8 +41,6 @@ form {
         border: 2px solid black;
         top: 0;
         left: 0;
-
-        display: none;
 
         * { width: 100%; }
         .btn { width: 90%; }
