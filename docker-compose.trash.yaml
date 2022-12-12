@@ -1,0 +1,53 @@
+version: '3.7'
+
+services:
+  cadvisor:
+    container_name: pnp-cadvisor
+    image: google/cadvisor:latest
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker:/var/lib/docker:ro
+      - /dev/disk:/dev/disk:ro
+    devices:
+      - /dev/kmsg
+    ports:
+      - "8080:8080"
+
+  prometheus:
+    container_name: pnp-prometheus
+    image: prom/prometheus:latest
+    volumes:
+      - ./prometheus/:/etc/prometheus/
+    ports:
+      - "9090:9090"
+
+  grafana:
+    container_name: pnp-grafana
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana
+
+
+  monsterdex-backend:
+    container_name: monsterdex-backend
+    build: ./monsterdexBackend
+    env_file:
+      - ./.env.dev
+    ports:
+      - 5000:5000
+
+  monsterdex-app-build:
+    container_name: monsterdex-app-build
+    build: ./monsterdexApp
+    env_file:
+      - ./.env.dev
+    volumes:
+      - monsterdex_app:/usr/angular-workdir/www
+
+volumes:
+  grafana-data:
+  monsterdex_app:

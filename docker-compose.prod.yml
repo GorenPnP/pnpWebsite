@@ -42,30 +42,11 @@ services:
 
       - static_volume:/home/ppServer/web/static:ro
       - media_volume:/home/ppServer/web/media:ro
-      - monsterdex_app:/home/monsterdex/:ro
 
       - /etc/letsencrypt:/etc/letsencrypt:ro
-
-
-  monsterdex-backend:
-    container_name: monsterdex-backend
-    build: ./monsterdexBackend
-    env_file:
-      - ./.env.dev
-    ports:
-      - 5000:5000
-
-  monsterdex-app-build:
-    container_name: monsterdex-app-build
-    build: ./monsterdexApp
-    env_file:
-      - ./.env.dev
-    volumes:
-      - monsterdex_app:/usr/angular-workdir/www
 
 
 volumes:
   postgres_data:
   static_volume:
   media_volume:
-  monsterdex_app:
