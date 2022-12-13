@@ -6,7 +6,7 @@ from django.contrib.auth.models import User
 from django.http.response import JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse
-from django.utils.datetime_safe import date
+from datetime import date
 
 from log.views import logShop
 from character.models import *

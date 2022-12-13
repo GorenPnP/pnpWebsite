@@ -1,1 +1,12 @@
-asgirefchannelscoreapidaphneDjango==3.*django-dbbackupdjango-debug-toolbarPillowpsycopg2-binarypytzPyYAMLsixTwistedsentry-sdk
+asgiref
+channels
+daphne
+Django==4.*
+django-dbbackup
+django-debug-toolbar
+Pillow
+psycopg2-binary
+six
+Twisted
+
+sentry-sdk

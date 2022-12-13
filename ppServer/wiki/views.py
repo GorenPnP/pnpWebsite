@@ -6,7 +6,7 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, get_object_or_404
 
 from character.models import *
-from django.utils.datetime_safe import datetime
+from datetime import date
 
 
 @login_required
@@ -303,17 +303,17 @@ def rang_ranking(request):
 def compare_dates(a, b):
     a = a["date"]
     b = b["date"]
-    day_diff = day_diff_without_year(datetime(a.year, a.month, a.day), datetime(b.year, b.month, b.day))
+    day_diff = day_diff_without_year(date(a.year, a.month, a.day), date(b.year, b.month, b.day))
     return day_diff if day_diff != 1 else b.year - a.year
 
 
-def day_diff_without_year(date, today):
-    return (datetime(today.year, date.month, date.day) - today).days + 1
+def day_diff_without_year(some_date, today):
+    return (some_date - today).days + 1
 
 
-def age(birthdate: datetime.date):
+def age(birthdate: date):
 
-    today = datetime.today()
+    today = date.today()
     years = today.year - birthdate.year
 
     # hadn't had birthday this year (jet)
@@ -335,7 +335,7 @@ def geburtstage(request):
     # collect all birthdays in here
     spieler_birthdays = []
 
-    today = datetime.today()
+    today = date.today()
 
     # intermediately save next birthday in here
     days_until_next_birthday = sys.maxsize
