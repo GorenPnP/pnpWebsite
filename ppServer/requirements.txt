@@ -1,14 +1,17 @@
-asgiref
-channels
-daphne
-Django==4.*
-django-dbbackup
-django-debug-toolbar
-Pillow
-psycopg2-binary
-six
-Twisted
+Django==4.*						# need django for django. Makes sense, right?
 
-sentry-sdk
+# necessary shit
+django-dbbackup                 # db + media backup utility
+tzdata                          # used to let django organize time zones
+Pillow  						# image library
+psycopg2-binary     			# for postgresql usage
+six                             # generate token for email confirmation on signup
 
-tzdata
+# production env
+channels                        # ws channels
+daphne                          # prod env for (sync django &) async django channels (via ws)
+Twisted[tls,http2]              # needed for HTTP/2 support of daphne
+
+# logging/debug
+sentry-sdk                      # sentry-integration
+# django-debug-toolbar            # debug shit when in debug mode (not prod)
