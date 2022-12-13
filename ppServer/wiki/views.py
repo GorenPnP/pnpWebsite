@@ -301,10 +301,9 @@ def rang_ranking(request):
 
 
 def compare_dates(a, b):
-    a = a["date"]
     b = b["date"]
-    day_diff = day_diff_without_year(date(a.year, a.month, a.day), date(b.year, b.month, b.day))
-    return day_diff if day_diff != 1 else b.year - a.year
+    a = date(b.year, a["date"].month, a["date"].day)
+    return -1 if a <= b else 1
 
 
 def day_diff_without_year(some_date, today):
@@ -349,7 +348,7 @@ def geburtstage(request):
         spieler_birthdays.append({
             "name": real_name,
             "date": s.geburtstag,
-            "next_age": age(s.geburtstag),
+            "age": age(s.geburtstag),
             "next_party": False
         })
 

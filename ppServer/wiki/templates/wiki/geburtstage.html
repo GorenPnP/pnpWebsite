@@ -32,12 +32,12 @@
 <div class="grid-container">
     <div class="col1 heading">Name</div>
     <div class="col2 heading">Geburtstag</div>
-    <div class="col3 heading heading--last">Wird wie alt?</div>
+    <div class="col3 heading heading--last">Ist wie alt?</div>
 
     {% for s in list %}
     <div class="col1 {% if s.next_party %}next-party{% endif %}">{{ s.name }}</div>
     <div class="col2 {% if s.next_party %}next-party{% endif %}">{{ s.date }}</div>
-    <div class="col3 {% if s.next_party %}next-party{% endif %}">{{ s.next_age }}</div>
+    <div class="col3 {% if s.next_party %}next-party{% endif %}">{{ s.age }}</div>
     {% endfor %}
 </div>
 {% endif %}
