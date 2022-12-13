@@ -10,3 +10,5 @@ six
 Twisted
 
 sentry-sdk
+
+tzdata
