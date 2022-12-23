@@ -29,6 +29,33 @@ services:
     env_file:
       - ./.env.prod.db
 
+
+
+  wordpress:
+    container_name: wordpress
+    image: wordpress:latest
+    restart: unless-stopped
+    env_file:
+      - ./.env.prod
+    expose:
+      - 80
+    depends_on:
+      - wordpress-db
+
+  wordpress-db:
+    container_name: wordpress-db
+    image: mysql:8.0-debian
+    restart: unless-stopped
+    env_file:
+      - ./.env.prod.db
+    volumes:
+      - wordpressdb_data:/var/lib/mysql/
+    expose:
+      - 3306
+
+
+
+
   nginx:
     container_name: pnp-webserver
     image: nginx:latest
@@ -50,3 +77,4 @@ volumes:
   postgres_data:
   static_volume:
   media_volume:
+  wordpressdb_data:
