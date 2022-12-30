@@ -19,9 +19,6 @@ class Tag(models.Model):
 
 class Day(models.Model):
 
-    MAX_PLAYERS = 4
-    MAX_WAITINGLIST = 2
-
     class Meta:
         verbose_name = "Terminabsprache"
         verbose_name_plural = "Terminabsprachen"
@@ -31,6 +28,9 @@ class Day(models.Model):
     proposals = models.ManyToManyField(User, through="Proposal")
 
     open_for_participation = models.BooleanField(default=True)
+
+    max_players = models.PositiveSmallIntegerField(default=4, null=False, blank=False)
+    max_waitinglist = models.PositiveSmallIntegerField(default=2, null=False, blank=False)
 
     def __str__(self):
         return "{} ({})".format(self.date, self.status())
@@ -49,8 +49,8 @@ class Day(models.Model):
         # state is 'open for participation'. Differ by player count
         player_count = self.proposals.count()
         if player_count == 0: return "free"
-        if player_count < Day.MAX_PLAYERS: return "open"
-        if player_count < Day.MAX_PLAYERS + Day.MAX_WAITINGLIST: return "half"
+        if player_count < self.max_players: return "open"
+        if player_count < self.max_players + self.max_waitinglist: return "half"
         return "full"
 
     def to_dict(self):
@@ -73,6 +73,7 @@ class Day(models.Model):
 
         return {
             "date": self.date,
+            "open_for_participation": self.open_for_participation,
             "proposals": [p.player.username for p in Proposal.objects.filter(day=self).order_by("order")],
             "appointment": appointment,
             "blocked_time":  blocked,
@@ -142,7 +143,6 @@ class BlockedTime(models.Model):
 
     day = models.OneToOneField(Day, on_delete=models.CASCADE)
 
-    name = models.CharField(max_length=200)
+    name = models.CharField(max_length=200, default="")
     start = models.TimeField(default=min_time)
     end = models.TimeField(default=max_time)
-

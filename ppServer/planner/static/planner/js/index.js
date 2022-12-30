@@ -1,5 +1,3 @@
-const non_bookable_states = ["full", "blocked", "cancelled", "takes-place"];
-
 function format_time(iso_time) {
     return iso_time.slice(0, -3)
 }
@@ -8,7 +6,7 @@ function is_bookable(iso_date, username, days_by_iso) {
     day = days_by_iso[iso_date];
     if (!day) { return true; }
 
-    return !non_bookable_states.includes(day.status) && !day.proposals.includes(username);
+    return day.open_for_participation && !day.proposals.includes(username);
 }
 
 function update_appointment(iso_date, days_by_iso) {
