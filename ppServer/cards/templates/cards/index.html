@@ -1,0 +1,23 @@
+{% extends 'base/main.html' %}
+{% load static %}
+{% block title %}Meine Karten{% endblock %}
+{% block extra-head %}
+    <link rel="stylesheet" href="{% static 'auth/css/login.css' %}">
+{% endblock %}
+{% block body %}
+<div class="text-container">
+    <h1>Meine Karten</h1>
+
+    <table style="border-spacing: 5px;">
+        {% for card in object_list %}
+            <tr>
+                <td>{{ card.name }}</td>
+                <td><a class="btn" href="{% url 'cards:show' card.id %}">Angucken</a></td>
+                <td><a class="btn" href="{% url 'cards:transaction' card.id %}">Transaktion</a></td>
+            </tr>
+        {% empty %}
+            <tr>Noch keine Karten vorhanden.</tr>
+        {% endfor %}
+    </table>
+</div>
+{% endblock %}

@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     'todays_fact.apps.TodaysFactConfig',
     'news.apps.NewsConfig',
     'planner.apps.PlannerConfig',
+    'cards.apps.CardsConfig',
     'base.apps.BaseConfig',
     'service.apps.ServiceConfig',
     'django.contrib.admin',

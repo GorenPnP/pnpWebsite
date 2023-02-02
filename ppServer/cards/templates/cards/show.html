@@ -1,0 +1,43 @@
+{% extends 'base/main.html' %}
+{% load static %}
+{% block title %}{{ object.name }}{% endblock %}
+{% block extra-head %}
+    <link rel="stylesheet" href="{% static 'auth/css/login.css' %}">
+    <link rel="stylesheet" href="{% static 'cards/css/show.css' %}">
+{% endblock %}
+{% block body %}
+<div class="text-container">
+    <h1>{{ object.name }}</h1>
+
+    Guthaben: {{ object.money }} Dr.
+
+    <h2>Transaktionen</h2>
+
+    <div class="transaction-container">
+
+        {% if transactions|length %}
+        <table class="transactions">
+            <tr>
+                <td>Betrag</td>
+                <td>Person</td>
+                <td>Grund</td>
+                <td>Zeitpunkt</td>
+            </tr>
+    
+            {% for t in transactions %}
+                <tr class="{% if t.sender == object %}send{% else %}received{% endif %}">
+                    <td class="amount">{% if t.sender == object %}-{% else %}+{% endif %}{{ t.amount }} Dr.</td>
+                    <td>{% if t.sender == object %}an {{ t.receiver }}{% else %}von {{ t.sender }}{% endif %}</td>
+                    <td class="reason">{{ t.reason }}</td>
+                    <td class="timestamp">{{ t.timestamp }}</td>
+                </tr>
+            {% endfor %}
+        </table>
+        {% else %}
+            Noch keine Transaktionen vorhanden
+        {% endif %}
+    </div>
+
+    <a class="btn" href="{% url 'cards:transaction' object.id %}">Geld senden</a>
+</div>
+{% endblock %}

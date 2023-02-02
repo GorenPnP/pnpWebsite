@@ -32,6 +32,7 @@ urlpatterns = [
     path('shop/', include('shop.urls')),
     path('wiki/', include('wiki.urls')),
     path('polls/', include('polls.urls')),
+    path('cards/', include('cards.urls')),
     path('character/', include('character.urls')),
     path('create/', include('create.urls')),
     path('log/', include('log.urls')),

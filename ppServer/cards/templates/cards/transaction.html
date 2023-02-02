@@ -1,0 +1,20 @@
+{% extends 'base/main.html' %}
+{% load static %}
+{% block title %}neue Transaktion{% endblock %}
+{% block extra-head %}
+    <link rel="stylesheet" href="{% static 'auth/css/login.css' %}">
+    <link rel="stylesheet" href="{% static 'cards/css/transaction.css' %}">
+{% endblock %}
+{% block body %}
+<div class="text-container">
+    <h1 class="heading">{{ sender.name|default:"neue Transaktion"}}</h1>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+
+        {% for error in errors %}<p>{{ error }}</p>{% endfor %}
+
+        <input type="submit" value="Submit">
+    </form>
+</div>
+{% endblock %}

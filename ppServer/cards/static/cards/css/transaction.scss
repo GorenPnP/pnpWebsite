@@ -1,0 +1,10 @@
+input[type=submit] {
+    background: #00ffff;
+    width: unset;
+
+    padding: .75em 2em;
+    margin: 1em 0;
+    border: 0;
+
+    &:hover { opacity: .7; }
+}
