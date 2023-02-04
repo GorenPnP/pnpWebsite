@@ -7,8 +7,8 @@ from .models import *
 
 class CardAdmin(admin.ModelAdmin):
 
-    list_display = ('name', 'spieler', 'money', 'active', 'id', 'pay')
-    search_fields = ['name', 'spieler', 'money', 'id']
+    list_display = ('name', 'spieler', 'money', 'active', 'pay', 'id', "card_id")
+    search_fields = ['name', 'spieler__name', 'id', "card_id"]
     list_filter = ['name', 'spieler', 'active']
 
     def pay(self, obj):
@@ -19,7 +19,9 @@ class TransactionAdmin(admin.ModelAdmin):
     change_list_template = "cards/admin/change_list_transaction.html"
 
     list_display = ('sender', 'receiver', 'amount', 'reason', 'timestamp')
-    search_fields = ['sender', 'receiver', 'amount', 'reason', 'timestamp']
+    search_fields = ['sender__id', "sender__card_id", 'sender__name', "sender__spieler__name",
+                     "receiver__id", "receiver__card_id", 'receiver__name', "receiver__spieler__name",
+                     'amount', 'reason', 'timestamp']
     list_filter = ['sender', 'receiver']
 
 
