@@ -31,4 +31,3 @@ class TransactionAdmin(admin.ModelAdmin):
 
 admin.site.register(Card, CardAdmin)
 admin.site.register(Transaction, TransactionAdmin)
-admin.site.register(RelCard)

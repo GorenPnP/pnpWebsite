@@ -49,14 +49,3 @@ class Transaction(models.Model):
     def __str__(self):
         return "{} Dr. {} -> {}".format(self.amount, self.sender, self.receiver)
 
-
-class RelCard(models.Model):
-
-    class Meta:
-        ordering = ['spieler']
-
-    spieler = models.ForeignKey(Spieler, on_delete=models.CASCADE)
-    card = models.ForeignKey(Card, on_delete=models.SET_NULL, null=True, blank=True)
-
-    def __str__(self):
-        return "Karte von {}".format(self.spieler)
