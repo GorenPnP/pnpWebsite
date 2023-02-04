@@ -27,7 +27,7 @@
             {% for t in transactions %}
                 <tr class="{% if t.sender == object %}send{% else %}received{% endif %}">
                     <td class="amount">{% if t.sender == object %}-{% else %}+{% endif %}{{ t.amount }} Dr.</td>
-                    <td>{% if t.sender == object %}an {{ t.receiver }}{% else %}von {{ t.sender }}{% endif %}</td>
+                    <td>{% if t.sender == object %}an {{ t.receiver|default:"-" }}{% else %}von {{ t.sender|default:"-" }}{% endif %}</td>
                     <td class="reason">{{ t.reason }}</td>
                     <td class="timestamp">{{ t.timestamp }}</td>
                 </tr>
@@ -38,6 +38,8 @@
         {% endif %}
     </div>
 
+    {% if object.money %}
     <a class="btn" href="{% url 'cards:transaction' object.id %}">Geld senden</a>
+    {% endif %}
 </div>
 {% endblock %}

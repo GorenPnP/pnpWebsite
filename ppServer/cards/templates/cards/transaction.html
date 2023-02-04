@@ -8,13 +8,18 @@
 {% block body %}
 <div class="text-container">
     <h1 class="heading">{{ sender.name|default:"neue Transaktion"}}</h1>
+
+    {% if sender %}
+        <a href="{% url 'cards:show' sender.pk %}">Zur Kontoübersicht</a>
+    {% endif %}
+
     <form method="post">
         {% csrf_token %}
         {{ form.as_p }}
 
         {% for error in errors %}<p>{{ error }}</p>{% endfor %}
 
-        <input type="submit" value="Submit">
+        <input type="submit" value="Geld senden">
     </form>
 </div>
 {% endblock %}
