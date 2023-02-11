@@ -83,6 +83,12 @@ def sp_transaction(request):
 
 
 @login_required
+def transaction_card_id(request, card_id):
+    card = get_object_or_404(Card, card_id=card_id, active=True)
+    return redirect(reverse("cards:transaction", args=[card.id]))
+
+
+@login_required
 def transaction(request, uuid):
     errors = []
     spieler = get_object_or_404(Spieler, name=request.user.username)

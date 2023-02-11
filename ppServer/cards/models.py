@@ -23,13 +23,11 @@ class Card(models.Model):
 
     def __str__(self):
         """ shown e.g. in dropdown as foreign key """
-        return self.name
+        return "{} ({})".format(self.name if self.name else self.id, "active" if self.active else "incative")
 
     def get_transactions(self):
         return (Transaction.objects.filter(sender=self) | Transaction.objects.filter(receiver=self)).order_by("-timestamp")
 
-    def __str__(self):
-        return self.name
 
 
 class Transaction(models.Model):
