@@ -55,13 +55,18 @@ six==1.* # generate token for email confirmation on signup
 add cronjob on serverhost: `sudo crontab -e`
 insert `0 2 * * * cd ~ && ./pnpWebsite/scripts/backup_db_and_media`
 
+### Authenticate for Google Cloud Storage
+https://cloud.google.com/sdk/docs/install?hl=de#deb
+* download & install gcloud
+* `gcloud init` & auth with own google account
+
 ## Restore db
 **Info**: See all available backups to restore from: `python3 manage.py listbackups`
 
 **Note**: migrations & db-backup have to be using the same format. So use git history if necessary. Ideally the newest versions should work together. 
 
 1. download (latest) backup from [Google Cloud](https://console.cloud.google.com/storage/browser/backup-goren-pnp.appspot.com/backups?hl=de&project=backup-goren-pnp&pageState=(%22StorageObjectListTable%22:(%22f%22:%22%255B%255D%22))&prefix=&forceOnObjectsSortingFiltering=false)
-1. unpack
+1. unpack (note: backup is a .tar.gz, sometimes the file-ending is chopped off)
 1. copy *.psql file into /ppServer/backups
 1. run `python3 manage.py dbrestore` to use the latest or `python3 manage.py dbrestore -i *.psql` for a specific one
 

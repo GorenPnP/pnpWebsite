@@ -20,26 +20,25 @@ docker container stop pnp-webserver
 
 # backup db
 docker exec pnp-web python3 manage.py dbbackup
-docker cp pnp-web:$BASEPATH_CONTAINER/backups/ ./backups/$DATE/
+docker cp pnp-web:$BASEPATH_CONTAINER/backups/. ./backups/$DATE/
 
 # backup media
-docker cp pnp-web:$BASEPATH_CONTAINER/media/  ./backups/$DATE/
+docker cp pnp-web:$BASEPATH_CONTAINER/media/.  ./backups/$DATE/media
 
 # re-enable routing, rest can be done in parallel
 docker container start pnp-webserver
 
 # organize & compress backup
 cd ./backups
-find . -name "postgres_*.psql" -exec mv '{}' ./$DATE \;
-rm -rf $DATE/backups
+find ./$DATE -name "postgres_*.psql.bin" -exec mv '{}' ./$DATE/$DATE.psql.bin \;
 tar -czf $DATE.tar.gz $DATE/
 
 # remove original backups inside docker-container
-docker-compose exec web rm -rf ./backups
+docker exec pnp-web rm -rf ./backups
 
 # remove all files (type f) modified longer than 30 days ago under ./backups
-rm -rf ./$DATE/
+rm -rf ./$DATE
 find . -type f -mtime +30 -delete
 
-# copy backup over to firestore
-cd /home/debian/.local/bin && gsutil cp $BASEPATH_HOST/backups/$DATE.tar.gz gs://backup-goren-pnp.appspot.com/backups
+# copy backup over to google  cloud storage bucket
+gcloud storage cp $BASEPATH_HOST/backups/$DATE.tar.gz gs://backup-goren-pnp.appspot.com/backups
