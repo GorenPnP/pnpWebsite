@@ -28,9 +28,8 @@ docker cp pnp-web:$BASEPATH_CONTAINER/media/.  ./backups/$DATE/media
 # re-enable routing, rest can be done in parallel
 docker container start pnp-webserver
 
-# organize & compress backup
+# compress backup
 cd ./backups
-find ./$DATE -name "postgres_*.psql.bin" -exec mv '{}' ./$DATE/$DATE.psql.bin \;
 tar -czf $DATE.tar.gz $DATE/
 
 # remove original backups inside docker-container

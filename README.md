@@ -5,6 +5,7 @@
 ## Virtual Env
 - create  `python3 -m venv ./venv`
 - enter   `./venv/Scripts/activate`
+- if accessing python, use `py <params>` (if pip is messed up, you can use `py -m pip <params>` to specify the python version of pip, which is the same as of `py`.)
 - leave   `deactivate`
 
 
@@ -55,7 +56,7 @@ six==1.* # generate token for email confirmation on signup
 add cronjob on serverhost: `sudo crontab -e`
 insert `0 2 * * * cd ~ && ./pnpWebsite/scripts/backup_db_and_media`
 
-### Authenticate for Google Cloud Storage
+### Authenticate for backup at Google Cloud Storage
 https://cloud.google.com/sdk/docs/install?hl=de#deb
 * download & install gcloud
 * `gcloud init` & auth with own google account
@@ -86,12 +87,17 @@ https://cloud.google.com/sdk/docs/install?hl=de#deb
             ```
         1. exit shell
         1. run `python3 manage.py migrate`
-        1. try `python3 manage.py dbrestore` again
+        1. try `python3 manage.py dbrestore` again OR `pg_restore  -U admin -d goren_db -1 .\backups\*.psql.bin` (will prompt for password)
 
 ## Restore media
 1. download (latest) backup from [Google Cloud](https://console.cloud.google.com/storage/browser/backup-goren-pnp.appspot.com/backups?hl=de&project=backup-goren-pnp&pageState=(%22StorageObjectListTable%22:(%22f%22:%22%255B%255D%22))&prefix=&forceOnObjectsSortingFiltering=false)
 1. unpack
 1. replace /ppServer/media/ folder with media/ folder of backup
+
+## larp.goren-pnp.de, a wordpress site
+* is self-hosted in a docker container
+* backups to GoogleDrive
+* Cloudflare-setting for /wp-admin: need to have cookie with name "wp" (blocking bots from guessing wp-credentials because they won't be able to access the site without the cookie)
 
 ## Run locally
 1. spin up db-container `docker-compose start db` (see docker-compose.yml -> db-service)
@@ -101,7 +107,7 @@ https://cloud.google.com/sdk/docs/install?hl=de#deb
 1. [open in browser](http://localhost:8000)
 
 ## Run in prod
-`docker-compose -f docker-compose.prod.yml up --build -d`
+`docker-compose -f docker-compose.prod.yml up --build --remove-orphans -d`
 
 ## Setup prod server (incomplete)
 1. secure .env files of old server since they are not in version control!
