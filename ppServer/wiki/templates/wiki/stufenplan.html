@@ -17,7 +17,7 @@
 <div class="container">
     <section class="content description">
         <h2 class="title">Beschreibung</h2>
-        <p class="description__text">{{ beschreibung }}</p>
+        <p class="description__text">{{ beschreibung }}|linebreaks</p>
     </section>
 
     <section class="content startbonus">
@@ -25,7 +25,7 @@
         <div class="grid-container startbonus__table">
             {% for b in boni %}
                 <div class="col1">{{ b.field }}</div>
-                <div>{{ b.val|default:'-' }}</div>
+                <div>{{ b.val|default:'-'|linebreaks }}</div>
             {% endfor %}
 
             <div class="col1">Startmanifest</div>
@@ -51,7 +51,7 @@
                 {{ forloop.counter }} ({{ e.sp|default:'0' }} SP)
                 {% else %}Bonus{% endif %}
             </div>
-            <div class="col2">{{ e.text|default:'-' }}</div>
+            <div class="col2">{{ e.text|default:'-'|linebreaks }}</div>
             {% endfor %}
         </div>
     </section>
@@ -87,7 +87,7 @@
             <div class="col7">{{ e.wesenkräfte|default:"-" }}</div>
 
 
-            <div class="col8">{{ e.weiteres|default:"-" }}</div>
+            <div class="col8">{{ e.weiteres|default:"-"|linebreaks }}</div>
         {% endfor %}
     </div>
 </section>

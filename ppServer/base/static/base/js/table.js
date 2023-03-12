@@ -127,7 +127,7 @@ function draw_rows(rows, headings) {
 
         for (heading of headings) {
             const td_tag = document.createElement('td');
-            td_tag.innerHTML =  heading.cellRenderer({data: row, value: row[heading.field]});
+            td_tag.innerHTML =  heading.cellRenderer({data: row, value: heading.type === "text" ? row[heading.field].replaceAll("\n", "<br>") : row[heading.field]});
             tr_tag.appendChild(td_tag);
         }
 
