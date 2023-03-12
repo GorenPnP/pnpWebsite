@@ -246,14 +246,7 @@ class BaseShop(TableSerializableModel):
 
             serialized_object = {}
             for field in fields:
-                if field not in object_dict:
-                    serialized_object[field] = None
-            
-                elif type(object_dict[field]) == str:
-                    serialized_object[field] = object_dict[field].replace("\n", "<br>")
-                
-                else:
-                    serialized_object[field] = object_dict[field]
+                serialized_object[field] = object_dict[field] if field in object_dict else None
 
             # add pk
             serialized_object["pk"] = object.pk
