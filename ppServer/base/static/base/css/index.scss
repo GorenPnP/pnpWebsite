@@ -41,7 +41,7 @@
 			line-height: 1.5rem;
 		}
 		--width: calc(var(--length) * 1.5ch + 1000px);
-		--animation-duration: calc(var(--amount-of-messages) * 10s);
+		--animation-duration: calc(var(--amount-of-messages) * 5s);
 		--animation-offset: calc(var(--width) * -1);
 		
 		display: flex;

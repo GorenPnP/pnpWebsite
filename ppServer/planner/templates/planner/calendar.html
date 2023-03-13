@@ -1,5 +1,5 @@
 
-{% load static calendar_utils %}
+{% load static calendar_utils l10n %}
 
 {% if load_styles is not False %}
     <link rel="stylesheet" href="{% static 'planner/css/calendar.css' %}">
@@ -13,7 +13,7 @@
 
 <section class="calendar-container">
 
-    <h3 class="month-title">{{ month_data.month_name }} {{ month_data.year }}</h3>
+    <h3 class="month-title">{{ month_data.month_name }} {% localize off %}{{ month_data.year }}{% endlocalize %}</h3>
 
     <div class="calendar">
     

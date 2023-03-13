@@ -44,6 +44,10 @@ six==1.* # generate token for email confirmation on signup
 
 ```
 
+## sass (locally for development)
+`npm i`
+`.\node_modules\.bin\sass . --watch`
+
 ## Docker
 ### inspect container
 * logs: `docker logs <containername>`

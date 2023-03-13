@@ -1,10 +1,12 @@
 .grid-container {
 	grid-template-columns: repeat(5, auto);
 }
-// ŕevert fixes for tables with heading as first row
+// revert fixes for tables with heading as first row
 div.grid-container:after {
 	content: none;
 }
+
+input[type=number] { width: 70px; }
 
 /* btn */
 .btn {

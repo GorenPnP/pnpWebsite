@@ -30,13 +30,13 @@
 
             <div id="2|{{ forloop.counter0 }}" {% if row.3 is None and row.4 is None %}class="grayed_out"></div>
             {% else %}>
-                {% if row.3 %}{{ row.3 }} SP{% endif %}{% if row.3 and row.4 %},{% endif %}
+                {% if row.3 %}{{ row.3 }} SP{% endif %}{% if row.3 and row.4 %},<br>{% endif %}
                 {% if row.4 %}{{ row.4 }} Konz.{% endif %}
             </div>{% endif %}
 
             <div id="3|{{ forloop.counter0 }}" {% if row.5 is None and row.6 is None %}class="grayed_out"></div>
             {% else %}>
-                {% if row.5 %}{{ row.5 }} FP{% endif %}{% if row.5 and row.6 %},{% endif %}
+                {% if row.5 %}{{ row.5 }} FP{% endif %}{% if row.5 and row.6 %},<br>{% endif %}
                 {% if row.6 %}{{ row.6 }} FG{% endif %}
             </div>{% endif %}
 
@@ -45,7 +45,7 @@
 
             <div id="5|{{ forloop.counter0 }}" {% if row.8 is None and row.9 is None %}class="grayed_out"></div>
             {% else %}>
-                {% if row.8 %}{{ row.8 }} Drachmen{% endif %}{% if row.8 and row.9 %},{% endif %}
+                {% if row.8 %}{{ row.8 }} Drachmen{% endif %}{% if row.8 and row.9 %},<br>{% endif %}
                 {% if row.9 %}{{ row.9 }} Sp-Fert/W-Fert{% endif %}
             </div>{% endif %}
         {% endfor %}
