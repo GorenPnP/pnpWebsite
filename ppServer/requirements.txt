@@ -15,3 +15,11 @@ Twisted[tls,http2]==22.10.*              # needed for HTTP/2 support of daphne
 # logging/debug
 sentry-sdk==1.16.*                      # sentry-integration
 django-debug-toolbar==3.8.*            # debug shit when in debug mode (not prod)
+
+django-bootstrap5==22.*     # styling :)
+
+# tables
+tablib==3.3.*               # export table
+tablib[xls]==3.3.*          # export table as xls or xlx
+django-filter==22.*         # filter queryset-data (for tables)
+django-tables2==2.5.*       # add table-twmplates

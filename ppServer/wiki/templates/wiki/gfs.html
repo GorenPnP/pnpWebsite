@@ -18,6 +18,8 @@ div.grid-container {
 {% endblock %}
 {% block absolute %}{% include 'base/header.html' with topic=topic %}{% endblock %}
 {% block body %}
+<a href="{% url 'wiki:gfs-special-abilities' %}">Übersicht aller Gfs-Fähigkeiten</a>
+
 <div class="grid-container">
 <div class="col1 heading">Gfs/Klasse</div>
 <div class="heading">Ap-Kosten</div>

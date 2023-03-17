@@ -1,12 +1,20 @@
-from ppServer.decorators import verified_account
+import sys
+from datetime import date
 from functools import cmp_to_key
 
-import sys
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import render, get_object_or_404
 
+from django_filters import FilterSet
+from django_filters.views import FilterView
+
+import django_tables2 as tables
+from django_tables2.export.views import ExportMixin
+from django_tables2.views import SingleTableMixin
+
 from character.models import *
-from datetime import date
+from ppServer.decorators import verified_account
 
 
 @login_required
@@ -85,7 +93,8 @@ def stufenplan(request, gfs_id):
                  "ap": None if e.basis.ap == 0 else "+{}".format(e.basis.ap),
                  "fert": [None if e.basis.fp == 0 else "+{}".format(e.basis.fp),
                           None if e.basis.fg == 0 else "+{} Gr.".format(e.basis.fg)],
-                 "weiteres": e.weiteres,
+                 "special_ability": e.special_ability,
+                 "special_ability_description": e.special_ability_description,
                  "zauber": "+{}".format(e.zauber) if e.zauber else None,
                  "tp": None if e.basis.tp == 0 else "+{}".format(e.basis.tp),
                  "wesenkräfte": ", ".join([i.titel for i in e.wesenkräfte.all()]),
@@ -381,3 +390,39 @@ def geburtstage(request):
 
     context = {"list": spieler_birthdays, "topic": "Geburtstage"}
     return render(request, "wiki/geburtstage.html", context)
+
+
+class GfsSpecialAbilityTable(tables.Table):
+    class Meta:
+        model = GfsStufenplan
+        fields = ("special_ability", "special_ability_description", "gfs", "basis__stufe")
+        order_by_field = "special_ability"
+
+        attrs= {"class": "table table-dark table-striped table-hover"}
+
+
+
+class GfsStufenplanFilter(FilterSet):
+    class Meta:
+        model = GfsStufenplan
+        fields = {
+                    "special_ability": ["icontains"],
+                    "special_ability_description": ["icontains"],
+                    "gfs": ["exact"],
+                    "basis__stufe": ["exact"]
+                }
+
+
+class GfsSpecialAbilities(ExportMixin, SingleTableMixin, LoginRequiredMixin, FilterView):
+    model = GfsStufenplan
+    queryset = GfsStufenplan.objects.select_related('gfs').filter(special_ability__isnull=False).exclude(special_ability="")
+
+    template_name = "wiki/gfs-special-abilities.html"
+
+    table_class = GfsSpecialAbilityTable
+    filterset_class = GfsStufenplanFilter
+
+    dataset_kwargs = {"title": "Gfs-Fähigkeiten"}
+    export_name = "Gfs-Fähigkeiten"
+    export_formats = ["csv", "json", "latex", "ods", "tsv", "xls", "xlsx", "yaml"]
+

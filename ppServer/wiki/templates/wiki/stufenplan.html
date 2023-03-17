@@ -87,7 +87,10 @@
             <div class="col7">{{ e.wesenkräfte|default:"-" }}</div>
 
 
-            <div class="col8">{{ e.weiteres|default:"-"|linebreaks }}</div>
+            <div class="col8">
+                <strong>{{ e.special_ability|default:"-"|linebreaks }}</strong><br>
+                {{ e.special_ability_description|default:"-"|linebreaks }}
+            </div>
         {% endfor %}
     </div>
 </section>

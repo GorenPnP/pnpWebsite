@@ -381,7 +381,8 @@ class GfsStufenplan(models.Model):
     vorteile = models.ManyToManyField("Vorteil", blank=True)
     zauber = models.PositiveSmallIntegerField(default=0)
     wesenkräfte = models.ManyToManyField("Wesenkraft", blank=True)
-    weiteres = models.TextField(max_length=1000, default=None, blank=True, null=True)
+    special_ability = models.CharField(max_length=100, default=None, blank=True, null=True, verbose_name="Fertigkeit")
+    special_ability_description = models.TextField(max_length=1000, default=None, blank=True, null=True, verbose_name="Beschreibung")
 
 
 class ProfessionStufenplanBase(models.Model):

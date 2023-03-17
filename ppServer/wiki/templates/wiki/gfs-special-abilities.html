@@ -1,0 +1,35 @@
+{% extends 'base/main.html' %}
+{% load django_bootstrap5 %}
+{% load render_table from django_tables2 %}
+{% load export_url from django_tables2 %}
+
+{% block title %}Gfs-spezifische Fähigkeiten{% endblock %}
+{% block extra-head %}
+    {% bootstrap_css %}
+    {% bootstrap_javascript %}
+
+    <style>
+        .export-link { color: #97b0c9 !important; }
+        #filter-form { max-width: 500px; margin-inline: auto; }
+    </style>
+{% endblock %}
+{% block absolute %}{% include 'base/header.html' with topic='Gfs-spezifische Fähigkeiten' %}{% endblock %}
+{% block body %}
+
+{% if filter %}
+    <form action="" method="get" class="form mb-5 mt-5" id="filter-form">
+        {% bootstrap_form filter.form layout='floating' %}
+        {% bootstrap_button 'filter' button_type="submit" button_class="btn-primary btn-lg" %}
+        {% bootstrap_form_errors filter.form %}
+    </form>
+{% endif %}
+{% render_table table %}
+
+<ul>
+    {% for format in view.export_formats %}
+        <li><a class="export-link" href="{% export_url format %}">
+            download  <code>.{{ format }}</code>
+        </a></li>
+    {% endfor %}
+</ul>
+{% endblock %}

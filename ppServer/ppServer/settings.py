@@ -62,6 +62,9 @@ INSTALLED_APPS = [
     'debug_toolbar',
     'dbbackup',
     'channels',
+    'django_bootstrap5',
+    'django_filters',
+    'django_tables2',
 ]
 
 MIDDLEWARE = [
@@ -191,6 +194,8 @@ DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL')
 # show debug-toolbar if matches
 INTERNAL_IPS = ["localhost", "127.0.0.1"] if DEBUG else []
 
+# default template for tables generated with django-tables2
+DJANGO_TABLES2_TEMPLATE = "django_tables2/bootstrap5-responsive.html"
 
 # Logging Configuration
 import logging.config

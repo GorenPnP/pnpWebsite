@@ -45,7 +45,7 @@ class GfsWesenkraftInLine(admin.TabularInline):
 
 class GfsStufenplanInLine(admin.TabularInline):
     model = GfsStufenplan
-    fields = ["basis", "vorteile", "zauber", "wesenkräfte", "weiteres"]
+    fields = ["basis", "vorteile", "zauber", "wesenkräfte", "special_ability", "special_ability_description"]
     extra = 0
 
 class GfsSkilltreeInLine(admin.TabularInline):
@@ -427,9 +427,9 @@ class GfsSkilltreeAdmin(admin.ModelAdmin):
         return obj.context.stufe
 
 class GfsStufenplanAdmin(admin.ModelAdmin):
-    list_display = ('gfs_', 'stufe_', 'weiteres')
+    list_display = ('gfs_', 'stufe_', 'special_ability', 'special_ability_description')
 
-    list_editable = ['weiteres']
+    list_editable = ['special_ability', 'special_ability_description']
 
     def stufe_(self, obj):
         return obj.basis.stufe
@@ -500,9 +500,9 @@ class SkilltreeEntryWesenAdmin(admin.ModelAdmin):
 
 
 class StufenplanAdmin(admin.ModelAdmin):
-    list_editable = ["ep", "ap", "ap_max", "fp", "fg", "zauber", "spezial", "wissensp"]#, "weiteres"]
+    list_editable = ["ep", "ap", "ap_max", "fp", "fg", "zauber", "spezial", "wissensp"]
     list_display = ["wesen", "stufe", "ep", "vorteile_", "ap", "ap_max", "fp", "fg", "zauber", "wesenkräfte_",
-                    "spezial", "wissensp", "weiteres"]
+                    "spezial", "wissensp", "special_ability", "special_ability_description"]
     list_filter = ["wesen", "stufe"]
 
     def vorteile_(self, obj):

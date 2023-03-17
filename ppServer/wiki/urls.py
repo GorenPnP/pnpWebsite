@@ -12,6 +12,7 @@ urlpatterns = [
 
 
     path('gfs', views.gfs, name='gfs'),
+    path('gfs/special-abilities', views.GfsSpecialAbilities.as_view(), name='gfs-special-abilities'),
     path('gfs/<int:gfs_id>', views.stufenplan, name='stufenplan'),
     path('persönlichkeiten', views.persönlichkeit, name='persönlichkeiten'),
     path('profession', views.profession, name='profession'),
