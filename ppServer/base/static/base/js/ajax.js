@@ -10,8 +10,6 @@ In js:
 	get(data, success, error)
 */
 
-var spinner;
-
 function reaction(data, status=200) {
 
 	if (Object.keys(data).indexOf("message") !== -1 && !!data["message"])
@@ -28,10 +26,8 @@ function reaction(data, status=200) {
 
 document.addEventListener("DOMContentLoaded", () => {
 
-	spinner = document.getElementsByClassName("spinner-container")[0]
-
 	axios.defaults.baseURL = document.location.href;
-	axios.defaults.headers.common['X-CSRFToken'] = document.getElementsByName('csrfmiddlewaretoken')[0].value
+	axios.defaults.headers.common['X-CSRFToken'] = document.getElementsByName('csrfmiddlewaretoken')[0].value;
 	axios.defaults.headers.post['Content-Type'] = 'application/json';
 })
 
@@ -43,7 +39,8 @@ function send(method='get', data, success, error, display_spinner=true) {
 	success = success || reaction;
 	error = error || reaction;
 
-	if (display_spinner) spinner.style.display = "flex";
+	const spinner = document.getElementsByClassName("spinner-container")?.[0];
+	if (display_spinner && spinner) spinner.style.display = "flex";
 
 	axios.defaults.method = method
 	axios({ data: data })
@@ -77,6 +74,8 @@ function send(method='get', data, success, error, display_spinner=true) {
 		})
 		.then(() => {
 			// stop spinner
-				setTimeout(() => spinner.style.display = 'none', 200)
+			setTimeout(() => {
+				if (spinner) spinner.style.display = 'none'
+			}, 200)
 		})
 }
