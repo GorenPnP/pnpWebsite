@@ -41,7 +41,8 @@ class Wesenkraft(TableSerializableModel):
 
     titel = models.CharField(max_length=30, null=False, default="")
     probe = models.CharField(max_length=200, null=False, default="")
-    wirkung = models.CharField(max_length=300, null=False, default="")
+    wirkung = models.TextField(max_length=300, null=False, default="")
+    manaverbrauch = models.CharField(max_length=100, null=True, blank=True, default="")
     min_rang = models.PositiveIntegerField(default=0)
 
     wesen = models.CharField(max_length=1, choices=enums.enum_wesenkr, null=False, default=enums.enum_wesenkr[0][0])

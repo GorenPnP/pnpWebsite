@@ -351,7 +351,7 @@ class FertigkeitAdmin(admin.ModelAdmin):
 
 class WesenkraftAdmin(admin.ModelAdmin):
 
-    fields = ['titel', 'min_rang', 'probe', 'wirkung', 'wesen', "zusatz_manifest"]
+    fields = ['titel', 'min_rang', 'probe', 'wirkung', 'manaverbrauch', 'wesen', "zusatz_manifest"]
     inlines = [WesenkraftZusatzWesenspInLine]
 
     list_display = ['titel', 'min_rang', 'probe', 'wirkung', 'wesen']
