@@ -7,12 +7,10 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import render, get_object_or_404
 
 from django_filters import FilterSet
-from django_filters.views import FilterView
 
 import django_tables2 as tables
-from django_tables2.export.views import ExportMixin
-from django_tables2.views import SingleTableMixin
 
+from base.abstract_views import DynamicTableView
 from character.models import *
 from ppServer.decorators import verified_account
 
@@ -413,16 +411,12 @@ class GfsStufenplanFilter(FilterSet):
                 }
 
 
-class GfsSpecialAbilities(ExportMixin, SingleTableMixin, LoginRequiredMixin, FilterView):
-    model = GfsStufenplan
+class GfsSpecialAbilities(LoginRequiredMixin, DynamicTableView):
     queryset = GfsStufenplan.objects.select_related('gfs').filter(special_ability__isnull=False).exclude(special_ability="")
 
-    template_name = "wiki/gfs-special-abilities.html"
+    topic = "Gfs-spezifische Fähigkeiten"
 
     table_class = GfsSpecialAbilityTable
     filterset_class = GfsStufenplanFilter
 
-    dataset_kwargs = {"title": "Gfs-Fähigkeiten"}
-    export_name = "Gfs-Fähigkeiten"
     export_formats = ["csv", "json", "latex", "ods", "tsv", "xls", "xlsx", "yaml"]
-
