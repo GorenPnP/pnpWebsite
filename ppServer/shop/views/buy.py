@@ -1,172 +1,17 @@
-from ppServer.decorators import verified_account
 import random, json
+from datetime import date
+from typing import Any
 
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.http.response import JsonResponse
-from django.shortcuts import render, get_object_or_404, redirect
-from django.urls import reverse
-from datetime import date
+from django.shortcuts import render, get_object_or_404
 
-from log.views import logShop
 from character.models import *
-from base.views import reviewable_shop
-from ppServer.decorators import spielleiter_only
+from log.views import logShop
+from ppServer.decorators import verified_account
 
-from .models import *
-
-
-model_list = [
-    (Item, "items"),
-    (Waffen_Werkzeuge, "waffen_werkzeuge"),
-    (Magazin, "magazine"),
-    (Pfeil_Bolzen, "pfeile_bolzen"),
-    (Schusswaffen, "schusswaffen"),
-    (Magische_Ausrüstung, "mag_ausrüstung"),
-    (Rituale_Runen, "rituale_runen"),
-    (Rüstungen, "rüstungen"),
-    (Ausrüstung_Technik, "ausr_technik"),
-    (Fahrzeug, "fahrzeuge"),
-    (Einbauten, "einbauten"),
-    (Zauber, "zauber"),
-    (VergessenerZauber, "vergessene_zauber"),
-    (Alchemie, "alchemie"),
-    (Tinker, "tinker"),
-    (Begleiter, "begleiter")
-]
-
-
-@login_required
-@spielleiter_only()
-def review_items(request):
-
-    if not request.user.groups.filter(name="spielleiter").exists():
-        return redirect("base:index")
-
-    context = {"topic": "Neue Items", "items": reviewable_shop()}
-
-    if not context["items"]:
-        return redirect("base:index")
-
-    return render(request, "shop/review_items.html", context)
-
-
-@login_required
-@verified_account
-def index(request):
-    return render(request, "shop/index.html", {"topic": "Shop"})
-
-
-# specific show_shop
-@login_required
-@verified_account
-def all(request):
-    items = []
-    for model, url in model_list:
-        items += show_shop("", model, "shop:"+url)["rows"]
-
-    context = {
-        "headings": BaseShop.get_serialized_table_headings(),
-        "rows": items,
-        "topic": "Shop",
-        "buyable": True
-    }
-    return render(request, "shop/show_shop.html", context)
-
-
-@login_required
-@verified_account
-def item(request):
-    return render(request, "shop/show_shop.html", show_shop("Items", Item, "admin:shop_item_add"))
-
-@login_required
-@verified_account
-def waffen_werkzeuge(request):
-    return render(request, "shop/show_shop.html", show_shop("Waffen & Werkzeuge", Waffen_Werkzeuge, "admin:shop_waffen_werkzeuge_add"))
-
-@login_required
-@verified_account
-def magazine(request):
-    return render(request, "shop/show_shop.html", show_shop("Magazine", Magazin, "admin:shop_magazin_add"))
-
-@login_required
-@verified_account
-def pfeile_bolzen(request):
-    return render(request, "shop/show_shop.html", show_shop("Pfeile & Bolzen", Pfeil_Bolzen, "admin:shop_pfeil_bolzen_add"))
-
-@login_required
-@verified_account
-def schusswaffen(request):
-    return render(request, "shop/show_shop.html", show_shop("Schusswaffen", Schusswaffen, "admin:shop_schusswaffen_add"))
-
-@login_required
-@verified_account
-def mag_ausrüstung(request):
-    return render(request, "shop/show_shop.html", show_shop("Magische Ausrüstung", Magische_Ausrüstung, "admin:shop_magische_ausrüstung_add"))
-
-@login_required
-@verified_account
-def rituale_runen(request):
-    return render(request, "shop/show_shop.html", show_shop("Rituale & Runen", Rituale_Runen, "admin:shop_rituale_runen_add"))
-
-@login_required
-@verified_account
-def rüstungen(request):
-    return render(request, "shop/show_shop.html", show_shop("Rüstungen", Rüstungen, "admin:shop_rüstungen_add"))
-
-@login_required
-@verified_account
-def ausrüstung_technik(request):
-    return render(request, "shop/show_shop.html", show_shop("Ausrüstung & Technik", Ausrüstung_Technik, "admin:shop_ausrüstung_technik_add"))
-
-@login_required
-@verified_account
-def fahrzeuge(request):
-    return render(request, "shop/show_shop.html", show_shop("Fahrzeuge", Fahrzeug, "admin:shop_fahrzeug_add"))
-
-@login_required
-@verified_account
-def einbauten(request):
-    return render(request, "shop/show_shop.html", show_shop("Einbauten", Einbauten, "admin:shop_einbauten_add"))
-
-@login_required
-@verified_account
-def zauber(request):
-    return render(request, "shop/show_shop.html", show_shop("Zauber", Zauber, "admin:shop_zauber_add"))
-
-@login_required
-@verified_account
-def vergessene_zauber(request):
-    return render(request, "shop/show_shop.html", show_shop("Vergessene Zauber", VergessenerZauber, "admin:shop_vergessenerzauber_add"))
-
-@login_required
-@verified_account
-def alchemie(request):
-    return render(request, "shop/show_shop.html", show_shop("Alchemie", Alchemie, "admin:shop_alchemie_add"))
-
-@login_required
-@verified_account
-def tinker(request):
-    return render(request, "shop/show_shop.html", show_shop("Für Selbstständige", Tinker, "admin:shop_tinker_add", False))
-
-@login_required
-@verified_account
-def begleiter(request):
-    return render(request, "shop/show_shop.html", show_shop("Begleiter", Begleiter, "admin:shop_begleiter_add"))
-
-
-def show_shop(topic, model: BaseShop, plus_url, buyable=True):
-    context = {
-        "headings": model.get_serialized_table_headings(),
-        "rows": model.get_all_serialized(),
-
-        "topic": topic,
-        "plus_url": reverse(plus_url)
-    }
-    if buyable:
-        context["buyable"] = True
-
-    return context
+from ..models import *
 
 
 # specific buy_shop
@@ -246,7 +91,7 @@ def buy_rituale_runen(request, id):
 
 @login_required
 @verified_account
-def buy_mag_ausrüstung(request, id):
+def buy_magische_ausrüstung(request, id):
     if request.method == 'GET':
         context = buy_item_get(request, id, Magische_Ausrüstung, RelMagische_Ausrüstung, FirmaMagische_Ausrüstung)
         return render(request, "shop/buy_shop.html", context)

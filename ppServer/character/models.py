@@ -7,9 +7,49 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.shortcuts import get_object_or_404
 
-from base.models import TableSerializableModel, TableFieldType, TableHeading
+from base.models import TableFieldType, TableHeading
 
 from . import enums
+
+
+# TODO delete
+class TableSerializableModel(models.Model):
+
+    class Meta:
+        abstract = True
+
+    @staticmethod
+    def get_table_headings():
+        return [
+            TableHeading("PK", "pk", TableFieldType.NUMBER)
+        ]
+
+    @classmethod
+    def get_serialized_table_headings(cls):
+        return [h.serialize() for h in cls.get_table_headings()]
+
+    @classmethod
+    def get_table_rows(cls):
+        fields = [heading.field for heading in cls.get_table_headings()] + ["pk"]
+
+        objects = cls.objects.all()
+        if len(objects) == 0: return []
+
+        serialized = []
+
+        for object in objects:
+            object_dict = object.__dict__
+
+            serialized_object = {}
+            for field in fields:
+                serialized_object[field] = object_dict[field] if field in object_dict else None
+
+            # add pk
+            serialized_object["pk"] = object.pk
+
+            serialized.append(serialized_object)
+        return serialized
+
 
 
 class Spieler(models.Model):

@@ -9,15 +9,15 @@
     {% bootstrap_javascript %}
 
     <style>
-        .export-link { color: #97b0c9 !important; }
         #filter-form { max-width: 500px; margin-inline: auto; }
+        .export-link { color: #97b0c9 !important; }
     </style>
 {% endblock %}
 {% block absolute %}
 {% if view.get_plus_url|length %}
     {% include 'base/header.html' with topic=view.get_topic plus_url=view.get_plus_url %}
 {% else %}
-    {% include 'base/header.html' with topic=view.topic %}
+    {% include 'base/header.html' with topic=view.get_topic %}
 {% endif %}
 
 {% endblock %}

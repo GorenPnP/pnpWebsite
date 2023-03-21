@@ -1,14 +1,10 @@
 import math
-from itertools import chain
 from PIL import Image as PilImage
 
 from django.shortcuts import get_object_or_404
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 from django.db.models import Count
-from django.urls import reverse
-
-from base.models import TableFieldType, TableHeading, TableSerializableModel
 
 from . import enums
 
@@ -202,7 +198,7 @@ class FirmaBegleiter(FirmaShop):
 
 ################ Base Shop ####################
 
-class BaseShop(TableSerializableModel):
+class BaseShop(models.Model):
     class Meta:
         abstract = True
 
@@ -218,64 +214,8 @@ class BaseShop(TableSerializableModel):
     stufenabhängig = models.BooleanField(default=False)
 
 
-    @staticmethod
-    def get_table_headings():
-        return [
-            TableHeading("Icon", "icon", TableFieldType.IMAGE),
-            TableHeading("Name", "name", TableFieldType.TEXT),
-            TableHeading("Beschreibung", "beschreibung", TableFieldType.TEXT),
-            TableHeading("Ab Stufe", "ab_stufe", TableFieldType.NUMBER),
-            TableHeading("Günstigster Preis", "billigster", TableFieldType.PRICE),
-            TableHeading("Weiteres", "weiteres", TableFieldType.TEXT),
-            TableHeading("Preis * Stufe?", "stufenabhängig", TableFieldType.BOOLEAN)
-        ]
-
-    @classmethod
-    def get_all_serialized(cls, url_prefix=None):
-        fields = [heading.field for heading in cls.get_table_headings()] + ["pk"]
-
-        objects = cls.objects.filter(frei_editierbar=False)
-        if len(objects) == 0: return []
-
-        firma_model = objects[0].firmen.through
-
-        serialized = []
-
-        for object in objects:
-            object_dict = object.__dict__
-
-            serialized_object = {}
-            for field in fields:
-                serialized_object[field] = object_dict[field] if field in object_dict else None
-
-            # add pk
-            serialized_object["pk"] = object.pk
-
-            # add "weiteres"
-            weiteres = "illegal" if object.illegal else ""
-            if object.lizenz_benötigt and not weiteres: weiteres = "Lizenz"
-            if object.lizenz_benötigt and object.illegal: weiteres += ", Lizenz"
-
-            serialized_object["weiteres"] = weiteres
-
-
-            # add "billigster"
-            prices = [obj.getPrice() for obj in firma_model.objects.filter(item=object)]
-            billigster = sorted(prices)[0] if len(prices) else None
-            billigster_preis = billigster if billigster else None
-            serialized_object["billigster"] = billigster_preis
-
-            
-            # add "icon"
-            serialized_object["icon"] = object.getIconUrl()
-
-            # add "url"
-            serialized_object["url"] = reverse(url_prefix, args=[object.pk]) if url_prefix else None
-
-            serialized.append(serialized_object)
-
-        return serialized
-
+    def __str__(self):
+        return "{} ({})".format(self.name, self._meta.verbose_name)
 
     def getIconUrl(self):
         return self.icon.url if self.icon else "/static/res/img/icon-dice-account.svg"
@@ -314,13 +254,6 @@ class Item(BaseShop):
     kategorie = models.CharField(choices=enums.item_enum, max_length=2, default=enums.item_enum[0][0])
     firmen = models.ManyToManyField('Firma', through='FirmaItem', blank=True, related_name='firmen')
 
-    def __str__(self):
-        return "{} (item)".format(self.name)
-
-    @classmethod
-    def get_all_serialized(cls, url_prefix="shop:buy_item"):
-        return super().get_all_serialized(url_prefix)
-
 
 class Waffen_Werkzeuge(BaseShop):
     class Meta:
@@ -337,29 +270,6 @@ class Waffen_Werkzeuge(BaseShop):
     kategorie = models.CharField(choices=enums.werkzeuge_enum, max_length=2, default=enums.werkzeuge_enum[0][0])
     firmen = models.ManyToManyField('Firma', through='FirmaWaffen_Werkzeuge', blank=True)
 
-    def __str__(self):
-        return "{} (Waffen & Werkzeuge)".format(self.name)
-    
-    @staticmethod
-    def get_table_headings():
-        return [
-            TableHeading("Icon", "icon", TableFieldType.IMAGE),
-            TableHeading("Name", "name", TableFieldType.TEXT),
-            TableHeading("Beschreibung", "beschreibung", TableFieldType.TEXT),
-            TableHeading("Ab Stufe", "ab_stufe", TableFieldType.NUMBER),
-            TableHeading("Erfolge", "erfolge", TableFieldType.NUMBER),
-            TableHeading("BS", "bs", TableFieldType.TEXT),
-            TableHeading("ZS", "zs", TableFieldType.TEXT),
-            TableHeading("DK", "dk", TableFieldType.NUMBER),
-            TableHeading("Günstigster Preis", "billigster", TableFieldType.PRICE),
-            TableHeading("Weiteres", "weiteres", TableFieldType.TEXT),
-            TableHeading("Preis * Stufe?", "stufenabhängig", TableFieldType.BOOLEAN)
-        ]
-
-    @classmethod
-    def get_all_serialized(cls, url_prefix="shop:buy_waffen_werkzeuge"):
-        return super().get_all_serialized(url_prefix)
-
 
 class Magazin(BaseShop):
     class Meta:
@@ -370,26 +280,6 @@ class Magazin(BaseShop):
 
     schuss = models.PositiveIntegerField(default=0)
     firmen = models.ManyToManyField('Firma', through='FirmaMagazin', blank=True)
-
-    def __str__(self):
-        return "{}, {} Schuss (Magazine)".format(self.name, self.schuss)
-
-    @staticmethod
-    def get_table_headings():
-        return [
-            TableHeading("Icon", "icon", TableFieldType.IMAGE),
-            TableHeading("Name", "name", TableFieldType.TEXT),
-            TableHeading("Beschreibung", "beschreibung", TableFieldType.TEXT),
-            TableHeading("Ab Stufe", "ab_stufe", TableFieldType.NUMBER),
-            TableHeading("Schuss", "schuss", TableFieldType.NUMBER),
-            TableHeading("Günstigster Preis", "billigster", TableFieldType.PRICE),
-            TableHeading("Weiteres", "weiteres", TableFieldType.TEXT),
-            TableHeading("Preis * Stufe?", "stufenabhängig", TableFieldType.BOOLEAN)
-        ]
-
-    @classmethod
-    def get_all_serialized(cls, url_prefix="shop:buy_magazine"):
-        return super().get_all_serialized(url_prefix)
 
 
 class Pfeil_Bolzen(BaseShop):
@@ -402,27 +292,6 @@ class Pfeil_Bolzen(BaseShop):
     bs = models.CharField(max_length=20, default='')
     zs = models.CharField(max_length=20, default='')
     firmen = models.ManyToManyField('Firma', through='FirmaPfeil_Bolzen', blank=True)
-
-    def __str__(self):
-        return "{} (Pfeile & Bolzen)".format(self.name)
-    
-    @staticmethod
-    def get_table_headings():
-        return [
-            TableHeading("Icon", "icon", TableFieldType.IMAGE),
-            TableHeading("Name", "name", TableFieldType.TEXT),
-            TableHeading("Beschreibung", "beschreibung", TableFieldType.TEXT),
-            TableHeading("Ab Stufe", "ab_stufe", TableFieldType.NUMBER),
-            TableHeading("BS", "bs", TableFieldType.TEXT),
-            TableHeading("ZS", "zs", TableFieldType.TEXT),
-            TableHeading("Günstigster Preis", "billigster", TableFieldType.PRICE),
-            TableHeading("Weiteres", "weiteres", TableFieldType.TEXT),
-            TableHeading("Preis * Stufe?", "stufenabhängig", TableFieldType.BOOLEAN)
-        ]
-
-    @classmethod
-    def get_all_serialized(cls, url_prefix="shop:buy_pfeil_bolzen"):
-        return super().get_all_serialized(url_prefix)
 
 
 class Schusswaffen(BaseShop):
@@ -445,76 +314,6 @@ class Schusswaffen(BaseShop):
     kategorie = models.CharField(choices=enums.schusswaffen_enum, max_length=2, default=enums.schusswaffen_enum[0][0])
     firmen = models.ManyToManyField('Firma', through='FirmaSchusswaffen', blank=True)
 
-    def __str__(self):
-        return "{} (Schusswaffen)".format(self.name)
-
-    @staticmethod
-    def get_table_headings():
-        return [
-            TableHeading("Icon", "icon", TableFieldType.IMAGE),
-            TableHeading("Name", "name", TableFieldType.TEXT),
-            TableHeading("Beschreibung", "beschreibung", TableFieldType.TEXT),
-            TableHeading("Ab Stufe", "ab_stufe", TableFieldType.NUMBER),
-            TableHeading("Erfolge", "erfolge", TableFieldType.NUMBER),
-            TableHeading("BS", "bs", TableFieldType.TEXT),
-            TableHeading("ZS", "zs", TableFieldType.TEXT),
-            TableHeading("DK", "dk", TableFieldType.NUMBER),
-            TableHeading("Präzision", "präzision", TableFieldType.NUMBER),
-            TableHeading("Munition", "munition", TableFieldType.TEXT),
-            TableHeading("Günstigster Preis", "billigster", TableFieldType.PRICE),
-            TableHeading("Weiteres", "weiteres", TableFieldType.TEXT),
-            TableHeading("Preis * Stufe?", "stufenabhängig", TableFieldType.BOOLEAN)
-        ]
-    
-    @classmethod
-    def get_all_serialized(cls, url_prefix="shop:buy_schusswaffen"):
-        fields = [heading.field for heading in cls.get_table_headings()] + ["pk"]
-
-        objects = cls.objects.filter(frei_editierbar=False)
-        if len(objects) == 0: return []
-
-        firma_model = objects[0].firmen.through
-
-        serialized = []
-
-        for object in objects:
-            object_dict = object.__dict__
-
-            serialized_object = {}
-            for field in fields:
-                serialized_object[field] = object_dict[field] if field in object_dict else None
-
-            # add pk
-            serialized_object["pk"] = object.pk
-
-            # add "weiteres"
-            weiteres = "illegal" if object.illegal else ""
-            if object.lizenz_benötigt and not weiteres: weiteres = "Lizenz"
-            if object.lizenz_benötigt and object.illegal: weiteres += ", Lizenz"
-
-            serialized_object["weiteres"] = weiteres
-
-            # add "munition"
-            serialized_object["munition"] = ", ".join([m.name for m in chain(object.magazine.all(), object.pfeile_bolzen.all())])
-
-
-            # add "billigster"
-            prices = [obj.getPrice() for obj in firma_model.objects.filter(item=object)]
-            billigster = sorted(prices)[0] if len(prices) else None
-            billigster_preis = billigster if billigster else None
-            serialized_object["billigster"] = billigster_preis
-
-            
-            # add "icon"
-            serialized_object["icon"] = object.getIconUrl()
-
-            # add "url"
-            serialized_object["url"] = reverse(url_prefix, args=[object.pk]) if url_prefix else None
-
-            serialized.append(serialized_object)
-
-        return serialized
-
 
 class Magische_Ausrüstung(BaseShop):
     class Meta:
@@ -526,13 +325,6 @@ class Magische_Ausrüstung(BaseShop):
     kategorie = models.CharField(choices=enums.magische_Ausrüstung_enum, max_length=2, default=enums.magische_Ausrüstung_enum[0][0])
     firmen = models.ManyToManyField('Firma', through='FirmaMagische_Ausrüstung', blank=True)
 
-    def __str__(self):
-        return "{} (Magische Ausrüstung)".format(self.name)
-
-    @classmethod
-    def get_all_serialized(cls, url_prefix="shop:buy_mag_ausrüstung"):
-        return super().get_all_serialized(url_prefix)
-
 
 class Rituale_Runen(BaseShop):
     class Meta:
@@ -543,72 +335,6 @@ class Rituale_Runen(BaseShop):
 
     kategorie = models.CharField(choices=enums.rituale_enum, max_length=2, default=enums.rituale_enum[0][0])
     firmen = models.ManyToManyField('Firma', through='FirmaRituale_Runen', blank=True)
-
-    def __str__(self):
-        return "{} (Rituale & Runen)".format(self.name)
-
-    @staticmethod
-    def get_table_headings():
-        return [
-            TableHeading("Icon", "icon", TableFieldType.IMAGE),
-            TableHeading("Name", "name", TableFieldType.TEXT),
-            TableHeading("Beschreibung", "beschreibung", TableFieldType.TEXT),
-            TableHeading("Ab Stufe", "ab_stufe", TableFieldType.NUMBER),
-            TableHeading("Stufe 1", "stufe1", TableFieldType.PRICE),
-            TableHeading("Stufe 2", "stufe2", TableFieldType.PRICE),
-            TableHeading("Stufe 3", "stufe3", TableFieldType.PRICE),
-            TableHeading("Stufe 4", "stufe4", TableFieldType.PRICE),
-            TableHeading("Stufe 5", "stufe5", TableFieldType.PRICE),
-            TableHeading("Weiteres", "weiteres", TableFieldType.TEXT)
-        ]
-    
-    @classmethod
-    def get_all_serialized(cls, url_prefix="shop:buy_rituale_runen"):
-        fields = [heading.field for heading in cls.get_table_headings()] + ["pk"]
-
-        objects = cls.objects.filter(frei_editierbar=False)
-        if len(objects) == 0: return []
-
-        firma_model = objects[0].firmen.through
-
-        serialized = []
-
-        for object in objects:
-            object_dict = object.__dict__
-
-            serialized_object = {}
-            for field in fields:
-                serialized_object[field] = object_dict[field] if field in object_dict else None
-
-            # add pk
-            serialized_object["pk"] = object.pk
-
-            # add "weiteres"
-            weiteres = "illegal" if object.illegal else ""
-            if object.lizenz_benötigt and not weiteres: weiteres = "Lizenz"
-            if object.lizenz_benötigt and object.illegal: weiteres += ", Lizenz"
-
-            serialized_object["weiteres"] = weiteres
-
-
-            # add "billigster"
-            if firma_model.objects.filter(item=object).count():
-                firma_models = firma_model.objects.filter(item=object)
-                serialized_object["stufe1"] = sorted([fm.getPriceStufe1() for fm in firma_models])[0]
-                serialized_object["stufe2"] = sorted([fm.getPriceStufe2() for fm in firma_models])[0]
-                serialized_object["stufe3"] = sorted([fm.getPriceStufe3() for fm in firma_models])[0]
-                serialized_object["stufe4"] = sorted([fm.getPriceStufe4() for fm in firma_models])[0]
-                serialized_object["stufe5"] = sorted([fm.getPriceStufe5() for fm in firma_models])[0]
-
-            # add "icon"
-            serialized_object["icon"] = object.getIconUrl()
-
-            # add "url"
-            serialized_object["url"] = reverse(url_prefix, args=[object.pk]) if url_prefix else None
-
-            serialized.append(serialized_object)
-
-        return serialized
 
 
 class Rüstungen(BaseShop):
@@ -623,28 +349,6 @@ class Rüstungen(BaseShop):
     haltbarkeit = models.PositiveIntegerField(default=0)
 
     firmen = models.ManyToManyField('Firma', through='FirmaRüstungen', blank=True)
-
-    def __str__(self):
-        return "{} (Rüstungen)".format(self.name)
-    
-    @staticmethod
-    def get_table_headings():
-        return [
-            TableHeading("Icon", "icon", TableFieldType.IMAGE),
-            TableHeading("Name", "name", TableFieldType.TEXT),
-            TableHeading("Beschreibung", "beschreibung", TableFieldType.TEXT),
-            TableHeading("Ab Stufe", "ab_stufe", TableFieldType.NUMBER),
-            TableHeading("Schutz", "schutz", TableFieldType.NUMBER),
-            TableHeading("Stärke", "stärke", TableFieldType.NUMBER),
-            TableHeading("Haltbarkeit", "haltbarkeit", TableFieldType.NUMBER),
-            TableHeading("Günstigster Preis", "billigster", TableFieldType.PRICE),
-            TableHeading("Weiteres", "weiteres", TableFieldType.TEXT),
-            TableHeading("Preis * Stufe?", "stufenabhängig", TableFieldType.BOOLEAN)
-        ]
-
-    @classmethod
-    def get_all_serialized(cls, url_prefix="shop:buy_rüstungen"):
-        return super().get_all_serialized(url_prefix)
 
 
 class Ausrüstung_Technik(BaseShop):
@@ -661,13 +365,6 @@ class Ausrüstung_Technik(BaseShop):
     kategorie = models.CharField(choices=enums.ausrüstung_enum, max_length=2, default=enums.ausrüstung_enum[0][0])
     firmen = models.ManyToManyField('Firma', through='FirmaAusrüstung_Technik', blank=True)
 
-    def __str__(self):
-        return "{} (Ausrüstung & Technik)".format(self.name)
-
-    @classmethod
-    def get_all_serialized(cls, url_prefix="shop:buy_ausrüstung_technik"):
-        return super().get_all_serialized(url_prefix)
-
 
 class Fahrzeug(BaseShop):
     class Meta:
@@ -683,28 +380,6 @@ class Fahrzeug(BaseShop):
     kategorie = models.CharField(choices=enums.fahrzeuge_enum, max_length=2, default=enums.fahrzeuge_enum[0][0])
     firmen = models.ManyToManyField('Firma', through='FirmaFahrzeug', blank=True)
 
-    def __str__(self):
-        return "{} (Fahrzeuge)".format(self.name)
-    
-    @staticmethod
-    def get_table_headings():
-        return [
-            TableHeading("Icon", "icon", TableFieldType.IMAGE),
-            TableHeading("Name", "name", TableFieldType.TEXT),
-            TableHeading("Beschreibung", "beschreibung", TableFieldType.TEXT),
-            TableHeading("Ab Stufe", "ab_stufe", TableFieldType.NUMBER),
-            TableHeading("Schnelligkeit", "schnelligkeit", TableFieldType.NUMBER),
-            TableHeading("Rüstung", "rüstung", TableFieldType.NUMBER),
-            TableHeading("Erfolge", "erfolge", TableFieldType.NUMBER),
-            TableHeading("Günstigster Preis", "billigster", TableFieldType.PRICE),
-            TableHeading("Weiteres", "weiteres", TableFieldType.TEXT),
-            TableHeading("Preis * Stufe?", "stufenabhängig", TableFieldType.BOOLEAN)
-        ]
-    
-    @classmethod
-    def get_all_serialized(cls, url_prefix="shop:buy_fahrzeug"):
-        return super().get_all_serialized(url_prefix)
-
 
 class Einbauten(BaseShop):
     class Meta:
@@ -716,26 +391,6 @@ class Einbauten(BaseShop):
     manifestverlust = models.CharField(max_length=20, null=True, blank=True)
     kategorie = models.CharField(choices=enums.einbauten_enum, max_length=2, default=enums.einbauten_enum[0][0])
     firmen = models.ManyToManyField('Firma', through='FirmaEinbauten', blank=True)
-
-    def __str__(self):
-        return "{} (Einbauten)".format(self.name)
-
-    @staticmethod
-    def get_table_headings():
-        return [
-            TableHeading("Icon", "icon", TableFieldType.IMAGE),
-            TableHeading("Name", "name", TableFieldType.TEXT),
-            TableHeading("Beschreibung", "beschreibung", TableFieldType.TEXT),
-            TableHeading("Ab Stufe", "ab_stufe", TableFieldType.NUMBER),
-            TableHeading("Manifestverlust", "manifestverlust", TableFieldType.TEXT),
-            TableHeading("Günstigster Preis", "billigster", TableFieldType.PRICE),
-            TableHeading("Weiteres", "weiteres", TableFieldType.TEXT),
-            TableHeading("Preis * Stufe?", "stufenabhängig", TableFieldType.BOOLEAN)
-        ]
-    
-    @classmethod
-    def get_all_serialized(cls, url_prefix="shop:buy_einbauten"):
-        return super().get_all_serialized(url_prefix)
 
 
 class Zauber(BaseShop):
@@ -754,30 +409,6 @@ class Zauber(BaseShop):
 
     firmen = models.ManyToManyField('Firma', through='FirmaZauber', blank=True)
 
-    def __str__(self):
-        return "{} (Zauber)".format(self.name)
-
-    @staticmethod
-    def get_table_headings():
-        return [
-            TableHeading("Icon", "icon", TableFieldType.IMAGE),
-            TableHeading("Name", "name", TableFieldType.TEXT),
-            TableHeading("Beschreibung", "beschreibung", TableFieldType.TEXT),
-            TableHeading("Ab Stufe", "ab_stufe", TableFieldType.NUMBER),
-            TableHeading("Schaden", "schaden", TableFieldType.TEXT),
-            TableHeading("Astralschaden", "astralschaden", TableFieldType.TEXT),
-            TableHeading("Manaverbrauch", "manaverbrauch", TableFieldType.TEXT),
-            TableHeading("Flächenwirkung", "flächenzauber", TableFieldType.BOOLEAN),
-            TableHeading("Kategorie", "kategorie", TableFieldType.TEXT),
-            TableHeading("Günstigster Preis", "billigster", TableFieldType.PRICE),
-            TableHeading("Weiteres", "weiteres", TableFieldType.TEXT),
-            TableHeading("Preis * Stufe?", "stufenabhängig", TableFieldType.BOOLEAN)
-        ]
-    
-    @classmethod
-    def get_all_serialized(cls, url_prefix="shop:buy_zauber"):
-        return super().get_all_serialized(url_prefix)
-
 
 class VergessenerZauber(BaseShop):
     class Meta:
@@ -794,29 +425,6 @@ class VergessenerZauber(BaseShop):
 
     firmen = models.ManyToManyField('Firma', through='FirmaVergessenerZauber', blank=True)
 
-    def __str__(self):
-        return "{} (vergessener Zauber)".format(self.name)
-
-    @staticmethod
-    def get_table_headings():
-        return [
-            TableHeading("Icon", "icon", TableFieldType.IMAGE),
-            TableHeading("Name", "name", TableFieldType.TEXT),
-            TableHeading("Beschreibung", "beschreibung", TableFieldType.TEXT),
-            TableHeading("Ab Stufe", "ab_stufe", TableFieldType.NUMBER),
-            TableHeading("Schaden", "schaden", TableFieldType.TEXT),
-            TableHeading("Astralschaden", "astralschaden", TableFieldType.TEXT),
-            TableHeading("Manaverbrauch", "manaverbrauch", TableFieldType.TEXT),
-            TableHeading("Flächenwirkung", "flächenzauber", TableFieldType.BOOLEAN),
-            TableHeading("Günstigster Preis", "billigster", TableFieldType.PRICE),
-            TableHeading("Weiteres", "weiteres", TableFieldType.TEXT),
-            TableHeading("Preis * Stufe?", "stufenabhängig", TableFieldType.BOOLEAN)
-        ]
-    
-    @classmethod
-    def get_all_serialized(cls, url_prefix="shop:buy_vergessener_zauber"):
-        return super().get_all_serialized(url_prefix)
-
 
 class Alchemie(BaseShop):
     class Meta:
@@ -827,13 +435,6 @@ class Alchemie(BaseShop):
 
     kategorie = models.CharField(choices=enums.alchemie_enum, max_length=2, default=enums.alchemie_enum[0][0])
     firmen = models.ManyToManyField('Firma', through='FirmaAlchemie', blank=True)
-
-    def __str__(self):
-        return "{} (Alchemie)".format(self.name)
-    
-    @classmethod
-    def get_all_serialized(cls, url_prefix="shop:buy_alchemie"):
-        return super().get_all_serialized(url_prefix)
 
 
 class Tinker(BaseShop):
@@ -849,8 +450,6 @@ class Tinker(BaseShop):
 
     minecraft_mod_id = models.CharField(max_length=512, null=True, blank=True)
 
-    def __str__(self):
-        return "{} (für Selbstständige)".format(self.name)
 
     @staticmethod
     def getIdOdMod():
@@ -862,18 +461,6 @@ class Tinker(BaseShop):
     def toDict(self):
         return {"id": self.id, "name": self.name, "icon_url": self.getIconUrl()}
 
-    @staticmethod
-    def get_table_headings():
-        return [
-            TableHeading("Icon", "icon", TableFieldType.IMAGE),
-            TableHeading("Name", "name", TableFieldType.TEXT),
-            TableHeading("Beschreibung", "beschreibung", TableFieldType.TEXT),
-            TableHeading("Ab Stufe", "ab_stufe", TableFieldType.NUMBER),
-            TableHeading("Werte", "werte", TableFieldType.TEXT),
-            TableHeading("Weiteres", "weiteres", TableFieldType.TEXT),
-            TableHeading("Preis * Stufe?", "stufenabhängig", TableFieldType.BOOLEAN)
-        ]
-
 
 class Begleiter(BaseShop):
     class Meta:
@@ -883,10 +470,3 @@ class Begleiter(BaseShop):
         ordering = ['name']
 
     firmen = models.ManyToManyField('Firma', through='FirmaBegleiter', blank=True)
-
-    def __str__(self):
-        return "{} (Begleiter)".format(self.name)
-    
-    @classmethod
-    def get_all_serialized(cls, url_prefix="shop:buy_begleiter"):
-        return super().get_all_serialized(url_prefix)
