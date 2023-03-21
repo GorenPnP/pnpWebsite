@@ -41,13 +41,27 @@ model_list = [
     Tinker,
     Begleiter,
 ]
+def render_number(num: int) -> str:
+    triples = []
+    while num:
+
+        if num >= 1000:
+            triples.insert(0, format(num % 1000, '03d'))
+        else:
+            triples.insert(0, str(num % 1000))
+
+        num = math.floor(num / 1000)
+
+    return ".".join(triples)
+    
+
 class FullShopTableView(LoginRequiredMixin, VerifiedAccountMixin, ExportMixin, SingleTableMixin, TemplateView):
 
     class Table(tables.Table):
         class Meta:
             attrs= {"class": "table table-dark table-striped table-hover"}
 
-        icon = tables.Column()
+        icon = tables.Column(orderable=False)
         name = tables.Column()
         beschreibung = tables.Column()
         ab_stufe = tables.Column()
@@ -68,8 +82,11 @@ class FullShopTableView(LoginRequiredMixin, VerifiedAccountMixin, ExportMixin, S
             except:
                 return value
 
+        def render_beschreibung(self, value):
+            return format_html(value.replace("\n", "<br>"))
+
         def render_preis(self, value, record):
-            preis = "{}{}".format(value, " - {}".format(record["max_preis"]) if record["max_preis"] != value else "")
+            preis = "{}{}".format(render_number(value), " - {}".format(render_number(record["max_preis"])) if record["max_preis"] != value else "")
 
             if record["stufenabhängig"]: return f"{preis} Dr * Stufe"
             if record["model_name"] == "rituale_runen": return f"Stufe 1: {preis} Dr."
@@ -165,7 +182,7 @@ class ShopTable(tables.Table):
         return format_html(value.replace("\n", "<br>"))
 
     def render_preis(self, value, record):
-        preis = "{}{}".format(value, " - {}".format(record.max_preis) if record.max_preis != value else "")
+        preis = "{}{}".format(render_number(value), " - {}".format(render_number(record.max_preis)) if record.max_preis != value else "")
         return "{} Dr.{}".format(preis, " * Stufe" if record.stufenabhängig else "")
 
     # TODO add:

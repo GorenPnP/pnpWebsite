@@ -1,7 +1,7 @@
 {% extends 'base/main.html' %}
+{% load django_tables2 %}
+{% load i18n %}
 {% load django_bootstrap5 %}
-{% load render_table from django_tables2 %}
-{% load export_url from django_tables2 %}
 
 {% block title %}{{ view.get_topic }}{% endblock %}
 {% block extra-head %}
@@ -9,9 +9,46 @@
     {% bootstrap_javascript %}
 
     <style>
+        th a, th a:hover, th a:visited { color: var(--bs-table-color); }
+        td input[type=number] { min-width: 10ch; }
         #filter-form { max-width: 500px; margin-inline: auto; }
         .export-link { color: #97b0c9 !important; }
+
+
+        /* display sorting arrow */
+        .asc a, .desc a {
+            position: relative;
+            display: inline-block;
+            padding-right: 25px !important;
+        }
+        .asc a:before, .desc a:before {
+            position: absolute;
+
+            content: '▲';
+            line-height: 1em;
+            font-size: .8em;
+            height: 90%;
+
+            width: 20px;
+            right: 0;
+            bottom: 0;
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            rotate: 0;
+            transform-origin: center center;
+        }
+        .asc a:before { rotate: 180deg; }
     </style>
+
+    <script>
+        function reset_filter() {
+            document.querySelectorAll('.table-container tbody input').forEach(e => e.value=null);
+            document.querySelector("#filter-form").submit();
+        }
+    </script>
 {% endblock %}
 {% block absolute %}
 {% if view.get_plus_url|length %}
@@ -22,6 +59,7 @@
 
 {% endblock %}
 {% block body %}
+<!--
 <form action="" method="get" class="form mb-5 mt-5" id="filter-form">
     <div class="mb-3 form-floating">
         <input type="text" name="name__icontains" value="{{request.GET.name__icontains}}" class="form-control is-valid" placeholder="Name enthält" id="id_name__icontains">
@@ -41,8 +79,133 @@
     </div>
     <button class="btn btn-primary btn-lg" type="submit">filter</button>
 </form>
+-->
+<button class="btn btn-primary btn-lg m-2" type="submit" form="filter-form">filter</button>
+<input class="btn btn-outline-primary btn-lg m-2" type="button" form="filter-form" onclick="reset_filter()" value="reset">
 
-{% render_table table %}
+
+{% block table-wrapper %}
+<div class="table-container table-responsive">
+    {% block table %}
+        <table {% render_attrs table.attrs class="table" %}>
+            {% block table.thead %}
+            {% if table.show_header %}
+                <thead {{ table.attrs.thead.as_html }}>
+                    <tr>
+                    {% for column in table.columns %}
+                        <th {{ column.attrs.th.as_html }}>
+                            {% if column.orderable %}
+                                <a href="{% querystring table.prefixed_order_by_field=column.order_by_alias.next %}">{{ column.header }}</a>
+                            {% else %}
+                                {{ column.header }}
+                            {% endif %}
+                        </th>
+                    {% endfor %}
+                    </tr>
+                </thead>
+            {% endif %}
+            {% endblock table.thead %}
+            {% block table.tbody %}
+                <tbody {{ table.attrs.tbody.as_html }}>
+                    <tr><form action="" method="get" class="form" id="filter-form">
+                        <td></td>
+                        <td>
+                            <input type="text" name="name__icontains" value="{{request.GET.name__icontains}}" class="form-control" placeholder="enthält" id="id_name__icontains">
+                        </td>
+                        <td>
+                            <input type="text" name="beschreibung__icontains" value="{{request.GET.beschreibung__icontains}}" class="form-control" placeholder="enthält" id="id_beschreibung__icontains">
+                        </td>
+                        <td>
+                            <input type="number" name="ab_stufe__lte" step="any" value="{{request.GET.ab_stufe__lte}}" class="form-control" placeholder="bis zu" id="id_ab_stufe__lte">
+                        </td>
+                        <td>
+                            <input type="number" name="preis__lte" step="any" value="{{request.GET.preis__lte}}" class="form-control" placeholder="bis zu" id="id_preis__lte">
+                        </td>
+                        <td>
+                            <!-- <input type="number" name="preis__lte" step="any" value="{{request.GET.preis__lte}}" class="form-control" placeholder="kleiner oder gleich" id="id_preis__lte">
+                            -->
+                            </td>
+                    </form></tr>
+                {% for row in table.paginated_rows %}
+                    {% block table.tbody.row %}
+                    <tr {{ row.attrs.as_html }}>
+                        {% for column, cell in row.items %}
+                            <td {{ column.attrs.td.as_html }}>{% if column.localize == None %}{{ cell }}{% else %}{% if column.localize %}{{ cell|localize }}{% else %}{{ cell|unlocalize }}{% endif %}{% endif %}</td>
+                        {% endfor %}
+                    </tr>
+                    {% endblock table.tbody.row %}
+                {% empty %}
+                    {% if table.empty_text %}
+                    {% block table.tbody.empty_text %}
+                        <tr><td colspan="{{ table.columns|length }}">{{ table.empty_text }}</td></tr>
+                    {% endblock table.tbody.empty_text %}
+                    {% endif %}
+                {% endfor %}
+                </tbody>
+            {% endblock table.tbody %}
+            {% block table.tfoot %}
+            {% if table.has_footer %}
+                <tfoot {{ table.attrs.tfoot.as_html }}>
+                    <tr>
+                    {% for column in table.columns %}
+                        <td {{ column.attrs.tf.as_html }}>{{ column.footer }}</td>
+                    {% endfor %}
+                    </tr>
+                </tfoot>
+            {% endif %}
+            {% endblock table.tfoot %}
+        </table>
+    {% endblock table %}
+
+    {% block pagination %}
+        {% if table.page and table.paginator.num_pages > 1 %}
+        <nav aria-label="Table navigation">
+            <ul class="pagination justify-content-center">
+            {% if table.page.has_previous %}
+                {% block pagination.previous %}
+                    <li class="page-item previous">
+                        <a class="page-link" href="{% querystring table.prefixed_page_field=table.page.previous_page_number %}">
+                            <span aria-hidden="true">&laquo;</span>
+                            {% trans 'previous' %}
+                        </a>
+                    </li>
+                {% endblock pagination.previous %}
+            {% endif %}
+            {% if table.page.has_previous or table.page.has_next %}
+                {% block pagination.range %}
+                    {% for p in table.page|table_page_range:table.paginator %}
+                        <li class="page-item{% if p == table.page.number %} active{% endif %}">
+                            {% if p == '...' %}
+                                <a class="page-link" href="#">{{ p }}</a>
+                            {% else %}
+                                <a class="page-link" href="{% querystring table.prefixed_page_field=p %}">
+                                    {{ p }}
+                                </a>
+                            {% endif %}
+                        </li>
+                    {% endfor %}
+                {% endblock pagination.range %}
+            {% endif %}
+
+            {% if table.page.has_next %}
+                {% block pagination.next %}
+                <li class="page-item next">
+                    <a class="page-link" href="{% querystring table.prefixed_page_field=table.page.next_page_number %}">
+                        {% trans 'next' %}
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+                {% endblock pagination.next %}
+            {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+    {% endblock pagination %}
+</div>
+{% endblock table-wrapper %}
+
+
+
 
 {% if view.export_formats|length %}
 <ul>

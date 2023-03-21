@@ -9,8 +9,38 @@
     {% bootstrap_javascript %}
 
     <style>
+        th a, th a:hover, th a:visited { color: var(--bs-table-color); }
+        td input[type=number] { min-width: 10ch; }
         #filter-form { max-width: 500px; margin-inline: auto; }
         .export-link { color: #97b0c9 !important; }
+
+
+        /* display sorting arrow */
+        .asc a, .desc a {
+            position: relative;
+            display: inline-block;
+            padding-right: 25px !important;
+        }
+        .asc a:before, .desc a:before {
+            position: absolute;
+
+            content: '▲';
+            line-height: 1em;
+            font-size: .8em;
+            height: 90%;
+
+            width: 20px;
+            right: 0;
+            bottom: 0;
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            rotate: 0;
+            transform-origin: center center;
+        }
+        .asc a:before { rotate: 180deg; }
     </style>
 {% endblock %}
 {% block absolute %}
