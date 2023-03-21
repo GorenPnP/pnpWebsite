@@ -46,7 +46,7 @@ class Wesenkraft(TableSerializableModel):
     min_rang = models.PositiveIntegerField(default=0)
 
     wesen = models.CharField(max_length=1, choices=enums.enum_wesenkr, null=False, default=enums.enum_wesenkr[0][0])
-    zusatz_wesenspezifisch = models.ManyToManyField("Spezies", blank=True)
+    zusatz_gfsspezifisch = models.ManyToManyField("Gfs", blank=True, related_name="zusatz_gfsspezifisch")
     zusatz_manifest = models.DecimalField('zusatz_manifest', max_digits=4, decimal_places=2,
                                           validators=[MaxValueValidator(10), MinValueValidator(0)], null=True, blank=True)
 
@@ -58,6 +58,7 @@ class Wesenkraft(TableSerializableModel):
         return [
             TableHeading("Titel", "titel", TableFieldType.TEXT),
             TableHeading("Probe", "probe", TableFieldType.TEXT),
+            TableHeading("Manaverbrauch", "manaverbrauch", TableFieldType.TEXT),
             TableHeading("Wirkung", "wirkung", TableFieldType.TEXT),
             TableHeading("Wesen", "wesen", TableFieldType.TEXT),
         ]
@@ -72,7 +73,7 @@ class Wesenkraft(TableSerializableModel):
             wesen = wesenkraft.get_wesen_display()
 
             if wesenkraft.wesen == "w":
-                wesen = ", ".join([z.titel for z in wesenkraft.zusatz_wesenspezifisch.all()])
+                wesen = ", ".join([z.titel for z in wesenkraft.zusatz_gfsspezifisch.all()])
                 
         
             elif wesenkraft.wesen == "f":

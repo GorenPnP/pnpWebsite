@@ -4,7 +4,7 @@ from .models import *
 
 
 class WesenkraftZusatzWesenspInLine(admin.TabularInline):
-    model = Wesenkraft.zusatz_wesenspezifisch.through
+    model = Wesenkraft.zusatz_gfsspezifisch.through
     extra = 1
 
 
