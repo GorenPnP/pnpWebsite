@@ -263,7 +263,7 @@ class WaffenWerkzeugeTableView(ShopTableView):
     class Filter(ShopFilter):
         class Meta:
             model = Waffen_Werkzeuge
-            fields = ShopFilter._meta.fields | {
+            fields = {**ShopFilter._meta.fields,
                 "erfolge": ["icontains"],
                 "bs": ["icontains"],
                 "zs": ["icontains"],
@@ -285,7 +285,7 @@ class MagazinTableView(ShopTableView):
     class Filter(ShopFilter):
         class Meta:
             model = Magazin
-            fields = ShopFilter._meta.fields | {"schuss": ["exact"]}
+            fields = {**ShopFilter._meta.fields, "schuss": ["exact"]}
 
     class Table(ShopTable):
         class Meta:
@@ -302,7 +302,7 @@ class PfeilBolzenTableView(ShopTableView):
     class Filter(ShopFilter):
         class Meta:
             model = Pfeil_Bolzen
-            fields = ShopFilter._meta.fields | {"bs": ["icontains"], "zs": ["icontains"]}
+            fields = {**ShopFilter._meta.fields, "bs": ["icontains"], "zs": ["icontains"]}
 
     class Table(ShopTable):
         class Meta:
@@ -319,7 +319,7 @@ class SchusswaffenTableView(ShopTableView):
     class Filter(ShopFilter):
         class Meta:
             model = Schusswaffen
-            fields = ShopFilter._meta.fields | {
+            fields = {**ShopFilter._meta.fields,
                 "erfolge": ["exact"],
                 "bs": ["icontains"],
                 "zs": ["icontains"],
@@ -442,7 +442,7 @@ class RüstungenTableView(ShopTableView):
     class Filter(ShopFilter):
         class Meta:
             model = Rüstungen
-            fields = ShopFilter._meta.fields | {
+            fields = {**ShopFilter._meta.fields,
                 "schutz": ["gte"],
                 "stärke": ["gte"],
                 "haltbarkeit": ["gte"]
@@ -480,7 +480,7 @@ class FahrzeugTableView(ShopTableView):
     class Filter(ShopFilter):
         class Meta:
             model = Fahrzeug
-            fields = ShopFilter._meta.fields | {
+            fields = {**ShopFilter._meta.fields,
                 "schnelligkeit": ["gte"],
                 "rüstung": ["gte"],
                 "erfolge": ["lte"],
@@ -501,7 +501,7 @@ class EinbautenTableView(ShopTableView):
     class Filter(ShopFilter):
         class Meta:
             model = Einbauten
-            fields = ShopFilter._meta.fields | {"manifestverlust": ["icontains"]}
+            fields = {**ShopFilter._meta.fields, "manifestverlust": ["icontains"]}
 
     class Table(ShopTable):
         class Meta:
@@ -518,7 +518,7 @@ class ZauberTableView(ShopTableView):
     class Filter(ShopFilter):
         class Meta:
             model = Zauber
-            fields = ShopFilter._meta.fields | {
+            fields = {**ShopFilter._meta.fields,
                 "schaden": ["icontains"],
                 "astralschaden": ["icontains"],
                 "manaverbrauch": ["icontains"]
@@ -539,7 +539,7 @@ class VergessenerZauberTableView(ShopTableView):
     class Filter(ShopFilter):
         class Meta:
             model = VergessenerZauber
-            fields = ShopFilter._meta.fields | {
+            fields = {**ShopFilter._meta.fields,
                 "schaden": ["icontains"],
                 "astralschaden": ["icontains"],
                 "manaverbrauch": ["icontains"]
@@ -577,7 +577,7 @@ class TinkerTableView(ShopTableView):
     class Filter(ShopFilter):
         class Meta:
             model = Tinker
-            fields = ShopFilter._meta.fields | {"werte": ["icontains"] }
+            fields = {**ShopFilter._meta.fields, "werte": ["icontains"] }
 
     class Table(ShopTable):
         class Meta:
