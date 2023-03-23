@@ -1,48 +1,8 @@
 {% extends 'base/main.html' %}
-{% load django_bootstrap5 %}
-{% load render_table from django_tables2 %}
+{% load django_bootstrap5 static %}
 {% load export_url from django_tables2 %}
 
 {% block title %}{{ view.get_topic }}{% endblock %}
-{% block extra-head %}
-    {% bootstrap_css %}
-    {% bootstrap_javascript %}
-
-    <style>
-        th a, th a:hover, th a:visited { color: var(--bs-table-color); }
-        td input[type=number] { min-width: 10ch; }
-        #filter-form { max-width: 500px; margin-inline: auto; }
-        .export-link { color: #97b0c9 !important; }
-
-
-        /* display sorting arrow */
-        .asc a, .desc a {
-            position: relative;
-            display: inline-block;
-            padding-right: 25px !important;
-        }
-        .asc a:before, .desc a:before {
-            position: absolute;
-
-            content: '▲';
-            line-height: 1em;
-            font-size: .8em;
-            height: 90%;
-
-            width: 20px;
-            right: 0;
-            bottom: 0;
-
-            display: flex;
-            justify-content: center;
-            align-items: center;
-
-            rotate: 0;
-            transform-origin: center center;
-        }
-        .asc a:before { rotate: 180deg; }
-    </style>
-{% endblock %}
 {% block absolute %}
 {% if view.get_plus_url|length %}
     {% include 'base/header.html' with topic=view.get_topic plus_url=view.get_plus_url %}
@@ -53,14 +13,7 @@
 {% endblock %}
 {% block body %}
 
-{% if view.filterset_class %}
-    <form action="" method="get" class="form mb-5 mt-5" id="filter-form">
-        {% bootstrap_form filter.form layout='floating' %}
-        {% bootstrap_button 'filter' button_type="submit" button_class="btn-primary btn-lg" %}
-        {% bootstrap_form_errors filter.form %}
-    </form>
-{% endif %}
-{% render_table table %}
+{% include 'base/table_template.html' with view=view table=table filter=filter filter_offset=filter_offset|default:0 %}
 
 {% if view.export_formats|length %}
 <ul>
