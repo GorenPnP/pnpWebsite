@@ -10,7 +10,7 @@
 <link rel="stylesheet" href="{% static 'base/css/dynamic_table.css' %}">
 <script src="{% static 'base/js/dynamic_table.js' %}"></script>
 
-    {% if view.filterset_class %}
+    {% if view.filterset_class or view.filterset_fields %}
         {% bootstrap_form_errors filter.form %}
         <button class="btn btn-primary btn-lg m-2" type="submit" form="filter-form">filter</button>
         <input class="btn btn-outline-primary btn-lg m-2" type="button" form="filter-form" onclick="reset_filter()" value="reset">
@@ -38,6 +38,8 @@
                 {% endblock table.thead %}
                 {% block table.tbody %}
                     <tbody {{ table.attrs.tbody.as_html }}>
+
+                        {% if view.filterset_class or view.filterset_fields %}
                         <tr><form action="" method="get" class="form" id="filter-form">
                             <!-- filter_offset empty cells left of first filter cell -->
                             {% with ''|center:filter_offset as range %}
@@ -50,6 +52,8 @@
                                 <td>{{ field }}</td>
                             {% endfor %}
                         </form></tr>
+                        {% endif %}
+
                     {% for row in table.paginated_rows %}
                         {% block table.tbody.row %}
                         <tr {{ row.attrs.as_html }}>

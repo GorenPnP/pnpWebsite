@@ -32,10 +32,12 @@ kind_enum = [("s", "Shop"),
 class Log(models.Model):
 
     class Meta:
+        verbose_name = "Log"
+        verbose_name_plural = "Logs"
         ordering = ['-timestamp']
 
     spieler = models.ForeignKey(Spieler, on_delete=models.CASCADE)
-    char = models.ForeignKey(Charakter, on_delete=models.CASCADE)
+    char = models.ForeignKey(Charakter, on_delete=models.CASCADE, verbose_name="Charakter")
     art = models.CharField(max_length=1, choices=kind_enum)
     kosten = models.TextField()
     notizen = models.TextField()

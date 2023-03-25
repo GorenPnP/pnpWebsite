@@ -6,12 +6,11 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import render, get_object_or_404
 
-from django_filters import FilterSet
-
 import django_tables2 as tables
 
-from base.abstract_views import DynamicTableView
+from base.abstract_views import DynamicTableView, GenericTable
 from character.models import *
+from ppServer.mixins import VerifiedAccountMixin
 from ppServer.decorators import verified_account
 
 
@@ -22,40 +21,36 @@ def index(request):
     return render(request, 'wiki/index.html', context)
 
 
-@login_required
-@verified_account
-def vorteile(request):
-    context = {
-        "headings": Vorteil.get_serialized_table_headings(),
-        "rows": Vorteil.get_table_rows(),
-
-        "topic": "Vorteile"
+class VorteilView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTableView):
+    model = Vorteil
+    table_fields = ["titel", "ip", "beschreibung", "wann_wählbar"]
+    filterset_fields = {
+        "titel": ["icontains"],
+        "ip": ["lte"],
+        "beschreibung": ["icontains"],
+        "wann_wählbar": ["exact"]
     }
-    return render(request, 'wiki/generic_table_view.html', context)
 
 
-@login_required
-@verified_account
-def nachteile(request):
-    context = {
-        "headings": Nachteil.get_serialized_table_headings(),
-        "rows": Nachteil.get_table_rows(),
-
-        "topic": "Nachteile"
+class NachteilView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTableView):
+    model = Nachteil
+    table_fields = ["titel", "ip", "beschreibung", "wann_wählbar"]
+    filterset_fields = {
+        "titel": ["icontains"],
+        "ip": ["gte"],
+        "beschreibung": ["icontains"],
+        "wann_wählbar": ["exact"]
     }
-    return render(request, 'wiki/generic_table_view.html', context)
 
 
-@login_required
-@verified_account
-def talente(request):
-    context = {
-        "headings": Talent.get_serialized_table_headings(),
-        "rows": Talent.get_table_rows(),
-
-        "topic": "Talente"
+class TalentView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTableView):
+    model = Talent
+    table_fields = ["titel", "tp", "beschreibung"]
+    filterset_fields = {
+        "titel": ["icontains"],
+        "tp": ["lte"],
+        "beschreibung": ["icontains"]
     }
-    return render(request, "wiki/generic_table_view.html", context)
 
 
 @login_required
@@ -76,6 +71,11 @@ def gfs(request):
 
     return render(request, 'wiki/gfs.html', {'topic': 'Gfs/Klassen', "heading": Attribut.objects.all(),
                                                "gfs": all_gfs})
+
+
+# TODO
+# class StufenplanDetailView(LoginRequiredMixin, VerifiedAccountMixin, DetailView):
+#     model = Gfs
 
 
 @login_required
@@ -139,16 +139,14 @@ def stufenplan(request, gfs_id):
     return render(request, "wiki/stufenplan.html", context=context)
 
 
-@login_required
-@verified_account
-def persönlichkeit(request):
-    context = {
-        "headings": Persönlichkeit.get_serialized_table_headings(),
-        "rows": Persönlichkeit.get_table_rows(),
-
-        "topic": "Persönlichkeiten"
+class PersönlichkeitTableView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTableView):
+    model = Persönlichkeit
+    table_fields = ["titel", "positiv", "negativ"]
+    filterset_fields = {
+        "titel": ["icontains"],
+        "positiv": ["icontains"],
+        "negativ": ["icontains"]
     }
-    return render(request, "wiki/generic_table_view.html", context)
 
 
 @login_required
@@ -234,77 +232,105 @@ def stufenplan_profession(request, profession_id):
     return render(request, "wiki/stufenplan_profession.html", context=context)
 
 
-@login_required
-@verified_account
-def spezial(request):
-    context = {
-        "headings": Spezialfertigkeit.get_serialized_table_headings(),
-        "rows": Spezialfertigkeit.get_table_rows(),
-
-        "topic": "Spezialfertigkeiten"
-    }
-    return render(request, 'wiki/generic_table_view.html', context)
-
-
-@login_required
-@verified_account
-def wissen(request):
-    context = {
-        "headings": Wissensfertigkeit.get_serialized_table_headings(),
-        "rows": Wissensfertigkeit.get_table_rows(),
-
-        "topic": "Wissensfertigkeiten"
-    }
-    return render(request, 'wiki/generic_table_view.html', context)
-
-
-@login_required
-@verified_account
-def wesenkräfte(request):
-    context = {
-        "headings": Wesenkraft.get_serialized_table_headings(),
-        "rows": Wesenkraft.get_table_rows(),
-
-        "topic": "Wesenkräfte"
-    }
-    return render(request, "wiki/generic_table_view.html", context)
-
-
-@login_required
-@verified_account
-def religion(request):
-    context = {
-        "headings": Religion.get_serialized_table_headings(),
-        "rows": Religion.get_table_rows(),
-
-        "topic": "Religionen"
-    }
-    return render(request, "wiki/generic_table_view.html", context)
-
-
-@login_required
-@verified_account
-def beruf(request):
-    context = {
-        "headings": Beruf.get_serialized_table_headings(),
-        "rows": Beruf.get_table_rows(),
-
-        "topic": "Berufe"
+class SpezialfertigkeitTableView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTableView):
+    model = Spezialfertigkeit
+    table_fields = ["titel", "attr1", "attr2", "ausgleich", "beschreibung"]
+    filterset_fields = {
+        "titel": ["icontains"],
+        "attr1": ["exact"],
+        "attr2": ["exact"],
+        "ausgleich": ["exact"],
+        "beschreibung": ["icontains"]
     }
 
-    return render(request, "wiki/generic_table_view.html", context)
 
-
-@login_required
-@verified_account
-def rang_ranking(request):
-    context = {
-        "headings": RangRankingEntry.get_serialized_table_headings(),
-        "rows": RangRankingEntry.get_table_rows(),
-
-        "topic": "Erfahrungsranking"
+class WissensfertigkeitTableView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTableView):
+    model = Wissensfertigkeit
+    table_fields = ["titel", "attr1", "attr2", "attr3", "fertigkeit", "beschreibung"]
+    filterset_fields = {
+        "titel": ["icontains"],
+        "attr1": ["exact"],
+        "attr2": ["exact"],
+        "attr3": ["exact"],
+        "fertigkeit": ["exact"],
+        "beschreibung": ["icontains"]
     }
-    return render(request, "wiki/generic_table_view.html", context)
+
+
+class WesenkraftTableView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTableView):
+    class Table(GenericTable):
+        class Meta:
+            model = Wesenkraft
+            fields = ["titel", "probe", "manaverbrauch", "wirkung", "wesen"]
+            attrs = {"class": "table table-dark table-striped table-hover"}
+
+
+        def render_wesen(self, value, record):
+            """ see: enum_wesenkr = [('a', 'alle'),
+                    ('m', 'magisch'),
+                    ('w', "wesenspezifisch"),
+                    ('f', 'manifest < ..')
+                ]
+            """
+            if record.wesen == "w": return "nur " + ", ".join([gfs.titel for gfs in record.zusatz_gfsspezifisch.all()])
+            if record.wesen == "f": return f"Manifest < {record.zusatz_manifest}"
+            return value
+
+
+    model = Wesenkraft
+    table_class = Table
+    filterset_fields = {
+        "titel": ["icontains"],
+        "probe": ["icontains"],
+        "manaverbrauch": ["icontains"],
+        "wirkung": ["icontains"],
+        "wesen": ["exact"]
+    }
+
+
+class ReligionTableView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTableView):
+    model = Religion
+    table_fields = ["titel", "beschreibung"]
+    filterset_fields = {
+        "titel": ["icontains"],
+        "beschreibung": ["icontains"]
+    }
+
+
+class BerufTableView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTableView):
+    model = Beruf
+    table_fields = ["titel", "beschreibung"]
+    filterset_fields = {
+        "titel": ["icontains"],
+        "beschreibung": ["icontains"]
+    }
+
+
+class RangRankingTableView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTableView):
+    class Table(GenericTable):
+        class Meta:
+            model = RangRankingEntry
+            fields = ["ranking", "min_rang", "survival", "power", "skills", "specials"]
+            attrs = {"class": "table table-dark table-striped table-hover"}
+
+        min_rang = tables.Column(verbose_name="Rang")
+
+        def render_min_rang(self, value, record):
+            return f"{value} - {record.max_rang}"
+
+    model = RangRankingEntry
+    topic = "Erfahrungsranking"
+    table_class = Table
+    # queryset = RangRankingEntry.objects.all().annotate(rang=F("min_rang"))
+    filterset_fields = {
+        "ranking": ["icontains"],
+        "min_rang": ["lte"],
+        "survival": ["icontains"],
+        "power": ["icontains"],
+        "skills": ["icontains"],
+        "specials": ["icontains"]
+    }
+
 
 
 def compare_dates(a, b):
@@ -390,33 +416,18 @@ def geburtstage(request):
     return render(request, "wiki/geburtstage.html", context)
 
 
-class GfsSpecialAbilityTable(tables.Table):
-    class Meta:
-        model = GfsStufenplan
-        fields = ("special_ability", "special_ability_description", "gfs", "basis__stufe")
-        order_by_field = "special_ability"
-
-        attrs= {"class": "table table-dark table-striped table-hover"}
-
-
-
-class GfsStufenplanFilter(FilterSet):
-    class Meta:
-        model = GfsStufenplan
-        fields = {
-                    "special_ability": ["icontains"],
-                    "special_ability_description": ["icontains"],
-                    "gfs": ["exact"],
-                    "basis__stufe": ["exact"]
-                }
-
-
 class GfsSpecialAbilities(LoginRequiredMixin, DynamicTableView):
-    queryset = GfsStufenplan.objects.select_related('gfs').filter(special_ability__isnull=False).exclude(special_ability="")
+    model = GfsStufenplan
+    queryset = GfsStufenplan.objects.select_related('gfs').filter(special_ability__isnull=False).exclude(special_ability="").order_by("special_ability")
 
     topic = "Gfs-spezifische Fähigkeiten"
 
-    table_class = GfsSpecialAbilityTable
-    filterset_class = GfsStufenplanFilter
+    table_fields = ("special_ability", "special_ability_description", "gfs", "basis__stufe")
+    filterset_fields = {
+        "special_ability": ["icontains"],
+        "special_ability_description": ["icontains"],
+        "gfs": ["exact"],
+        "basis__stufe": ["exact"]
+    }
 
     export_formats = ["csv", "json", "latex", "ods", "tsv", "xls", "xlsx", "yaml"]

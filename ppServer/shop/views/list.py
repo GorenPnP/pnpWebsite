@@ -2,6 +2,7 @@ from typing import Any
 
 from django.apps import apps
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.core.exceptions import ImproperlyConfigured
 from django.db.models import Max, Min, Value
 from django.db.models.query import QuerySet
 from django.urls import reverse
@@ -13,7 +14,7 @@ import django_tables2 as tables
 from django_tables2.export.views import ExportMixin
 from django_tables2.views import SingleTableMixin
 
-from base.abstract_views import DynamicTableView
+from base.abstract_views import DynamicTableView, GenericTable
 from ppServer.mixins import VerifiedAccountMixin
 
 from ..models import *
@@ -57,7 +58,7 @@ def render_number(num: int) -> str:
 
 class FullShopTableView(LoginRequiredMixin, VerifiedAccountMixin, ExportMixin, SingleTableMixin, TemplateView):
 
-    class Table(tables.Table):
+    class Table(GenericTable):
         class Meta:
             attrs= {"class": "table table-dark table-striped table-hover"}
 
@@ -164,7 +165,7 @@ class FullShopTableView(LoginRequiredMixin, VerifiedAccountMixin, ExportMixin, S
 
 ####################### abstract base ##################################
 
-class ShopTable(tables.Table):
+class ShopTable(GenericTable):
     class Meta:
         model = Item
         fields = ("icon", "name", "beschreibung", "ab_stufe", "preis")
@@ -234,6 +235,18 @@ class ShopTableView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTableView):
 
     def get_context_data(self, *args, **kwargs):
         return super().get_context_data(*args, **kwargs, filter_offset=1)
+    
+    def get_table_class(self):
+        """
+        Return the class to use for the table.
+        """
+        if self.table_class:
+            return self.table_class
+        if self.model:
+            return tables.table_factory(self.model, table=ShopTable, fields=self.table_fields)
+
+        name = type(self).__name__
+        raise ImproperlyConfigured(f"You must either specify {name}.table_class or {name}.model")
 
 
 
@@ -243,116 +256,50 @@ class ShopTableView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTableView):
 ############################### views ########################################
 
 class ItemTableView(ShopTableView):
-    class Filter(ShopFilter):
-        class Meta:
-            model = Item
-            fields = ShopFilter._meta.fields
-
-    class Table(ShopTable):
-        class Meta:
-            model = Item
-            fields = ("icon", "name", "beschreibung", "ab_stufe", "preis")
-            attrs= {"class": "table table-dark table-striped table-hover"}
-
     model = Item
-    filterset_class = Filter
-    table_class = Table
+    filterset_fields = ShopFilter._meta.fields
+    table_fields = ("icon", "name", "beschreibung", "ab_stufe", "preis")
 
 
 class WaffenWerkzeugeTableView(ShopTableView):
-    class Filter(ShopFilter):
-        class Meta:
-            model = Waffen_Werkzeuge
-            fields = {**ShopFilter._meta.fields,
-                "erfolge": ["icontains"],
-                "bs": ["icontains"],
-                "zs": ["icontains"],
-                "dk": ["lte"],
-            }
-
-    class Table(ShopTable):
-        class Meta:
-            model = Waffen_Werkzeuge
-            fields = ("icon", "name", "beschreibung", "ab_stufe", "erfolge", "bs", "zs", "dk", "preis")
-            attrs= {"class": "table table-dark table-striped table-hover"}
-
     model = Waffen_Werkzeuge
-    filterset_class = Filter
-    table_class = Table
+    filterset_fields = {**ShopFilter._meta.fields,
+        "erfolge": ["icontains"],
+        "bs": ["icontains"],
+        "zs": ["icontains"],
+        "dk": ["lte"],
+    }
+    table_fields = ("icon", "name", "beschreibung", "ab_stufe", "erfolge", "bs", "zs", "dk", "preis")
 
 
 class MagazinTableView(ShopTableView):
-    class Filter(ShopFilter):
-        class Meta:
-            model = Magazin
-            fields = {**ShopFilter._meta.fields, "schuss": ["exact"]}
-
-    class Table(ShopTable):
-        class Meta:
-            model = Magazin
-            fields = ("icon", "name", "beschreibung", "ab_stufe", "schuss", "preis")
-            attrs= {"class": "table table-dark table-striped table-hover"}
-
     model = Magazin
-    filterset_class = Filter
-    table_class = Table
+    filterset_fields = {**ShopFilter._meta.fields, "schuss": ["exact"]}
+    table_fields = ("icon", "name", "beschreibung", "ab_stufe", "schuss", "preis")
 
 
 class PfeilBolzenTableView(ShopTableView):
-    class Filter(ShopFilter):
-        class Meta:
-            model = Pfeil_Bolzen
-            fields = {**ShopFilter._meta.fields, "bs": ["icontains"], "zs": ["icontains"]}
-
-    class Table(ShopTable):
-        class Meta:
-            model = Pfeil_Bolzen
-            fields = ("icon", "name", "beschreibung", "ab_stufe", "bs", "zs", "preis")
-            attrs= {"class": "table table-dark table-striped table-hover"}
-
     model = Pfeil_Bolzen
-    filterset_class = Filter
-    table_class = Table
+    filterset_fields = {**ShopFilter._meta.fields, "bs": ["icontains"], "zs": ["icontains"]}
+    table_fields = ("icon", "name", "beschreibung", "ab_stufe", "bs", "zs", "preis")
 
 
 class SchusswaffenTableView(ShopTableView):
-    class Filter(ShopFilter):
-        class Meta:
-            model = Schusswaffen
-            fields = {**ShopFilter._meta.fields,
+    model = Schusswaffen
+    filterset_fields = {**ShopFilter._meta.fields,
                 "erfolge": ["exact"],
                 "bs": ["icontains"],
                 "zs": ["icontains"],
                 "dk": ["exact"],
                 "präzision": ["exact"]
             }
-
-    class Table(ShopTable):
-        class Meta:
-            model = Schusswaffen
-            fields = ("icon", "name", "beschreibung", "ab_stufe", "erfolge", "bs", "zs", "dk", "präzision", "preis")
-            attrs= {"class": "table table-dark table-striped table-hover"}
-
-    model = Schusswaffen
-    filterset_class = Filter
-    table_class = Table
+    table_fields = ("icon", "name", "beschreibung", "ab_stufe", "erfolge", "bs", "zs", "dk", "präzision", "preis")
 
 
 class MagischeAusrüstungTableView(ShopTableView):
-    class Filter(ShopFilter):
-        class Meta:
-            model = Magische_Ausrüstung
-            fields = ShopFilter._meta.fields
-
-    class Table(ShopTable):
-        class Meta:
-            model = Magische_Ausrüstung
-            fields = ("icon", "name", "beschreibung", "ab_stufe", "preis")
-            attrs= {"class": "table table-dark table-striped table-hover"}
-
     model = Magische_Ausrüstung
-    filterset_class = Filter
-    table_class = Table
+    filterset_fields = ShopFilter._meta.fields
+    table_fields = ("icon", "name", "beschreibung", "ab_stufe", "preis")
 
 
 class RitualeRunenTableView(ShopTableView):
@@ -396,7 +343,7 @@ class RitualeRunenTableView(ShopTableView):
                 stufe=Min('firma{}__{}'.format(self._meta.model._meta.model_name, name)),
             ).filter(stufe__lte=value)
 
-    class Table(tables.Table):
+    class Table(GenericTable):
         class Meta:
             model = Rituale_Runen
             fields = ("icon", "name", "beschreibung", "ab_stufe", "stufe_1", "stufe_2", "stufe_3", "stufe_4", "stufe_5")
@@ -437,148 +384,65 @@ class RitualeRunenTableView(ShopTableView):
         )
 
 
-
 class RüstungenTableView(ShopTableView):
-    class Filter(ShopFilter):
-        class Meta:
-            model = Rüstungen
-            fields = {**ShopFilter._meta.fields,
-                "schutz": ["gte"],
-                "stärke": ["gte"],
-                "haltbarkeit": ["gte"]
-            }
-
-    class Table(ShopTable):
-        class Meta:
-            model = Rüstungen
-            fields = ("icon", "name", "beschreibung", "ab_stufe", "schutz", "stärke", "haltbarkeit",  "preis")
-            attrs= {"class": "table table-dark table-striped table-hover"}
-
     model = Rüstungen
-    filterset_class = Filter
-    table_class = Table
+    filterset_fields = {**ShopFilter._meta.fields,
+        "schutz": ["gte"],
+        "stärke": ["gte"],
+        "haltbarkeit": ["gte"]
+    }
+    table_fields = ("icon", "name", "beschreibung", "ab_stufe", "schutz", "stärke", "haltbarkeit",  "preis")
 
 
 class AusrüstungTechnikTableView(ShopTableView):
-    class Filter(ShopFilter):
-        class Meta:
-            model = Ausrüstung_Technik
-            fields = ShopFilter._meta.fields
-
-    class Table(ShopTable):
-        class Meta:
-            model = Ausrüstung_Technik
-            fields = ("icon", "name", "beschreibung", "ab_stufe", "preis")
-            attrs= {"class": "table table-dark table-striped table-hover"}
-
     model = Ausrüstung_Technik
-    filterset_class = Filter
-    table_class = Table
+    filterset_fields = ShopFilter._meta.fields
+    table_fields = ("icon", "name", "beschreibung", "ab_stufe", "preis")
 
 
 class FahrzeugTableView(ShopTableView):
-    class Filter(ShopFilter):
-        class Meta:
-            model = Fahrzeug
-            fields = {**ShopFilter._meta.fields,
-                "schnelligkeit": ["gte"],
-                "rüstung": ["gte"],
-                "erfolge": ["lte"],
-            }
-
-    class Table(ShopTable):
-        class Meta:
-            model = Fahrzeug
-            fields = ("icon", "name", "beschreibung", "ab_stufe", "schnelligkeit", "rüstung", "erfolge", "preis")
-            attrs= {"class": "table table-dark table-striped table-hover"}
-
     model = Fahrzeug
-    filterset_class = Filter
-    table_class = Table
+    filterset_fields = {**ShopFilter._meta.fields,
+        "schnelligkeit": ["gte"],
+        "rüstung": ["gte"],
+        "erfolge": ["lte"],
+    }
+    table_fields = ("icon", "name", "beschreibung", "ab_stufe", "schnelligkeit", "rüstung", "erfolge", "preis")
 
 
 class EinbautenTableView(ShopTableView):
-    class Filter(ShopFilter):
-        class Meta:
-            model = Einbauten
-            fields = {**ShopFilter._meta.fields, "manifestverlust": ["icontains"]}
-
-    class Table(ShopTable):
-        class Meta:
-            model = Einbauten
-            fields = ("icon", "name", "beschreibung", "ab_stufe", "manifestverlust", "preis")
-            attrs= {"class": "table table-dark table-striped table-hover"}
-
     model = Einbauten
-    filterset_class = Filter
-    table_class = Table
+    filterset_fields = {**ShopFilter._meta.fields, "manifestverlust": ["icontains"]}
+    table_fields = ("icon", "name", "beschreibung", "ab_stufe", "manifestverlust", "preis")
 
 
 class ZauberTableView(ShopTableView):
-    class Filter(ShopFilter):
-        class Meta:
-            model = Zauber
-            fields = {**ShopFilter._meta.fields,
-                "schaden": ["icontains"],
-                "astralschaden": ["icontains"],
-                "manaverbrauch": ["icontains"]
-            }
-
-    class Table(ShopTable):
-        class Meta:
-            model = Zauber
-            fields = ("icon", "name", "beschreibung", "ab_stufe", "schaden", "astralschaden", "manaverbrauch", "preis")
-            attrs= {"class": "table table-dark table-striped table-hover"}
-
     model = Zauber
-    filterset_class = Filter
-    table_class = Table
+    filterset_fields = {**ShopFilter._meta.fields,
+        "schaden": ["icontains"],
+        "astralschaden": ["icontains"],
+        "manaverbrauch": ["icontains"]
+    }
+    table_fields = ("icon", "name", "beschreibung", "ab_stufe", "schaden", "astralschaden", "manaverbrauch", "preis")
 
 
 class VergessenerZauberTableView(ShopTableView):
-    class Filter(ShopFilter):
-        class Meta:
-            model = VergessenerZauber
-            fields = {**ShopFilter._meta.fields,
-                "schaden": ["icontains"],
-                "astralschaden": ["icontains"],
-                "manaverbrauch": ["icontains"]
-            }
-
-    class Table(ShopTable):
-        class Meta:
-            model = VergessenerZauber
-            fields = ("icon", "name", "beschreibung", "ab_stufe", "schaden", "astralschaden", "manaverbrauch", "preis")
-            attrs= {"class": "table table-dark table-striped table-hover"}
-
     model = VergessenerZauber
-    filterset_class = Filter
-    table_class = Table
+    filterset_fields = {**ShopFilter._meta.fields,
+        "schaden": ["icontains"],
+        "astralschaden": ["icontains"],
+        "manaverbrauch": ["icontains"]
+    }
+    table_fields = ("icon", "name", "beschreibung", "ab_stufe", "schaden", "astralschaden", "manaverbrauch", "preis")
 
 
 class AlchemieTableView(ShopTableView):
-    class Filter(ShopFilter):
-        class Meta:
-            model = Alchemie
-            fields = ShopFilter._meta.fields
-
-    class Table(ShopTable):
-        class Meta:
-            model = Alchemie
-            fields = ("icon", "name", "beschreibung", "ab_stufe", "preis")
-            attrs= {"class": "table table-dark table-striped table-hover"}
-
     model = Alchemie
-    filterset_class = Filter
-    table_class = Table
+    filterset_fields = ShopFilter._meta.fields
+    table_fields = ("icon", "name", "beschreibung", "ab_stufe", "preis")
 
 
 class TinkerTableView(ShopTableView):
-    class Filter(ShopFilter):
-        class Meta:
-            model = Tinker
-            fields = {**ShopFilter._meta.fields, "werte": ["icontains"] }
-
     class Table(ShopTable):
         class Meta:
             model = Tinker
@@ -589,22 +453,11 @@ class TinkerTableView(ShopTableView):
             return value
 
     model = Tinker
-    filterset_class = Filter
+    filterset_fields = {**ShopFilter._meta.fields, "werte": ["icontains"]}
     table_class = Table
 
 
 class BegleiterTableView(ShopTableView):
-    class Filter(ShopFilter):
-        class Meta:
-            model = Begleiter
-            fields = ShopFilter._meta.fields
-
-    class Table(ShopTable):
-        class Meta:
-            model = Begleiter
-            fields = ("icon", "name", "beschreibung", "ab_stufe", "preis")
-            attrs= {"class": "table table-dark table-striped table-hover"}
-
     model = Begleiter
-    filterset_class = Filter
-    table_class = Table
+    filterset_fields = ShopFilter._meta.fields
+    table_fields = ("icon", "name", "beschreibung", "ab_stufe", "preis")

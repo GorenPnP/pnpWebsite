@@ -6,25 +6,25 @@ app_name = 'wiki'
 
 urlpatterns = [
     path('', views.index, name='index'),
-    path('vorteil', views.vorteile, name='vorteile'),
-    path('nachteil', views.nachteile, name='nachteile'),
-    path('talente', views.talente, name='talente'),
+    path('vorteil', views.VorteilView.as_view(), name='vorteile'),
+    path('nachteil', views.NachteilView.as_view(), name='nachteile'),
+    path('talente', views.TalentView.as_view(), name='talente'),
 
 
     path('gfs', views.gfs, name='gfs'),
     path('gfs/special-abilities', views.GfsSpecialAbilities.as_view(), name='gfs-special-abilities'),
     path('gfs/<int:gfs_id>', views.stufenplan, name='stufenplan'),
-    path('persönlichkeiten', views.persönlichkeit, name='persönlichkeiten'),
+    path('persönlichkeiten', views.PersönlichkeitTableView.as_view(), name='persönlichkeiten'),
     path('profession', views.profession, name='profession'),
     path('profession/<int:profession_id>', views.stufenplan_profession, name='stufenplan_profession'),
 
-    path('spezial', views.spezial, name='spezial'),
-    path('wissen', views.wissen, name='wissen'),
-    path('wesenkraft', views.wesenkräfte, name='wesenkraft'),
+    path('spezial', views.SpezialfertigkeitTableView.as_view(), name='spezial'),
+    path('wissen', views.WissensfertigkeitTableView.as_view(), name='wissen'),
+    path('wesenkraft', views.WesenkraftTableView.as_view(), name='wesenkraft'),
 
-    path('berufe', views.beruf, name='berufe'),
-    path('religionen', views.religion, name='religionen'),
+    path('berufe', views.BerufTableView.as_view(), name='berufe'),
+    path('religionen', views.ReligionTableView.as_view(), name='religionen'),
 
-    path('rangRanking', views.rang_ranking, name='rangRanking'),
+    path('rangRanking', views.RangRankingTableView.as_view(), name='rangRanking'),
     path('geburtstage', views.geburtstage, name='geburtstage'),
 ]

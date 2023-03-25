@@ -1,17 +1,10 @@
-import json
-
 from django.contrib.admin.models import LogEntry
-from django.contrib.auth.decorators import login_required
-from django.core.paginator import Paginator
-from django.http.response import JsonResponse
-from django.shortcuts import redirect, render
+from django.contrib.auth.mixins import LoginRequiredMixin
 
-from functools import cmp_to_key
+from base.abstract_views import DynamicTableView, GenericTable
+from ppServer.mixins import SpielleiterOnlyMixin
 
-from base.models import TableFieldType, TableHeading
-from ppServer.decorators import spielleiter_only
-
-from .models import Log, kind_enum
+from .models import Log
 
 
 def logShop(spieler, char, items):
@@ -89,115 +82,33 @@ def logAlleMAverloren(spieler, char, rel_MA, spruchz_fp, kampfm_fp, antim_fp):
     Log.objects.create(art="v", spieler=spieler, char=char, notizen=notizen, kosten="{} CP".format(kosten))
 
 
-def sort_by_name(a, b):
-    if a.name < b.name: return -1
-    if a.name > b.name: return 1
-    return 0
 
-
-@login_required
-@spielleiter_only()
-def userLog(request):
-
-    if not request.user.groups.filter(name="spielleiter").exists():
-        return redirect("base:index")
-
-    if request.method == "GET":
-
-        logs = [{"item": l, "kategorie": l.get_art_display()} for l in Log.objects.all().order_by("-timestamp", "spieler", "char", "art")]
-
-        # get used filter categories
-        char = []
-        spieler = []
-        for l in logs:
-            char.append(l["item"].char)
-            spieler.append(l["item"].spieler)
-
-        # make those entries unique
-        spieler = sorted(set(spieler), key=cmp_to_key(sort_by_name))
-        char = sorted(set(char), key=cmp_to_key(sort_by_name))
-
-        # collect and render
-        context = {
-            "filter": {"char": char, "spieler": spieler, "kategorie": kind_enum},
-            "logs": logs
-        }
-        return render(request, "log/userLog.html", context)
-
-
-    if request.method == "POST":
-        json_dict = json.loads(request.body.decode("utf-8"))
-
-        try:
-            char_filter = json_dict["char"]
-            spieler_filter = json_dict["spieler"]
-            kategorie_filter = json_dict["kategorie"]
-
-            page_number = json_dict['page_number']
-        except:
-            return JsonResponse({"message": "Not all filters were provided or pagenumber is missing"}, status=418)
-
-        logs = Log.objects
-
-        if len(char_filter): logs = logs.filter(char_id__in=char_filter)
-        if len(spieler_filter): logs = logs.filter(spieler_id__in=spieler_filter)
-        if len(kategorie_filter): logs = logs.filter(art__in=kategorie_filter)
-
-        if not len(char_filter) + len(spieler_filter) + len(kategorie_filter): logs = logs.all()
-
-        log_paginator = Paginator(logs, 20)
-        page = log_paginator.get_page(page_number)
-        paging = {
-            #'count': page.count(),
-            'end_index': page.end_index(),
-            'has_next': page.has_next(),
-            'has_other_pages': page.has_other_pages(),
-            'has_previous': page.has_previous(),
-            #'index': page.index(),
-            'next_page_number': page.next_page_number() if page.has_next() else None,
-            'number': page.number,
-            #'paginator': page.paginator,
-            'previous_page_number': page.previous_page_number() if page.has_previous() else None,
-            'start_index': page.start_index(),
-            'num_pages': page.paginator.num_pages
-        }
-        logs = [{"charname": l.char.name,
-                 "spielername": l.spieler.name,
-                 "kategorie": l.get_art_display(),
-                 "notizen": l.notizen,
-                 "kosten": l.kosten,
-                 "timestamp": l.timestamp} for l in page.object_list]
-
-
-        return JsonResponse({"logs": logs, "paging": paging})
-
-
-@login_required
-@spielleiter_only()
-def adminLog(request):
-
-    headings = [
-        TableHeading("Zeitpunkt", "action_time", TableFieldType.DATE_TIME).serialize(),
-        TableHeading("User", "user", TableFieldType.TEXT).serialize(),
-        TableHeading("Charakter", "object", TableFieldType.TEXT).serialize(),
-        TableHeading("Beschreibung", "change_message", TableFieldType.TEXT).serialize(),
-    ]
-
-    rows = []
-    query = LogEntry.objects.exclude(user__username="spielleiter").filter(content_type__app_label="character", content_type__model="charakter")
-    for e in query:
-        rows.append({
-            "pk": e.id,
-            "user": e.user.username,
-            "action_time": e.action_time,
-            "object": e.object_repr,
-            "change_message": e.get_change_message()
-        })
-
-    context = {
-        "topic": "Changes in Admin area",
-        "headings": headings,
-        "rows": rows
+class UserLogView(LoginRequiredMixin, SpielleiterOnlyMixin, DynamicTableView):
+    model = Log
+    filterset_fields = {
+        "char": ["exact"],
+        "spieler": ["exact"],
+        "art": ["icontains"],
+        "notizen": ["icontains"],
+        "kosten": ["icontains"],
+        "timestamp": ["lte"],
     }
+    table_fields = ["char", "spieler", "art", "notizen", "kosten", "timestamp"]
 
-    return render(request, "log/adminLog.html", context)
+
+class AdminLogView(LoginRequiredMixin, SpielleiterOnlyMixin, DynamicTableView):
+    class Table(GenericTable):
+        class Meta:
+            model = LogEntry
+            fields = ["action_time", "user", "object_repr", "change_message"]
+            attrs= {"class": "table table-dark table-striped table-hover"}
+
+        def render_change_message(self, value, record):
+            return record.get_change_message()
+
+    model = LogEntry
+    queryset = LogEntry.objects.exclude(user__username="spielleiter").filter(content_type__app_label="character", content_type__model="charakter")
+    
+    topic = "Changes in Admin area"
+    filterset_fields = {"action_time": ["lte"], "user": ["exact"], "object_repr": ["icontains"], "change_message": ["icontains"]}
+    table_class = Table
