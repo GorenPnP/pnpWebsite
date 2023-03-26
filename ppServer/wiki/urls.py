@@ -11,7 +11,7 @@ urlpatterns = [
     path('talente', views.TalentView.as_view(), name='talente'),
 
 
-    path('gfs', views.gfs, name='gfs'),
+    path('gfs', views.GfsView.as_view(), name='gfs'),
     path('gfs/special-abilities', views.GfsSpecialAbilities.as_view(), name='gfs-special-abilities'),
     path('gfs/<int:gfs_id>', views.stufenplan, name='stufenplan'),
     path('persönlichkeiten', views.PersönlichkeitTableView.as_view(), name='persönlichkeiten'),

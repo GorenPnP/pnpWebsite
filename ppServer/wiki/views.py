@@ -2,9 +2,12 @@ import sys
 from datetime import date
 from functools import cmp_to_key
 
+from django.db.models import F, Subquery, OuterRef
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import render, get_object_or_404
+from django.urls import reverse
+from django.utils.html import format_html
 
 import django_tables2 as tables
 
@@ -53,24 +56,99 @@ class TalentView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTableView):
     }
 
 
-@login_required
-@verified_account
-def gfs(request):
-    all_gfs: list = []
-    for gfs in Gfs.objects.all():
-        attrs = gfs.attr_calc()
-        powerLevel = sum([val["aktuellerWert"] + 2*val["maxWert"] for val in attrs]) - gfs.ap
+class GfsView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTableView):
+    class Table(GenericTable):
 
-        all_gfs.append({
-            "id": gfs.id,
-            "titel": gfs.titel,
-            "ap": gfs.ap,
-            "attrs": attrs,
-            "powerLevel": powerLevel
-        })
+        class AttrColumn(tables.Column):
+            def __init__(self, field, *args, **kwargs):
+                super().__init__(*args, **kwargs)
+                self.field = field
 
-    return render(request, 'wiki/gfs.html', {'topic': 'Gfs/Klassen', "heading": Attribut.objects.all(),
-                                               "gfs": all_gfs})
+            def render(self, value, record):
+                curr = getattr(record, f"{self.field}_curr")
+                max = getattr(record, f"{self.field}_max")
+                text = f"{curr} / {max}"
+                css_class = ""
+                if value <= 5: css_class = "text-danger"
+                if value >= 18: css_class = "text-success"
+
+                return format_html(f'<span class="{css_class}">{text}</span>')
+
+        class Meta:
+            model = Gfs
+            fields = ["titel", "ap", "SCH", "IN", "ST", "VER", "GES", "UM", "WK", "MA", "F", "N", "ap_netto"]
+            attrs = {"class": "table table-dark table-striped table-hover"}
+
+        titel = tables.Column(verbose_name="Gfs / Klasse")
+
+        SCH = AttrColumn(field="SCH")
+        IN = AttrColumn(field="IN")
+        ST = AttrColumn(field="ST")
+        VER = AttrColumn(field="VER")
+        GES = AttrColumn(field="GES")
+        UM = AttrColumn(field="UM")
+        WK = AttrColumn(field="WK")
+        MA = AttrColumn(field="MA")
+        F = AttrColumn(field="F")
+        N = AttrColumn(field="N")
+        
+        def render_titel(self, value, record):
+            url = reverse("wiki:stufenplan", args=[record.id])
+            return format_html("<a href='{url}'>{name}</a>", url=url, name=value)
+
+    model = Gfs
+    table_class = Table
+    filterset_fields = {"titel": ["icontains"]}
+
+    def get_queryset(self):
+        # original qs
+        qs = super().get_queryset()
+
+        attr_qs = GfsAttribut.objects.select_related("attribut", "gfs").filter(gfs__id=OuterRef("id"))
+        return qs\
+            .annotate(
+                SCH_curr=Subquery(attr_qs.filter(attribut__titel="SCH").values("aktuellerWert")[:1]),
+                SCH_max=Subquery(attr_qs.filter(attribut__titel="SCH").values("maxWert")[:1]),
+                SCH=F("SCH_curr") + 2* F("SCH_max"),
+
+                IN_curr=Subquery(attr_qs.filter(attribut__titel="IN").values("aktuellerWert")[:1]),
+                IN_max=Subquery(attr_qs.filter(attribut__titel="IN").values("maxWert")[:1]),
+                IN=F("IN_curr") + 2* F("IN_max"),
+
+                ST_curr=Subquery(attr_qs.filter(attribut__titel="ST").values("aktuellerWert")[:1]),
+                ST_max=Subquery(attr_qs.filter(attribut__titel="ST").values("maxWert")[:1]),
+                ST=F("ST_curr") + 2* F("ST_max"),
+
+                VER_curr=Subquery(attr_qs.filter(attribut__titel="VER").values("aktuellerWert")[:1]),
+                VER_max=Subquery(attr_qs.filter(attribut__titel="VER").values("maxWert")[:1]),
+                VER=F("VER_curr") + 2* F("VER_max"),
+
+                GES_curr=Subquery(attr_qs.filter(attribut__titel="GES").values("aktuellerWert")[:1]),
+                GES_max=Subquery(attr_qs.filter(attribut__titel="GES").values("maxWert")[:1]),
+                GES=F("GES_curr") + 2* F("GES_max"),
+
+                UM_curr=Subquery(attr_qs.filter(attribut__titel="UM").values("aktuellerWert")[:1]),
+                UM_max=Subquery(attr_qs.filter(attribut__titel="UM").values("maxWert")[:1]),
+                UM=F("UM_curr") + 2* F("UM_max"),
+
+                WK_curr=Subquery(attr_qs.filter(attribut__titel="WK").values("aktuellerWert")[:1]),
+                WK_max=Subquery(attr_qs.filter(attribut__titel="WK").values("maxWert")[:1]),
+                WK=F("WK_curr") + 2* F("WK_max"),
+
+                MA_curr=Subquery(attr_qs.filter(attribut__titel="MA").values("aktuellerWert")[:1]),
+                MA_max=Subquery(attr_qs.filter(attribut__titel="MA").values("maxWert")[:1]),
+                MA=F("MA_curr") + 2* F("MA_max"),
+
+                F_curr=Subquery(attr_qs.filter(attribut__titel="F").values("aktuellerWert")[:1]),
+                F_max=Subquery(attr_qs.filter(attribut__titel="F").values("maxWert")[:1]),
+                F=F("F_curr") + 2* F("F_max"),
+
+                N_curr=Subquery(attr_qs.filter(attribut__titel="N").values("aktuellerWert")[:1]),
+                N_max=Subquery(attr_qs.filter(attribut__titel="N").values("maxWert")[:1]),
+                N=F("N_curr") + 2* F("N_max"),
+
+                ap_netto=F("SCH") + F("IN") + F("ST") + F("VER") + F("GES") + F("UM") + F("WK") + F("MA") + F("F") + F("N") - F("ap")
+            )
 
 
 # TODO

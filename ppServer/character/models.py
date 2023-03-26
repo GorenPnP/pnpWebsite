@@ -76,7 +76,7 @@ class Gfs(models.Model):
     wesen = models.ForeignKey(Spezies, on_delete=models.SET_NULL, blank=True, null=True)
     beschreibung = models.TextField(max_length=3000, blank=True, default='')
 
-    ap = models.PositiveIntegerField(default=0, validators=[MaxValueValidator(100)])
+    ap = models.PositiveIntegerField(default=0, validators=[MaxValueValidator(100)], verbose_name="AP-Kosten")
 
     wesenschaden_waff_kampf = models.IntegerField("BS", default=0)
     wesenschaden_andere_gestalt = models.IntegerField(
@@ -103,17 +103,6 @@ class Gfs(models.Model):
 
     def relNachteilQueryset(self):
         return GfsNachteil.objects.filter(gfs=self)
-
-    # return list of all calculated attributes for a gfs
-    def attr_calc(self):
-        attr = []
-        gfsAttrs = GfsAttribut.objects.filter(gfs=self)
-        for gfsAttr in gfsAttrs:
-            entry = {'id': gfsAttr.attribut.id,
-                        'aktuellerWert': gfsAttr.aktuellerWert,
-                        'maxWert': gfsAttr.maxWert}
-            attr.append(entry)
-        return attr
 
 
 class Persönlichkeit(models.Model):

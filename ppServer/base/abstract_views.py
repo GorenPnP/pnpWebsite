@@ -34,7 +34,7 @@ class DynamicTableView(ExportMixin, SingleTableMixin, FilterView):
     # an optional django_filters.FilterSet instance to filter the table content
     filterset_class = None
     # OR a list or dict containing the fields of self.model to filter for
-    filterset_fields = None
+    filterset_fields = []
 
     # an optional django_tables2.tables.Table instance to control the table appearance
     table_class = None
