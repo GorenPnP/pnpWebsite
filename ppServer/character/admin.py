@@ -56,7 +56,7 @@ class GfsSkilltreeInLine(admin.TabularInline):
 
 class ProfessionAttributInLine(admin.TabularInline):
     model = ProfessionAttribut
-    fields = ["attribut", "aktuellerWert", "maxWert"]
+    fields = ["attribut", "aktuellerWert"]
     readonly_fields = ["attribut"]
     extra = 0
 
@@ -83,12 +83,6 @@ class ProfessionSpezialInLine(admin.TabularInline):
 class ProfessionWissenInLine(admin.TabularInline):
     model = ProfessionWissensfertigkeit
     fields = ["wissen"]
-    extra = 1
-
-
-class ProfessionTalentInLine(admin.TabularInline):
-    model = ProfessionTalent
-    fields = ["talent"]
     extra = 1
 
 
@@ -443,8 +437,7 @@ class ProfessionAdmin(admin.ModelAdmin):
 
     inlines = [ProfessionAttributInLine, ProfessionFertigkeitInLine,
                ProfessionSpezialInLine, ProfessionWissenInLine,
-               ProfessionTalentInLine, ProfessionSkilltreeInLine,
-               ProfessionStufenplanInLine]
+               ProfessionSkilltreeInLine, ProfessionStufenplanInLine]
 
     def beschreibung_(self, obj):
         str = obj.beschreibung[:100]

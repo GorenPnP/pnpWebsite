@@ -2,7 +2,7 @@ import sys
 from datetime import date
 from functools import cmp_to_key
 
-from django.db.models import F, Subquery, OuterRef
+from django.db.models import F, Subquery, OuterRef, Value
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import render, get_object_or_404
@@ -227,38 +227,42 @@ class PersönlichkeitTableView(LoginRequiredMixin, VerifiedAccountMixin, Dynamic
     }
 
 
-@login_required
-@verified_account
-def profession(request):
-    profs = Profession.objects.all()
-    entries = []
+class ProfessionView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTableView):
+    class Table(GenericTable):
+        class Meta:
+            model = Profession
+            fields = ["titel", "attr", "fert", "spezial", "wissen"]
+            attrs= {"class": "table table-dark table-striped table-hover"}
 
-    for p in profs:
+        titel = tables.Column(verbose_name="Profession")
+        attr = tables.Column(orderable=False, verbose_name="Attribut Bonus")
+        fert = tables.Column(orderable=False, verbose_name="Fertigkeit Bonus")
+        spezial = tables.Column(verbose_name="Spezialfert.")
+        wissen = tables.Column(verbose_name="Wissensfert.")
 
-        attribute = []
-        maxima = []
-        ferts = []
+        def render_titel(self, value, record):
+            return format_html("<a href='{url}'>{name}</a>", url=reverse("wiki:stufenplan_profession", args=[record.pk]), name=value)
 
-        for pAttr in ProfessionAttribut.objects.filter(profession=p):
-            if pAttr.aktuellerWert:
-                attribute.append("{} (<span class='emphasis'>+{}</span>)".format(pAttr.attribut.titel, pAttr.aktuellerWert))
+        def render_attr(self, value, record):
+            vals = [f"{v.attribut.titel} (<strong>+{v.aktuellerWert}</strong>)" for v in ProfessionAttribut.objects.filter(profession=record).exclude(aktuellerWert=0).prefetch_related("attribut")]
+            return format_html(", ".join(vals)) if vals else "—"
+    
+        def render_fert(self, value, record):
+            vals = [f"{v.fertigkeit.titel} (<strong>+{v.fp}</strong>)" for v in ProfessionFertigkeit.objects.filter(profession=record).exclude(fp=0).prefetch_related("fertigkeit")]
+            return format_html(", ".join(vals)) if vals else "—"
 
-            if pAttr.maxWert:
-                maxima.append("{} (<span class='emphasis'>+{}</span>)".format(pAttr.attribut.titel, pAttr.maxWert))
+        def render_spezial(self, value, record):
+            spezial = record.spezial.all().values("titel")
+            return ", ".join([r["titel"] for r in spezial]) if spezial else "—"
+        def render_wissen(self, value, record):
+            spezial = record.wissen.all().values("titel")
+            return ", ".join([r["titel"] for r in spezial]) if spezial else "—"
 
-        for pFert in ProfessionFertigkeit.objects.filter(profession=p).exclude(fp=0):
-            ferts.append("{} (<span class='emphasis'>+{}</span>)".format(pFert.fertigkeit.titel, pFert.fp))
+    model = Profession
+    queryset = Profession.objects.all().annotate(attr=Value(1), fert=Value(1)) # let table render attr & fert
 
-        entry = {
-            "aktuell_bonus": ", ".join(attribute),
-            "max_bonus": ", ".join(maxima), "fp_bonus": ", ".join(ferts),
-            "titel": p.titel, "id": p.id, "talente": ", ".join([t.titel for t in p.talente.all()]),
-            "spezial": ", ".join([t.titel for t in p.spezial.all()]),
-            "wissen": ", ".join([t.titel for t in p.wissen.all()])
-        }
-        entries.append(entry)
-
-    return render(request, 'wiki/profession.html', {'topic': 'Professionen', "professionen": entries})
+    table_class = Table
+    filterset_fields = ["titel"]
 
 
 @login_required
@@ -268,23 +272,17 @@ def stufenplan_profession(request, profession_id):
 
     prof = {}
     attribute = []
-    maxima = []
     ferts = []
     for pAttr in ProfessionAttribut.objects.filter(profession=profession):
         if pAttr.aktuellerWert:
             attribute.append("{} (+{})".format(pAttr.attribut.titel, pAttr.aktuellerWert))
-
-        if pAttr.maxWert:
-            maxima.append("{} (+{})".format(pAttr.attribut.titel, pAttr.maxWert))
 
     for pFert in ProfessionFertigkeit.objects.filter(profession=profession).exclude(fp=0):
         ferts.append("{} (+{})".format(pFert.fertigkeit.titel, pFert.fp))
 
     prof = {
         "aktuell_bonus": ", ".join(attribute),
-        "max_bonus": ", ".join(maxima),
         "fp_bonus": ", ".join(ferts),
-        "talente": ", ".join([t.titel for t in profession.talente.all()]),
         "spezial": ", ".join([t.titel for t in profession.spezial.all()]),
         "wissen": ", ".join([t.titel for t in profession.wissen.all()]),
 

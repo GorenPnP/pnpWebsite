@@ -133,7 +133,6 @@ class Profession(models.Model):
     attribute = models.ManyToManyField('Attribut', through='ProfessionAttribut')
     fertigkeiten = models.ManyToManyField("Fertigkeit", through="ProfessionFertigkeit")
 
-    talente = models.ManyToManyField("Talent", through="ProfessionTalent")
     spezial = models.ManyToManyField("Spezialfertigkeit", through="ProfessionSpezialfertigkeit")
     wissen = models.ManyToManyField("Wissensfertigkeit", through="ProfessionWissensfertigkeit")
 
@@ -232,7 +231,6 @@ class ProfessionAttribut(models.Model):
     profession = models.ForeignKey(Profession, on_delete=models.CASCADE)
 
     aktuellerWert = models.IntegerField(default=0)
-    maxWert = models.IntegerField(default=0)
 
     def __str__(self):
         return "'{}' von ’{}’".format(self.attribut.__str__(), self.profession.__str__())
@@ -286,17 +284,6 @@ class ProfessionWissensfertigkeit(models.Model):
 
     def __str__(self):
         return "'{}' von ’{}’".format(self.wissen.__str__(), self.profession.__str__())
-
-
-class ProfessionTalent(models.Model):
-    class Meta:
-        ordering = ['profession']
-        verbose_name = "Starttalent"
-        verbose_name_plural = "Starttalente"
-        unique_together = ["profession", "talent"]
-
-    talent = models.ForeignKey('Talent', on_delete=models.CASCADE)
-    profession = models.ForeignKey(Profession, on_delete=models.CASCADE)
 
 
 class GfsStufenplanBase(models.Model):
