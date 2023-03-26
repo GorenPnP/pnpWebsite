@@ -70,7 +70,7 @@ class GfsView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTableView):
                 text = f"{curr} / {max}"
                 css_class = ""
                 if value <= 5: css_class = "text-danger"
-                if value >= 18: css_class = "text-success"
+                if value >= 14: css_class = "text-success"
 
                 return format_html(f'<span class="{css_class}">{text}</span>')
 
