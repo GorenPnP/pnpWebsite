@@ -54,11 +54,8 @@ def index(request):
 
 
 @login_required
-@spielleiter_only()
+@spielleiter_only("chat:index")
 def sp_index_get(request):
-
-    if not request.user.groups.filter(name__iexact="spielleiter").exists():
-        return redirect("chat:index")
 
     context = {
         "topic": "Spielleiter-Chat",

@@ -32,42 +32,49 @@ SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 # Application definition
 
 INSTALLED_APPS = [
+    'daphne',   # needs to be before "django.contrib.staticfiles"
+    
+    # django
+    'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
-    'django.contrib.sessions',
     'django.contrib.messages',
+    'django.contrib.sessions',
     'django.contrib.staticfiles',
-    'create.apps.CreateConfig',
-    'character.apps.CharacterConfig',
-    'wiki.apps.WikiConfig',
-    'shop.apps.ShopConfig',
-    'fileserver.apps.FileserverConfig',
-    'log.apps.LogConfig',
+
+    # own apps
     'admin_custom.apps.AdminCustomConfig',
     'auth_custom.apps.AuthCustomConfig',
-    'polls.apps.PollsConfig',
-    'quiz.apps.QuizConfig',
-    'crafting.apps.CraftingConfig',
-    'mining.apps.MiningConfig',
-    'time_space.apps.TimeSpaceConfig',
+    'base.apps.BaseConfig',
+    'cards.apps.CardsConfig',
+    'character.apps.CharacterConfig',
     'chat.apps.ChatConfig',
-    'todays_fact.apps.TodaysFactConfig',
+    'crafting.apps.CraftingConfig',
+    'create.apps.CreateConfig',
+    'fileserver.apps.FileserverConfig',
+    'log.apps.LogConfig',
+    'mining.apps.MiningConfig',
     'news.apps.NewsConfig',
     'planner.apps.PlannerConfig',
-    'cards.apps.CardsConfig',
-    'base.apps.BaseConfig',
+    'polls.apps.PollsConfig',
+    'quiz.apps.QuizConfig',
     'service.apps.ServiceConfig',
-    'django.contrib.admin',
+    'shop.apps.ShopConfig',
+    'time_space.apps.TimeSpaceConfig',
+    'todays_fact.apps.TodaysFactConfig',
+    'wiki.apps.WikiConfig',
+
+    # libs/plugins
     'logRequest',
     'debug_toolbar',
     'dbbackup',
-    'channels',
     'django_bootstrap5',
     'django_filters',
     'django_tables2',
 ]
 
 MIDDLEWARE = [
+    # django
     "debug_toolbar.middleware.DebugToolbarMiddleware",
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -76,6 +83,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+
+    # own middleware
     "logRequest.middleware.RequestMiddleware"
 ]
 
@@ -97,7 +106,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'ppServer.wsgi.application'
+# WSGI_APPLICATION = 'ppServer.wsgi.application'
 ASGI_APPLICATION = 'ppServer.routing.application'
 
 
