@@ -1,4 +1,6 @@
+from typing import Any, Optional
 from django.contrib import admin
+from django.http.request import HttpRequest
 from django.utils.html import format_html
 
 from .models import *
@@ -70,7 +72,13 @@ class ModuleInLine(admin.TabularInline):
 class SessionQuestionsInLine(admin.TabularInline):
     model = SpielerSession.questions.through
     extra = 0
-    can_delete = False
+
+    def has_add_permission(self, request, obj=None):
+        return False
+    def has_change_permission(self, request: HttpRequest, obj: Optional[Any] = ...) -> bool:
+        return False
+    def has_delete_permission(self, request: HttpRequest, obj: Optional[Any] = ...) -> bool:
+        return False
 
 
 class SubjectAdmin(admin.ModelAdmin):

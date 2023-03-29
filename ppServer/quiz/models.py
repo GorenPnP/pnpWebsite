@@ -149,10 +149,7 @@ class Question(models.Model):
     allow_upload = models.BooleanField(default=False)
 
     def __str__(self):
-        max_len = 60
-        actual_len = len(self.text)
-        text = (self.text[:-(actual_len-max_len)] + "..") if actual_len > max_len else self.text
-        return "{} ({}, Klasse {}) ({} Punkte)".format(text, self.topic, self.grade, self.points)
+        return "{} ({} Punkte)".format(self.text[:57] + (self.text[57:] and '...'), self.points)
 
 
 class MultipleChoiceField(models.Model):
@@ -368,4 +365,4 @@ class SpielerQuestion(models.Model):
     correct_file = models.OneToOneField(File, on_delete=models.SET_NULL, null=True, blank=True, related_name="correct_file")
 
     def __str__(self):
-        return "{}, {} ({} Punkte)".format(self.spieler, self.question, self.achieved_points)
+        return self.question.__str__()
