@@ -23,10 +23,10 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.0/howto/deployment/checklist/
 
-SECRET_KEY = os.environ.get('SECRET_KEY', '7a)w%8q36&#v26n#!(1iiq&8q!0@o-f*(wbw&**cu6v-mzx%58')
-DEBUG = int(os.environ.get('DEBUG', default=1))
+SECRET_KEY = os.environ.get('SECRET_KEY')
+DEBUG = int(os.environ.get('DEBUG'))
 
-ALLOWED_HOSTS = [i.strip() for i in os.environ.get('ALLOWED_HOSTS', "*, localhost, 127.0.0.1, [::1]").split(",")]
+ALLOWED_HOSTS = [i.strip() for i in os.environ.get('ALLOWED_HOSTS').split(",")]
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 # Application definition
@@ -111,11 +111,11 @@ DATABASES = {
     # }
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': os.environ.get('DATABASE_NAME', "goren_db"),
-        'USER': os.environ.get('DATABASE_USER', "admin"),
-        'PASSWORD': os.environ.get('DATABASE_PASSWORD', "bT0JaVUww5XQqjodlEpiT1P2RMF9pMYqGA1mEwDak0JTsURPYP"),
-        'HOST': os.environ.get('DATABASE_HOST', "localhost"),
-        'PORT': os.environ.get('DATABASE_PORT', 5432)
+        'NAME': os.environ.get('DATABASE_NAME'),
+        'USER': os.environ.get('DATABASE_USER'),
+        'PASSWORD': os.environ.get('DATABASE_PASSWORD'),
+        'HOST': os.environ.get('DATABASE_HOST'),
+        'PORT': os.environ.get('DATABASE_PORT')
     }
 }
 
