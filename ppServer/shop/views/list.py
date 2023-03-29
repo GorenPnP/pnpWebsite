@@ -43,17 +43,7 @@ model_list = [
     Begleiter,
 ]
 def render_number(num: int) -> str:
-    triples = []
-    while num:
-
-        if num >= 1000:
-            triples.insert(0, format(num % 1000, '03d'))
-        else:
-            triples.insert(0, str(num % 1000))
-
-        num = math.floor(num / 1000)
-
-    return ".".join(triples)
+    return f"{num:,}".replace(",", ".")
     
 
 class FullShopTableView(LoginRequiredMixin, VerifiedAccountMixin, ExportMixin, SingleTableMixin, TemplateView):

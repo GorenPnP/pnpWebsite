@@ -1,93 +1,18 @@
-.main-container {
-	color: #ddd;
+.dirty, .dirty--state, .dirty--optional {
+    background-color: var(--bs-red) !important;
+    border-color: var(--bs-red) !important;
+
+    &:focus { box-shadow: 0 0 0 .25rem rgba(220, 56, 72, 0.25) !important; }
 }
 
-.filters {
-	display: flex;
-	justify-content: space-between;
-	flex-wrap: wrap;
-
-	.filter > * { margin: .5em; }
+.title {
+    display: grid;
+    grid-template-columns: 100px auto;
+    grid-template-rows: auto auto;
+    grid-template-areas: 'logo title' 'logo spent';
 }
+.logo { grid-area: logo; }
+.module { grid-area: title; }
+.spent { grid-area: spent; }
 
-.module-list {
-	padding: 3em 0;
-}
-.btn, a.btn {color: #333;}
-
-.row {
-	display: grid;
-	grid-template-columns: auto 2fr 2fr 1fr 1fr 1fr;
-	justify-items: flex-start;
-	align-items: center;
-	grid-gap: .5em;
-
-	border-bottom: 1px solid #ddd;
-	transition: border-bottom 100ms;
-
-	// for rewards and optional
-	--checkbox-size: 20px;
-	--checkbox-shadow: 3px 3px #888888;
-}
-.row.dirty {
-	border-bottom: 1px solid lighten(orangered, 10%);
-	color: lighten(orangered, 35%);
-}
-
-.row > * {padding: .5em;}
-
-.icon {
-	height: 32px;
-	width: 32px;
-	padding: 0;
-}
-
-.optional, .rewards {
-	display: flex;
-
-	& > * {margin: .2em .3em;}
-}
-.rewards {
-	--checkbox-border-color: transparent;
-	--checkbox-shadow: 0;
-}
-
-.module, .player {
-	font-size: 1.3rem;
-	font-weight: 700;
-}
-
-.submit {
-	font-size: 1.1rem;
-	font-weight: 300;
-	position: relative;
-
-	background-color: rgba(255, 68, 0, 0.809);
-	color: #ddd;
-	box-shadow: 5px 5px #ddd;
-	transition: background-color 200ms, box-shadow 500ms;
-}
-
-.submit:not(.active) {
-	background-color: grey;
-	cursor: default;
-	color: #ddd;
-
-	box-shadow: 0 0 transparent;
-}
-.submit:not(.active):hover {opacity: 1}
-.submit.active:hover {box-shadow: 0 0 transparent;}
-
-@media only screen and (max-width: 600px) {
-	.icon, .time {
-		display: none;
-		padding: 0;
-		margin: 0;
-	}
-	.row {
-		grid-template-columns: repeat(4, auto);
-		grid-gap: .2em;
-	}
-
-	.rewards, .points {display: none;}
-}
+.form-check-input { max-width: 20px; aspect-ratio: 1; margin-right: .5em; }

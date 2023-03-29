@@ -1,0 +1,33 @@
+<div>
+    {% if value == 'answered' %}
+        <a class="btn btn-primary" href="{% url 'quiz:sp_correct' record.id %}">Korrigieren</a>
+    {% elif value == 'corrected' %}
+        <div class='state'>{{ value }}</div>
+    {% else %}
+        <select id="{{ record.id }}" name="state-{{ record.id }}" class="stateChange" onChange="changeState(event)" form="changes">
+            {% if value == "locked" %}
+                <option value="0" selected>locked</option>
+                <option value="1">unlocked</option>
+                <option value="2">opened</option>
+                <option value="6">passed</option>
+
+            {% elif value == "seen" %}
+                <option value="1">unlocked</option>
+                <option value="2">opened</option>
+                <option value="5" selected>seen</option>
+                <option value="6">passed</option>
+
+            {% else %}
+                <option value="1" {% if value == 'unlocked' %}selected{% endif %}>unlocked</option>
+                <option value="2" {% if value == 'opened' %}selected{% endif %}>opened</option>
+                <option value="6" {% if value == 'passed' %}selected{% endif %}>passed</option>
+            {% endif %}
+
+        </select>
+    </div>
+
+    <div>
+        <input id="optional{{ record.id }}" name="optional-{{ record.id }}" type="checkbox" class="form-check-input" {% if record.optional %}checked="true"{% endif %} onchange="changeOptional(this)" form="changes">
+        <label for="optional{{ record.id }}" class="form-check-label">optional</label>
+    </div>
+{% endif %}

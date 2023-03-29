@@ -53,7 +53,7 @@ def quiz_BB(request):
     for rel in all_spieler:
         # get name and points
         row = [
-            {"text": rel.spieler.get_real_name() if rel.spieler.get_real_name() else rel.spieler.name, "link": reverse('service:quizTimetable', args=[rel.spieler.id])},
+            {"text": rel.spieler.get_real_name(), "link": reverse('service:quizTimetable', args=[rel.spieler.id])},
             {"text": rel.quiz_points_achieved}, {}
         ]
 

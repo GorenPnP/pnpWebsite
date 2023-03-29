@@ -13,7 +13,7 @@
 			</div>
 		{% endif %}
 	</div>
-	<div class="player">{{ e.spieler.get_real_name|default:e.spieler.name }}</div>
+	<div class="player">{{ e.spieler.get_real_name }}</div>
 
 	<div>
 		<div class="score {{ e.score_class }}">{{ e.score }}</div>

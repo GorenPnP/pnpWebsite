@@ -1,16 +1,23 @@
-
 import json
 from functools import cmp_to_key
-from quiz.views import get_grade_score
 
+from django.db.models import F, Subquery, OuterRef, Value
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http.response import JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse
+from django.utils.html import format_html
 
+from django_tables2.columns import TemplateColumn
+
+from base.abstract_views import DynamicTableView, GenericTable
 from ppServer.decorators import spielleiter_only, verified_account
+from ppServer.mixins import SpielleiterOnlyMixin
 from character.models import Spieler
-from . import models
+
+from .models import *
+from .views import get_grade_score
 
 
 @login_required
@@ -32,145 +39,91 @@ def sp_index(request):
 def sp_questions(request):
 
     if request.method == "GET":
-        mq = models.ModuleQuestion.objects.all()
+        mq = ModuleQuestion.objects.all()
         context = {
             "topic": "Fragen sortieren", "mqs": mq,
-            "questions": models.Question.objects.exclude(id__in=[model.question.id for model in mq]),
-            "mods": models.Module.objects.all()
+            "questions": Question.objects.exclude(id__in=[model.question.id for model in mq]),
+            "mods": Module.objects.all()
         }
         return render(request, "quiz/sp_questions.html", context)
 
     if request.method == "POST":
-        ms = models.Module.objects.all()
-        qs = models.Question.objects.all()
+        ms = Module.objects.all()
+        qs = Question.objects.all()
 
         questions = json.loads(request.body.decode("utf-8"))["questions"]
 
-        models.ModuleQuestion.objects.all().delete()
+        ModuleQuestion.objects.all().delete()
         for e in questions:
             if e["module"] < 0: continue
-            models.ModuleQuestion.objects.create(question=qs.get(id=e["question"]), module=ms.get(id=e["module"]))
+            ModuleQuestion.objects.create(question=qs.get(id=e["question"]), module=ms.get(id=e["module"]))
 
         return JsonResponse({})
 
 
-def cmp_time(a, b):
-    if a is None or a["timestamp"] is None: return 1
-    if b is None or b["timestamp"] is None: return -1
-    return 1 if a["timestamp"] <= b["timestamp"] else -1
+class SpModulesView(LoginRequiredMixin, SpielleiterOnlyMixin, DynamicTableView):
+    class Table(GenericTable):
+        class Meta:
+            model = SpielerModule
+            fields = ["module", "spieler", "state", "achieved_points", "timestamp"]
+            attrs = {"class": "table table-dark table-striped table-hover"}
+            order_by_field = "-timestamp"
+
+        state = TemplateColumn(template_name="quiz/sp_spieler_module_status.html")
+
+        def render_module(self, value, record):
+            if not record.module.icon: return value
+
+            spent = ""
+            if record.spent_reward or record.spent_reward_larp:
+                spent = f"✔ {'LARP' if record.spent_reward_larp else 'PnP'}"
+            return format_html(f"<div class='title'><img class='logo' src='{record.module.icon.img.url}'><span class='module'>{value}</span><span class='spent'>{spent}</span></div>")
+
+        def render_spieler(self, value, record):
+            return record.spieler.get_real_name()
+
+        def render_achieved_points(self, value, record):
+            max_points = record.module.max_points
+            [score, score_class] = get_grade_score(value, max_points)
+
+            score_tag = f"<div class='score {score_class}'>{score}</div>"
+            return format_html(f"{score_tag}<div class='points'>{value:-.2f} / {max_points:-.2f}")
 
 
-@login_required
-@spielleiter_only(redirect_to="quiz:index")
-def sp_modules(request):
+    model = SpielerModule
+    queryset = SpielerModule.objects.prefetch_related("sessions")\
+    .annotate(
+       timestamp = Subquery(SpielerSession.objects.filter(spielerModule__id=OuterRef("id")).order_by("-started")[:1].values("started"))
+    )
+    filterset_fields = {
+        "module": ["exact"],
+        "spieler": ["exact"],
+        "state": ["exact"],
+    }
+    table_class = Table
+    topic = "Modulzuweisung"
+    template_name = "quiz/sp_spieler_modules.html"
 
-    # get SpielerModules from DB
-    sp_mo = models.SpielerModule.objects.all()
+    def post(self, request, *args, **kwargs):
 
-    if request.method == "POST":
+        # update fields "state", "optional" of some SpielerModule objects
+        for field in request.POST.keys():
+            value = request.POST.get(field)
 
-        # get content
-        try:
-            data = json.loads(request.body.decode("utf-8"))
-        except:
-            return JsonResponse({"message": "Konnte Format nicht verstehen"}, status=418)
-
-        # handle change in module states before filter to deliver changes
-        if "state_changes" in data.keys():
-            try:
-                changes_optional = data["optional_changes"]
-                for e in models.SpielerModule.objects.filter(id__in=changes_optional):
-                    e.optional = not e.optional
-                    e.save()
-
-                changes = data["state_changes"]
-                for e in models.SpielerModule.objects.filter(id__in=changes.keys()):
-                    e.state = changes["{}".format(e.id)]
-                    e.save()
-                return JsonResponse({})
-            except:
-                return JsonResponse({"message": "Konnte Zustand nicht ändern"}, status=418)
-
-        # handle filter
-        try:
-            player = data["player"]
-            state = data["state"]
-            module = data["modul"]
-        except:
-            return JsonResponse({"message": "Konnte Filter nicht finden"}, status=418)
-
-        if player != -1: sp_mo = sp_mo.filter(spieler__id=player)
-        if state  != -1: sp_mo = sp_mo.filter(state=state)
-        if module != -1: sp_mo = sp_mo.filter(module__id=module)
-
-
-    # both together
-    modules = []
-    for e in sp_mo:
-        sessions = models.SpielerSession.objects.filter(spielerModule=e)
-        score, score_class = get_grade_score(e.achieved_points, e.module.max_points) if e.achieved_points is not None else ("", "")
-        modules.append(
-            {
-                "id": e.id,
-                "icon": e.module.icon.img.url if e.module.icon else None,
-                "module": e.module.title,
-                "state": (e.state, e.get_state_display()),
-                "spieler": e.spieler,
-                "timestamp": sessions.first().started if sessions.count() else None,
-                "achieved_points": e.achieved_points, "max_points": e.module.max_points,
-                "score": score, "score_class": score_class,
-                "optional": e.optional,
-                "spent_reward": e.spent_reward, "spent_reward_larp": e.spent_reward_larp
-            })
-    modules = sorted(modules, key=cmp_to_key(cmp_time))
-
-    selectOnStates = [0, 1, 2, 5, 6]    # ['locked', 'unlocked', 'opened', 'seen', 'passed']
-    optionsLocked = [models.module_state[0], models.module_state[1], models.module_state[2], models.module_state[6]]    # ['locked', 'unlocked', 'opened', 'passed']
-    optionsUnlocked = [models.module_state[1], models.module_state[2], models.module_state[6]]   # ['unlocked', 'opened', 'passed']
-    optionsOpened = [models.module_state[1], models.module_state[2], models.module_state[6]]     # ['unlocked', 'opened', 'passed']
-    optionsSeen = [models.module_state[1], models.module_state[2], models.module_state[5], models.module_state[6]]      # ['unlocked', 'opened', 'seen', 'passed']
-    optionsPassed = [models.module_state[1], models.module_state[2], models.module_state[6]]     # ['unlocked', 'opened', 'passed']
-
-
-    # return responses
-    if request.method == "GET":
-        return render(request, "quiz/sp_spieler_modules.html",
-            {
-                "topic": "Modulzuweisung",
-                "spieler": Spieler.objects.all(),
-                "states": models.module_state,
-                "all_modules": models.Module.objects.all(),
-
-                "selectOnStates": selectOnStates,
-                "optionsLocked": optionsLocked,
-                "optionsUnlocked": optionsUnlocked,
-                "optionsOpened": optionsOpened,
-                "optionsSeen": optionsSeen,
-                "optionsPassed": optionsPassed,
-
-                "modules": modules
-            })
-
-    if request.method == "POST":
-        context = {
-            "modules": modules,
-
-            "selectOnStates": selectOnStates,
-            "optionsLocked": optionsLocked,
-            "optionsUnlocked": optionsUnlocked,
-            "optionsOpened": optionsOpened,
-            "optionsSeen": optionsSeen,
-            "optionsPassed": optionsPassed
-        }
-
-        return JsonResponse({"html": render(request, "quiz/sp_module_list.html", context).content.decode("utf-8")})
+            if field.startswith("state"):
+                optional = request.POST.get(field.replace("state", "optional"))
+                
+                id = int(field.split("-")[1].replace(".", ""))
+                SpielerModule.objects.filter(id=id).update(state = value, optional = optional == "on")
+        
+        return redirect(request.build_absolute_uri())
 
 
 @login_required
 @spielleiter_only(redirect_to="quiz:index")
 def sp_correct(request, id, question_index=0):
 
-    sp_mo = get_object_or_404(models.SpielerModule, id=id)
+    sp_mo = get_object_or_404(SpielerModule, id=id)
 
     # no module for player selected
     if sp_mo.state != 3:    # if not 'answered'
@@ -251,7 +204,7 @@ def sp_correct(request, id, question_index=0):
         # check whether it's valid:
         if "img" in request.FILES.keys():  # and imgForm.is_valid():
             image = request.FILES.get("img")
-            spq.correct_img = models.Image.objects.create(img=image)
+            spq.correct_img = Image.objects.create(img=image)
             spq.correct_img.save()
 
             """
@@ -268,7 +221,7 @@ def sp_correct(request, id, question_index=0):
         """
         if "file" in request.FILES.keys():  # and imgForm.is_valid():
             file = request.FILES.get("file")
-            spq.correct_file = models.File.objects.create(file=file)
+            spq.correct_file = File.objects.create(file=file)
             spq.correct_file.save()
 
         spq.save()
