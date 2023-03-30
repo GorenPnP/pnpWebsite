@@ -1,0 +1,13 @@
+{% extends 'base/main.html' %}
+{% load static %}
+{% block title %}Chat 2.0{% endblock %}
+{% block extra-head %}
+{% endblock %}
+{% block absolute %}{% include 'base/header.html' with topic="Chat 2.0" %}{% endblock %}
+
+{% block body %}
+
+{% for chat in chatrooms %}
+    <a href="{% url 'httpchat:chatroom' account.slug chat.slug %}">{{ chat.titel }}</a>
+{% endfor %}
+{% endblock %}

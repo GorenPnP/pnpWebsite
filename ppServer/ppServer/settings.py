@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     'crafting.apps.CraftingConfig',
     'create.apps.CreateConfig',
     'fileserver.apps.FileserverConfig',
+    'httpChat.apps.HttpchatConfig',
     'log.apps.LogConfig',
     'mining.apps.MiningConfig',
     'news.apps.NewsConfig',

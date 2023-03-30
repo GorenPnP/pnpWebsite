@@ -1,0 +1,54 @@
+{% load static django_bootstrap5 weekday %}
+{% spaceless %}
+<!DOCTYPE html>
+<html lang="de">
+
+	<head>
+		<meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+		<meta content="utf-8" http-equiv="encoding">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>{{ topic }}</title>
+		<link rel="shortcut icon" href="{% static 'res/img/icon-dice.png' %}" type="image/x-icon">
+
+		{% bootstrap_css %}
+		{% bootstrap_javascript %}
+		<link rel="stylesheet" type="text/css" href="{% static 'httpChat/css/chatroom.css' %}" />
+		<script src="{% static 'res/js/axios.min.js' %}" type='text/javascript'></script>
+		<script src="{% static 'base/js/ajax.js' %}"></script>
+		<script src="{% static 'httpChat/js/chatroom.js' %}"></script>
+	</head>
+
+	<body>
+		<main id="message-container">
+			{% for message in chatroom.message_set.all %}
+
+				<!-- add date info -->
+				{% if chatroom.message_set.all|previousMessageWasAtAnotherDay:forloop.counter0 %}
+					<div class="info">{{ message.created_at|weekday  }}</div>
+				{% endif %}
+
+				<!-- chat message -->
+				{% if message.type == "i" %}
+				<div class="info">{{ message.text  }}</div>
+				{% else %}
+				<div class="message {% if message.author == account %}message--own{% else %}message--foreign{% endif %}">
+					{% if message.author != account %}<div class="message__author">{{ message.author.name }}</div>{% endif %}
+					<div>{{ message.text }}</div>
+					<div class="message__timestamp">{{ message.created_at|date:'G:i'  }}</div>
+				</div>
+				{% endif %}
+			{% endfor %}
+		
+			<div id="room_name" style="display: none">{{ chatroom.title }}</div>
+		</main>
+
+		<footer>
+			<form method="post" class="footer" id="prompt-form">
+				{% csrf_token %}
+				<input type="text" id="prompt" name="message-text" placeholder="Nachricht">
+				<input type="submit" id="submit-prompt-btn" value=">">
+			</form>
+		</footer>
+	</body>
+</html>
+{% endspaceless %}
