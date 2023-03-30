@@ -1,6 +1,5 @@
 import datetime
 import locale
-from typing import Any
 
 from django import template
 from pytz import utc
@@ -18,7 +17,7 @@ def weekday(date: datetime):
 
 
 @register.filter
-def previousMessageWasAtAnotherDay(messages: list[Any], index):
+def previousMessageWasAtAnotherDay(messages, index):
     if not index: return True
 
     return messages[index-1].created_at.strftime("%d. %B %Y") != messages[index].created_at.strftime("%d. %B %Y")
