@@ -1,5 +1,4 @@
 import datetime
-import locale
 
 from django import template
 from pytz import utc
@@ -10,10 +9,12 @@ register = template.Library()
 
 @register.filter
 def weekday(date: datetime):
-    locale.setlocale(locale.LC_ALL, 'de_DE')
     if utc.localize(datetime.datetime.now()) - datetime.timedelta(days=6) < date:
-        return date.strftime("%A")
-    return date.strftime("%d. %B %Y")
+        weekdays = ["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag"]
+        return weekdays[date.weekday()]
+    
+    months = ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"]
+    return "{}. {} {}".format(date.day, months[date.month-1], date.year)
 
 
 @register.filter
