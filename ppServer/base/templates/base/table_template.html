@@ -1,5 +1,5 @@
 {% extends 'django_tables2/bootstrap-responsive.html' %}
-{% load django_tables2 static i18n django_bootstrap5 %}
+{% load django_tables2 static i18n django_bootstrap5 getField %}
 
 
 {% block table-wrapper %}
@@ -41,15 +41,10 @@
 
                         {% if view.filterset_class or view.filterset_fields %}
                         <tr><form action="" method="get" class="form" id="filter-form">
-                            <!-- filter_offset empty cells left of first filter cell -->
-                            {% with ''|center:filter_offset as range %}
-                            {% for _ in range %}
-                                <td></td>
-                            {% endfor %}
-                            {% endwith %}
+                            {% for column in table.columns %}
 
-                            {% for field in filter.form %}
-                                <td>{{ field }}</td>
+                                <td>{{ filter.form|getField:column.name|default:"" }}</td>
+
                             {% endfor %}
                         </form></tr>
                         {% endif %}

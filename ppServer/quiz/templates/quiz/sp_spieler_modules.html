@@ -19,7 +19,7 @@
 {% endblock %}
 {% block body %}
 
-{% include 'base/table_template.html' with view=view table=table filter=filter filter_offset=filter_offset|default:0 %}
+{% include 'base/table_template.html' with view=view table=table filter=filter %}
 
 <form id="changes" method="POST">
 	{% csrf_token %}

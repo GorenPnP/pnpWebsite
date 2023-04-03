@@ -223,9 +223,6 @@ class ShopTableView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTableView):
         if not self.model: return super().get_plus_url()
         return reverse("admin:{}_{}_add".format(self.model._meta.app_label, self.model._meta.model_name))
 
-    def get_context_data(self, *args, **kwargs):
-        return super().get_context_data(*args, **kwargs, filter_offset=1)
-    
     def get_table_class(self):
         """
         Return the class to use for the table.
