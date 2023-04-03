@@ -29,16 +29,11 @@ class Chatroom(models.Model):
         verbose_name = "Chatroom"
         verbose_name_plural = "Chatrooms"
         
-    titel = models.CharField(max_length=200, null=False, blank=False, unique=True)
-    slug = models.SlugField(unique=True)
+    titel = models.CharField(max_length=200, null=True, blank=True)
 
     owners = models.ManyToManyField(Account, related_name="owners")
     admins = models.ManyToManyField(Account, related_name="admins")
     basic_users = models.ManyToManyField(Account, related_name="basic_users")
-
-    def save(self, *args, **kwargs):
-        self.slug = slugify(self.titel)
-        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.titel

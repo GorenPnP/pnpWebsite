@@ -1,15 +1,28 @@
 from typing import Any, Dict
 
 from django.db.models import Q
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http.request import HttpRequest
 from django.http.response import HttpResponse
 from django.shortcuts import redirect
 from django.views.generic.base import TemplateView
 
+from ppServer.mixins import VerifiedAccountMixin, OwnChatMixin
+
 from .models import *
 
-class ChatroomListView(TemplateView):
-    template_name = "httpchat/chatroom_list.html"
+class AccountListView(LoginRequiredMixin, VerifiedAccountMixin, TemplateView):
+    template_name = "httpChat/account_list.html"
+
+    def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
+        spieler = Spieler.objects.get(name=self.request.user.username)
+        accounts = Account.objects.filter(spieler=spieler).order_by("name")
+
+        return super().get_context_data(**kwargs, accounts=accounts)
+
+
+class ChatroomListView(LoginRequiredMixin, OwnChatMixin, TemplateView):
+    template_name = "httpChat/chatroom_list.html"
 
     def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
         account = Account.objects.get(slug=self.kwargs["account_name"])
@@ -21,14 +34,13 @@ class ChatroomListView(TemplateView):
         ).distinct())
 
 
-# TODO restrict chat to members only
-class ChatroomView(TemplateView):
-    template_name = "httpchat/chatroom.html"
+class ChatroomView(LoginRequiredMixin, OwnChatMixin, TemplateView):
+    template_name = "httpChat/chatroom.html"
 
     def get_objects(self):
         return {
             "account": Account.objects.get(slug=self.kwargs["account_name"]),
-            "chatroom": Chatroom.objects.get(slug=self.kwargs["room_name"])
+            "chatroom": Chatroom.objects.get(id=self.kwargs["room_id"])
         }
 
 
@@ -42,7 +54,7 @@ class ChatroomView(TemplateView):
 
     
     def post(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
-        
+
         # create new message
         objects = self.get_objects()
         text = request.POST.get("message-text")

@@ -7,7 +7,9 @@
 
 {% block body %}
 
-{% for chat in chatrooms %}
-    <a href="{% url 'httpchat:chatroom' account.slug chat.id %}">{{ chat.titel }}</a>
+<ul>
+{% for account in accounts %}
+    <li><a href="{% url 'httpchat:account_chats' account.slug %}">{{ account.name }}</a></li>
 {% endfor %}
+</ul>
 {% endblock %}
