@@ -12,7 +12,10 @@ from django_tables2.views import SingleTableMixin
 
 class GenericTable(tables.Table):
     class Meta:
-        attrs = {"class": "table table-dark table-striped table-hover"}
+        attrs = {
+            "class": "table table-dark table-striped table-hover",
+            "th": {"class": "sticky-top"},
+        }
 
 class DynamicTableView(ExportMixin, SingleTableMixin, FilterView):
 

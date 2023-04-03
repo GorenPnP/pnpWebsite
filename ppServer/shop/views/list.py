@@ -50,7 +50,7 @@ class FullShopTableView(LoginRequiredMixin, VerifiedAccountMixin, ExportMixin, S
 
     class Table(GenericTable):
         class Meta:
-            attrs= {"class": "table table-dark table-striped table-hover"}
+            attrs = GenericTable.Meta.attrs
 
         icon = tables.Column(orderable=False)
         name = tables.Column()
@@ -161,7 +161,7 @@ class ShopTable(GenericTable):
         fields = ("icon", "name", "beschreibung", "ab_stufe", "preis")
         order_by_field = "name"
 
-        attrs= {"class": "table table-dark table-striped table-hover"}
+        attrs = GenericTable.Meta.attrs
 
     def render_icon(self, value):
         return format_html("<img src='{url}'>", url=value.instance.getIconUrl())
@@ -334,7 +334,7 @@ class RitualeRunenTableView(ShopTableView):
         class Meta:
             model = Rituale_Runen
             fields = ("icon", "name", "beschreibung", "ab_stufe", "stufe_1", "stufe_2", "stufe_3", "stufe_4", "stufe_5")
-            attrs= {"class": "table table-dark table-striped table-hover"}
+            attrs = GenericTable.Meta.attrs
 
         def _render_stufe_x(self, value, record, column):
             max_value = getattr(record, column.accessor + "_max")
@@ -434,7 +434,7 @@ class TinkerTableView(ShopTableView):
         class Meta:
             model = Tinker
             fields = ("icon", "name", "beschreibung", "ab_stufe", "werte", "preis")
-            attrs= {"class": "table table-dark table-striped table-hover"}
+            attrs = GenericTable.Meta.attrs
 
         def render_name(self, value):
             return value

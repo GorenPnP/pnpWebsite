@@ -66,7 +66,7 @@ class SpModulesView(LoginRequiredMixin, SpielleiterOnlyMixin, DynamicTableView):
         class Meta:
             model = SpielerModule
             fields = ["module", "spieler", "state", "achieved_points", "timestamp"]
-            attrs = {"class": "table table-dark table-striped table-hover"}
+            attrs = GenericTable.Meta.attrs
             order_by_field = "-timestamp"
 
         state = TemplateColumn(template_name="quiz/sp_spieler_module_status.html")

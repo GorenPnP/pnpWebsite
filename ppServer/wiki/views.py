@@ -77,7 +77,7 @@ class GfsView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTableView):
         class Meta:
             model = Gfs
             fields = ["titel", "difficulty", "ap", "SCH", "IN", "ST", "VER", "GES", "UM", "WK", "MA", "F", "N", "ap_netto"]
-            attrs = {"class": "table table-dark table-striped table-hover"}
+            attrs = GenericTable.Meta.attrs
 
         titel = tables.Column(verbose_name="Gfs / Klasse")
 
@@ -233,7 +233,7 @@ class ProfessionView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTableView)
         class Meta:
             model = Profession
             fields = ["titel", "attr", "fert", "spezial", "wissen"]
-            attrs= {"class": "table table-dark table-striped table-hover"}
+            attrs = GenericTable.Meta.attrs
 
         titel = tables.Column(verbose_name="Profession")
         attr = tables.Column(orderable=False, verbose_name="Attribut Bonus")
@@ -339,7 +339,7 @@ class WesenkraftTableView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTable
         class Meta:
             model = Wesenkraft
             fields = ["titel", "probe", "manaverbrauch", "wirkung", "wesen"]
-            attrs = {"class": "table table-dark table-striped table-hover"}
+            attrs = GenericTable.Meta.attrs
 
 
         def render_wesen(self, value, record):
@@ -388,7 +388,7 @@ class RangRankingTableView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTabl
         class Meta:
             model = RangRankingEntry
             fields = ["ranking", "min_rang", "survival", "power", "skills", "specials"]
-            attrs = {"class": "table table-dark table-striped table-hover"}
+            attrs = GenericTable.Meta.attrs
 
         min_rang = tables.Column(verbose_name="Rang")
 
