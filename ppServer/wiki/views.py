@@ -76,7 +76,7 @@ class GfsView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTableView):
 
         class Meta:
             model = Gfs
-            fields = ["titel", "ap", "SCH", "IN", "ST", "VER", "GES", "UM", "WK", "MA", "F", "N", "ap_netto"]
+            fields = ["titel", "difficulty", "ap", "SCH", "IN", "ST", "VER", "GES", "UM", "WK", "MA", "F", "N", "ap_netto"]
             attrs = {"class": "table table-dark table-striped table-hover"}
 
         titel = tables.Column(verbose_name="Gfs / Klasse")
@@ -98,7 +98,7 @@ class GfsView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTableView):
 
     model = Gfs
     table_class = Table
-    filterset_fields = {"titel": ["icontains"]}
+    filterset_fields = {"titel": ["icontains"], "difficulty": ["exact"]}
     template_name = "wiki/gfs.html"
 
     def get_queryset(self):

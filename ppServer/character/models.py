@@ -72,6 +72,12 @@ class Gfs(models.Model):
         verbose_name = "Gfs/Klasse"
         verbose_name_plural = "Gfs/Klassen"
 
+    DIFFICULTY_ENUM = [
+        ("e", "für Einsteiger"),
+        ("f", "für Fortgeschrittene"),
+        ("p", "für Profis"),
+    ]
+
     titel = models.CharField(max_length=30, unique=True)
     wesen = models.ForeignKey(Spezies, on_delete=models.SET_NULL, blank=True, null=True)
     beschreibung = models.TextField(max_length=3000, blank=True, default='')
@@ -91,6 +97,8 @@ class Gfs(models.Model):
     vorteile = models.ManyToManyField('Vorteil', through="GfsVorteil", blank=True)
     nachteile = models.ManyToManyField('Nachteil', through="GfsNachteil", blank=True)
     wesenkraft = models.ManyToManyField('Wesenkraft', through="GfsWesenkraft")
+
+    difficulty = models.CharField(max_length=1, choices=DIFFICULTY_ENUM, default=DIFFICULTY_ENUM[0][0])
 
     def __str__(self):
         return "{} ({})".format(self.titel, self.wesen.titel if self.wesen else "-")
