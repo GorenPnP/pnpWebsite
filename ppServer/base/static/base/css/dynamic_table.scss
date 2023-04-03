@@ -1,4 +1,4 @@
-th :where(a, a:hover, a:visited) { color: var(--bs-table-color) !important; }
+table :where(a, a:hover, a:visited) { color: var(--bs-table-color) !important; }
 input:not([type="submit"]):not([type="button"]):not([type="checkbox"]) {
     min-width: 10ch;
 

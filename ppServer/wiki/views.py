@@ -72,7 +72,7 @@ class GfsView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTableView):
                 if value <= 5: css_class = "text-danger"
                 if value >= 14: css_class = "text-success"
 
-                return format_html(f'<span class="{css_class}">{text}</span>')
+                return format_html(f'<span class="{css_class} text-nowrap">{text}</span>')
 
         class Meta:
             model = Gfs
@@ -99,6 +99,7 @@ class GfsView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTableView):
     model = Gfs
     table_class = Table
     filterset_fields = {"titel": ["icontains"]}
+    template_name = "wiki/gfs.html"
 
     def get_queryset(self):
         # original qs

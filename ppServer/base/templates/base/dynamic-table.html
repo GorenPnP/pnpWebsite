@@ -13,7 +13,9 @@
 {% endblock %}
 {% block body %}
 
+{% block before_table %}{% endblock %}
 {% include 'base/table_template.html' with view=view table=table filter=filter filter_offset=filter_offset|default:0 %}
+{% block after_table %}{% endblock %}
 
 {% if view.export_formats|length %}
 <ul>
@@ -24,4 +26,5 @@
     {% endfor %}
 </ul>
 {% endif %}
+{% block after_exports %}{% endblock %}
 {% endblock %}
