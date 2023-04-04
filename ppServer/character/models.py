@@ -7,6 +7,9 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.shortcuts import get_object_or_404
 
+from markdownfield.models import MarkdownField, RenderedMarkdownField
+from markdownfield.validators import VALIDATOR_STANDARD
+
 from . import enums
 
 class Spieler(models.Model):
@@ -80,7 +83,8 @@ class Gfs(models.Model):
 
     titel = models.CharField(max_length=30, unique=True)
     wesen = models.ForeignKey(Spezies, on_delete=models.SET_NULL, blank=True, null=True)
-    beschreibung = models.TextField(max_length=3000, blank=True, default='')
+    beschreibung = MarkdownField(rendered_field='beschreibung_rendered', validator=VALIDATOR_STANDARD)
+    beschreibung_rendered = RenderedMarkdownField(null=True)
 
     ap = models.PositiveIntegerField(default=0, validators=[MaxValueValidator(100)], verbose_name="AP-Kosten")
 

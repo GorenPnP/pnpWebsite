@@ -390,12 +390,12 @@ class SpeziesAdmin(admin.ModelAdmin):
     search_fields = ('komplexität', 'titel',)
 
 class GfsAdmin(admin.ModelAdmin):
-    list_display = ('titel', 'ap', 'beschreibung', 'difficulty', 'vorteil_', 'nachteil_',
+    list_display = ('titel', 'ap', 'difficulty', 'vorteil_', 'nachteil_',
                     "wesenschaden_waff_kampf", "wesenschaden_andere_gestalt", "wesenkraft_", "startmanifest",)
     list_filter = ['ap', 'startmanifest', "wesenschaden_waff_kampf"]
     search_fields = ('titel', 'ap')
 
-    list_editable = ['beschreibung', 'wesenschaden_waff_kampf', 'wesenschaden_andere_gestalt', 'difficulty']
+    list_editable = ['wesenschaden_waff_kampf', 'wesenschaden_andere_gestalt', 'difficulty']
 
     inlines = [GfsAttributInLine, GfsFertigkeitInLine,
                GfsVorteilInLine, GfsNachteilInLine,

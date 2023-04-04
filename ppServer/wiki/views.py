@@ -214,7 +214,7 @@ def stufenplan(request, gfs_id):
     boni.append({"field": "Wesenkräfte", "val": ", ".join([i.wesenkraft.titel for i in GfsWesenkraft.objects.filter(gfs=gfs)])})
 
     context = {"skilltree": skilltree, "stufenplan_entries": entries, "gfs": gfs,
-               "topic": gfs.titel, "beschreibung": gfs.beschreibung, "boni": boni}
+               "topic": gfs.titel, "boni": boni}
     return render(request, "wiki/stufenplan.html", context=context)
 
 
