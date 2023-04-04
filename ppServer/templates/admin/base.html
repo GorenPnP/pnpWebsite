@@ -1,0 +1,14 @@
+{% extends 'admin/base.html' %}
+
+{% block extrastyle %}{{ block.super }}
+<style>
+:root {
+  /* see https://github.com/django/django/blob/main/django/contrib/admin/static/admin/css/base.css */
+  --primary: #006600;
+  --secondary: #004700;
+  --link-fg: #663d00;
+  --link-selected-fg: #440066;
+  --link-hover-color: #550080;
+}
+</style>
+{% endblock %}

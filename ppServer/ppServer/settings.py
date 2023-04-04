@@ -34,7 +34,6 @@ INSTALLED_APPS = [
     'daphne',   # needs to be before "django.contrib.staticfiles"
     
     # django
-    'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.messages',
@@ -42,6 +41,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     # own apps
+    'admin',   # replacement for 'django.contrib.admin'
     'auth_custom',
     'base',
     'cards',
@@ -93,7 +93,7 @@ ROOT_URLCONF = 'ppServer.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, "templates")],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
