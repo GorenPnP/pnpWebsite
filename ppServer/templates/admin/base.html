@@ -1,4 +1,10 @@
 {% extends 'admin/base.html' %}
+{% load static %}
+
+{% block extrahead %}
+  {{ block.super }}
+  <link rel="shortcut icon" href="{% static 'res/img/goren_logo.png' %}" type="image/x-icon">
+{% endblock %}
 
 {% block extrastyle %}{{ block.super }}
 <style>

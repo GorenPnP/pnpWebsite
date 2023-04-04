@@ -1,0 +1,23 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block extrastyle %}{{ block.super }}
+<style>
+#branding h1 { font-weight: 800; }
+.logo {
+  display: inline-block;
+  height: 2em;
+  aspect-ratio: 1;
+}
+</style>
+{% endblock %}
+
+{% block branding %}
+<h1 id="site-name"><a href="{% url 'admin:index' %}">
+    <img class="logo" src="{% static 'res/img/goren_logo.svg' %}">
+    {{ site_header|default:_('Django administration') }}
+</a></h1>
+{% if user.is_anonymous %}
+  {% include "admin/color_theme_toggle.html" %}
+{% endif %}
+{% endblock %}
