@@ -1,6 +1,7 @@
 body {
 	margin: 0;
 	--footer-height: 3em;
+	--footer-padding: 10px;
 
 	background-color: #dac7c7;
 }
@@ -8,7 +9,7 @@ body {
 
 
 #message-container {
-	height: calc(100vh - var(--footer-height));
+	height: calc(100vh - var(--footer-height) - 2*var(--footer-padding));
 	padding: 1em;
 
 	display: grid;
@@ -58,9 +59,9 @@ body {
 }
 
 .footer {
-	height: var(--footer-height);
+	height: calc(var(--footer-height) + 2*var(--footer-padding));
 	width: 100vw;
-	padding: 0 5px;
+	padding: var(--footer-padding);
 	gap: 5px;
 
 	display: flex;
