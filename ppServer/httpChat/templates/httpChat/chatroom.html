@@ -14,7 +14,6 @@
 		{% bootstrap_javascript %}
 		<link rel="stylesheet" type="text/css" href="{% static 'httpChat/css/chatroom.css' %}" />
 		<script src="{% static 'res/js/axios.min.js' %}" type='text/javascript'></script>
-		<script src="{% static 'base/js/ajax.js' %}"></script>
 		<script src="{% static 'httpChat/js/chatroom.js' %}"></script>
 	</head>
 
@@ -29,9 +28,13 @@
 
 				<!-- chat message -->
 				{% if message.type == "i" %}
-				<div class="info">{{ message.text  }}</div>
+				<div class="info">{{ message.text }}</div>
 				{% else %}
-				<div class="message {% if message.author == account %}message--own{% else %}message--foreign{% endif %}">
+
+				<div class="message
+					{% if message.author == account %}message--own{% else %}message--foreign{% endif %}
+					{% if latest_access is None or message.created_at > latest_access %} message--new{% endif %}"
+				>
 					{% if message.author != account %}<div class="message__author">{{ message.author.name }}</div>{% endif %}
 					<div>{{ message.text }}</div>
 					<div class="message__timestamp">{{ message.created_at|date:'G:i'  }}</div>
@@ -45,6 +48,7 @@
 				{% csrf_token %}
 				<input type="text" id="prompt" name="message-text" placeholder="Nachricht">
 				<input type="submit" id="submit-prompt-btn" value=">">
+				<button id="refresh-btn" type="button" onclick="location.reload()" aria-label="Refresh page">⟳</button>
 			</form>
 		</footer>
 	</body>

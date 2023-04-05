@@ -9,7 +9,7 @@
 
 <ul>
 {% for account in accounts %}
-    <li><a href="{% url 'httpchat:account_chats' account.slug %}">{{ account.name }}</a></li>
+    <li><a href="{% url 'httpchat:account_chats' account.slug %}">{{ account.name }} {{ account.new_messages }}</a></li>
 {% endfor %}
 </ul>
 {% endblock %}

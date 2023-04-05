@@ -7,7 +7,7 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('httpChat', '0005_message_text_rendered_alter_message_text'),
+        ('httpChat', '0004_remove_chatroom_slug_alter_chatroom_titel'),
     ]
 
     operations = [

@@ -1,11 +1,12 @@
 from typing import Any, Dict
 
-from django.db.models import Q
+from django.db.models import F, Subquery, OuterRef, Value, Q, Count
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.http import JsonResponse
 from django.http.request import HttpRequest
 from django.http.response import HttpResponse
 from django.shortcuts import redirect
-from django.views.generic.base import TemplateView
+from django.views.generic.base import TemplateView, View
 
 from ppServer.mixins import VerifiedAccountMixin, OwnChatMixin
 
@@ -16,9 +17,21 @@ class AccountListView(LoginRequiredMixin, VerifiedAccountMixin, TemplateView):
 
     def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
         spieler = Spieler.objects.get(name=self.request.user.username)
-        accounts = Account.objects.filter(spieler=spieler).order_by("name")
 
-        return super().get_context_data(**kwargs, accounts=accounts)
+        return super().get_context_data(**kwargs, accounts=Account.objects
+            .filter(spieler=spieler)
+            .order_by("name")
+            .prefetch_related("chatroom_set", "chatroom_set__message_set")
+            .annotate(
+                new_messages = Count("chatroom__message", distinct=True, filter=
+                    ~Q(chatroom__message__author__id=F("id")) &         # .exclude(author=account)
+                    Q(chatroom__message__type="m") &                    # type is a written message, no info or sth.
+                    Q(chatroom__message__created_at__gte=Subquery(    # message that is younger than the last time the account opened the chatroom
+                        ChatroomAccount.objects.filter(account__id=OuterRef("id"), chatroom=OuterRef("chatroom"))[:1].values("latest_access")
+                    ))
+                )
+            )
+        )
 
 
 class ChatroomListView(LoginRequiredMixin, OwnChatMixin, TemplateView):
@@ -27,9 +40,20 @@ class ChatroomListView(LoginRequiredMixin, OwnChatMixin, TemplateView):
     def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
         account = Account.objects.get(slug=self.kwargs["account_name"])
 
-        return super().get_context_data(**kwargs, account=account, chatrooms=Chatroom.objects.filter(
-            accounts__id=account.id
-        ).distinct())
+        return super().get_context_data(**kwargs, account=account,
+            chatrooms=Chatroom.objects
+                .prefetch_related("accounts", "message_set")
+                .filter(accounts__id=account.id)
+                .annotate(
+                    new_messages = Count("message", distinct=True, filter=
+                        ~Q(message__author=account) &           # .exclude(author=account)
+                        Q(message__type="m") &                  # type is a written message, no info or sth.
+                        Q(message__created_at__gte=Subquery(    # message that is younger than the last time the account opened the chatroom
+                            ChatroomAccount.objects.filter(account=account, chatroom__id=OuterRef("id"))[:1].values("latest_access")
+                        ))
+                    )
+                )
+        )
 
 
 class ChatroomView(LoginRequiredMixin, OwnChatMixin, TemplateView):
@@ -38,7 +62,11 @@ class ChatroomView(LoginRequiredMixin, OwnChatMixin, TemplateView):
     def get_objects(self):
         return {
             "account": Account.objects.get(slug=self.kwargs["account_name"]),
-            "chatroom": Chatroom.objects.get(id=self.kwargs["room_id"])
+            "chatroom": Chatroom.objects.get(id=self.kwargs["room_id"]),
+            "chatroomaccount": ChatroomAccount.objects.get(
+                account__slug=self.kwargs["account_name"],
+                chatroom__id=self.kwargs["room_id"]
+            )
         }
 
 
@@ -47,8 +75,25 @@ class ChatroomView(LoginRequiredMixin, OwnChatMixin, TemplateView):
 
         return super().get_context_data(**kwargs,
             topic=objects["chatroom"].get_titel(),
-            **objects
+            latest_access=self.latest_access,
+            **objects,
         )
+    
+    def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
+        objects = self.get_objects()
+        self.latest_access = objects["chatroomaccount"].latest_access
+        objects["chatroomaccount"].set_accessed()
+
+        # if opening chatroom for the first time, add welcome msg
+        if self.latest_access.year == ancient_datetime().year:
+            Message.objects.create(
+                type = Message.choices[1][0],   # info
+                text = f"{objects['account'].name} joined",
+                author = objects['account'],
+                chatroom = objects["chatroom"]
+            )
+
+        return super().get(request, *args, **kwargs)
 
     
     def post(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
@@ -66,3 +111,15 @@ class ChatroomView(LoginRequiredMixin, OwnChatMixin, TemplateView):
 
         # redirect to chatroom
         return redirect(request.build_absolute_uri())
+
+
+class PollNewMessagesRestView(LoginRequiredMixin, OwnChatMixin, View):
+
+    def get(self, request: HttpRequest, *args: Any, **kwargs: Any):
+        res = Chatroom.objects.get(id=self.kwargs["room_id"]).message_set.filter(Q(created_at__gte=Subquery(
+                ChatroomAccount.objects
+                    .filter(account__slug=self.kwargs["account_name"], chatroom__id=self.kwargs["room_id"])[:1]
+                    .values("latest_access")
+        ))).exists()
+
+        return JsonResponse({"new_messages": res})

@@ -26,6 +26,9 @@ class Account(models.Model):
         return self.name
 
 
+def ancient_datetime():
+    return datetime(1990, 6, 1, 0, 0, 0, 0)
+
 class ChatroomAccount(models.Model):
     class Meta:
         verbose_name = "Account"
@@ -37,13 +40,14 @@ class ChatroomAccount(models.Model):
     chatroom = models.ForeignKey("Chatroom", on_delete=models.CASCADE)
     account = models.ForeignKey(Account, on_delete=models.CASCADE)
 
-    latest_access = models.DateTimeField(null=True, blank=True)
+    latest_access = models.DateTimeField(default=ancient_datetime)
 
     def __str__(self):
         return self.account.name
 
     def set_accessed(self):
-        self.update(latest_access = datetime.now())
+        self.latest_access = datetime.now()
+        self.save(update_fields=["latest_access"])
 
 
 class Chatroom(models.Model):
@@ -80,7 +84,7 @@ class Message(models.Model):
 
     type = models.CharField(choices=choices, default="m", max_length=1)
     text = models.TextField(default="")
-    author = models.ForeignKey(Account, on_delete=models.SET_NULL, null=True)
+    author = models.ForeignKey(Account, on_delete=models.SET_NULL, null=True, related_name="author")
 
     chatroom = models.ForeignKey(Chatroom, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)

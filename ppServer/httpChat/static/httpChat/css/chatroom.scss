@@ -49,6 +49,20 @@ body {
 	border-radius: 0 20px 20px;
 
 	.message__timestamp { text-align: start; }
+	
+	
+}
+.message--new.message--foreign {
+	background-color: var(--bs-info);
+	position: relative;
+}
+.message--new.message--foreign::before {
+	content: "Neu!";
+	color: var(--bs-info);
+	position: absolute;
+	left: calc(100% + 5px);
+	bottom: 0;
+	text-shadow:  hsl(190, 90%, 70%) 0 0 2px;
 }
 
 .message__author { font-weight: 700; }
@@ -80,8 +94,20 @@ body {
 		outline: none !important;
 	}
 	#submit-prompt-btn {
-		flex: 0 0 var(--footer-height);
-		background-color: #009d71;
+		height: calc(var(--footer-height) - 2*var(--footer-padding));
+		aspect-ratio: 1;
+		background-color: hsl(163, 100%, 31%);
 		color: #fff;
+		padding: 0;
+		line-height: 1em;
+
+		font-size: x-large;
+	}
+	#refresh-btn {
+		flex: 0 0 10px;
+		background-color: lighten(#dac7c7, 10%);
+		color: hsl(163, 100%, 31%);
+
+		font-size: x-large;
 	}
 }
