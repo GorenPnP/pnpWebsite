@@ -37,7 +37,7 @@ class OwnChatMixin(UserPassesTestMixin):
         if not chatroom_id: return True
 
         account = account[0]
-        return Chatroom.objects.filter(id=chatroom_id).filter(Q(owners__exact=account) | Q(admins__exact=account) | Q(basic_users__exact=account)).exists()
+        return Chatroom.objects.filter(id=chatroom_id).filter(accounts__exact=account).exists()
 
     def handle_no_permission(self):
         return redirect(self.redirect_to)

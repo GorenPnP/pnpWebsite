@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from django.db import models
 from django.utils.text import slugify
 
@@ -10,6 +12,7 @@ class Account(models.Model):
         verbose_name = "Person"
         verbose_name_plural = "Personen"
         
+    # TODO add avatar image
 
     spieler = models.ForeignKey(Spieler, on_delete=models.SET_NULL, blank=False, null=True)
     name = models.CharField(max_length=200, null=False, blank=False, unique=True)
@@ -23,6 +26,26 @@ class Account(models.Model):
         return self.name
 
 
+class ChatroomAccount(models.Model):
+    class Meta:
+        verbose_name = "Account"
+        verbose_name_plural = "Accounts"
+
+        ordering = ["account", "chatroom"]
+        unique_together = ("account", "chatroom")
+
+    chatroom = models.ForeignKey("Chatroom", on_delete=models.CASCADE)
+    account = models.ForeignKey(Account, on_delete=models.CASCADE)
+
+    latest_access = models.DateTimeField(null=True, blank=True)
+
+    def __str__(self):
+        return self.account.name
+
+    def set_accessed(self):
+        self.update(latest_access = datetime.now())
+
+
 class Chatroom(models.Model):
     class Meta:
         ordering = ["titel"]
@@ -31,12 +54,19 @@ class Chatroom(models.Model):
         
     titel = models.CharField(max_length=200, null=True, blank=True)
 
-    owners = models.ManyToManyField(Account, related_name="owners")
-    admins = models.ManyToManyField(Account, related_name="admins")
-    basic_users = models.ManyToManyField(Account, related_name="basic_users")
+    accounts = models.ManyToManyField(Account, through=ChatroomAccount)
 
     def __str__(self):
-        return self.titel
+        return self.get_titel()
+    
+    def get_titel(self, excluding_account: Account=None):
+        if self.titel: return self.titel
+
+        qs = self.accounts.all()
+        if excluding_account:
+            qs = qs.exclude(id=excluding_account.id)
+
+        return ", ".join([a.name for a in qs])
 
 class Message(models.Model):
 

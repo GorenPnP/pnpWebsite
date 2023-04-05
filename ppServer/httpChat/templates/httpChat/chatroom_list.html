@@ -1,5 +1,5 @@
 {% extends 'base/main.html' %}
-{% load static %}
+{% load static chatroom_titel %}
 {% block title %}Chat 2.0{% endblock %}
 {% block extra-head %}
 {% endblock %}
@@ -8,6 +8,6 @@
 {% block body %}
 
 {% for chat in chatrooms %}
-    <a href="{% url 'httpchat:chatroom' account.slug chat.id %}">{{ chat.titel }}</a>
+    <a href="{% url 'httpchat:chatroom' account.slug chat.id %}">{{ chat|titel:account }}</a>
 {% endfor %}
 {% endblock %}

@@ -28,9 +28,7 @@ class ChatroomListView(LoginRequiredMixin, OwnChatMixin, TemplateView):
         account = Account.objects.get(slug=self.kwargs["account_name"])
 
         return super().get_context_data(**kwargs, account=account, chatrooms=Chatroom.objects.filter(
-            Q(owners__id=account.id) |
-            Q(admins__id=account.id) |
-            Q(basic_users__id=account.id)
+            accounts__id=account.id
         ).distinct())
 
 
@@ -48,7 +46,7 @@ class ChatroomView(LoginRequiredMixin, OwnChatMixin, TemplateView):
         objects = self.get_objects()
 
         return super().get_context_data(**kwargs,
-            topic=objects["chatroom"].titel,
+            topic=objects["chatroom"].get_titel(),
             **objects
         )
 

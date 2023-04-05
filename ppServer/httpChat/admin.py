@@ -1,21 +1,22 @@
-from typing import Any, Optional
+from typing import Any
 
 from django.contrib import admin
+from django.db.models.query import QuerySet
 from django.http.request import HttpRequest
 
 from .models import *
 
+class AccountInLineAdmin(admin.TabularInline):
+    model = Chatroom.accounts.through
+
 class MessageInLineAdmin(admin.TabularInline):
     model = Message
-    
-    # def has_add_permission(self, request: HttpRequest, obj=None) -> bool:
-    #     return False
-    
-    # def has_change_permission(self, request: HttpRequest, obj: Optional[Any] = ...) -> bool:
-    #     return False
-    
-    # def has_delete_permission(self, request: HttpRequest, obj: Optional[Any] = ...) -> bool:
-    #     return False
+    fields = ["author", "text", "created_at"]
+    readonly_fields = ["created_at"]
+
+    def get_queryset(self, request: HttpRequest) -> QuerySet[Any]:
+        return super().get_queryset(request).filter(type="m") # Message.choices[0][0] == is a message, not information or sth.
+
 
 
 class AccountAdmin(admin.ModelAdmin):
@@ -25,18 +26,13 @@ class AccountAdmin(admin.ModelAdmin):
 
 class ChatroomAdmin(admin.ModelAdmin):
 
-    list_display = ('titel', "_owners", "_admins", "_basic_users")
+    list_display = ('titel', "_accounts")
     search_fields = ('titel', )
-    exclude = ["slug"]
 
-    inlines = [MessageInLineAdmin]
+    inlines = [AccountInLineAdmin, MessageInLineAdmin]
 
-    def _owners(self, obj):
-        return ", ".join([a.__str__() for a in obj.owners.all()]) or "-"
-    def _admins(self, obj):
-        return ", ".join([a.__str__() for a in obj.admins.all()]) or "-"
-    def _basic_users(self, obj):
-        return ", ".join([a.__str__() for a in obj.basic_users.all()]) or "-"
+    def _accounts(self, obj):
+        return ", ".join([a.__str__() for a in obj.accounts.all()]) or "-"
 
 
 admin.site.register(Account, AccountAdmin)
