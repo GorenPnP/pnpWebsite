@@ -1,4 +1,4 @@
-{% load static django_bootstrap5 weekday %}
+{% load static django_bootstrap5 weekday chatroom_exclude_acc %}
 {% spaceless %}
 <!DOCTYPE html>
 <html lang="de">
@@ -7,7 +7,7 @@
 		<meta content="text/html;charset=utf-8" http-equiv="Content-Type">
 		<meta content="utf-8" http-equiv="encoding">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
-		<title>{{ topic }}</title>
+		<title>{{ chatroom|titel:account }}</title>
 		<link rel="shortcut icon" href="{% static 'res/img/goren_logo.png' %}" type="image/x-icon">
 
 		{% bootstrap_css %}
@@ -18,6 +18,38 @@
 	</head>
 
 	<body>
+		<nav class="navbar navbar-expand-lg bg-light">
+			<div class="container-fluid">
+				<a href="{% url 'httpchat:account_chats' account.slug %}" class="btn btn-outline-dark" style="margin-right: 1em;">< Zurück</a>
+				<a class="navbar-brand d-flex align-items-center gap-2" href="#" onclick="alert('Affektivität?')">
+					{{ chatroom|titel:account }}
+					{% for url in chatroom|get_avatar_urls:account %}
+						<img src="{{ url }}" alt="Logo" class="rounded-circle border border-primary d-inline-block align-text-top" style="height: 47px; aspect-ratio: 1">
+					{% endfor %}
+				</a>
+			  <!-- <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarTogglerDemo02" aria-controls="navbarTogglerDemo02" aria-expanded="false" aria-label="Toggle navigation">
+				<span class="navbar-toggler-icon"></span>
+			  </button>
+			  <div class="collapse navbar-collapse" id="navbarTogglerDemo02">
+				<ul class="navbar-nav me-auto mb-2 mb-lg-0">
+				  <li class="nav-item">
+					<a class="nav-link active" aria-current="page" href="#">Home</a>
+				  </li>
+				  <li class="nav-item">
+					<a class="nav-link" href="#">Link</a>
+				  </li>
+				  <li class="nav-item">
+					<a class="nav-link disabled">Disabled</a>
+				  </li>
+				</ul>
+				<form class="d-flex" role="search">
+				  <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
+				  <button class="btn btn-outline-success" type="submit">Search</button>
+				</form>
+			  </div> -->
+			</div>
+		  </nav>
+
 		<main id="message-container">
 			{% for message in chatroom.message_set.all %}
 

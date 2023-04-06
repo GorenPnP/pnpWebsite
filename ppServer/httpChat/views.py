@@ -10,6 +10,7 @@ from django.views.generic.base import TemplateView, View
 
 from ppServer.mixins import VerifiedAccountMixin, OwnChatMixin
 
+from .forms import AccountForm, ChatroomForm
 from .models import *
 
 class AccountListView(LoginRequiredMixin, VerifiedAccountMixin, TemplateView):
@@ -18,7 +19,7 @@ class AccountListView(LoginRequiredMixin, VerifiedAccountMixin, TemplateView):
     def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
         spieler = Spieler.objects.get(name=self.request.user.username)
 
-        return super().get_context_data(**kwargs, accounts=Account.objects
+        return super().get_context_data(**kwargs, form=AccountForm(), accounts=Account.objects
             .filter(spieler=spieler)
             .order_by("name")
             .prefetch_related("chatroom_set", "chatroom_set__message_set")
@@ -33,6 +34,17 @@ class AccountListView(LoginRequiredMixin, VerifiedAccountMixin, TemplateView):
             )
         )
 
+    def post(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
+        spieler = Spieler.objects.get(name=request.user.username)
+
+        account = Account(spieler=spieler)
+        form = AccountForm(request.POST, request.FILES, instance=account)
+        if form.is_valid():
+            form.save()
+
+        # redirect to self.get()
+        return redirect(request.build_absolute_uri())
+
 
 class ChatroomListView(LoginRequiredMixin, OwnChatMixin, TemplateView):
     template_name = "httpChat/chatroom_list.html"
@@ -40,7 +52,7 @@ class ChatroomListView(LoginRequiredMixin, OwnChatMixin, TemplateView):
     def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
         account = Account.objects.get(slug=self.kwargs["account_name"])
 
-        return super().get_context_data(**kwargs, account=account,
+        return super().get_context_data(**kwargs, account=account, form=ChatroomForm(exclude_account=account),
             chatrooms=Chatroom.objects
                 .prefetch_related("accounts", "message_set")
                 .filter(accounts__id=account.id)
@@ -54,6 +66,18 @@ class ChatroomListView(LoginRequiredMixin, OwnChatMixin, TemplateView):
                     )
                 )
         )
+    
+    def post(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
+        account = Account.objects.get(slug=self.kwargs["account_name"])
+
+        form = ChatroomForm(account, request.POST)
+        if form.is_valid():
+            accounts_M2M = list(form.cleaned_data['accounts'])
+            form.cleaned_data['accounts'] = accounts_M2M + [account]
+            form.save()
+
+        # redirect to self.get()
+        return redirect(request.build_absolute_uri())
 
 
 class ChatroomView(LoginRequiredMixin, OwnChatMixin, TemplateView):
@@ -74,7 +98,6 @@ class ChatroomView(LoginRequiredMixin, OwnChatMixin, TemplateView):
         objects = self.get_objects()
 
         return super().get_context_data(**kwargs,
-            topic=objects["chatroom"].get_titel(),
             latest_access=self.latest_access,
             **objects,
         )

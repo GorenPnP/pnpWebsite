@@ -2,14 +2,14 @@ body {
 	margin: 0;
 	--footer-height: 3em;
 	--footer-padding: 10px;
+	--header-height: calc(57px + 2*8px);
 
 	background-color: #dac7c7;
 }
 .shadow { box-shadow: 0 0 10px darken(#dac7c7, 10%); }
 
-
 #message-container {
-	height: calc(100vh - var(--footer-height) - 2*var(--footer-padding));
+	height: calc(100vh - var(--footer-height) - 2*var(--footer-padding) - var(--header-height));
 	padding: 1em;
 
 	display: grid;

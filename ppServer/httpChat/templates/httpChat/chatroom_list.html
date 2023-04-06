@@ -5,13 +5,21 @@
 {% block extra-head %}
     {% bootstrap_css %}
     {% bootstrap_javascript %}
-    <style>.main-container { min-height: 100vh; }</style>
+    <link rel="stylesheet" href="{% static 'httpChat/css/list.css' %}">
 {% endblock %}
 {% block absolute %}{% include 'base/header.html' with topic=account.name %}{% endblock %}
 
 {% block body %}
+<a href="{% url 'httpchat:index'%}" class="btn btn-outline-light text-light" style="margin-bottom: 1em;">< Zurück</a>
 
-<h2 class="text-light">Mit wem willst du sprechen?</h2>
+<div class="d-flex justify-content-between mb-3 flex-wrap">
+    <h2 class="text-light">Mit wem willst du sprechen?</h2>
+    
+    <!-- Button trigger modal -->
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#new-chatroom-modal">
+        + Neuer Chat
+    </button>
+</div>
 
 <ul class="list-group">
     {% for chat in chatrooms %}
@@ -21,13 +29,40 @@
             {% endfor %}
             <a href="{% url 'httpchat:chatroom' account.slug chat.id %}" class="ms-2 me-auto text-dark">
                 <div class="fw-bold">{{ chat|titel:account }}</div>
+                {% if  chat.message_set.count %}
                 <i>
                     {% if  chat.message_set.last.author == account %}Du{% else %}{{ chat.message_set.last.author }}{% endif %}:
                     {{ chat.message_set.last.text|truncatechars:30 }}
                 </i>
+                {% endif %}
             </a>
             <span class="badge bg-primary rounded-pill fs-6">{{ chat.new_messages }}</span>
         </li>
     {% endfor %}
 </ul>
+
+
+
+<!-- New Chatroom Modal -->
+<div class="modal fade" id="new-chatroom-modal" tabindex="-1" aria-labelledby="newChatroomModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="newChatroomModalLabel">Neuer Chat</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Abbrechen"></button>
+        </div>
+        <div class="modal-body">
+          <form id="new-form" method="post">
+              {% csrf_token %}
+              {{ form.as_div }}
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-primary" data-bs-dismiss="modal">Zurück</button>
+          <input type="submit" class="btn btn-primary" value="Erstellen" form="new-form">
+        </div>
+      </div>
+    </div>
+  </div>
+  
 {% endblock %}

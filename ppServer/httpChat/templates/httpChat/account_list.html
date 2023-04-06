@@ -5,13 +5,20 @@
 {% block extra-head %}
     {% bootstrap_css %}
     {% bootstrap_javascript %}
-    <style>.main-container { min-height: 100vh; }</style>
+    <link rel="stylesheet" href="{% static 'httpChat/css/list.css' %}">
 {% endblock %}
 {% block absolute %}{% include 'base/header.html' with topic="Chat 2.0" %}{% endblock %}
 
 {% block body %}
 
-<h2 class="text-light">Wer bist du?</h2>
+<div class="d-flex justify-content-between mb-3 flex-wrap">
+    <h2 class="text-light">Wer bist du?</h2>
+    
+    <!-- Button trigger modal -->
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#new-account-modal">
+        + Neuer Account
+    </button>
+</div>
 
 <ul class="list-group">
 {% for account in accounts %}
@@ -24,4 +31,28 @@
     </li>
 {% endfor %}
 </ul>
+
+
+<!-- New Account Modal -->
+<div class="modal fade" id="new-account-modal" tabindex="-1" aria-labelledby="newAccountModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="newAccountModalLabel">Neuer Account</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Abbrechen"></button>
+      </div>
+      <div class="modal-body">
+        <form id="new-form" method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            {{ form.as_div }}
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-primary" data-bs-dismiss="modal">Zurück</button>
+        <input type="submit" class="btn btn-primary" value="Erstellen" form="new-form">
+      </div>
+    </div>
+  </div>
+</div>
+
 {% endblock %}
