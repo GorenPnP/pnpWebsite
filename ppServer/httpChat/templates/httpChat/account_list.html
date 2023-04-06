@@ -1,15 +1,27 @@
 {% extends 'base/main.html' %}
-{% load static %}
+{% load static django_bootstrap5 %}
+
 {% block title %}Chat 2.0{% endblock %}
 {% block extra-head %}
+    {% bootstrap_css %}
+    {% bootstrap_javascript %}
+    <style>.main-container { min-height: 100vh; }</style>
 {% endblock %}
 {% block absolute %}{% include 'base/header.html' with topic="Chat 2.0" %}{% endblock %}
 
 {% block body %}
 
-<ul>
+<h2 class="text-light">Wer bist du?</h2>
+
+<ul class="list-group">
 {% for account in accounts %}
-    <li><a href="{% url 'httpchat:account_chats' account.slug %}">{{ account.name }} {{ account.new_messages }}</a></li>
+    <li class="list-group-item d-flex justify-content-between align-items-center">
+        <img src="{{ account.get_avatar_url }}" class="rounded-circle border border-primary" style="height: 47px; aspect-ratio: 1">
+        <a href="{% url 'httpchat:account_chats' account.slug %}" class="ms-2 me-auto fw-bold text-dark">
+            {{ account.name }}
+        </a>
+        <span class="badge bg-primary rounded-pill fs-6">{{ account.new_messages }}</span>
+    </li>
 {% endfor %}
 </ul>
 {% endblock %}

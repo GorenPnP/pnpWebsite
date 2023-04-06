@@ -218,7 +218,7 @@ class BaseShop(models.Model):
         return "{} ({})".format(self.name, self._meta.verbose_name)
 
     def getIconUrl(self):
-        return self.icon.url if self.icon else "/static/res/img/icon-dice-account.svg"
+        return self.icon.url if self.icon else "/static/res/img/goren_logo.png"
 
 
     # resize icon

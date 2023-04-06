@@ -1,8 +1,14 @@
+function refresh_page() {
+	if (!document.querySelector("#prompt").value || confirm('Die nicht versendete Nachricht wird beim Refreshen gelöscht. Trotzdem Refreshen?')) {
+		location.reload(true);
+	}
+}
+
 /** poll for new messages. Then refresh page if some exist. */
 function poll_new_messages() {
 	const url = `${location.href.replace(/\/$/, "")}/poll`;
 	axios.get(url)
-		.then(({data}) => data.new_messages && location.reload());
+		.then(({data}) => data.new_messages && location.reload(true));
 }
 
 /*

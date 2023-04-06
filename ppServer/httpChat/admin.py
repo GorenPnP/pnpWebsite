@@ -3,6 +3,7 @@ from typing import Any
 from django.contrib import admin
 from django.db.models.query import QuerySet
 from django.http.request import HttpRequest
+from django.utils.html import format_html
 
 from .models import *
 
@@ -20,8 +21,12 @@ class MessageInLineAdmin(admin.TabularInline):
 
 
 class AccountAdmin(admin.ModelAdmin):
-    list_display = ["name", "spieler"]
+    list_display = ["_avatar", "name", "spieler"]
+    list_display_links = ["_avatar", "name"]
     exclude = ["slug"]
+
+    def _avatar(self, obj):
+        return format_html('<img src="{0}" style="max-width: 32px; max-height:32px; border-radius=50%" />'.format(obj.avatar.url)) if obj.avatar else "-"
 
 
 class ChatroomAdmin(admin.ModelAdmin):

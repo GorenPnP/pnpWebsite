@@ -2,6 +2,7 @@ from datetime import datetime
 
 from django.db import models
 from django.utils.text import slugify
+import pytz
 
 from character.models import Spieler
 
@@ -12,7 +13,7 @@ class Account(models.Model):
         verbose_name = "Person"
         verbose_name_plural = "Personen"
         
-    # TODO add avatar image
+    avatar = models.ImageField(null=True, blank=True)
 
     spieler = models.ForeignKey(Spieler, on_delete=models.SET_NULL, blank=False, null=True)
     name = models.CharField(max_length=200, null=False, blank=False, unique=True)
@@ -24,10 +25,13 @@ class Account(models.Model):
 
     def __str__(self):
         return self.name
+    
+    def get_avatar_url(self):
+        return self.avatar.url if self.avatar else "/static/res/img/goren_logo.png"
 
 
 def ancient_datetime():
-    return datetime(1990, 6, 1, 0, 0, 0, 0)
+    return datetime(1990, 6, 1, 0, 0, 0, 0, tzinfo=pytz.UTC)
 
 class ChatroomAccount(models.Model):
     class Meta:
@@ -55,7 +59,7 @@ class Chatroom(models.Model):
         ordering = ["titel"]
         verbose_name = "Chatroom"
         verbose_name_plural = "Chatrooms"
-        
+
     titel = models.CharField(max_length=200, null=True, blank=True)
 
     accounts = models.ManyToManyField(Account, through=ChatroomAccount)
@@ -71,6 +75,13 @@ class Chatroom(models.Model):
             qs = qs.exclude(id=excluding_account.id)
 
         return ", ".join([a.name for a in qs])
+
+    def get_avatar_urls(self, excluding_account: Account=None):
+        qs = self.accounts.all()
+        
+        if excluding_account:
+            qs = qs.exclude(id=excluding_account.id)
+        return [a.get_avatar_url() for a in qs]
 
 class Message(models.Model):
 

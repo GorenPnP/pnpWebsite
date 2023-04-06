@@ -1,15 +1,33 @@
 {% extends 'base/main.html' %}
-{% load static chatroom_titel %}
-{% block title %}Chat 2.0{% endblock %}
+{% load static chatroom_exclude_acc django_bootstrap5 %}
+
+{% block title %}{{ account.name }}{% endblock %}
 {% block extra-head %}
+    {% bootstrap_css %}
+    {% bootstrap_javascript %}
+    <style>.main-container { min-height: 100vh; }</style>
 {% endblock %}
-{% block absolute %}{% include 'base/header.html' with topic="Chat 2.0" %}{% endblock %}
+{% block absolute %}{% include 'base/header.html' with topic=account.name %}{% endblock %}
 
 {% block body %}
 
-<ul>
+<h2 class="text-light">Mit wem willst du sprechen?</h2>
+
+<ul class="list-group">
     {% for chat in chatrooms %}
-        <li><a href="{% url 'httpchat:chatroom' account.slug chat.id %}">{{ chat|titel:account }} {{ chat.new_messages }}</a></li>
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+            {% for url in chat|get_avatar_urls:account %}
+                <img src="{{ url }}" class="rounded-circle border border-primary" style="height: 47px; aspect-ratio: 1">
+            {% endfor %}
+            <a href="{% url 'httpchat:chatroom' account.slug chat.id %}" class="ms-2 me-auto text-dark">
+                <div class="fw-bold">{{ chat|titel:account }}</div>
+                <i>
+                    {% if  chat.message_set.last.author == account %}Du{% else %}{{ chat.message_set.last.author }}{% endif %}:
+                    {{ chat.message_set.last.text|truncatechars:30 }}
+                </i>
+            </a>
+            <span class="badge bg-primary rounded-pill fs-6">{{ chat.new_messages }}</span>
+        </li>
     {% endfor %}
 </ul>
 {% endblock %}
