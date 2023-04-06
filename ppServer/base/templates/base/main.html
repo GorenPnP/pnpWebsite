@@ -1,4 +1,4 @@
-{% load static %}
+{% load static new_messages %}
 {% spaceless %}
 <!DOCTYPE html>
 <html lang="de">
@@ -30,6 +30,13 @@
 	{% if request.user.is_authenticated %}
 	<aside class="planner">
 		<a href="{% url 'planner:index' %}">Planer</a>
+	</aside>
+
+	<aside class="chat">
+		<a class="chat-container" href="{% url 'httpchat:index' %}">
+			<img src="{% static 'res/img/open-envelope-paper.png' %}" height="50px" width="50px" class="bg">
+			<span class="new_messages">{{ request.user|newMessages }}</span>
+		</a>
 	</aside>
 	{% endif %}
 </html>

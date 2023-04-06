@@ -89,7 +89,7 @@ a.btn {
 	a { color: #8b0000; }
 }
 
-.planner {
+.planner, .chat {
 	position: fixed;
 	top: 75px;
 	right: 0;
@@ -103,6 +103,37 @@ a.btn {
 	clip-path: polygon(0 0, 100% 0%, 100% 100%, 0 100%, 20% 49%);
 	opacity: 0.75;
 	z-index: 1000;
+}
+.chat {
+	top: 150px;
+	padding: .25em .5em .25em 1em;
+	background-color: #fd7e14;
+
+	.chat-container {
+		position: relative;
+		display: block;
+		height: 90%;
+		padding: 5% 0;
+		aspect-ratio: 1;
+
+		height: 50px;
+	}
+	.bg {
+		position: absolute;
+		height: 100%;
+		top: 0;
+		left: 0;
+		opacity: .6;
+	}
+	.new_messages {
+		position: absolute;
+		top: 3px;
+		left: 0;
+		width: 100%;
+		text-align: center;
+		line-height: 1em;
+		font-weight: 700;
+	}
 }
 
 

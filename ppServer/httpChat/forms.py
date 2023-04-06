@@ -16,7 +16,7 @@ class ChatroomForm(forms.ModelForm):
 
     class Meta:
         model = Chatroom
-        fields = ["titel", "accounts"]
+        fields = ["accounts"]
         widgets = {"accounts": M2MSelect()}
         labels = {
             "accounts": "Kontakt"
@@ -28,7 +28,7 @@ class ChatroomForm(forms.ModelForm):
         qs = Account.objects.all()
         if exclude_account:
             # exclude all accounts that share a chatroom with  exclude_account. Including itself. 
-            qs = qs.exclude(chatroom__accounts=exclude_account)
+            qs = qs.exclude(chatroom__accounts=exclude_account).exclude(id=exclude_account.id)
 
         self.fields['accounts'].queryset = qs
 

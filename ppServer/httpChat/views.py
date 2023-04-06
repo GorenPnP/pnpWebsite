@@ -21,7 +21,6 @@ class AccountListView(LoginRequiredMixin, VerifiedAccountMixin, TemplateView):
 
         return super().get_context_data(**kwargs, form=AccountForm(), accounts=Account.objects
             .filter(spieler=spieler)
-            .order_by("name")
             .prefetch_related("chatroom_set", "chatroom_set__message_set")
             .annotate(
                 new_messages = Count("chatroom__message", distinct=True, filter=
@@ -32,6 +31,7 @@ class AccountListView(LoginRequiredMixin, VerifiedAccountMixin, TemplateView):
                     ))
                 )
             )
+            .order_by("-new_messages", "name")
         )
 
     def post(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
@@ -65,6 +65,7 @@ class ChatroomListView(LoginRequiredMixin, OwnChatMixin, TemplateView):
                         ))
                     )
                 )
+                .order_by("-new_messages", "titel", "accounts")
         )
     
     def post(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
@@ -101,7 +102,7 @@ class ChatroomView(LoginRequiredMixin, OwnChatMixin, TemplateView):
             latest_access=self.latest_access,
             **objects,
         )
-    
+
     def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
         objects = self.get_objects()
         self.latest_access = objects["chatroomaccount"].latest_access
