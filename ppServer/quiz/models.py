@@ -312,7 +312,7 @@ class SpielerSession(models.Model):
 
         # apply offset
         self.current_question += offset
-        self.save()
+        self.save(update_fields=["current_question"])
 
         return questions[self.current_question]
 
@@ -331,10 +331,10 @@ class SpielerSession(models.Model):
 
     def _setState(self, state):
         self.spielerModule.state = state
-        self.spielerModule.save()
+        self.spielerModule.save(update_fields=["state"])
 
         self.current_question = 0
-        self.save()
+        self.save(update_fields=["current_question"])
 
 
 class SpielerQuestion(models.Model):

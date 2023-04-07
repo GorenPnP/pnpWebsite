@@ -294,7 +294,7 @@ def buy_item_post(request, item, firma_shop_model, rel_shop_model, verf_model, r
             i.anz += num_items
             if notizen and len(notizen): i.notizen = ", ".join([i.notizen, notizen])
 
-            i.save()
+            i.save(update_fields=["anz", "notizen"])
         else:
             rel_shop_model.objects.create(char=char, item=item, stufe=stufe, anz=num_items, notizen=notizen)
 
@@ -306,13 +306,13 @@ def buy_item_post(request, item, firma_shop_model, rel_shop_model, verf_model, r
             i.anz += num_items
             if notizen and len(notizen): i.notizen = ", ".join([i.notizen, notizen])
 
-            i.save()
+            i.save(update_fields=["anz", "notizen"])
         else:
             rel_shop_model.objects.create(char=char, item=item, anz=num_items, notizen=notizen)
 
     # pay
     char.geld -= debt
-    char.save()
+    char.save(update_fields=["geld"])
 
     # log
     log_dict = {"num": num_items, "item": item, "preis_ges": debt,

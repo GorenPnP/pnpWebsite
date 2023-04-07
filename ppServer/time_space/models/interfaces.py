@@ -29,12 +29,12 @@ class Node(models.Model):
 	def _setNext(self, next):
 		# TODO check validity of nodes (e.g.: id is not None)
 		self.next = json.dumps([Node.toSpecs(n) for n in next])
-		self.save()
+		self.save(update_fields=["next"])
 
 	def _setBefore(self, before):
 		# TODO check validity of nodes (e.g.: id is not None)
 		self.before = json.dumps([Node.toSpecs(n) for n in before])
-		self.save()
+		self.save(update_fields=["before"])
 
 	def postprocessSignal(self, outputs: List[str]) -> List[str]:
 		return outputs
@@ -176,7 +176,7 @@ class TemporalFissure(Node):
 		else:
 			self.next_required_input_at += 1
 		
-		self.save()
+		self.save(update_fields=["next_required_input_at"])
 
 		# killed
 		if self.next_required_input_at >= len(self._required_input):

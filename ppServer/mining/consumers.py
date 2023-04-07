@@ -48,7 +48,7 @@ class MiningGameConsumer(AsyncWebsocketConsumer):
         if rel_profile.inventory is None:
             inventory = Inventory.objects.create()
             rel_profile.inventory = inventory
-            rel_profile.save()
+            rel_profile.save(update_fields=["inventory"])
 
         # get inventory item
         iitems = InventoryItem.objects.filter(inventory=rel_profile.inventory, item__crafting_item=loot.item)
@@ -62,7 +62,7 @@ class MiningGameConsumer(AsyncWebsocketConsumer):
         amount = choice(json.loads(loot.amount))
         iitem.amount += amount
 
-        iitem.save()
+        iitem.save(update_fields=["amount"])
 
         # return loot
         return amount, iitem
@@ -97,7 +97,7 @@ class MiningGameConsumer(AsyncWebsocketConsumer):
         iitem.rotated = inventory_item["rotated"]
         iitem.amount = inventory_item["amount"]
 
-        iitem.save()
+        iitem.save(update_fields=["item", "inventory", "position", "rotated", "amount"])
         return iitem
 
 

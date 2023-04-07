@@ -155,7 +155,7 @@ def sp_correct(request, id, question_index=0):
             current_session.setCorrected()
 
             current_session.spielerModule.achieved_points = sum([q.achieved_points for q in sqs])
-            current_session.spielerModule.save()
+            current_session.spielerModule.save(update_fields=["achieved_points"])
 
             return redirect("quiz:sp_modules")
 
@@ -185,7 +185,7 @@ def sp_correct(request, id, question_index=0):
 
         # save meta info of question
         spq.question.answer_note = request.POST.get("answer_note")
-        spq.question.save()
+        spq.question.save(update_fields=["answer_note"])
 
         # handle corretion
         spq.correct_text = request.POST.get("text")

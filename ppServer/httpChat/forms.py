@@ -1,6 +1,15 @@
 from django import forms
 
-from .models import Account, Chatroom
+from markdownfield.forms import MarkdownFormField
+from markdownfield.widgets import MDEWidget
+
+from .models import Account, Chatroom, Message
+
+class MessageForm(forms.Form):
+    # text = MarkdownFormField(widget=MDEWidget)
+    text = forms.CharField(widget=MDEWidget)
+
+
 
 class AccountForm(forms.ModelForm):
     class Meta:

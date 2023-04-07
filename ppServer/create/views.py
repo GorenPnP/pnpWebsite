@@ -251,7 +251,7 @@ def new_gfs(request):
             new_char.sp = 0
             new_char.ip = 0
             new_char.zauber = 0
-            new_char.save()
+            new_char.save(update_fields=["ap", "fp", "fg", "geld", "sp", "ip", "zauber"])
 
 
         return JsonResponse({"url": reverse("create:prio")})
@@ -318,7 +318,7 @@ def new_priotable(request):
             return JsonResponse({"message": "Zu wenig AP für Gfs"}, status=418)
 
         new_char.ap = ap
-        new_char.save()
+        new_char.save(update_fields=["ip", "sp", "konzentration", "fp", "fg", "zauber", "geld", "spF_wF", "ap"])
 
         return JsonResponse({"url": reverse("create:landing_page")})
 
@@ -445,7 +445,7 @@ def new_vor_nachteil(request, char_id=None):
 
         # set ip-pool
         new_char.ip = sum + ip_diff
-        new_char.save()
+        new_char.save(update_fields=["ip"])
 
         # response
         return JsonResponse({"url": reverse("create:landing_page")})
@@ -486,10 +486,10 @@ def new_ap(request):
             curr = attr_dict[str(relAttr.pk)]
             relAttr.aktuellerWert_ap = curr["aktuell_ap"]
             relAttr.maxWert_ap = curr["max_ap"]
-            relAttr.save()
+            relAttr.save(update_fields=["aktuellerWert_ap", "maxWert_ap"])
 
         new_char.ap = 0
-        new_char.save()
+        new_char.save(update_fields=["ap"])
 
         # redirect
         return JsonResponse({"url": reverse("create:landing_page")})
@@ -607,15 +607,15 @@ def new_fert(request):
         # set values in models
         for relAttr in relAttrs:
             relAttr.fg = fg_dict[str(relAttr.attribut.id)]
-            relAttr.save()
+            relAttr.save(update_fields=["fg"])
 
         for relFert in relFerts:
             relFert.fp = fp_dict[str(relFert.fertigkeit.id)]
-            relFert.save()
+            relFert.save(update_fields=["fp"])
 
         new_char.fp = 0
         new_char.fg = 0
-        new_char.save()
+        new_char.save(update_fields=["fp", "fg"])
 
         # redirect
         return JsonResponse({"url": reverse("create:landing_page")})
@@ -646,7 +646,7 @@ def new_fert(request):
             if new_f.fertigkeit.attr1 is None and new_f.fertigkeit.attr2:
                 new_f.fertigkeit.attr1 = new_f.fertigkeit.attr2
                 new_f.fertigkeit.attr2 = None
-                new_f.fertigkeit.save()
+                new_f.fertigkeit.save(update_fields=["attr1", "attr2"])
 
             # fertigkeiten with 2 attrs
             rel_attr1 = get_object_or_404(NewCharakterAttribut, attribut=new_f.fertigkeit.attr1, char=new_char)
@@ -739,7 +739,7 @@ def new_zauber(request):
             NewCharakterZauber.objects.get_or_create(char=new_char, item=z)
 
         new_char.zauber = 0
-        new_char.save()
+        new_char.save(update_fields=["zauber"])
         return JsonResponse({"url": reverse("create:landing_page")})
 
 
@@ -825,7 +825,7 @@ def new_spF_wF(request):
 
         # apply
         new_char.spF_wF = 0
-        new_char.save()
+        new_char.save(update_fields=["spF_wF"])
 
         NewCharakterSpezialfertigkeit.objects.filter(char=new_char).delete()
         NewCharakterWissensfertigkeit.objects.filter(char=new_char).delete()
@@ -922,7 +922,7 @@ def new_cp(request):
 
             if c.larp:
                 c.beruf = get_object_or_404(Beruf, titel="Schüler")
-                c.save()
+                c.save(update_fields=["beruf"])
 
         # new_char already deleted
         else:
@@ -964,6 +964,6 @@ def new_cp(request):
         except:
             return JsonResponse({"message": "Daten nicht angekommen"}, status=418)
 
-        character.save()
+        character.save(update_fields=["name", "religion", "useEco", "in_erstellung"])
 
         return redirect("character:index")

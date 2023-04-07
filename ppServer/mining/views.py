@@ -109,7 +109,7 @@ def region_editor(request, region_id=None):
 		region.name = name
 		region.bg_color_rgb = bg_color
 		try:
-			region.save()
+			region.save(update_fields=["name", "bg_color_rgb"])
 		except IntegrityError as e:
 			print(e)
 			return JsonResponse({"message": "Den Namen '{}' gibt es schon".format(name)}, status=418)
@@ -135,7 +135,7 @@ def region_editor(request, region_id=None):
 			entity.mirrored = field["mirrored"]
 			entity.scale = field["scale"]
 			entity.rotation_angle = field["rotation_angle"]
-			entity.save()
+			entity.save(update_fields=["layer", "x", "y", "material", "mirrored", "scale", "rotation_angle"])
 
 
 
@@ -183,7 +183,7 @@ def game(request, pk):
 		rel_profile, _ = RelProfile.objects.get_or_create(spieler=spieler, profile=profile)
 		if not rel_profile.inventory:
 			rel_profile.inventory = Inventory.objects.create()
-			rel_profile.save()
+			rel_profile.save(update_fields=["inventory"])
 
 		inventory = rel_profile.inventory
 		inventory_items = [iitem.toDict() for iitem in InventoryItem.objects.filter(inventory=inventory)]

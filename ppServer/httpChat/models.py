@@ -4,6 +4,9 @@ from django.db import models
 from django.utils.text import slugify
 import pytz
 
+from markdownfield.models import MarkdownField, RenderedMarkdownField
+from markdownfield.validators import VALIDATOR_STANDARD
+
 from character.models import Spieler
 
 
@@ -90,7 +93,9 @@ class Message(models.Model):
     choices = [('m', "Message"), ("i", "Info")]
 
     type = models.CharField(choices=choices, default="m", max_length=1)
-    text = models.TextField(default="")
+    text = models.CharField(max_length=2000)
+    # text = MarkdownField(rendered_field='text_rendered', validator=VALIDATOR_STANDARD)
+    # text_rendered = RenderedMarkdownField(null=True)
     author = models.ForeignKey(Account, on_delete=models.SET_NULL, null=True, related_name="author")
 
     chatroom = models.ForeignKey(Chatroom, on_delete=models.CASCADE)

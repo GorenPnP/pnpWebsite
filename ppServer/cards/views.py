@@ -65,10 +65,10 @@ def sp_transaction(request):
                 # process the data in form.cleaned_data as required
 
                 form.cleaned_data["sender"].money -= form.cleaned_data["amount"]
-                form.cleaned_data["sender"].save()
+                form.cleaned_data["sender"].save(update_fields=["money"])
 
                 form.cleaned_data["receiver"].money += form.cleaned_data["amount"]
-                form.cleaned_data["receiver"].save()
+                form.cleaned_data["receiver"].save(update_fields=["money"])
 
                 form.save()
 
@@ -116,14 +116,14 @@ def transaction(request, uuid):
                 # process the data in form.cleaned_data as required
 
                 sender.money -= form.cleaned_data["amount"]
-                sender.save()
+                sender.save(update_fields=["money"])
 
                 form.cleaned_data["receiver"].money += form.cleaned_data["amount"]
-                form.cleaned_data["receiver"].save()
+                form.cleaned_data["receiver"].save(update_fields=["money"])
                 transaction = form.save()
 
                 transaction.sender = sender
-                transaction.save()
+                transaction.save(update_fields=["sender"])
 
                 # redirect to a new URL:
                 return redirect(reverse('cards:show', args=[uuid]))

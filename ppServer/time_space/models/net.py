@@ -47,7 +47,7 @@ class Net(models.Model):
 			raise ValueError("Will not set Start Node to nothing")
 
 		self.startNode = json.dumps(Node.toSpecs(node))
-		self.save()
+		self.save(update_fields=["startNode"])
 
 	# recursive walk through graph
 	# breadth-first search

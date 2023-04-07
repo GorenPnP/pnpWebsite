@@ -8,12 +8,15 @@ WORKDIR /usr/src/ppServer
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
+# set Europe/Berlin as timezone. (install tzdata later with apt-get)
+RUN ln -fs /usr/share/zoneinfo/Europe/Berlin /etc/localtime
+
 # dependencies:
 # - python3-pip for pip3
 # - netcat for nc in entrypoint.sh
 # - postgresql-client-12 for dbbackup
 # - curl for nodejs for npm
-RUN apt-get update && apt-get install -y python3-pip netcat postgresql-client-12 curl
+RUN apt-get update && apt-get install -y python3-pip netcat postgresql-client-12 curl tzdata
 
 # exec install script for npm v14 by curl
 RUN curl -sL https://deb.nodesource.com/setup_14.x | bash

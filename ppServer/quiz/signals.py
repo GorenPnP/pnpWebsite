@@ -143,7 +143,7 @@ def update_states_of_spielermodules(sender, instance, **kwargs):
         # unlock module
         if all_passed and sp_mod.state == module_state[0][0]:   # if SpielerModule is locked, but all prerequisites are met
             sp_mod.state = module_state[1][0]                   # set it to unlocked
-            sp_mod.save()
+            sp_mod.save(update_fields=["state"])
             test_children = True
 
             sp_mod.save()
@@ -159,13 +159,13 @@ def update_states_of_spielermodules(sender, instance, **kwargs):
             else:
                 sp_mod.state = module_state[0][0]
 
-            sp_mod.save()
+            sp_mod.save(update_fields=["optional", "state"])
 
         # prerequisites not met: optional passed -> optional locked. Don't need to test children since it stays optional ^= it is still finished
         elif not all_passed and sp_mod.state == module_state[6][0] and sp_mod.optional:
             sp_mod.state = module_state[0][0]
 
-            sp_mod.save()
+            sp_mod.save(update_fields=["state"])
 
 
         if not test_children: continue

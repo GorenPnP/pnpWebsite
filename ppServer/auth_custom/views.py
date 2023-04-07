@@ -73,7 +73,7 @@ def change_email(request):
 
             user = request.user
             user.email = new_email
-            user.save()
+            user.save(update_fields=["email"])
 
             current_site = get_current_site(request)
             mail_subject = 'Neue Email bestätigen'
@@ -103,7 +103,7 @@ def activate(request, uidb64, token):
         
         # activate user
         user.is_active = True
-        user.save()
+        user.save(update_fields=["is_active"])
 
         # auto-login
         login(request, user)

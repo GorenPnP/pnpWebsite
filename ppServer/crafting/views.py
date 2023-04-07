@@ -29,12 +29,12 @@ def index(request):
 		if created:
 			profile.owner = spieler
 			profile.restricted = request.POST.get("restriction") is not None
-			profile.save()
+			profile.save(update_fields=["owner", "restricted"])
 
 		# set profile as current
 		rel, _ = RelCrafting.objects.get_or_create(spieler=spieler)
 		rel.profil = profile
-		rel.save()
+		rel.save(update_fields=["profil"])
 
 		return redirect("crafting:inventory")
 
@@ -76,7 +76,7 @@ def inventory(request):
 			item = get_object_or_404(Tinker, id=id)
 			iitem, _ = InventoryItem.objects.get_or_create(char=rel.profil, item=item)
 			iitem.num += num
-			iitem.save()
+			iitem.save(update_fields=["num"])
 
 			return JsonResponse({})
 
@@ -235,21 +235,21 @@ def craft(request):
 					ni.delete()
 				else:
 					ni.num -= ingredients[ni.item.id]
-					ni.save()
+					ni.save(update_fields=["num"])
 
 
 			# add crafting time
 			if rel.profil.craftingTime: rel.profil.craftingTime += recipe.duration * num
-			else:												rel.profil.craftingTime  = recipe.duration * num
+			else:						rel.profil.craftingTime  = recipe.duration * num
 
-			rel.profil.save()
+			rel.profil.save(update_fields=["craftingTime"])
 
 
 			# save products
 			for t in recipe.product_set.all():
 				crafted, _ = InventoryItem.objects.get_or_create(char=rel.profil, item=t.item)
 				crafted.num += t.num * num
-				crafted.save()
+				crafted.save(update_fields=["num"])
 
 			return JsonResponse({})
 
@@ -258,7 +258,7 @@ def craft(request):
 		if "table_ordering" in json_dict.keys():
 
 			rel.profil.tableOrdering = [to for to in json_dict["table_ordering"] if to is not None]
-			rel.profil.save()
+			rel.profil.save(update_fields=["tableOrdering"])
 
 			return JsonResponse({})
 
@@ -364,7 +364,7 @@ def sp_give_items(request):
 
 		iitem, _ = InventoryItem.objects.get_or_create(char=profile, item=item)
 		iitem.num += num
-		iitem.save()
+		iitem.save(update_fields=["num"])
 
 		return JsonResponse({})
 

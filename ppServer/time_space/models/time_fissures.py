@@ -86,7 +86,7 @@ class Duplikator(TemporalFissure):
 		output_1 = self._get_output(signals)
 
 		self.next_required_input_at = index
-		self.save()
+		self.save(update_fields=["next_required_input_at"])
 
 		output_2 = self._get_output(signals)
 
@@ -148,7 +148,7 @@ class Timedelayer(TemporalFissure):
 
 		nr, new_output = o.split(":")
 		self.prev_output = new_output.strip()
-		self.save()
+		self.save(update_fields=["prev_output"])
 
 		return None, "{}: {}".format(nr, prev) if prev else None
 

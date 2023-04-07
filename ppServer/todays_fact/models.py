@@ -29,6 +29,6 @@ class History(models.Model):
         if created:
             fact = Fact.objects.all()[choice(range(0, Fact.objects.count()))]
             history_obj.fact = fact
-            history_obj.save()
+            history_obj.save(update_fields=["fact"])
 
         return history_obj.fact

@@ -113,7 +113,7 @@ def index(request, spieler_id=None):
 
             session = sp_mo.getSessionInProgress()
             rel.current_session = session if session else models.SpielerSession.objects.create(spielerModule=sp_mo)
-            rel.save()
+            rel.save(update_fields=["current_session"])
 
             return redirect("quiz:question")
 
@@ -208,7 +208,7 @@ def session_done(request):
 
     if request.method == "POST":
         rel.current_session = None
-        rel.save()
+        rel.save(update_fields=["current_session"])
 
         return redirect("quiz:index")
 
@@ -263,7 +263,7 @@ def review(request, id):
             rel.quiz_points_achieved = sum([q.achieved_points for q in models.SpielerModule.objects.filter(
                 spieler=spieler) if q.pointsEarned() and q.achieved_points is not None]) # sum all modules with earned points on them
 
-            rel.save()
+            rel.save(update_fields=["quiz_points_achieved"])
 
             return redirect("quiz:review_done")
 
@@ -282,7 +282,7 @@ def review(request, id):
     if request.method == "POST":
 
         current_session.current_question += 1
-        current_session.save()
+        current_session.save(update_fields=["current_question"])
 
         return redirect(reverse("quiz:review", args=[id]))
 
@@ -302,6 +302,6 @@ def review_done(request):
 
     if request.method == "POST":
         rel.current_session = None
-        rel.save()
+        rel.save(update_fields=["current_session"])
 
         return redirect("quiz:index")

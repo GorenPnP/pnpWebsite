@@ -46,7 +46,7 @@ def collect_data(sender, **kwargs):
                 relAttr.maxWert = gfsAttr.maxWert
 
                 # save
-                relAttr.save()
+                relAttr.save(update_fields=["aktuellerWert", "maxWert"])
 
         # fp-bonus
         for fert in Fertigkeit.objects.all():
@@ -55,7 +55,7 @@ def collect_data(sender, **kwargs):
             gfsFert = get_object_or_404(GfsFertigkeit, gfs=gfs, fertigkeit=fert)
 
             relFert.fp_bonus = gfsFert.fp
-            relFert.save()
+            relFert.save(update_fields=["fp_bonus"])
 
         if not new_char.larp:
             for m in GfsVorteil.objects.filter(gfs=gfs):

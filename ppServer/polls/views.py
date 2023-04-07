@@ -52,7 +52,7 @@ def detail(request, pk):
 
         for c in set(choices):
             c.votes += choices.count(c)
-            c.save()
+            c.save(update_fields=["votes"])
         QuestionSpieler.objects.get_or_create(spieler=spieler, question=question)
 
         # Always return an HttpResponseRedirect after successfully dealing
