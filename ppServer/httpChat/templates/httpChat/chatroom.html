@@ -75,7 +75,7 @@
 			{% endfor %}
 		</main>
 
-		<footer>
+		<footer class="sticky-bottom">
 			<form method="post" class="footer" id="prompt-form">
 				{% csrf_token %}
 				<input type="text" id="prompt" name="message-text" placeholder="Nachricht">

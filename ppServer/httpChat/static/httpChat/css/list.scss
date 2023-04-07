@@ -1,3 +1,6 @@
 .main-container { min-height: 100vh; }
 #new-form > div label { padding-right: 1em; }
 #new-form > div :where(input, select) { padding-left: 0; }
+
+// overwrite style from base/css/main.scss
+a.btn { color: var(--bs-btn-color); }
