@@ -1,10 +1,11 @@
 import math
-from PIL import Image as PilImage
 
 from django.shortcuts import get_object_or_404
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 from django.db.models import Count
+
+from django_resized import ResizedImageField
 
 from . import enums
 
@@ -204,7 +205,7 @@ class BaseShop(models.Model):
 
     name = models.CharField(max_length=50, default='', unique=True)
     beschreibung = models.TextField(max_length=1500, default='', blank=True)
-    icon = models.ImageField(null=True, blank=True)
+    icon = ResizedImageField(size=[64, 64], null=True, blank=True)
 
     ab_stufe = models.IntegerField(default=0, validators=[MinValueValidator(0)], blank=True)
     illegal = models.BooleanField(default=False)
@@ -219,29 +220,6 @@ class BaseShop(models.Model):
 
     def getIconUrl(self):
         return self.icon.url if self.icon else "/static/res/img/goren_logo.png"
-
-
-    # resize icon
-    def save(self, *args, **kwargs):
-        MAX_SIZE = 64
-
-        super().save(*args, **kwargs)
-
-        # proceed only if an image exists
-        if not self.icon or not self.icon.path: return
-
-        icon = PilImage.open(self.icon.path)
-
-        # is smaller, leave it
-        if icon.height <= MAX_SIZE and icon.width <= MAX_SIZE:
-            return
-
-        # resize, longest is MAX_SIZE, scale the other accordingly while maintaining ratio
-        new_width = MAX_SIZE if icon.width >= icon.height else icon.width * MAX_SIZE // icon.height
-        new_height = MAX_SIZE if icon.width <= icon.height else icon.height * MAX_SIZE // icon.width
-
-        icon.thumbnail((new_width, new_height), PilImage.BILINEAR)
-        icon.save(self.icon.path)
 
 
 class Item(BaseShop):

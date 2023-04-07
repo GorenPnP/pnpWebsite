@@ -4,9 +4,10 @@ from datetime import date
 from django.db import models
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.core.exceptions import ValidationError
-
-from PIL import Image as PilImage
 from django.forms.models import model_to_dict
+
+from django_resized import ResizedImageField
+from PIL import Image as PilImage
 
 from character.models import Spieler
 from crafting.models import Profile
@@ -80,35 +81,13 @@ class Material(models.Model):
 		ordering= ["name"]
 
 	name = models.CharField(max_length=200)
-	icon = models.ImageField(null=False, blank=False)
+	icon = ResizedImageField(size=[1024, 1024], null=False, blank=False)
 	
 	rigidity = models.PositiveIntegerField(default=10, null=False, blank=False)
 	tier = models.PositiveIntegerField(default=0, null=False, blank=False)
 
 	def __str__(self):
 		return "{}".format(self.name)
-
-	# resize icon
-	def save(self, *args, **kwargs):
-		MAX_SIZE = 1024
-
-		super().save(*args, **kwargs)
-
-		# proceed only if an image exists
-		if not self.icon or not self.icon.path: return
-
-		icon = PilImage.open(self.icon.path)
-
-		# is smaller, leave it
-		if icon.height <= MAX_SIZE and icon.width <= MAX_SIZE:
-			return
-
-		# resize, longest is MAX_SIZE, scale the other accordingly while maintaining ratio
-		new_width = MAX_SIZE if icon.width >= icon.height else icon.width * MAX_SIZE // icon.height
-		new_height = MAX_SIZE if icon.width <= icon.height else icon.height * MAX_SIZE // icon.width
-
-		icon.thumbnail((new_width, new_height), PilImage.BILINEAR)
-		icon.save(self.icon.path, "png")
 
 	def w(self):
 		if not self.icon or not self.icon.path: return 0

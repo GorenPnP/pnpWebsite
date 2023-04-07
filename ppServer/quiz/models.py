@@ -1,10 +1,11 @@
 import string, random, json
+from datetime import date
 from math import ceil
-from PIL import Image as PilImage
 
 from django.core.validators import MinValueValidator, MaxValueValidator
-from datetime import date
 from django.db import models
+
+from django_resized import ResizedImageField
 
 from character.models import Spieler
 
@@ -52,36 +53,10 @@ class Image(models.Model):
 
         ordering = ["name"]
 
-    img = models.ImageField(upload_to=upload_and_rename_picture)
+    img = ResizedImageField(size=[512, 512], upload_to=upload_and_rename_picture)
     name = models.CharField(max_length=200, blank=True, null=True)
 
     def __str__(self): return self.name
-
-    def save(self, *args, **kwargs):
-
-        super().save(*args, **kwargs)
-        if self.img is None: return
-
-        MAX_SIZE = 512
-
-        # need to check this, because save() is also called on delete,
-        # when no physical image is available anymore. Weird.
-        try:
-            img = PilImage.open(self.img.path)
-        except:
-            print("No image found on save")
-            return
-
-        # is smaller, leave it
-        if img.height <= MAX_SIZE and img.width <= MAX_SIZE:
-            return
-
-        # resize, longest is MAX_SIZE, scale the other accordingly while maintaining ratio
-        new_width = MAX_SIZE if img.width >= img.height else img.width * MAX_SIZE // img.height
-        new_height = MAX_SIZE if img.width <= img.height else img.height * MAX_SIZE // img.width
-
-        img.thumbnail((new_width, new_height), PilImage.BILINEAR)
-        img.save(self.img.path)
 
 
 class File(models.Model):

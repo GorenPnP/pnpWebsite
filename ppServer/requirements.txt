@@ -4,6 +4,7 @@ Django==4.*						# need django for django. Makes sense, right?
 django-dbbackup==4.0.*                 # db + media backup utility
 tzdata==2022.*                         # used to let django organize time zones
 Pillow==9.4.*				    # image library
+django-resized==1.0.*           # aloow model field to automatically resize an image
 psycopg2-binary==2.9.*			# for postgresql usage
 six==1.16.*                     # generate token for email confirmation on signup
 

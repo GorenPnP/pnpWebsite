@@ -1,9 +1,8 @@
-from datetime import timedelta
 import json
-from PIL import Image as PilImage
+from datetime import timedelta
 
 from django.db import models
-from django.core.validators import MaxValueValidator, MinValueValidator
+from django.core.validators import MinValueValidator
 
 from character.models import Spieler, Spezialfertigkeit, Wissensfertigkeit
 from shop.models import Tinker

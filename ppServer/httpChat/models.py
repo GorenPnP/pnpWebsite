@@ -1,8 +1,10 @@
+import pytz
 from datetime import datetime
 
 from django.db import models
 from django.utils.text import slugify
-import pytz
+
+from django_resized import ResizedImageField
 
 from markdownfield.models import MarkdownField, RenderedMarkdownField
 from markdownfield.validators import VALIDATOR_STANDARD
@@ -16,7 +18,7 @@ class Account(models.Model):
         verbose_name = "Person"
         verbose_name_plural = "Personen"
         
-    avatar = models.ImageField(null=True, blank=True)
+    avatar = ResizedImageField(size=[300, 300], upload_to='httpChat/avatar/', crop=['middle', 'center'], null=True, blank=True)
 
     spieler = models.ForeignKey(Spieler, on_delete=models.SET_NULL, blank=False, null=True)
     name = models.CharField(max_length=200, null=False, blank=False, unique=True)
