@@ -105,8 +105,12 @@ class ChatroomView(LoginRequiredMixin, OwnChatMixin, TemplateView):
 
     def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
         objects = self.get_objects()
-        self.latest_access = objects["chatroomaccount"].latest_access
-        objects["chatroomaccount"].set_accessed()
+
+        # set accessed
+        chatroom_account = objects["chatroomaccount"]
+        self.latest_access = chatroom_account.latest_access
+        chatroom_account.latest_access = datetime.now()
+        chatroom_account.save(update_fields=["latest_access"])
 
         # if opening chatroom for the first time, add welcome msg
         if self.latest_access.year == ancient_datetime().year:

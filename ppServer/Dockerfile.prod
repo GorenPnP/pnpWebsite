@@ -14,13 +14,15 @@ RUN [ -d $APP_HOME/media ] || mkdir $APP_HOME/media
 
 WORKDIR $APP_HOME
 
+# set Europe/Berlin as timezone. (install tzdata later with apt-get)
+RUN ln -fs /usr/share/zoneinfo/Europe/Berlin /etc/localtime
 
 # dependencies:
 # - python3-pip for pip3
 # - netcat for nc in entrypoint.sh
 # - postgresql-client-12 for dbbackup
 # - curl for nodejs for npm
-RUN apt-get update && apt-get install -y python3-pip netcat postgresql-client-12 curl
+RUN apt-get update && apt-get install -y python3-pip netcat postgresql-client-12 curl tzdata
 
 # install dependencies
 COPY ./requirements.txt .

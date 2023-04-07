@@ -49,10 +49,6 @@ class ChatroomAccount(models.Model):
     def __str__(self):
         return self.account.name
 
-    def set_accessed(self):
-        self.latest_access = datetime.now()
-        self.save(update_fields=["latest_access"])
-
 
 class Chatroom(models.Model):
     class Meta:
