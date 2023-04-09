@@ -87,7 +87,8 @@ class FullShopTableView(LoginRequiredMixin, VerifiedAccountMixin, ExportMixin, S
     table_class = Table
 
     template_name = "shop/show_all.html"
-    export_formats = []
+    export_formats = export_formats = ["csv", "json", "latex", "ods", "tsv", "xls", "xlsx", "yaml"]
+
     def get_topic(self): return "Shop"
 
     def get_table_data(self):
@@ -207,6 +208,8 @@ class ShopTableView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTableView):
     model = None
     filterset_class = None
     table_class = None
+
+    export_formats = ["csv", "json", "latex", "ods", "tsv", "xls", "xlsx", "yaml"]
 
     def get_queryset(self) -> QuerySet[Any]:
         return super().get_queryset().filter(frei_editierbar=False).prefetch_related("firmen").annotate(
@@ -354,6 +357,8 @@ class RitualeRunenTableView(ShopTableView):
     model = Rituale_Runen
     filterset_class = Filter
     table_class = Table
+
+    export_formats = ["csv", "json", "latex", "ods", "tsv", "xls", "xlsx", "yaml"]
 
     def get_queryset(self) -> QuerySet[Any]:
         return self.model.objects.filter(frei_editierbar=False).order_by("name")\
