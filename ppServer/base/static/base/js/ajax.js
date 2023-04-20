@@ -31,16 +31,13 @@ document.addEventListener("DOMContentLoaded", () => {
 	axios.defaults.headers.post['Content-Type'] = 'application/json';
 })
 
-function get(data, success, error, display_spinner = true) { send("get", data, success, error, display_spinner)}
-function post(data, success, error, display_spinner = true) { send("post", data, success, error, display_spinner)}
+function get(data, success, error) { send("get", data, success, error)}
+function post(data, success, error) { send("post", data, success, error)}
 
 
-function send(method='get', data, success, error, display_spinner=true) {
+function send(method='get', data, success, error) {
 	success = success || reaction;
 	error = error || reaction;
-
-	const spinner = document.getElementsByClassName("spinner-container")?.[0];
-	if (display_spinner && spinner) spinner.style.display = "flex";
 
 	axios.defaults.method = method
 	axios({ data: data })
@@ -71,11 +68,5 @@ function send(method='get', data, success, error, display_spinner=true) {
 			}
 			console.log(err.config);
 			*/
-		})
-		.then(() => {
-			// stop spinner
-			setTimeout(() => {
-				if (spinner) spinner.style.display = 'none'
-			}, 200)
-		})
+		});
 }

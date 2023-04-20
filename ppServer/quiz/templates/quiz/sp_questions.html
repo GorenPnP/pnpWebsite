@@ -1,6 +1,5 @@
-{% extends 'base/main.html' %}
+{% extends 'base/headed_main.html' %}
 {% load static %}
-{% block title %}{{ topic }}{% endblock %}
 {% block extra-head %}
 <style>
 	:root {color: #ddd;}
@@ -32,19 +31,19 @@
 <script src="{% static 'res/js/axios.min.js' %}" type='text/javascript'></script>
 <script src="{% static 'base/js/ajax.js' %}"></script>
 {% endblock %}
-{% block absolute %}{% include 'base/header.html' with topic=topic %}{% endblock %}
-{% block body %}
+
+{% block main %}
 
 <div style="display: flex; justify-content: space-between;">
-	<a href="{% url 'admin:quiz_module_add' %}" class="new-module">Neues Modul</a>
-	<button class="btn" onclick="submit()">Speichern</button>
+	<a href="{% url 'admin:quiz_module_add' %}" class="new-module btn btn-outline-primary">Neues Modul</a>
+	<button class="btn btn-primary" onclick="submit()">Speichern</button>
 </div>
 
 
 <div class="table">
 	{% for q in questions %}
 	<div class="row">
-		<div class="question">{{ q.text }}</div>
+		<div class="question text-light">{{ q.text }}</div>
 		<a href="{% url 'admin:quiz_question_change' q.id %}" class="details">Details</a>
 		<select name="" id="{{ q.id }}" class="module">
 			<option value="-1" selected>-</option>
@@ -57,7 +56,7 @@
 
 	{% for m in mqs %}
 	<div class="row">
-    	<div class="question">{{ m.question.text }}</div>
+    	<div class="question text-light">{{ m.question.text }}</div>
     	<a href="{% url 'admin:quiz_question_change' m.question.id %}" class="details">Details</a>
     	<select name="" id="{{ m.question.id }}" class="module">
     		<option value="-1">-</option>

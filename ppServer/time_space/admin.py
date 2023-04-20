@@ -15,7 +15,7 @@ class TimeFissureAdmin(admin.ModelAdmin):
 	list_display = ["net_id", "stufe", "next_required_input_at"]
 
 
-admin.site.register(Net, NetAdmin)
+# admin.site.register(Net, NetAdmin)
 
 # admin.site.register(Mirror, GateAdmin)
 # admin.site.register(Inverter, GateAdmin)
@@ -30,12 +30,12 @@ admin.site.register(Net, NetAdmin)
 # admin.site.register(Sensorgatter, GateAdmin)
 # admin.site.register(Tracinggatter, GateAdmin)
 
-admin.site.register(Linearriss, TimeFissureAdmin)
-admin.site.register(Liniendeletion, TimeFissureAdmin)
-admin.site.register(Splinter, TimeFissureAdmin)
-admin.site.register(Metasplinter, TimeFissureAdmin)
-admin.site.register(Duplikator, TimeFissureAdmin)
-admin.site.register(Looper, TimeFissureAdmin)
-admin.site.register(Timelagger, TimeFissureAdmin)
-admin.site.register(Timedelayer, TimeFissureAdmin)
-admin.site.register(Runner, TimeFissureAdmin)
+# admin.site.register(Linearriss, TimeFissureAdmin)
+# admin.site.register(Liniendeletion, TimeFissureAdmin)
+# admin.site.register(Splinter, TimeFissureAdmin)
+# admin.site.register(Metasplinter, TimeFissureAdmin)
+# admin.site.register(Duplikator, TimeFissureAdmin)
+# admin.site.register(Looper, TimeFissureAdmin)
+# admin.site.register(Timelagger, TimeFissureAdmin)
+# admin.site.register(Timedelayer, TimeFissureAdmin)
+# admin.site.register(Runner, TimeFissureAdmin)

@@ -1,13 +1,15 @@
 import sys
 from datetime import date
-from functools import cmp_to_key
 
-from django.db.models import F, Subquery, OuterRef, Value
+from django.db.models import F, Subquery, OuterRef, Value, Min, ExpressionWrapper, Q
+from django.db.models.fields import BooleanField
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import render, get_object_or_404
 from django.urls import reverse
 from django.utils.html import format_html
+from django.views.generic.base import TemplateView
 
 import django_tables2 as tables
 
@@ -20,8 +22,7 @@ from ppServer.decorators import verified_account
 @login_required
 @verified_account
 def index(request):
-    context = {"topic": "Home" }
-    return render(request, 'wiki/index.html', context)
+    return render(request, 'wiki/index.html', { "topic": "Home" })
 
 
 class VorteilView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTableView):
@@ -34,6 +35,9 @@ class VorteilView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTableView):
         "wann_wählbar": ["exact"]
     }
 
+    app_index = "Wiki"
+    app_index_url = "wiki:index"
+
 
 class NachteilView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTableView):
     model = Nachteil
@@ -45,6 +49,8 @@ class NachteilView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTableView):
         "wann_wählbar": ["exact"]
     }
 
+    app_index = "Wiki"
+    app_index_url = "wiki:index"
 
 class TalentView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTableView):
     model = Talent
@@ -54,6 +60,9 @@ class TalentView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTableView):
         "tp": ["lte"],
         "beschreibung": ["icontains"]
     }
+
+    app_index = "Wiki"
+    app_index_url = "wiki:index"
 
 
 class GfsView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTableView):
@@ -100,6 +109,9 @@ class GfsView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTableView):
     table_class = Table
     filterset_fields = {"titel": ["icontains"], "difficulty": ["exact"]}
     template_name = "wiki/gfs.html"
+
+    app_index = "Wiki"
+    app_index_url = "wiki:index"
 
     def get_queryset(self):
         # original qs
@@ -165,18 +177,19 @@ def stufenplan(request, gfs_id):
 
     # stufenplan
     for e in GfsStufenplan.objects.filter(gfs=gfs):
-        entry = {"stufe": e.basis.stufe,
-                 "ep": e.basis.ep,
-                 "ap": None if e.basis.ap == 0 else "+{}".format(e.basis.ap),
-                 "fert": [None if e.basis.fp == 0 else "+{}".format(e.basis.fp),
-                          None if e.basis.fg == 0 else "+{} Gr.".format(e.basis.fg)],
-                 "special_ability": e.special_ability,
-                 "special_ability_description": e.special_ability_description,
-                 "zauber": "+{}".format(e.zauber) if e.zauber else None,
-                 "tp": None if e.basis.tp == 0 else "+{}".format(e.basis.tp),
-                 "wesenkräfte": ", ".join([i.titel for i in e.wesenkräfte.all()]),
-                 "vorteile": ", ".join([i.titel for i in e.vorteile.all()])
-                }
+        entry = {
+            "stufe": e.basis.stufe,
+            "ep": e.basis.ep,
+            "ap": None if e.basis.ap == 0 else "+{}".format(e.basis.ap),
+            "fert": [None if e.basis.fp == 0 else "+{}".format(e.basis.fp),
+                    None if e.basis.fg == 0 else "+{} Gr.".format(e.basis.fg)],
+            "special_ability": e.special_ability,
+            "special_ability_description": e.special_ability_description,
+            "zauber": "+{}".format(e.zauber) if e.zauber else None,
+            "tp": None if e.basis.tp == 0 else "+{}".format(e.basis.tp),
+            "wesenkräfte": ", ".join([i.titel for i in e.wesenkräfte.all()]),
+            "vorteile": ", ".join([i.titel for i in e.vorteile.all()])
+        }
 
         entries.append(entry)
 
@@ -213,8 +226,15 @@ def stufenplan(request, gfs_id):
     boni.append({"field": "Nachteile", "val": ", ".join(["{} {}".format(i.teil.titel, i.notizen).strip() for i in GfsNachteil.objects.filter(gfs=gfs)])})
     boni.append({"field": "Wesenkräfte", "val": ", ".join([i.wesenkraft.titel for i in GfsWesenkraft.objects.filter(gfs=gfs)])})
 
-    context = {"skilltree": skilltree, "stufenplan_entries": entries, "gfs": gfs,
-               "topic": gfs.titel, "boni": boni}
+    context = {
+        "skilltree": skilltree,
+        "stufenplan_entries": entries,
+        "gfs": gfs,
+        "topic": gfs.titel,
+        "boni": boni,
+        "app_index": "Wiki",
+        "app_index_url": reverse("wiki:index")
+    }
     return render(request, "wiki/stufenplan.html", context=context)
 
 
@@ -226,6 +246,9 @@ class PersönlichkeitTableView(LoginRequiredMixin, VerifiedAccountMixin, Dynamic
         "positiv": ["icontains"],
         "negativ": ["icontains"]
     }
+
+    app_index = "Wiki"
+    app_index_url = "wiki:index"
 
 
 class ProfessionView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTableView):
@@ -264,6 +287,9 @@ class ProfessionView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTableView)
 
     table_class = Table
     filterset_fields = ["titel"]
+
+    app_index = "Wiki"
+    app_index_url = "wiki:index"
 
 
 @login_required
@@ -304,8 +330,13 @@ def stufenplan_profession(request, profession_id):
 
         entries.append(entry)
 
-    context = {"stufenplan_entries": entries,
-               "topic": profession.titel, "profession": prof}
+    context = {
+        "stufenplan_entries": entries,
+        "topic": profession.titel,
+        "profession": prof,
+        "app_index": "Wiki",
+        "app_index_url": reverse("wiki:index"),
+    }
     return render(request, "wiki/stufenplan_profession.html", context=context)
 
 
@@ -320,6 +351,9 @@ class SpezialfertigkeitTableView(LoginRequiredMixin, VerifiedAccountMixin, Dynam
         "beschreibung": ["icontains"]
     }
 
+    app_index = "Wiki"
+    app_index_url = "wiki:index"
+
 
 class WissensfertigkeitTableView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTableView):
     model = Wissensfertigkeit
@@ -332,6 +366,9 @@ class WissensfertigkeitTableView(LoginRequiredMixin, VerifiedAccountMixin, Dynam
         "fertigkeit": ["exact"],
         "beschreibung": ["icontains"]
     }
+
+    app_index = "Wiki"
+    app_index_url = "wiki:index"
 
 
 class WesenkraftTableView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTableView):
@@ -364,6 +401,9 @@ class WesenkraftTableView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTable
         "wesen": ["exact"]
     }
 
+    app_index = "Wiki"
+    app_index_url = "wiki:index"
+
 
 class ReligionTableView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTableView):
     model = Religion
@@ -373,6 +413,9 @@ class ReligionTableView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTableVi
         "beschreibung": ["icontains"]
     }
 
+    app_index = "Wiki"
+    app_index_url = "wiki:index"
+
 
 class BerufTableView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTableView):
     model = Beruf
@@ -381,6 +424,9 @@ class BerufTableView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTableView)
         "titel": ["icontains"],
         "beschreibung": ["icontains"]
     }
+
+    app_index = "Wiki"
+    app_index_url = "wiki:index"
 
 
 class RangRankingTableView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTableView):
@@ -398,7 +444,6 @@ class RangRankingTableView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTabl
     model = RangRankingEntry
     topic = "Erfahrungsranking"
     table_class = Table
-    # queryset = RangRankingEntry.objects.all().annotate(rang=F("min_rang"))
     filterset_fields = {
         "ranking": ["icontains"],
         "min_rang": ["lte"],
@@ -408,89 +453,51 @@ class RangRankingTableView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTabl
         "specials": ["icontains"]
     }
 
+    app_index = "Wiki"
+    app_index_url = "wiki:index"
 
 
-def compare_dates(a, b):
-    b = b["date"]
-    a = date(b.year, a["date"].month, a["date"].day)
-    return -1 if a <= b else 1
+class GeburtstageView(LoginRequiredMixin, VerifiedAccountMixin, TemplateView):
+    template_name = "wiki/geburtstage.html"
 
-
-def day_diff_without_year(some_date, today):
-    return (some_date - today).days + 1
-
-
-def age(birthdate: date):
-
-    today = date.today()
-    years = today.year - birthdate.year
-
-    # hadn't had birthday this year (jet)
-    if today.month < birthdate.month or (today.month == birthdate.month and today.day < birthdate.day): years -= 1
-    return years
-
-
-@login_required
-@verified_account
-def geburtstage(request):
-
-    if not Spieler.objects.get(name=request.user.username).geburtstag:
+    def get(self, request):
         context = {
-            "no_birthdate": "Uns fehlt dein Geburtstag noch.",
-            "topic": "Geburtstage"
+            "topic": "Geburtstage",
+            "app_index": "Wiki",
+            "app_index_url": reverse("wiki:index"),
         }
-        return render(request, "wiki/geburtstage.html", context)
 
-    # collect all birthdays in here
-    spieler_birthdays = []
+        if not Spieler.objects.get(name=request.user.username).geburtstag:
+            messages.error(request, "Dein Geburtstag fehlt noch. Teile ihn uns mit, damit du die Liste aller Geburtstage sehen kannst!")
+            return render(request, self.template_name, context)
+        
+        # score each date by month *31 + day to get the closest positive to today
 
-    today = date.today()
+        # get today's score
+        today = date.today().month * 31 + date.today().day
+        # get lowest positive of all players
+        lowest_score = Spieler.objects\
+            .filter(geburtstag__isnull=False)\
+            .order_by("geburtstag__month", "geburtstag__day")\
+            .annotate(
+                score = F("geburtstag__month") *31 + F("geburtstag__day") - today
+            )\
+            .filter(score__gte=0)\
+            .aggregate(
+                min_score = Min("score")
+            )["min_score"]
 
-    # intermediately save next birthday in here
-    days_until_next_birthday = sys.maxsize
-    spieler_with_next_birthday = []
-    for s in Spieler.objects.exclude(geburtstag=None):
-
-        real_name = s.get_real_name()
-        spieler_delta = day_diff_without_year(s.geburtstag, today)
-
-        # append spieler & birthday
-        spieler_birthdays.append({
-            "name": real_name,
-            "date": s.geburtstag,
-            "age": age(s.geburtstag),
-            "next_party": False
-        })
-
-        # birthday has already been this year
-        if spieler_delta < 0: continue
-
-        # check if spieler has on the same date as the next having one(s)
-        if spieler_delta == days_until_next_birthday:
-            days_until_next_birthday = spieler_delta
-            spieler_with_next_birthday.append(real_name)
-
-        # new closest birthday found, set it
-        elif spieler_delta < days_until_next_birthday:
-            days_until_next_birthday = spieler_delta
-            spieler_with_next_birthday = [real_name]
-
-    # mark spieler in list with next birthday
-    for s in spieler_birthdays:
-        if s["name"] in spieler_with_next_birthday: s["next_party"] = True
-
-    spieler_birthdays = sorted(spieler_birthdays, key=cmp_to_key(compare_dates))
-
-    # everyone had already had their birthday, set the first one(s) of the year
-    if days_until_next_birthday is sys.maxsize and len(spieler_birthdays):
-        first_birthday = spieler_birthdays[0]["date"]
-        for spieler_birthday in spieler_birthdays:
-            if spieler_birthday["date"] != first_birthday: break
-
-            spieler_birthday["next_party"] = True
-
-    context = {"list": spieler_birthdays, "topic": "Geburtstage"}
-    return render(request, "wiki/geburtstage.html", context)
+        # use it to annotate "next_party"
+        context["spieler"] = Spieler.objects\
+            .filter(geburtstag__isnull=False)\
+            .order_by("geburtstag__month", "geburtstag__day")\
+            .annotate(
+                score = F("geburtstag__month") *31 + F("geburtstag__day") - today,
+                next_party = ExpressionWrapper(Q(score=lowest_score), output_field=BooleanField())
+            )
+        
+        # render view
+        return render(request, self.template_name, context)
 
 
 class GfsSpecialAbilities(LoginRequiredMixin, DynamicTableView):

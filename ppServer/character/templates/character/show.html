@@ -1,34 +1,29 @@
-{% extends 'base/main.html' %}
+{% extends 'base/headed_main.html' %}
 {% load static %}
-{% block title %}{{ char.name }}{% endblock %}
 {% block extra-head %}
-<link rel="stylesheet" href="{% static 'base/css/header.css' %}" type="text/css">
-<link rel="stylesheet" href="{% static 'base/css/table.css' %}" type="text/css">
-<link rel="stylesheet" href="{% static 'shop/css/show.css' %}" type="text/css">
 <link rel="stylesheet" href="{% static 'character/css/show.css' %}" type="text/css">
 
 <script src="{% static 'res/js/axios.min.js' %}" type='text/javascript'></script>
 <script src="{% static 'base/js/ajax.js' %}"></script>
 <script src="{% static 'character/js/show_nav.js' %}"></script>
 {% endblock %}
-{% block absolute %}{% include 'base/header.html' with topic=char.name %}{% endblock %}
-{% block body %}
 
-<!-- navbar for character -->
-<nav class="show-nav">
-    <ul class="show-nav__list">
-        {% for s in sections %}
-        <li class="show-nav__item {% if forloop.first %}current{% endif %}"
-            onclick="changeSection(event)">{{ s.name }}</li>
-        {% endfor %}
-    </ul>
-</nav>
+{% block main %}
+    <!-- navbar for character -->
+    <nav class="show-nav">
+        <ul class="show-nav__list">
+            {% for s in sections %}
+            <li class="show-nav__item {% if forloop.first %}current{% endif %}"
+                onclick="changeSection(event)">{{ s.name }}</li>
+            {% endfor %}
+        </ul>
+    </nav>
 
-<nav class="mobile-nav btn">
-    <img class="mobile-nav__img sec" src="{% static 'res/img/icon-section.svg' %}" alt="">
-    <img class="mobile-nav__img close" src="{% static 'res/img/icon-close.svg' %}" alt="">
-</nav>
+    <nav class="mobile-nav btn">
+        <img class="mobile-nav__img sec" src="{% static 'res/img/icon-section.svg' %}" alt="">
+        <img class="mobile-nav__img close" src="{% static 'res/img/icon-close.svg' %}" alt="">
+    </nav>
 
-<!-- content (changed via js) -->
-<div class="container">{% include 'character/show_persönlich.html' %}</div>
+    <!-- content (changed via js) -->
+    <div class="container">{% include 'character/show_persönlich.html' %}</div>
 {% endblock %}

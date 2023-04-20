@@ -1,46 +1,38 @@
-{% extends 'base/main.html' %}
+{% extends 'base/headed_main.html' %}
 {% load static %}
-{% block title %}{{ topic }}{% endblock %}
 {% block extra-head %}
-<link rel="stylesheet" href="{% static 'base/css/table.css' %}">
+<link rel="stylesheet" href="{% static 'create/css/highlighted_rows.css' %}">
 <style>
-    .next-party {
-        font-weight: bolder;
-        color: #fff;
-        font-size: 1.1em;
-        background: #c8c8c8 !important;
-        color: black;
-    }
-    .error {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 1.5em;
+    table {
+        max-width: 600px;
+        margin: auto;
     }
 </style>
 {% endblock %}
-{% block absolute %}{% include 'base/header.html' with topic=topic %}{% endblock %}
-{% block body %}
 
-{% if no_birthdate %}
-<main class="error">
-    <h2>Dein Geburtstag fehlt noch</h2>
+{% block main %}
+<table class="table table-dark table-striped table-hover">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Geburtstag</th>
+        </tr>
+    </thead>
 
-    <p>Teile ihn uns mit, damit du die Liste aller Geburtstage sehen kannst.</p>
-</main>
-{% else %}
-<div class="grid-container">
-    <div class="col1 heading">Name</div>
-    <div class="col2 heading">Geburtstag</div>
-    <div class="col3 heading heading--last">Ist wie alt?</div>
-
-    {% for s in list %}
-    <div class="col1 {% if s.next_party %}next-party{% endif %}">{{ s.name }}</div>
-    <div class="col2 {% if s.next_party %}next-party{% endif %}">{{ s.date }}</div>
-    <div class="col3 {% if s.next_party %}next-party{% endif %}">{{ s.age }}</div>
-    {% endfor %}
-</div>
-{% endif %}
-
-
+    <tbody>
+        {% for s in spieler %}
+        <tr class="odd even{% if s.next_party %} highlight{% endif %}">
+            <td>{{ s.get_real_name }}</td>
+            <td>{{ s.geburtstag|date }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td>
+                <b>Nix zu sehen</b>
+            </td>
+            <td></td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
 {% endblock %}

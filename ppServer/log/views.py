@@ -95,6 +95,9 @@ class UserLogView(LoginRequiredMixin, SpielleiterOnlyMixin, DynamicTableView):
     }
     table_fields = ["char", "spieler", "art", "notizen", "kosten", "timestamp"]
 
+    def get_app_index(self): return None
+    def get_app_index_url(self): return None
+
 
 class AdminLogView(LoginRequiredMixin, SpielleiterOnlyMixin, DynamicTableView):
     class Table(GenericTable):
@@ -112,3 +115,6 @@ class AdminLogView(LoginRequiredMixin, SpielleiterOnlyMixin, DynamicTableView):
     topic = "Changes in Admin area"
     filterset_fields = {"action_time": ["lte"], "user": ["exact"], "object_repr": ["icontains"], "change_message": ["icontains"]}
     table_class = Table
+    
+    def get_app_index(self): return None
+    def get_app_index_url(self): return None

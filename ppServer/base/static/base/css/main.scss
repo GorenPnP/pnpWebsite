@@ -1,113 +1,92 @@
-@import url('https://fonts.googleapis.com/css2?family=Indie+Flower&family=Quicksand&display=swap');
-
-:root {
-	--hover-opacity: 80%;
-}
-
 /* general styling rules */
 
 *, *::before, *::after {
 	margin: 0;
 	padding: 0;
-	box-sizing: inherit;
-}
-
-html {
-	font-family: 'Indie Flower', cursive;
-	font-size: 16px;
 	box-sizing: border-box;
 }
+
+/* extend child .main-container at least over remaining screen height */
 body {
-	background: #3a3d40;
+	min-height: 100vh;
+	display: flex;
+	flex-direction: column;
+	align-items: stretch;
+
+	// apply general bg & text colors
+	--background-color--main: #3a3d40;
+	background-color: var(--background-color--main);
+	--bs-body-color: var(--bs-light);
 }
-ul {list-style-type: none;}
-a, a:visited {
-	text-decoration: none;
-	color: #0ff;
-}
-a:hover, button:hover, .btn:hover {
-	opacity: var(--hover-opacity);
+.modal {
+	--bs-modal-color: var(--bs-dark);
 }
 
-select, option {
-	cursor: pointer;
-	max-width: 600px;
+
+/* styles for messages */
+.messages { list-style: none; }
+.message.success {
+	background-color: var(--bs-success);
+	color: #fff;
 }
-select, input {
-	border-radius: 10px;
-	padding: .7em;
+.message.info {
+	background-color: var(--bs-info);
+	color: #000;
+}
+.message.warning {
+	background-color: var(--bs-warning);
+	color: #000;
+}
+.message.error {
+	background-color: var(--bs-danger);
+	color: #fff;
 }
 
-button, .btn {
-	display: block;
-	cursor: pointer;
-	font-family: 'Quicksand', sans-serif;
 
-	border-radius: 5px;
-	border: none;
-	background: #0ff;
-	padding: .7em;
-}
-a.btn {
-	color: #444;
-	text-align: center;
-}
 
-/* frequently used classes */
-
-.btn__text {
-	margin: 0.6em;
-}
-.btn:disabled, .btn:disabled:hover {
-	background: #c8c8c8;
-	cursor: not-allowed;
-}
-.hide {
-	display: none;
-}
+/* styles found in main.html */
 
 .main-container {
+	// cover at least remaining screen (width &) height
+	flex: 1;
 	width: 100%;
-	padding: 0 15% 2em;
-	background: #3a3d40;
-	min-width: fit-content;
 
-	padding-bottom: 100px !important;
+	// room for footer
+	padding: 2.4em 2em 200px;
+
+	// apply general bg
+	background-color: var(--background-color--main);
 }
 
-.footer {
+
+.bookmark {
+	--color: #000;
+	--background-color: var(--bs-warning);
+
+
 	position: fixed;
-	bottom: 0;
-	left: 0;
 	right: 0;
-	height: fit-content;
-	padding: .5em 1em;
-	z-index: 100;
 
-	background-color: #ffdab9;
-
-	a { color: #8b0000; }
-}
-
-.planner, .chat {
-	position: fixed;
-	top: 75px;
-	right: 0;
-	
-	background-color: #ffdab9;
-	a, a:visited { color: black; }
+	color: var(--color);
+	background-color: var(--background-color);
+	a, a:visited { color: var(--color); }
 	font-size: 1.2rem;
 	text-decoration: underline;
 	
 	padding: .25em .5em .25em 1em;
 	clip-path: polygon(0 0, 100% 0%, 100% 100%, 0 100%, 20% 49%);
-	opacity: 0.75;
-	z-index: 90;
+	opacity: .8;
+	z-index: 1024;
+
+	&:where(:hover, :focus) { filter: brightness(.8); }
+}
+.planner {
+	top: 75px;
+	--background-color: #ffdab9;
 }
 .chat {
 	top: 150px;
-	padding: .25em .5em .25em 1em;
-	background-color: #fd7e14;
+	--background-color: #fd7e14;
 
 	.chat-container {
 		position: relative;
@@ -136,21 +115,29 @@ a.btn {
 	}
 }
 
+// remove z-index of 3 to scroll behind footers
+.active > .page-link, .page-link.active { z-index: 0 !important; }
 
-@media only screen and (max-width: 1017px) {
-	.main-container {
-		padding-left: 5%;
-		padding-right: 5%;
-	}
+footer.email-footer {
+	position: fixed;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	height: fit-content;
+	padding: .5em 1em;
+
+	background-color: #ffdab9;
+
+	a { color: #8b0000; }
 }
 
-@media only screen and (max-width: 758px) {
-	.main-container {
-		margin: 0;
-	}
-}
 
+/* frequently used classes */
 
-@media only screen and (max-width: 527px) {
-	*, *::before, *::after {text-align: center;}
+.list-group {
+	margin: 3em 5% 0;
+	list-style: none;
+
+	border-radius: 5px;
+	overflow: auto;
 }

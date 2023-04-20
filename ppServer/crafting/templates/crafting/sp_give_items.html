@@ -1,45 +1,38 @@
-{% extends 'base/main.html' %}
+{% extends 'base/headed_main.html' %}
 {% load static %}
-{% block title %}{{ topic }}{% endblock %}
 {% block extra-head %}
 <link rel="stylesheet"  type="text/css" href="{% static 'crafting/css/sp_give_items.css' %}">
 <script src="{% static 'res/js/axios.min.js' %}" type='text/javascript'></script>
 <script src="{% static 'base/js/ajax.js' %}" type='text/javascript'></script>
 <script src="{% static 'crafting/js/sp_give_items.js' %}" type='text/javascript'></script>
 {% endblock %}
-{% block absolute %}{% include 'base/header.html' with topic=topic %}{% endblock %}
 
-{% block body %}
+{% block main %}
 <div class="head">
-		<a href="{% url 'crafting:craft' %}">Crafting</a>
-		<a href="{% url 'crafting:inventory' %}">Inventar</a>
-		<a href="{% url 'crafting:index' %}">Profil wechseln</a>
+	<a class="text-light" href="{% url 'crafting:craft' %}">Crafting</a>
+	<a class="text-light" href="{% url 'crafting:inventory' %}">Inventar</a>
+	<a class="text-light" href="{% url 'crafting:index' %}">Profil wechseln</a>
 </div>
 
 
-<div class="alert alert--success"></div>
-<div class="alert alert--error"></div>
+<div class="alert alert--success bg-success"></div>
+<div class="alert alert--error bg-error"></div>
 <div class="add-form">
 
 	<input type="number" id="num" value=1 min=1>
 	<select id="items" autocomplete required>
 		{% for i in allItems %}
-			<option value="{{ i.id }}">
-				<img src="{{ i.icon }}" alt="{{ i.name }}">
-				<span>{{ i.name }}</span>
-			</option>
+			<option value="{{ i.id }}">{{ i.name }}</option>
 		{% endfor %}
 	</select>
 
 	<label for="profiles">zu Profil</label>
 	<select id="profiles" autocomplete required>
 	{% for i in allProfiles %}
-		<option value="{{ i.id }}">
-			<span>{{ i.name }}{% if i.restricted %} (eingeschränkt){% endif %}</span>
-		</option>
+		<option value="{{ i.id }}">{{ i.name }}{% if i.restricted %} (eingeschränkt){% endif %}</option>
 	{% endfor %}
 </select>
 
-	<button class="btn" onclick="addItem()">Hinzufügen</button>
+	<button class="btn btn-lg btn-primary" onclick="addItem()">Hinzufügen</button>
 </div>
 {% endblock %}

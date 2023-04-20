@@ -12,17 +12,12 @@
 	color: #ddd;
 	background: lighten(#3a3d40, 10%);
 
-	max-width: 90vw;
-
-	a.btn {color: #333;}
+	max-width: 700px;
+	margin: auto;
 
 	.separator {
 		grid-column: 1 / -1;
 		height: 2em;
-	}
-	.btn {
-		grid-column: 1 / -1;
-		text-align: center;
 	}
 	img {
 		width: var(--itemTile-size);

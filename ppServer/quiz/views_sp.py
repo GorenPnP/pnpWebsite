@@ -14,7 +14,6 @@ from django_tables2.columns import TemplateColumn
 from base.abstract_views import DynamicTableView, GenericTable
 from ppServer.decorators import spielleiter_only, verified_account
 from ppServer.mixins import SpielleiterOnlyMixin
-from character.models import Spieler
 
 from .models import *
 from .views import get_grade_score
@@ -43,7 +42,9 @@ def sp_questions(request):
         context = {
             "topic": "Fragen sortieren", "mqs": mq,
             "questions": Question.objects.exclude(id__in=[model.question.id for model in mq]),
-            "mods": Module.objects.all()
+            "mods": Module.objects.all(),
+            "app_index": "Quiz",
+            "app_index_url": reverse("quiz:sp_index"),
         }
         return render(request, "quiz/sp_questions.html", context)
 
@@ -103,6 +104,8 @@ class SpModulesView(LoginRequiredMixin, SpielleiterOnlyMixin, DynamicTableView):
     table_class = Table
     topic = "Modulzuweisung"
     template_name = "quiz/sp_spieler_modules.html"
+
+    app_index_url = "quiz:sp_index"
 
     def post(self, request, *args, **kwargs):
 
@@ -165,17 +168,20 @@ def sp_correct(request, id, question_index=0):
         corrected_answers = json.loads(spq.correct_mc) if spq.correct_mc else []
 
         num_questions = len(sqs)
-        context = {"topic": "{} ({})".format(sp_mo.module.title, sp_mo.spieler.name),
-                   "achieved_points": spq.achieved_points,
-                   "question": spq.question, "spieler_question": spq,
-                   "answers": answers, "checked_answers": checked_answers, "corrected_answers": corrected_answers,
-                   "start_num_questions": num_questions, "num_question": question_index + 1,
-                   "display_btn_previous": question_index,
-                   "display_btn_done": question_index + 1 == num_questions,
-                   "display_old_answer": sp_mo.pointsEarned(), "sp_mo_id": id,
-                   "question_index": question_index, "prev_question_index": question_index - 1, "next_question_index": question_index + 1,
-                   "pages": [i for i in range(num_questions)]
-                   }
+        context = {
+            "topic": "{} ({})".format(sp_mo.module.title, sp_mo.spieler.name),
+            "achieved_points": spq.achieved_points,
+            "question": spq.question, "spieler_question": spq,
+            "answers": answers, "checked_answers": checked_answers, "corrected_answers": corrected_answers,
+            "start_num_questions": num_questions, "num_question": question_index + 1,
+            "display_btn_previous": question_index,
+            "display_btn_done": question_index + 1 == num_questions,
+            "display_old_answer": sp_mo.pointsEarned(), "sp_mo_id": id,
+            "question_index": question_index, "prev_question_index": question_index - 1, "next_question_index": question_index + 1,
+            "pages": [i for i in range(num_questions)],
+            "app_index": "Quiz",
+            "app_index_url": reverse("quiz:sp_index"),
+        }
 
         return render(request, "quiz/sp_correct.html", context)
 
@@ -262,10 +268,13 @@ def old_answer(request, sp_mo_id, question_id, question_index):    # id of curre
     checked_answers = json.loads(old_spq.answer_mc) if old_spq.answer_mc else []
     corrected_answers = json.loads(old_spq.correct_mc) if old_spq.correct_mc else []
 
-    context = {"topic": "{} ({})".format(sp_mo.module.title, sp_mo.spieler.name),
-                "question": old_spq.question, "spieler_question": old_spq,
-                "answers": answers, "checked_answers": checked_answers, "corrected_answers": corrected_answers,
-                "start_num_questions": old_session.questions.count(), "num_question": question_index + 1,
-                "called_from_sp": True, "return_to": reverse("quiz:sp_correct_index", args=[sp_mo_id, question_index])
-                }
+    context = {
+        "topic": "{} ({})".format(sp_mo.module.title, sp_mo.spieler.name),
+        "question": old_spq.question, "spieler_question": old_spq,
+        "answers": answers, "checked_answers": checked_answers, "corrected_answers": corrected_answers,
+        "start_num_questions": old_session.questions.count(), "num_question": question_index + 1,
+        "called_from_sp": True, "return_to": reverse("quiz:sp_correct_index", args=[sp_mo_id, question_index]),
+        "app_index": "Quiz",
+        "app_index_url": reverse("quiz:sp_index"),
+    }
     return render(request, "quiz/review.html", context)

@@ -1,41 +1,52 @@
-from ppServer.decorators import verified_account
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import User
-from django.shortcuts import render, redirect, get_object_or_404
+from typing import Any, Dict
 
-from fileserver.models import Map, File
+from django.db.models import Q
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.http.request import HttpRequest
+from django.http.response import HttpResponse
+from django.shortcuts import render, redirect
+from django.urls import reverse
+from django.views.generic import DetailView
+from django.views.generic.base import TemplateView
+
+from ppServer.mixins import VerifiedAccountMixin
+
+from .models import Topic
+
+class TopicListView(LoginRequiredMixin, VerifiedAccountMixin,  TemplateView):
+    template_name = 'fileserver/maps.html'
+
+    def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
+        return super().get_context_data(
+            **kwargs,
+            object_list=self.object_list,
+            topic="Dateien",
+            app_index="Wiki",
+			app_index_url=reverse("wiki:index")
+        )
+
+    def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
+        self.object_list = Topic.objects.filter(Q(sichtbarkeit_eingeschränkt=False) | Q(sichtbar_für__name=request.user.username))
+        return super().get(request, *args, **kwargs)
 
 
-@login_required
-@verified_account
-def maps(request):
-    map_list = []
-    maps = Map.objects.all().order_by('titel')
-    if not User.objects.filter(username=request.user.username, groups__name='spielleiter').exists():
-        for map in maps:
-            if map.sichtbar_für.filter(name=request.user.username).exists():
-                map_list.append(map)
-    else:
-        map_list = maps
+class TopicDetailView(LoginRequiredMixin, VerifiedAccountMixin,  DetailView):
+    model = Topic
+    template_name = 'fileserver/show_map.html'
 
-    context = {'topic': "Dateien", 'maps': map_list}
-    return render(request, 'fileserver/maps.html', context)
-
-
-@login_required
-@verified_account
-def show_map(request, mapID):
-    map = get_object_or_404(Map, id=mapID)
-
-    if not map.sichtbar_für.filter(name=request.user.username).exists() and not \
-            User.objects.filter(username=request.user.username, groups__name='spielleiter').exists():
-        return redirect('file:index')
-
-    files = []
-    for m in map.files.all():
+    def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
         # get rid of 'files/' prefix
-        name = m.file.name[m.file.name.find("/")+1:]
-        files.append({'url': m.file.url, 'name': name})
+        files = [{"name": m.file.name[m.file.name.find("/")+1:], "url": m.file.url} for m in self.object.files.all()]
 
-    context = {'files': files, 'topic': map.titel}
-    return render(request, 'fileserver/show_map.html', context)
+        return super().get_context_data(**kwargs,
+            topic=self.object.titel,
+            files=files,
+            app_index="Dateien",
+			app_index_url=reverse("file:index")
+        )
+
+    def get(self, request: HttpRequest, pk: int, *args: Any, **kwargs: Any) -> HttpResponse:
+        if Topic.objects.filter(~Q(sichtbar_für__name=request.user.username), pk=pk, sichtbarkeit_eingeschränkt=True).exists():
+            return redirect("file:index")
+
+        return super().get(request, *args, **kwargs)

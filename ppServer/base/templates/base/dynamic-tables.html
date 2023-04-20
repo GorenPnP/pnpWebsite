@@ -1,0 +1,13 @@
+{% extends 'base/headed_main.html' %}
+{% load static %}
+
+{% block main %}
+
+    {% block before_table %}{% endblock %}
+    
+    {% for table in tables %}
+        {% include 'base/table_template.html' with view=view table=table filter=filter %}
+    {% endfor %}
+    
+    {% block after_table %}{% endblock %}
+{% endblock %}

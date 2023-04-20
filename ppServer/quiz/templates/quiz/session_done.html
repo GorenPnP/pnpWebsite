@@ -1,32 +1,23 @@
-{% extends 'base/main.html' %}
+{% extends 'base/headed_main.html' %}
 {% load static %}
-{% block title %}{{ topic }}{% endblock %}
 {% block extra-head %}
 <style>
-	.btn {
-		color: #333;
-		padding: 1em 2em;
-	}
 	.main-container {
-		font-size: 1.3rem;
 		display: grid;
 		grid-template-columns: auto;
-		grid-gap: 1em;
 
 		justify-content: center;
 		justify-items: center;
 		align-items: center;
-		height: 100vh;
 	}
 </style>
 {% endblock %}
-{% block absolute %}{% include 'base/header.html' with topic=topic %}{% endblock %}
 
-{% block body %}
-<h1 style="color: #c8c8c8;">Fertig!</h1>
+{% block main %}
+<h1 class="text-light">Fertig!</h1>
 
 <form method="POST">
 	{% csrf_token %}
-	<input type="submit" class="btn" value="Beenden" />
+	<input type="submit" class="btn btn-lg btn-primary" value="BEENDEN" />
 </form>
 {% endblock %}

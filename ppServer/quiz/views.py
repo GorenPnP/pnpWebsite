@@ -93,7 +93,7 @@ def index(request, spieler_id=None):
                     "score": score, "score_tag_class": score_class,
                     "optional": sp_m.optional,
                     "description": sp_m.module.description, "icon": sp_m.module.icon.img.url if sp_m.module.icon else None,
-                    "revard": sp_m.module.reward, "spent_reward": sp_m.spent_reward, "spent_reward_larp": sp_m.spent_reward_larp,
+                    "reward": sp_m.module.reward, "spent_reward": sp_m.spent_reward, "spent_reward_larp": sp_m.spent_reward_larp,
                     "state": sp_m.get_state_display(),
                     "prerequisites": ", ".join([m.title for m in sp_m.module.prerequisite_modules.all()])})
 
@@ -154,9 +154,15 @@ def question(request):
         random.seed()
         random.shuffle(answers)
 
-        context = {"topic": rel.current_session.spielerModule.module.title, "question": spq.question, "answers": answers,
-                   "start_num_questions": rel.current_session.questions.count(), "num_question": rel.current_session.current_question + 1
-                   }
+        context = {
+            "topic": rel.current_session.spielerModule.module.title,
+            "question": spq.question,
+            "answers": answers,
+            "start_num_questions": rel.current_session.questions.count(),
+            "num_question": rel.current_session.current_question + 1,
+            "app_index": "Quiz",
+            "app_index_url": reverse("quiz:index"),
+        }
 
         return render(request, "quiz/question.html", context)
 
@@ -203,7 +209,11 @@ def session_done(request):
     if not rel.current_session: return redirect("quiz:index")
 
     if request.method == "GET":
-        context = {"topic": rel.current_session.spielerModule.module.title}
+        context = {
+            "topic": rel.current_session.spielerModule.module.title,
+            "app_index": "Quiz",
+            "app_index_url": reverse("quiz:index"),
+        }
         return render(request, "quiz/session_done.html", context)
 
     if request.method == "POST":
@@ -227,7 +237,12 @@ def score_board(request):
         same.append(s)
     spieler.append(same)
 
-    context = {"spieler": spieler}
+    context = {
+        "spieler": spieler,
+        "topic": "Bestenliste",
+        "app_index": "Quiz",
+        "app_index_url": reverse("quiz:index"),
+    }
     return render(request, "quiz/score_board.html", context)
 
 
@@ -271,11 +286,14 @@ def review(request, id):
         checked_answers = json.loads(spq.answer_mc) if spq.answer_mc else []
         corrected_answers = json.loads(spq.correct_mc) if spq.correct_mc else []
 
-        context = {"topic": "{} ({})".format(sp_mo.module.title, sp_mo.spieler.name),
-                   "question": spq.question, "spieler_question": spq,
-                   "answers": answers, "checked_answers": checked_answers, "corrected_answers": corrected_answers,
-                   "start_num_questions": current_session.questions.count(), "num_question": current_session.current_question + 1
-                   }
+        context = {
+            "topic": "{} ({})".format(sp_mo.module.title, sp_mo.spieler.name),
+            "question": spq.question, "spieler_question": spq,
+            "answers": answers, "checked_answers": checked_answers, "corrected_answers": corrected_answers,
+            "start_num_questions": current_session.questions.count(), "num_question": current_session.current_question + 1,
+            "app_index": "Quiz",
+            "app_index_url": reverse("quiz:index"),
+        }
         return render(request, "quiz/review.html", context)
 
     # POST
@@ -297,7 +315,11 @@ def review_done(request):
         return redirect("quiz:index")
 
     if request.method == "GET":
-        context = {"topic": rel.current_session.spielerModule.module.title}
+        context = {
+            "topic": rel.current_session.spielerModule.module.title,
+            "app_index": "Quiz",
+            "app_index_url": reverse("quiz:index"),
+        }
         return render(request, "quiz/review_done.html", context)
 
     if request.method == "POST":

@@ -4,10 +4,6 @@
 	color: #ddd;
 }
 
-.main-container {
-	min-height: 100vh;
-	padding-bottom: 1em;
-}
 .img {
 	background: #eee;
 	border-radius: 13px;
@@ -18,29 +14,6 @@
 	margin: 0;
 	border-radius: 13px;
 }
-div.btn {
-	color: rgb(46, 52, 54);
-}
-
-
-.paging {
-	display: flex;
-	justify-content: space-between;
-
-	margin: 0 0 1em;
-
-	& > * {padding: 1em;}
-
-	.link {
-		color: #0ff;
-		cursor: pointer;
-	}
-	.link:hover { opacity: var(--hover-opacity); }
-}
-.paging__current-page {
-		text-decoration: underline;
-		font-weight: 600;
-	}
 
 .info {
 	font-style: italic;
@@ -109,7 +82,6 @@ div.btn {
 		max-width: 70ch;
 		margin: 1em 0;
 		display: block;
-		white-space: pre;
 	}
 }
 
@@ -192,24 +164,9 @@ a.btn.btn--old-answer {
 	justify-content: space-around;
 	align-items: center;
 	flex-wrap: wrap;
+	gap: 1em;
 
 	margin: 1em 0 4em;
-
-	.btn {
-		flex: 0 1 190px;
-
-		font-size: 1.2rem;
-		font-weight: bold;
-		padding: .7em 2em;
-		margin: 1.5em .4em 0;
-	}
-
-	.btn--back {
-		background-color: lighten(#3a3d40, 30%);
-	}
-	.btn--previous {
-		background-color: lighten(#3a3d40, 50%);
-	}
 }
 
 @media only screen and (max-width: 700px) {
@@ -223,8 +180,6 @@ a.btn.btn--old-answer {
 
 	.flex-container--btn {
 		flex-direction: column-reverse;
-
-		.btn {flex: 1;}
 	}
 
 	.choice .text {text-align: left;}

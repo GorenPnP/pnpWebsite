@@ -1,18 +1,14 @@
-{% extends 'base/main.html' %}
-{% load static %}
-{% block title %}{{ topic }}{% endblock %}
-{% block extra-head %}<link rel="stylesheet" href="{% static 'base/css/list.css' %}">{% endblock %}
-{% block absolute %}{% include 'base/header.html' with topic=topic %}{% endblock %}
+{% extends 'base/headed_main.html' %}
 
-{% block body %}
-<div class="list-container">
-    {% for m in maps %}
-    <div class="row">
-        <a href="{% url 'file:map' m.id %}">
-            <h2 class="card__title">{{ m.titel }}</h2>
+{% block main %}
+<ul>
+    {% for m in object_list %}
+    <li>
+        <a href="{% url 'file:map' m.id %}" class="text-light">
+            <b class="card__title">{{ m.titel }}</b>
             <p class="card__text">{{ m.beschreibung|default:"" }}</p>
         </a>
-    </div>
+    </li>
     {% endfor %}
-</div>
+</ul>
 {% endblock %}

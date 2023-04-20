@@ -1,0 +1,25 @@
+tr.highlight {
+	--primary-shade: hsl(216, 98%, 42%);
+
+	border-color: var(--primary-shade);
+	
+	&.even td {
+		--bs-table-striped-bg: var(--bs-primary);
+		--bs-table-striped-color: #fff;
+
+		--bs-table-hover-bg: var(--bs-table-striped-bg);
+		--bs-table-hover-color: var(--bs-table-striped-color);
+	}
+	&.odd td {
+		--color: #fff;
+
+		--bs-table-bg: var(--primary-shade);
+		color: var(--color);
+
+		--bs-table-hover-bg: var(--bs-table-bg);
+		--bs-table-hover-color: var(--color);
+	}
+	&:hover td {
+		filter: brightness(1.3);
+	}
+}

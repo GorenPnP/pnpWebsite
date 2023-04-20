@@ -1,6 +1,5 @@
-{% extends 'base/main.html' %}
-{% load static %}{% load l10n %}
-{% block title %}{{ topic }}{% endblock %}
+{% extends 'base/headed_main.html' %}
+{% load static l10n %}
 {% block extra-head %}
 <link rel="stylesheet" href="{% static 'base/css/checkbox.css' %}">
 <link rel="stylesheet" href="{% static 'mining/css/region_editor.css' %}">
@@ -15,9 +14,8 @@
 <script type="text/javascript" src="{% static 'mining/js/region_editor_toolbar.js' %}"></script>
 <script type="text/javascript" src="{% static 'mining/js/region_editor_sidebars.js' %}"></script>
 {% endblock %}
-{% block absolute %}{% include 'base/header.html' with topic=topic %}{% endblock %}
 
-{% block body %}
+{% block main %}
 
 {{ layers|json_script:"layers" }}
 {{ materials|json_script:"materials" }}

@@ -1,15 +1,13 @@
 {% extends 'base/main.html' %}
-{% load static chatroom_exclude_acc django_bootstrap5 %}
+{% load static chatroom_exclude_acc %}
 
 {% block title %}{{ account.name }}{% endblock %}
 {% block extra-head %}
-    {% bootstrap_css %}
-    {% bootstrap_javascript %}
     <link rel="stylesheet" href="{% static 'httpChat/css/list.css' %}">
 {% endblock %}
-{% block absolute %}{% include 'base/header.html' with topic=account.name %}{% endblock %}
+{% block header %}{% include 'base/header.html' with topic=account.name %}{% endblock %}
 
-{% block body %}
+{% block main %}
 <a href="{% url 'httpchat:index'%}" class="btn btn-outline-light" style="margin-bottom: 1em;">< Zurück</a>
 
 <div class="d-flex justify-content-between mb-3 flex-wrap">
@@ -18,6 +16,10 @@
     <!-- Button trigger modal -->
     <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#new-chatroom-modal">
         + Neuer Chat
+    </button>
+
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#edit-account-modal">
+        Account bearbeiten
     </button>
 </div>
 
@@ -45,24 +47,47 @@
 
 <!-- New Chatroom Modal -->
 <div class="modal fade" id="new-chatroom-modal" tabindex="-1" aria-labelledby="newChatroomModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="newChatroomModalLabel">Neuer Chat</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Abbrechen"></button>
-        </div>
-        <div class="modal-body">
-          <form id="new-form" method="post">
-              {% csrf_token %}
-              {{ form.as_div }}
-          </form>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-outline-primary" data-bs-dismiss="modal">Zurück</button>
-          <input type="submit" class="btn btn-primary" value="Erstellen" form="new-form">
-        </div>
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="newChatroomModalLabel">Neuer Chat</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Abbrechen"></button>
+      </div>
+      <div class="modal-body">
+        <form id="new-form" method="post">
+            {% csrf_token %}
+            {{ new_chat_form.as_div }}
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-primary" data-bs-dismiss="modal">Zurück</button>
+        <input type="submit" class="btn btn-primary" value="Erstellen" form="new-form">
       </div>
     </div>
   </div>
+</div>
+
+
+<!-- edit account Modal -->
+<div class="modal fade" id="edit-account-modal" tabindex="-1" aria-labelledby="editAccountModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="editAccountModalLabel">Account bearbeiten</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Abbrechen"></button>
+      </div>
+      <div class="modal-body">
+        <form id="edit-form" method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            {{ edit_account_form.as_div }}
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-primary" data-bs-dismiss="modal">Zurück</button>
+        <input type="submit" class="btn btn-primary" value="Speichern" form="edit-form">
+      </div>
+    </div>
+  </div>
+</div>
   
 {% endblock %}

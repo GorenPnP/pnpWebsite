@@ -402,7 +402,9 @@ class Teil(models.Model):
     titel = models.CharField(max_length=40)
     ip = models.PositiveIntegerField(default=0, validators=[MaxValueValidator(1000)])
     beschreibung = models.TextField(max_length=1000, blank=True, default="")
+
     wann_wählbar = models.CharField(max_length=1, choices=enums.teil_erstellung_enum, default=enums.teil_erstellung_enum[0][0])
+    max_amount = models.PositiveSmallIntegerField(default=1, null=True, blank=True, help_text="Leer lassen für keine Beschränkung")
 
 
 class Vorteil(Teil):
@@ -571,10 +573,7 @@ class Charakter(models.Model):
     augenfarbe = models.CharField(max_length=100, default="", blank=True)
 
     nutzt_magie = models.PositiveSmallIntegerField(choices=enums.nutzt_magie_enum, default=enums.nutzt_magie_enum[0][0], blank=True)
-    useEco = models.BooleanField("benutze 'eco':y, benutze 'morph':n", default=True, blank=True)
 
-    eco = models.PositiveIntegerField(default=0, blank=True)
-    morph = models.PositiveIntegerField(default=0, blank=True)
     sp = models.PositiveIntegerField(default=0)
     ip = models.IntegerField(default=0)
     tp = models.IntegerField(default=0)

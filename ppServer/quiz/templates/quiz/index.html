@@ -1,80 +1,69 @@
-{% extends 'base/main.html' %}
+{% extends 'base/headed_main.html' %}
 {% load static %}
-{% block title %}{{ topic }}{% endblock %}
 {% block extra-head %}
 <link rel="stylesheet" type="text/css" href="{% static 'base/css/checkbox.css' %}" />
 <link rel="stylesheet" type="text/css" href="{% static 'quiz/css/index.css' %}" />
 <link rel="stylesheet" type="text/css" href="{% static 'quiz/css/grades.css' %}" />
 {% endblock %}
-{% block absolute %}{% include 'base/header.html' with topic=topic %}{% endblock %}
-{% block body %}
 
-<aside class="legende">
+{% block main %}
+<aside class="p-3 bg-dark text-light">
     <div>Aktuelle Punktzahl: <b>{{ akt_punktzahl }}</b></div>
     <div><a href="{% url 'quiz:scoreBoard' %}">Score-Board</a></div>
 </aside>
 
-<main id="timetable">
+    <div id="quiz-accordion" class="accordion mt-3">
 
-    <div class="accordeon">
         {% for module in timetable %}
-        <div class="accordeon__child">
-            <div class="accordeon__module {% if not module.questions %}grayed_out{% endif %}">
-                <div class="accordeon__arrow" onclick="this.parentNode.parentNode.classList.toggle('expand')">
-                    <svg height="512px" id="Layer_1" style="enable-background:new 0 0 512 512;" version="1.1" viewBox="0 0 512 512"
-                        width="512px" xml:space="preserve" xmlns="http://www.w3.org/2000/svg"
-                        xmlns:xlink="http://www.w3.org/1999/xlink">
-                        <path
-                            d="M98.9,184.7l1.8,2.1l136,156.5c4.6,5.3,11.5,8.6,19.2,8.6c7.7,0,14.6-3.4,19.2-8.6L411,187.1l2.3-2.6  c1.7-2.5,2.7-5.5,2.7-8.7c0-8.7-7.4-15.8-16.6-15.8v0H112.6v0c-9.2,0-16.6,7.1-16.6,15.8C96,179.1,97.1,182.2,98.9,184.7z" />
-                    </svg>
-                </div>
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="accordionheading-{{ forloop.counter0 }}">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#accordion-{{ forloop.counter0 }}" aria-expanded="false" aria-controls="accordion-{{ forloop.counter0 }}">
+                    
+                    <!-- HEAD -->
+                    {% if module.icon %}<img src="{{ module.icon }}" class="icon" height=32 width=32 aria-hidden="true"/>{% else %}<span></span>{% endif %}
+                    
+                    <span class="titel">{{ module.titel }}</span>
 
-                {% if module.icon %}<img src="{{ module.icon }}"  class="icon icon--title"/>
-                {% else %}<span></span>
-                {% endif %}
-                <span class="titel">{{ module.titel }}</span>
-                <div class="sub">
+                    <!-- stats -->
                     <span class="score {{ module.score_tag_class }}">{{ module.score|default:"-" }}</span>
-                    <span class="questions">{{ module.questions }}
-                        {% if module.questions == 1 %}Frage{% else %}Fragen{% endif %}</span>
+                    <span class="questions">{{ module.questions }} Frage{% if module.questions != 1 %}n{% endif %}</span>
                     <span class="points">{% if module.points is None %}-{% else %}{{ module.points|floatformat:"-2" }}{% endif %}/{{ module.max_points|floatformat:"-2" }} P.</span>
-                </div>
+    
+                    <div>
+                        {% if spielleiter_service or module.state not in button_states %}
+                            <div>{{ module.state }}</div>
+                        {% else %}
+                            <form method="POST">
+                                {% csrf_token %}
+                                <input type="number" name="id" value="{{ module.id }}" hidden>
+                                <input type="submit" class="btn btn-primary" value="{% if module.state == 'opened' %}Quiz me!{% else %}Ergebnis{% endif %}" />
+                            </form>
+                        {% endif %}
+    
+                        {% if module.optional %}<span>(optional)</span>{% endif %}
+                    </div>
+                    <!-- END HEAD -->
 
-                <div>
-                    {% if spielleiter_service or module.state not in button_states %}
-                        <span>{{ module.state }}</span>
-                    {% else %}
-                        <form method="POST">
-                            {% csrf_token %}
-                            <input type="number" name="id" value="{{ module.id }}" hidden>
-                            <input type="submit" class="btn" value="{% if module.state == 'opened' %}Quiz me!{% else %}Ergebnis{% endif %}" />
-                        </form>
-                    {% endif %}
+                </button>
+            </h2>
+            <div id="accordion-{{ forloop.counter0 }}" class="accordion-collapse collapse" aria-labelledby="accordionheading-{{ forloop.counter0 }}" data-bs-parent="#quiz-accordion">
+                <div class="accordion-body">
 
-                    {% if module.optional %}<span>(optional)</span>{% endif %}
-                </div>
-
-            </div>
-            <div class="accordeon__extra">
-                {% if module.icon %}<img src="{{ module.icon }}" class="icon icon--extra" />
-                {% else %}<span></span>
-                {% endif %}
-                <span class="prerequisites">Vorher: {{ module.prerequisites|default:'-' }}</span>
-
-                <div class="revard">Belohnung: {{ module.revard }}</div>
-
-                <div class="description">{{ module.description }}</div>
+                <!-- CONTENT -->
+                <p>Vorher: {{ module.prerequisites|default:'-' }}</p>
+                <p>Belohnung: {{ module.reward }}</p>
+                <p>{{ module.description }}</p>
 
                 {% if module.spent_reward or module.spent_reward_larp %}
-                    <div class="footnote">
-                        {% if module.spent_reward %}Ausgegeben.{% endif %}
-                        {% if module.spent_reward_larp %}Ausgegeben (Larp).{% endif %}
-                    </div>
+                <small>
+                    {% if module.spent_reward %}Ausgegeben.{% endif %}
+                    {% if module.spent_reward_larp %}Ausgegeben (Larp).{% endif %}
+                </small>
                 {% endif %}
+                <!-- END CONTENT -->
+                </div>
             </div>
         </div>
-
         {% endfor %}
-        </div>
-    </main>
+    </div>
 {% endblock %}

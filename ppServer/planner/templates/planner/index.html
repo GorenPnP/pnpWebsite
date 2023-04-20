@@ -1,26 +1,23 @@
-{% extends 'base/main.html' %}
+{% extends 'base/headed_main.html' %}
 {% load static %}
 
-{% block title %}{{ topic }}{% endblock %}
 {% block extra-head %}
     <link rel="stylesheet" href="{% static 'planner/css/index.css' %}">
     <script src="{% static 'planner/js/index.js' %}"></script>
 {% endblock %}
 
-{% block absolute %}{% include 'base/header.html' %}{% endblock %}
-
-{% block body %}
+{% block main %}
 {{ days|json_script:"days" }}
 {{ request.user.username|json_script:"username" }}
 
-<main>
+<div class="page-container">
     <nav class="calendars">
         {% include './calendar.html' with today=today month_data=this_month %}
         {% include './calendar.html' with today=today month_data=next_month load_styles=False %}
         {% include './calendar.html' with today=today month_data=far_month load_styles=False%}
     </nav>
 
-    <div class="popover">
+    <div class="form-popover">
         <div id="appointment-section"></div>
 
         <div id="participant-section">
@@ -39,10 +36,10 @@
                 {{ form.as_p }}
                 <input type="date" id="id_date" name="date" hidden>
 
-                <input type="submit" value="Teilnehmen" class="btn">
+                <input type="submit" value="Teilnehmen" class="btn btn-primary">
             </form>
         </div>
-        <button type="button" class="btn back-btn" onclick="document.querySelector('.popover').style.display = 'none'">Abbrechen</button>
+        <button type="button" class="btn btn-outline-primary back-btn" onclick="document.querySelector('.form-popover').style.display = 'none'">Abbrechen</button>
     </div>
-</main>
+</div>
 {% endblock %}

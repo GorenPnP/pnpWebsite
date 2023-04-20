@@ -1,15 +1,17 @@
-from ppServer.decorators import spielleiter_only, verified_account
-from random import randrange, choice, random
 import json
+from random import randrange, random
 
 from django.contrib.auth.decorators import login_required
-from django.core.serializers.json import DjangoJSONEncoder
 from django.http.response import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404, reverse
 
 from character.models import Spieler
+from ppServer.decorators import spielleiter_only, verified_account
 from shop.models import Tinker
+
+from .forms import AddToInventoryForm
 from .models import *
+from .templatetags.duration import duration
 
 
 @login_required
@@ -17,7 +19,12 @@ from .models import *
 def index(request):
 
 	if request.method == "GET":
-		context = {"topic": "Profilwahl", "profiles": Profile.objects.all()}
+		context = {
+			"profiles": Profile.objects.all(),
+			"topic": "Profilwahl",
+			"app_index": "Crafting",
+			"app_index_url": reverse("crafting:craft")
+		}
 		return render(request, "crafting/index.html", context)
 
 	if request.method == "POST":
@@ -52,11 +59,15 @@ def inventory(request):
 
 	if request.method == "GET":
 
-		context = {"topic": "Inventar von {}".format(rel.profil.name),
-               "spielleiter": request.user.groups.filter(name__iexact="spielleiter").exists(),
-							 "profil": rel.profil,
-							 "items": InventoryItem.objects.filter(char=rel.profil).order_by("item__name"),
-               "allItems": sorted([{"icon": t.getIconUrl(), "id": t.id, "name": t.name} for t in Tinker.objects.all()], key=lambda t: t["name"])}
+		context = {
+			"topic": "Inventar von {}".format(rel.profil.name),
+			"spielleiter": request.user.groups.filter(name__iexact="spielleiter").exists(),
+			"add_form": AddToInventoryForm(),
+			"duration": rel.profil.craftingTime,
+			"items": InventoryItem.objects.filter(char=rel.profil).order_by("item__name"),
+			"app_index": "Crafting",
+			"app_index_url": reverse("crafting:craft")
+		}
 		return render(request, "crafting/inventory.html", context)
 
 	if request.method == "POST":
@@ -127,7 +138,7 @@ def inventory(request):
 			missing_fields = {
 				"table": {"name": recipe.table.name, "icon": recipe.table.getIconUrl()} if recipe.table else Recipe.getHandwerk(),
 				"ingredients": [{"icon": i.item.getIconUrl(), "name": i.item.name, "num": i.num} for i in  ingredients],
-				"duration": recipe.getFormattedDuration(),
+				"duration": duration(recipe.duration),
 				"spezial": [e.titel for e in recipe.spezial.all()],
 				"wissen": [e.titel for e in recipe.wissen.all()],
 				"num_prod": prod.num}
@@ -160,10 +171,12 @@ def craft(request):
 
 
 
-		context = {"tables": table_list,
-							 "recipes": get_recipes_of_table(inventory, rel.profil.restricted, table_list[0]["id"] if len(table_list) else 0),
-               "spielleiter": request.user.groups.filter(name__iexact="spielleiter").exists(),
-							 }
+		context = {
+			"topic": table_list[0]["name"],
+			"tables": table_list,
+			"recipes": get_recipes_of_table(inventory, rel.profil.restricted, table_list[0]["id"] if len(table_list) else 0),
+            "spielleiter": request.user.groups.filter(name__iexact="spielleiter").exists(),
+		}
 		return render(request, "crafting/craft.html", context)
 
 	if request.method == "POST":
@@ -331,7 +344,9 @@ def details(request, id):
 			} if recipe.table else Recipe.getHandwerk(),
 		"spezial": ", ".join([e.titel for e in recipe.spezial.all()]),
 		"wissen": ", ".join([e.titel for e in recipe.wissen.all()]),
-		"duration": recipe.getFormattedDuration(),
+		"duration": recipe.duration,
+		"app_index": "Crafting",
+		"app_index_url": reverse("crafting:craft")
 	}
 	return render(request, "crafting/details.html", context)
 
@@ -344,7 +359,9 @@ def sp_give_items(request):
 		context = {
 			"topic": "Profilen Items geben",
 			"allProfiles": sorted([{"name": p.name, "id": p.id, "restricted": p.restricted} for p in Profile.objects.all()], key=lambda p: p["name"]),
-			"allItems": sorted([{"icon": t.getIconUrl(), "id": t.id, "name": t.name} for t in Tinker.objects.all()], key=lambda t: t["name"])
+			"allItems": sorted([{"icon": t.getIconUrl(), "id": t.id, "name": t.name} for t in Tinker.objects.all()], key=lambda t: t["name"]),
+			"app_index": "Crafting",
+			"app_index_url": reverse("crafting:craft")
 		}
 		return render(request, "crafting/sp_give_items.html", context)
 

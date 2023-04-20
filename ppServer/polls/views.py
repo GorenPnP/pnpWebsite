@@ -1,84 +1,69 @@
-from ppServer.decorators import verified_account
 import json
-from django.contrib.auth.decorators import login_required
+from typing import Any, Dict
 
-from django.http.response import JsonResponse
-from django.shortcuts import get_object_or_404, render, redirect
+from django.contrib import messages
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.http.request import HttpRequest
+from django.http.response import HttpResponse
+from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
-from django.utils import timezone
+from django.views.generic.detail import DetailView
 
 from character.models import Spieler
+from ppServer.mixins import VerifiedAccountMixin, PollAllowedMixin
 
-from .models import Choice, Question, QuestionSpieler
+from .models import Choice, Question
+
+class PollView(LoginRequiredMixin, PollAllowedMixin, DetailView):
+    model = Question
+    template_name = "polls/detail.html"
+
+    def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
+        return super().get_context_data(**kwargs, topic = "Abstimmung")
 
 
-@login_required
-@verified_account
-def detail(request, pk):
-    question = get_object_or_404(Question, id=pk)
-    spieler = get_object_or_404(Spieler, name=request.user.username)
-    if QuestionSpieler.objects.filter(question=question, spieler=spieler).count():
-        return redirect("base:index")
+    def post(self, request: HttpRequest, pk: int) -> HttpResponse:
+        question = Question.objects.get(pk=pk)
+        choice_ids = [int(a) for a in request.POST.getlist("answer")]
+        choices = question.choice_set.filter(id__in=choice_ids).distinct()
 
-    if request.method == "GET":
-        return render(request, 'polls/detail.html', {"question": question})
 
-    if request.method == "POST":
-        question = get_object_or_404(Question, id=pk)
+        # check validity
+        if choices.count() != len(set(choice_ids)):
+            messages.error(request, "Bitte nochmal versuchen. Die Antworten sind nicht ganz richtig angekommen.")
 
-        try:
-            choice_ids=json.loads(request.body.decode("utf-8"))["ids"]
-        except:
-            return JsonResponse({"message": "Daten nicht angekommen"}, status=418)
+        elif not question.allow_multiple_selection and len(set(choice_ids)) != question.anz_stimmen:
+            messages.error(request, "Mehrfachwahl ist nicht erlaubt")
 
-        if not question.umfrage_läuft():
-            return JsonResponse({"message": "Die Umfrage ist nicht zur Abstimmung freigegeben."}, status=418)
+        elif question.allow_multiple_selection and len(choice_ids) != question.anz_stimmen:
+            messages.error(request, "Bitte wähle alle Felder aus")
 
-        if len(choice_ids) != question.anz_stimmen:
-            return JsonResponse({"message": "Falsche Anzahl an choices."}, status=418)
 
-        choices = []
-        for id in choice_ids:
-            choice = get_object_or_404(Choice, id=id)
-            if choice.question.id != question.id:
-                return JsonResponse({"message": "Choices.id gehört nicht zu dieser Frage"}, status=418)
-            choices.append(choice)
+        #### all fine or not? ####
+        if len(messages.get_messages(request)):
+            return redirect(request.build_absolute_uri())
 
+
+        # save to db
         spieler = get_object_or_404(Spieler, name=request.user.username)
-        if QuestionSpieler.objects.filter(question=question, spieler=spieler).exists():
-           return JsonResponse({"message": "Bereits über diese Frage abgestimmt"}, status=418)
-
-        # valid since here
-
-        for c in set(choices):
-            c.votes += choices.count(c)
-            c.save(update_fields=["votes"])
-        QuestionSpieler.objects.get_or_create(spieler=spieler, question=question)
-
-        # Always return an HttpResponseRedirect after successfully dealing
-        # with POST data. This prevents data from being posted twice if a
-        # user hits the Back button.
-        url = reverse('polls:results', args=(question.id,)) if question.show_result_to_user else reverse('base:index')
-        return JsonResponse({"url": url})
+        question.spieler_voted.add(spieler)
+        
+        choices_array = []
+        for choice in choices:
+            choice.votes += choice_ids.count(choice.id)
+            choices_array.append(choice)
+        Choice.objects.bulk_update(choices_array, ["votes"])
 
 
-@login_required
-@verified_account
-def results(request, pk):
-    question = get_object_or_404(Question, id=pk)
-    if not question.show_result_to_user:
+        # return response
+        if question.show_result_to_user:
+            return redirect(reverse("polls:results", args=[pk]))
         return redirect("base:index")
 
-    spieler = get_object_or_404(Spieler, name=request.user.username)
-    now = timezone.now()
 
-    all_answered = [qs.question.id for qs in QuestionSpieler.objects.filter(spieler=spieler)]
-    open_questions = Question.objects.filter(pub_date__lte=now, deadline__gte=now).exclude(id__in=all_answered)
+class ResultView(LoginRequiredMixin, VerifiedAccountMixin, DetailView):
+    model = Question
+    template_name = "polls/result.html"
 
-    next_url = reverse("polls:detail", args=[open_questions[0].id]) if open_questions.exists() else reverse("base:index")
-    context = {
-        "question": get_object_or_404(Question, id=pk),
-        "next_url": next_url,
-    }
-
-    return render(request, 'polls/result.html', context)
+    def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
+        return super().get_context_data(**kwargs, topic = "Ergebnis")

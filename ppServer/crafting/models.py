@@ -42,17 +42,6 @@ class Profile(models.Model):
 	def __str__(self):
 		return self.name
 
-	def getFormattedDuration(self):
-
-		# I know these should be seconds, but they are minutes. Shit happens
-		m = self.craftingTime.seconds if self.craftingTime else 0
-		h = m // 60
-		m = m % 60
-
-		d = h // 24
-		h = h % 24
-		return "{}:{}:{} min".format(d, h, m)
-
 
 	def getTables(self):
 
@@ -163,15 +152,3 @@ class Recipe(models.Model):
 	@staticmethod
 	def getTables():
 		return sorted(set([e.table for e in Recipe.objects.exclude(table=None) ]), key=lambda t: t.name )
-
-
-	def getFormattedDuration(self):
-
-		# I know these should be seconds, but they are minutes. Shit happens
-		m = self.duration.seconds if self.duration else 0
-		h = m // 60
-		m = m % 60
-
-		d = h // 24
-		h = h % 24
-		return "{}:{}:{} min".format(d, h, m)

@@ -1,18 +1,13 @@
-{% extends 'base/main.html' %}
+{% extends 'base/headed_main.html' %}
 {% load static %}
 {% block title %}Fehler{% endblock %}
-{% block extra-head %}
-<link rel="stylesheet" href="{% static 'base/css/error.css' %}">{% endblock %}
-{% block body %}
-<div class="container">
-    <p class="text">
-        Oops! Diese Seite existiert (noch) nicht.
-    </p>
+{% block extra-head %}<link rel="stylesheet" href="{% static 'auth/css/centered_form.css' %}">{% endblock %}
 
-    <a href="{% url 'base:index' %}">
-        <button class="btn">
-            <p class="btn__text">Zurück zur Startseite</p>
-        </button>
-    </a>
+{% block main %}
+<div class="text-container" style="--width: 600px; --max-width: 100%">
+    <h2>Oops!</h2>
+    <h1> Diese Seite existiert (noch) nicht.</h1>
+
+    <a href="{% url 'base:index' %}" class="btn btn-lg btn-primary mt-3">Zurück zur Startseite</a>
 </div>
 {% endblock %}

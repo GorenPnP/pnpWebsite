@@ -1,6 +1,5 @@
-{% extends 'base/main.html' %}
+{% extends 'base/headed_main.html' %}
 {% load static %}
-{% block title %}{{ topic }}{% endblock %}
 {% block extra-head %}
 <script src="{% static 'res/js/axios.min.js' %}" type='text/javascript'></script>
 <script src="{% static 'base/js/ajax.js' %}"></script>
@@ -9,9 +8,8 @@
 
 <link rel="stylesheet" href="{% static 'time_space/css/net.css' %}">
 {% endblock %}
-{% block absolute %}{% include 'base/header.html' with topic=topic %}{% endblock %}
 
-{% block body %}
+{% block main %}
 <section class="non-terminal">
 
     <aside class="controls">

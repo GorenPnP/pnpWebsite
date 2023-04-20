@@ -29,10 +29,9 @@
 .show-nav {
 	grid-area: navbar;
 	z-index: 6;
-	width: 97vw;
+	width: 100%;
 	background: #0a010a;
 	border-radius: 200px;
-	padding: .2em;
 
 	transition: clip-path 1s;
 }
@@ -48,6 +47,7 @@
 	flex-wrap: wrap;
 	justify-content: space-evenly;
 	text-align: center;
+	list-style: none;
 }
 
 .mobile-nav {
@@ -95,9 +95,9 @@
 		align-content: center;
 		justify-content: space-between;
 		height: 90vh;
+		list-style: none;
 	}
 	.show-nav__item {text-align: center;}
-	div.main-container {padding-bottom: calc(var(--mobile-nav-gap) + var(--mobile-nav-size))}
 	// provides btn to trigger .expand, .shrink
 	.mobile-nav {display: grid;}
 

@@ -3,9 +3,12 @@ from typing import Optional
 from django.contrib.auth.mixins import UserPassesTestMixin
 from django.db.models import Q
 from django.shortcuts import redirect
+from django.utils import timezone
 
 from character.models import Spieler
 from httpChat.models import Account, Chatroom
+from polls.models import Question, QuestionSpieler
+
 
 class VerifiedAccountMixin(UserPassesTestMixin):
     def test_func(self) -> Optional[bool]:
@@ -13,6 +16,12 @@ class VerifiedAccountMixin(UserPassesTestMixin):
     
     def handle_no_permission(self):
         return redirect("base:index")
+    
+    def dispatch(self, request, *args, **kwargs):
+        user_test_result = self.get_test_func()()
+        if not request.user.is_authenticated or not user_test_result:
+            return self.handle_no_permission()
+        return super().dispatch(request, *args, **kwargs)
 
 
 class SpielleiterOnlyMixin(UserPassesTestMixin):
@@ -41,3 +50,21 @@ class OwnChatMixin(UserPassesTestMixin):
 
     def handle_no_permission(self):
         return redirect(self.redirect_to)
+    
+
+class PollAllowedMixin(UserPassesTestMixin):
+    def test_func(self) -> Optional[bool]:
+        pk = self.request.resolver_match.kwargs["pk"]
+
+        return Question.objects\
+        .filter(
+            pk=pk,
+            pub_date__lte=timezone.now(),
+            deadline__gte=timezone.now()
+        ).exists() and not\
+        QuestionSpieler.objects.filter(
+            question__id=pk, spieler__name=self.request.user.username
+        ).exists()
+
+    def handle_no_permission(self):
+        return redirect("base:index")

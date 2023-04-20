@@ -17,6 +17,7 @@ class NewCharakter(models.Model):
     geld = models.PositiveIntegerField(null=True, blank=True)
     ip = models.IntegerField(default=0, blank=True)
     spF_wF = models.IntegerField(default=0, blank=True)
+    wp = models.IntegerField(default=0, blank=True)
 
     HPplus = models.IntegerField(default=0, blank=True)
     HPplus_fix = models.IntegerField(default=None, null=True, blank=True)
@@ -212,7 +213,7 @@ class Priotable(models.Model):
     spF_wF = models.PositiveIntegerField(default=0, null=False, verbose_name="Anz. Sp-F und Wissens-F.")
 
     def __str__(self):
-        return "Priotable row {}".format(self.get_priority_display())
+        return "Priotable row {}".format(self.priority)
 
 
 yes_neutral_no_enum = [
@@ -236,11 +237,11 @@ class GfsCharacterization(models.Model):
         verbose_name_plural = "Gfs Charakterisierungen"
 
     gfs = models.OneToOneField(Gfs, on_delete=models.CASCADE)
-    state = models.CharField(help_text=".. lebend oder (un)tot sein?", choices=alive_dead_enum, null=True, blank=True, max_length=1)
-    social = models.CharField(help_text=".. sozial/umgänglich sein?", choices=yes_neutral_no_enum, null=True, blank=True, max_length=1)
-    magical = models.CharField(help_text=".. magisch sein?", choices=yes_neutral_no_enum, null=True, blank=True, max_length=1)
-    can_punch = models.CharField(help_text=".. Nahkampf haben?", choices=yes_neutral_no_enum, null=True, blank=True, max_length=1)
-    can_shoot = models.CharField(help_text=".. Fernkampf haben?", choices=yes_neutral_no_enum, null=True, blank=True, max_length=1)
-    gets_pricy_skills = models.CharField(help_text=".. krasse (dafür teure) Fähigkeiten bekommen?", choices=yes_neutral_no_enum, null=True, blank=True, max_length=1)
-    can_fly = models.CharField(help_text=".. fliegen können?", choices=yes_neutral_no_enum, null=True, blank=True, max_length=1)
-    attitude = models.CharField(help_text=".. gut/neutral/böse gesinnt sein?", choices=attitude_enum, null=True, blank=True, max_length=1)
+    state = models.CharField(verbose_name=".. lebend oder (un)tot sein?", choices=alive_dead_enum, null=True, blank=True, max_length=1)
+    social = models.CharField(verbose_name=".. sozial/umgänglich sein?", choices=yes_neutral_no_enum, null=True, blank=True, max_length=1)
+    magical = models.CharField(verbose_name=".. magisch sein?", choices=yes_neutral_no_enum, null=True, blank=True, max_length=1)
+    can_punch = models.CharField(verbose_name=".. Nahkampf haben?", choices=yes_neutral_no_enum, null=True, blank=True, max_length=1)
+    can_shoot = models.CharField(verbose_name=".. Fernkampf haben?", choices=yes_neutral_no_enum, null=True, blank=True, max_length=1)
+    gets_pricy_skills = models.CharField(verbose_name=".. krasse (dafür teure) Fähigkeiten bekommen?", choices=yes_neutral_no_enum, null=True, blank=True, max_length=1)
+    can_fly = models.CharField(verbose_name=".. fliegen können?", choices=yes_neutral_no_enum, null=True, blank=True, max_length=1)
+    attitude = models.CharField(verbose_name=".. gut/neutral/böse gesinnt sein?", choices=attitude_enum, null=True, blank=True, max_length=1)

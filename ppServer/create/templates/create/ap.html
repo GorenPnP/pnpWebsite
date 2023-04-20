@@ -1,20 +1,24 @@
-{% extends 'base/main.html' %}
+{% extends 'base/dynamic-table.html' %}
 {% load static %}
-{% block title %}AP{% endblock %}
 {% block extra-head %}
-<link rel="stylesheet" href="{% static 'base/css/table.css' %}">
-<link rel="stylesheet" href="{% static 'create/css/ap.css' %}">
-<script src="{% static 'res/js/axios.min.js' %}" type='text/javascript'></script>
-<script src="{% static 'base/js/ajax.js' %}"></script>
-<script type="text/javascript" src="{% static 'create/js/ap.js' %}"></script>
-{{ attributes|json_script:"attributes" }}
+<script src="{% static 'create/js/ap.js' %}" type="text/javascript"></script>
+
+<style>
+    table {
+        max-width: 700px;
+        margin-inline: auto;
+    }
+</style>
 {% endblock %}
-{% block absolute %}{% include 'base/header.html' with topic='AP' %}{% endblock %}
 
-{% block body %}
-<p class="pool">AP übrig: <b id="ap_pool">{{ ap_pool }}</b></p>
+{% block before_table %}
+    <p>AP übrig: <b id="ap_pool">{{ new_char.ap }}</b></p>
+{% endblock %}
 
-{% include 'base/table.html' with rows=rows headings=headings %}
-
-<button id="submit" class="btn" {% if ap_pool %}disabled{% endif %} onclick="submit()">AP absenden</button>
+{% block after_table %}
+<form id="form" method="post" class="d-flex justify-content-center">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-lg btn-primary m-2" disabled>Speichern</button>
+    <a class="btn btn-lg btn-outline-primary m-2" href="{% url 'create:landing_page' %}">Zurück</a>
+</form>
 {% endblock %}

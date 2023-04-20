@@ -37,17 +37,3 @@ function openDetails(id) {
 		document.getElementsByClassName("overlay")[0].style.display = "grid"
 	})
 }
-
-
-// add item to inventory without crafting
-function addItem() {
-	var num = document.getElementById("num").value
-	var item = document.getElementsByTagName("option")[document.getElementById("items").selectedIndex].value
-
-	post({num, item}, _ => location = location) // reload afterwards
-}
-
-
-document.addEventListener("DOMContentLoaded", () => {
-
-})

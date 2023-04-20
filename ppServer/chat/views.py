@@ -1,12 +1,12 @@
 import json
-from character.models import Spieler
-from django.http.response import JsonResponse
-from ppServer.decorators import verified_account
+
 from django.contrib.auth.decorators import login_required
-
+from django.http.response import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 
-from ppServer.decorators import spielleiter_only
+from character.models import Spieler
+from ppServer.decorators import verified_account, spielleiter_only
 
 from .models import Message
 
@@ -60,12 +60,19 @@ def sp_index_get(request):
     context = {
         "topic": "Spielleiter-Chat",
         "messages": Message.objects.all(),
-        "own_name": get_object_or_404(Spieler, name=request.user.username).get_real_name()
+        "own_name": get_object_or_404(Spieler, name=request.user.username).get_real_name(),
+        "app_index": "Chats",
+        "app_index_url": reverse("chat:index")
     }
     return render(request, 'chat/sp_index.html', context)
 
 
 @login_required
 def room(request, room_name):
-    context = {"topic": room_name, "room_name": room_name}
+    context = {
+        "topic": room_name,
+        "room_name": room_name,
+        "app_index": "Chats",
+        "app_index_url": reverse("chat:index")
+    }
     return render(request, 'chat/chatroom.html', context)

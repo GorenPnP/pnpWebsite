@@ -5,6 +5,6 @@ app_name = 'file'
 
 urlpatterns = [
 
-    path('', views.maps, name='index'),
-    path('<int:mapID>/', views.show_map, name='map'),
+    path('', views.TopicListView.as_view(), name='index'),
+    path('<int:pk>/', views.TopicDetailView.as_view(), name='map'),
 ]

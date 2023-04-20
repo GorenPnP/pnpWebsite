@@ -1,325 +1,260 @@
-import random, json
+import random
 from datetime import date
-from typing import Any
 
-from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
-from django.http.response import JsonResponse
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
+from django.views.generic import DetailView
+from django.urls import reverse
 
 from character.models import *
 from log.views import logShop
-from ppServer.decorators import verified_account
+from ppServer.mixins import VerifiedAccountMixin
 
 from ..models import *
 
 
+class BuyView(LoginRequiredMixin, VerifiedAccountMixin, DetailView):
+    class Meta:
+        abstract = True
+
+    template_name = "shop/buy_shop.html"
+
+    shop_model = None
+    relshop_model = None
+    firmashop_model = None
+    relfirmashop_model = None
+
+    def get(self, request, id=int, *args, **kwargs):
+
+        firma_shop_entries = self.firmashop_model.objects.filter(item=id)
+        item = get_object_or_404(self.shop_model, id=id)
+
+        extra_preis_field = User.objects.filter(username=request.user.username, groups__name='spielleiter').exists()
+        if extra_preis_field:
+            charaktere = Charakter.objects.all().order_by('name')
+        else:
+            charaktere = Charakter.objects.filter(eigentümer__name=request.user.username).order_by('name')
+
+        context = {
+            "charaktere": charaktere,
+            "entries": firma_shop_entries,
+            "extra_preis_field": extra_preis_field,
+            "st": item.stufenabhängig,
+            "topic": item.name,
+            "app_index": "Shop",
+            "app_index_url": reverse("shop:index")
+        }
+
+        # for redirect eventually
+        context["text"] = "Für dieses Item gibt es keinen Verkäufer."
+        return render(request, self.template_name, context)
+    
+    def post(self, request, id=int):
+        # def buy_item_post(rit_run=False):
+        item = self.shop_model.objects.get(id=id)
+
+        # free unused space (random, I know ...)
+        self.relfirmashop_model.objects.exclude(last_tried=date.today()).delete()
+
+        # retrieve all values from request.POST & check them
+        extra = char_id = num_items = firma_shop_id = price = stufe = -2
+        try:
+            extra = "extra" in request.POST
+            char_id = int(request.POST.get("character"))
+            num_items = int(request.POST.get('amount'))
+            firma_shop_id = int(request.POST.get('firmashop_id')) if not extra else None
+            price = int(request.POST.get('price')) if extra else None
+            stufe = int(request.POST.get("stufe")) if request.POST.get("stufe") else None
+        except:
+            messages.error(request, "Daten nicht vollständig erhalten")
+            return redirect(request.build_absolute_uri())
+
+        # check if spieler may modify char
+        spieler = get_object_or_404(Spieler, name=request.user.username)
+        char = get_object_or_404(Charakter, id=char_id)
+        if char.eigentümer != spieler and not User.objects.filter(username=request.user.username, groups__name='spielleiter').exists():
+            messages.error(request, "Keine Erlaubnis einzukaufen")
+            return redirect(request.build_absolute_uri())
+
+        if not extra:
+            firma_shop = get_object_or_404(self.firmashop_model, id=firma_shop_id)
+            if (firma_shop.item.stufenabhängig or self.shop_model == Rituale_Runen) and stufe is None:
+                messages.error(request, "Die Stufe ist nicht angekommen")
+                return redirect(request.build_absolute_uri())
+
+            # tried today already?
+            if not char.in_erstellung and self.relfirmashop_model.objects.filter(char=char, firma_shop=firma_shop, last_tried=date.today()).exists():
+                messages.error(request, "Heute kommt keine neue Ware mehr. Versuch's doch morgen nochmal.")
+                return redirect(request.build_absolute_uri())
+
+
+        # is the money all right?
+
+        # price of one item (at Stufe 1)
+        if extra: debt = price
+        elif self.shop_model == Rituale_Runen: debt = getattr(firma_shop, "getPriceStufe{}".format(stufe))()
+        else: debt = firma_shop.getPrice()
+
+        # multiply num_items and stufe
+        if item.stufenabhängig and not self.shop_model == Rituale_Runen: debt *= num_items * stufe
+        else: debt *= num_items
+
+        if debt > char.geld:
+            messages.error(request, "Du bist zu arm dafür")
+            return redirect(request.build_absolute_uri())
+
+
+        # how about verfgbarkeit?
+        if not char.in_erstellung and not extra:
+            verf = firma_shop.verfügbarkeit
+            if item.stufenabhängig: verf -= (stufe - 1) * 10
+
+            rand = random.randint(1, 100)
+
+            # not available, try tomorrow
+            if  rand > verf:
+                # add mark for today's unsuccessful try
+                self.relfirmashop_model.objects.create(char=char, firma_shop=firma_shop)
+
+                messages.error(request, "Mit einer Verfügbarkeit von {} und einem random Wert von {} darüber ist es nicht verfügbar.".format(verf, rand) +\
+                    " Try again tomorrow")
+                return redirect(request.build_absolute_uri())
+
+
+        # add to db or increase num if already exists
+
+        # stufenabhängig
+        if item.stufenabhängig or self.shop_model == Rituale_Runen:
+            items = self.relshop_model.objects.filter(char=char, item=item, stufe=stufe)
+            if items.count():
+                i = items[0]
+                i.anz += num_items
+
+                i.save(update_fields=["anz"])
+            else:
+                self.relshop_model.objects.create(char=char, item=item, stufe=stufe, anz=num_items)
+
+        # stufenUNabhängig
+        else:
+            items = self.relshop_model.objects.filter(char=char, item=item)
+            if items.count():
+                i = items[0]
+                i.anz += num_items
+
+                i.save(update_fields=["anz"])
+            else:
+                self.relshop_model.objects.create(char=char, item=item, anz=num_items)
+
+        # pay
+        char.geld -= debt
+        char.save(update_fields=["geld"])
+
+        # log
+        log_dict = {
+            "num": num_items, "item": item, "preis_ges": debt,
+            "firma_titel": firma_shop.firma.name if not extra else "außer der Reihe", "stufe": stufe}
+        logShop(spieler, char, [log_dict])
+
+
+        messages.success(request, f"{char.name} hat {debt} Dr. für {num_items} Item(s) ausgegeben.")
+        return redirect(request.build_absolute_uri())
+
+
+
+
+
+
 # specific buy_shop
-@login_required
-@verified_account
-def buy_item(request, id):
-    if request.method == 'GET':
-        context = buy_item_get(request, id, Item, RelItem, FirmaItem)
-        return render(request, "shop/buy_shop.html", context)
-
-    if request.method == 'POST':
-        item = get_object_or_404(Item, id=id)
-        return buy_item_post(request, item, FirmaItem, RelItem, RelFirmaItem)
-
-
-@login_required
-@verified_account
-def buy_waffen_werkzeuge(request, id):
-    if request.method == 'GET':
-        context = buy_item_get(request, id, Waffen_Werkzeuge ,RelWaffen_Werkzeuge, FirmaWaffen_Werkzeuge)
-        return render(request, "shop/buy_shop.html", context)
-
-    if request.method == 'POST':
-        item = get_object_or_404(Waffen_Werkzeuge, id=id)
-        return buy_item_post(request, item, FirmaWaffen_Werkzeuge, RelWaffen_Werkzeuge, RelFirmaWaffen_Werkzeuge)
-
-
-@login_required
-@verified_account
-def buy_magazin(request, id):
-    if request.method == 'GET':
-        context = buy_item_get(request, id, Magazin, RelMagazin, FirmaMagazin)
-        return render(request, "shop/buy_shop.html", context)
-
-    if request.method == 'POST':
-        item = get_object_or_404(Magazin, id=id)
-        return buy_item_post(request, item, FirmaMagazin, RelMagazin, RelFirmaMagazin)
-
-
-@login_required
-@verified_account
-def buy_pfeil_bolzen(request, id):
-    if request.method == 'GET':
-        context = buy_item_get(request, id, Pfeil_Bolzen, RelPfeil_Bolzen, FirmaPfeil_Bolzen)
-        return render(request, "shop/buy_shop.html", context)
-
-    if request.method == 'POST':
-        item = get_object_or_404(Pfeil_Bolzen, id=id)
-        return buy_item_post(request, item, FirmaPfeil_Bolzen, RelPfeil_Bolzen, RelFirmaPfeil_Bolzen)
-
-
-@login_required
-@verified_account
-def buy_schusswaffe(request, id):
-    if request.method == 'GET':
-        context = buy_item_get(request, id, Schusswaffen, RelSchusswaffen, FirmaSchusswaffen)
-        return render(request, "shop/buy_shop.html", context)
-
-    if request.method == 'POST':
-        item = get_object_or_404(Schusswaffen, id=id)
-        return buy_item_post(request, item, FirmaSchusswaffen, RelSchusswaffen, RelFirmaSchusswaffen)
-
-
-@login_required
-@verified_account
-def buy_rituale_runen(request, id):
-    spieler = get_object_or_404(Spieler, name=request.user.username)
-
-    if request.method == 'GET':
-        context = buy_item_get(request, id, Rituale_Runen, RelRituale_Runen, FirmaRituale_Runen)
-        return render(request, "shop/buy_rituale_runen.html", context)
-
-    if request.method == 'POST':
-        item = get_object_or_404(Rituale_Runen, id=id)
-        return buy_item_post(request, item, FirmaRituale_Runen, RelRituale_Runen, RelFirmaRituale_Runen, rit_run=True)
-
-
-@login_required
-@verified_account
-def buy_magische_ausrüstung(request, id):
-    if request.method == 'GET':
-        context = buy_item_get(request, id, Magische_Ausrüstung, RelMagische_Ausrüstung, FirmaMagische_Ausrüstung)
-        return render(request, "shop/buy_shop.html", context)
-
-    if request.method == 'POST':
-        item = get_object_or_404(Magische_Ausrüstung, id=id)
-        return buy_item_post(request, item, FirmaMagische_Ausrüstung, RelMagische_Ausrüstung, RelFirmaMagische_Ausrüstung)
-
-
-@login_required
-@verified_account
-def buy_rüstung(request, id):
-    if request.method == 'GET':
-        context = buy_item_get(request, id, Rüstungen, RelRüstung, FirmaRüstungen)
-        return render(request, "shop/buy_shop.html", context)
-
-    if request.method == 'POST':
-        item = get_object_or_404(Rüstungen, id=id)
-        return buy_item_post(request, item, FirmaRüstungen, RelRüstung, RelFirmaRüstung)
-
-
-@login_required
-@verified_account
-def buy_ausrüstung_technik(request, id):
-    if request.method == 'GET':
-        context = buy_item_get(request, id, Ausrüstung_Technik , RelAusrüstung_Technik, FirmaAusrüstung_Technik)
-        return render(request, "shop/buy_shop.html", context)
-
-    if request.method == 'POST':
-        item = get_object_or_404(Ausrüstung_Technik, id=id)
-        return buy_item_post(request, item, FirmaAusrüstung_Technik, RelAusrüstung_Technik, RelFirmaAusrüstung_Technik)
-
-
-@login_required
-@verified_account
-def buy_fahrzeug(request, id):
-    if request.method == 'GET':
-        context = buy_item_get(request, id, Fahrzeug, RelFahrzeug, FirmaFahrzeug)
-        return render(request, "shop/buy_shop.html", context)
-
-    if request.method == 'POST':
-        item = get_object_or_404(Fahrzeug, id=id)
-        return buy_item_post(request, item, FirmaFahrzeug, RelFahrzeug, RelFirmaFahrzeug)
-
-
-@login_required
-@verified_account
-def buy_einbauten(request, id):
-    if request.method == 'GET':
-        context = buy_item_get(request, id, Einbauten, RelEinbauten, FirmaEinbauten)
-        return render(request, "shop/buy_shop.html", context)
-
-    if request.method == 'POST':
-        item = get_object_or_404(Einbauten, id=id)
-        return buy_item_post(request, item, FirmaEinbauten, RelEinbauten, RelFirmaEinbauten)
-
-
-@login_required
-@verified_account
-def buy_zauber(request, id):
-    if request.method == 'GET':
-        context = buy_item_get(request, id, Zauber, RelZauber, FirmaZauber)
-        return render(request, "shop/buy_shop.html", context)
-
-    if request.method == 'POST':
-        item = get_object_or_404(Zauber, id=id)
-        return buy_item_post(request, item, FirmaZauber, RelZauber, RelFirmaZauber)
-
-
-@login_required
-@verified_account
-def buy_vergessener_zauber(request, id):
-    if request.method == 'GET':
-        context = buy_item_get(request, id, VergessenerZauber, RelVergessenerZauber, FirmaVergessenerZauber)
-        return render(request, "shop/buy_shop.html", context)
-
-    if request.method == 'POST':
-        item = get_object_or_404(VergessenerZauber, id=id)
-        return buy_item_post(request, item, FirmaVergessenerZauber, RelVergessenerZauber, RelFirmaVergessenerZauber)
-
-
-@login_required
-@verified_account
-def buy_alchemie(request, id):
-    if request.method == 'GET':
-        context = buy_item_get(request, id, Alchemie, RelAlchemie, FirmaAlchemie)
-        return render(request, "shop/buy_shop.html", context)
-
-    if request.method == 'POST':
-        item = get_object_or_404(Alchemie, id=id)
-        return buy_item_post(request, item, FirmaAlchemie, RelAlchemie, RelFirmaAlchemie)
-
-
-@login_required
-@verified_account
-def buy_begleiter(request, id):
-    if request.method == 'GET':
-        context = buy_item_get(request, id, Begleiter, RelBegleiter, FirmaBegleiter)
-        return render(request, "shop/buy_shop.html", context)
-
-    if request.method == 'POST':
-        item = get_object_or_404(Begleiter, id=id)
-        return buy_item_post(request, item, FirmaBegleiter, RelBegleiter, RelFirmaBegleiter)
-
-
-# generic things for bying item in shop
-def buy_item_get(request, id, shop_model, rel_shop_model, firma_shop_model):
-    firma_shop_entries = firma_shop_model.objects.filter(item__id=id)
-    item = get_object_or_404(shop_model, id=id)
-
-    extra_preis_field = User.objects.filter(username=request.user.username, groups__name='spielleiter').exists()
-    if extra_preis_field:
-        charaktere = Charakter.objects.all().order_by('name')
-    else:
-        charaktere = Charakter.objects.filter(eigentümer__name=request.user.username).order_by('name')
-
-    context = {"charaktere": charaktere, "entries": firma_shop_entries, "topic": item.name,
-               "extra_preis_field": extra_preis_field, "st": item.stufenabhängig}
-
-    # for redirect eventually
-    context["text"] = "Für dieses Item gibt es keinen Verkäufer."
-    return context
-
-
-def buy_item_post(request, item, firma_shop_model, rel_shop_model, verf_model, rit_run=False):
-
-    # free unused space (random, I know ...)
-    verf_model.objects.exclude(last_tried=date.today()).delete()
-
-    # retrieve all values from request.POST & check them
-    extra = notizen = char_id = num_items = firma_shop_id = price = stufe = -2
-    try:
-        data = json.loads(request.body.decode("utf-8"))
-
-        extra = data["extra"]
-        notizen = data['notizen']
-        char_id = int(data["char"])
-        num_items = int(data['num'])
-        firma_shop_id = int(data['firma_shop']) if not extra else None
-        price = int(data['price']) if extra else None
-        stufe = int(data["stufe"]) if data["stufe"] else None
-    except:
-        return JsonResponse({"message": "Daten nicht vollständig erhalten"}, status=418)
-
-    # check if spieler may modify char
-    spieler = get_object_or_404(Spieler, name=request.user.username)
-    char = get_object_or_404(Charakter, id=char_id)
-    if char.eigentümer != spieler and not User.objects.filter(username=request.user.username, groups__name='spielleiter').exists():
-        return JsonResponse({"message": "Keine Erlaubnis einzukaufen"}, status=418)
-
-    if not extra:
-        firma_shop = get_object_or_404(firma_shop_model, id=firma_shop_id)
-        if (firma_shop.item.stufenabhängig or rit_run) and stufe is None:
-            return JsonResponse({"message": "Die Stufe ist nicht angekommen"}, status=418)
-
-        # tried today already?
-        if not char.in_erstellung and verf_model.objects.filter(char=char, firma_shop=firma_shop, last_tried=date.today()).exists():
-            return JsonResponse({"message": "Heute kommt keine neue Ware mehr. Versuch's doch morgen nochmal."}, status=418)
-
-
-    # is the money all right?
-
-    # price of one item (at Stufe 1)
-    if extra: debt = price
-    elif rit_run: debt = getattr(firma_shop, "getPriceStufe{}".format(stufe))()
-    else: debt = firma_shop.getPrice()
-
-    # multiply num_items and stufe
-    if item.stufenabhängig and not rit_run: debt *= num_items * stufe
-    else: debt *= num_items
-
-    if debt > char.geld:
-        return JsonResponse({"message": "Du bist zu arm dafür"}, status=418)
-
-
-    # how about verfgbarkeit?
-    if not char.in_erstellung and not extra:
-        verf = firma_shop.verfügbarkeit
-        if item.stufenabhängig: verf -= (stufe - 1) * 10
-
-        rand = random.randint(1, 100)
-
-        # not available, try tomorrow
-        if  rand > verf:
-            # add mark for today's unsuccessful try
-            verf_model.objects.create(char=char, firma_shop=firma_shop)
-
-            return JsonResponse({"message":
-                "Mit einer Verfügbarkeit von {} und einem random Wert von {} darüber ist es nicht verfügbar.".format(verf, rand) +\
-                " Try again tomorrow"}, status=418)
-
-
-    # add to db or increase num if already exists
-
-    # stufenabhängig
-    if item.stufenabhängig or rit_run:
-        items = rel_shop_model.objects.filter(char=char, item=item, stufe=stufe)
-        if items.count():
-            i = items[0]
-            i.anz += num_items
-            if notizen and len(notizen): i.notizen = ", ".join([i.notizen, notizen])
-
-            i.save(update_fields=["anz", "notizen"])
-        else:
-            rel_shop_model.objects.create(char=char, item=item, stufe=stufe, anz=num_items, notizen=notizen)
-
-    # stufenUNabhängig
-    else:
-        items = rel_shop_model.objects.filter(char=char, item=item)
-        if items.count():
-            i = items[0]
-            i.anz += num_items
-            if notizen and len(notizen): i.notizen = ", ".join([i.notizen, notizen])
-
-            i.save(update_fields=["anz", "notizen"])
-        else:
-            rel_shop_model.objects.create(char=char, item=item, anz=num_items, notizen=notizen)
-
-    # pay
-    char.geld -= debt
-    char.save(update_fields=["geld"])
-
-    # log
-    log_dict = {"num": num_items, "item": item, "preis_ges": debt,
-                "firma_titel": firma_shop.firma.name if not extra else "außer der Reihe", "stufe": stufe}
-    logShop(spieler, char, [log_dict])
-
-    # notify about money change
-    response_data = {"character": char.name, "old": char.geld + debt,
-                        "new": char.geld, 'preis': debt}
-    return JsonResponse(response_data)
+class ItemBuyView(BuyView):
+    shop_model = Item
+    relshop_model = RelItem
+    firmashop_model = FirmaItem
+    relfirmashop_model = RelFirmaItem
+
+class Waffen_WerkzeugeBuyView(BuyView):
+    shop_model = Waffen_Werkzeuge
+    relshop_model = RelWaffen_Werkzeuge
+    firmashop_model = FirmaWaffen_Werkzeuge
+    relfirmashop_model = RelFirmaWaffen_Werkzeuge
+
+class MagazinBuyView(BuyView):
+    shop_model = Magazin
+    relshop_model = RelMagazin
+    firmashop_model = FirmaMagazin
+    relfirmashop_model = RelFirmaMagazin
+
+class Pfeil_BolzenBuyView(BuyView):
+    shop_model = Pfeil_Bolzen
+    relshop_model = RelPfeil_Bolzen
+    firmashop_model = FirmaPfeil_Bolzen
+    relfirmashop_model = RelFirmaPfeil_Bolzen
+
+class SchusswaffenBuyView(BuyView):
+    shop_model = Schusswaffen
+    relshop_model = RelSchusswaffen
+    firmashop_model = FirmaSchusswaffen
+    relfirmashop_model = RelFirmaSchusswaffen
+
+class Rituale_RunenBuyView(BuyView):
+    shop_model = Rituale_Runen
+    relshop_model = RelRituale_Runen
+    firmashop_model = FirmaRituale_Runen
+    relfirmashop_model = RelFirmaRituale_Runen
+
+    template_name = "shop/buy_rituale_runen.html"
+
+class Magische_AusrüstungBuyView(BuyView):
+    shop_model = Magische_Ausrüstung
+    relshop_model = RelMagische_Ausrüstung
+    firmashop_model = FirmaMagische_Ausrüstung
+    relfirmashop_model = RelFirmaMagische_Ausrüstung
+
+class RüstungBuyView(BuyView):
+    shop_model = Rüstungen
+    relshop_model = RelRüstung
+    firmashop_model = FirmaRüstungen
+    relfirmashop_model = RelFirmaRüstung
+
+class Ausrüstung_TechnikBuyView(BuyView):
+    shop_model = Ausrüstung_Technik
+    relshop_model = RelAusrüstung_Technik
+    firmashop_model = FirmaAusrüstung_Technik
+    relfirmashop_model = RelFirmaAusrüstung_Technik
+
+class FahrzeugBuyView(BuyView):
+    shop_model = Fahrzeug
+    relshop_model = RelFahrzeug
+    firmashop_model = FirmaFahrzeug
+    relfirmashop_model = RelFirmaFahrzeug
+
+class EinbautenBuyView(BuyView):
+    shop_model = Einbauten
+    relshop_model = RelEinbauten
+    firmashop_model = FirmaEinbauten
+    relfirmashop_model = RelFirmaEinbauten
+
+class ZauberBuyView(BuyView):
+    shop_model = Zauber
+    relshop_model = RelZauber
+    firmashop_model = FirmaZauber
+    relfirmashop_model = RelFirmaZauber
+
+class VergessenerZauberBuyView(BuyView):
+    shop_model = VergessenerZauber
+    relshop_model = RelVergessenerZauber
+    firmashop_model = FirmaVergessenerZauber
+    relfirmashop_model = RelFirmaVergessenerZauber
+
+class AlchemieBuyView(BuyView):
+    shop_model = Alchemie
+    relshop_model = RelAlchemie
+    firmashop_model = FirmaAlchemie
+    relfirmashop_model = RelFirmaAlchemie
+
+class BegleiterBuyView(BuyView):
+    shop_model = Begleiter
+    relshop_model = RelBegleiter
+    firmashop_model = FirmaBegleiter
+    relfirmashop_model = RelFirmaBegleiter

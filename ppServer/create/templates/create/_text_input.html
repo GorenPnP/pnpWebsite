@@ -1,0 +1,15 @@
+{% load getattr l10n %}
+
+<input
+    type="text"
+    maxlength="{{ maxlength }}"
+    class="{{ base_class }}-input"
+    data-id="{% localize off %}{{ record|getattribute:dataset_id }}{% endlocalize %}"
+
+    form="form"
+    name="{{ base_name }}-{% localize off %}{{ record|getattribute:dataset_id }}{% endlocalize %}"
+    value="{% localize off %}{{ value|default:'' }}{% endlocalize %}"
+    placeholder="---"
+
+    style="max-width:300px"
+>

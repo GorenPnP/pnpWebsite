@@ -1,0 +1,59 @@
+.main-container {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+
+	background-image: url('/static/res/img/icon-dice-account.svg');
+	background-size: 200px;
+	background-position: 87% 60%;
+	background-repeat: no-repeat;
+}
+
+.text-container {
+	width: var(--width, 43%);
+	max-width: var(--max-width, 400px);
+	padding-right: 10%;
+}
+
+label, input { display: block; }
+input { width: 100%; }
+
+.links {
+	margin-top: 3em;
+
+	a {
+		display: block;
+		text-align: center;
+		margin-block: 1em;
+	}
+}
+
+
+@media only screen and (max-width: 995px) {
+	.main-container {
+		background-size: 100px;
+		background-position: 90% 50%;
+	}
+}
+
+@media only screen and (max-width: 770px) {
+	.text-container {
+		width: 50%;
+	}
+}
+
+@media only screen and (max-width: 680px) {
+	.main-container {
+		background-size: 100px;
+		background-position: 90% 90%;
+	}
+	.text-container {
+		padding: 0;
+	}
+}
+
+@media only screen and (max-width: 450px) {
+	.text-container {
+		width: 70%;
+	}
+}

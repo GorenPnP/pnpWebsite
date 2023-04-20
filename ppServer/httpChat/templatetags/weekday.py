@@ -1,6 +1,7 @@
-import datetime
+from datetime import datetime, timedelta
 
 from django import template
+from django.utils import timezone
 from pytz import utc
 
 
@@ -9,7 +10,7 @@ register = template.Library()
 
 @register.filter
 def weekday(date: datetime):
-    if utc.localize(datetime.datetime.now()) - datetime.timedelta(days=6) < date:
+    if timezone.now() - timedelta(days=6) < date:
         weekdays = ["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag"]
         return weekdays[date.weekday()]
     

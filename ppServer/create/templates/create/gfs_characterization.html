@@ -1,46 +1,49 @@
-{% extends 'base/main.html' %}
+{% extends 'base/headed_main.html' %}
 {% load static %}
-{% block title %}Gfs Wahlfilter{% endblock %}
+{% load export_url from django_tables2 %}
 {% block extra-head %}
-<link rel="stylesheet" href="{% static 'base/css/table.css' %}">
-<link rel="stylesheet" href="{% static 'base/css/checkbox.css' %}">
-<link rel="stylesheet" href="{% static 'create/css/gfs_characterization.css' %}">
-<script src="{% static 'create/js/gfs_characterization.js' %}"></script>
+
+<!-- remove unwanted styles from table with filter inside -->
+<style>
+    #filter-form {
+        display: grid;
+        width: fit-content;
+        grid-template-columns: auto auto;
+        gap: 1em;
+        margin-inline: auto;
+    }
+    @media screen and (max-width: 450px) {
+        #filter-form { grid-template-columns: 1fr; }
+        select { margin-bottom: 1em !important; }
+    }
+    [value=reset] { display: none !important; }
+</style>
+<script>
+    document.addEventListener("DOMContentLoaded", () =>
+        document.querySelector("table tbody tr").remove()
+    );
+</script>
 {% endblock %}
-{% block absolute %}{% include 'base/header.html' with topic='Gfs Wahlfilter' %}{% endblock %}
 
-{% block body %}
-{{ gfs_characterizations|json_script:"gfs_characterizations" }}
+{% block main %}
 
-<h2>Soll dein Charakter</h2>
-<div class="filter-container">
-    {% for filter in filters %}
-    <div class="filter">
-        <label for="{{ filter.name }}">{{ filter.text }}</label>
 
-        <select onchange="filterChange(this)" id="{{ filter.name }}">
-            <option value="" id="option0" selected>mir egal</option>
-            {% for choice in filter.choices %}
-                <option value="{{ choice.id }}" id="option{{ forloop.counter }}">{{ choice.titel }}</option>
-            {% endfor %}
-        </select>
-    </div>
-    {% endfor %}
-</div>
+<form method="get" id="filter-form">
+        <p class="h1">Soll dein Charakter</p><p></p>
+        {{ filter.form }}
+    </form>
 
-<b class="num-displayed-container"><span id="num-displayed">{{ gfs|length }}</span> Gfs gefunden.</b>
-<a class="link-back" href="{% url 'create:gfs' %}">Zurück zur Gfs-Wahl</a>
+    {% include 'base/table_template.html' with view=view table=table %}
 
-<div class="grid-container gfs-container">
-    <div class="col1 heading">Gfs</div>
-    <div class="col3 heading heading--last">Beschreibung</div>
+    {% if view.export_formats|length %}
+    <ul>
+        {% for format in view.export_formats %}
+            <li><a class="export-link" href="{% export_url format %}">
+                download  <code>.{{ format }}</code>
+            </a></li>
+        {% endfor %}
+    </ul>
+    {% endif %}
 
-    <!-- content -->
-    {% for g in gfs %}
-    <div class="col1 gfs displayed" data-gfs_id="{{ g.id }}"><a href="{% url 'wiki:stufenplan' g.id %}" target="_blank">{{ g.titel }}</a></div>
-    <div class="gfs displayed" data-gfs_id="{{ g.id }}">{{ g.beschreibung }}</div>
-    {% endfor %}
-</div>
-
-<a class="link-back" href="{% url 'create:gfs' %}">Zurück zur Gfs-Wahl</a>
+    <a class="btn btn-primary" href="{% url 'create:gfs' %}">Zurück zur Gfs-Wahl</a>
 {% endblock %}

@@ -7,6 +7,8 @@ from django.http.request import HttpRequest
 from django.http.response import HttpResponse
 from django.shortcuts import redirect
 from django.views.generic.base import TemplateView, View
+from django.urls import reverse
+from django.utils import timezone
 
 from ppServer.mixins import VerifiedAccountMixin, OwnChatMixin
 
@@ -31,7 +33,8 @@ class AccountListView(LoginRequiredMixin, VerifiedAccountMixin, TemplateView):
                     ))
                 )
             )
-            .order_by("-new_messages", "name")
+            .order_by("-new_messages", "name"),
+            topic="Meine Chats"
         )
 
     def post(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
@@ -52,7 +55,10 @@ class ChatroomListView(LoginRequiredMixin, OwnChatMixin, TemplateView):
     def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
         account = Account.objects.get(slug=self.kwargs["account_name"])
 
-        return super().get_context_data(**kwargs, account=account, form=ChatroomForm(exclude_account=account),
+        return super().get_context_data(**kwargs,
+            account=account,
+            new_chat_form=ChatroomForm(exclude_account=account, prefix="create-chat"),
+            edit_account_form=AccountForm(instance=account, prefix="update-account"),
             chatrooms=Chatroom.objects
                 .prefetch_related("accounts", "message_set")
                 .filter(accounts__id=account.id)
@@ -65,17 +71,23 @@ class ChatroomListView(LoginRequiredMixin, OwnChatMixin, TemplateView):
                         ))
                     )
                 )
-                .order_by("-new_messages", "titel", "accounts")
+                .order_by("-new_messages", "titel", "accounts"),
+            app_index="Chat",
+            app_index_url=reverse("httpchat:index")
         )
     
     def post(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
         account = Account.objects.get(slug=self.kwargs["account_name"])
 
-        form = ChatroomForm(account, request.POST)
-        if form.is_valid():
-            accounts_M2M = list(form.cleaned_data['accounts'])
-            form.cleaned_data['accounts'] = accounts_M2M + [account]
-            form.save()
+        create_chat_form = ChatroomForm(account, request.POST, prefix="create-chat")
+        if create_chat_form.is_valid():
+            accounts_M2M = list(create_chat_form.cleaned_data['accounts'])
+            create_chat_form.cleaned_data['accounts'] = accounts_M2M + [account]
+            create_chat_form.save()
+
+        update_account_form = AccountForm(request.POST, request.FILES, instance=account, prefix="update-account")
+        if update_account_form.is_valid():
+            update_account_form.save()
 
         # redirect to self.get()
         return redirect(request.build_absolute_uri())
@@ -109,7 +121,7 @@ class ChatroomView(LoginRequiredMixin, OwnChatMixin, TemplateView):
         # set accessed
         chatroom_account = objects["chatroomaccount"]
         self.latest_access = chatroom_account.latest_access
-        chatroom_account.latest_access = datetime.now()
+        chatroom_account.latest_access = timezone.now()
         chatroom_account.save(update_fields=["latest_access"])
 
         # if opening chatroom for the first time, add welcome msg

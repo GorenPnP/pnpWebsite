@@ -14,9 +14,6 @@ import polls.models as pollsm
 from quiz.models import SpielerModule
 
 
-def redirect(request):
-    return render(request, "base/redirect.html", {"url": reverse("base:index")})
-
 def reviewable_shop():
     models = [
         Ausrüstung_Technik,
@@ -68,5 +65,13 @@ def index(request):
         context["news"] = News.objects.filter(published=True)[:10]
         context["news_character_count"] = sum([len(n.titel) for n in context["news"]])
         context["todays_fact"] = History.get_fact()
+
+        # collect topics for hero
+        context["hero_pages"] = ["Fun Fact"]
+        if "list_vote" in context and len(context["list_vote"]):  context["hero_pages"].append("Umfrage")
+        if "open_quiz" in context and context["open_quiz"]:  context["hero_pages"].append("Quiz")
+        context["hero_pages"].append("Monsterdex")
+        context["hero_pages"].append("Schmiedesystem")
+        if "shop_review" in context and len(context["shop_review"]):  context["hero_pages"].append("Shop review")
 
         return render(request, 'base/index.html', context)

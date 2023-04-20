@@ -52,41 +52,16 @@ use with html like the following.
 					calc(var(--card-margin-hor) + var(--icon-offset-right))
 					var(--card-margin-vert)
 					var(--card-margin-hor);
+
+	background-color: transparent !important;
+	border-width: 0 !important;
 }
 
 .card__container {
-	background: #4a4f54;
 	padding: 2rem;
 	border-radius: 15px;
 }
 
-/* btn/s */
-.card__btn {
-	background: #0ff;
-	color: #010a0c;
-	padding: .5em 1em;
-	border-radius: 8.5px;
-}
-.card .btns {
-	display: flex;
-	justify-content: space-between;
-	flex-wrap: wrap;
-	margin: 0 -1em;
-}
-.card .btns button {
-	margin: 1em;
-}
-
-/* card textual content */
-.card__heading {
-	color: #c8c8c8;
-	font-size: 1.2rem;
-	font-family: 'Quicksand', sans-serif;
-}
-.card__text {
-	color: #8e8e8e;
-	margin: 1.2em 0 2em 0;
-}
 
 /* card icon */
 .card__icon {
@@ -94,19 +69,27 @@ use with html like the following.
 	right: calc(calc(var(--icon-width) - var(--icon-offset-right)) - 100%);
 	top: calc(var(--icon-height) - var(--icon-offset-top));
 
-	background: lighten(#077, 10%);
 	height: var(--icon-height);
 	width: var(--icon-width);
 	border-radius: 50%;
 	padding: var(--icon-padding) 0;
 }
 .card__icon:hover {
-	opacity: var(--hover-opacity);
+	filter: brightness(80%);
 }
 .card__icon__img {
 	height: calc(var(--icon-height) - calc(var(--icon-padding) * 2));
 	margin: auto;
 	display: block;
+
+	// imgs are black, make them white
+	filter:invert(1);
+}
+
+.btns {
+	display: flex;
+	gap: 5px;
+	flex-wrap: wrap;
 }
 
 .card__link {

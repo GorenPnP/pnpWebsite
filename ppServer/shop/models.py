@@ -383,7 +383,6 @@ class Zauber(BaseShop):
     manaverbrauch = models.CharField(max_length=100, default='', null=True, blank=True)
 
     kategorie = models.CharField(choices=enums.zauber_enum, max_length=2, null=True, blank=True)
-    flächenzauber = models.BooleanField(default=False)
 
     firmen = models.ManyToManyField('Firma', through='FirmaZauber', blank=True)
 
@@ -398,8 +397,6 @@ class VergessenerZauber(BaseShop):
     schaden = models.CharField(max_length=100, default='', null=True, blank=True)
     astralschaden = models.CharField(max_length=100, default='', null=True, blank=True)
     manaverbrauch = models.CharField(max_length=100, default='', null=True, blank=True)
-
-    flächenzauber = models.BooleanField(default=False)
 
     firmen = models.ManyToManyField('Firma', through='FirmaVergessenerZauber', blank=True)
 

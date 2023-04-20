@@ -1,77 +1,45 @@
-const fert_pool_tag = document.querySelector('#fert_pool');
-const wp_pool_tag = document.querySelector('#wp_pool');
+let initial_fert = 0;
+let initial_wp = 0;
 
-let initial_fert_pool = parseInt(fert_pool_tag.textContent);
-let initial_wp_pool = parseInt(wp_pool_tag.textContent);
 
-let fertigkeiten = [];
-
-let selected_ferts = [];
-
-function calc_initial_pools() {
-
-    // get/calc values
-    const chosen_ferts = fertigkeiten
-        .map(fert => fert.punkte)
-        .filter(punkte => punkte !== null);
-
-    const wp = chosen_ferts
-        .reduce((sum, wp_points) => sum + wp_points, 0);
-
-    const num_ferts = chosen_ferts.length;
-
-    initial_fert_pool = parseInt(fert_pool_tag.textContent) + num_ferts;
-    initial_wp_pool = parseInt(wp_pool_tag.textContent) + wp;
+function fert_chosen() {
+    return [...document.querySelectorAll(`.wissen-input, .spezial-input`)].filter(tag => parseInt(tag.value) || 0).length;
+}
+function wp_spent() {
+    return [...document.querySelectorAll(`.wissen-input, .spezial-input`)]
+        .map(tag => parseInt(tag.value) || 0)
+        .reduce((sum, wp) => sum + wp, 0);
 }
 
-function calc() {
-
-    // get/calc values
-    const values = [...document.querySelectorAll('[type="number"]')]
-        .map(tag => parseInt(tag.value))
-        .filter(val => !isNaN(val) && val);
-
-    const wp = values
-        .reduce((sum, wp_points) => sum + wp_points, 0);
-
-    const ferts = values.length;
-
-    // update stats
-    fert_pool_tag.textContent = initial_fert_pool - ferts;
-    wp_pool_tag.textContent = initial_wp_pool - wp;
-
-    selected_ferts = [...document.querySelectorAll('[type="number"]')]
-        .filter(tag => !isNaN(parseInt(tag.value)) && parseInt(tag.value))
-        .map(tag => {
-            const id = tag.parentNode.parentNode.dataset.id;
-
-            return {
-                kind_of_fert: id.replace(/\d+/, ''),
-                pk: parseInt(/\d+/.exec(id)),
-                wp: parseInt(tag.value)
-            };
-        });
-
-    // update submit button
-    document.querySelector("#submit").disabled = fert_pool_tag.textContent != 0 ||  wp_pool_tag.textContent != 0;
+function calc_pools() {
+    const fert = initial_fert - fert_chosen();
+    document.querySelector("#fert_pool").innerHTML = fert;
+    
+    const wp = initial_wp - wp_spent();
+    document.querySelector("#wp_pool").innerHTML = wp;
+    
+    document.querySelector("[type=submit").disabled = fert < 0 || wp < 0;
 }
 
-function submit() {
-    post({selected: selected_ferts});
+function highlight_rows() {
+    const highlight_class = "highlight";
+
+    [...document.querySelectorAll(".main-container tbody tr")].forEach(tr_tag => {
+        const is_selected = parseInt(tr_tag.querySelector(`.wissen-input, .spezial-input`).value);
+        is_selected ? tr_tag.classList.add(highlight_class) : tr_tag.classList.remove(highlight_class);
+    });
 }
 
+document.addEventListener("DOMContentLoaded", function () {
+    // init pools
+    initial_fert = parseInt(document.querySelector("#fert_pool").innerHTML) + fert_chosen();
+    initial_wp = parseInt(document.querySelector("#wp_pool").innerHTML) + wp_spent();
 
-document.addEventListener("DOMContentLoaded", function() {
-    fertigkeiten = JSON.parse(document.querySelector("#fertigkeiten").textContent);
-    calc_initial_pools();
-    calc();
-
-    document.querySelectorAll("#table [data-contains='content'] [type='number']").forEach(fert => fert.addEventListener("input", function() {
-        // min of 0
-        const val = parseInt(this.value);
-        if (!isNaN(val) && val < 0) this.value = 0;
-
-        // adapt to changes of values
-        calc();
+    
+    // update ap-pool on change of aktuell-input
+    document.querySelectorAll(`.wissen-input, .spezial-input`).forEach(tag => tag.addEventListener("input", function() {
+        highlight_rows();
+        calc_pools();
     }));
-})
+    highlight_rows();
+});

@@ -1,76 +1,54 @@
-var attrs = {};
-attributes = {};
-initial_ap = 0;
-initializing = true;
+let initial_ap = 0;
 
-const clamp = (min, number, max) => Math.min(Math.max(number, min), max);
 
-function init() {
-    ap_pool_tag = document.querySelector("#ap_pool");
-    initial_ap = parseInt(ap_pool_tag.innerHTML);
+function ap_spent() {
+    const ap_aktuell = [...document.querySelectorAll(`.aktuell-input`)]
+        .map(tag => parseInt(tag.value) || 0)
+        .reduce((sum, ap) => sum + ap, 0);
+    
+    const ap_max = [...document.querySelectorAll(`.max-input`)]
+        .map(tag => parseInt(tag.value) || 0)
+        .reduce((sum, ap) => sum + ap, 0);
 
-    data = JSON.parse(document.querySelector("#attributes").textContent);
-    attributes = data.reduce((acc, attr) => {
-        acc[attr.pk] = attr;
-        return acc;
-    }, {});
-
-    calc_ap_pool();
-
-    // gathering data for initial_ap is done
-    initializing = false;
+    return ap_aktuell + 2* ap_max;
 }
-
-function clamp_value_on_change(tag) {
-    const tr_parent = tag.parentNode.parentNode;
-    const id = tr_parent.dataset.id;
-    const isAktuell = tr_parent.querySelector("[type='number']") === tag;
-    let maxValue = Number.MAX_VALUE;
-    if (isAktuell) {
-        maxValue = attributes[id]["max"] + attributes[id]["max_ap"] - attributes[id]["aktuell"];
-    }
-
-    const value = clamp(0, parseInt(tag.value) || 0, maxValue);
-
-    tag.value = value;
-    attributes[id][isAktuell ? "aktuell_ap" : "max_ap"] = value;
-}
-
 function calc_ap_pool() {
-    let sum = 0;
-
-    tr_tags = document.querySelectorAll("[data-id]");
-    for (const tr of tr_tags) {
-        const attribute = attributes[tr.dataset.id];
-        const result = [...tr.querySelectorAll("td")].reverse()[0];
-
-        const aktuell_sum = attribute.aktuell + attribute.aktuell_ap;
-        const max_sum = attribute.max + attribute.max_ap;
-        result.textContent = `${aktuell_sum}/${max_sum}`;
-
-        sum += attribute.aktuell_ap + attribute.max_ap*2;
-    }
-
-    const curr_ap = initial_ap - sum;
-    if (!initializing) {
-        ap_pool_tag.innerHTML = curr_ap;
-    } else {
-        initial_ap += sum;
-    }
-    // handle submit button
-    document.querySelector("#submit").disabled = ap_pool_tag.innerHTML != 0;
+    const ap = initial_ap - ap_spent();
+    document.querySelector("#ap_pool").innerHTML = ap;
+    document.querySelector('[type="submit"]').disabled = ap < 0;
 }
 
+function update_result(tr_tag) {
 
-function submit() {
-    post(attributes)
+    const max = parseInt(tr_tag.querySelector(".aktuell-input").max) || 0
+    const aktuell = 
+        (parseInt(tr_tag.querySelector(".aktuell-fix")?.innerHTML) || 0) +
+        (parseInt(tr_tag.querySelector(".aktuell-input").value) || 0)
+
+    tr_tag.lastChild.innerHTML = `${aktuell} / ${max}`; 
 }
 
 document.addEventListener("DOMContentLoaded", function () {
-    init();
+    // init ap-pool
+    initial_ap = parseInt(document.querySelector("#ap_pool").innerHTML) + ap_spent();
 
-    document.querySelectorAll("[type='number']").forEach(tag => tag.addEventListener("input", function() {
-        clamp_value_on_change(this);
+    // adapt aktuell-input max on max-input change
+    document.querySelectorAll("[type='number'].max-input").forEach(max_tag => max_tag.addEventListener("input", function() {
+        const id = this.dataset.id;
+        const max =
+            (parseInt(document.querySelector(`[data-id="${id}"].max-fix`)?.innerHTML) || 0) +
+            (parseInt(this.value) || 0) -
+            (parseInt(document.querySelector(`[data-id="${id}"].aktuell-fix`)?.innerHTML) || 0);
+
+        document.querySelector(`[data-id="${id}"].aktuell-input`).setAttribute("max", max);
+
+        update_result(this.parentNode.parentNode.parentNode);
+        calc_ap_pool();
+    }));
+    
+    // update ap-pool on change of aktuell-input
+    document.querySelectorAll("[type='number'].aktuell-input").forEach(aktuell_tag => aktuell_tag.addEventListener("input", function() {
+        update_result(this.parentNode.parentNode.parentNode);
         calc_ap_pool();
     }));
 });

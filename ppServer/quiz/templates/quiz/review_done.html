@@ -1,31 +1,21 @@
-{% extends 'base/main.html' %}
+{% extends 'base/headed_main.html' %}
 {% load static %}
-{% block title %}{{ topic }}{% endblock %}
 {% block extra-head %}
 <style>
-	.btn {
-		color: #333;
-		padding: 1em 2em;
-	}
 	.main-container {
-		font-size: 1.3rem;
 		display: grid;
 		grid-template-columns: auto;
-		grid-gap: 1em;
 
 		justify-content: center;
 		justify-items: center;
 		align-items: center;
-		height: 100vh;
 	}
 </style>
 {% endblock %}
-{% block absolute %}{% include 'base/header.html' with topic=topic %}{% endblock %}
 
-{% block body %}
-<div style="color: #c8c8c8;"></div>
-<h1>Das wars!</h1>
-<span>Deine Punkte aus diesem Modul wurden dir schon gutgeschrieben.</span>
+{% block main %}
+<h1 class="text-light d-block">Das wars!</h1>
+<span class="text-light d-block">Deine Punkte aus diesem Modul wurden dir schon gutgeschrieben.</span>
 
-<a class="btn" href="{% url 'quiz:index' %}">Beenden</a>
+<a class="btn btn-primary" href="{% url 'quiz:index' %}">BEENDEN</a>
 {% endblock %}

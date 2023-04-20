@@ -1,8 +1,6 @@
-{% extends 'base/main.html' %}
-{% load django_bootstrap5 static %}
+{% extends 'base/headed_main.html' %}
+{% load static %}
 {% load export_url from django_tables2 %}
-
-{% block title %}{{ view.get_topic }}{% endblock %}
 
 {% block extra-head %}
 	<link rel="stylesheet" href="{% static 'quiz/css/sp_spieler_modules.css' %}" type="text/css">
@@ -10,14 +8,7 @@
 	<script src="{% static 'quiz/js/sp_spieler_modules.js' %}" defer></script>
 {% endblock %}
 
-{% block absolute %}
-	{% if view.get_plus_url|length %}
-		{% include 'base/header.html' with topic=view.get_topic plus_url=view.get_plus_url %}
-	{% else %}
-		{% include 'base/header.html' with topic=view.get_topic %}
-	{% endif %}
-{% endblock %}
-{% block body %}
+{% block main %}
 
 {% include 'base/table_template.html' with view=view table=table filter=filter %}
 

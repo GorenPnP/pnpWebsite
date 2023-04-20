@@ -1,22 +1,10 @@
 :root {
 	--itemTile-size: 100px;
 }
-.main-container {margin-bottom: 50px;}
 
-@import './head';
-.head {
-	flex-wrap: wrap;
-	justify-content: flex-end;
-	align-items: center;
-
-	& > * {margin: 1.5em;}
-
-	a.btn--craft, a.btn--inventory {
-		border: 3px solid #0ff;
-		background: unset;
-		color: #ddd;
-
-	}
+.nav {
+	max-width: 700px;
+	margin: 0 auto 3em;
 }
 
 
@@ -25,11 +13,4 @@
 .overlay .num {margin-right: .3em;}
 .overlay {margin: 0 auto;}
 
-
-.btn--back {
-	margin: 2em auto 0;
-	padding: .85em 2em;
-
-	font-size: 1.4rem;
-	font-weight: 900;
-}
+.btn-primary { display: block; margin: auto; }

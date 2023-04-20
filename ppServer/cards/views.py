@@ -1,3 +1,4 @@
+from typing import Any, Dict
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import UserPassesTestMixin
 from django.shortcuts import render, redirect, reverse, get_object_or_404
@@ -18,6 +19,9 @@ class CardListView(ListView):
     def get_queryset(self):
         spieler = get_object_or_404(Spieler, name=self.request.user.username)
         return self.model.objects.filter(spieler=spieler, active=True)
+    
+    def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
+        return super().get_context_data(**kwargs, topic="Meine Karten")
 
 
 class CardDetailView(UserPassesTestMixin, DetailView):
@@ -37,9 +41,12 @@ class CardDetailView(UserPassesTestMixin, DetailView):
 
         spieler = get_object_or_404(Spieler, name=self.request.user.username)
         if context["object"].spieler.id != spieler.id:
-                return {}
+            return {}
 
         context["transactions"] = context["object"].get_transactions()
+        context["topic"] = context["object"].name
+        context["app_index"] = "Konten"
+        context["app_index_url"] = reverse("cards:index")
 
         return context
 
@@ -79,7 +86,7 @@ def sp_transaction(request):
     else:
         form = AdminTransactionForm()
 
-    return render(request, 'cards/transaction.html', {'form': form, "errors": errors})
+    return render(request, 'cards/transaction.html', {'form': form, "errors": errors, "topic": "Neue Transaktion"})
 
 
 @login_required
@@ -132,4 +139,11 @@ def transaction(request, uuid):
     else:
         form = SpielerTransactionForm(uuid=uuid)
 
-    return render(request, 'cards/transaction.html', {'form': form, "errors": errors, "sender": sender})
+    return render(request, 'cards/transaction.html', {
+        'form': form,
+        "errors": errors,
+        "sender": sender,
+        "topic": "Neue Transaktion",
+        "app_index": "Konten",
+        "app_index_url": reverse("cards:index"),
+    })

@@ -1,73 +1,86 @@
-{% extends 'base/main.html' %}
-{% load static %}
+{% extends 'base/headed_main.html' %}
 {% load subtract %}
-{% block title %}{{ topic }}{% endblock %}
 {% block extra-head %}
-<link rel="stylesheet" href="{% static 'base/css/table.css' %}">
-<link rel="stylesheet" href="{% static 'shop/css/buy.css' %}">
 <style>
-    .grid-container {grid-template-columns: repeat({% if st %}8{% else %}7{% endif %}, auto);}
+    [name=amount] { width: 70px; }
+    [name=price] { max-width: 110px; }
+    select { max-width: 25vw; }
 </style>
-<script src="{% static 'res/js/axios.min.js' %}" type='text/javascript'></script>
-<script src="{% static 'base/js/ajax.js' %}"></script>
-<script type="text/javascript" src="{% static 'shop/js/buy_shop.js' %}"></script>
-{% endblock %}
-{% block absolute %}
-{% include 'base/header.html' with topic=topic %}
 {% endblock %}
 
-{% block body %}
-<div class="grid-container">
+{% block main %}
+<table class="table table-dark table-striped table-hover">
+    <thead>
+        <tr>
+            <th>Anzahl</th>
+            {% if st %}<th>Stufe</th>{% endif %}
+            <th>Preis {% if st %}pro Stufe{% endif %} pro Item</th>
+            <th>für ...</th>
+            <th>Firma</th>
+            <th>Verfügbarkeit</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
 
-    <div class="heading heading--first">Anzahl</div>
-    {% if st %}<div class="heading">Stufe</div>{% endif %}
-    <div class="heading">Preis {% if st %}pro Stufe{% endif %}</div>
-    <div class="heading">für ..</div>
-    <div class="heading">Firma</div>
-    <div class="heading">Verfügbarkeit</div>
-    <div class="heading">Notizen</div>
-    <div class="heading heading--last"></div>
+        {% for e in entries %}
+        <tr>
+            <td><input name="amount" type="number" value="1" min="1" form="form-{{ forloop.counter0 }}" required></td>
+            {% if st %}
+            <td><input name="stufe" type="number" value="1" min="1" form="form-{{ forloop.counter0 }}" required></td>
+            {% endif %}
 
+            <td><b>{{ e.getPrice }} Dr.</b> {% if e.getPrice != e.preis %}<small class="d-block">(enthält +{{ e.getPrice|subtract:e.preis }} Dr.)</small>{% endif %}</td>
+            <td>
+                {% if charaktere %}
+                    <select name="character" form="form-{{ forloop.counter0 }}" required>
+                        {% for c in charaktere %}
+                            <option value="{{ c.id }}">{{ c.name }} ({{c.geld }} Dr.)</option>
+                        {% endfor %}
+                    </select>
+                {% else %}Du hast keine Charaktere{% endif %}
+            </td>
+            <td>{{ e.firma }}</td>
+            <td>{{ e.verfügbarkeit }}%</td>
+            <td>
+                <form method="post" id="form-{{ forloop.counter0 }}">
+                    {% csrf_token %}
+                    <input hidden name="firmashop_id" value="{{ e.id }}">
+                    <button type="submit" class="btn btn-primary">Kaufen</button>
+                </form>
+            </td>
 
-    {% for e in entries %}
-        <div hidden class="firma_shop_id row-{{ forloop.counter0 }}">{{ e.id }}</div>
-        <div><input class="num row-{{ forloop.counter0 }}" type="number" value="1" min="1"></div>
-        {% if st %}
-            <div><input class="stufe row-{{ forloop.counter0 }}" type="number" value="1" min="1"></div>
+        </tr>
+        {% endfor %}
+
+        {% if extra_preis_field %}
+        <tr>
+            <td><input name="amount" type="number" value="1" min="1" form="form-special" required></td>
+            {% if st %}
+            <td><input name="stufe" type="number" value="1" min="1" form="form-special" required></td>
+            {% endif %}
+            <td><input name="price" type="number" value="0" min="0" form="form-special" required> Dr.</td>
+            <td>
+                {% if charaktere %}
+                    <select name="character" form="form-special" required>
+                        {% for c in charaktere %}
+                            <option value="{{ c.id }}">{{ c.name }} ({{ c.geld }} Dr.)</option>
+                        {% endfor %}
+                    </select>
+                {% else %}Du hast keine Charaktere{% endif %}
+            </td>
+
+            <td>-</td>
+            <td>-</td>
+            <td>
+                <form method="post" id="form-special">
+                    {% csrf_token %}
+                    <input hidden type="checkbox" name="extra" checked>
+                    <button type="submit" class="btn btn-primary">Kaufen</button>
+                </form>
+            </td>
+        </tr>
         {% endif %}
-
-        <div>{{ e.getPrice }} Dr. {% if e.getPrice != e.preis %}<small>(enthält +{{ e.getPrice|subtract:e.preis }} Dr.)</small>{% endif %}</div>
-        <div>
-            {% if charaktere %}
-                <select class="character row-{{ forloop.counter0 }}">
-                    {% for c in charaktere %}
-                        <option value="{{ c.id }}">{{ c.name }} ({{c.geld }} Dr.)</option>
-                    {% endfor %}
-                </select>
-            {% else %}Du hast keine Charaktere{% endif %}
-        </div>
-        <div>{{ e.firma }}</div>
-        <div>{{ e.verfügbarkeit }}%</div>
-        <div><input class="notizen row-{{ forloop.counter0 }}" type="text" placeholder="Eigene Notizen" maxlength="50"></div>
-        <div><button onclick="submit(event)" class="btn row-{{ forloop.counter0 }}">Jetzt kaufen</button></div>
-    {% endfor %}
-
-    {% if extra_preis_field %}
-        <div><input class="row-extra num" type="number" value="1" min="1"></div>
-        {% if st %}<div><input class="row-extra stufe" type="number" value="1" min="1"></div>{% endif %}
-        <div><input class="row-extra price" type="number" id="extra_preis" value="0"> Dr.</div>
-        <div>
-            {% if charaktere %}
-                <select class="row-extra character">
-                    {% for c in charaktere %}
-                        <option value="{{ c.id }}">{{ c.name }} ({{ c.geld }} Dr.)</option>
-                    {% endfor %}
-                </select>
-            {% else %}Du hast keine Charaktere{% endif %}</div>
-
-        <div>-</div>
-        <div>-</div>
-        <div><input class="row-extra notizen" type="text" placeholder="Eigene Notizen"></div>
-        <div><button onclick="submit(event)" class="btn row-extra">Jetzt kaufen</button></div>
-    {% endif %}
+    </tbody>
+</table>
 {% endblock %}

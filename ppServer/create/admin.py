@@ -48,16 +48,16 @@ class NewCharakterZauberInLine(admin.TabularInline):
 class NewCharakterAdmin(admin.ModelAdmin):
     fieldsets = [
         ("Settings (Finger weg)", {'fields': ['eigentümer', "ep_system", "larp", "gfs", "profession"]}),
-        ("Aus der Prioritätentabelle", {"fields": ["zauber", "ap", "sp", "konzentration", "fp", "fg", "geld", "ip", "spF_wF"]}),
+        ("Aus der Prioritätentabelle", {"fields": ["zauber", "ap", "sp", "konzentration", "fp", "fg", "geld", "ip", "spF_wF", "wp"]}),
     ]
 
-    list_display = ["eigentümer", "gfs", "profession", "ip", 'ap', 'sp', "konzentration", "fp", "fg", "geld", "zauber", "spF_wF", "larp"]
+    list_display = ["eigentümer", "gfs", "profession", "ip", 'ap', 'sp', "konzentration", "fp", "fg", "geld", "zauber", "spF_wF", "wp", "larp"]
     inlines = [NewCharakterAttributInLine, NewCharakterFertInLine,
                NewCharakterVorteilInLine, NewCharakterNachteilInLine,
                NewCharakterSpezialfertigkeitInLine, NewCharakterWissensfertigkeitInLine,
                NewCharakterTalentInLine,
                NewCharakterZauberInLine
-               ]
+    ]
 
     def get_queryset(self, request):
         if request.user.groups.filter(name__iexact="spieler"):

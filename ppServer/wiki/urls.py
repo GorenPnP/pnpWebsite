@@ -26,5 +26,5 @@ urlpatterns = [
     path('religionen', views.ReligionTableView.as_view(), name='religionen'),
 
     path('rangRanking', views.RangRankingTableView.as_view(), name='rangRanking'),
-    path('geburtstage', views.geburtstage, name='geburtstage'),
+    path('geburtstage', views.GeburtstageView.as_view(), name='geburtstage'),
 ]

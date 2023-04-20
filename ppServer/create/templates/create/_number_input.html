@@ -1,0 +1,22 @@
+{% load getattr l10n %}
+
+<div>
+    <input
+        type="number"
+        min=0
+        max="{% localize off %}{{ record|getattribute:max_field }}{% endlocalize %}"
+        
+        class="{{ base_class }}-input"
+        data-id="{% localize off %}{{ record|getattribute:dataset_id }}{% endlocalize %}"
+        
+        form="form"
+        name="{{ base_name }}-{% localize off %}{{ record|getattribute:dataset_id }}{% endlocalize %}"
+        value="{% localize off %}{{ value|default:0 }}{% endlocalize %}"
+
+        style="max-width:100px"
+    >
+    
+    {% if record|getattribute:add_field %}
+    + <span data-id="{% localize off %}{{ record|getattribute:dataset_id }}{% endlocalize %}" class="{{ base_class }}-fix">{% localize off %}{{ record|getattribute:add_field }}{% endlocalize %}</span>
+    {% endif %}
+</div>

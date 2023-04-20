@@ -1,11 +1,11 @@
-from typing import Any
+from typing import Any, Dict
 
 from django.apps import apps
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import ImproperlyConfigured
 from django.db.models import Max, Min, Value
 from django.db.models.query import QuerySet
-from django.urls import reverse
+from django.shortcuts import reverse
 from django.utils.html import format_html
 from django.views.generic import TemplateView
 
@@ -72,9 +72,13 @@ class FullShopTableView(LoginRequiredMixin, VerifiedAccountMixin, ExportMixin, S
                 return format_html("<a href='{url}'>{name}</a>", url=url, name=value)
             except:
                 return value
+        def value_name(self, value):
+            return value
 
         def render_beschreibung(self, value):
             return format_html(value.replace("\n", "<br>"))
+        def value_beschreibung(self, value):
+            return value
 
         def render_preis(self, value, record):
             preis = "{}{}".format(render_number(value), " - {}".format(render_number(record["max_preis"])) if record["max_preis"] != value else "")
@@ -87,9 +91,14 @@ class FullShopTableView(LoginRequiredMixin, VerifiedAccountMixin, ExportMixin, S
     table_class = Table
 
     template_name = "shop/show_all.html"
-    export_formats = export_formats = ["csv", "json", "latex", "ods", "tsv", "xls", "xlsx", "yaml"]
+
+    export_name = "kompletter shop"
+    exclude_columns = ["icon"]
+    export_formats = ["csv", "json", "latex", "ods", "tsv", "xls", "xlsx", "yaml"]
 
     def get_topic(self): return "Shop"
+    def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
+        return super().get_context_data(**kwargs, topic=self.get_topic())
 
     def get_table_data(self):
         """
@@ -169,9 +178,13 @@ class ShopTable(GenericTable):
 
     def render_name(self, value, record):
         return format_html("<a href='{url}'>{name}</a>", url=reverse("shop:buy_{}".format(self._meta.model._meta.model_name), args=[record.pk]), name=value)
+    def value_name(self, value):
+        return value
 
     def render_beschreibung(self, value):
         return format_html(value.replace("\n", "<br>"))
+    def value_beschreibung(self, value):
+        return value
 
     def render_preis(self, value, record):
         preis = "{}{}".format(render_number(value), " - {}".format(render_number(record.max_preis)) if record.max_preis != value else "")
@@ -209,7 +222,12 @@ class ShopTableView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTableView):
     filterset_class = None
     table_class = None
 
+    export_name = "<shop>"
+    exclude_columns = ["icon"]
     export_formats = ["csv", "json", "latex", "ods", "tsv", "xls", "xlsx", "yaml"]
+
+    def get_export_filename(self, export_format):
+        return super().get_export_filename(export_format).replace("<shop>", self.model._meta.verbose_name_plural)
 
     def get_queryset(self) -> QuerySet[Any]:
         return super().get_queryset().filter(frei_editierbar=False).prefetch_related("firmen").annotate(
@@ -221,6 +239,10 @@ class ShopTableView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTableView):
         if self.model:
             return self.model._meta.verbose_name_plural or super().get_topic()
         return super().get_topic()
+
+    def get_plus(self):
+        if not self.model: return super().get_plus()
+        return f"+ {self.model._meta.verbose_name}"
 
     def get_plus_url(self):
         if not self.model: return super().get_plus_url()
@@ -333,7 +355,7 @@ class RitualeRunenTableView(ShopTableView):
                 stufe=Min('firma{}__{}'.format(self._meta.model._meta.model_name, name)),
             ).filter(stufe__lte=value)
 
-    class Table(GenericTable):
+    class Table(ShopTable):
         class Meta:
             model = Rituale_Runen
             fields = ("icon", "name", "beschreibung", "ab_stufe", "stufe_1", "stufe_2", "stufe_3", "stufe_4", "stufe_5")
@@ -358,7 +380,6 @@ class RitualeRunenTableView(ShopTableView):
     filterset_class = Filter
     table_class = Table
 
-    export_formats = ["csv", "json", "latex", "ods", "tsv", "xls", "xlsx", "yaml"]
 
     def get_queryset(self) -> QuerySet[Any]:
         return self.model.objects.filter(frei_editierbar=False).order_by("name")\

@@ -1,22 +1,15 @@
-{% extends 'base/main.html' %}
+{% extends 'base/headed_main.html' %}
 {% load static %}
-{% block title %}{{ topic }}{% endblock %}
-{% block extra-head %}
-<link rel="stylesheet" href="{% static 'base/css/list.css' %}">
-{% endblock %}
-{% block absolute %}
-{% include 'base/header.html' with topic=topic %}
-{% endblock %}
 
-{% block body %}
-<div class="list-container">
+{% block main %}
+<ul class="list-group">
     {% for item in items %}
-    <div class="row">
-        <a href="{{ item.url }}">
-            <h2 class="card__title">{{ item.titel }}</h2>
-            <p class="card__text">{{ item.model|default:"" }}</p>
+    <li>
+        <a href="{{ item.url }}" class="list-group-item list-group-item-dark">
+            <p class="h4">{{ item.titel }}</p>
+            <p>{{ item.model|default:"" }}</p>
         </a>
-    </div>
+    </li>
     {% endfor %}
-</div>
+</ul>
 {% endblock %}

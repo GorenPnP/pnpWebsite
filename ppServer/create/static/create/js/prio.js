@@ -3,18 +3,18 @@ var selected_fields = {};
 
 
 function submitPrio() {
-    post(selected_fields)
+    post(selected_fields);
 }
 
 
 document.addEventListener("DOMContentLoaded", function () {
 
 
-    var apDept = document.getElementById("ap-debt");
-    var apLeft = document.getElementById("ap-left");
-    var apDebtText = document.getElementById("ap-debt-text");
-    var apLeftText = document.getElementById("ap-left-text")
-    var submit_btn  = document.getElementById("submit")
+    var apDept = document.querySelector("#ap-debt");
+    var apLeft = document.querySelector("#ap-left");
+    var apDebtText = document.querySelector("#ap-debt-text");
+    var apLeftText = document.querySelector("#ap-left-text")
+    var submit_btn  = document.querySelector("#submit");
 
     var selected = 'selected';
     var blocked = 'blocked';
@@ -22,7 +22,7 @@ document.addEventListener("DOMContentLoaded", function () {
     var row_len = 6;
     var rows = 6;
 
-    for (var i = 0; i < rows; i++) selected_fields[i] = -1
+    for (var i = 0; i < rows; i++) selected_fields[i] = -1;
 
     // 2d array[rows][row_len] for blocked elements
     var blocked_fields = Array.from({length:rows}, () => Array.from({length:row_len}, () => 0))
@@ -67,7 +67,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 else {
                     select = true;
                     this.classList.add(selected);
-                    selected_fields[type] = prio
+                    selected_fields[type] = prio;
 
                     //  calc ap_cost (less debt)
                     if (type === 1) {
@@ -83,7 +83,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     for (var col = 0; col < row_len; col++) {
 
                         // ignore own element
-                        if (row === type && col === prio) continue
+                        if (row === type && col === prio) continue;
 
                         tag = document.getElementById(getId(row, col));
 
@@ -119,7 +119,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 // set to submittable form value & handle btn
                 //formData.value = JSON.stringify(selected_fields)
-                submit_btn.disabled = Object.values(selected_fields).includes(-1) || parseInt(apDept.innerHTML) > 0
+                submit_btn.disabled = Object.values(selected_fields).includes(-1) || parseInt(apDept.innerHTML) > 0;
             });
         }
     }

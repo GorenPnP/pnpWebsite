@@ -1,46 +1,84 @@
-{% load static %}
+{% load static new_messages %}
 
-{% comment %}
-html snippet for home btn/logo and nav bar.
-needs base/main.css for styling
-{% endcomment %}
-
-{% block extra-head %}
-<link rel="stylesheet" href="{% static 'base/css/header.css' %}" type="text/css">
-<script src="{% static 'base/js/header.js' %}"></script>
-{% endblock %}
 
 <header>
-	<a class="nav--large nav__logo" href="{% url 'base:index' %}">
-		<img class="nav__logo__img nav-block" src="{% static 'res/img/icon-dice-light.png' %}" alt="PnP logo">
-	</a>
+	<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+		<div class="container-fluid">
+		
+			<!-- brand -->
+			<div class="navbar-brand">
+				<a href="{% url 'base:index' %}">
+					<img class="nav__logo__img nav-block d-inline-block align-text-top" width="30" height="30" src="{% block logo-url %}{% static 'res/img/goren_logo.svg' %}{% endblock %}" aria-hidden>
+				</a>
+				<span class="topic">
+					{% block topic %}{{ topic|default:"Goren PnP" }}{% endblock %}
+				</span>
+			</div>
 
-	<h1 class="topic">{{ topic|default:"" }}</h1>
+			{% block permanent-nav-links %}
+			{% if app_index_url and app_index %}
+			<ul class="navbar-nav me-auto">
+				<li class="nav-item">
+					<a class="nav-link" href="{{ app_index_url }}">{% block app %}{{ app_index|default:"INDEX" }}{% endblock %}</a>
+				</li>
+			</ul>
+			{% endif %}
+			{% endblock %}
 
-	<a href="{{ plus_url|default:'#' }}" class="nav__plus" {% if plus_url is None %}style="display:none"{% endif %} >
-		<img class="nav__plus__img nav-block" src="{% static 'res/img/icon-plus.png' %}" alt="new">
-	</a>
+			<!-- toggle button -->
+			<button class="navbar-toggler position-relative" type="button" data-bs-toggle="collapse" data-bs-target="#top-nav-toggler" aria-controls="top-nav-toggler" aria-expanded="false" aria-label="Toggle navigation">
+				<span class="navbar-toggler-icon"></span>
 
-	<a class="nav--large" href="{% url 'admin:index' %}">
-		<div class="nav__change-data nav-block">Daten ändern</div>
-	</a>
+				{% with m=request.user|newMessages %}{% if m %}
+				<span class="position-absolute top-0 start-100 translate-middle p-2 bg-warning border border-dark rounded-circle">
+					<span class="visually-hidden">New alerts</span>
+				</span>
+				{% endif %}{% endwith %}
+			</button>
+			<div class="collapse navbar-collapse" id="top-nav-toggler">
+				<ul class="navbar-nav me-auto mb-2 mb-lg-0">
+				{% block collapsible-nav-links-start %}
 
-	<a class="nav--large" href="{% url 'planner:index' %}">
-		<div class="nav__change-data nav-block">Planer</div>
-	</a>
+					{% if plus_url and plus %}
+					<li class="nav-item">
+						<a class="btn btn-outline-light" href="{{ plus_url }}">{% block plus %}{{ plus|default:"+" }}{% endblock %}</a>
+					</li>
+					{% endif %}
+				{% endblock %}
+				</ul>
+			
+				<ul class="navbar-nav me-auto mb-2 mb-lg-0">
+				{% block collapsible-nav-links-center %}
+					<li class="nav-item">
+						<a class="nav-link" href="{% url 'admin:index' %}">Daten ändern</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link" href="{% url 'planner:index' %}">Planer</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link" href="{% url 'httpchat:index' %}">
+							Chat
+							{% with m=request.user|newMessages %}{% if m %}
+							<span class="badge rounded-pill bg-warning text-dark">
+								{{ m }}
+								<span class="visually-hidden">ungelesene Nachrichten</span>
+							</span>
+							{% endif %}{% endwith %}
+						</a>
+					</li>
+					
+				{% endblock %}
+				</ul>
 
-	<a class="nav--large" href="{% url 'auth:logout' %}">
-		<div class="nav__logout nav-block">Logout</div>
-	</a>
+				<ul class="navbar-nav mb-2 mb-lg-0 justify-content-end align-items-start" style="gap: 7px">
+				{% block collapsible-nav-links-end %}
 
-	<div class="nav--small nav__more">
-		<img class="nav__more__img nav-block" src="{% static 'res/img/icon-more.svg' %}" alt="more">
-
-		<div class="dropdown-content">
-			<a href="{% url 'base:index' %}">Home</a>
-			<a href="{% url 'admin:index' %}">Daten ändern</a>
-			<a href="{% url 'planner:index' %}">Planer</a>
-			<a href="{% url 'auth:logout' %}">Logout</a>
+					<li class="nav-item">
+						<a class="btn btn-outline-light p-2" href="{% url 'auth:logout' %}">Logout</a>
+					</li>
+				{% endblock %}
+				</ul>
+			</div>
 		</div>
-	</div>
+	</nav>
 </header>

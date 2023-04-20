@@ -22,7 +22,7 @@ def index(request):
     else:
         charaktere = Charakter.objects.filter(eigentümer__name=request.user.username).order_by('name')
 
-    context = {'charaktere': charaktere, 'topic': "Charaktere", "plus_url": reverse('create:gfs')}
+    context = {'charaktere': charaktere, 'topic': "Charaktere", "plus": "+ Charakter", "plus_url": reverse('create:gfs')}
     return render(request, "character/index.html", context)
 
 
@@ -65,6 +65,7 @@ def show(request, pk):
 
         # sum up
         context = {
+            "topic": char.name,
             "sections": sections,
             'char': char,
             'wesen': wesen,
@@ -72,7 +73,9 @@ def show(request, pk):
             "maxHp": base_hp * 5 + floor(char.rang /10 + .5) + char.HPplus,
             "wkHp": get_object_or_404(RelAttribut, char=char, attribut__titel="WK").aktuell() * 5,
             "konzentration": char.get_konzentration(),
-            "persönlichkeiten": ", ".join([rel.persönlichkeit.titel for rel in RelPersönlichkeit.objects.filter(char=char)])
+            "persönlichkeiten": ", ".join([rel.persönlichkeit.titel for rel in RelPersönlichkeit.objects.filter(char=char)]),
+            "app_index": "Charaktere",
+            "app_index_url": reverse("character:index")
         }
 
         return render(request, "character/show.html", context)

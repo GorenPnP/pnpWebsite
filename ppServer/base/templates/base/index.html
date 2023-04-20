@@ -1,6 +1,5 @@
-{% extends 'base/main.html' %}
+{% extends 'base/headed_main.html' %}
 {% load static %}
-{% block title %}{{ topic }}{% endblock %}
 {% block extra-head %}
 <link rel="stylesheet" href="{% static 'base/css/index.css' %}" type="text/css">
 <link rel="stylesheet" href="{% static 'base/css/cards.css' %}" type="text/css">
@@ -11,41 +10,125 @@
         --length: {{ news_character_count }};
     }
 </style>
-<script src="{% static 'base/js/index.js' %}"></script>
+
+<script>
+    // TODO remove when css :has is widely supported (see index.css)
+    document.addEventListener("DOMContentLoaded", () => {
+        const carousel = document.querySelector('#hero-carousel');
+
+        carousel.addEventListener('slid.bs.carousel', function () {
+            if (this.querySelector(".active.carousel-item-light")) {
+                this.classList.add("carousel-dark");
+            } else {
+                this.classList.remove("carousel-dark");
+            }
+        });
+
+        if (carousel.querySelector(".active.carousel-item-light")) {
+            carousel.classList.add("carousel-dark");
+        }
+    });
+</script>
 {% endblock %}
-{% block absolute %}
 
-<section class="hero-container">
-    <button class="arrow--left">
-        <img src="/static/res/img/hero-arrow-left.png" alt="previous">
-    </button>
-    
-    <button class="arrow--right">
-        <img src="/static/res/img/hero-arrow-right.png" alt="next">
-    </button>
+{% block main %}
 
-    <div class="slider">
-        {% if todays_fact %}
-            {% include 'base/hero_daily_fact.html' with fact=todays_fact %}
-        {% endif %}
-        {% if list_vote and list_vote|length %}
-            {% include 'base/hero_poll.html' with polls=list_vote %}
-        {% endif %}
-        {% if open_quiz %}
-            {% include 'base/hero_quiz.html' %}
-        {% endif %}
-        {% include 'base/hero_monsterdex.html' %}
-        {% include 'base/hero_crafting.html' %}
-        {% if shop_review and shop_review|length %}
-            {% include 'base/hero_shop.html' with items=shop_review %}
-        {% endif %}
+<section class="hero-container" style="height:60vh">
+
+    <div id="hero-carousel" class="carousel slide h-100" data-bs-ride="carousel">
+        <div class="carousel-indicators">
+            {% for page in hero_pages %}
+                <button type="button" data-bs-target="#hero-carousel" data-bs-slide-to="{{ forloop.counter0 }}" aria-label="{{ page }}" {% if not forloop.counter0 %}class="active" aria-current="true"{% endif %}></button>
+            {% endfor %}
+        </div>
+        <div class="carousel-inner h-100">
+
+            {% for page in hero_pages %}
+
+                <!-- fun fact -->
+                {% if page == "Fun Fact" %}
+                <div class="carousel-item carousel-item-light h-100{% if not forloop.counter0 %} active{% endif %}">
+                    <img src="{% static 'res/img/hero-nature.jpg' %}" class="d-block w-100">
+                    <div class="carousel-caption h-100 d-flex flex-column justify-content-center" style="padding-inline: 10%">
+                        <h2>Fun Fact:</h2>
+                        <p>{{ todays_fact.text }}</p>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Umfrage -->
+                {% if page == "Umfrage" %}
+                <div class="carousel-item w-100 h-100{% if not forloop.counter0 %} active{% endif %}">
+                    <img src="{% static 'res/img/img-pencil-panorama.png' %}" style="object-position: left center;">
+                    <div class="carousel-caption h-100 d-flex flex-column justify-content-center align-items-center text-light">
+                        <h2>Umfrage</h2>
+                        <p>Nach deiner Meinung ist gefragt! Mach jetzt mit! Es dauert auch nur wenige Minuten.</p>
+                        <a href="{% url 'polls:detail' list_vote.0.id %}" class="btn btn-light">Jetzt abstimmen</a>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Quiz -->
+                {% if page == "Quiz" %}
+                <div class="carousel-item w-100 h-100 bg-quiz{% if not forloop.counter0 %} active{% endif %}">
+                    <div class="hero--quiz h-100">
+                        <img src="{% static 'res/img/hero-bulb-hand-cut.png' %}">
+                        <div class="hero--quiz__text d-flex flex-column justify-content-center align-items-center text-light ">
+                            <h2>Goren PnP Quiz</h2>
+                            <p>Du hast noch Fragen offen (wieder anzugucken)</p>
+                            <a href="{% url 'quiz:index' %}" class="btn btn-light">Ich will Stuff!</button></a>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Monsterdex -->
+                {% if page == "Monsterdex" %}
+                <div class="carousel-item carousel-item-light w-100 h-100{% if not forloop.counter0 %} active{% endif %}">
+                    <img src="{% static 'res/img/hero-monsterdex.jpg' %}">
+                    <div class="carousel-caption h-100 d-flex flex-column justify-content-center align-items-center">
+                        <h2 style="margin-block: 100px 30px">Der Monsterdex ist Online!</h2>
+                        <a href="https://monsterdex.info" target="_blank" class="btn btn-dark">Monster angucken</a>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Schmiedesystem -->
+                {% if page == "Schmiedesystem" %}
+                <div class="carousel-item w-100 h-100{% if not forloop.counter0 %} active{% endif %}">
+                    <img src="{% static 'res/img/hero-crafting.jpg' %}" style="filter: grayscale(80%) brightness(55%)">
+                    <div class="carousel-caption h-100 d-flex flex-column justify-content-center align-items-center text-light">
+                        <h2>Crafting</h2>
+                        <p>NEU! Das generalüberholte Schmiedesystem!1</p>
+                        <a href="/crafting/inventory" class="btn btn-light">Jaaaa</a>
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if page == "Shop review" %}
+                <div class="carousel-item w-100 h-100{% if not forloop.counter0 %} active{% endif %}">
+                    <img src="{% static 'res/img/hero-coal.png' %}">
+                    <div class="carousel-caption h-100 d-flex flex-column justify-content-center align-items-center text-light">
+                        <h2>Neue Items sind da!</h2>
+                        <p>Jemand hat dem Shop Neues hinzugefügt. Bitte mal angucken!</p>
+                        <a href="{% url 'shop:review_items' %}" class="btn btn-light">Review</a>
+                    </div>
+                </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+
+        <button class="carousel-control carousel-control-prev" type="button" data-bs-target="#hero-carousel" data-bs-slide="prev">
+          <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+          <span class="visually-hidden">Previous</span>
+        </button>
+        <button class="carousel-control carousel-control-next" type="button" data-bs-target="#hero-carousel" data-bs-slide="next">
+          <span class="carousel-control-next-icon" aria-hidden="true"></span>
+          <span class="visually-hidden">Next</span>
+        </button>
     </div>
 </section>
 
-{% include 'base/header.html' with topic="" %}
-{% endblock %}
-
-{% block body %}
 <aside class="news-ticker">
     <div class="text">{% for n in news %}<a {% if n.breaking_news %}class="breaking-news"{% endif %} href="{% url 'news:index' %}#{{ n.titel }}">{{ n.titel }}</a><span>+++</span>{% endfor %}</div>
 </aside>
@@ -55,22 +138,18 @@
     <!-- wiki -->
     <div class="card" id="wiki">
         <a href="{% url 'wiki:index' %}">
-            <div class="card__icon">
+            <div class="card__icon bg-primary">
                 <img class="card__icon__img" src="{% static 'res/img/icon-lightbulb.png' %}" alt="lightbulb">
             </div>
         </a>
-        <div class="card__container">
+        <div class="card__container text-white bg-dark">
             <h2 class="card__heading">Wiki</h2>
             <p class="card__text">
                 Das Goren PnP-Wiki steckt voller Informationen
                 rund um das PnP. Schau doch mal vorbei!
             </p>
             <div class="btns">
-                <a href="{% url 'wiki:index' %}">
-                    <button class="card__btn">
-                        <p class="btn__text">Los gehts</p>
-                    </button>
-                </a>
+                <a href="{% url 'wiki:index' %}" class="btn btn-primary">Los gehts</a>
             </div>
         </div>
     </div>
@@ -78,22 +157,18 @@
     <!-- shop -->
     <div class="card" id="shop">
         <a href="{% url 'shop:index' %}">
-            <div class="card__icon">
-                <img class="card__icon__img" src="{% static 'res/img/icon-discount.png' %}" alt="">
+            <div class="card__icon bg-primary">
+                <img class="card__icon__img" src="{% static 'res/img/icon-discount.png' %}">
             </div>
         </a>
-        <div class="card__container">
+        <div class="card__container text-white bg-dark">
             <h2 class="card__heading">Shop</h2>
             <p class="card__text">
                 Der Shop sprudelt über vor nützlichen items
                 und Rezepten. Außer sie sind vergriffen. Oder abgegriffen.
             </p>
             <div class="btns">
-                <a href="{% url 'shop:index' %}">
-                    <button class="card__btn">
-                        <p class="btn__text">Jimmy!</p>
-                    </button>
-                </a>
+                <a href="{% url 'shop:index' %}" class="btn btn-primary">Jimmy!</a>
             </div>
         </div>
     </div>
@@ -101,22 +176,18 @@
     <!-- charaktere -->
     <div class="card" id="charakter">
         <a href="{% url 'character:index' %}">
-            <div class="card__icon">
-                <img class="card__icon__img" src="{% static 'res/img/icon-characters.png' %}" alt="">
+            <div class="card__icon bg-primary">
+                <img class="card__icon__img" src="{% static 'res/img/icon-characters.png' %}">
             </div>
         </a>
-        <div class="card__container">
+        <div class="card__container text-white bg-dark">
             <h2 class="card__heading">Charaktere</h2>
             <p class="card__text">
                 Hier geht's zu allen deinen Charakteren,
                 zum Abschreiben und ganz neu anlegen.
             </p>
             <div class="btns">
-                <a href="{% url 'character:index' %}">
-                    <button class="card__btn">
-                        <p class="btn__text">Ja hin da!</p>
-                    </button>
-                </a>
+                <a href="{% url 'character:index' %}" class="btn btn-primary">Ja hin da!</a>
             </div>
         </div>
     </div>
@@ -124,21 +195,17 @@
     <!-- quiz -->
     <div class="card" id="quiz">
         <a href="{% url 'quiz:index' %}">
-            <div class="card__icon">
-                <img class="card__icon__img" src="{% static 'res/img/icon-quiz.svg' %}" alt="">
+            <div class="card__icon bg-primary">
+                <img class="card__icon__img" src="{% static 'res/img/icon-quiz.svg' %}">
             </div>
         </a>
-        <div class="card__container">
+        <div class="card__container text-white bg-dark">
             <h2 class="card__heading">Quiz</h2>
             <p class="card__text">
                 Das beste, einmalige Quiz zur PnP Welt des Goren.
             </p>
             <div class="btns">
-                <a href="{% url 'quiz:index' %}">
-                    <button class="card__btn">
-                        <p class="btn__text">Lets quizz!</p>
-                    </button>
-                </a>
+                <a href="{% url 'quiz:index' %}" class="btn btn-primary">Lets quizz!</a>
             </div>
         </div>
     </div>
@@ -146,96 +213,72 @@
     <!-- crafting -->
     <div class="card" id="crafting">
         <a href="{% url 'crafting:inventory' %}">
-            <div class="card__icon">
-                <img class="card__icon__img" src="{% static 'res/img/crafting.svg' %}" alt="">
+            <div class="card__icon bg-primary">
+                <img class="card__icon__img" src="{% static 'res/img/crafting.svg' %}">
             </div>
         </a>
-        <div class="card__container">
+        <div class="card__container text-white bg-dark">
             <h2 class="card__heading">Crafting</h2>
             <p class="card__text">
                 Fühl dich wie bei Minecraft, nur im Schmiedesystem!
             </p>
             <div class="btns">
-                <a href="{% url 'crafting:inventory' %}">
-                    <button class="card__btn">
-                        <p class="btn__text">Überredet :)</p>
-                    </button>
-                </a>
+                <a href="{% url 'crafting:inventory' %}" class="btn btn-primary">Überredet :)</a>
             </div>
         </div>
     </div>
 
     <!-- Logs -->
-    <div class="card {% if not spielleiter %}hide{% endif %}" id="logs">
-        <div class="card__icon">
-            <img class="card__icon__img" src="{% static 'res/img/icon-logs.png' %}" alt="">
+    <div class="card" {% if not spielleiter %}hidden{% endif %} id="logs">
+        <div class="card__icon bg-primary">
+            <img class="card__icon__img" src="{% static 'res/img/icon-logs.png' %}">
         </div>
-        <div class="card__container">
+        <div class="card__container text-white bg-dark">
             <h2 class="card__heading">Logs</h2>
             <p class="card__text">
                 Alle Aufzeichnungen die wir zu bieten haben 24/7.
             </p>
             <div class="btns">
-                <a href="/admin/logRequest/request">
-                    <button class="card__btn card__btn--first">
-                        <p class="btn__text">Aufrufe</p>
-                    </button>
-                </a>
-                <a href="{% url 'log:admin' %}">
-                    <button class="card__btn">
-                        <p class="btn__text">im Admin</p>
-                    </button>
-                </a>
-                <a href="{% url 'log:index' %}">
-                    <button class="card__btn">
-                        <p class="btn__text">Custom</p>
-                    </button>
-                </a>
+                <a href="/admin/logRequest/request" class="btn btn-primary">Aufrufe</a>
+                <a href="{% url 'log:admin' %}" class="btn btn-primary">im Admin</a>
+                <a href="{% url 'log:index' %}" class="btn btn-primary">Custom</a>
             </div>
         </div>
     </div>
 
     <!-- Quizkontrolle -->
-    <div class="card {% if not spielleiter %}hide{% endif %}" id="quizkontrolle">
+    <div class="card" {% if not spielleiter %}hidden{% endif %} id="quizkontrolle">
         <a href="{% url 'quiz:sp_index' %}">
-            <div class="card__icon">
-                <img class="card__icon__img" src="{% static 'res/img/icon-trophy.png' %}" alt="">
+            <div class="card__icon bg-primary">
+                <img class="card__icon__img" src="{% static 'res/img/icon-trophy.png' %}">
             </div>
         </a>
 
-        <div class="card__container">
+        <div class="card__container text-white bg-dark">
             <h2 class="card__heading">Quizkontrolle</h2>
             <p class="card__text">
                 Na wen haben wir denn da? Ein bisschen gucken?
             </p>
             <div class="btns">
-                <a href="{% url 'quiz:sp_index' %}">
-                    <button class="card__btn">
-                        <p class="btn__text">GO</p>
-                    </button>
-                </a>
+                <a href="{% url 'quiz:sp_index' %}" class="btn btn-primary">GO</a>
             </div>
         </div>
     </div>
 
     <!-- Würfeln -->
-    <div class="card {% if not spielleiter %}hide{% endif %}" id="wuerfeln">
+    <div class="card" {% if not spielleiter %}hidden{% endif %} id="wuerfeln">
         <a href="{% url 'service:random' %}">
-            <div class="card__icon">
-                <img class="card__icon__img" src="{% static 'res/img/icon-dice.png' %}" alt="">
+            <div class="card__icon bg-primary">
+                <img class="card__icon__img" src="{% static 'res/img/icon-dice.png' %}">
             </div>
         </a>
-        <div class="card__container">
+        <div class="card__container text-white bg-dark">
             <h2 class="card__heading">Würfeln</h2>
             <p class="card__text">
                 Würfeln ganz ohne Würfel in der Sonderedition mit Farben!
             </p>
             <div class="btns">
-                <a href="{% url 'service:random' %}">
-                    <button class="card__btn">
-                        <p class="btn__text">milchSHAKE</p>
-                    </button>
-                </a>
+                <a href="{% url 'service:random' %}" class="btn btn-primary">milchSHAKE</a>
             </div>
         </div>
     </div>
@@ -243,21 +286,17 @@
     <!-- monsterdex -->
     <div class="card" id="monsterdex">
         <a href="https://monsterdex.info" target="_blank">
-            <div class="card__icon">
-                <img class="card__icon__img" src="{% static 'res/img/icon-animal.png' %}" alt="">
+            <div class="card__icon bg-primary">
+                <img class="card__icon__img" src="{% static 'res/img/icon-animal.png' %}">
             </div>
         </a>
-        <div class="card__container">
+        <div class="card__container text-white bg-dark">
             <h2 class="card__heading">Monsterdex</h2>
             <p class="card__text">
                 Die überarbeitete Monsterdex-App & Website!
             </p>
             <div class="btns">
-                <a href="https://monsterdex.info"  target="_blank">
-                    <button class="card__btn">
-                        <p class="btn__text">Öffnen</p>
-                    </button>
-                </a>
+                <a href="https://monsterdex.info"  target="_blank" class="btn btn-primary">Öffnen</a>
             </div>
         </div>
     </div>

@@ -3,8 +3,6 @@
 }
 
 .main-container {
-	min-height: 100vh;
-
 	display: flex;
 	flex-grow: 1;
 	flex-wrap: wrap;
@@ -52,8 +50,6 @@ div.left-col a {
 		display: block;
 		align-items: center;
 		text-align: center;
-		padding-left: 0;
-		padding-right: 0;
 	}
 	.left-col {
 		min-width: 100%;

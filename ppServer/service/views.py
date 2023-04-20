@@ -37,11 +37,8 @@ def random(request):
 
 # quiz big brother
 @login_required
-@spielleiter_only()
+@spielleiter_only("quiz:index")
 def quiz_BB(request):
-
-    if not request.user.groups.filter(name="spielleiter").exists():
-        return redirect("quiz:index")
 
     all_spieler = RelQuiz.objects.all().order_by("-quiz_points_achieved")
     all_subjects = Subject.objects.all().order_by("titel")
@@ -118,6 +115,11 @@ def quiz_BB(request):
         # add row containing one player to table
         table.append(row)
 
-    context = {"table": table, "topic": "Big Brother nach Punkten"}
+    context = {
+        "table": table,
+        "topic": "Big Brother nach Punkten",
+        "app_index": "Quiz",
+        "app_index_url": reverse("quiz:sp_index")
+    }
 
     return render(request, "service/quiz_BB.html", context)

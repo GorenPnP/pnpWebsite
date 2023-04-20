@@ -1,6 +1,5 @@
-{% extends 'base/main.html' %}
-{% load static %}{% load l10n %}
-{% block title %}{{ tables.0.name }}{% endblock %}
+{% extends 'base/headed_main.html' %}
+{% load static l10n %}
 {% block extra-head %}
 <link rel="stylesheet"  type="text/css" href="{% static 'crafting/css/craft.css' %}">
 <script src="{% static 'base/js/draggable_reorder.js' %}"></script>
@@ -8,10 +7,9 @@
 <script src="{% static 'base/js/ajax.js' %}"></script>
 <script src="{% static 'crafting/js/craft.js' %}"></script>
 {% endblock %}
-{% block absolute %}{% include 'base/header.html' with topic=tables.0.name %}{% endblock %}
 
-{% block body %}
-<div class="tables reorder-container">
+{% block main %}
+<aside class="tables reorder-container">
 	{% for table in tables %}
 		<div
 			class="item reorder-container__element table{% if forloop.first %} selected{% endif %}{% if table.available %} available{% endif %}"
@@ -23,29 +21,27 @@
 			<img src="{{ table.icon }}" alt="{{ table.name }}">
 		</div>
 	{% endfor %}
-</div>
+</aside>
 
-<main>
-	<div class="head">
-		<div class="search input-with-btn">
-			<input type="text" list="item-search" id="search-input" />
-			<datalist id="item-search"></datalist>
+<header class="head">
+	<div class="search input-with-btn">
+		<input type="text" list="item-search" id="search-input" class="p-1" />
+		<datalist id="item-search"></datalist>
 
-			<button class="btn" onclick="search()" id="search-btn">Suche</button>
-		</div>
-
-		<div class="btns">
-			<a href="{% url 'crafting:inventory' %}" class="btn btn--inventory">Inventar</a>
-			<a href="{% url 'crafting:index' %}" class="">Profil wechseln</a>
-
-			{% if spielleiter %}
-				<div></div>
-				<a href="{% url 'crafting:sp_give_items' %}" class="">Profilen Items geben</a>
-			{% endif %}
-		</div>
+		<button onclick="search()" id="search-btn" class="btn btn-primary">Suche</button>
 	</div>
 
+	<div class="btns">
+		<a href="{% url 'crafting:inventory' %}" class="btn btn-outline-light">Inventar</a>
+		<a href="{% url 'crafting:index' %}" class="">Profil wechseln</a>
 
-	<div class="recipes"></div>
-</main>
+		{% if spielleiter %}
+			<div></div>
+			<a href="{% url 'crafting:sp_give_items' %}" class="">Profilen Items geben</a>
+		{% endif %}
+	</div>
+</header>
+
+
+<section class="recipes"></section>
 {% endblock %}

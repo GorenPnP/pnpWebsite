@@ -1,30 +1,22 @@
-:root {
-	--itemTile-size: 64px;
-	color: #ddd;
-	font-size: 1.2rem;
- }
-.main-container img {
-	display: block;
+:root { --itemTile-size: 110px; }
 
-	height: var(--itemTile-size);
-	width: var(--itemTile-size);
-	flex-basis: var(--itemTile-size);
-}
+.main-container { padding-left: 5px; }
 
 // for search and crafting combos
 .input-with-btn {
 	display: flex;
 	flex-wrap: nowrap;
 
-	--search-border-radius: 8px;
-	.btn {border-radius: 0 var(--search-border-radius) var(--search-border-radius) 0;}
-	input {border-radius: var(--search-border-radius) 0 0 var(--search-border-radius);}
+	--border-radius: 8px;
+	.btn {border-radius: 0 var(--border-radius) var(--border-radius) 0;}
+	input {border-radius: var(--border-radius) 0 0 var(--border-radius);}
 }
 
 // tables, in sidebar and search over the arrow
 .table {
 	cursor: move;
 	border-radius: calc(var(--itemTile-size) / 16);
+	background: #555;
 
 	// disable opening of image-uri while dragging or sth.
 	img { pointer-events: none; }
@@ -33,11 +25,11 @@
 .table.dragging {opacity: .5;}
 .table.dragging--mobile {position: absolute;}
 
-.table:not(.selected) {cursor: pointer;}
+.table:not(.selected) { cursor: pointer; }
 .table.selected {
-	border-left: outset orangered calc(var(--itemTile-size) / 8);
-	border-top: solid black calc(var(--itemTile-size) / 32);
-	border-bottom: solid black calc(var(--itemTile-size) / 32);
+	border-left: outset var(--bs-primary) calc(var(--itemTile-size) / 8);
+	border-top: solid var(--bs-dark) calc(var(--itemTile-size) / 32);
+	border-bottom: solid var(--bs-dark) calc(var(--itemTile-size) / 32);
 
 	border-radius: calc(var(--itemTile-size) / 8) 0 0 calc(var(--itemTile-size) / 8);
 
@@ -45,56 +37,57 @@
 
 	img {--img-size: 95%;}
 }
-.table.selected:not(.available) { border-left: outset lighten(orangered, 40%) calc(var(--itemTile-size) / 8); }
-
-.table.available 			 { background: #555; }
-.table:not(.available) { background: white; }
+.table:not(.available) { filter: grayscale(1) brightness(.5); }
 
 
 @import './_head';
 
-.item {
-	height: var(--itemTile-size);
-	width: var(--itemTile-size);
-	flex-basis: var(--itemTile-size);
-
-	img {
-		--img-size: 80%;
-
-		// center in parent
-		position: relative;
-		top: calc(calc(100% - var(--img-size)) / 2);
-		left: calc(calc(100% - var(--img-size)) / 2);
-
-
-		height: var(--img-size);
-		width: var(--img-size);
-	}
-}
 
 
 // sidebar with tables
 .tables {
-	--itemTile-size: 110px;
-
 	display: grid;
 	grid-template-columns: var(--itemTile-size);
 	gap: calc(var(--itemTile-size) / 8);
+	align-content: flex-start;
 
-	position: absolute;
-	left: 0;
-	top: 7em;
-	width: var(--itemTile-size);
+	.item {
+		height: var(--itemTile-size);
+		aspect-ratio: 1;
+	
+		img {
+			--img-size: 80%;
+	
+			// center in parent
+			position: relative;
+			top: calc(calc(100% - var(--img-size)) / 2);
+			left: calc(calc(100% - var(--img-size)) / 2);
+	
+	
+			height: var(--img-size);
+			width: var(--img-size);
+		}
+	}
 }
 
 
 // center of page with head and recipes
-main {
-	--itemTile-size: 90px;
-	margin-left: 70px;
-}
+.main-container {
+	display: grid;
+	grid-template-columns: var(--itemTile-size) 1fr;
+	grid-template-rows: auto 1fr;
+	grid-template-areas: 'tables header' 'tables recipes';
 
-.row {
+	gap: 2em;
+	padding-top: 2em;
+}
+header { grid-area: header; }
+.tables { grid-area: tables; }
+.recipes { grid-area: recipes; }
+
+
+
+.recipe-row {
 	border-bottom: #aaa solid 1px;
 	padding: 3em 0;
 
@@ -123,6 +116,14 @@ main {
 
 	// name afterwards
 	.name {margin-left: .3em;}
+
+	img {
+		display: block;
+	
+		height: var(--itemTile-size);
+		width: var(--itemTile-size);
+		flex-basis: var(--itemTile-size);
+	}
 
 
 	// arrow section
@@ -159,7 +160,7 @@ main {
 }
 
 // input num for crafting
-input.craftNum { width: 60px; }
+input.craftNum { width: 60px; padding: 4px; }
 
 
 a.info {display: contents;}
@@ -171,8 +172,7 @@ a.info {display: contents;}
 
 
 @media only screen and (max-width: 950px) {
-	.tables {--itemTile-size: unset;}
-	main {--itemTile-size: unset;}
+	:root { --itemTile-size: 64px; }
 }
 
 @media only screen and (max-width: 527px) {

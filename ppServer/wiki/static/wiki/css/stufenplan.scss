@@ -7,27 +7,6 @@ section.content h2.title {
 	margin-bottom: .8em;
 }
 
-/* setup tables */
-section.ep-tree .grid-container {
-		grid-template-columns: repeat(8, auto);
-}
-section.skilltree .grid-container, .startbonus__table {
-		grid-template-columns: repeat(2, auto);
-}
-/* setup table of startbonus */
-section.startbonus .grid-container {
-		grid-template-columns: repeat(2, auto);
-		border-radius: 10px;
-}
-section.startbonus .grid-container:before {
-	content: none;
-}
-section.startbonus .col1:first-of-type {
-	border-radius: 10px 0 0;
-}
-section.startbonus .col1--last {
-	border-radius: 0 0 0 10px;
-}
 
 /* easily readable description without scrolling */
 .description__text {
@@ -40,11 +19,6 @@ section.description {
 	grid-area: description;
 }
 
-
-/* placing of skilltree */
-.skilltree__table, .startbonus__table {
-	margin: 0;
-}
 
 .skilltree {grid-area: skill;}
 
@@ -66,8 +40,7 @@ section.description {
 	.container {
 		grid-template-columns: 50% auto;
 		grid-template-columns: auto auto;
-		grid-template-areas: "description description"
-												 "bonus skill";
+		grid-template-areas: "description description" "bonus skill";
 	}
 }
 
@@ -75,8 +48,6 @@ section.description {
 	.container {
 		grid-template-columns: 100%;
 		grid-template-columns: auto auto auto;
-		grid-template-areas: "description"
-												 "bonus"
-												 "skill";
+		grid-template-areas: "description"  "bonus" "skill";
 	}
 }

@@ -1,63 +1,63 @@
-{% extends 'base/main.html' %}
+{% extends 'base/headed_main.html' %}
 {% load static %}
-{% block title %}{{ topic }}{% endblock %}
 {% block extra-head %}
-<link rel="stylesheet" href="{% static 'base/css/table.css' %}">
 <link rel="stylesheet" href="{% static 'create/css/prio.css' %}">
-<script>
-    breakpoint = 550;
-    window.dispatchEvent(new Event('resize'))
-</script>
 <script src="{% static 'res/js/axios.min.js' %}" type='text/javascript'></script>
 <script src="{% static 'base/js/ajax.js' %}"></script>
 <script src="{% static 'create/js/prio.js' %}" type="text/javascript"></script>
 {% endblock %}
-{% block absolute %}{% include 'base/header.html' with topic=topic %}{% endblock %}
 
-{% block body %}
+{% block main %}
 <div id="prio-part">
 
     <span id="ap-debt-text">Du brauchst noch <b id="ap-debt">{{ ap_cost }}</b> AP für die Gfs.</span>
     <span id="ap-left-text">Du hast <b id="ap-left">{{ ap_cost }}</b> AP übrig.</span>
-    <div class="grid-container">
+
+    <table>
+        <tbody>
         {% for row in table %}
-            <div class="priority col1">{{ row.0 }}</div>
-            <div id="0|{{ forloop.counter0 }}" {% if row.1 is None %}class="grayed_out"></div>
-            {% else %}>{{ row.1 }} IP</div>{% endif %}
+        <tr>
+            <!-- <td class="grayed_out">{{ row.0 }}</td> -->
+            <td id="0|{{ forloop.counter0 }}" {% if row.1 is None %}class="grayed_out"></td>
+            {% else %}>{{ row.1 }} IP</td>{% endif %}
 
-            <div id="1|{{ forloop.counter0 }}" {% if row.2 is None %}class="grayed_out"></div>
-            {% else %}>{{ row.2 }} AP</div>{% endif %}
+            <td id="1|{{ forloop.counter0 }}" {% if row.2 is None %}class="grayed_out"></td>
+            {% else %}>{{ row.2 }} AP</td>{% endif %}
 
-            <div id="2|{{ forloop.counter0 }}" {% if row.3 is None and row.4 is None %}class="grayed_out"></div>
+            <td id="2|{{ forloop.counter0 }}" {% if row.3 is None and row.4 is None %}class="grayed_out"></td>
             {% else %}>
                 {% if row.3 %}{{ row.3 }} SP{% endif %}{% if row.3 and row.4 %},<br>{% endif %}
                 {% if row.4 %}{{ row.4 }} Konz.{% endif %}
-            </div>{% endif %}
+            </td>{% endif %}
 
-            <div id="3|{{ forloop.counter0 }}" {% if row.5 is None and row.6 is None %}class="grayed_out"></div>
+            <td id="3|{{ forloop.counter0 }}" {% if row.5 is None and row.6 is None %}class="grayed_out"></td>
             {% else %}>
                 {% if row.5 %}{{ row.5 }} FP{% endif %}{% if row.5 and row.6 %},<br>{% endif %}
                 {% if row.6 %}{{ row.6 }} FG{% endif %}
-            </div>{% endif %}
+            </td>{% endif %}
 
-            <div id="4|{{ forloop.counter0 }}" {% if row.7 is None %}class="grayed_out"></div>
-            {% else %}>{{ row.7 }} Zauber</div>{% endif %}
+            <td id="4|{{ forloop.counter0 }}" {% if row.7 is None %}class="grayed_out"></td>
+            {% else %}>{{ row.7 }} Zauber</td>{% endif %}
 
-            <div id="5|{{ forloop.counter0 }}" {% if row.8 is None and row.9 is None %}class="grayed_out"></div>
+            <td id="5|{{ forloop.counter0 }}" {% if row.8 is None and row.9 is None %}class="grayed_out"></td>
             {% else %}>
                 {% if row.8 %}{{ row.8 }} Drachmen{% endif %}{% if row.8 and row.9 %},<br>{% endif %}
                 {% if row.9 %}{{ row.9 }} Sp-Fert/W-Fert{% endif %}
-            </div>{% endif %}
+            </td>{% endif %}
+        </tr>
         {% endfor %}
-    </div>
+    </tbody>
+    </table>
 </div>
 
-<button id='submit' class="btn" disabled onclick="submitPrio()">Weiter</button>
+<button id='submit' class="btn btn-lg btn-primary" disabled onclick="submitPrio()">Weiter</button>
 
-<div id="notes">
-    <p style="margin-bottom: 1em"><a href="{% url 'wiki:stufenplan' gfs.id %}" target="_blank">{{ gfs.titel }} öffnen</a></p>
+<aside class="mt-3">
 
-    {% if notizen %}<h4>Notizen:</h4>{% endif %}
-    {% for n in notizen %}{{ n }}<br>{% endfor %}
-</div>
+    <h4>Hilfreiches:</h4>
+    <ul>
+        <li><a href="{% url 'wiki:stufenplan' gfs.id %}" target="_blank">{{ gfs.titel }} öffnen</a></li>
+        {% for n in notizen %}<li>{{ n }}</li>{% endfor %}
+    </ul>
+</aside>
 {% endblock %}

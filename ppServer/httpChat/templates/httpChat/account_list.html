@@ -1,15 +1,11 @@
-{% extends 'base/main.html' %}
-{% load static django_bootstrap5 %}
+{% extends 'base/headed_main.html' %}
+{% load static %}
 
-{% block title %}Chat 2.0{% endblock %}
 {% block extra-head %}
-    {% bootstrap_css %}
-    {% bootstrap_javascript %}
     <link rel="stylesheet" href="{% static 'httpChat/css/list.css' %}">
 {% endblock %}
-{% block absolute %}{% include 'base/header.html' with topic="Chat 2.0" %}{% endblock %}
 
-{% block body %}
+{% block main %}
 
 <div class="d-flex justify-content-between mb-3 flex-wrap">
     <h2 class="text-light">Wer bist du?</h2>

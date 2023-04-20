@@ -1,26 +1,20 @@
 .head {
-	margin: 1em 0 2em;
+	margin: 1em 1em 2em;
 	display: flex;
 	flex-wrap: wrap-reverse;
 	justify-content: space-between;
-	align-items: flex-start;
+	align-items: flex-end;
 
 	& > * {
 		margin-bottom: 1em;
 	}
-	a.btn {color: #333;}
 
 	.btns {
 		display: grid;
 		grid-template-columns: repeat(2, auto);
 		align-items: center;
 		gap: 2em;
-
-		.btn {
-			border: 3px solid #0ff;
-			background: unset;
-			color: #ddd;
-		}
-		a {	font-family: Quicksand, "sans-serif"; }
+		
+		a:not(.btn) { color: var(--bs-light); }
 	}
 }

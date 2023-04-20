@@ -1,12 +1,13 @@
-main {
+.page-container {
     color: #ddd;
 
     display: grid;
     grid-template-columns: 1fr 2fr;
     gap: 3em;
+    margin-top: 1.5em;
 }
 
-.calendar-container { margin: auto; }
+.calendar-container { margin: 2em auto; }
 
 form {
     p { margin: 1em 0; }
@@ -14,12 +15,11 @@ form {
 }
 
 
-.popover {
+.form-popover {
+    margin-top: 2em;
+
     .btn { margin: 1em; }
     .back-btn {
-        background-color: transparent;
-        border: 2px solid #ddd;
-        color: #ddd;
         display: none;
     }
 
@@ -27,9 +27,9 @@ form {
 }
 
 @media only screen and (max-width: 880px) {
-    main { display: block; }
+    .page-container { display: block; }
 
-    .popover {
+    .form-popover {
         z-index: 10000;
         position: absolute;
 

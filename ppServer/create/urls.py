@@ -1,3 +1,4 @@
+from django.views.decorators.csrf import csrf_protect
 from django.urls import path
 
 from . import views
@@ -5,15 +6,15 @@ from . import views
 app_name = 'create'
 
 urlpatterns = [
-        path('', views.landing_page, name='landing_page'),
-        path('gfs', views.new_gfs, name='gfs'),
-        path('gfs_characterization', views.new_gfs_characterization, name='gfs_characterization'),
-        path('priotable', views.new_priotable, name='prio'),
-        path('ap', views.new_ap, name='ap'),
-        path('fert', views.new_fert, name='fert'),
-        path('spF_wF', views.new_spF_wF, name='spF_wF'),
-        path('zauber', views.new_zauber, name='zauber'),
-        path('cp', views.new_cp, name='cp'),
+        path('', views.LandingPageView.as_view(), name='landing_page'),
+        path('gfs', csrf_protect(views.GfsFormView.as_view()), name='gfs'),
+        path('priotable', csrf_protect(views.PriotableFormView.as_view()), name='prio'),
+        path('ap', views.ApFormView.as_view(), name='ap'),
+        path('fert', views.FertigkeitFormView.as_view(), name='fert'),
+        path('spF_wF', views.SpF_wFFormView.as_view(), name='spF_wF'),
+        path('zauber', views.ZauberFormView.as_view(), name='zauber'),
+        path('cp', views.EndFormView.as_view(), name='cp'),
 
-        path('vor_nachteil', views.new_vor_nachteil, name='vor_nachteil'),
+        path('vor_nachteil', views.TeilFormView.as_view(), name='vor_nachteil'),
+        path('gfs_characterization', views.GfsWahlfilterView.as_view(), name='gfs_characterization'),
 ]

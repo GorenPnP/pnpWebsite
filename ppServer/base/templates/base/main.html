@@ -1,4 +1,4 @@
-{% load static new_messages %}
+{% load static django_bootstrap5 %}
 {% spaceless %}
 <!DOCTYPE html>
 <html lang="de">
@@ -7,37 +7,53 @@
 		<meta content="text/html;charset=utf-8" http-equiv="Content-Type">
 		<meta content="utf-8" http-equiv="encoding">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
-		<title>{% block title %}{% endblock %}</title>
+		<title>{% block title %}{{ topic|default:"Goren PnP" }}{% endblock %}</title>
 		<link rel="shortcut icon" href="{% static 'res/img/goren_logo.png' %}" type="image/x-icon">
 
+		{% bootstrap_css %}
+		{% bootstrap_javascript %}
 		<link rel="stylesheet" href="{% static 'base/css/main.css' %}" type="text/css">
-		<script src="{% static 'base/js/main.js' %}"></script>
 		{% block extra-head %}{% endblock %}
 	</head>
 
-	<body>
-		{% csrf_token %}
-		{% block absolute %}{% endblock %}
-		<div class="main-container">
-			{% block body %}{% endblock %}
-		</div>
+	<body>{% csrf_token %}
+
+		{% block header %}{% endblock %}
+
+		{% if messages %}
+		<ul class="messages p-0 m-0">
+			{% for message in messages %}
+			<li class="message w-100 p-2{% if message.tags %} {{ message.tags }}"{% endif %}>{{ message }}</li>
+			{% endfor %}
+		</ul>
+		{% endif %}
+
+		<main class="main-container">
+			{% block main %}{% endblock %}
+		</main>
+
+{% comment %}
+		{% block asides %}
+			{% if request.user.is_authenticated %}
+			<aside class="bookmark planner">
+				<a href="{% url 'planner:index' %}">Planer</a>
+			</aside>
+		
+			<aside class="bookmark chat">
+				<a class="chat-container" href="{% url 'httpchat:index' %}">
+					<img src="{% static 'res/img/open-envelope-paper.png' %}" height="50px" width="50px" class="bg">
+					<span class="new_messages">{{ request.user|newMessages }}</span>
+				</a>
+			</aside>
+			{% endif %}
+		{% endblock %}
+{% endcomment %}
+	
+		{% block footer %}
+			{% if request.user.is_authenticated and not request.user.email %}
+				<footer class="email-footer text-dark">Magst du eine <a href="{% url 'auth:change_email' %}">Email angeben</a>? Falls du das Passwort vergisst kannst du es über die Email zurücksetzen.</footer>
+			{% endif %}
+		{% endblock %}
 	</body>
-
-	{% if request.user.is_authenticated and not request.user.email %}
-	<footer class="footer">Magst du eine <a href="{% url 'auth:change_email' %}">Email angeben</a>? Falls du das Passwort vergisst kannst du es über die Email zurücksetzen.</footer>
-	{% endif %}
-
-	{% if request.user.is_authenticated %}
-	<aside class="planner">
-		<a href="{% url 'planner:index' %}">Planer</a>
-	</aside>
-
-	<aside class="chat">
-		<a class="chat-container" href="{% url 'httpchat:index' %}">
-			<img src="{% static 'res/img/open-envelope-paper.png' %}" height="50px" width="50px" class="bg">
-			<span class="new_messages">{{ request.user|newMessages }}</span>
-		</a>
-	</aside>
-	{% endif %}
 </html>
 {% endspaceless %}

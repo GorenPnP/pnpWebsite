@@ -2,32 +2,21 @@
 	--itemTile-size: 100px;
 }
 
-.main-container {margin-bottom: 100px;}
-
-@import './head';
-.head .crafting-time {color: #ddd;}
-
 .add-form {
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
 	flex-wrap: wrap;
 
-	margin-bottom: 3em;
+	margin-inline: 3px;
 
-	padding: .5em;
+	padding: 1em;
 	border-radius: 8px;
 	background: darken(rgb(4, 201, 245), 60%);
 
-	& > * {
-		margin: .2em;
-		max-width: 300px;
-	}
-	.btn {
-		padding: .7em;
-		font-size: 1em;
-		font-weight: 600;
-	}
+	label { display: block; }
+	input, select { padding: 4px; border-radius: 3px; }
+	#id_amount { width: 70px; }
 }
 
 
@@ -38,67 +27,55 @@
 	justify-content: center;
 
 	margin-bottom: 3em;
-}
-.item {
-	height: var(--itemTile-size);
-	width: var(--itemTile-size);
 
-	border-radius: 5px;
-	border: 2px solid transparent;
+	.item {
+		height: var(--itemTile-size);
+		width: var(--itemTile-size);
 
-	cursor: pointer;
-	z-index: 2;
+		border-radius: 5px;
+		border: 2px solid transparent;
 
-	&:hover, &:visited { border: 2px solid #ddd; }
+		cursor: pointer;
+
+		&:hover, &:visited { border: 2px solid #ddd; }
 
 
-	img {
-		grid-area: "icon";
+		img {
+			grid-area: "icon";
 
-		z-index: 1;
-		display: block;
-		width: 80%;
-		height: 80%;
+			display: block;
+			width: 80%;
+			height: 80%;
 
-		position: relative;
-		top: 10%;
-		left: 10%;
+			position: relative;
+			top: 10%;
+			left: 10%;
 
-		color: #ddd;
-	}
+			color: #ddd;
+		}
 
-	.num {
-		z-index: 2;
+		.num {
+			// in bottom right corner (move right and up)
+			display: block;
+			text-align: end;
 
-		// in bottom right corner (move right and up)
-		display: block;
-		text-align: end;
+			position: relative;
+			top: calc(-.4em);
 
-		position: relative;
-		top: calc(-.4em);
+			// control size around
+			line-height: 1em;
+			padding: .2em;
 
-		// control size around
-		line-height: 1em;
-		padding: .2em;
-
-		// fancy
-		font-family: Quicksand, "sans-serif";
-		font-size: .9rem;
-		font-weight: 900;
-		color: #fff;
-		text-shadow: #000 0 0 5px;
-	}
-
-	.title {
-		color: #ddd;
+			// fancy
+			font-size: .9rem;
+			font-weight: 600;
+			color: #fff;
+			text-shadow: #000 0 0 5px;
+		}
 	}
 }
 
 
-
+@import './_head';
 @import './_overlay';
 .overlay {display: none;}
-
-@media only screen and (max-width: 527px) {
-	.add-form {justify-content: center;}
-}

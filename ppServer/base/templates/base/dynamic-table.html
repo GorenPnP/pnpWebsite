@@ -1,30 +1,21 @@
-{% extends 'base/main.html' %}
-{% load django_bootstrap5 static %}
+{% extends 'base/headed_main.html' %}
+{% load static %}
 {% load export_url from django_tables2 %}
 
-{% block title %}{{ view.get_topic }}{% endblock %}
-{% block absolute %}
-{% if view.get_plus_url|length %}
-    {% include 'base/header.html' with topic=view.get_topic plus_url=view.get_plus_url %}
-{% else %}
-    {% include 'base/header.html' with topic=view.get_topic %}
-{% endif %}
+{% block main %}
 
-{% endblock %}
-{% block body %}
+    {% block before_table %}{% endblock %}
+    {% include 'base/table_template.html' with view=view table=table filter=filter %}
+    {% block after_table %}{% endblock %}
 
-{% block before_table %}{% endblock %}
-{% include 'base/table_template.html' with view=view table=table filter=filter %}
-{% block after_table %}{% endblock %}
-
-{% if view.export_formats|length %}
-<ul>
-    {% for format in view.export_formats %}
-        <li><a class="export-link" href="{% export_url format %}">
-            download  <code>.{{ format }}</code>
-        </a></li>
-    {% endfor %}
-</ul>
-{% endif %}
-{% block after_exports %}{% endblock %}
+    {% if view.export_formats|length %}
+    <ul>
+        {% for format in view.export_formats %}
+            <li><a class="export-link" href="{% export_url format %}">
+                download  <code>.{{ format }}</code>
+            </a></li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+    {% block after_exports %}{% endblock %}
 {% endblock %}

@@ -273,7 +273,7 @@ class CharakterAdmin(admin.ModelAdmin):
         ("Manifest", {"fields": ["manifest", "sonstiger_manifestverlust", "notizen_sonstiger_manifestverlust"]}),
         ('HP', {'fields': ['rang', 'HPplus']}),
         ("Basischaden im Waffenlosen Kampf", {"fields": ["wesenschaden_waff_kampf", "wesenschaden_andere_gestalt"]}),
-        ('Ressourcen', {'fields': ['sp', "geld", 'ip', 'tp', "nutzt_magie", 'useEco', 'eco', 'morph']}),
+        ('Ressourcen', {'fields': ['sp', "geld", 'ip', 'tp', "nutzt_magie"]}),
         ('Geschreibsel', {'fields': ['persönlicheZiele', 'notizen', 'sonstige_items']}),
     ]
 
@@ -453,9 +453,12 @@ class PersönlichkeitAdmin(admin.ModelAdmin):
 
 class VorNachteilAdmin(admin.ModelAdmin):
 
-    list_display = ('titel', 'ip', 'beschreibung', "wann_wählbar")
+    list_display = ('titel', 'ip', 'beschreibung', "wann_wählbar", "_max_amount")
     list_filter = ['ip', "wann_wählbar"]
     search_fields = ['titel', 'ip', "wann_wählbar"]
+
+    def _max_amount(self, obj):
+        return obj.max_amount or "unbegrenzt"
 
 
 class BegleiterAdmin(admin.ModelAdmin):

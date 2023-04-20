@@ -1,42 +1,55 @@
-{% extends 'base/main.html' %}
+{% extends 'base/headed_main.html' %}
 {% load static %}
-{% block title %}{{ topic }}{% endblock %}
 {% block extra-head %}
 <link rel="stylesheet" href="{% static 'base/css/checkbox.css' %}">
-<link rel="stylesheet" href="{% static 'create/css/gfs.css' %}">
+<link rel="stylesheet" href="{% static 'auth/css/centered_form.css' %}">
 <script src="{% static 'res/js/axios.min.js' %}" type='text/javascript'></script>
 <script src="{% static 'base/js/ajax.js' %}"></script>
 <script src="{% static 'create/js/gfs.js' %}"></script>
+
+<style>
+    .main-container { background-image: none; }
+    @media only screen and (max-width: 770px) {
+        .main-container { flex-direction: column; }
+    }
+
+    .text-container > * {
+        margin-block: 1em;
+        display: block;
+    }
+</style>
 {% endblock %}
-{% block absolute %}{% include 'base/header.html' with topic=topic %}{% endblock %}
 
-{% block body %}
-<span class="message"></span>
-<select autofocus>
-    {% for g in gfs %}
-        <option value="{{ g.id }}" id="option{{ forloop.counter0 }}">{{ g.titel }} (AP: {{ g.ap }})</option>
-    {% endfor %}
-</select>
+{% block main %}
+<div class="text-container">
+    <h2>neuen Charakter erstellen</h2>
+    <select name="gfs" autofocus>
+        {% for g in gfs %}
+            <option value="{{ g.id }}" id="option{{ forloop.counter0 }}">{{ g.titel }} (AP: {{ g.ap }})</option>
+        {% endfor %}
+    </select>
 
-<div class="larp">
-    <span class="checkbox" onclick="this.classList.toggle('checked')"></span>
-    <span onclick="document.getElementsByClassName('checkbox')[0].classList.toggle('checked')">Im LARP</span>
+    <div class="d-flex" style="gap: 1.7em; align-items: center;">
+        <span class="checkbox" onclick="this.classList.toggle('checked')"></span>
+        <span onclick="this.parentNode.querySelector('.checkbox').classList.toggle('checked')">Im LARP</span>
+    </div>
+
+    <button class="btn btn-lg btn-primary" onclick="submit()">Weiter</button>
 </div>
 
-<button class="btn" onclick="submit()">Weiter</button>
-<h3 class="link"><a href="{% url 'create:gfs_characterization' %}" target="_blank">Noch keinen konkreten Plan? Hole dir deine Inspiration hier</a></h3>
-<p class="link"><a href="{% url 'wiki:gfs' %}" target="_blank">Alle Infos zu wählbaren Gfs/Klassen</a></p>
+<div class="text-container">
+    <h2>was Anderes</h2>
+    <ul>
+        <li><a class="text-light" href="{% url 'create:gfs_characterization' %}" target="_blank"><b>Noch keinen konkreten Plan?</b> Hole dir deine Inspiration hier</a>
+        <li><a class="text-light" href="{% url 'wiki:gfs' %}" target="_blank">Alle Infos zu <b>wählbaren Gfs/Klassen</b></a>
 
-
-{% if old_scetches %}
-    <div class="scetches">
         {% for s in old_scetches %}
-            <p><a href="{% url 'create:prio' %}">
-                Einen bestehenden Entwurf ({{ s }}) fortführen
-            </a></p>
+        <li><a class="text-light" href="{% url 'create:prio' %}">Einen <b>bestehenden Entwurf ({{ s.titel }}) fortführen</b></a></li>
         {% endfor %}
+    </ul>
 
+    {% if old_scetches %}
         <p>Achtung, alte Entwürfe werden beim Anlegen eines Neuen automatisch gelöscht!</p>
-    </div>
-{% endif %}
+    {% endif %}
+</div>
 {% endblock %}

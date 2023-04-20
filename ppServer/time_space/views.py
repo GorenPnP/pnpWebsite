@@ -18,6 +18,7 @@ def index(request):
 
 	context = {
 		"topic": "Zeituhr",
+		"plus": "+ Netz",
 		"plus_url": "/time_space/createNet",
 		"nets": Net.objects.all()
 	}
@@ -37,7 +38,12 @@ def net(request, id):
 			"room_fissures": [n for n in node_designs if n["id"] >= 70 and n["id"] < 100],
 			"gates": [n for n in node_designs if n["id"] >= 100],
 		}
-		return render(request, "time_space/net.html", {"topic": net.text, "design": design})
+		return render(request, "time_space/net.html", {
+			"topic": net.text,
+			"design": design,
+			"app_index": "Zeituhr",
+			"app_index_url": reverse("time_space:index")
+		})
 
 	if request.method == "POST":
 

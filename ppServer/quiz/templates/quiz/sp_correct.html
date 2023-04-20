@@ -1,7 +1,5 @@
-{% extends 'base/main.html' %}
-{% load static %}
-{% load l10n %}
-{% block title %}{{ topic }}{% endblock %}
+{% extends 'base/headed_main.html' %}
+{% load static l10n %}
 {% block extra-head %}
 <link rel="stylesheet" type="text/css" href="{% static 'base/css/checkbox.css' %}" />
 <link rel="stylesheet" type="text/css" href="{% static 'base/css/textarea.css' %}" />
@@ -11,21 +9,28 @@
 <script src="{% static 'base/js/ajax.js' %}"></script>
 <script type="text/javascript" src="{% static 'quiz/js/question.js' %}"></script>
 {% endblock %}
-{% block absolute %}{% include 'base/header.html' with topic=topic %}{% endblock %}
-{% block body %}
+
+{% block main %}
 <form method="POST" enctype="multipart/form-data">
 	{% csrf_token %}
 
-	<section class="paging">
+	<section class="d-flex m-3 align-items-center" style="gap: 10px">
 		<span>gehe zu Frage:</span>
-		{% for index in pages %}
-			{% if index == question_index %}
-				<span class="paging__current-page">{{ index|add:'1' }}</span>
-			{% else %}
-				<span class="link" onclick="submit_and_redirect(this)" data-redirect="{% url 'quiz:sp_correct_index' sp_mo_id index %}">{{ index|add:'1' }}</span>
-			{% endif %}
-		{% endfor %}
-		<span class="link" onclick="submit_and_redirect(this)" data-redirect="{% url 'quiz:sp_correct_index' sp_mo_id start_num_questions %}">Fertig</span>
+
+		<nav>
+			<ul class="pagination m-0">
+				{% for index in pages %}
+					{% if index == question_index %}
+					<li class="page-item active" aria-current="page">
+						<a class="page-link" href="#">{{ index|add:'1' }}</a>
+					</li>
+					{% else %}
+						<li class="page-item"><a class="page-link" href="#" onclick="submit_and_redirect(this)" data-redirect="{% url 'quiz:sp_correct_index' sp_mo_id index %}">{{ index|add:'1' }}</a></li>
+					{% endif %}
+				{% endfor %}
+				<li class="page-item"><a class="page-link" href="#" onclick="submit_and_redirect(this)" data-redirect="{% url 'quiz:sp_correct_index' sp_mo_id start_num_questions %}">Fertig</a></li>
+			</ul>
+		</nav>
 	</section>
 
 	<section class="info">
@@ -140,15 +145,15 @@
 
 		<div class="flex-container flex-container--btn">
 
-			<div class="btn btn--back" onclick="submit_and_redirect(this)" data-redirect="{% url 'quiz:sp_modules' %}">Abbrechen</div>
+			<div class="btn btn-outline-primary" onclick="submit_and_redirect(this)" data-redirect="{% url 'quiz:sp_modules' %}">ABBRECHEN</div>
 
 			{% if display_btn_previous %}
-				<div class="btn btn--previous" onclick="submit_and_redirect(this)" data-redirect="{% url 'quiz:sp_correct_index' sp_mo_id prev_question_index %}">Zur Vorigen</div>
+				<div class="btn btn-outline-primary" onclick="submit_and_redirect(this)" data-redirect="{% url 'quiz:sp_correct_index' sp_mo_id prev_question_index %}">ZUR VORIGEN</div>
 			{% endif %}
 
 			<input
-				type="submit" class="btn"
-				value="{% if display_btn_done %}Alles Fertig?{% else %}OK{% endif %}"
+				type="submit" class="btn btn-primary"
+				value="{% if display_btn_done %}ALLES FERTIG?{% else %}OK{% endif %}"
 			>
     </div>
 

@@ -6,7 +6,4 @@ app_name = 'base'
 
 urlpatterns = [
     path('', views.index, name='index'),
-
-    # for testing only
-    path("redirect", views.redirect),
 ]

@@ -2,17 +2,15 @@
 {% load static %}
 {% block title %}Registrieren{% endblock %}
 {% block extra-head %}
-<link rel="stylesheet" href="{% static 'auth/css/signup.css' %}">{% endblock %}
-{% block body %}
+<link rel="stylesheet" href="{% static 'auth/css/centered_form.css' %}">{% endblock %}
+{% block main %}
 <div class="text-container">
-	<h1 class="heading">Registrieren</h1>
+	<h1>Registrieren</h1>
 	<form class='form' method="POST">
 		{% csrf_token %}
 		{{ form.as_p }}
 
-		<button id='submit' type="submit" class="btn green">
-			<p class="btn__text">Registrieren</p>
-		</button>
+		<button type="submit" class="btn btn-primary">REGISTRIEREN</button>
 	</form>
 </div>
 {% endblock %}

@@ -67,6 +67,6 @@ document.addEventListener("DOMContentLoaded", function () {
         update_proposals(day.dataset.date, days_by_iso);
         update_appointment(day.dataset.date, days_by_iso);
         update_blocked(day.dataset.date, days_by_iso);
-        document.querySelector(".popover").style.display = "block";
+        document.querySelector(".form-popover").style.display = "block";
     }))
 });

@@ -1,13 +1,15 @@
-{% extends 'base/main.html' %}
+{% extends 'base/headed_main.html' %}
 {% load static %}
-{% block title %}neue Transaktion{% endblock %}
 {% block extra-head %}
-    <link rel="stylesheet" href="{% static 'auth/css/login.css' %}">
-    <link rel="stylesheet" href="{% static 'cards/css/transaction.css' %}">
+    <link rel="stylesheet" href="{% static 'auth/css/centered_form.css' %}">
+    <style>
+        .main-container { background-image: none; }
+    </style>
 {% endblock %}
-{% block body %}
+
+{% block main %}
 <div class="text-container">
-    <h1 class="heading">{{ sender.name|default:"neue Transaktion"}}</h1>
+    <h1>{{ sender.name|default:"neue Transaktion"}}</h1>
 
     {% if sender %}
         <a href="{% url 'cards:show' sender.pk %}">Zur Kontoübersicht</a>
@@ -19,7 +21,7 @@
 
         {% for error in errors %}<p>{{ error }}</p>{% endfor %}
 
-        <input type="submit" value="Geld senden">
+        <input type="submit" class="btn btn-lg btn-primary" value="Geld senden">
     </form>
 </div>
 {% endblock %}

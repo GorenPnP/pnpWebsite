@@ -1,23 +1,17 @@
-{% extends 'base/main.html' %}
-{% load static %}
-{% block title %}{{ topic }}{% endblock %}
-{% block extra-head %}
-<link rel="stylesheet" href="{% static 'base/css/list.css' %}">
-{% endblock %}
-{% block absolute %}{% include 'base/header.html' with topic=topic plus_url=plus_url %}{% endblock %}
+{% extends 'base/headed_main.html' %}
 
-{% block body %}
+{% block main %}
 	{% if nets %}
 		<h2>Offene Probleme</h2>
 	{% endif %}
 
 	<ul>
-			{% for net in nets %}
-			<li><a href="{% url 'time_space:net' net.id %}">
-				<h2>{{ net.text }}</h2>
-			</a></li>
-			{% empty %}
-			<h1>Alles ist safe</h1>
-			{% endfor %}
+		{% for net in nets %}
+		<li><a href="{% url 'time_space:net' net.id %}">
+			<h2>{{ net.text }}</h2>
+		</a></li>
+		{% empty %}
+		<h1>Alles ist safe</h1>
+		{% endfor %}
 	</ul>
 {% endblock %}

@@ -1,20 +1,18 @@
-{% extends 'base/main.html' %}
-{% load static %}{% load l10n %}
-{% block title %}{{ topic }}{% endblock %}
+{% extends 'base/headed_main.html' %}
+{% load static l10n duration %}
 {% block extra-head %}
 <link rel="stylesheet" type="text/css" href="{% static 'crafting/css/details.css' %}">
 {% endblock %}
-{% block absolute %}{% include 'base/header.html' with topic=topic %}{% endblock %}
 
-{% block body %}
-<div class="head">
-		<a href="{% url 'crafting:inventory' %}" class="btn btn--inventory">Inventar</a>
-		<a href="{% url 'crafting:craft' %}" class="btn btn--craft">Crafting</a>
-		<a href="{% url 'crafting:index' %}" class="">Profil wechseln</a>
+{% block main %}
+<div class="nav d-flex justify-content-between">
+	<a href="{% url 'crafting:inventory' %}" class="btn btn-outline-light">Inventar</a>
+	<a href="{% url 'crafting:craft' %}" class="btn btn-outline-light">Crafting</a>
+	<a href="{% url 'crafting:index' %}" class="text-light">Profil wechseln</a>
 </div>
 
 <div class="overlay">
-	<label for="overlay__duration">Crafting Time:</label><span id="overlay__duration">{{ duration }}</span>
+	<label for="overlay__duration">Crafting Time:</label><span id="overlay__duration">{{ duration|duration }}</span>
 	<label for="overlay__spezial">Spezialfertigkeiten:</label><div id="overlay__spezial">{{ spezial|default:"-" }}</div>
 	<label for="overlay__wissen">Wissensfertigkeiten:</label><div id="overlay__wissen">{{ wissen|default:"-" }}</div>
 	<label for="overlay__table">Zutaten:</label><div id="overlay__ingredients">
@@ -45,5 +43,5 @@
 	</div>
 </div>
 
-<button class="btn btn--back" onclick="window.history.back()">Zurück</button>
+<button class="btn btn-lg btn-primary mt-3" onclick="window.history.back()">Zurück</button>
 {% endblock %}

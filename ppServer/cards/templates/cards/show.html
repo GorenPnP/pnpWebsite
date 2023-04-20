@@ -1,13 +1,12 @@
-{% extends 'base/main.html' %}
+{% extends 'base/headed_main.html' %}
 {% load static %}
-{% block title %}{{ object.name }}{% endblock %}
 {% block extra-head %}
-    <link rel="stylesheet" href="{% static 'auth/css/login.css' %}">
+    <link rel="stylesheet" href="{% static 'auth/css/centered_form.css' %}">
     <link rel="stylesheet" href="{% static 'cards/css/show.css' %}">
 {% endblock %}
-{% block body %}
+
+{% block main %}
 <div class="text-container">
-    <h1>{{ object.name }}</h1>
 
     Guthaben: {{ object.money }} Dr.
 
@@ -39,7 +38,7 @@
     </div>
 
     {% if object.money %}
-    <a class="btn" href="{% url 'cards:transaction' object.id %}">Geld senden</a>
+    <a class="btn btn-primary" href="{% url 'cards:transaction' object.id %}">Geld senden</a>
     {% endif %}
 </div>
 {% endblock %}

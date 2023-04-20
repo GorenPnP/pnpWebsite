@@ -1,11 +1,16 @@
 from django.contrib import admin
 from django.utils.html import format_html
 
+
 from .models import *
+from .templatetags.duration import duration
 
 
 class ProfileAdmin(admin.ModelAdmin):
-    list_display = ["owner", "name", "restricted", "craftingTime"]
+    list_display = ["owner", "name", "restricted", "_craftingTime"]
+
+    def _craftingTime(self, obj):
+        return duration(obj.craftingTime)
 
 
 class InventoryAdmin(admin.ModelAdmin):

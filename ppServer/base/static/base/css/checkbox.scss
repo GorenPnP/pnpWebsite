@@ -51,5 +51,5 @@
 
 
 .checkbox:hover {
-	opacity: var(--hover-opacity);
+	opacity: var(--hover-opacity, .8);
 }

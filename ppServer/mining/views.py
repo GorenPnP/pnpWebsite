@@ -17,6 +17,7 @@ def region_select(request):
 	context = {
 		"topic": "Region",
 		"regions": [{"id": r.id, "name": r.name} for r in Region.objects.all()],
+		"plus": "+ Region",
 		"plus_url": reverse("mining:create_region")}
 	return render(request, "mining/region_select.html", context)
 

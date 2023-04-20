@@ -1,7 +1,5 @@
-{% extends 'base/main.html' %}
-{% load static %}
-{% load l10n %}
-{% block title %}{{ topic }}{% endblock %}
+{% extends 'base/headed_main.html' %}
+{% load static l10n %}
 {% block extra-head %}
 <link rel="stylesheet" type="text/css" href="{% static 'base/css/checkbox.css' %}" />
 <link rel="stylesheet" type="text/css" href="{% static 'base/css/textarea.css' %}" />
@@ -11,8 +9,8 @@
 <script src="{% static 'base/js/ajax.js' %}"></script>
 <script type="text/javascript" src="{% static 'quiz/js/question.js' %}"></script>
 {% endblock %}
-{% block absolute %}{% include 'base/header.html' with topic=topic %}{% endblock %}
-{% block body %}
+
+{% block main %}
 	<section class="info">
 			<div class="general">
 					<div class="info__item"><span class="label">Fach</span> {{ question.topic.subject.titel }}</div>
@@ -107,10 +105,10 @@
 			{% csrf_token %}
 			<div class="flex-container flex-container--btn">
 				{% if called_from_sp %}
-					<a class="btn" href="{{ return_to }}">OK</a>
+					<a class="btn btn-primary" href="{{ return_to }}">OK</a>
 				{% else %}
-					<button class="btn btn--back" onclick="back(event)">Abbrechen</button>
-					<input type="submit" class="btn" value="OK">
+					<button class="btn btn-outline-primary" onclick="back(event)">ABBRECHEN</button>
+					<input type="submit" class="btn btn-primary" value="OK">
 				{% endif %}
 			</div>
 		</form>
