@@ -23,7 +23,10 @@
         <a href="{% url 'httpchat:account_chats' account.slug %}" class="ms-2 me-auto fw-bold text-dark">
             {{ account.name }}
         </a>
+
+        {% if account.new_messages %}
         <span class="badge bg-primary rounded-pill fs-6">{{ account.new_messages }}</span>
+        {% endif %}
     </li>
 {% endfor %}
 </ul>

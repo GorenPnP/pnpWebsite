@@ -4,6 +4,7 @@
 {% block title %}{{ account.name }}{% endblock %}
 {% block extra-head %}
     <link rel="stylesheet" href="{% static 'httpChat/css/list.css' %}">
+    <link rel="stylesheet" href="{% static 'httpChat/css/avatars.css' %}">
 {% endblock %}
 {% block header %}{% include 'base/header.html' with topic=account.name %}{% endblock %}
 
@@ -26,9 +27,11 @@
 <ul class="list-group">
     {% for chat in chatrooms %}
         <li class="list-group-item d-flex justify-content-between align-items-center">
-            {% for url in chat|get_avatar_urls:account %}
-                <img src="{{ url }}" class="rounded-circle border border-primary" style="height: 47px; aspect-ratio: 1">
-            {% endfor %}
+            <div class="avatar-container">
+              {% for url in chat|get_avatar_urls:account %}
+                  <img src="{{ url }}" class="rounded-circle border border-primary" style="height: 47px; aspect-ratio: 1">
+              {% endfor %}
+            </div>
             <a href="{% url 'httpchat:chatroom' account.slug chat.id %}" class="ms-2 me-auto text-dark">
                 <div class="fw-bold">{{ chat|titel:account }}</div>
                 {% if  chat.message_set.count %}
@@ -38,7 +41,9 @@
                 </i>
                 {% endif %}
             </a>
+            {% if chat.new_messages %}
             <span class="badge bg-primary rounded-pill fs-6">{{ chat.new_messages }}</span>
+            {% endif %}
         </li>
     {% endfor %}
 </ul>
