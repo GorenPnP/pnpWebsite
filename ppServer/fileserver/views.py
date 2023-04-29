@@ -26,7 +26,7 @@ class TopicListView(LoginRequiredMixin, VerifiedAccountMixin,  TemplateView):
         )
 
     def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
-        self.object_list = Topic.objects.filter(Q(sichtbarkeit_eingeschränkt=False) | Q(sichtbar_für__name=request.user.username))
+        self.object_list = Topic.objects.filter(Q(sichtbarkeit_eingeschränkt=False) | Q(sichtbar_für__name=request.user.username)).distinct()
         return super().get(request, *args, **kwargs)
 
 

@@ -174,18 +174,20 @@ class GfsFormView(LoginRequiredMixin, VerifiedAccountMixin, TemplateView):
 
 class PriotableFormView(LoginRequiredMixin, VerifiedAccountMixin, TemplateView):
 
-    entries = [
-        [row.priority, row.ip, row.ap, row.sp, row.konzentration, row.fp, row.fg, row.zauber, row.drachmen, row.spF_wF]
-        for row in Priotable.objects.all()
-    ]
     # number of WP per spF & wF chosen
     WP_FACTOR = 4
+
+    def get_entries(self):
+        return Priotable.objects.all().values_list("priority", "ip", "ap", "sp", "konzentration", "fp", "fg", "zauber", "drachmen", "spF_wF")
+
 
     @method_decorator(cp_done)
     @method_decorator(provide_new_char)
     @method_decorator(gfs_done)
     @method_decorator(prio_not_done)
     def get(self, request: HttpRequest, new_char: NewCharakter) -> HttpResponse:
+        entries = self.get_entries()
+        
         # get ap cost for gfs
         ap_cost = new_char.gfs.ap
 
@@ -194,8 +196,8 @@ class PriotableFormView(LoginRequiredMixin, VerifiedAccountMixin, TemplateView):
 
         # # mundan => keine Zauber wählbar (nur 0 Zauber in prio F)
         # if max_MA == 0:
-        #     for k in range(len(self.entries)):
-        #         self.entries[k][7] = self.entries[k][7] and None  # produces 0 | None
+        #     for k in range(entries.count()):
+        #         entries[k][7] = entries[k][7] and None  # produces 0 | None
 
         notes = [
             "IP = für Vor- und Nachteile",
@@ -208,7 +210,7 @@ class PriotableFormView(LoginRequiredMixin, VerifiedAccountMixin, TemplateView):
 
         context = {
             "topic": "Prioritätentabelle",
-            'table': self.entries,
+            'table': entries,
             'notizen': notes,
             "ap_cost": ap_cost,
             "gfs": new_char.gfs,
@@ -222,8 +224,10 @@ class PriotableFormView(LoginRequiredMixin, VerifiedAccountMixin, TemplateView):
     @method_decorator(gfs_done)
     @method_decorator(prio_not_done)
     def post(self, request: HttpRequest, new_char: NewCharakter) -> HttpResponse:
+        entries = self.get_entries()
+
         # collect data
-        num_entries = len(self.entries)
+        num_entries = entries.count()
         if new_char is None:
             return JsonResponse({"url": reverse("create:gfs")}, status=300)
 
@@ -248,22 +252,22 @@ class PriotableFormView(LoginRequiredMixin, VerifiedAccountMixin, TemplateView):
 
             # row: [priority, IP, AP, (SP, konzentration), (FP, FG), Zauber, Drachmen]
             if col == 1:
-                new_char.ip = self.entries[row][col]
+                new_char.ip = entries[row][col]
             elif col == 2:
-                ap = self.entries[row][col]
+                ap = entries[row][col]
 
             elif col == 3:
-                new_char.sp = self.entries[row][col]
-                new_char.konzentration = self.entries[row][col + 1]
+                new_char.sp = entries[row][col]
+                new_char.konzentration = entries[row][col + 1]
             elif col == 4:
-                new_char.fp = self.entries[row][col + 1]
-                new_char.fg = self.entries[row][col + 2]
+                new_char.fp = entries[row][col + 1]
+                new_char.fg = entries[row][col + 2]
             elif col == 5:
-                new_char.zauber = self.entries[row][col + 2]
+                new_char.zauber = entries[row][col + 2]
             else:
-                new_char.geld = self.entries[row][col + 2]
-                new_char.spF_wF = self.entries[row][col + 3]
-                new_char.wp = self.entries[row][col + 3] * self.WP_FACTOR
+                new_char.geld = entries[row][col + 2]
+                new_char.spF_wF = entries[row][col + 3]
+                new_char.wp = entries[row][col + 3] * self.WP_FACTOR
 
         ap -= new_char.gfs.ap
         if ap < 0:
