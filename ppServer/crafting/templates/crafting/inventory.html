@@ -8,7 +8,7 @@
 {% endblock %}
 
 {% block main %}
-{% if not profil.restricted %}
+{% if not restricted_profile %}
 <form class="add-form" method="post">
 	{{ add_form.as_div }}
 

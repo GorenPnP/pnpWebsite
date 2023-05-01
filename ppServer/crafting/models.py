@@ -47,9 +47,7 @@ class Profile(models.Model):
 
 		# get tables
 		rawTables = Recipe.getTables()
-		tables = {}
-		for t in rawTables:
-			tables[t.id] = { "id": t.id, "name": t.name, "icon": t.getIconUrl() }
+		tables = [{ "id": t.id, "name": t.name, "icon": t.getIconUrl() } for t in rawTables]
 
 		# get & use order
 		order = json.loads(self.tableOrdering)
@@ -57,23 +55,24 @@ class Profile(models.Model):
 
 		# default alphabetical ordering but beginning with Handwerk
 		if not order:
-			return [Recipe.getHandwerk()] + sorted(tables.values(), key=lambda x: x["name"])
+			return [Recipe.getHandwerk()] + tables
 
 		# sort by ids of ordering
 		for o in order:
-			if o != 0:
-
-				# skip over in case a table is removed after saving ordering to db
-				if o not in tables.keys(): continue
-
-				# append tables in order
-				ordered_tables.append(tables[o])
-				del tables[o]
-			else:
+			if o == 0:
 				ordered_tables.append(Recipe.getHandwerk())
+				continue
+
+			table = next((t for t in tables if t["id"] == o), None)
+
+			# skip over in case a table is removed after saving ordering to db
+			if table is None: continue
+
+			# append tables in order
+			ordered_tables.append(table)
 
 		# return custom ordered + rest
-		return ordered_tables + sorted([t for t in tables.values()], key=lambda x: x["name"])
+		return ordered_tables + [t for t in tables if t not in ordered_tables]
 
 
 class InventoryItem(models.Model):
@@ -151,4 +150,4 @@ class Recipe(models.Model):
 	# get all used table instances from db in alpabetical order
 	@staticmethod
 	def getTables():
-		return sorted(set([e.table for e in Recipe.objects.exclude(table=None) ]), key=lambda t: t.name )
+		return Tinker.objects.filter(recipe__isnull=False).distinct().order_by("name")

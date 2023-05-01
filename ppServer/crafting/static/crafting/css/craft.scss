@@ -145,6 +145,8 @@ header { grid-area: header; }
 	// style table over arrow (extention of .table)
 	.table--arrow {
 		margin-bottom: 10px;
+		padding: 6px;
+		width: fit-content;
 		cursor: auto;
 	}
 	.table--arrow.available {

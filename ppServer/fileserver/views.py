@@ -4,7 +4,7 @@ from django.db.models import Q
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http.request import HttpRequest
 from django.http.response import HttpResponse
-from django.shortcuts import render, redirect
+from django.shortcuts import redirect
 from django.urls import reverse
 from django.views.generic import DetailView
 from django.views.generic.base import TemplateView

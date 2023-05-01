@@ -63,6 +63,7 @@ def inventory(request):
 			"topic": "Inventar von {}".format(rel.profil.name),
 			"spielleiter": request.user.groups.filter(name__iexact="spielleiter").exists(),
 			"add_form": AddToInventoryForm(),
+			"restricted_profile": rel.profil.restricted,
 			"duration": rel.profil.craftingTime,
 			"items": InventoryItem.objects.filter(char=rel.profil).order_by("item__name"),
 			"app_index": "Crafting",
@@ -152,14 +153,14 @@ def inventory(request):
 def craft(request):
 
 	spieler = get_object_or_404(Spieler, name=request.user.username)
-	rel, _ = RelCrafting.objects.get_or_create(spieler=spieler)
+	rel, _ = RelCrafting.objects.prefetch_related("profil").get_or_create(spieler=spieler)
 
 	# no profile active? change that!
 	if not rel.profil: return redirect("crafting:index")
 
 	# collect current inventory
 	inventory = {}
-	for i in InventoryItem.objects.filter(char=rel.profil):
+	for i in InventoryItem.objects.prefetch_related("item").filter(char=rel.profil):
 			inventory[i.item.id] = i.num
 
 
@@ -311,7 +312,7 @@ def get_recipes_of_table(inventory, restricted, id):
 
 	# get all recipes that need the table with this id
 	recipes = []
-	for r in Recipe.objects.filter(table__id=id if id else None):		# without table is represented by id=0, but need to query with table=None
+	for r in Recipe.objects.prefetch_related("ingredient_set__item", "product_set__item").filter(table__id=id if id else None):		# without table is represented by id=0, but need to query with table=None
 
 		ingredients = r.ingredient_set.all()
 		if restricted and not ingredients.exists(): continue
