@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'base',
     'cards',
     'character',
+    'characterExport',
     'chat',
     'crafting',
     'create',

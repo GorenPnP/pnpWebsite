@@ -581,6 +581,7 @@ class Charakter(models.Model):
     konzentration = models.PositiveSmallIntegerField(null=True, blank=True)
 
     ep = models.PositiveIntegerField(default=0)
+    ep_stufe = models.PositiveIntegerField(default=0)
 
     HPplus = models.IntegerField(default=0, blank=True)
     HPplus_fix = models.IntegerField(default=None, null=True, blank=True)

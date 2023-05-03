@@ -75,7 +75,10 @@ def show(request, pk):
             "konzentration": char.get_konzentration(),
             "persönlichkeiten": ", ".join([rel.persönlichkeit.titel for rel in RelPersönlichkeit.objects.filter(char=char)]),
             "app_index": "Charaktere",
-            "app_index_url": reverse("character:index")
+            "app_index_url": reverse("character:index"),
+
+            "plus_url": reverse("character_export:export", args=[char.id]),
+            "plus": "Export",
         }
 
         return render(request, "character/show.html", context)

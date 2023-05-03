@@ -1,5 +1,5 @@
 # pull official base image
-FROM ubuntu:latest
+FROM ubuntu:20.04
 
 # set work directory
 WORKDIR /usr/src/ppServer

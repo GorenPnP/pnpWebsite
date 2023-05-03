@@ -28,3 +28,5 @@ django-filter==22.*         # filter queryset-data (for tables)
 django-tables2==2.5.*       # add table-templates
 
 django-markdownfield==0.10.*
+
+XlsxWriter==3.1.*           # Export (characters) to xlsx
