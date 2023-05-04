@@ -140,6 +140,7 @@ class CharacterExportView(LoginRequiredMixin, VerifiedAccountMixin, DetailView):
         wb = xlsxwriter.Workbook(response, {'in_memory': True, "default_format_properties": {
             "font_name": "Arial",
             "font_size": 10,
+            'num_format': '#,##0.#'
         }})
 
         # formats
