@@ -250,7 +250,7 @@ class CharacterExportView(LoginRequiredMixin, VerifiedAccountMixin, DetailView):
         format_manifest = wb.add_format(dict(form_section_titel, **form_cell_border, **{"bg_color": COLOR["magenta"]}))
         format_currencies = wb.add_format(dict(form_sub_titel, **{"bg_color": COLOR["green"]}))
         format_ep = wb.add_format(dict(form_section_titel, **{"bg_color": COLOR["red"]}))
-        format_death = wb.add_format(dict(form_sub_titel, **{"bg_color": COLOR["black"], "font_color": COLOR["white"]}))
+        format_death = wb.add_format(dict(form_sub_titel, **form_cell_border, **{"bg_color": COLOR["black"], "font_color": COLOR["white"]}))
 
         werte_ws.write("I19", "Zustandsmonitor", format_state_titel)
         werte_ws.write("J19", None, format_state_subtitel__last)
@@ -378,12 +378,13 @@ class CharacterExportView(LoginRequiredMixin, VerifiedAccountMixin, DetailView):
 
         # HP
         format_border_top_left = wb.add_format({"top": 1, "left": 1})
-        format_hp_plus = wb.add_format(dict(form_align_center_center, **{"top": 1}))
+        format_hp_plus_titel = wb.add_format(dict(form_align_center_center, **{"top": 1}))
+        format_hp_plus = wb.add_format(dict(form_sub_titel, **{"top": 1}))
         format_hp = wb.add_format(dict(form_sub_titel, **form_cell_border, **{"bg_color": COLOR["green"], "font_size": 12}))
-        werte_ws.write("M36", "HP +", format_hp_plus)
-        werte_ws.write("N36", char.HPplus_fix if char.HPplus_fix is not None else char.HPplus, format_border_top)
+        werte_ws.write("M36", "HP +", format_hp_plus_titel)
+        werte_ws.write("N36", char.HPplus_fix if char.HPplus_fix is not None else char.HPplus, format_hp_plus)
         werte_ws.write("M37", "Rang HP", format_align_center_center)
-        werte_ws.write("N37", char.rang)
+        werte_ws.write("N37", char.rang, format_sub_titel)
         werte_ws.write("M38", "HP", format_section_titel)
         werte_ws.write("N38", "=N36+(N37/10)+(L25*2)+(N5*5)", format_hp)
         werte_ws.write("M39", "gHP", format_section_titel)
@@ -417,11 +418,15 @@ class CharacterExportView(LoginRequiredMixin, VerifiedAccountMixin, DetailView):
             werte_ws.write(row_num-1, 13, f'=L{row_num} + M{row_num}', format_attr_basis)
             werte_ws.write(row_num-1, 14, attr["max"], format_attr_max)
 
+            if "MA" in attr["titel"]:
+                werte_ws.write(row_num-1, 10, '=IF(P10 = 0,"MA","MG")', format_attr)
+                werte_ws.write(row_num-1, 13, f'=L{row_num} + M{row_num} - ROUND(IF(P10 = 0,10-L22,0))', format_attr_basis)
+
             # fg
             fg_row = split_position(POSITION[f'fg_{attr["titel"]}'])
             fg_alpha = fg_row["alpha"]
             fg_num = fg_row["num"]
-            werte_ws.merge_range(f"B{fg_num}:B{fg_num+2}", attr["titel"], format_fert_attr if fg_num%2 == 0 else format_fert_attr__odd)
+            werte_ws.merge_range(f"B{fg_num}:B{fg_num+2}", f"=K{row['num']}", format_fert_attr if fg_num%2 == 0 else format_fert_attr__odd)
             werte_ws.merge_range(f"C{fg_num}:C{fg_num+2}", f"={row['alpha']}{row['num']}", format_fert_ap)
             werte_ws.merge_range(f"{fg_alpha}{fg_num}:{fg_alpha}{fg_num+2}", attr["fg_total"], format_fg)
 
