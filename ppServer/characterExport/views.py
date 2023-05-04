@@ -2,13 +2,13 @@ import xlsxwriter, re
 from typing import Any
 
 from django.db.models.functions import Concat
-from django.db.models import F, Subquery, OuterRef, Q, Count, Sum, Value, Window, Func, Exists, CharField
+from django.db.models import F, Subquery, OuterRef, Q, Value, CharField,  prefetch_related_objects
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpRequest, HttpResponse
-from django.shortcuts import render
+from django.shortcuts import redirect
 from django.views.generic import DetailView
 
-from ppServer.mixins import VerifiedAccountMixin, SpielleiterOnlyMixin
+from ppServer.mixins import VerifiedAccountMixin
 from character.models import *
 
 
@@ -113,21 +113,33 @@ def split_position(position):
 
 
 # Create your views here.
-class CharacterExportView(LoginRequiredMixin, SpielleiterOnlyMixin, DetailView):
+class CharacterExportView(LoginRequiredMixin, VerifiedAccountMixin, DetailView):
     model = Charakter
 
-    def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
+
+    def get(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
+
+        # get char
         char = self.get_object()
+        prefetch_related_objects([char],
+            "eigentümer", "gfs__gfsstufenplan_set__basis", "relpersönlichkeit_set", "spezies",
+            "beruf", "religion", "relattribut_set", "relfertigkeit_set",
+            "affektivität_set", "releinbauten_set__item", "relausrüstung_technik_set__item",
+            "relschusswaffen_set__item", "relwaffen_werkzeuge_set__item", "relitem_set__item",
+            "relwesenkraft_set__wesenkraft", "reltalent_set__talent", "relrituale_runen_set__item", "relzauber_set__item"
+        )
+
+        # allowed to export?
+        if request.user.groups.filter(name__iexact="spieler") and char.eigentümer.name != request.user.username:
+            return redirect("character:index")
 
 
-
+        # prepare response & xlsx-workbook
         response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
         response['Content-Disposition'] = f"attachment; filename={char.name}.xlsx"
         wb = xlsxwriter.Workbook(response, {'in_memory': True, "default_format_properties": {
             "font_name": "Arial",
             "font_size": 10,
-            # "align": "center",
-            # ,
         }})
 
         # formats
@@ -447,39 +459,39 @@ class CharacterExportView(LoginRequiredMixin, SpielleiterOnlyMixin, DetailView):
                 werte_ws.write(f"A{45+i}", text)
         # Zauber, Rituale & Runen
         werte_ws.merge_range("A55:H55", "Zauber, Rituale und Runen", format_ramsch_titel)
-        for i, r in enumerate(char.relzauber_set.prefetch_related("item")[:8]):
+        for i, r in enumerate(char.relzauber_set.all()[:8]):
             werte_ws.write_row(f"A{56+i}", [r.item.name])
-        for i, r in enumerate(char.relrituale_runen_set.prefetch_related("item")[:8]):
+        for i, r in enumerate(char.relrituale_runen_set.all()[:8]):
             werte_ws.write_row(f"D{56+i}", [r.anz, r.item.name, f"Stufe {r.stufe}"])
         # Talente
         werte_ws.merge_range("A64:H64", "Talente", format_ramsch_titel)
-        for i, r in enumerate(char.reltalent_set.prefetch_related("talent")[:3]):
+        for i, r in enumerate(char.reltalent_set.all()[:3]):
             werte_ws.write_row(f"A{65+i}", [r.talent.titel])
         # Wesenkraft
         werte_ws.merge_range("A68:H68", "Wesenkräfte", format_ramsch_titel)
-        for i, r in enumerate(char.relwesenkraft_set.prefetch_related("wesenkraft")[:3]):
+        for i, r in enumerate(char.relwesenkraft_set.all()[:3]):
             werte_ws.write_row(f"A{69+i}", [r.wesenkraft.titel])
         # Items
         werte_ws.merge_range("A72:H72", "Items", format_ramsch_titel)
-        for i, r in enumerate(char.relitem_set.prefetch_related("item")[:10]):
+        for i, r in enumerate(char.relitem_set.all()[:10]):
             werte_ws.write_row(f"A{73+i}", [r.anz, r.item.name])
         # Waffen & Werkzeuge
         werte_ws.merge_range("A83:H83", "Waffen & Werkzeuge", format_ramsch_titel)
-        for i, r in enumerate(char.relwaffen_werkzeuge_set.prefetch_related("item")[:8]):
+        for i, r in enumerate(char.relwaffen_werkzeuge_set.all()[:8]):
             werte_ws.write_row(f"A{84+i}", [r.anz, r.item.name])
         # Schusswaffen
         werte_ws.merge_range("A92:H92", "Schusswaffen", format_ramsch_titel)
-        for i, r in enumerate(char.relschusswaffen_set.prefetch_related("item")[:8]):
+        for i, r in enumerate(char.relschusswaffen_set.all()[:8]):
             werte_ws.write_row(f"A{93+i}", [r.anz, r.item.name, f"BS {r.item.bs} ({r.item.erfolge} Erfolge)", f"ZS {r.item.zs}", f"Präzi {r.item.präzision}"])
         # Ausrüstung & Technik
         werte_ws.merge_range("A101:H101", "Ausrüstung und Technische Geräte", format_ramsch_titel)
-        for i, r in enumerate(char.relausrüstung_technik_set.prefetch_related("item")[:8]):
+        for i, r in enumerate(char.relausrüstung_technik_set.all()[:8]):
             werte_ws.write_row(f"A{102+i}", [r.anz, r.item.name])
         # TODO ?
         werte_ws.merge_range("A107:H107", "Holoboard & Zubehör", format_ramsch_titel)
         # Einbauten
         werte_ws.merge_range("A113:H113", "Cyber- und Bioware", format_ramsch_titel)
-        for i, r in enumerate(char.releinbauten_set.prefetch_related("item")[:8]):
+        for i, r in enumerate(char.releinbauten_set.all()[:8]):
             werte_ws.write_row(f"A{114+i}", [r.anz, r.item.name])
 
         # Affektivität
