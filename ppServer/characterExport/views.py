@@ -167,7 +167,7 @@ class CharacterExportView(LoginRequiredMixin, SpielleiterOnlyMixin, DetailView):
         werte_ws.write(0, 0, 'Charakter:', format_titel)
         werte_ws.merge_range("B1:D1", char.name)
         werte_ws.write(0, 4, "Spieler:", format_titel)
-        werte_ws.merge_range("F1:H1", char.eigentümer.get_real_name())
+        werte_ws.merge_range("F1:H1", char.eigentümer.get_real_name() if char.eigentümer else None)
         werte_ws.write("I1", "Konzentration (IST/Max.)", format_konz_titel)
         werte_ws.write_row(0, 9, [0, char.konzentration or 0], format_konz)
         werte_ws.merge_range("L1:O1", "Kostet 1 SP für +2 Konz.")
@@ -358,13 +358,13 @@ class CharacterExportView(LoginRequiredMixin, SpielleiterOnlyMixin, DetailView):
         # HP
         format_border_top_left = wb.add_format({"top": 1, "left": 1})
         werte_ws.write("M36", "HP +", format_border_top)
-        werte_ws.write("N36", 0, format_border_top)
+        werte_ws.write("N36", char.HPplus_fix if char.HPplus_fix is not None else char.HPplus, format_border_top)
         werte_ws.write("M37", "Rang HP")
-        werte_ws.write("N37", 0)
-        werte_ws.write("M38", "HP")
-        werte_ws.write("N38", "=N36+(N37/10)+(L25*2)+(N5*5)")
-        werte_ws.write("M39", "HP Geist")
-        werte_ws.write("N39", "=N9*5")
+        werte_ws.write("N37", char.rang)
+        werte_ws.write("M38", "HP", format_section_titel)
+        werte_ws.write("N38", "=N36+(N37/10)+(L25*2)+(N5*5)", format_konz)
+        werte_ws.write("M39", "HP Geist", format_section_titel)
+        werte_ws.write("N39", "=N9*5", format_konz)
         werte_ws.write_row("M40", [None, None], format_border_top)
         werte_ws.write(f"O36", None, format_border_top_left)
         for i in range(37, 40):
@@ -411,8 +411,8 @@ class CharacterExportView(LoginRequiredMixin, SpielleiterOnlyMixin, DetailView):
         format_fert_attr2 = wb.add_format(dict(form_align_center_center, **{"font_size": 12}))
         format_fert_pool = wb.add_format(dict(form_align_center_center, **form_bold, **{"font_size": 12, "bg_color": COLOR["grau 1"]}))
         
-        werte_ws.write_row("A2", ["Fertigkeit", "Attribut", "AP", "FP", "Bonus", "FG", "Würfelpool", "Limit"], format_fert_heading)
-        werte_ws.write_row("A33", ["Fertigkeit", "Attribute", "CP1", "CP2", "FP", "Bonus", "Würfelpool", "Limit"], format_fert_heading)
+        werte_ws.write_row("A2", ["Fertigkeit", "Attribut", "AP", "FP", "+", "FG", "Pool", "Limit"], format_fert_heading)
+        werte_ws.write_row("A33", ["Fertigkeit", "Attribute", "CP1", "CP2", "FP", "+", "Pool", "Limit"], format_fert_heading)
         werte_ws.write_row("A44", [None, None, None, None, None, None, None, None], format_border_top)
         for fert in char.relfertigkeit_set.values("fertigkeit__titel", "fertigkeit__limit", "fp", "fp_bonus", attr1=F("fertigkeit__attr1__titel"), attr2=F("fertigkeit__attr2__titel")):
             row= split_position(POSITION[fert["fertigkeit__titel"]])["num"]
@@ -503,70 +503,6 @@ class CharacterExportView(LoginRequiredMixin, SpielleiterOnlyMixin, DetailView):
 
 
 
-
-
-        # Spezial- & Wissensfertigkeiten
-        spF_wF_ws = wb.add_worksheet("Wissen & Spezi.")
-
-        format_wissen_attr = wb.add_format(dict(form_align_center_center, **{"font_size": 8}))
-        format_wissen_dice = wb.add_format(dict(form_sub_titel, **{"font_size": 12}))
-        format_wissen_wert = wb.add_format(dict(form_sub_titel, **{"font_size": 12, "bg_color": COLOR["grau 1"]}))
-        format_spezial_gesamt = wb.add_format(dict(form_sub_titel, **{"font_size": 12}))
-        format_spezial_korrektur = wb.add_format(dict(form_align_center_center, **form_italic, **{"font_size": 12, "bg_color": COLOR["grau 1"]}))
-        format_spezial_attr = wb.add_format(dict(form_align_center_center, **{"font_size": 12}))
-        
-        # Wissensfertigkeiten
-        spF_wF_ws.write_row(0, 0, ['Wissensfertigkeit', 'Attribute', 'Fertigkeit', '2. Würfel', 'Schwellwert'], format_section_titel)
-        wissen_qs = Wissensfertigkeit.objects.annotate(
-                        attr=Concat(F("attr1__titel"), Value(' + '), F("attr2__titel"), Value(' + '), F("attr3__titel"), output_field=CharField()),
-                        nd_dice=Subquery(RelWissensfertigkeit.objects.filter(wissensfertigkeit=OuterRef("id"), char=char)[:1].values("würfel2")),
-                    )\
-                    .values_list(
-                        "titel",
-                        "attr",
-                        "fertigkeit__titel",
-                        "nd_dice",
-                    )
-        for i, wissen in enumerate(wissen_qs):
-            wert = "-".join([POSITION[attr] for attr in wissen[1].split(" + ")])
-
-            spF_wF_ws.write(f"A{i+2}", wissen[0], format_align_center_center)
-            spF_wF_ws.write(f"B{i+2}", wissen[1], format_wissen_attr)
-            spF_wF_ws.write(f"C{i+2}", wissen[2], format_align_center_center)
-            spF_wF_ws.write(f"D{i+2}", wissen[3], format_wissen_dice)
-            spF_wF_ws.write(f"E{i+2}", f'=100-{wert}', format_wissen_wert)
-
-
-        # spezialfertigkeiten
-        spF_wF_ws.write_row(0, 6, ['Spezialfertigkeit', 'Attribute', 'Gesamt', 'Ausgleich', 'Korrektur', 'WP', 'W20 Probe'], format_section_titel)
-        spezial_qs = Spezialfertigkeit.objects.annotate(
-                        attr=Concat(F("attr1__titel"), Value(' + '), F("attr2__titel"), output_field=CharField()))
-
-        for i, spezial in enumerate(spezial_qs):
-            attr_wert = "+".join([POSITION[attr] for attr in spezial.attr.split(" + ")])
-            ausgleich = " + ".join([fert["titel"] for fert in spezial.ausgleich.values("titel")])
-            fert_wert = "+".join([POSITION[fert] for fert in ausgleich.split(" + ")])
-            wp_query = spezial.relspezialfertigkeit_set.filter(char=char).values("stufe")
-            wp = wp_query.first()["stufe"] -5 if wp_query.exists() else None
-
-            spF_wF_ws.write(f"G{i+2}", spezial.titel, format_align_center_center)
-            spF_wF_ws.write(f"H{i+2}", spezial.attr, format_spezial_attr)
-            spF_wF_ws.write(f"I{i+2}", f'={attr_wert}', format_spezial_gesamt)
-            spF_wF_ws.write(f"J{i+2}", ausgleich, format_spezial_attr)
-            spF_wF_ws.write(f"K{i+2}", f'=ROUND(({fert_wert})/2)', format_spezial_korrektur)
-            spF_wF_ws.write(f"L{i+2}", wp, format_spezial_attr)
-            spF_wF_ws.write(f"M{i+2}", f'=I{i+2} + L{i+2}', format_wissen_wert)
-
-        # highlight owned
-        format_spF_wF_blank = wb.add_format({"bg_color": COLOR["magenta"]})
-        format_spF_wF_nonblank = wb.add_format({"bg_color": COLOR["green"]})
-        spF_wF_ws.conditional_format(f'D2:D{wissen_qs.count()+1}', {'type': 'blanks', 'format': format_spF_wF_blank})
-        spF_wF_ws.conditional_format(f'D2:D{wissen_qs.count()+1}', {'type': 'no_blanks', 'format': format_spF_wF_nonblank})
-        spF_wF_ws.conditional_format(f'L2:L{spezial_qs.count()+1}', {'type': 'blanks', 'format': format_spF_wF_blank})
-        spF_wF_ws.conditional_format(f'L2:L{spezial_qs.count()+1}', {'type': 'no_blanks', 'format': format_spF_wF_nonblank})
-
-
-
         # Geld, HP, Mana
         geld_ws = wb.add_worksheet("Geld, HP, Mana")
 
@@ -647,6 +583,79 @@ class CharacterExportView(LoginRequiredMixin, SpielleiterOnlyMixin, DetailView):
 
 
 
+
+
+
+
+
+        # Spezial- & Wissensfertigkeiten
+        spF_wF_ws = wb.add_worksheet("Wissen & Spezi.")
+
+        format_wissen_attr = wb.add_format(dict(form_align_center_center, **{"font_size": 8}))
+        format_wissen_dice = wb.add_format(dict(form_sub_titel, **{"font_size": 12}))
+        format_wissen_wert = wb.add_format(dict(form_sub_titel, **{"font_size": 12, "bg_color": COLOR["grau 1"]}))
+        format_spezial_gesamt = wb.add_format(dict(form_sub_titel, **{"font_size": 12}))
+        format_spezial_korrektur = wb.add_format(dict(form_align_center_center, **form_italic, **{"font_size": 12, "bg_color": COLOR["grau 1"]}))
+        format_spezial_attr = wb.add_format(dict(form_align_center_center, **{"font_size": 12}))
+        
+        # Wissensfertigkeiten
+        spF_wF_ws.write_row(0, 0, ['Wissensfertigkeit', 'Attribute', 'Fertigkeit', '2. Würfel', 'Schwellwert'], format_section_titel)
+        wissen_qs = Wissensfertigkeit.objects.annotate(
+                        attr=Concat(F("attr1__titel"), Value(' + '), F("attr2__titel"), Value(' + '), F("attr3__titel"), output_field=CharField()),
+                        nd_dice=Subquery(RelWissensfertigkeit.objects.filter(wissensfertigkeit=OuterRef("id"), char=char)[:1].values("würfel2")),
+                    )\
+                    .values_list(
+                        "titel",
+                        "attr",
+                        "fertigkeit__titel",
+                        "nd_dice",
+                    )
+        for i, wissen in enumerate(wissen_qs):
+            wert = "-".join([POSITION[attr] for attr in wissen[1].split(" + ")])
+
+            spF_wF_ws.write(f"A{i+2}", wissen[0], format_align_center_center)
+            spF_wF_ws.write(f"B{i+2}", wissen[1], format_wissen_attr)
+            spF_wF_ws.write(f"C{i+2}", wissen[2], format_align_center_center)
+            spF_wF_ws.write(f"D{i+2}", wissen[3], format_wissen_dice)
+            spF_wF_ws.write(f"E{i+2}", f'=100-{wert}', format_wissen_wert)
+
+
+        # spezialfertigkeiten
+        spF_wF_ws.write_row(0, 6, ['Spezialfertigkeit', 'Attribute', 'Gesamt', 'Ausgleich', 'Korrektur', 'WP', 'W20 Probe'], format_section_titel)
+        spezial_qs = Spezialfertigkeit.objects.annotate(
+                        attr=Concat(F("attr1__titel"), Value(' + '), F("attr2__titel"), output_field=CharField()))
+
+        for i, spezial in enumerate(spezial_qs):
+            attr_wert = "+".join([POSITION[attr] for attr in spezial.attr.split(" + ")])
+            ausgleich = " + ".join([fert["titel"] for fert in spezial.ausgleich.values("titel")])
+            fert_wert = "+".join([POSITION[fert] for fert in ausgleich.split(" + ")])
+            wp_query = spezial.relspezialfertigkeit_set.filter(char=char).values("stufe")
+            wp = wp_query.first()["stufe"] -5 if wp_query.exists() else None
+
+            spF_wF_ws.write(f"G{i+2}", spezial.titel, format_align_center_center)
+            spF_wF_ws.write(f"H{i+2}", spezial.attr, format_spezial_attr)
+            spF_wF_ws.write(f"I{i+2}", f'={attr_wert}', format_spezial_gesamt)
+            spF_wF_ws.write(f"J{i+2}", ausgleich, format_spezial_attr)
+            spF_wF_ws.write(f"K{i+2}", f'=ROUND(({fert_wert})/2)', format_spezial_korrektur)
+            spF_wF_ws.write(f"L{i+2}", wp, format_spezial_attr)
+            spF_wF_ws.write(f"M{i+2}", f'=I{i+2} + L{i+2}', format_wissen_wert)
+
+        # highlight owned
+        format_spF_wF_blank = wb.add_format({"bg_color": COLOR["magenta"]})
+        format_spF_wF_nonblank = wb.add_format({"bg_color": COLOR["green"]})
+        spF_wF_ws.conditional_format(f'D2:D{wissen_qs.count()+1}', {'type': 'blanks', 'format': format_spF_wF_blank})
+        spF_wF_ws.conditional_format(f'D2:D{wissen_qs.count()+1}', {'type': 'no_blanks', 'format': format_spF_wF_nonblank})
+        spF_wF_ws.conditional_format(f'L2:L{spezial_qs.count()+1}', {'type': 'blanks', 'format': format_spF_wF_blank})
+        spF_wF_ws.conditional_format(f'L2:L{spezial_qs.count()+1}', {'type': 'no_blanks', 'format': format_spF_wF_nonblank})
+
+
+
+
+
+
+
+
+
         # set Width of columns
         for ws in wb.worksheets(): ws.autofit()
         werte_ws.set_column("C:H", 6)
@@ -666,7 +675,31 @@ class CharacterExportView(LoginRequiredMixin, SpielleiterOnlyMixin, DetailView):
         geld_ws.set_column("F:F", 35)
         geld_ws.set_column("G:G", 10)
         geld_ws.set_column("H:H", 15)
-        geld_ws.set_column("J:J", 15) 
+        geld_ws.set_column("J:J", 15)
+
+
+
+        chart = wb.add_chart({'type': 'radar', 'subtype': 'filled'})
+        chart.set_legend({'none': True})
+        chart.add_series({
+            'categories': '=Werte!$K$3:$K$12',
+            'values':     '=Werte!$O$3:$O$12',
+            'border': {'color': 'black'},
+            'fill':       {
+                'color': COLOR["diagram-red"],
+                'transparency': 15,
+            },
+        })
+        chart.add_series({
+            'categories': '=Werte!$K$3:$K$12',
+            'values':     '=Werte!$N$3:$N$12',
+            'border': {'color': 'black'},
+            'fill':       {
+                'color': COLOR["diagram-blue"],
+                'transparency': 15,
+            },
+        })
+        werte_ws.insert_chart('S1', chart)
         
         # construct response
         wb.close()
