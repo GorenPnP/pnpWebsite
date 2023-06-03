@@ -1,0 +1,16 @@
+{% extends 'base/headed_main.html' %}
+
+{% block main %}
+        <ul class="list-group">
+    
+            {% for o in object_list|slice:":50" %}
+                <li class="mb-5 text-bg-light p-3 rounded">
+                        {{ o.text_rendered|safe }}
+                        <footer class="blockquote-footer mt-3">{{ o.timestamp }}</footer>
+                
+                </li>
+            {% empty %}
+            <p>Keine Updates vorhanden.</p>
+            {% endfor %}
+        </ul>
+{% endblock %}

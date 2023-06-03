@@ -135,6 +135,25 @@
 
 <section class="cards">
 
+    <!-- changelog -->
+    <div class="card" id="wiki">
+        <a href="{% url 'changelog:index' %}">
+            <div class="card__icon bg-info">
+                <img class="card__icon__img" style="filter: none" src="{% static 'res/img/icon-logs.png' %}" alt="logs">
+            </div>
+        </a>
+        <div class="card__container text-white bg-dark">
+            <h2 class="card__heading">Updates</h2>
+            <p class="card__text">
+                {% if latest_update %}<p><b>Letztes Update: <i>{{ latest_update.timestamp }}</i></b></p>{% endif %}
+                Neuste Änderungen auf dieser Website knackig zusammengefasst.
+            </p>
+            <div class="btns">
+                <a href="{% url 'changelog:index' %}" class="btn btn-info">Angucken</a>
+            </div>
+        </div>
+    </div>
+
     <!-- wiki -->
     <div class="card" id="wiki">
         <a href="{% url 'wiki:index' %}">

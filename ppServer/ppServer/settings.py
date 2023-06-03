@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'auth_custom',
     'base',
     'cards',
+    'changelog',
     'character',
     'characterExport',
     'chat',

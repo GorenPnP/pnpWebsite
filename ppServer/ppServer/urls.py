@@ -30,6 +30,7 @@ urlpatterns = [
     path('accounts/', include('auth_custom.urls')),
 
     path('cards/', include('cards.urls')),
+    path('changelog/', include('changelog.urls')),
     path('character/export/', include('characterExport.urls')),
     path('character/', include('character.urls')),
     path('chat/', include('chat.urls')),

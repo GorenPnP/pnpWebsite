@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.shortcuts import render, get_object_or_404, reverse
 
+from changelog.models import Changelog
 from shop.models import Ausrüstung_Technik, Einbauten, Fahrzeug, Item, Magazin, Magische_Ausrüstung, Pfeil_Bolzen,\
                         Rituale_Runen, Rüstungen, Schusswaffen, Waffen_Werkzeuge, Zauber
 from character.models import Spieler
@@ -43,8 +44,11 @@ def index(request):
 
     if request.method == "GET":
         spieler = get_object_or_404(Spieler, name=request.user.username)
-        context = {"spielleiter": User.objects.filter(username=spieler.name, groups__name='spielleiter').exists(),
-                   "topic": "Goren PnP"}
+        context = {
+            "spielleiter": User.objects.filter(username=spieler.name, groups__name='spielleiter').exists(),
+            "topic": "Goren PnP",
+            "latest_update": Changelog.objects.first()
+        }
 
 
         if context["spielleiter"]:
