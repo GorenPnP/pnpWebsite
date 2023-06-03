@@ -1,11 +1,7 @@
 {% extends 'base/headed_main.html' %}
 {% load static %}
 {% block extra-head %}
-<link rel="stylesheet" href="{% static 'base/css/checkbox.css' %}">
 <link rel="stylesheet" href="{% static 'auth/css/centered_form.css' %}">
-<script src="{% static 'res/js/axios.min.js' %}" type='text/javascript'></script>
-<script src="{% static 'base/js/ajax.js' %}"></script>
-<script src="{% static 'create/js/gfs.js' %}"></script>
 
 <style>
     .main-container { background-image: none; }
@@ -21,21 +17,23 @@
 {% endblock %}
 
 {% block main %}
-<div class="text-container">
+<form method="post" class="text-container">
+    {% csrf_token %}
+
     <h2>neuen Charakter erstellen</h2>
-    <select name="gfs" autofocus>
+    <select name="gfs_id" autofocus>
         {% for g in gfs %}
             <option value="{{ g.id }}" id="option{{ forloop.counter0 }}">{{ g.titel }} (AP: {{ g.ap }})</option>
         {% endfor %}
     </select>
 
     <div class="d-flex" style="gap: 1.7em; align-items: center;">
-        <span class="checkbox" onclick="this.classList.toggle('checked')"></span>
-        <span onclick="this.parentNode.querySelector('.checkbox').classList.toggle('checked')">Im LARP</span>
+        <input type="checkbox" name="larp" id="larp">
+        <label for="larp">Im LARP</label>
     </div>
 
-    <button class="btn btn-lg btn-primary" onclick="submit()">Weiter</button>
-</div>
+    <button type="submit" class="btn btn-lg btn-primary">Weiter</button>
+</form>
 
 <div class="text-container">
     <h2>was Anderes</h2>

@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'auth_custom',
     'base',
     'cards',
+    'campaign',
     'changelog',
     'character',
     'characterExport',
@@ -87,7 +88,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 
     # own middleware
-    "logRequest.middleware.RequestMiddleware"
+    "logRequest.middleware.RequestMiddleware",
 ]
 
 ROOT_URLCONF = 'ppServer.urls'

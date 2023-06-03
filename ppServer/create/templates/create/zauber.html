@@ -1,4 +1,4 @@
-{% extends 'base/dynamic-table.html' %}
+{% extends 'base/headed_main.html' %}
 {% load static %}
 {% block extra-head %}
 <style>
@@ -14,17 +14,130 @@
         height: 30px;
         aspect-ratio: 1;
     }
+
+
+    body { overflow-x: hidden; }
+    aside {
+        z-index: 10000;
+        position: sticky;
+        top: 0;
+        right: 0;
+        height: 0;
+
+        overflow-x: visible;
+    }
+    .offcanvas { bottom: unset; }
+    .offcanvas.offcanvas-end, .btn-info {
+        /* --pink-rgb: 214, 51, 132; */
+        --pink-rgb: 132, 31, 82;
+        --bs-btn-focus-shadow-rgb: var(--pink-rgb);
+        background-color: RGBA(var(--pink-rgb), var(--bs-bg-opacity,1)) !important;
+        color: white;
+        --bs-btn-hover-color: white;
+        --bs-btn-active-color: white;
+        border: 0;
+
+        position: absolute;
+        
+        top: 10px;
+        right: 10px;
+        margin-left: auto;
+        width: fit-content;
+    }
+
+    .card {
+        width: fit-content;
+        min-width: min(100%, 300px);
+    }
+    .tier {
+        width: 18px;
+        aspect-ratio: 1;
+        border: 1px solid white;
+        margin: 2px;
+    }
+    .tier-filled { background-color: var(--bs-success); }
+    .tier-blocked { background-color: #ccc; }
 </style>
 
 <script type="text/javascript" src="{% static 'create/js/zauber.js' %}"></script>
 {% endblock %}
 
-{% block before_table %}
-    <span><b id="zauber_pool">{{ new_char.zauber }}</b> Zauber</span>
-    <p class="fs-3">Nur ab Stufe 0 wählbar, außer ein entsprechender Vorteil besagt anderes.</p>
+{% block asides %}{{ block.super }}
+
+<!-- Resources -->
+<aside>
+
+    <div class="offcanvas offcanvas-end show text-bg-dark" tabindex="-1" id="characterResources" aria-labelledby="offcanvasExampleLabel" data-bs-scroll="true" data-bs-backdrop="false">
+        <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="offcanvasExampleLabel">Ressoucen</h5>
+            <button type="button" class="btn-close btn-close-white text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body">
+            <a class="text-light mb-3 d-block" href="{% url 'shop:zauber' %}" target="_blank">alle Zauber</a>
+
+            <div class="fw-bold">Zauberslots</div>
+            <ul aria-label="Zauberslots">
+                {% for stufe, amount in char.zauberplätze.items %}
+                <li><b>{{amount}} Stufe {{stufe}}</b> Zauber</li>
+                {% endfor %}
+            </ul>
+
+            <div class="fw-bold">was Anderes</div>
+            <ul aria-label="was Anderes">
+                <li>{{char.sp}} SP</li>
+                <li>{{char.ap}} AP / {{MA_aktuell}} MA</li>
+                <li>{{char.geld}} Drachmen</li>
+            </ul>
+    
+            <div class="mt-3">
+                <label for="payment-method" class="fw-bold mb-1">Bezahle Tier mit</label>
+                <select id="payment-method" class="form-select">
+                    <option value="slot">Zauberslots</option>
+                    <option value="sp">SP</option>
+                    <option value="ap">AP / MA-Attribut</option>
+                </select>
+            </div>
+        </div>
+    </div>
+    
+    <button class="btn btn-info" type="button" data-bs-toggle="offcanvas" data-bs-target="#characterResources" aria-controls="offcanvasScrolling">
+        <svg xmlns="http://www.w3.org/2000/svg" width="1.5em" height="1.5em" fill="currentColor" class="bi bi-question-circle" viewBox="0 0 16 16">
+            <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+            <path d="M5.255 5.786a.237.237 0 0 0 .241.247h.825c.138 0 .248-.113.266-.25.09-.656.54-1.134 1.342-1.134.686 0 1.314.343 1.314 1.168 0 .635-.374.927-.965 1.371-.673.489-1.206 1.06-1.168 1.987l.003.217a.25.25 0 0 0 .25.246h.811a.25.25 0 0 0 .25-.25v-.105c0-.718.273-.927 1.01-1.486.609-.463 1.244-.977 1.244-2.056 0-1.511-1.276-2.241-2.673-2.241-1.267 0-2.655.59-2.75 2.286zm1.557 5.763c0 .533.425.927 1.01.927.609 0 1.028-.394 1.028-.927 0-.552-.42-.94-1.029-.94-.584 0-1.009.388-1.009.94z"/>
+        </svg>
+    </button>
+</aside>
 {% endblock %}
 
-{% block after_table %}
+{% block main %}
+
+<h2>Deine bisherigen Zauber</h2>
+{% for rel in existing_zauber %}
+    {% include 'create/_zauber_card.html' with rel=rel max_tier_allowed=max_tier_allowed %}
+{% endfor %}
+
+<h2>Deine neuen Zauber</h2>
+{% for rel in new_zauber %}
+    {% include 'create/_zauber_card.html' with rel=rel max_tier_allowed=max_tier_allowed %}
+{% endfor %}
+
+
+{% if free_slots > 0 %}
+<div class="btn-group">
+    <button type="button" class="btn btn-lg btn-primary">Neuen Zauber lernen</button>
+    <button type="button" class="btn btn-lg btn-primary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false">
+      <span class="visually-hidden">Toggle Dropdown</span>
+    </button>
+    <ul class="dropdown-menu">
+        <li><button class="dropdown-item active" type="button">---</a></li>
+        {% for z in zauber %}
+        <li><button class="dropdown-item" type="button" value="{{ z.id }}">{{ z.name }}</button></li>
+        {% endfor %}
+    </ul>
+</div>
+{% endif %}
+
+    
 <form id="form" method="post" class="d-flex justify-content-center">
     {% csrf_token %}
     <button type="submit" class="btn btn-lg btn-primary m-2" disabled>Speichern</button>

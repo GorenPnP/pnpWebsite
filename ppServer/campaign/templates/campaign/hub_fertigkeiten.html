@@ -1,20 +1,19 @@
 {% extends 'base/dynamic-tables.html' %}
 {% load static %}
 {% block extra-head %}{{ block.super }}
-<script src="{% static 'create/js/vor_nachteil.js' %}" type="text/javascript"></script>
+<script src="{% static 'create/js/fert.js' %}" type="text/javascript"></script>
 
-<link rel="stylesheet" href="{% static 'create/css/highlighted_rows.css' %}">
 <style>
     table {
-        max-width: 900px;
+        max-width: 700px;
         margin-inline: auto;
     }
-    .notizen-input { min-width: 20vw !important; }
 </style>
 {% endblock %}
 
 {% block before_table %}
-    <p><span id="ip_pool">{{ view.char.ip }}</span> IP</p>
+    <p>FP übrig: <b id="fp_pool">{{ new_char.fp }}</b></p>
+    <p>FG übrig: <b id="fg_pool">{{ new_char.fg }}</b></p>
 {% endblock %}
 
 {% block after_table %}
@@ -22,6 +21,6 @@
     {% csrf_token %}
 
     <button type="submit" class="btn btn-lg btn-primary m-2" disabled>Speichern</button>
-    <a class="btn btn-lg btn-outline-primary m-2" href="{% url 'create:landing_page' %}">Zurück</a>
+    <a class="btn btn-lg btn-outline-primary m-2" href="{% url 'campaign:hub' object.id %}">Zurück</a>
 </form>
 {% endblock %}

@@ -1,0 +1,25 @@
+{% extends 'base/headed_main.html' %}
+{% load static %}
+{% block extra-head %}{{ block.super }}
+<link rel="stylesheet" href="{% static 'campaign/css/teil.css' %}">
+<script src="{% static 'campaign/js/_teil.js' %}" defer></script>
+{% endblock %}
+
+{% block main %}
+<p><span id="ip_pool">{{ object.ip }}</span> IP</p>
+
+<form method="post">
+    {% csrf_token %}
+
+    <div class="accordion">
+    {% for teil in object_list %}
+        {% include 'campaign/_teil.html' with teil=teil %}
+    {% endfor %}
+    </div>
+    
+    <div class="d-flex justify-content-center">
+        <button type="submit" class="btn btn-lg btn-primary m-2">Speichern</button>
+        <a class="btn btn-lg btn-outline-primary m-2" href="{% url 'campaign:hub' object.id %}">Zurück</a>
+    </div>
+</form>
+{% endblock %}

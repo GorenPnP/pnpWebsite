@@ -1,0 +1,91 @@
+{% extends 'base/headed_main.html' %}
+{% load static %}
+
+{% block extra-head %}
+<link rel="stylesheet" href="{% static 'base/css/checkbox.css' %}">
+{% endblock %}
+
+{% block main %}
+    <p><b>{{ char.ep }} EP</b></p>
+
+    <p class="h4">Du erhälst:</p>
+    <ul>
+        {% for stufe in stufenbelohnung %}
+            <li>{{ stufe|safe }}</li>
+        {% endfor %}
+    </ul>
+
+
+
+    
+    <div class="container-fluid" style="max-width: 600px; margin: 3em auto 0">
+        <table id="hub-table" class="table table-dark table-striped table-hover">
+            <thead>
+                <tr>
+                    <th>Erledigt?</th>
+                    <th>Links</th>
+                    <th>Werte</th>
+                </tr>
+            </thead>
+            
+            <tbody>
+
+                <!-- AP -->
+                <tr>
+                    <td>
+                        <a href="{% url 'campaign:hub_attribute' char.id %}">
+                            <div class="checkbox {% if char.ap <= 1 %}checked{% endif %}"{% if char.ap == 1 %} style="--checkbox-mark-color: #888888"{% endif %}></div>
+                        </a>
+                    </td>
+                    <td><a href="{% url 'campaign:hub_attribute' char.id %}" class="text-light">Attribute</a></td>
+                    <td>
+                        <div class='badge rounded-pill' style='background-color: var(--bs-pink)'>{{ char.ap }} AP</div>    
+                    </td>
+                </tr>
+
+                <!-- FP/FG -->
+                <tr>
+                    <td>
+                        <a href="{% url 'campaign:hub_fertigkeiten' char.id %}">
+                            <div class="checkbox {% if char.fp == 0 and char.fg == 0 %}checked{% endif %}"></div>
+                        </a>
+                    </td>
+                    <td><a href="{% url 'campaign:hub_fertigkeiten' char.id %}" class="text-light">Fertigkeiten</a></td>
+                    <td class="d-flex flex-column align-items-start">
+                        <div class='badge rounded-pill my-1' style='background-color: var(--bs-indigo)'>{{ char.fp }} FP</div>
+                        <div class='badge rounded-pill my-1' style='background-color: var(--bs-blue)'>{{ char.fg }} FG</div>
+                    </td>
+                </tr>
+
+                {% if vorteile.count %}
+                <tr>
+                    <td>
+                        <a href="{% url 'campaign:hub_vorteile' char.id %}">
+                            <div class="checkbox {% if char.fp == 0 and char.fg == 0 %}checked{% endif %}"></div>
+                        </a>
+                    </td>
+                    <td><a href="{% url 'campaign:hub_vorteile' char.id %}" class="text-light">Rückfragen für Vorteile</a></td>
+                    <td>
+                        {% for relteil in vorteile %}
+                            {{ relteil.teil.titel }}{% if not forloop.last %}, {% endif %}
+                        {% endfor %}
+                    </td>
+                </tr>
+                {% endif %}
+            </tbody>
+        </table>
+
+        <form method="get">
+            <button type="submit" class="btn btn-lg btn-primary" {% if char.ap > 1 or char.fp != 0 or char.fg != 0 %}disabled{% endif %}>Weiter</button>
+        </form>
+    </div>
+
+
+    <aside class="mt-3">
+        <p class="h4">Nützliches:</p>
+        <ul>
+            <li>1 AP kannst du sparen</li>
+            <li>Du kannst alle TP sparen</li>
+        </ul>
+    </aside>
+{% endblock %}

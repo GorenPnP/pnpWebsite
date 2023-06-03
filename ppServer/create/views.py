@@ -1,4 +1,5 @@
 import json, re
+from math import floor
 
 from django.db.models import F, Subquery, OuterRef, Q, Count, Sum, Value, Window, Func, Exists
 from django.contrib import messages
@@ -22,7 +23,7 @@ from character.models import *
 from shop.models import Zauber
 
 from .decorators import *
-from .forms import EndForm
+from .forms import PersonalForm
 from .models import *
 
 class GfsWahlfilterView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTableView):
@@ -40,50 +41,44 @@ class GfsWahlfilterView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTableVi
 
 class LandingPageView(LoginRequiredMixin, VerifiedAccountMixin, TemplateView):
 
-    @method_decorator(cp_done)
-    @method_decorator(provide_new_char)
+    @method_decorator(provide_char)
     @method_decorator(gfs_done)
     @method_decorator(prio_done)
-    def get(self, request: HttpRequest, new_char: NewCharakter) -> HttpResponse:
+    def get(self, request: HttpRequest, char: Charakter) -> HttpResponse:
 
         # rows
         rows = []
-        rows.append({"done": is_ap_done(request, new_char=new_char), "link": reverse("create:ap"), "text": "<b>Attribute</b> verteilen", "werte": "{} AP".format(new_char.ap), "id": "attr"})
-        rows.append({"done": is_ferts_done(request, new_char=new_char), "link": reverse("create:fert"), "text": "<b>Fertigkeiten</b> verteilen",
-                     "werte": "{} FP<br>{} FG".format(new_char.fp, new_char.fg), "id": "fert"})
+        rows.append({"done": is_personal_done(request, char=char), "link": reverse("create:personal"), "text": "<b>Persönliches</b> festlegen", "werte": "-", "id": "personal"})
+        rows.append({"done": is_ap_done(request, char=char), "link": reverse("create:ap"), "text": "<b>Attribute</b> verteilen", "werte": "{} AP".format(char.ap), "id": "attr"})
+        rows.append({"done": is_ferts_done(request, char=char), "link": reverse("create:fert"), "text": "<b>Fertigkeiten</b> verteilen",
+                     "werte": "{} FP<br>{} FG".format(char.fp, char.fg), "id": "fert"})
 
-        if not new_char.larp:
-            rows.append({"done": is_zauber_done(request, new_char=new_char), "link": reverse("create:zauber"), "text": "<b>Zauber</b> aussuchen", "werte": "{} offen".format(new_char.zauber)})
-            rows.append({"done": is_spF_wF_done(request, new_char=new_char), "link": reverse("create:spF_wF"), "text": "<b>Spezial- und Wissensfertigkeiten</b> wählen", "werte": "{} offen<br>{} WP".format(new_char.spF_wF, new_char.wp)})
-        rows.append({"done": is_teil_done(request, new_char=new_char), "link": reverse("create:vor_nachteil"), "text": "<b>Vor- und Nachteile</b> nehmen", "werte": "{} IP".format(new_char.ip)})
+        if not char.larp:
+            rel_ma = RelAttribut.objects.get(char=char, attribut__titel='MA')
+            MA_aktuell = rel_ma.aktuellerWert + rel_ma.aktuellerWert_temp
+            zauber_werte = "<ul>" +\
+                "".join([f"<li><b>{amount} Stufe {stufe}</b> Zauber</li>" for stufe, amount in char.zauberplätze.items()]) +\
+                f"<li>{char.sp} SP</li>" +\
+                f"<li>{char.ap} AP / {MA_aktuell} MA</li>" +\
+            "</ul>"
+
+            rows.append({"done": is_zauber_done(request, char=char), "link": reverse("create:zauber"), "text": "<b>Zauber</b> aussuchen", "werte": zauber_werte})
+            rows.append({"done": is_spF_wF_done(request, char=char), "link": reverse("create:spF_wF"), "text": "<b>Spezial- und Wissensfertigkeiten</b> wählen", "werte": "{} offen<br>{} WP".format(char.spF_wF, char.wp)})
+        rows.append({"done": is_teil_done(request, char=char), "link": reverse("create:vor_nachteil"), "text": "<b>Vor- und Nachteile</b> nehmen", "werte": "{} IP".format(char.ip)})
 
         # submit-btn disabled state
         done_completely =\
-            is_ap_done(request, new_char=new_char) and\
-            is_ferts_done(request, new_char=new_char) and\
-            is_zauber_done(request, new_char=new_char) and\
-            is_spF_wF_done(request, new_char=new_char) and\
-            is_teil_done(request, new_char=new_char) and\
-            NewCharakterPersönlichkeit.objects.filter(char=new_char).exists()
+            is_personal_done(request, char=char) and\
+            is_ap_done(request, char=char) and\
+            is_ferts_done(request, char=char) and\
+            is_zauber_done(request, char=char) and\
+            is_spF_wF_done(request, char=char) and\
+            is_teil_done(request, char=char)
 
-        # persönlichkeiten
-        rel_pers = Persönlichkeit.objects.filter(id__in=Subquery(
-            NewCharakterPersönlichkeit.objects
-                .prefetch_related("char", "persönlichkeit")
-                .filter(char=new_char)
-                .values("persönlichkeit__id")
-            ))
-        persönlichkeit_row = {
-                "done": rel_pers.exists(),
-                "link": reverse("wiki:persönlichkeiten"),
-                "werte": Persönlichkeit.objects.annotate(
-                    selected=Count("id", distinct=True, filter=Q(id__in=rel_pers)
-                ))
-            }
 
         # infos
         infos = [
-            "<strong>Deine Gfs/Klasse</strong> kannst du dir <a href='{}' target='_blank'>hier</a> nochmal angucken.".format(reverse("wiki:stufenplan", args=[new_char.gfs.id])),
+            "<strong>Deine Gfs/Klasse</strong> kannst du dir <a href='{}' target='_blank'>hier</a> nochmal angucken.".format(reverse("wiki:stufenplan", args=[char.gfs.id])),
             "Aussehen und v.A. rollenspielwichtige Aspekte wie Religion, Beruf werden später festgelegt.",
             "Im <strong>Shop</strong> kann später eingekauft werden, für Neugierige geht's zum Stöbern <a href='{}' target='_blank'>hier</a> entlang.".format(reverse("shop:index")),
         ]
@@ -93,31 +88,33 @@ class LandingPageView(LoginRequiredMixin, VerifiedAccountMixin, TemplateView):
             "topic": "Erstellungshub",
             "rows": rows,
             "done": done_completely,
-            "persönlichkeit_row": persönlichkeit_row,
             "infos": infos,
             "app_index": "Erstellung",
             "app_index_url": reverse("create:gfs"),
         }
         return render(request, "create/landing_page.html", context=context)
 
-    @method_decorator(provide_new_char)
-    def post(self, request: HttpRequest, new_char: NewCharakter) -> HttpResponse:
 
-        try:
-            p_ids = [int(p_id) for p_id in json.loads(request.body.decode("utf-8"))['p_ids']]
-        except:
-            return JsonResponse({"message": "Keine Persönlichkeit angekommen"}, status=418)
+    @method_decorator(provide_char)
+    @method_decorator(gfs_done)
+    @method_decorator(prio_done)
+    def post(self, request: HttpRequest, char: Charakter) -> HttpResponse:
 
-        toggle_check = NewCharakterPersönlichkeit.objects.filter(char=new_char).count() == 0     # if persönlichkeit chosen, tick that box!
+        rels = []
+        for rel in RelAttribut.objects.filter(char=char):
+            rel.aktuellerWert += rel.aktuellerWert_temp
+            rel.aktuellerWert_temp = 0
 
+            rel.maxWert += rel.maxWert_temp
+            rel.maxWert_temp = 0
 
-        # persönlichkeit hinzufügen
-        NewCharakterPersönlichkeit.objects.filter(char=new_char).delete()
-        for persönlichkeit in Persönlichkeit.objects.filter(id__in=p_ids):
-            NewCharakterPersönlichkeit.objects.create(char=new_char, persönlichkeit=persönlichkeit)
+            rels.append(rel)
+        RelAttribut.objects.bulk_update(rels, fields=["aktuellerWert", "aktuellerWert_temp", "maxWert", "maxWert_temp"])
 
-        # done
-        return JsonResponse({"toggle_check": toggle_check})
+        char.in_erstellung = False
+        char.save(update_fields=["in_erstellung"])
+
+        return redirect("character:show", args=[char.id])
 
 
 class GfsFormView(LoginRequiredMixin, VerifiedAccountMixin, TemplateView):
@@ -126,8 +123,8 @@ class GfsFormView(LoginRequiredMixin, VerifiedAccountMixin, TemplateView):
 
         username = request.user.username
         old_scetches = Gfs.objects\
-            .prefetch_related("newcharakter_set__eigentümer", "charakter_set__eigentümer")\
-            .filter(Q(newcharakter__eigentümer__name=username) | Q(charakter__eigentümer__name=username, charakter__in_erstellung=True))\
+            .prefetch_related("charakter_set__eigentümer")\
+            .filter(charakter__eigentümer__name=username, charakter__in_erstellung=True)
 
         context = {
             "gfs": Gfs.objects.all(),
@@ -141,8 +138,8 @@ class GfsFormView(LoginRequiredMixin, VerifiedAccountMixin, TemplateView):
 
     def post(self, request: HttpRequest) -> HttpResponse:
         try:
-            gfs_id = json.loads(request.body.decode("utf-8"))["gfs_id"]
-            larp = json.loads(request.body.decode("utf-8"))["larp"]
+            gfs_id = int(request.POST["gfs_id"])
+            larp = "larp" in request.POST
         except:
             return JsonResponse({"message": "Keine Gfs angekommen"}, status=418)
 
@@ -152,24 +149,77 @@ class GfsFormView(LoginRequiredMixin, VerifiedAccountMixin, TemplateView):
         # alle Charaktere in_erstellung löschen
         Charakter.objects.filter(eigentümer=spieler, in_erstellung=True).delete()
 
-        # jeder nur ein NewCharakter zurzeit
-        NewCharakter.objects.filter(eigentümer=spieler).delete()
-
-        new_char = NewCharakter.objects.create(eigentümer=spieler, gfs=gfs, larp=larp)
+        # create new character
+        char = Charakter.objects.create(eigentümer=spieler, gfs=gfs, larp=larp, in_erstellung=True)
 
         # set default vals
         if larp:
-            new_char.ap = 100
-            new_char.fp = 20
-            new_char.fg = 2
-            new_char.geld = 5000
-            new_char.sp = 0
-            new_char.ip = 0
-            new_char.zauber = 0
-            new_char.save(update_fields=["ap", "fp", "fg", "geld", "sp", "ip", "zauber"])
+            char.ap = 100
+            char.fp = 20
+            char.fg = 2
+            char.geld = 5000
+            char.sp = 0
+            char.ip = 0
+            char.zauberplätze = {}
+            char.beruf = get_object_or_404(Beruf, titel="Schüler")
+            char.save(update_fields=["ap", "fp", "fg", "geld", "sp", "ip", "zauberplätze", "beruf"])
 
+        else:
+            # some fields
+            char.manifest = char.gfs.startmanifest
+            char.wesenschaden_waff_kampf = char.gfs.wesenschaden_waff_kampf
+            char.wesenschaden_andere_gestalt = char.gfs.wesenschaden_andere_gestalt
+            char.save(update_fields=["manifest", "wesenschaden_waff_kampf", "wesenschaden_andere_gestalt"])
 
-        return JsonResponse({"url": reverse("create:prio")})
+            # Attributes
+            objects = []
+            for e in RelAttribut.objects.filter(char=char):
+                gfs_attr = GfsAttribut.objects.get(gfs=char.gfs, attribut=e.attribut)
+
+                e.aktuellerWert = gfs_attr.aktuellerWert
+                e.maxWert = gfs_attr.maxWert
+                objects.append(e)
+            RelAttribut.objects.bulk_update(objects, fields=["aktuellerWert", "maxWert"])
+            
+            # Fertigkeiten
+            objects = []
+            for gfs_fert in GfsFertigkeit.objects.filter(gfs=char.gfs, fp__gt=0):
+                e = RelFertigkeit.objects.get(char=char, fertigkeit=gfs_fert.fertigkeit)
+                e.fp_bonus = gfs_fert.fp
+                objects.append(e)
+            RelFertigkeit.objects.bulk_update(objects, fields=["fp_bonus"])
+
+            # Wesenkräfte
+            for gfs_wesenkr in GfsWesenkraft.objects.filter(gfs=char.gfs):
+                RelWesenkraft.objects.create(char=char, wesenkraft=gfs_wesenkr.wesenkraft)
+
+            # Vorteile
+            for gfs_teil in GfsVorteil.objects.filter(gfs=char.gfs):
+                RelVorteil.objects.create(
+                    char=char, teil=gfs_teil.teil,
+                    notizen=gfs_teil.notizen,
+
+                    # special fields
+                    attribut=gfs_teil.attribut,
+                    fertigkeit=gfs_teil.fertigkeit,
+                    engelsroboter=gfs_teil.engelsroboter,
+                    ip=gfs_teil.ip
+                )
+
+            # Nachteile
+            for gfs_teil in GfsNachteil.objects.filter(gfs=char.gfs):
+                RelNachteil.objects.create(
+                    char=char, teil=gfs_teil.teil,
+                    notizen=gfs_teil.notizen,
+
+                    # special fields
+                    attribut=gfs_teil.attribut,
+                    fertigkeit=gfs_teil.fertigkeit,
+                    engelsroboter=gfs_teil.engelsroboter,
+                    ip=gfs_teil.ip
+                )
+
+        return redirect("create:prio")
 
 
 class PriotableFormView(LoginRequiredMixin, VerifiedAccountMixin, TemplateView):
@@ -181,18 +231,14 @@ class PriotableFormView(LoginRequiredMixin, VerifiedAccountMixin, TemplateView):
         return Priotable.objects.all().values_list("priority", "ip", "ap", "sp", "konzentration", "fp", "fg", "zauber", "drachmen", "spF_wF")
 
 
-    @method_decorator(cp_done)
-    @method_decorator(provide_new_char)
+    @method_decorator(provide_char)
     @method_decorator(gfs_done)
     @method_decorator(prio_not_done)
-    def get(self, request: HttpRequest, new_char: NewCharakter) -> HttpResponse:
+    def get(self, request: HttpRequest, char: Charakter) -> HttpResponse:
         entries = self.get_entries()
-        
-        # get ap cost for gfs
-        ap_cost = new_char.gfs.ap
 
         # # get MA maximum
-        # max_MA = max_MA = GfsAttribut.objects.get(gfs=new_char.gfs, attribut__titel="MA").maxWert
+        # max_MA = max_MA = GfsAttribut.objects.get(gfs=char.gfs, attribut__titel="MA").maxWert
 
         # # mundan => keine Zauber wählbar (nur 0 Zauber in prio F)
         # if max_MA == 0:
@@ -212,23 +258,22 @@ class PriotableFormView(LoginRequiredMixin, VerifiedAccountMixin, TemplateView):
             "topic": "Prioritätentabelle",
             'table': entries,
             'notizen': notes,
-            "ap_cost": ap_cost,
-            "gfs": new_char.gfs,
+            "ap_cost": char.gfs.ap,
+            "gfs": char.gfs,
             "app_index": "Erstellung",
-            "app_index_url": reverse("create:gfs"),
+            "app_index_url": reverse("create:prio"),
         }
         return render(request, "create/prio.html", context)
 
-    @method_decorator(cp_done)
-    @method_decorator(provide_new_char)
+    @method_decorator(provide_char)
     @method_decorator(gfs_done)
     @method_decorator(prio_not_done)
-    def post(self, request: HttpRequest, new_char: NewCharakter) -> HttpResponse:
+    def post(self, request: HttpRequest, char: Charakter) -> HttpResponse:
         entries = self.get_entries()
 
         # collect data
         num_entries = entries.count()
-        if new_char is None:
+        if char is None:
             return JsonResponse({"url": reverse("create:gfs")}, status=300)
 
         fields = {}
@@ -245,38 +290,76 @@ class PriotableFormView(LoginRequiredMixin, VerifiedAccountMixin, TemplateView):
                 return JsonResponse({"message": "Falsche Auswahl (Inhalt Felder)"}, status=418)
 
         # start logic
-        ap = new_char.gfs.ap * -1
         for category in fields.keys():
             row = fields[category]
             col = int(category) + 1
 
             # row: [priority, IP, AP, (SP, konzentration), (FP, FG), Zauber, Drachmen]
             if col == 1:
-                new_char.ip = entries[row][col]
+                char.ip = entries[row][col]
             elif col == 2:
                 ap = entries[row][col]
 
             elif col == 3:
-                new_char.sp = entries[row][col]
-                new_char.konzentration = entries[row][col + 1]
+                char.sp = entries[row][col]
+                char.konzentration = entries[row][col + 1]
             elif col == 4:
-                new_char.fp = entries[row][col + 1]
-                new_char.fg = entries[row][col + 2]
+                char.fp = entries[row][col + 1]
+                char.fg = entries[row][col + 2]
             elif col == 5:
-                new_char.zauber = entries[row][col + 2]
+                amount = entries[row][col + 2]
+                char.zauberplätze = {"0": amount} if amount else {}
             else:
-                new_char.geld = entries[row][col + 2]
-                new_char.spF_wF = entries[row][col + 3]
-                new_char.wp = entries[row][col + 3] * self.WP_FACTOR
+                char.geld = entries[row][col + 2]
+                char.spF_wF = entries[row][col + 3]
+                char.wp = entries[row][col + 3] * self.WP_FACTOR
 
-        ap -= new_char.gfs.ap
+        ap -= char.gfs.ap
         if ap < 0:
             return JsonResponse({"message": "Zu wenig AP für Gfs"}, status=418)
 
-        new_char.ap = ap
-        new_char.save(update_fields=["ip", "sp", "konzentration", "fp", "fg", "zauber", "geld", "spF_wF", "wp", "ap"])
+        char.ap = ap
+        char.save(update_fields=["ip", "sp", "konzentration", "fp", "fg", "zauberplätze", "geld", "spF_wF", "wp", "ap"])
 
         return JsonResponse({"url": reverse("create:landing_page")})
+
+
+
+class PersonalFormView(LoginRequiredMixin, VerifiedAccountMixin, TemplateView):
+
+    model = Charakter
+    template_name = "create/personal.html"
+
+    def get_context_data(self, *args, **kwargs):
+        return {
+            "topic": "Persönliches",
+            "app_index": "Erstellung",
+            "app_index_url": reverse("create:prio"),
+            "form": PersonalForm(instance=self.char)
+        }
+
+    @method_decorator(provide_char)
+    @method_decorator(gfs_done)
+    @method_decorator(prio_done)
+    def get(self, request: HttpRequest, char: Charakter) -> HttpResponse:
+        self.char = char
+        return super().get(request)
+
+    @method_decorator(provide_char)
+    @method_decorator(gfs_done)
+    @method_decorator(prio_done)
+    def post(self, request: HttpRequest, char: Charakter) -> HttpResponse:
+        self.char = char
+        print(request.POST)
+
+        form = PersonalForm(request.POST, instance=char)
+        form.full_clean()
+        if form.is_valid():
+            form.save()
+
+            messages.success(request, "Erfolgreich gespeichert")
+
+        return redirect(request.build_absolute_uri())
 
 
 class ApFormView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTableView):
@@ -288,7 +371,7 @@ class ApFormView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTableView):
         BASE_MAX = "max"
 
         class Meta:
-            model = NewCharakterAttribut
+            model = RelAttribut
             fields = ["attribut__titel", "aktuell_ap", "max_ap", "result"]
             attrs = GenericTable.Meta.attrs
 
@@ -306,7 +389,7 @@ class ApFormView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTableView):
 
     topic = "Attribute"
     template_name = "create/ap.html"
-    model = NewCharakterAttribut
+    model = RelAttribut
 
     table_class = Table
 
@@ -314,37 +397,35 @@ class ApFormView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTableView):
     app_index_url = "create:gfs"
 
     def get_queryset(self):
-        new_char, error = get_own_NewCharakter(self.request)
-        if not new_char or error:
+        char, error = get_own_charakter(self.request)
+        if not char or error:
             raise "Charakter konnte nicht gefunden werden"
 
-        return NewCharakterAttribut.objects.prefetch_related("char").filter(char=new_char).annotate(
+        return RelAttribut.objects.prefetch_related("char").filter(char=char).annotate(
             aktuell = F("aktuellerWert") + F("aktuellerWert_bonus"),
-            aktuell_ap = F("aktuellerWert_ap"),
-            aktuell_limit = F("maxWert") + F("maxWert_bonus") + F("maxWert_ap") - F("aktuellerWert") - F("aktuellerWert_bonus"),
+            aktuell_ap = F("aktuellerWert_temp"),
+            aktuell_limit = F("maxWert") + F("maxWert_bonus") + F("maxWert_temp") - F("aktuellerWert") - F("aktuellerWert_bonus"),
             max = F("maxWert") + F("maxWert_bonus"),
-            max_ap = F("maxWert_ap"),
+            max_ap = F("maxWert_temp"),
             result=Value(1), # override later
             dataset_id=F("attribut__id")
         )
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
-        context["new_char"] = context["object_list"][0].char
+        context["char"] = context["object_list"][0].char
         return context
 
-    @method_decorator(cp_done)
-    @method_decorator(provide_new_char)
+    @method_decorator(provide_char)
     @method_decorator(gfs_done)
     @method_decorator(prio_done)
     def get(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
         return super().get(request, *args, **kwargs)
 
-    @method_decorator(cp_done)
-    @method_decorator(provide_new_char)
+    @method_decorator(provide_char)
     @method_decorator(gfs_done)
     @method_decorator(prio_done)
-    def post(self, request: HttpRequest, new_char: NewCharakter) -> HttpResponse:
+    def post(self, request: HttpRequest, char: Charakter) -> HttpResponse:
 
         # collect values
         ap = {}
@@ -370,7 +451,7 @@ class ApFormView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTableView):
             .prefetch_related("attribut")\
             .aggregate(
                 spent = Sum("aktuell_ap") + 2* Sum("max_ap")
-            )["spent"] + new_char.ap
+            )["spent"] + char.ap
 
         if ap_spent > ap_max:
             messages.error(request, "Du hast zu wenig AP")
@@ -380,15 +461,15 @@ class ApFormView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTableView):
             return redirect(request.build_absolute_uri())
 
         # apply them to db
-        new_char.ap = ap_max - ap_spent
-        new_char.save(update_fields=["ap"])
+        char.ap = ap_max - ap_spent
+        char.save(update_fields=["ap"])
 
         relattrs = []
-        for relattr in NewCharakterAttribut.objects.prefetch_related("attribut", "char").filter(char=new_char):
-            relattr.aktuellerWert_ap = ap[relattr.attribut.id]["aktuell"]
-            relattr.maxWert_ap = ap[relattr.attribut.id]["max"]
+        for relattr in RelAttribut.objects.prefetch_related("attribut", "char").filter(char=char):
+            relattr.aktuellerWert_temp = ap[relattr.attribut.id]["aktuell"]
+            relattr.maxWert_temp = ap[relattr.attribut.id]["max"]
             relattrs.append(relattr)
-        NewCharakterAttribut.objects.bulk_update(relattrs, ["aktuellerWert_ap", "maxWert_ap"])
+        RelAttribut.objects.bulk_update(relattrs, ["aktuellerWert_temp", "maxWert_temp"])
 
         # return response
         messages.success(request, "Erfolgreich gespeichert")
@@ -400,7 +481,7 @@ class FertigkeitFormView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTables
     class Table1(GenericTable):
 
         class Meta:
-            model = NewCharakterFertigkeit
+            model = RelFertigkeit
             fields = ["fertigkeit__titel", "attribute", "fp", "fg", "pool"]
             attrs = GenericTable.Meta.attrs
 
@@ -416,7 +497,7 @@ class FertigkeitFormView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTables
 
     class TableElse(GenericTable):
         class Meta:
-            model = NewCharakterFertigkeit
+            model = RelFertigkeit
             fields = ["fertigkeit__titel", "attribute", "fp", "pool"]
             attrs = GenericTable.Meta.attrs
 
@@ -432,7 +513,7 @@ class FertigkeitFormView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTables
 
     topic = "Fertigkeiten"
     template_name = "create/fert.html"
-    model = NewCharakterFertigkeit
+    model = RelFertigkeit
 
     tables = [Table1, TableElse]
     table_pagination = False
@@ -441,21 +522,21 @@ class FertigkeitFormView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTables
     app_index_url = "create:gfs"
 
     def get_queryset(self):
-        new_char, error = get_own_NewCharakter(self.request)
-        if not new_char or error:
+        char, error = get_own_charakter(self.request)
+        if not char or error:
             raise "Charakter konnte nicht gefunden werden"
 
         # will be a subquery for all (1 or 2) NewCharakterAttributes related to NewCharakterFertigkeit by fertigkeit.attr1 & fertigkeit.attr2
-        attr_qs = NewCharakterAttribut.objects.prefetch_related("char")\
-            .filter(char=new_char)\
+        attr_qs = RelAttribut.objects.prefetch_related("char")\
+            .filter(char=char)\
             .filter(Q(attribut=OuterRef("fertigkeit__attr1")) | Q(attribut=OuterRef("fertigkeit__attr2")))\
             .annotate(
-            aktuell = F("aktuellerWert") + F("aktuellerWert_bonus") + F("aktuellerWert_ap")
+            aktuell = F("aktuellerWert") + F("aktuellerWert_bonus") + F("aktuellerWert_temp")
         )
 
-        return NewCharakterFertigkeit.objects\
+        return RelFertigkeit.objects\
             .prefetch_related("char", "fertigkeit", "fertigkeit__attr1", "fertigkeit__attr2")\
-            .filter(char=new_char)\
+            .filter(char=char)\
             .annotate(
                 # get num of attributes. Can be 1 or 2.
                 attribut_count = Subquery(attr_qs.annotate(attribute_count = Window(
@@ -498,23 +579,21 @@ class FertigkeitFormView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTables
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
-        context["new_char"] = context["object_list"][0].char
+        context["char"] = context["object_list"][0].char
         return context
 
 
-    @method_decorator(cp_done)
-    @method_decorator(provide_new_char)
+    @method_decorator(provide_char)
     @method_decorator(gfs_done)
     @method_decorator(prio_done)
     def get(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
         return super().get(request, *args, **kwargs)
 
 
-    @method_decorator(cp_done)
-    @method_decorator(provide_new_char)
+    @method_decorator(provide_char)
     @method_decorator(gfs_done)
     @method_decorator(prio_done)
-    def post(self, request: HttpRequest, new_char: NewCharakter) -> HttpResponse:
+    def post(self, request: HttpRequest, char: Charakter) -> HttpResponse:
 
         #### collect values ####
         # fp
@@ -532,12 +611,12 @@ class FertigkeitFormView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTables
 
         # fg
         fg = {}
-        for relattr in NewCharakterAttribut.objects.filter(char=new_char):
+        for relattr in RelAttribut.objects.filter(char=char):
             attr = relattr.attribut
 
             # get & sanitize
             rel_fg = int(request.POST.getlist(f"fg-{attr.id}")[0])  # getting array of 3 identical because html contains 3 with similar "name" attrs
-            if rel_fg + relfert.fg_bonus > relattr.aktuellerWert + relattr.aktuellerWert_bonus + relattr.aktuellerWert_ap:
+            if rel_fg + relfert.fg_bonus > relattr.aktuellerWert + relattr.aktuellerWert_bonus + relattr.aktuellerWert_temp:
                 messages.error(request, f"Bei {attr} sind die FG höher als erlaubt")
 
             # save in temporal datastructure
@@ -547,15 +626,15 @@ class FertigkeitFormView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTables
         # fp
         fp_max = self.get_queryset().aggregate(
                 spent = Sum("fp")
-            )["spent"] + new_char.fp
+            )["spent"] + char.fp
 
         if sum(fp.values()) > fp_max:
             messages.error(request, "Du hast zu wenig FP")
 
         # fg
-        fg_max = NewCharakterAttribut.objects.filter(char=new_char).aggregate(
+        fg_max = RelAttribut.objects.filter(char=char).aggregate(
                 spent = Sum("fg")
-            )["spent"] + new_char.fg
+            )["spent"] + char.fg
 
         if sum(fg.values()) > fg_max:
             messages.error(request, "Du hast zu wenig FG")
@@ -565,21 +644,21 @@ class FertigkeitFormView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTables
             return redirect(request.build_absolute_uri())
 
         #### apply them to db ###
-        new_char.fp = fp_max - sum(fp.values())
-        new_char.fg = fg_max - sum(fg.values())
-        new_char.save(update_fields=["fp", "fg"])
+        char.fp = fp_max - sum(fp.values())
+        char.fg = fg_max - sum(fg.values())
+        char.save(update_fields=["fp", "fg"])
 
         relattrs = []
-        for relattr in NewCharakterAttribut.objects.prefetch_related("attribut", "char").filter(char=new_char):
+        for relattr in RelAttribut.objects.prefetch_related("attribut", "char").filter(char=char):
             relattr.fg = fg[relattr.attribut.id]
             relattrs.append(relattr)
-        NewCharakterAttribut.objects.bulk_update(relattrs, ["fg"])
+        RelAttribut.objects.bulk_update(relattrs, ["fg"])
         
         relferts = []
-        for relfert in NewCharakterFertigkeit.objects.prefetch_related("fertigkeit", "char").filter(char=new_char):
+        for relfert in RelFertigkeit.objects.prefetch_related("fertigkeit", "char").filter(char=char):
             relfert.fp = fp[relfert.fertigkeit.id]
             relferts.append(relfert)
-        NewCharakterFertigkeit.objects.bulk_update(relferts, ["fp"])
+        RelFertigkeit.objects.bulk_update(relferts, ["fp"])
 
         # return response
         messages.success(request, "Erfolgreich gespeichert")
@@ -626,44 +705,66 @@ class ZauberFormView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTableView)
     app_index_url = "create:gfs"
 
     def get_queryset(self):
-        new_char, error = get_own_NewCharakter(self.request)
-        if not new_char or error:
+        char, error = get_own_charakter(self.request)
+        if not char or error:
             raise "Charakter konnte nicht gefunden werden"
+        
+        max_stufe = max([int(k) for k in char.zauberplätze.keys()])
 
         return Zauber.objects\
-            .filter(frei_editierbar=False)\
+            .filter(frei_editierbar=False, ab_stufe__lte=max_stufe)\
             .order_by("ab_stufe")\
             .annotate(
-                gewählt = Exists(Subquery(NewCharakterZauber.objects.filter(char=new_char, item__id=OuterRef("id")))),
+                gewählt = Exists(Subquery(RelZauber.objects.filter(char=char, item__id=OuterRef("id")))),
                 weiteres = Value(1)     # replace later
             )
 
     def get_context_data(self, *args, **kwargs):
-        context = super().get_context_data(*args, **kwargs)
-        context["new_char"] = self.new_char
+        rel_ma = RelAttribut.objects.get(char=self.char, attribut__titel='MA')
+
+        context = super().get_context_data(*args, **kwargs,
+                                           
+            char = self.char,
+            max_tier_allowed = min(1 + floor(self.char.ep_stufe_in_progress / 4), 7),
+            existing_zauber = RelZauber.objects.filter(char=self.char, will_create=False).order_by("item__name"),
+            new_zauber = RelZauber.objects.filter(char=self.char, will_create=True).order_by("item__name"),
+            
+            zauber = Zauber.objects\
+                .filter(frei_editierbar=False, ab_stufe__lte=max([int(e) for e in self.char.zauberplätze.keys()]))\
+                .exclude(id__in=self.char.zauber.values("id")),
+
+            MA_aktuell = rel_ma.aktuellerWert + rel_ma.aktuellerWert_temp,
+        )
+
+        # free zauber slots
+        zauber_available = sum(self.char.zauberplätze.values())
+        zauber_spent = context["new_zauber"].count() # +\
+        for rel in RelZauber.objects.filter(char=self.char):
+            zauber_spent += len([r for r in rel.tier_notes.values() if r == "slot"])
+
+        context["free_slots"] = zauber_available - zauber_spent
+
         return context
 
-    @method_decorator(cp_done)
-    @method_decorator(provide_new_char)
+    @method_decorator(provide_char)
     @method_decorator(gfs_done)
     @method_decorator(prio_done)
-    def get(self, request: HttpRequest, new_char: NewCharakter, *args, **kwargs) -> HttpResponse:
-        self.new_char = new_char
-        return super().get(request, *args, **kwargs, new_char=new_char)
+    def get(self, request: HttpRequest, char: Charakter, *args, **kwargs) -> HttpResponse:
+        self.char = char
+        return super().get(request, *args, **kwargs, char=char)
 
-    @method_decorator(cp_done)
-    @method_decorator(provide_new_char)
+    @method_decorator(provide_char)
     @method_decorator(gfs_done)
     @method_decorator(prio_done)
-    def post(self, request: HttpRequest, new_char: NewCharakter) -> HttpResponse:
+    def post(self, request: HttpRequest, char: Charakter) -> HttpResponse:
 
         # collect values
         zauber_ids = set([int(key.replace("zauber-", "")) for key in request.POST.keys() if "zauber-" in key])
 
         # test them
-        zauber_max = NewCharakterZauber.objects\
-            .filter(char=new_char)\
-            .aggregate( spent = Count("*") )["spent"] + new_char.zauber
+        zauber_max = RelZauber.objects\
+            .filter(char=char)\
+            .aggregate( spent = Count("*") )["spent"] + sum(char.zauberplätze.values())
 
         if len(zauber_ids) > zauber_max:
             messages.error(request, "Du hast zu viele Zauber gewählt")
@@ -672,13 +773,13 @@ class ZauberFormView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTableView)
         if len(messages.get_messages(request)):
             return redirect(request.build_absolute_uri())
 
-        # apply them to db
-        new_char.zauber = zauber_max - len(zauber_ids)
-        new_char.save(update_fields=["zauber"])
+        # # apply them to db
+        # char.zauber = zauber_max - len(zauber_ids)
+        # char.save(update_fields=["zauber"])
 
-        NewCharakterZauber.objects.filter(char=new_char).delete()
+        RelZauber.objects.filter(char=char).delete()
         for zauber in Zauber.objects.filter(id__in=zauber_ids):
-            NewCharakterZauber.objects.create(char=new_char, item=zauber)
+            RelZauber.objects.create(char=char, item=zauber)
 
         # return response
         messages.success(request, "Erfolgreich gespeichert")
@@ -739,9 +840,9 @@ class SpF_wFFormView(LoginRequiredMixin, VerifiedAccountMixin, tables.SingleTabl
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
-        context["new_char"] = self.new_char
+        context["char"] = self.char
         context["app_index"] = "Erstellung"
-        context["app_index_url"] = reverse("create:gfs")
+        context["app_index_url"] = reverse("create:prio")
         return context
     
     def get_table_data(self):
@@ -760,7 +861,7 @@ class SpF_wFFormView(LoginRequiredMixin, VerifiedAccountMixin, tables.SingleTabl
                         ferts = Value(0),
                         attrs = Value(0),
                         wp = Value(0),
-                        stufe = Subquery(NewCharakterSpezialfertigkeit.objects.filter(char=self.new_char, spezialfertigkeit__id=OuterRef("id")).values("stufe")[:1]),
+                        stufe = Subquery(RelSpezialfertigkeit.objects.filter(char=self.char, spezialfertigkeit__id=OuterRef("id")).values("stufe")[:1]),
                     )\
                     .values("id", "titel", "art" ,
                             "attrs", "attr1__titel", "attr2__titel",
@@ -775,7 +876,7 @@ class SpF_wFFormView(LoginRequiredMixin, VerifiedAccountMixin, tables.SingleTabl
                         ferts = Value(0),
                         attrs = Value(0),
                         wp = Value(0),
-                        stufe = Subquery(NewCharakterWissensfertigkeit.objects.filter(char=self.new_char, wissensfertigkeit__id=OuterRef("id")).values("stufe")[:1]),
+                        stufe = Subquery(RelWissensfertigkeit.objects.filter(char=self.char, wissensfertigkeit__id=OuterRef("id")).values("stufe")[:1]),
                     )\
                     .values("id", "titel", "art",
                             "attrs", "attr1__titel", "attr2__titel", "attr3__titel",
@@ -787,40 +888,38 @@ class SpF_wFFormView(LoginRequiredMixin, VerifiedAccountMixin, tables.SingleTabl
         return sorted(objects, key=lambda x: x["titel"])
 
 
-    @method_decorator(cp_done)
-    @method_decorator(provide_new_char)
+    @method_decorator(provide_char)
     @method_decorator(gfs_done)
     @method_decorator(prio_done)
-    def get(self, request: HttpRequest, new_char: NewCharakter, *args, **kwargs) -> HttpResponse:
-        self.new_char = new_char
-        return super().get(request, *args, **kwargs, new_char=new_char)
+    def get(self, request: HttpRequest, char: Charakter, *args, **kwargs) -> HttpResponse:
+        self.char = char
+        return super().get(request, *args, **kwargs, char=char)
 
-    @method_decorator(cp_done)
-    @method_decorator(provide_new_char)
+    @method_decorator(provide_char)
     @method_decorator(gfs_done)
     @method_decorator(prio_done)
-    def post(self, request: HttpRequest, new_char: NewCharakter) -> HttpResponse:
+    def post(self, request: HttpRequest, char: Charakter) -> HttpResponse:
 
         # collect values
         spezial_ids = {int(key.replace("spezial-", "")): int(stufe) for key, stufe in request.POST.items() if "spezial-" in key and int(stufe)}
         wissen_ids = {int(key.replace("wissen-", "")): int(stufe) for key, stufe in request.POST.items() if "wissen-" in key and int(stufe)}
 
         # test them
-        spezial = NewCharakterSpezialfertigkeit.objects\
-            .filter(char=new_char)\
+        spezial = RelSpezialfertigkeit.objects\
+            .filter(char=char)\
             .aggregate(
                 wp = Sum("stufe"),
                 fert = Count("*")
             )
-        wissen = NewCharakterWissensfertigkeit.objects\
-            .filter(char=new_char)\
+        wissen = RelWissensfertigkeit.objects\
+            .filter(char=char)\
             .aggregate(
                 wp = Sum("stufe"),
                 fert = Count("*")
             )
         
-        fert_max = (spezial["fert"] or 0) + (wissen["fert"] or 0) + new_char.spF_wF
-        wp_max = (spezial["wp"] or 0) + (wissen["wp"] or 0) + new_char.wp
+        fert_max = (spezial["fert"] or 0) + (wissen["fert"] or 0) + char.spF_wF
+        wp_max = (spezial["wp"] or 0) + (wissen["wp"] or 0) + char.wp
 
         if len(spezial_ids) + len(wissen_ids) > fert_max:
             messages.error(request, "Du hast zu viele gewählt")
@@ -833,16 +932,16 @@ class SpF_wFFormView(LoginRequiredMixin, VerifiedAccountMixin, tables.SingleTabl
             return redirect(request.build_absolute_uri())
 
         # apply them to db
-        new_char.spF_wF = fert_max - len(spezial_ids) - len(wissen_ids)
-        new_char.wp = wp_max - sum(spezial_ids.values()) - sum(wissen_ids.values())
-        new_char.save(update_fields=["spF_wF", "wp"])
+        char.spF_wF = fert_max - len(spezial_ids) - len(wissen_ids)
+        char.wp = wp_max - sum(spezial_ids.values()) - sum(wissen_ids.values())
+        char.save(update_fields=["spF_wF", "wp"])
 
-        NewCharakterSpezialfertigkeit.objects.filter(char=new_char).delete()
-        NewCharakterWissensfertigkeit.objects.filter(char=new_char).delete()
+        RelSpezialfertigkeit.objects.filter(char=char).delete()
+        RelWissensfertigkeit.objects.filter(char=char).delete()
         for sp in Spezialfertigkeit.objects.filter(id__in=spezial_ids):
-            NewCharakterSpezialfertigkeit.objects.create(char=new_char, spezialfertigkeit=sp, stufe=spezial_ids[sp.id])
+            RelSpezialfertigkeit.objects.create(char=char, spezialfertigkeit=sp, stufe=spezial_ids[sp.id])
         for wi in Wissensfertigkeit.objects.filter(id__in=wissen_ids):
-            NewCharakterWissensfertigkeit.objects.create(char=new_char, wissensfertigkeit=wi, stufe=wissen_ids[wi.id])
+            RelWissensfertigkeit.objects.create(char=char, wissensfertigkeit=wi, stufe=wissen_ids[wi.id])
 
         # return response
         messages.success(request, "Erfolgreich gespeichert")
@@ -891,7 +990,7 @@ class TeilFormView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTablesView):
         ]
     
     def get_vorteil_queryset(self):
-        rel_qs = NewCharakterVorteil.objects.prefetch_related("teil", "char").filter(teil__id=OuterRef("id"), char=self.new_char)
+        rel_qs = NewCharakterVorteil.objects.prefetch_related("teil", "char").filter(teil__id=OuterRef("id"), char=self.char)
 
         return Vorteil.objects\
             .filter(wann_wählbar__in=["i", "e"])\
@@ -901,7 +1000,7 @@ class TeilFormView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTablesView):
             )
 
     def get_nachteil_queryset(self):
-        rel_qs = NewCharakterNachteil.objects.prefetch_related("teil", "char").filter(teil__id=OuterRef("id"), char=self.new_char)
+        rel_qs = NewCharakterNachteil.objects.prefetch_related("teil", "char").filter(teil__id=OuterRef("id"), char=self.char)
 
         return Nachteil.objects\
             .filter(wann_wählbar__in=["i", "e"])\
@@ -911,21 +1010,19 @@ class TeilFormView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTablesView):
             )
 
 
-    @method_decorator(cp_done)
-    @method_decorator(provide_new_char)
+    @method_decorator(provide_char)
     @method_decorator(gfs_done)
     @method_decorator(prio_done)
-    def get(self, request: HttpRequest, new_char: NewCharakter, *args, **kwargs) -> HttpResponse:
-        self.new_char = new_char
+    def get(self, request: HttpRequest, char: Charakter, *args, **kwargs) -> HttpResponse:
+        self.char = char
         return super().get(request, *args, **kwargs)
 
 
-    @method_decorator(cp_done)
-    @method_decorator(provide_new_char)
+    @method_decorator(provide_char)
     @method_decorator(gfs_done)
     @method_decorator(prio_done)
-    def post(self, request: HttpRequest, new_char: NewCharakter) -> HttpResponse:
-        self.new_char = new_char
+    def post(self, request: HttpRequest, char: Charakter) -> HttpResponse:
+        self.char = char
 
         # #### collect values ####
         # vorteile
@@ -955,7 +1052,7 @@ class TeilFormView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTablesView):
                 nachteile[teil.id] = {"anzahl": anzahl, "notizen": request.POST.get(f"nachteil-notizen-{teil.id}"), "ip": anzahl * teil.ip}
 
         #### test them ####
-        max_ip = new_char.ip +\
+        max_ip = char.ip +\
             self.get_vorteil_queryset().annotate(ip_total = F("anzahl") * F("ip")).aggregate(ip=Sum("ip_total"))["ip"] -\
             self.get_nachteil_queryset().annotate(ip_total = F("anzahl") * F("ip")).aggregate(ip=Sum("ip_total"))["ip"]
 
@@ -971,20 +1068,20 @@ class TeilFormView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTablesView):
             return redirect(request.build_absolute_uri())
 
         # #### apply them to db ###
-        new_char.ip = ip
-        new_char.save(update_fields=["ip"])
+        char.ip = ip
+        char.save(update_fields=["ip"])
         
-        NewCharakterVorteil.objects.filter(char=new_char).delete()
+        RelVorteil.objects.filter(char=char).delete()
         for teil in Vorteil.objects.filter(id__in=vorteile.keys()):
-            NewCharakterVorteil.objects.create(
-                char=new_char, teil=teil,
+            RelVorteil.objects.create(
+                char=char, teil=teil,
                 anzahl=vorteile[teil.id]["anzahl"],
                 notizen=vorteile[teil.id]["notizen"],
             )
-        NewCharakterNachteil.objects.filter(char=new_char).delete()
+        RelNachteil.objects.filter(char=char).delete()
         for teil in Nachteil.objects.filter(id__in=nachteile.keys()):
-            NewCharakterNachteil.objects.create(
-                char=new_char, teil=teil,
+            RelNachteil.objects.create(
+                char=char, teil=teil,
                 anzahl=nachteile[teil.id]["anzahl"],
                 notizen=nachteile[teil.id]["notizen"],
             )
@@ -992,110 +1089,3 @@ class TeilFormView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTablesView):
         # return response
         messages.success(request, "Erfolgreich gespeichert")
         return redirect(request.build_absolute_uri())
-
-
-class EndFormView(LoginRequiredMixin, VerifiedAccountMixin, TemplateView):
-
-    template_name = "create/cp.html"
-    topic = "Abschluss"
-
-    def transfer_to_Charakter(self, new_char):
-        
-        # transition from NewCharakter to Charakter
-        c = Charakter.objects.create(sp=new_char.sp, konzentration=new_char.konzentration, geld=new_char.geld,
-                                    eigentümer=new_char.eigentümer, manifest=new_char.gfs.startmanifest, gfs=new_char.gfs,
-                                    larp=new_char.larp, wesenschaden_andere_gestalt=new_char.gfs.wesenschaden_andere_gestalt,
-                                    wesenschaden_waff_kampf=new_char.gfs.wesenschaden_waff_kampf,
-                                    ep_system=new_char.ep_system, ip=new_char.ip, profession=new_char.profession,
-                                    HPplus=new_char.HPplus, HPplus_fix=new_char.HPplus_fix)
-
-        # there is a signal that adds attr & fert to a character on every save. delete these again
-        RelAttribut.objects.filter(char=c).delete()
-
-        for rel in NewCharakterAttribut.objects.filter(char=new_char):
-            RelAttribut.objects.create(char=c, attribut=rel.attribut, aktuellerWert=rel.ges_aktuell(),
-                                        aktuellerWert_bonus=rel.aktuellerWert_bonus, maxWert_bonus=rel.maxWert_bonus,
-                                        maxWert=rel.ges_max(), fg=rel.ges_fg())
-
-        # there is a signal that adds attr & fert to a character on every save. delete these again
-        RelFertigkeit.objects.filter(char=c).delete()
-
-        for rel in NewCharakterFertigkeit.objects.filter(char=new_char):
-            RelFertigkeit.objects.create(
-                char=c, fertigkeit=rel.fertigkeit, fp=rel.fp, fp_bonus=rel.fp_bonus)
-
-
-        for rel in NewCharakterPersönlichkeit.objects.filter(char=new_char):
-            RelPersönlichkeit.objects.create(char=c, persönlichkeit=rel.persönlichkeit)
-
-        for rel in NewCharakterVorteil.objects.filter(char=new_char):
-            RelVorteil.objects.create(char=c, teil=rel.teil, notizen=rel.notizen, anzahl=rel.anzahl)
-
-        for rel in NewCharakterNachteil.objects.filter(char=new_char):
-            RelNachteil.objects.create(char=c, teil=rel.teil, notizen=rel.notizen, anzahl=rel.anzahl)
-
-        for rel in NewCharakterTalent.objects.filter(char=new_char):
-            RelTalent.objects.create(char=c, talent=rel.talent)
-
-        for rel in NewCharakterSpezialfertigkeit.objects.filter(char=new_char):
-            RelSpezialfertigkeit.objects.create(char=c, spezialfertigkeit=rel.spezialfertigkeit, stufe=rel.stufe)
-
-        for rel in NewCharakterWissensfertigkeit.objects.filter(char=new_char):
-            RelWissensfertigkeit.objects.create(char=c, wissensfertigkeit=rel.wissensfertigkeit, würfel2=würfelart_enum[rel.stufe-1][0])
-
-        for rel in GfsWesenkraft.objects.filter(gfs=new_char.gfs):
-            RelWesenkraft.objects.create(char=c, wesenkraft=rel.wesenkraft)
-
-        for rel in NewCharakterZauber.objects.filter(char=new_char):
-            RelZauber.objects.create(char=c, item=rel.item, anz=1)
-
-        new_char.delete()
-
-        if c.larp:
-            c.beruf = get_object_or_404(Beruf, titel="Schüler")
-            c.save(update_fields=["beruf"])
-
-        return c
-
-
-    def get(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
-        new_char, error = get_own_NewCharakter(request)
-        if error:
-            return JsonResponse({"message": "Charakter konnte nicht gefunden werden"}, status=418)
-
-        if new_char:
-            c = self.transfer_to_Charakter(new_char)
-
-        # new_char already deleted
-        else:
-            c = Charakter.objects.filter(eigentümer__name=request.user.username, in_erstellung=True).first()
-            if c is None: return redirect("create:gfs")
-
-        return render(request, self.template_name, {
-            "form": EndForm(instance=c),
-            "topic": self.topic,
-            "larp": c.larp,
-            "app_index": "Erstellung",
-            "app_index_url": reverse("create:gfs"),
-        })
-
-
-    @method_decorator(cp_not_done)
-    def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
-
-        character = get_object_or_404(Charakter, in_erstellung=True, eigentümer__name=request.user.username)
-
-        if request.user.username != character.eigentümer.name:
-            messages.error("Du hast keine Erlaubnis die Charaktererstellung eines fremden Charakters zu beenden")
-            return redirect(request.build_absolute_uri())
-
-        form = EndForm(request.POST, instance=character)
-        form.full_clean()
-        if form.is_valid():
-            char = form.save(commit=False)
-            char.in_erstellung = False
-            char.save()
-
-            return redirect("character:index")
-
-        return render(request, self.template_name, {"form": form, "topic": self.topic})

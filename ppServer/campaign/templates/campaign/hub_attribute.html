@@ -12,13 +12,13 @@
 {% endblock %}
 
 {% block before_table %}
-    <p>AP übrig: <b id="ap_pool">{{ char.ap }}</b></p>
+    <p>AP übrig: <b id="ap_pool">{{ object.ap }}</b></p>
 {% endblock %}
 
 {% block after_table %}
 <form id="form" method="post" class="d-flex justify-content-center">
     {% csrf_token %}
     <button type="submit" class="btn btn-lg btn-primary m-2" disabled>Speichern</button>
-    <a class="btn btn-lg btn-outline-primary m-2" href="{% url 'create:landing_page' %}">Zurück</a>
+    <a class="btn btn-lg btn-outline-primary m-2" href="{% url 'campaign:hub' object.id %}">Zurück</a>
 </form>
 {% endblock %}
