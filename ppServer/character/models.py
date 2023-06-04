@@ -102,7 +102,7 @@ class Gfs(models.Model):
     nachteile = models.ManyToManyField('Nachteil', through="GfsNachteil", blank=True)
     wesenkraft = models.ManyToManyField('Wesenkraft', through="GfsWesenkraft")
 
-    difficulty = models.CharField(max_length=1, choices=DIFFICULTY_ENUM, default=DIFFICULTY_ENUM[0][0])
+    difficulty = models.CharField(max_length=1, choices=DIFFICULTY_ENUM, default=DIFFICULTY_ENUM[0][0], verbose_name=".. leicht/mittel/schwer zu spielen sein?")
 
     def __str__(self):
         return "{} ({})".format(self.titel, self.wesen.titel if self.wesen else "-")
@@ -787,7 +787,7 @@ class RelFertigkeit(models.Model):
     fp_bonus = models.SmallIntegerField(default=0)
 
     def __str__(self):
-        return "'{}' von ’{}’".format(self.fertigkeit.__str__(), self.char.__str__())
+        return "'{}' von '{}'".format(self.fertigkeit.__str__(), self.char.__str__())
 
     def pool(self):
         pool = self.fp + self.fp_bonus

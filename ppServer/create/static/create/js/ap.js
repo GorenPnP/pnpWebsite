@@ -20,12 +20,14 @@ function calc_ap_pool() {
 
 function update_result(tr_tag) {
 
-    const max = parseInt(tr_tag.querySelector(".aktuell-input").max) || 0
     const aktuell = 
         (parseInt(tr_tag.querySelector(".aktuell-fix")?.innerHTML) || 0) +
-        (parseInt(tr_tag.querySelector(".aktuell-input").value) || 0)
+        (parseInt(tr_tag.querySelector(".aktuell-input").value) || 0);
+    const max =
+        (parseInt(tr_tag.querySelector(".max-fix")?.innerHTML) || 0) +
+        (parseInt(tr_tag.querySelector(".max-input").value) || 0);
 
-    tr_tag.lastChild.innerHTML = `${aktuell} / ${max}`; 
+    tr_tag.lastChild.innerHTML = `${aktuell} / ${max}`;
 }
 
 document.addEventListener("DOMContentLoaded", function () {

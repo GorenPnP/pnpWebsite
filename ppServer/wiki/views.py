@@ -73,6 +73,10 @@ class GfsView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTableView):
                 super().__init__(*args, **kwargs)
                 self.field = field
 
+            def order(self, queryset, is_descending):
+                queryset = queryset.order_by(("-" if is_descending else "") + self.field, "titel")
+                return (queryset, True)
+
             def render(self, value, record):
                 curr = getattr(record, f"{self.field}_curr")
                 max = getattr(record, f"{self.field}_max")
@@ -87,6 +91,10 @@ class GfsView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTableView):
             model = Gfs
             fields = ["titel", "difficulty", "ap", "SCH", "IN", "ST", "VER", "GES", "UM", "WK", "MA", "F", "N", "ap_netto"]
             attrs = GenericTable.Meta.attrs
+
+        def order_ap_netto(self, queryset, is_descending):
+            queryset = queryset.order_by(("-" if is_descending else "") + "ap_netto", "titel")
+            return (queryset, True)
 
         titel = tables.Column(verbose_name="Gfs / Klasse")
 

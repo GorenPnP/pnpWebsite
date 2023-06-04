@@ -31,7 +31,7 @@ class GfsWahlfilterView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTableVi
     topic = "Gfs Wahlfilter"
     template_name = "create/gfs_characterization.html"
 
-    filterset_fields = ["state", "social", "magical", "can_punch", "can_shoot", "gets_pricy_skills", "can_fly", "attitude"]
+    filterset_fields = ["gfs__difficulty", "state", "social", "magical", "can_punch", "can_shoot", "gets_pricy_skills", "can_fly", "attitude"]
     table_fields = ["gfs__titel", "gfs__beschreibung"]
 
     app_index = "Erstellung"
