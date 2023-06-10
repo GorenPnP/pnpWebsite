@@ -7,7 +7,9 @@ def populate_max_amount(apps, schema_editor):
     Nachteil = apps.get_model('character', 'Nachteil')
 
     vorteile = []
-    for teil in Vorteil.objects.filter(titel__in=["Magisches Band", "Meister", "Schutzgeist", "Spezialisiert", "Talentiert"]):
+    for teil in Vorteil.objects.filter(titel__in=[
+            "Magisches Band", "Meister", "Schutzgeist", "Spezialisiert", "Talentiert", "Immunität", "Resistenz"
+        ]):
         teil.max_amount = None
         vorteile.append(teil)
     Vorteil.objects.bulk_update(vorteile, ["max_amount"])
@@ -16,7 +18,7 @@ def populate_max_amount(apps, schema_editor):
     for teil in Nachteil.objects.filter(titel__in=[
             "Allergie", "Angst", "Besessen", "Codex", "Defizit", "Drogenabhängig", "Fanatisch", "Feind",
             "Galaktisches Ziel", "Gespaltene Persönlichkeit", "Rassistisch", "Schwere Allergie", "Unkontrolliert",
-            "Verbittert", "Verliebt", "Voreingenommen"
+            "Verbittert", "Verliebt", "Voreingenommen", "Anfälligkeit"
         ]):
         teil.max_amount = None
         nachteile.append(teil)

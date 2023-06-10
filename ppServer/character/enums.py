@@ -98,7 +98,8 @@ skilltree_kategorie_enum = [
 teil_erstellung_enum = [
     ("i", "immer"),
     ("e", "in Erstellung"),
-    ("n", "nicht Erstelllung")
+    ("n", "nicht Erstelllung"),
+    ("g", "gar nicht")
 ]
 
 talent_enum = [
