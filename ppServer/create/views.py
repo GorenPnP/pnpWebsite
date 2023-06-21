@@ -1041,7 +1041,7 @@ class EndFormView(LoginRequiredMixin, VerifiedAccountMixin, TemplateView):
             RelSpezialfertigkeit.objects.create(char=c, spezialfertigkeit=rel.spezialfertigkeit, stufe=rel.stufe)
 
         for rel in NewCharakterWissensfertigkeit.objects.filter(char=new_char):
-            RelWissensfertigkeit.objects.create(char=c, wissensfertigkeit=rel.wissensfertigkeit, würfel2=würfelart_enum[rel.stufe][0])
+            RelWissensfertigkeit.objects.create(char=c, wissensfertigkeit=rel.wissensfertigkeit, würfel2=würfelart_enum[rel.stufe-1][0])
 
         for rel in GfsWesenkraft.objects.filter(gfs=new_char.gfs):
             RelWesenkraft.objects.create(char=c, wesenkraft=rel.wesenkraft)
