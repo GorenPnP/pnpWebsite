@@ -22,6 +22,6 @@ __pycache__/
 # other
 backups/
 certbot/cloudflare.ini
-log/
+/log/
 node_modules/
 ppServer/venv/

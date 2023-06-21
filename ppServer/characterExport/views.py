@@ -233,7 +233,7 @@ class CharacterExportView(LoginRequiredMixin, VerifiedAccountMixin, DetailView):
         format_vorteil = wb.add_format(dict(form_text_wrap, **form_cell_border, **form_align_top_left, **{"bg_color": COLOR["green"]}))
         format_nachteil = wb.add_format(dict(form_text_wrap, **form_cell_border, **form_align_top_left, **{"bg_color": COLOR["red"]}))
         werte_ws.merge_range("I13:I15", "Vorteile", format_teil_titel)
-        werte_ws.merge_range("J13:R15", ", ".join([f"{teil[0]}{' (' + teil[1] + ')' if teil[1] else ''}" for teil in char.relvorteil_set.order_by("teil__titel").values_list("teil__titel", "notizen")]), format_vorteil)
+        werte_ws.merge_range("J13:R15", ", ".join([f"{teil[0]}{' (' + teil[1] + ')' if teil[1] else ''}" for teil in char.relvorteil_set.order_by("teil__titel").filter(will_create=False).values_list("teil__titel", "notizen")]), format_vorteil)
 
         werte_ws.merge_range("I16:I18", "Nachteile", format_teil_titel)
         werte_ws.merge_range("J16:R18", ", ".join([f"{teil[0]}{' (' + teil[1] + ')' if teil[1] else ''}" for teil in char.relnachteil_set.order_by("teil__titel").values_list("teil__titel", "notizen")]), format_nachteil)
@@ -463,6 +463,7 @@ class CharacterExportView(LoginRequiredMixin, VerifiedAccountMixin, DetailView):
         # Ramsch & Inventar
         format_ramsch_titel = wb.add_format(dict(form_section_titel, **form_cell_border))
         format_large_cell = wb.add_format(dict(form_text_wrap, **form_cell_border, **form_align_top_left))
+        format_text_wrap = wb.add_format(form_text_wrap)
         for i in range(45, 144):
             werte_ws.write(f"A{i}", None, format_border_left)
             werte_ws.write(f"H{i}", None, format_border_right)
@@ -471,9 +472,9 @@ class CharacterExportView(LoginRequiredMixin, VerifiedAccountMixin, DetailView):
         # Gfs-Fähigkeiten
         werte_ws.merge_range("A44:H44", "Wesen-Eigenschaften/Fähigkeiten", format_ramsch_titel)
         if char.gfs:
-            for i, r in enumerate(char.gfs.gfsstufenplan_set.filter(basis__stufe__lte=char.ep_stufe).filter(Q(special_ability__isnull=False) | Q(special_ability_description__isnull=False))):
-                text = (f"{r.special_ability_titel}:" if r.special_ability_titel else '') + (r.special_ability if r.special_ability else '')
-                werte_ws.write(f"A{45+i}", text, format_border_left)
+            for i, r in enumerate(char.gfs.gfsstufenplan_set.filter(basis__stufe__lte=char.ep_stufe).filter(special_ability__isnull=False, special_ability_description__isnull=False)):
+                werte_ws.write(f"A{45+i}", r.special_ability, format_border_left)
+                werte_ws.merge_range(f"B{45+i}:G{45+i}", r.special_ability_description, format_text_wrap)
         # Zauber, Rituale & Runen
         werte_ws.merge_range("A55:H55", "Zauber, Rituale und Runen", format_ramsch_titel)
         for i, r in enumerate(char.relzauber_set.all()[:8]):
@@ -695,6 +696,7 @@ class CharacterExportView(LoginRequiredMixin, VerifiedAccountMixin, DetailView):
 
         # set Width of columns
         for ws in wb.worksheets(): ws.autofit()
+        werte_ws.set_column("A:A", 25)
         werte_ws.set_column("B:B", 12)
         werte_ws.set_column("C:H", 6)
         werte_ws.set_column("J:J", 5)

@@ -81,6 +81,10 @@ class FirmaBegleiterInLine(FirmaShopInLine):
     model = FirmaBegleiter
 
 
+class FirmaEngelsroboterInLine(FirmaShopInLine):
+    model = FirmaEngelsroboter
+
+
 
 ######### BaseAdmin ##################
 class BaseAdmin(admin.ModelAdmin):
@@ -322,6 +326,17 @@ class BegleiterAdmin(BaseAdmin):
     inlines = [FirmaBegleiterInLine]
 
 
+class EngelsroboterAdmin(BaseAdmin):
+
+    shop_model = Engelsroboter
+    firma_shop_model = FirmaEngelsroboter
+
+    list_display = ('name', 'beschreibung', "ab_stufe", 'ST', 'UM', 'MA', 'IN', 'billigste', 'illegal_', 'lizenz_benötigt_', "frei_editierbar_")
+    list_filter = ['illegal', 'lizenz_benötigt', "frei_editierbar"]
+
+    inlines = [FirmaEngelsroboterInLine]
+
+
 
 class FirmaAdmin(admin.ModelAdmin):
     list_display = ('name', 'beschreibung')
@@ -372,6 +387,7 @@ admin.site.register(VergessenerZauber, VergessenerZauberAdmin)
 admin.site.register(Alchemie, AlchemieAdmin)
 admin.site.register(Tinker, TinkerAdmin)
 admin.site.register(Begleiter, BegleiterAdmin)
+admin.site.register(Engelsroboter, EngelsroboterAdmin)
 
 admin.site.register(Firma, FirmaAdmin)
 admin.site.register(Modifier, ModifierAdmin)

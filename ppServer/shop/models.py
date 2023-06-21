@@ -197,6 +197,9 @@ class FirmaTinker(FirmaShop):
 class FirmaBegleiter(FirmaShop):
     item = models.ForeignKey('Begleiter', on_delete=models.CASCADE)
 
+class FirmaEngelsroboter(FirmaShop):
+    item = models.ForeignKey('Engelsroboter', on_delete=models.CASCADE)
+
 ################ Base Shop ####################
 
 class BaseShop(models.Model):
@@ -445,3 +448,18 @@ class Begleiter(BaseShop):
         ordering = ['name']
 
     firmen = models.ManyToManyField('Firma', through='FirmaBegleiter', blank=True)
+
+
+class Engelsroboter(BaseShop):
+    class Meta:
+        verbose_name = "Engelsroboter"
+        verbose_name_plural = "Engelsroboter"
+
+        ordering = ['name']
+
+    ST = models.PositiveSmallIntegerField(default=0, null=False, blank=False, help_text="Stärke")
+    UM = models.PositiveSmallIntegerField(default=0, null=False, blank=False, help_text="Umgang")
+    MA = models.PositiveSmallIntegerField(default=0, null=False, blank=False, help_text="Magie")
+    IN = models.PositiveSmallIntegerField(default=0, null=False, blank=False, help_text="Intelligenz")
+
+    firmen = models.ManyToManyField('Firma', through='FirmaEngelsroboter', blank=True)

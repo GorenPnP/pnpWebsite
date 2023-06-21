@@ -1,6 +1,23 @@
+import itertools
+
 from django.contrib import admin
+from django.http.request import HttpRequest
 
 from .models import *
+
+
+class SpielerReadonlyInLine(admin.TabularInline):
+    def has_delete_permission(self, request: HttpRequest, obj) -> bool:
+        if request.user.groups.filter(name__iexact="spieler"): return False
+        return super().has_delete_permission(request, obj)
+
+    def has_change_permission(self, request: HttpRequest, obj) -> bool:
+        if request.user.groups.filter(name__iexact="spieler"): return False
+        return super().has_change_permission(request, obj)
+    
+    def has_add_permission(self, request: HttpRequest, obj) -> bool:
+        if request.user.groups.filter(name__iexact="spieler"): return False
+        return super().has_add_permission(request, obj)
 
 
 class WesenkraftZusatzWesenspInLine(admin.TabularInline):
@@ -113,14 +130,14 @@ class RelSpeziesInline(admin.TabularInline):
     extra = 1
 
 
-class RelPersönlichkeitInline(admin.TabularInline):
+class RelPersönlichkeitInline(SpielerReadonlyInLine):
     model = RelPersönlichkeit
     extra = 1
 
 
-class RelAttributInline(admin.TabularInline):
+class RelAttributInline(SpielerReadonlyInLine):
     fields = ['attribut', 'aktuellerWert', 'aktuellerWert_bonus', 'maxWert', 'maxWert_bonus', 'fg']
-    readonly_fields = ['attribut', 'aktuellerWert_bonus', 'maxWert_bonus']
+    readonly_fields = ['attribut']
     model = RelAttribut
     extra = 0
 
@@ -131,7 +148,7 @@ class RelAttributInline(admin.TabularInline):
         return False
 
 
-class RelFertigkeitInLine(admin.TabularInline):
+class RelFertigkeitInLine(SpielerReadonlyInLine):
     fields = ['fertigkeit', 'fp', 'fp_bonus']
     readonly_fields = ['fertigkeit']
     model = RelFertigkeit
@@ -144,17 +161,17 @@ class RelFertigkeitInLine(admin.TabularInline):
         return False
 
 
-class RelWesenkraftInLine(admin.TabularInline):
+class RelWesenkraftInLine(SpielerReadonlyInLine):
     model = RelWesenkraft
     extra = 1
 
 
-class RelSpezialfertigkeitInLine(admin.TabularInline):
+class RelSpezialfertigkeitInLine(SpielerReadonlyInLine):
     model = RelSpezialfertigkeit
     extra = 1
 
 
-class RelWissensfertigkeitInLine(admin.TabularInline):
+class RelWissensfertigkeitInLine(SpielerReadonlyInLine):
     model = RelWissensfertigkeit
     extra = 1
 
@@ -165,32 +182,28 @@ class AffektivitätInLine(admin.TabularInline):
     exclude = ['grad', 'umgang']
 
 
-class RelVorteilInLine(admin.TabularInline):
+class RelVorteilInLine(SpielerReadonlyInLine):
     model = RelVorteil
-    fields = ["anzahl", "teil", "notizen"]
+    fields = ["anzahl", "teil", "attribut", "fertigkeit", "engelsroboter", "notizen", "will_create"]
+    readonly_fields = ["will_create"]
     extra = 1
 
 
-class RelNachteilInLine(admin.TabularInline):
+class RelNachteilInLine(SpielerReadonlyInLine):
     model = RelNachteil
-    fields = ["anzahl", "teil", "notizen"]
+    fields = ["anzahl", "teil", "attribut", "notizen"]
     extra = 1
 
-class RelTalentInLine(admin.TabularInline):
+class RelTalentInLine(SpielerReadonlyInLine):
     model = RelTalent
     fields = ["talent"]
     extra = 1
 
 ########## generic (st)shop ##############
 
-class RelShopInLine(admin.TabularInline):
+class RelShopInLine(SpielerReadonlyInLine):
     extra = 1
     fields = ["anz", "item", "notizen"]
-
-
-class RelStShopInLine(admin.TabularInline):
-    extra = 1
-    fields = ["anz", "stufe", "item", "notizen"]
 
 
 ################## Shop ############################
@@ -219,8 +232,9 @@ class RelMagische_AusrüstungInLine(RelShopInLine):
     model = RelMagische_Ausrüstung
 
 
-class RelRituale_RunenInLine(RelStShopInLine):
+class RelRituale_RunenInLine(RelShopInLine):
     model = RelRituale_Runen
+    fields = ["anz", "stufe", "item", "notizen"]
 
 
 class RelRüstungInLine(RelShopInLine):
@@ -241,6 +255,7 @@ class RelEinbautenInLine(RelShopInLine):
 
 
 class RelZauberInLine(RelShopInLine):
+    fields = fields = ["anz", "item", "tier", "notizen", "will_create", "tier_notes"]
     model = RelZauber
 
 
@@ -260,6 +275,10 @@ class RelBegleiterInLine(RelShopInLine):
     model = RelBegleiter
 
 
+class RelEngelsroboterInLine(RelShopInLine):
+    model = RelEngelsroboter
+
+
 
 class CharakterAdmin(admin.ModelAdmin):
 
@@ -273,18 +292,20 @@ class CharakterAdmin(admin.ModelAdmin):
         ("Manifest", {"fields": ["manifest", "sonstiger_manifestverlust", "notizen_sonstiger_manifestverlust"]}),
         ('HP', {'fields': ['rang', 'HPplus']}),
         ("Basischaden im Waffenlosen Kampf", {"fields": ["wesenschaden_waff_kampf", "wesenschaden_andere_gestalt"]}),
-        ('Ressourcen', {'fields': ['sp', "geld", 'ip', 'tp', "nutzt_magie"]}),
+        ('Kampagne', {'fields': ["ep", 'ep_stufe', 'ep_stufe_in_progress', 'ap', 'fp', 'fg']}),
+        ('Ressourcen', {'fields': ['sp', "geld", 'ip', 'tp', 'zauberplätze', 'spF_wF', 'wp', "nutzt_magie"]}),
         ('Geschreibsel', {'fields': ['persönlicheZiele', 'notizen', 'sonstige_items']}),
     ]
 
     inlines = [
                RelPersönlichkeitInline,
                RelSpeziesInline, RelWesenkraftInLine,
-               RelAttributInline, RelFertigkeitInLine,
+               RelAttributInline,
+               RelFertigkeitInLine,
                RelSpezialfertigkeitInLine,
                RelWissensfertigkeitInLine, RelVorteilInLine,
                RelNachteilInLine, RelTalentInLine,
-               AffektivitätInLine, RelBegleiterInLine,
+               AffektivitätInLine,
                RelItemlInLine,
                RelWaffen_WerkzeugelInLine,
                RelMagazinInLine,
@@ -300,7 +321,8 @@ class CharakterAdmin(admin.ModelAdmin):
                RelVergessenerZauberInLine,
                RelAlchemieInLine,
                RelTinkerInLine,
-               RelBegleiterInLine
+               RelBegleiterInLine,
+               RelEngelsroboterInLine
     ]
 
     list_display = ['name', 'eigentümer', "gfs", "wesen_", "profession", "ep_system", "larp", "in_erstellung"]
@@ -315,8 +337,14 @@ class CharakterAdmin(admin.ModelAdmin):
 
     def get_readonly_fields(self, request, obj=None):
         if request.user.groups.filter(name__iexact="spieler"):
-            return ['eigentümer', "in_erstellung", "ep_system", "larp", "gfs", 'HPplus', 'ip',
-                    "wesenschaden_waff_kampf", "wesenschaden_andere_gestalt"]
+            all_fields = set(itertools.chain.from_iterable([fs[1]["fields"] for fs in self.fieldsets]))
+            allowed_fields = set([
+                "name", "gewicht", "größe", "alter", "geschlecht", "sexualität", "beruf",
+                "präf_arm", "religion", "hautfarbe", "haarfarbe", "augenfarbe",
+                'persönlicheZiele', 'notizen', 'sonstige_items'
+            ])
+            return all_fields - allowed_fields
+
         return super().get_readonly_fields(request, obj)
 
     def get_queryset(self, request):
@@ -453,18 +481,13 @@ class PersönlichkeitAdmin(admin.ModelAdmin):
 
 class VorNachteilAdmin(admin.ModelAdmin):
 
-    list_display = ('titel', 'ip', 'beschreibung', "wann_wählbar", "_max_amount")
+    list_display = ('titel', 'ip', 'beschreibung', "wann_wählbar", "is_sellable", "_max_amount", "needs_ip", "needs_attribut", "needs_fertigkeit", "needs_engelsroboter", "needs_notiz")
+    list_editable = ("is_sellable", "needs_ip", "needs_attribut", "needs_fertigkeit", "needs_engelsroboter", "needs_notiz")
     list_filter = ['ip', "wann_wählbar"]
     search_fields = ['titel', 'ip', "wann_wählbar"]
 
     def _max_amount(self, obj):
         return obj.max_amount or "unbegrenzt"
-
-
-class BegleiterAdmin(admin.ModelAdmin):
-    list_display = ['name', 'beschreibung']
-    search_fields = ['name']
-    list_filter = ['name']
 
 
 class BerufAdmin(admin.ModelAdmin):
@@ -535,7 +558,6 @@ admin.site.register(Beruf, BerufAdmin)
 admin.site.register(Nachteil, VorNachteilAdmin)
 admin.site.register(Vorteil, VorNachteilAdmin)
 admin.site.register(Wissensfertigkeit, WissensfertigkeitAdmin)
-admin.site.register(Begleiter, BegleiterAdmin)
 
 admin.site.register(SkilltreeBase, admin.ModelAdmin)
 admin.site.register(Talent, TalentAdmin)

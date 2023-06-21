@@ -15,8 +15,8 @@
 	padding-right: 10%;
 }
 
-label, input { display: block; }
-input { width: 100%; }
+label, input:not([type=checkbox]):not([type=radio]) { display: block; }
+input:not([type=checkbox]):not([type=radio]) { width: 100%; }
 
 .links {
 	margin-top: 3em;

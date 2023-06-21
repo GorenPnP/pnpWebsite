@@ -1,32 +1,35 @@
 from django.db import models
 
-from character.models import Spieler, Charakter
 
-kind_enum = [("s", "Shop"),
-             ("o", "Sonderangebot"),
-             ("a", "Attribute"),
-             ("f", "Fertigkeiten"),
-             ("h", "HPcp"),
+kind_enum = [
+    ("s", "Shop"),
+    ("u", "Auswertung"),
+    ("i", "Stufenaufstieg"),
 
-             ("g", "mehr Geld"),
-             ("c", "mehr CP"),
-             ("b", "mehr EP"),
-             ("p", "mehr SP"),
-             ("r", "mehr Rang"),
-             ("e", "weniger Geld"),
-             ("k", "weniger SP"),
+    ("o", "Sonderangebot"),
+    ("a", "Attribute"),
+    ("f", "Fertigkeiten"),
+    ("h", "HPcp"),
 
-             ("n", "neuer Nachteil"),
-             ("x", "Nachteil weg"),
-             ("y", "neuer Vorteil"),
-             ("z", "Vorteil weg"),
+    ("g", "mehr Geld"),
+    ("c", "mehr CP"),
+    ("b", "mehr EP"),
+    ("p", "mehr SP"),
+    ("r", "mehr Rang"),
+    ("e", "weniger Geld"),
+    ("k", "weniger SP"),
 
-             ("t", "Skilltree"),
-             ("m", "Manaverbrauch abgezogen"),
-             ("v", "Magie verloren"),
+    ("n", "neuer Nachteil"),
+    ("x", "Nachteil weg"),
+    ("y", "neuer Vorteil"),
+    ("z", "Vorteil weg"),
 
-             ("d", "Quiz-Punkte für SP"),
-             ]
+    ("t", "Skilltree"),
+    ("m", "Manaverbrauch abgezogen"),
+    ("v", "Magie verloren"),
+
+    ("d", "Quiz-Punkte für SP"),
+]
 
 
 class Log(models.Model):
@@ -36,8 +39,8 @@ class Log(models.Model):
         verbose_name_plural = "Logs"
         ordering = ['-timestamp']
 
-    spieler = models.ForeignKey(Spieler, on_delete=models.CASCADE)
-    char = models.ForeignKey(Charakter, on_delete=models.CASCADE, verbose_name="Charakter")
+    spieler = models.ForeignKey("character.Spieler", on_delete=models.CASCADE)
+    char = models.ForeignKey("character.Charakter", on_delete=models.CASCADE, verbose_name="Charakter")
     art = models.CharField(max_length=1, choices=kind_enum)
     kosten = models.TextField()
     notizen = models.TextField()

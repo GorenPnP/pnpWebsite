@@ -1,0 +1,13 @@
+{% extends 'base/header.html' %}
+
+
+{% block collapsible-nav-links-start %}
+    <li class="nav-item">
+        <a class="btn btn-outline-light" href="{% url 'character_export:export' char.id %}">Export</a>
+    </li>
+    {% if char.ep_stufe != char.ep_stufe_in_progress %}
+    <li class="nav-item">
+        <a class="btn btn-outline-light" href="{% url 'campaign:hub' char.id %}">Bis Stufe {{ char.ep_stufe_in_progress }} verteilen</a>
+    </li>
+    {% endif %}
+{% endblock %}

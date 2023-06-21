@@ -28,6 +28,7 @@ urlpatterns = [
     path('alchemie', listViews.AlchemieTableView.as_view(), name='alchemie'),
     path('tinker', listViews.TinkerTableView.as_view(), name='tinker'),
     path('begleiter', listViews.BegleiterTableView.as_view(), name='begleiter'),
+    path('engelsroboter', listViews.EngelsroboterTableView.as_view(), name='engelsroboter'),
 
     path('buy_item/<int:id>', buyViews.ItemBuyView.as_view(), name="buy_item"),
     path('buy_waffen_werkzeuge/<int:id>', buyViews.Waffen_WerkzeugeBuyView.as_view(), name="buy_waffen_werkzeuge"),
@@ -43,5 +44,6 @@ urlpatterns = [
     path('buy_zauber/<int:id>', buyViews.ZauberBuyView.as_view(), name="buy_zauber"),
     path('buy_vergessener_zauber/<int:id>', buyViews.VergessenerZauberBuyView.as_view(), name="buy_vergessenerzauber"),
     path('buy_alchemie/<int:id>', buyViews.AlchemieBuyView.as_view(), name="buy_alchemie"),
-    path('buy_begleiter/<int:id>', buyViews.BegleiterBuyView.as_view(), name="buy_begleiter")
+    path('buy_begleiter/<int:id>', buyViews.BegleiterBuyView.as_view(), name="buy_begleiter"),
+    path('buy_engelsroboter/<int:id>', buyViews.EngelsroboterBuyView.as_view(), name="buy_engelsroboter"),
 ]

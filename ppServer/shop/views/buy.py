@@ -9,7 +9,7 @@ from django.views.generic import DetailView
 from django.urls import reverse
 
 from character.models import *
-from log.views import logShop
+from log.create_log import logShop
 from ppServer.mixins import VerifiedAccountMixin
 
 from ..models import *
@@ -155,7 +155,7 @@ class BuyView(LoginRequiredMixin, VerifiedAccountMixin, DetailView):
         log_dict = {
             "num": num_items, "item": item, "preis_ges": debt,
             "firma_titel": firma_shop.firma.name if not extra else "außer der Reihe", "stufe": stufe}
-        logShop(spieler, char, [log_dict])
+        logShop(spieler, char, log_dict)
 
 
         messages.success(request, f"{char.name} hat {debt} Dr. für {num_items} Item(s) ausgegeben.")
@@ -258,3 +258,9 @@ class BegleiterBuyView(BuyView):
     relshop_model = RelBegleiter
     firmashop_model = FirmaBegleiter
     relfirmashop_model = RelFirmaBegleiter
+
+class EngelsroboterBuyView(BuyView):
+    shop_model = Engelsroboter
+    relshop_model = RelEngelsroboter
+    firmashop_model = FirmaEngelsroboter
+    relfirmashop_model = RelFirmaEngelsroboter

@@ -28,26 +28,12 @@
 		</ul>
 		{% endif %}
 
+		{% block asides %}{% endblock %}
+
 		<main class="main-container">
 			{% block main %}{% endblock %}
 		</main>
 
-{% comment %}
-		{% block asides %}
-			{% if request.user.is_authenticated %}
-			<aside class="bookmark planner">
-				<a href="{% url 'planner:index' %}">Planer</a>
-			</aside>
-		
-			<aside class="bookmark chat">
-				<a class="chat-container" href="{% url 'httpchat:index' %}">
-					<img src="{% static 'res/img/open-envelope-paper.png' %}" height="50px" width="50px" class="bg">
-					<span class="new_messages">{{ request.user|newMessages }}</span>
-				</a>
-			</aside>
-			{% endif %}
-		{% endblock %}
-{% endcomment %}
 	
 		{% block footer %}
 			{% if request.user.is_authenticated and not request.user.email %}

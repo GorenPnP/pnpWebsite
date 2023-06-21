@@ -28,6 +28,7 @@ account_activation_token = TokenGenerator()
 def signup(request):
     if request.method == 'POST':
         form = SignupForm(request.POST)
+        form.full_clean()
         if form.is_valid():
             user = form.save(commit=False)
 
@@ -66,6 +67,7 @@ def change_email(request):
     
     if request.method == 'POST':
         form = ChangeEmailForm(request.POST)
+        form.full_clean()
         if form.is_valid():
             new_email = form.cleaned_data['email']
             if new_email == old_email:

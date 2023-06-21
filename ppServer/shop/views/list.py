@@ -15,6 +15,7 @@ from django_tables2.export.views import ExportMixin
 from django_tables2.views import SingleTableMixin
 
 from base.abstract_views import DynamicTableView, GenericTable
+from log.create_log import render_number
 from ppServer.mixins import VerifiedAccountMixin
 
 from ..models import *
@@ -41,9 +42,8 @@ model_list = [
     Alchemie,
     Tinker,
     Begleiter,
+    Engelsroboter,
 ]
-def render_number(num: int) -> str:
-    return f"{num:,}".replace(",", ".")
     
 
 class FullShopTableView(LoginRequiredMixin, VerifiedAccountMixin, ExportMixin, SingleTableMixin, TemplateView):
@@ -474,3 +474,14 @@ class BegleiterTableView(ShopTableView):
     model = Begleiter
     filterset_fields = ShopFilter._meta.fields
     table_fields = ("icon", "name", "beschreibung", "ab_stufe", "preis")
+
+
+class EngelsroboterTableView(ShopTableView):
+    model = Engelsroboter
+    filterset_fields = {**ShopFilter._meta.fields,
+        'ST': ["gte"],
+        'UM': ["gte"],
+        'MA': ["gte"],
+        'IN': ["gte"],
+    }
+    table_fields = ("icon", "name", "beschreibung", "ab_stufe", 'ST', 'UM', 'MA', 'IN', "preis")

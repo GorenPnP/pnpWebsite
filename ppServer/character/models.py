@@ -1,14 +1,22 @@
 import random, string
+
 from datetime import date
+import sys
+from sentry_sdk import capture_message
 
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from django.db.models.functions import Concat
+from django.db.models import Max, Sum, FilteredRelation, Q, F, OuterRef, Subquery, Count
 from django.shortcuts import get_object_or_404
 
 from markdownfield.models import MarkdownField, RenderedMarkdownField
 from markdownfield.validators import VALIDATOR_STANDARD
+
+from log.create_log import logStufenaufstieg
+from shop.models import *
 
 from . import enums
 
@@ -217,6 +225,11 @@ class GfsVorteil(models.Model):
     anzahl = models.PositiveSmallIntegerField(default=1)
     notizen = models.CharField(max_length=100, default='', blank=True)
 
+    attribut = models.ForeignKey("Attribut", on_delete=models.SET_NULL, null=True, blank=True)
+    fertigkeit = models.ForeignKey("Fertigkeit", on_delete=models.SET_NULL, null=True, blank=True)
+    engelsroboter = models.ForeignKey(Engelsroboter, on_delete=models.SET_NULL, null=True, blank=True)
+    ip = models.PositiveSmallIntegerField(null=True, blank=True)
+
 
 class GfsNachteil(models.Model):
     class Meta:
@@ -230,6 +243,11 @@ class GfsNachteil(models.Model):
 
     anzahl = models.PositiveSmallIntegerField(default=1)
     notizen = models.CharField(max_length=100, default='', blank=True)
+
+    attribut = models.ForeignKey("Attribut", on_delete=models.SET_NULL, null=True, blank=True)
+    fertigkeit = models.ForeignKey("Fertigkeit", on_delete=models.SET_NULL, null=True, blank=True)
+    engelsroboter = models.ForeignKey(Engelsroboter, on_delete=models.SET_NULL, null=True, blank=True)
+    ip = models.PositiveSmallIntegerField(null=True, blank=True)
 
 
 class ProfessionAttribut(models.Model):
@@ -263,7 +281,7 @@ class ProfessionFertigkeit(models.Model):
     fp = models.IntegerField(default=0)
 
     def __str__(self):
-        return "'{}' von ’{}’".format(self.fertigkeit.__str__(), self.profession.__str__())
+        return "'{}' von '{}'".format(self.fertigkeit.__str__(), self.profession.__str__())
 
 
 class ProfessionSpezialfertigkeit(models.Model):
@@ -279,7 +297,7 @@ class ProfessionSpezialfertigkeit(models.Model):
     spezial = models.ForeignKey("Spezialfertigkeit", on_delete=models.CASCADE)
 
     def __str__(self):
-        return "'{}' von ’{}’".format(self.spezial.__str__(), self.profession.__str__())
+        return "'{}' von '{}'".format(self.spezial.__str__(), self.profession.__str__())
 
 
 class ProfessionWissensfertigkeit(models.Model):
@@ -295,7 +313,7 @@ class ProfessionWissensfertigkeit(models.Model):
     wissen = models.ForeignKey("Wissensfertigkeit", on_delete=models.CASCADE)
 
     def __str__(self):
-        return "'{}' von ’{}’".format(self.wissen.__str__(), self.profession.__str__())
+        return "'{}' von '{}'".format(self.wissen.__str__(), self.profession.__str__())
 
 
 class GfsStufenplanBase(models.Model):
@@ -330,8 +348,8 @@ class GfsStufenplan(models.Model):
     vorteile = models.ManyToManyField("Vorteil", blank=True)
     zauber = models.PositiveSmallIntegerField(default=0)
     wesenkräfte = models.ManyToManyField("Wesenkraft", blank=True)
-    special_ability = models.CharField(max_length=100, default=None, blank=True, null=True, verbose_name="Fertigkeit")
-    special_ability_description = models.TextField(max_length=1000, default=None, blank=True, null=True, verbose_name="Beschreibung")
+    special_ability = models.CharField(max_length=100, default=None, blank=True, null=True, verbose_name="Fähigkeit")
+    special_ability_description = models.TextField(max_length=2000, default=None, blank=True, null=True, verbose_name="Beschreibung")
 
 
 class ProfessionStufenplanBase(models.Model):
@@ -401,10 +419,19 @@ class Teil(models.Model):
 
     titel = models.CharField(max_length=40)
     ip = models.PositiveIntegerField(default=0, validators=[MaxValueValidator(1000)])
+    min_ip = models.PositiveIntegerField(default=0, validators=[MaxValueValidator(1000)])
+    max_ip = models.PositiveIntegerField(default=0, validators=[MaxValueValidator(1000)])
     beschreibung = models.TextField(max_length=1000, blank=True, default="")
 
     wann_wählbar = models.CharField(max_length=1, choices=enums.teil_erstellung_enum, default=enums.teil_erstellung_enum[0][0])
+    is_sellable = models.BooleanField(default=True)
     max_amount = models.PositiveSmallIntegerField(default=1, null=True, blank=True, help_text="Leer lassen für keine Beschränkung")
+
+    needs_attribut = models.BooleanField(default=False)
+    needs_fertigkeit = models.BooleanField(default=False)
+    needs_engelsroboter = models.BooleanField(default=False)
+    needs_notiz = models.BooleanField(default=False)
+    needs_ip = models.BooleanField(default=False)
 
 
 class Vorteil(Teil):
@@ -519,19 +546,6 @@ class Spezialfertigkeit(models.Model):
         return "{} ({}, {})".format(self.titel, st, nd)
 
 
-class Begleiter(models.Model):
-    class Meta:
-        ordering = ['name']
-        verbose_name = "Begleiter"
-        verbose_name_plural = "Begleiter"
-
-    name = models.CharField(max_length=200, default='', unique=True)
-    beschreibung = models.CharField(max_length=100, blank=True, default='')
-
-    def __str__(self):
-        return "{}".format(self.name)
-
-
 # default for Charakter.name
 def rand_str():
     return ''.join(random.choice(string.ascii_letters + string.digits) for _ in range(10))
@@ -549,8 +563,8 @@ class Charakter(models.Model):
     larp = models.BooleanField(default=False)
 
     eigentümer = models.ForeignKey(Spieler, on_delete=models.CASCADE, null=True, blank=True)
-    name = models.CharField(max_length=200, default=rand_str, blank=True, unique=True)
-    spezies = models.ManyToManyField(Spezies, related_name='wesen', through='RelSpezies')
+    name = models.CharField(max_length=200, null=True, blank=True)
+    spezies = models.ManyToManyField(Spezies, related_name='wesen', through='character.RelSpezies')
     gfs = models.ForeignKey(Gfs, on_delete=models.SET_NULL, null=True, blank=True)
     profession = models.ForeignKey(Profession, on_delete=models.SET_NULL, null=True, blank=True)
 
@@ -560,13 +574,13 @@ class Charakter(models.Model):
                                                     validators=[MaxValueValidator(10), MinValueValidator(0)], blank=True)
     notizen_sonstiger_manifestverlust = models.CharField(max_length=200, default="", blank=True)
 
-    gewicht = models.PositiveIntegerField(default=75, blank=True)
-    größe = models.PositiveIntegerField(default=170, blank=True)
+    gewicht = models.PositiveIntegerField(default=75, blank=True, verbose_name="Gewicht in kg")
+    größe = models.PositiveIntegerField(default=170, blank=True, verbose_name="Größe in cm")
     alter = models.PositiveIntegerField(default=0, blank=True)
     geschlecht = models.CharField(max_length=100, blank=True)
     sexualität = models.CharField(max_length=100, blank=True)
     beruf = models.ForeignKey(Beruf, null=True, on_delete=models.SET_NULL, blank=True)
-    präf_arm = models.CharField(max_length=100, default="", blank=True)
+    präf_arm = models.CharField(max_length=100, default="", blank=True, verbose_name="präferierter Arm (rechts/links?)")
     religion = models.ForeignKey(Religion, null=True, on_delete=models.SET_NULL, blank=True)
     hautfarbe = models.CharField(max_length=100, default="", blank=True)
     haarfarbe = models.CharField(max_length=100, default="", blank=True)
@@ -574,14 +588,23 @@ class Charakter(models.Model):
 
     nutzt_magie = models.PositiveSmallIntegerField(choices=enums.nutzt_magie_enum, default=enums.nutzt_magie_enum[0][0], blank=True)
 
-    sp = models.PositiveIntegerField(default=0)
-    ip = models.IntegerField(default=0)
-    tp = models.IntegerField(default=0)
+    ap = models.PositiveIntegerField(null=True, blank=True)
+    fp = models.PositiveIntegerField(null=True, blank=True)
+    fg = models.PositiveIntegerField(null=True, blank=True)
+    sp = models.PositiveIntegerField(null=True, blank=True)
+    ip = models.IntegerField(null=True, blank=True)
+    tp = models.IntegerField(null=True, blank=True)
+    spF_wF = models.IntegerField(null=True, blank=True)
+    wp = models.IntegerField(null=True, blank=True)
+    zauberplätze = models.JSONField(null=True, blank=True) # {"0": 2, "2": 1}
     geld = models.IntegerField(default=0)
     konzentration = models.PositiveSmallIntegerField(null=True, blank=True)
+    prestige = models.PositiveIntegerField(default=0)
+    verzehr = models.PositiveIntegerField(default=0)
 
     ep = models.PositiveIntegerField(default=0)
     ep_stufe = models.PositiveIntegerField(default=0)
+    ep_stufe_in_progress = models.PositiveIntegerField(default=0)
 
     HPplus = models.IntegerField(default=0, blank=True)
     HPplus_fix = models.IntegerField(default=None, null=True, blank=True)
@@ -589,33 +612,35 @@ class Charakter(models.Model):
     wesenschaden_andere_gestalt = models.IntegerField("BS andere Gestalt", blank=True, null=True)
     rang = models.PositiveIntegerField(default=0, validators=[MaxValueValidator(500)], blank=True)
 
-    vorteile = models.ManyToManyField(Vorteil, through="RelVorteil", blank=True)
-    nachteile = models.ManyToManyField(Nachteil, through="RelNachteil", blank=True)
-    talente = models.ManyToManyField(Talent, through="RelTalent", blank=True)
+    vorteile = models.ManyToManyField(Vorteil, through="character.RelVorteil", blank=True)
+    nachteile = models.ManyToManyField(Nachteil, through="character.RelNachteil", blank=True)
+    talente = models.ManyToManyField(Talent, through="character.RelTalent", blank=True)
 
     notizen = models.TextField(blank=True)
     persönlicheZiele = models.TextField(blank=True)
 
-    wesenkräfte = models.ManyToManyField(Wesenkraft, through="RelWesenkraft", blank=True)
+    persönlichkeit = models.ManyToManyField(Persönlichkeit, blank=True)
+    wesenkräfte = models.ManyToManyField(Wesenkraft, through="character.RelWesenkraft", blank=True)
 
-    attribute = models.ManyToManyField(Attribut, through='RelAttribut', blank=True)
-    fertigkeiten = models.ManyToManyField(Fertigkeit, through='RelFertigkeit', blank=True)
-    spezialfertigkeiten = models.ManyToManyField(Spezialfertigkeit, through='RelSpezialfertigkeit', blank=True)
-    wissensfertigkeiten = models.ManyToManyField(Wissensfertigkeit, through='RelWissensfertigkeit', blank=True)
+    attribute = models.ManyToManyField(Attribut, through="character.RelAttribut", blank=True)
+    fertigkeiten = models.ManyToManyField(Fertigkeit, through='character.RelFertigkeit', blank=True)
+    spezialfertigkeiten = models.ManyToManyField(Spezialfertigkeit, through='character.RelSpezialfertigkeit', blank=True)
+    wissensfertigkeiten = models.ManyToManyField(Wissensfertigkeit, through='character.RelWissensfertigkeit', blank=True)
 
-    items = models.ManyToManyField('shop.Item', through='RelItem', blank=True)
-    waffenWerkzeuge = models.ManyToManyField('shop.Waffen_Werkzeuge', through='RelWaffen_Werkzeuge', blank=True)
-    magazine = models.ManyToManyField('shop.Magazin', through='RelMagazin', blank=True)
-    schusswaffen = models.ManyToManyField('shop.Schusswaffen', through='RelSchusswaffen', blank=True)
-    magischeAusrüstung = models.ManyToManyField('shop.Magische_Ausrüstung', through='RelMagische_Ausrüstung', blank=True)
-    rituale_runen = models.ManyToManyField('shop.Rituale_Runen', through='RelRituale_Runen', blank=True)
-    rüstungen = models.ManyToManyField('shop.Rüstungen', through='RelRüstung', blank=True)
-    ausrüstungTechnik = models.ManyToManyField('shop.Ausrüstung_Technik', through='RelAusrüstung_Technik', blank=True)
-    fahrzeuge = models.ManyToManyField('shop.Fahrzeug', through='RelFahrzeug', blank=True)
-    einbauten = models.ManyToManyField('shop.Einbauten', through='RelEinbauten', blank=True)
-    zauber = models.ManyToManyField('shop.Zauber', through='RelZauber', blank=True)
-    vergessene_zauber = models.ManyToManyField('shop.VergessenerZauber', through='RelVergessenerZauber', blank=True)
-    begleiter = models.ManyToManyField('shop.Begleiter', through='RelBegleiter', blank=True)
+    items = models.ManyToManyField(Item, through='character.RelItem', blank=True)
+    waffenWerkzeuge = models.ManyToManyField(Waffen_Werkzeuge, through='character.RelWaffen_Werkzeuge', blank=True)
+    magazine = models.ManyToManyField(Magazin, through='character.RelMagazin', blank=True)
+    schusswaffen = models.ManyToManyField(Schusswaffen, through='character.RelSchusswaffen', blank=True)
+    magischeAusrüstung = models.ManyToManyField(Magische_Ausrüstung, through='character.RelMagische_Ausrüstung', blank=True)
+    rituale_runen = models.ManyToManyField(Rituale_Runen, through='character.RelRituale_Runen', blank=True)
+    rüstungen = models.ManyToManyField(Rüstungen, through='character.RelRüstung', blank=True)
+    ausrüstungTechnik = models.ManyToManyField(Ausrüstung_Technik, through='character.RelAusrüstung_Technik', blank=True)
+    fahrzeuge = models.ManyToManyField(Fahrzeug, through='character.RelFahrzeug', blank=True)
+    einbauten = models.ManyToManyField(Einbauten, through='character.RelEinbauten', blank=True)
+    zauber = models.ManyToManyField(Zauber, through='character.RelZauber', blank=True)
+    vergessene_zauber = models.ManyToManyField(VergessenerZauber, through='character.RelVergessenerZauber', blank=True)
+    begleiter = models.ManyToManyField(Begleiter, through='character.RelBegleiter', blank=True)
+    engelsroboter = models.ManyToManyField(Engelsroboter, through='character.RelEngelsroboter', blank=True)
 
     sonstige_items = models.TextField(max_length=1000, default='', blank=True)
 
@@ -628,6 +653,105 @@ class Charakter(models.Model):
     def get_konzentration(self):
         return self.konzentration if self.konzentration is not None else RelAttribut.objects.get(char=self, attribut__titel="IN").aktuell() * 5
 
+    def get_max_stufe(self) -> int:
+        return GfsStufenplanBase.objects.filter(ep__lte=self.ep).aggregate(Max("stufe"))["stufe__max"] or 0
+
+    def init_stufenhub(self):
+        max_stufe = self.get_max_stufe()
+        if self.ep_stufe_in_progress >= max_stufe or self.gfs is None: return
+
+        base_qs = self.gfs.gfsstufenplan_set\
+            .prefetch_related("basis")\
+            .filter(basis__stufe__gt=self.ep_stufe_in_progress or self.ep_stufe, basis__stufe__lte=max_stufe)
+
+        # numeric values
+        numeric_values = base_qs\
+            .aggregate(
+                ap=Sum("basis__ap"),
+                fp=Sum("basis__fp"),
+                fg=Sum("basis__fg"),
+            )
+
+
+        # vorteile
+        vorteil_ids = base_qs.filter(vorteile__isnull=False).values_list("vorteile__id", flat=True)
+        vorteile = Vorteil.objects.filter(id__in=vorteil_ids)
+        rel_vorteile = RelVorteil.objects\
+            .filter(char=self, teil__in=vorteile)\
+            .values("teil__id", "anzahl")
+
+        for vorteil_id in set(vorteil_ids):
+            vorteil = vorteile.get(id=vorteil_id)
+            sum_rel_vorteile = len([x for x in rel_vorteile if x["teil__id"] == vorteil_id])
+            sum_vorteile = len([x for x in vorteil_ids if x == vorteil_id])
+            total_sum = sum_rel_vorteile + sum_vorteile
+            max_amount = vorteil.max_amount if vorteil.max_amount is not None else sys.maxsize
+
+            # some not allowed, give ip
+            amount_in_overflow = total_sum - max_amount
+            if amount_in_overflow > 0:
+                print(amount_in_overflow, "x", f"Will give you {vorteil.ip} IP for ", vorteil.titel)
+                self.ip += amount_in_overflow * vorteil.ip
+
+            # needs more information
+            amount_to_create = min(max_amount - sum_rel_vorteile, sum_vorteile)
+            if max_amount != 1 and amount_to_create > 0:
+                print(amount_to_create, "x", "create RelVorteil for", vorteil.titel)
+                for _ in range(amount_to_create):
+                    RelVorteil.objects.create(teil=vorteil, char=self, anzahl=1, will_create=True)
+
+        # persist
+        self.ap += numeric_values["ap"]
+        self.fp += numeric_values["fp"]
+        self.fg += numeric_values["fg"]
+        self.ep_stufe_in_progress = max_stufe
+        
+        logStufenaufstieg(self.eigentümer, self)
+        print("alte Stufe", self.ep_stufe, "Neue Stufe", max_stufe)
+
+        self.save(update_fields=["ap", "fp", "fg", "ip", "ep_stufe_in_progress"])
+
+    def submit_stufenhub(self):
+        if self.ep_stufe >= self.ep_stufe_in_progress or self.gfs is None: return
+
+        base_qs = self.gfs.gfsstufenplan_set\
+            .prefetch_related("basis")\
+            .filter(basis__stufe__gt=self.ep_stufe, basis__stufe__lte=self.ep_stufe_in_progress)
+
+        # tp (numeric values)
+        self.tp += base_qs.aggregate(tp=Sum("basis__tp"))["tp"]
+
+        # zauber
+        for plan in base_qs.filter(zauber__gt=0):
+            for _ in range(plan.zauber):
+                self.zauberplätze.append(plan.basis.stufe)
+
+        # wesenkräfte
+        wesenkräfte = base_qs.filter(wesenkräfte__isnull=False).wesenkräfte
+        for w in wesenkräfte:
+            _, created = RelWesenkraft.objects.get_or_create(char=self, wesenkraft=w, defaults={"tier": 1 if w.wesen == "w" and self.gfs in w.zusatz_gfsspezifisch else 0})
+            if not created:
+                # log that wesenkraft already existed
+                print(f"Wesenkraft {w.titel} war bei {self.name} ({self.gfs.titel}) im EP-Tree Stufe {self.ep_stufe+1} - {self.ep_stufe_in_progress}")
+                capture_message(f"Wesenkraft {w.titel} war bei {self.name} ({self.gfs.titel}) im EP-Tree Stufe {self.ep_stufe+1} - {self.ep_stufe_in_progress}", level='info')
+
+        # vorteile
+        new_vorteil = base_qs.filter(vorteile__isnull=False)
+        rel_vorteil = RelVorteil.objects\
+            .filter(char=self, teil__id__in=[v["id"] for v in vorteile])\
+            .values_list("teil", flat=True)
+
+        vorteile = Vorteil.objects\
+            .filter(id__in=new_vorteil, max_amount=1)\
+            .exclude(id__in=rel_vorteil)
+
+        for vorteil in vorteile:
+            # add vorteil. No extra information needed.
+            print("1x add on submit of Stufe", vorteil.titel)
+            RelVorteil.objects.create(char=self, teil=vorteil)
+
+        self.ep_stufe = self.ep_stufe_in_progress
+        self.save(update_fields=["tp", "zauberplätze", "ep_stufe"])
 
 
 class RelWesenkraft(models.Model):
@@ -723,6 +847,11 @@ class RelTeil(models.Model):
     anzahl = models.PositiveSmallIntegerField(default=1)
     notizen = models.CharField(max_length=500, blank=True, null=True)
 
+    attribut = models.ForeignKey(Attribut, on_delete=models.SET_NULL, null=True, blank=True)
+    fertigkeit = models.ForeignKey(Fertigkeit, on_delete=models.SET_NULL, null=True, blank=True)
+    engelsroboter = models.ForeignKey(Engelsroboter, on_delete=models.SET_NULL, null=True, blank=True)
+    ip = models.PositiveSmallIntegerField(null=True, blank=True)
+
     def __str__(self):
         return "'{}' zu Charakter '{}'".format(self.teil.titel, self.char.name)
 
@@ -733,6 +862,8 @@ class RelVorteil(RelTeil):
         verbose_name_plural = "Vorteile"
 
     teil = models.ForeignKey(Vorteil, on_delete=models.CASCADE)
+
+    will_create = models.BooleanField(default=False)
 
 
 class RelNachteil(RelTeil):
@@ -756,20 +887,25 @@ class RelAttribut(models.Model):
     attribut = models.ForeignKey(Attribut, on_delete=models.CASCADE)
 
     aktuellerWert = models.PositiveIntegerField(default=0)
+    aktuellerWert_temp = models.PositiveIntegerField(default=0)
     aktuellerWert_bonus = models.PositiveIntegerField(default=0)
+    aktuellerWert_fix = models.PositiveIntegerField(null=True, blank=True)
 
     maxWert = models.PositiveIntegerField(default=0)
+    maxWert_temp = models.PositiveIntegerField(default=0)
     maxWert_bonus = models.PositiveIntegerField(default=0)
+    maxWert_fix = models.PositiveIntegerField(null=True, blank=True)
 
     fg = models.PositiveIntegerField(default=0)
+    fg_temp = models.PositiveIntegerField(default=0)
     fg_bonus = models.PositiveIntegerField(default=0)
 
     def __str__(self):
         return "'{}' von '{}'".format(self.attribut.__str__(), self.char.__str__())
 
-    def aktuell(self): return self.aktuellerWert + self.aktuellerWert_bonus
-    def max(self): return self.maxWert + self.maxWert_bonus
-    def fg_sum(self): return self.fg + self.fg_bonus
+    def aktuell(self): return self.aktuellerWert + self.aktuellerWert_temp + self.aktuellerWert_bonus
+    def max(self): return self.maxWert + self.maxWert_temp + self.maxWert_bonus
+    def fg_sum(self): return self.fg + self.fg_temp + self.fg_bonus
 
 class RelFertigkeit(models.Model):
 
@@ -784,13 +920,14 @@ class RelFertigkeit(models.Model):
     fertigkeit = models.ForeignKey(Fertigkeit, on_delete=models.CASCADE)
 
     fp = models.SmallIntegerField(default=0)
+    fp_temp = models.SmallIntegerField(default=0)
     fp_bonus = models.SmallIntegerField(default=0)
 
     def __str__(self):
         return "'{}' von '{}'".format(self.fertigkeit.__str__(), self.char.__str__())
 
     def pool(self):
-        pool = self.fp + self.fp_bonus
+        pool = self.fp + self.fp_temp + self.fp_bonus
         relAttr1 = RelAttribut.objects.get(char=self.char, attribut=self.fertigkeit.attr1)
         pool += relAttr1.aktuell()
 
@@ -860,7 +997,7 @@ class RelItem(RelShop):
         verbose_name = "Item"
         verbose_name_plural = "Items"
 
-    item = models.ForeignKey('shop.Item', on_delete=models.CASCADE)
+    item = models.ForeignKey(Item, on_delete=models.CASCADE)
 
 
 class RelWaffen_Werkzeuge(RelShop):
@@ -868,7 +1005,7 @@ class RelWaffen_Werkzeuge(RelShop):
         verbose_name = "Waffe/Werkzeug"
         verbose_name_plural = "Waffen & Werkzeuge"
 
-    item = models.ForeignKey('shop.Waffen_Werkzeuge', on_delete=models.CASCADE)
+    item = models.ForeignKey(Waffen_Werkzeuge, on_delete=models.CASCADE)
 
 
 class RelMagazin(RelShop):
@@ -876,7 +1013,7 @@ class RelMagazin(RelShop):
         verbose_name = "Magazin"
         verbose_name_plural = "Magazine"
 
-    item = models.ForeignKey('shop.Magazin', on_delete=models.CASCADE)
+    item = models.ForeignKey(Magazin, on_delete=models.CASCADE)
 
 
 class RelPfeil_Bolzen(RelShop):
@@ -884,7 +1021,7 @@ class RelPfeil_Bolzen(RelShop):
         verbose_name = "Pfeil/Bolzen"
         verbose_name_plural = "Pfeile & Bolzen"
 
-    item = models.ForeignKey('shop.Pfeil_bolzen', on_delete=models.CASCADE)
+    item = models.ForeignKey(Pfeil_Bolzen, on_delete=models.CASCADE)
 
 
 class RelSchusswaffen(RelShop):
@@ -892,7 +1029,7 @@ class RelSchusswaffen(RelShop):
         verbose_name = "Schusswaffe"
         verbose_name_plural = "Schusswaffen"
 
-    item = models.ForeignKey('shop.Schusswaffen', on_delete=models.CASCADE)
+    item = models.ForeignKey(Schusswaffen, on_delete=models.CASCADE)
 
 
 class RelMagische_Ausrüstung(RelShop):
@@ -900,7 +1037,7 @@ class RelMagische_Ausrüstung(RelShop):
         verbose_name = "magische Ausrüstung"
         verbose_name_plural = "magische Ausrüstung"
 
-    item = models.ForeignKey('shop.Magische_Ausrüstung', on_delete=models.CASCADE)
+    item = models.ForeignKey(Magische_Ausrüstung, on_delete=models.CASCADE)
 
 
 class RelRüstung(RelShop):
@@ -908,7 +1045,7 @@ class RelRüstung(RelShop):
         verbose_name = "Rüstung"
         verbose_name_plural = "Rüstungen"
 
-    item = models.ForeignKey('shop.Rüstungen', on_delete=models.CASCADE)
+    item = models.ForeignKey(Rüstungen, on_delete=models.CASCADE)
 
 
 class RelAusrüstung_Technik(RelShop):
@@ -916,7 +1053,7 @@ class RelAusrüstung_Technik(RelShop):
         verbose_name = "Ausrüstung & Technik"
         verbose_name_plural = "Ausrüstung & Technik"
 
-    item = models.ForeignKey('shop.Ausrüstung_Technik', on_delete=models.CASCADE)
+    item = models.ForeignKey(Ausrüstung_Technik, on_delete=models.CASCADE)
     selbst_eingebaut = models.BooleanField(default=False)
 
 
@@ -925,7 +1062,7 @@ class RelFahrzeug(RelShop):
         verbose_name = "Fahrzeug"
         verbose_name_plural = "Fahrzeuge"
 
-    item = models.ForeignKey('shop.Fahrzeug', on_delete=models.CASCADE)
+    item = models.ForeignKey(Fahrzeug, on_delete=models.CASCADE)
 
 
 class RelEinbauten(RelShop):
@@ -933,7 +1070,7 @@ class RelEinbauten(RelShop):
         verbose_name = "Einbauten"
         verbose_name_plural = "Einbauten"
 
-    item = models.ForeignKey('shop.Einbauten', on_delete=models.CASCADE)
+    item = models.ForeignKey(Einbauten, on_delete=models.CASCADE)
 
 
 class RelZauber(RelShop):
@@ -941,7 +1078,12 @@ class RelZauber(RelShop):
         verbose_name = "Zauber"
         verbose_name_plural = "Zauber"
 
-    item = models.ForeignKey('shop.Zauber', on_delete=models.CASCADE)
+    item = models.ForeignKey(Zauber, on_delete=models.CASCADE)
+    will_create = models.BooleanField(default=False)
+
+    # tier
+    tier = models.PositiveSmallIntegerField(default=0, validators=[MaxValueValidator(7)])
+    tier_notes = models.JSONField(default=dict, blank=True)
 
     def __str__(self):
         return "{}".format(self.item)
@@ -952,7 +1094,7 @@ class RelVergessenerZauber(RelShop):
         verbose_name = "vergessener Zauber"
         verbose_name_plural = "vergessene Zauber"
 
-    item = models.ForeignKey('shop.VergessenerZauber', on_delete=models.CASCADE)
+    item = models.ForeignKey(VergessenerZauber, on_delete=models.CASCADE)
 
     def __str__(self):
         return "{}".format(self.item)
@@ -963,7 +1105,7 @@ class RelAlchemie(RelShop):
         verbose_name = "Alchemie"
         verbose_name_plural = "Alchemie"
 
-    item = models.ForeignKey('shop.Alchemie', on_delete=models.CASCADE)
+    item = models.ForeignKey(Alchemie, on_delete=models.CASCADE)
 
 
 class RelTinker(RelShop):
@@ -971,7 +1113,7 @@ class RelTinker(RelShop):
         verbose_name = "Für Selbstständige"
         verbose_name_plural = "Für Selbstständige"
 
-    item = models.ForeignKey('shop.Tinker', on_delete=models.CASCADE)
+    item = models.ForeignKey(Tinker, on_delete=models.CASCADE)
 
 
 class RelBegleiter(RelShop):
@@ -979,7 +1121,15 @@ class RelBegleiter(RelShop):
         verbose_name = "Begleiter"
         verbose_name_plural = "Begleiter"
 
-    item = models.ForeignKey('shop.Begleiter', on_delete=models.CASCADE, null=True)
+    item = models.ForeignKey(Begleiter, on_delete=models.CASCADE, null=True)
+
+
+class RelEngelsroboter(RelShop):
+    class Meta:
+        verbose_name = "Engelsroboter"
+        verbose_name_plural = "Engelsroboter"
+
+    item = models.ForeignKey(Engelsroboter, on_delete=models.CASCADE, null=True)
 
 
 class RelRituale_Runen(RelShop):
@@ -987,7 +1137,7 @@ class RelRituale_Runen(RelShop):
         verbose_name = "Ritual/Rune"
         verbose_name_plural = "Rituale & Runen"
 
-    item = models.ForeignKey('shop.Rituale_Runen', on_delete=models.CASCADE)
+    item = models.ForeignKey(Rituale_Runen, on_delete=models.CASCADE)
 
 
 # verf_shop_firma
@@ -1010,7 +1160,7 @@ class RelFirmaItem(RelFirmaShop):
         verbose_name = "Item Verfügbarkeit"
         verbose_name_plural = "Items Verfügbarkeiten"
 
-    firma_shop = models.ForeignKey('shop.FirmaItem', on_delete=models.CASCADE)
+    firma_shop = models.ForeignKey(FirmaItem, on_delete=models.CASCADE)
 
 
 class RelFirmaWaffen_Werkzeuge(RelFirmaShop):
@@ -1018,7 +1168,7 @@ class RelFirmaWaffen_Werkzeuge(RelFirmaShop):
         verbose_name = "Waffe/Werkzeug Verfügbarkeit"
         verbose_name_plural = "Waffen & Werkzeuge Verfügbarkeiten"
 
-    firma_shop = models.ForeignKey('shop.FirmaWaffen_Werkzeuge', on_delete=models.CASCADE)
+    firma_shop = models.ForeignKey(FirmaWaffen_Werkzeuge, on_delete=models.CASCADE)
 
 
 class RelFirmaMagazin(RelFirmaShop):
@@ -1026,7 +1176,7 @@ class RelFirmaMagazin(RelFirmaShop):
         verbose_name = "Magazin Verfügbarkeit"
         verbose_name_plural = "Magazine Verfügbarkeiten"
 
-    firma_shop = models.ForeignKey('shop.FirmaMagazin', on_delete=models.CASCADE)
+    firma_shop = models.ForeignKey(FirmaMagazin, on_delete=models.CASCADE)
 
 
 class RelFirmaPfeil_Bolzen(RelFirmaShop):
@@ -1034,7 +1184,7 @@ class RelFirmaPfeil_Bolzen(RelFirmaShop):
         verbose_name = "Pfeil/Bolzen Verfügbarkeit"
         verbose_name_plural = "Pfeile & Bolzen Verfügbarkeiten"
 
-    firma_shop = models.ForeignKey('shop.FirmaPfeil_bolzen', on_delete=models.CASCADE)
+    firma_shop = models.ForeignKey(FirmaPfeil_Bolzen, on_delete=models.CASCADE)
 
 
 class RelFirmaSchusswaffen(RelFirmaShop):
@@ -1042,7 +1192,7 @@ class RelFirmaSchusswaffen(RelFirmaShop):
         verbose_name = "Schusswaffe Verfügbarkeit"
         verbose_name_plural = "Schusswaffen Verfügbarkeiten"
 
-    firma_shop = models.ForeignKey('shop.FirmaSchusswaffen', on_delete=models.CASCADE)
+    firma_shop = models.ForeignKey(FirmaSchusswaffen, on_delete=models.CASCADE)
 
 
 class RelFirmaMagische_Ausrüstung(RelFirmaShop):
@@ -1050,7 +1200,7 @@ class RelFirmaMagische_Ausrüstung(RelFirmaShop):
         verbose_name = "magische Ausrüstung Verfügbarkeit"
         verbose_name_plural = "magische Ausrüstung Verfügbarkeiten"
 
-    firma_shop = models.ForeignKey('shop.FirmaMagische_Ausrüstung', on_delete=models.CASCADE)
+    firma_shop = models.ForeignKey(FirmaMagische_Ausrüstung, on_delete=models.CASCADE)
 
 
 class RelFirmaRüstung(RelFirmaShop):
@@ -1058,7 +1208,7 @@ class RelFirmaRüstung(RelFirmaShop):
         verbose_name = "Rüstung Verfügbarkeit"
         verbose_name_plural = "Rüstungen Verfügbarkeiten"
 
-    firma_shop = models.ForeignKey('shop.FirmaRüstungen', on_delete=models.CASCADE)
+    firma_shop = models.ForeignKey(FirmaRüstungen, on_delete=models.CASCADE)
 
 
 class RelFirmaAusrüstung_Technik(RelFirmaShop):
@@ -1066,7 +1216,7 @@ class RelFirmaAusrüstung_Technik(RelFirmaShop):
         verbose_name = "Ausrüstung & Technik Verfügbarkeit"
         verbose_name_plural = "Ausrüstung & Technik Verfügbarkeiten"
 
-    firma_shop = models.ForeignKey('shop.FirmaAusrüstung_Technik', on_delete=models.CASCADE)
+    firma_shop = models.ForeignKey(FirmaAusrüstung_Technik, on_delete=models.CASCADE)
 
 
 class RelFirmaFahrzeug(RelFirmaShop):
@@ -1074,7 +1224,7 @@ class RelFirmaFahrzeug(RelFirmaShop):
         verbose_name = "Fahrzeug Verfügbarkeit"
         verbose_name_plural = "Fahrzeuge Verfügbarkeiten"
 
-    firma_shop = models.ForeignKey('shop.FirmaFahrzeug', on_delete=models.CASCADE)
+    firma_shop = models.ForeignKey(FirmaFahrzeug, on_delete=models.CASCADE)
 
 
 class RelFirmaEinbauten(RelFirmaShop):
@@ -1082,7 +1232,7 @@ class RelFirmaEinbauten(RelFirmaShop):
         verbose_name = "Einbauten Verfügbarkeit"
         verbose_name_plural = "Einbauten Verfügbarkeiten"
 
-    firma_shop = models.ForeignKey('shop.FirmaEinbauten', on_delete=models.CASCADE)
+    firma_shop = models.ForeignKey(FirmaEinbauten, on_delete=models.CASCADE)
 
 
 class RelFirmaZauber(RelFirmaShop):
@@ -1090,7 +1240,7 @@ class RelFirmaZauber(RelFirmaShop):
         verbose_name = "Zauber Verfügbarkeit"
         verbose_name_plural = "Zauber Verfügbarkeiten"
 
-    firma_shop = models.ForeignKey('shop.FirmaZauber', on_delete=models.CASCADE)
+    firma_shop = models.ForeignKey(FirmaZauber, on_delete=models.CASCADE)
 
     def __str__(self):
         return "{}".format(self.firma_shop)
@@ -1101,7 +1251,7 @@ class RelFirmaVergessenerZauber(RelFirmaShop):
         verbose_name = "vergessener Zauber Verfügbarkeit"
         verbose_name_plural = "vergessener Zauber Verfügbarkeiten"
 
-    firma_shop = models.ForeignKey('shop.FirmaVergessenerZauber', on_delete=models.CASCADE)
+    firma_shop = models.ForeignKey(FirmaVergessenerZauber, on_delete=models.CASCADE)
 
     def __str__(self):
         return "{}".format(self.firma_shop)
@@ -1112,7 +1262,7 @@ class RelFirmaAlchemie(RelFirmaShop):
         verbose_name = "Alchemie Verfügbarkeit"
         verbose_name_plural = "Alchemie Verfügbarkeiten"
 
-    firma_shop = models.ForeignKey('shop.FirmaAlchemie', on_delete=models.CASCADE)
+    firma_shop = models.ForeignKey(FirmaAlchemie, on_delete=models.CASCADE)
 
 
 class RelFirmaTinker(RelFirmaShop):
@@ -1120,7 +1270,7 @@ class RelFirmaTinker(RelFirmaShop):
         verbose_name = "Für Selbstständige Verfügbarkeit"
         verbose_name_plural = "Für Selbstständige Verfügbarkeiten"
 
-    firma_shop = models.ForeignKey('shop.FirmaTinker', on_delete=models.CASCADE)
+    firma_shop = models.ForeignKey(FirmaTinker, on_delete=models.CASCADE)
 
 
 class RelFirmaBegleiter(RelFirmaShop):
@@ -1128,7 +1278,15 @@ class RelFirmaBegleiter(RelFirmaShop):
         verbose_name = "Begleiter Verfügbarkeit"
         verbose_name_plural = "Begleiter Verfügbarkeiten"
 
-    firma_shop = models.ForeignKey('shop.FirmaBegleiter', on_delete=models.CASCADE)
+    firma_shop = models.ForeignKey(FirmaBegleiter, on_delete=models.CASCADE)
+
+
+class RelFirmaEngelsroboter(RelFirmaShop):
+    class Meta:
+        verbose_name = "Engelsroboter Verfügbarkeit"
+        verbose_name_plural = "Engelsroboter Verfügbarkeiten"
+
+    firma_shop = models.ForeignKey(FirmaEngelsroboter, on_delete=models.CASCADE)
 
 
 class RelFirmaRituale_Runen(RelFirmaShop):
@@ -1136,7 +1294,7 @@ class RelFirmaRituale_Runen(RelFirmaShop):
         verbose_name = "Ritual/Rune Verfügbarkeit"
         verbose_name_plural = "Rituale & Runen Verfügbarkeiten"
 
-    firma_shop = models.ForeignKey('shop.FirmaRituale_Runen', on_delete=models.CASCADE)
+    firma_shop = models.ForeignKey(FirmaRituale_Runen, on_delete=models.CASCADE)
 
 # bonus things
 class SkilltreeBase(models.Model):

@@ -1,4 +1,4 @@
-{% extends 'base/headed_main.html' %}
+{% extends 'base/main.html' %}
 {% load static %}
 {% block extra-head %}
 <link rel="stylesheet" href="{% static 'character/css/show.css' %}" type="text/css">
@@ -6,6 +6,11 @@
 <script src="{% static 'res/js/axios.min.js' %}" type='text/javascript'></script>
 <script src="{% static 'base/js/ajax.js' %}"></script>
 <script src="{% static 'character/js/show_nav.js' %}"></script>
+{% endblock %}
+
+
+{% block header %}
+    {% include 'character/show_header.html' %}
 {% endblock %}
 
 {% block main %}
