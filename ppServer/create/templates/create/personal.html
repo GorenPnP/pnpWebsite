@@ -8,7 +8,7 @@
         {{ form.as_p }}
 
         <button type="submit" class="btn btn-lg btn-primary m-2">Speichern</button>
-        <a class="btn btn-lg btn-outline-primary m-2" href="{% url 'create:landing_page' %}">Zurück</a>
+        <a class="btn btn-lg btn-outline-primary m-2" href="{{ back_url }}">Zurück</a>
     </form>
 </div>
 {% endblock %}

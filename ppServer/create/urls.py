@@ -15,6 +15,7 @@ urlpatterns = [
         path('spF_wF', views.SpF_wFFormView.as_view(), name='spF_wF'),
         path('zauber', views.ZauberFormView.as_view(), name='zauber'),
 
-        path('vor_nachteil', views.TeilFormView.as_view(), name='vor_nachteil'),
+        path('vorteil', views.VorteilFormView.as_view(), name='vorteil'),
+        path('nachteil', views.NachteilFormView.as_view(), name='nachteil'),
         path('gfs_characterization', views.GfsWahlfilterView.as_view(), name='gfs_characterization'),
 ]

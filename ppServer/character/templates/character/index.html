@@ -1,14 +1,29 @@
 {% extends 'base/headed_main.html' %}
 {% load static %}
 
+{% block extra-head %}
+<style>
+	.char-name:where(:hover, :focus, :focus-within) {
+		--bs-text-opacity: .7;
+	}
+</style>
+{% endblock %}
+
 {% block main %}
 <ul class="list-group">
 	{% for c in charaktere %}
-	<li>
-		<a href="{% url 'character:show' c.id %}" class="list-group-item list-group-item-dark">
-			<p class="h4">{{ c.name }}{% if c.larp %} (LARP){% endif %}</p>
+	<li class="d-flex align-items-start list-group-item list-group-item-dark">
+		<a href="{% url 'character:show' c.id %}" class="char-name text-dark d-block w-100">
+			<p class="h4">{{ c.name|default:"&#60;no name&#62;" }}{% if c.larp %} (LARP){% endif %}</p>
 			<p>{{ c.persönlicheZiele|default:""|linebreaks }}</p>
 		</a>
+
+		{% if is_spielleiter %}
+			<a class="btn btn-outline-dark mx-2" href="{% url 'campaign:auswertung' c.id %}">Auswertung</a>
+		{% endif %}
+		{% if c.ep_stufe != c.ep_stufe_in_progress %}
+			<a class="btn btn-dark" href="{% url 'campaign:hub' c.id %}">Bis Stufe {{ c.ep_stufe_in_progress }} verteilen</a>
+		{% endif %}
 	</li>
 	{% empty %}
 	<div>

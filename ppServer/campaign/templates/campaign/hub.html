@@ -57,6 +57,25 @@
                     </td>
                 </tr>
 
+                <!-- Zauber -->
+                <tr>
+                    <td>
+                        <a href="{% url 'campaign:hub_zauber' char.id %}">
+                            <div class="checkbox {% if char.zauberplätze.keys|length == 0 %}checked{% endif %}"></div>
+                        </a>
+                    </td>
+                    <td><a href="{% url 'campaign:hub_zauber' char.id %}" class="text-light">Zauber & Tier</a></td>
+                    <td class="d-flex flex-column align-items-start">
+                        <ul>
+                            {% for stufe, amount in char.zauberplätze.items %}
+                            <li><b>{{amount}} Stufe {{stufe}}</b> Zauber</li>
+                            {% endfor %}
+                            <li>{{char.sp}} SP</li>
+                            <li>{{char.ap}} AP / {{MA_aktuell}} MA</li>
+                        </ul>
+                    </td>
+                </tr>
+
                 {% if vorteile.count %}
                 <tr>
                     <td>
@@ -75,8 +94,14 @@
             </tbody>
         </table>
 
+        <ul>
+            <li><a href="{% url 'campaign:hub_personal' char.id %}">Persönliches</a></li>
+            <li><a href="{% url 'campaign:hub_vorteile' char.id %}">Vorteile</a></li>
+            <li><a href="{% url 'campaign:hub_nachteile' char.id %}">Nachteile</a></li>
+        </ul>
+
         <form method="get">
-            <button type="submit" class="btn btn-lg btn-primary" {% if char.ap > 1 or char.fp != 0 or char.fg != 0 %}disabled{% endif %}>Weiter</button>
+            <button type="submit" class="btn btn-lg btn-primary" {% if not is_done %}disabled{% endif %}>Weiter</button>
         </form>
     </div>
 

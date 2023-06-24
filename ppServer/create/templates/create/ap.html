@@ -1,24 +1,25 @@
 {% extends 'base/dynamic-table.html' %}
-{% load static %}
-{% block extra-head %}
-<script src="{% static 'create/js/ap.js' %}" type="text/javascript"></script>
+{% load static resources %}
 
+{% block extra-head %}
 <style>
     table {
         max-width: 700px;
         margin-inline: auto;
     }
 </style>
+
+<script src="{% static 'create/js/ap.js' %}" type="text/javascript"></script>
 {% endblock %}
 
-{% block before_table %}
-    <p>AP übrig: <b id="ap_pool">{{ char.ap }}</b></p>
+{% block asides %}{{ block.super }}
+    {% resources %}<b><span id="ap_pool">{{ char.ap }}</span> AP</b>{% endresources %}
 {% endblock %}
 
 {% block after_table %}
 <form id="form" method="post" class="d-flex justify-content-center">
     {% csrf_token %}
     <button type="submit" class="btn btn-lg btn-primary m-2" disabled>Speichern</button>
-    <a class="btn btn-lg btn-outline-primary m-2" href="{% url 'create:landing_page' %}">Zurück</a>
+    <a class="btn btn-lg btn-outline-primary m-2" href="{{ back_url }}">Zurück</a>
 </form>
 {% endblock %}

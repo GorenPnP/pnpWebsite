@@ -26,15 +26,24 @@
             <tr>
                 <td>
                     <a href="{{ row.link }}">
-                        <div class="checkbox
-                            {% if row.done %}checked{% endif %}"
-                            {% if forloop.last %}style="--checkbox-mark-color: #888888"{% endif %}></div>
+                        <div class="checkbox {% if row.done %}checked{% endif %}"></div>
                     </a>
                 </td>
                 <td><a href="{{ row.link }}">{{ row.text|safe }}</a></td>
                 <td>{% autoescape off %}{{ row.werte }}{% endautoescape %}</td>
             </tr>
             {% endfor %}
+
+
+            <tr>
+                <td>
+                    <div class="checkbox {% if is_teil_done %}checked{% endif %}" style="--checkbox-mark-color: #888888"></div>
+                </td>
+                <td><a href="{{ row.link }}">
+                    <b><a href="{% url 'create:vorteil' %}">Vorteile</a> und <a href="{% url 'create:nachteil' %}">Nachteile</a></b> nehmen
+                </a></td>
+                <td>{{ ip }} IP</td>
+            </tr>
         </tbody>
     </table>
 

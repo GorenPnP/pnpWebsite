@@ -1,5 +1,5 @@
 {% extends 'base/dynamic-table.html' %}
-{% load static %}
+{% load static resources %}
 {% block extra-head %}
 <script type="text/javascript" src="{% static 'create/js/spF_wF.js' %}"></script>
 
@@ -20,15 +20,18 @@
 </style>
 {% endblock %}
 
-{% block before_table %}
-    <p class="pool"><b id="fert_pool">{{ char.spF_wF }}</b> Fertigkeit/en übrig</p>
-    <p class="pool"><b id="wp_pool">{{ char.wp }}</b> WP übrig</p>
+
+{% block asides %}{{ block.super }}
+    {% resources %}
+        <p class="pool"><b id="fert_pool">{{ char.spF_wF }}</b> Fertigkeit/en übrig</p>
+        <p class="pool"><b id="wp_pool">{{ char.wp }}</b> WP übrig</p>
+    {% endresources %}
 {% endblock %}
 
 {% block after_table %}
 <form id="form" method="post" class="d-flex justify-content-center">
     {% csrf_token %}
     <button type="submit" class="btn btn-lg btn-primary m-2" disabled>Speichern</button>
-    <a class="btn btn-lg btn-outline-primary m-2" href="{% url 'create:landing_page' %}">Zurück</a>
+    <a class="btn btn-lg btn-outline-primary m-2" href="{{ back_url }}">Zurück</a>
 </form>
 {% endblock %}

@@ -1,13 +1,18 @@
 {% extends 'base/headed_main.html' %}
-{% load static %}
+{% load static resources %}
+
 {% block extra-head %}{{ block.super }}
 <link rel="stylesheet" href="{% static 'campaign/css/teil.css' %}">
 <script src="{% static 'campaign/js/_teil.js' %}" defer></script>
 {% endblock %}
 
-{% block main %}
-<p><span id="ip_pool">{{ object.ip }}</span> IP</p>
+{% block asides %}
+    {% resources %}
+        <p><span id="ip_pool">{{ char.ip }}</span> IP</p>
+    {% endresources %}
+{% endblock %}
 
+{% block main %}
 <form method="post">
     {% csrf_token %}
 
@@ -19,7 +24,7 @@
     
     <div class="d-flex justify-content-center">
         <button type="submit" class="btn btn-lg btn-primary m-2">Speichern</button>
-        <a class="btn btn-lg btn-outline-primary m-2" href="{% url 'campaign:hub' object.id %}">Zurück</a>
+        <a class="btn btn-lg btn-outline-primary m-2" href="{{ back_url }}">Zurück</a>
     </div>
 </form>
 {% endblock %}
