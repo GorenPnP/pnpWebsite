@@ -13,13 +13,13 @@ from django_tables2.columns import TemplateColumn
 from base.abstract_views import DynamicTableView, GenericTable
 from character.models import Charakter, Vorteil, RelVorteil, Spieler, RelAttribut, Attribut, Fertigkeit
 from create.decorators import is_ap_done, is_ferts_done, is_personal_done, is_spF_wF_done, is_teil_done, is_zauber_done
+from levelUp.views import *
 from log.create_log import logAuswertung
 from ppServer.mixins import SpielleiterOnlyMixin, VerifiedAccountMixin
 from shop.models import Engelsroboter
 
 from .forms import AuswertungForm
 from .mixins import CampaignMixin
-from .views_generic import *
 
 
 class AuswertungView(LoginRequiredMixin, SpielleiterOnlyMixin, DetailView):
@@ -128,6 +128,9 @@ class HubVorteileView(CampaignMixin, GenericVorteilView):
     pass
 
 
-# TODO
-class HubNachteileView(CampaignMixin, GenericVorteilView):
+class HubNachteileView(CampaignMixin, GenericNachteilView):
+    pass
+
+
+class HubSpFwFView(CampaignMixin, GenericSpF_wFView):
     pass

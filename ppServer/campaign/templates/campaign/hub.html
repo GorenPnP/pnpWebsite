@@ -1,23 +1,25 @@
 {% extends 'base/headed_main.html' %}
-{% load static %}
+{% load static resources %}
 
 {% block extra-head %}
 <link rel="stylesheet" href="{% static 'base/css/checkbox.css' %}">
 {% endblock %}
 
+{% block asides %}
+    {% resources %}
+        <p><b>{{ char.ep }} EP</b></p>
+
+        <p class="h4">Du erhälst:</p>
+        <ul>
+            {% for stufe in stufenbelohnung %}
+                <li>{{ stufe|safe }}</li>
+            {% endfor %}
+        </ul>
+    {% endresources %}
+{% endblock %}
+
 {% block main %}
-    <p><b>{{ char.ep }} EP</b></p>
 
-    <p class="h4">Du erhälst:</p>
-    <ul>
-        {% for stufe in stufenbelohnung %}
-            <li>{{ stufe|safe }}</li>
-        {% endfor %}
-    </ul>
-
-
-
-    
     <div class="container-fluid" style="max-width: 600px; margin: 3em auto 0">
         <table id="hub-table" class="table table-dark table-striped table-hover">
             <thead>
@@ -98,6 +100,7 @@
             <li><a href="{% url 'campaign:hub_personal' char.id %}">Persönliches</a></li>
             <li><a href="{% url 'campaign:hub_vorteile' char.id %}">Vorteile</a></li>
             <li><a href="{% url 'campaign:hub_nachteile' char.id %}">Nachteile</a></li>
+            <li><a href="{% url 'campaign:hub_spF_wF' char.id %}">Spezial- & Wissensfertigkeiten (TODO: dont sell everything)</a></li>
         </ul>
 
         <form method="get">

@@ -14,6 +14,7 @@ urlpatterns = [
 	path('hub/<int:pk>/personal', views.HubPersonalView.as_view(), name='hub_personal'),
 	path('hub/<int:pk>/vorteile', views.HubVorteileView.as_view(), name='hub_vorteile'),
 	path('hub/<int:pk>/nachteile', views.HubNachteileView.as_view(), name='hub_nachteile'),
+	path('hub/<int:pk>/spF_wF', views.HubSpFwFView.as_view(), name='hub_spF_wF'),
 	
 	path('<int:pk>', views.HubView.as_view(), name='hub'),
 ]

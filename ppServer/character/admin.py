@@ -255,7 +255,7 @@ class RelEinbautenInLine(RelShopInLine):
 
 
 class RelZauberInLine(RelShopInLine):
-    fields = fields = ["anz", "item", "tier", "notizen", "will_create", "tier_notes"]
+    fields = fields = ["anz", "item", "tier", "notizen", "tier_notes"]
     model = RelZauber
 
 

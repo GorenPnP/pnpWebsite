@@ -18,7 +18,7 @@ from django_tables2.columns import TemplateColumn
 from ppServer.mixins import VerifiedAccountMixin
 
 from base.abstract_views import DynamicTableView, DynamicTablesView, GenericTable
-from campaign.views_generic import *
+from levelUp.views import *
 from character.enums import würfelart_enum
 from character.models import *
 from shop.models import Zauber
@@ -84,7 +84,7 @@ class LandingPageView(LoginRequiredMixin, CreateMixin, OwnCharakterMixin, Templa
         infos = [
             "<strong>Deine Gfs/Klasse</strong> kannst du dir <a href='{}' target='_blank'>hier</a> nochmal angucken.".format(reverse("wiki:stufenplan", args=[char.gfs.id])),
             "Aussehen und v.A. rollenspielwichtige Aspekte wie Religion, Beruf werden später festgelegt.",
-            "Im <strong>Shop</strong> kann später eingekauft werden, für Neugierige geht's zum Stöbern <a href='{}' target='_blank'>hier</a> entlang.".format(reverse("shop:index")),
+            "Im <strong><a href='{}' target='_blank'>Shop</a></strong> kannst du Ausrüstung kaufen.".format(reverse("shop:index")),
         ]
 
         # assemble context & render
@@ -118,7 +118,7 @@ class LandingPageView(LoginRequiredMixin, CreateMixin, OwnCharakterMixin, Templa
         char.in_erstellung = False
         char.save(update_fields=["in_erstellung"])
 
-        return redirect("character:show", args=[char.id])
+        return redirect(reverse("character:show", args=[char.id]))
 
 
 class GfsFormView(LoginRequiredMixin, VerifiedAccountMixin, TemplateView):
@@ -354,6 +354,6 @@ class SpF_wFFormView(CreateMixin, GenericSpF_wFView):
 class VorteilFormView(CreateMixin, GenericVorteilView):
     pass
 
-# TODO
-class NachteilFormView(CreateMixin, GenericVorteilView):
+@method_decorator(hub_decorators, name="dispatch")
+class NachteilFormView(CreateMixin, GenericNachteilView):
     pass

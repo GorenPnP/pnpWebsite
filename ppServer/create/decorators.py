@@ -99,34 +99,7 @@ def is_ferts_done(*args, **kwargs):
     return done
 
 def is_zauber_done(*args, **kwargs):
-    done = False
-    if "char" in kwargs:
-        zauberpl = {**kwargs["char"].zauberplätze}
-        zauberstufen = zauberpl.keys()
-
-        max_zauberstufe = max([int(s) for s in zauberstufen])
-        zauber = Zauber.objects.filter(relzauber__char=kwargs["char"]).order_by("ab_stufe")
-        print(zauberpl, zauber)
-
-        # both empty or both existing
-        done = (not len(zauberstufen)) == (not zauber.count())
-
-        # lowest to highest zauber
-        for z in zauber:
-            found = False
-
-            # take smallest zauberplatz available
-            for stufe in range(z.ab_stufe, max_zauberstufe+1):
-                stufe = str(stufe)
-
-                if stufe in zauberstufen and zauberpl[stufe] >= 0:
-                    zauberpl[stufe] -= 1
-                    found = True
-                    break
-
-            if not found:
-                done = False
-                break
+    done = "char" in kwargs and len(kwargs["char"].zauberplätze.keys()) == 0
 
     not done and print("ZAUBER not done")
     return done

@@ -48,6 +48,7 @@
     </table>
 
     <form method="post">
+        {% csrf_token %}
         <button type="submit" class="btn btn-lg btn-primary" {% if not done %}disabled{% endif %}>Weiter</button>
     </form>
 </div>
