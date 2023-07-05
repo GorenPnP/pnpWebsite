@@ -959,7 +959,7 @@ class RelWissensfertigkeit(models.Model):
     würfel2 = models.SmallIntegerField(choices=enums.würfelart_enum, default=enums.würfelart_enum[0][0])
 
     def __str__(self):
-        return "'{}' von ’{}’".format(self.wissensfertigkeit.__str__(), self.char.__str__())
+        return "'{}' von '{}'".format(self.wissensfertigkeit.__str__(), self.char.__str__())
 
 
 class RelSpezialfertigkeit(models.Model):
@@ -976,7 +976,7 @@ class RelSpezialfertigkeit(models.Model):
     stufe = models.PositiveIntegerField(default=0, validators=[MaxValueValidator(50)])
 
     def __str__(self):
-        return "'{}' von ’{}’".format(self.spezialfertigkeit.__str__(), self.char.__str__())
+        return "'{}' von '{}'".format(self.spezialfertigkeit.__str__(), self.char.__str__())
 
 
 ############ RelShop ###########

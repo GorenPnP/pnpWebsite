@@ -18,12 +18,12 @@ from django_tables2.columns import TemplateColumn
 from ppServer.mixins import VerifiedAccountMixin
 
 from base.abstract_views import DynamicTableView, DynamicTablesView, GenericTable
+from levelUp.decorators import *
 from levelUp.views import *
 from character.enums import würfelart_enum
 from character.models import *
 from shop.models import Zauber
 
-from .decorators import *
 from .mixins import CreateMixin
 from .models import *
 
@@ -60,14 +60,14 @@ class LandingPageView(LoginRequiredMixin, CreateMixin, OwnCharakterMixin, Templa
         if not char.larp:
             rel_ma = RelAttribut.objects.get(char=char, attribut__titel='MA')
             MA_aktuell = rel_ma.aktuellerWert + rel_ma.aktuellerWert_temp
-            zauber_werte = "<ul>" +\
-                "".join([f"<li><b>{amount} Stufe {stufe}</b> Zauber</li>" for stufe, amount in char.zauberplätze.items()]) +\
-                f"<li>{char.sp} SP</li>" +\
-                f"<li>{char.ap} AP / {MA_aktuell} MA</li>" +\
-            "</ul>"
+            zauber_werte = "<br>".join([
+                *[f"{amount} Stufe {stufe} Zauber" for stufe, amount in char.zauberplätze.items()],
+                f"{char.sp} SP",
+                f"{char.ap} AP / {MA_aktuell} MA"
+            ])
 
             rows.append({"done": is_zauber_done(request, char=char), "link": reverse("create:zauber"), "text": "<b>Zauber</b> aussuchen", "werte": zauber_werte})
-            rows.append({"done": is_spF_wF_done(request, char=char), "link": reverse("create:spF_wF"), "text": "<b>Spezial- und Wissensfertigkeiten</b> wählen", "werte": "{} offen<br>{} WP".format(char.spF_wF, char.wp)})
+            rows.append({"done": is_spF_wF_done(request, char=char), "link": reverse("create:spF_wF"), "text": "<b>Spezial- und Wissensfertigkeiten</b> wählen", "werte": "{} offen<br>{} WP<br>{} SP".format(char.spF_wF, char.wp, char.sp)})
 
 
         # submit-btn disabled state
@@ -83,7 +83,6 @@ class LandingPageView(LoginRequiredMixin, CreateMixin, OwnCharakterMixin, Templa
         # infos
         infos = [
             "<strong>Deine Gfs/Klasse</strong> kannst du dir <a href='{}' target='_blank'>hier</a> nochmal angucken.".format(reverse("wiki:stufenplan", args=[char.gfs.id])),
-            "Aussehen und v.A. rollenspielwichtige Aspekte wie Religion, Beruf werden später festgelegt.",
             "Im <strong><a href='{}' target='_blank'>Shop</a></strong> kannst du Ausrüstung kaufen.".format(reverse("shop:index")),
         ]
 

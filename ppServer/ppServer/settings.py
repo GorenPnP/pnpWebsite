@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     'create',
     'fileserver',
     'httpChat',
+    'levelUp',
     'log',
     'logRequest',
     'mining',

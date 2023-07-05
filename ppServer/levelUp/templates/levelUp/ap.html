@@ -1,5 +1,5 @@
 {% extends 'base/dynamic-table.html' %}
-{% load static resources %}
+{% load static resources l10n %}
 
 {% block extra-head %}
 <style>
@@ -9,11 +9,11 @@
     }
 </style>
 
-<script src="{% static 'create/js/ap.js' %}" type="text/javascript"></script>
+<script src="{% static 'levelUp/js/ap.js' %}" type="text/javascript"></script>
 {% endblock %}
 
 {% block asides %}{{ block.super }}
-    {% resources %}<b><span id="ap_pool">{{ char.ap }}</span> AP</b>{% endresources %}
+    {% resources %}<b><span id="ap_pool">{% localize off %}{{ char.ap }}{% endlocalize %}</span> AP</b>{% endresources %}
 {% endblock %}
 
 {% block after_table %}

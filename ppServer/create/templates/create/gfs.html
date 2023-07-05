@@ -1,5 +1,5 @@
 {% extends 'base/headed_main.html' %}
-{% load static %}
+{% load static l10n %}
 {% block extra-head %}
 <link rel="stylesheet" href="{% static 'auth/css/centered_form.css' %}">
 
@@ -23,7 +23,7 @@
     <h2>neuen Charakter erstellen</h2>
     <select name="gfs_id" autofocus>
         {% for g in gfs %}
-            <option value="{{ g.id }}" id="option{{ forloop.counter0 }}">{{ g.titel }} (AP: {{ g.ap }})</option>
+            <option value=" {% localize off %}{{ g.id }}{% endlocalize %}" id="option{{ forloop.counter0 }}">{{ g.titel }} (AP: {{ g.ap }})</option>
         {% endfor %}
     </select>
 

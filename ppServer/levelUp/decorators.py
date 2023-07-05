@@ -4,8 +4,6 @@ from django.shortcuts import get_object_or_404, redirect
 from character.models import Spieler, Charakter
 from shop.models import Zauber
 
-from .models import *
-
 
 def provide_char(view_func):
     def wrap(request, *args, **kwargs):

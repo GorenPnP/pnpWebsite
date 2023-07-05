@@ -1,0 +1,46 @@
+{% extends 'base/dynamic-table.html' %}
+{% load static resources l10n %}
+{% block extra-head %}
+<script type="text/javascript" src="{% static 'levelUp/js/spF_wF.js' %}" defer></script>
+
+<link rel="stylesheet" href="{% static 'levelUp/css/highlighted_rows.css' %}">
+<style>
+    table {
+        max-width: 700px;
+        margin-inline: auto;
+    }
+
+    .spezial-input {
+        max-width: 100px;
+    }
+    .wissen-input {
+        width: 100px;
+        padding: 5px;
+    }
+</style>
+{% endblock %}
+
+
+{% block asides %}{{ block.super }}
+    {% resources %}
+    {% localize off %}
+        {% if char.in_erstellung or char.spF_wF > 0 %}<p class="pool"><b id="fert_pool">{{ char.spF_wF }}</b><span class="spent" id="spent_fert"></span> Fertigkeit/en übrig</p>{% endif %}
+        {% if char.in_erstellung or char.wp > 0 %}<p class="pool"><b id="wp_pool">{{ char.wp }}</b><span class="spent" id="spent_wp"></span> WP übrig</p>{% endif %}
+        <p class="pool"><b id="sp_pool">{{ char.sp }}</b><span class="spent" id="spent_sp"></span> SP</p>
+    {% endlocalize %}
+
+        <label for="payment-method" class="h5 mt-3 mb-2">Neue kaufen mit:</label>
+        <select id="payment-method" name="payment_method" class="form-select" form="form">
+            {% if char.spF_wF > 0 %}<option value="points">übrigen Fertigkeiten</option>{% endif %}
+            <option value="sp">SP</option>
+        </select>
+    {% endresources %}
+{% endblock %}
+
+{% block after_table %}
+<form id="form" method="post" class="d-flex justify-content-center">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-lg btn-primary m-2" disabled>Speichern</button>
+    <a class="btn btn-lg btn-outline-primary m-2" href="{{ back_url }}">Zurück</a>
+</form>
+{% endblock %}

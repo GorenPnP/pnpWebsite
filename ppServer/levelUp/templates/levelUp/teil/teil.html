@@ -1,14 +1,15 @@
 {% extends 'base/headed_main.html' %}
-{% load static resources %}
+{% load static resources l10n %}
 
 {% block extra-head %}{{ block.super }}
-<link rel="stylesheet" href="{% static 'campaign/css/teil.css' %}">
-<script src="{% static 'campaign/js/_teil.js' %}" defer></script>
+<link rel="stylesheet" href="{% static 'levelUp/css/teil.css' %}">
+{{ is_vorteil|json_script:"is_vorteil" }}
+<script src="{% static 'levelUp/js/teil.js' %}" defer></script>
 {% endblock %}
 
 {% block asides %}
     {% resources %}
-        <p><span id="ip_pool">{{ char.ip }}</span> IP</p>
+        <p><span id="ip_pool"> {% localize off %}{{ char.ip }}{% endlocalize %}</span> IP</p>
     {% endresources %}
 {% endblock %}
 
@@ -18,7 +19,7 @@
 
     <div class="accordion">
     {% for teil in object_list %}
-        {% include 'campaign/_teil.html' with teil=teil %}
+        {% include 'levelUp/teil/_teil.html' with teil=teil %}
     {% endfor %}
     </div>
     

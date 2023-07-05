@@ -14,4 +14,4 @@ class ResourcesNode(template.Node):
         self.nodelist = nodelist
  
     def render(self, context):
-        return render_to_string("create/_resources.html", context={"res": self.nodelist.render(context)})
+        return render_to_string("levelUp/_resources.html", context={"res": self.nodelist.render(context)})

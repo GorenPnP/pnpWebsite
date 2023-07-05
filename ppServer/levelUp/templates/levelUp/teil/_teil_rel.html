@@ -1,4 +1,5 @@
-
+{% load l10n %}
+{% localize off %}
 <div class="card {% if not rel %}card--add{% endif %} text-bg-light">
     <div class="card-body d-flex flex-wrap align-items-start justify-content-center" style="gap: 1em">
         {% if not rel %}
@@ -69,3 +70,4 @@
     </div>
     {% endif %}
 </div>
+{% endlocalize %}

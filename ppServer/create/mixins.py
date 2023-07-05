@@ -2,8 +2,7 @@ from django.http import HttpResponseNotFound
 from django.urls import reverse
 
 from character.models import Charakter
-
-from .decorators import get_own_charakter
+from levelUp.decorators import get_own_charakter
 
 class CreateMixin:
     app_index = "Erstellung"

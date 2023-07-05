@@ -1,4 +1,5 @@
 const accordion = document.querySelector(".accordion");
+const is_vorteil = JSON.parse(document.querySelector("#is_vorteil").innerHTML);
     
 accordion.addEventListener("click", (e) => {
 
@@ -81,7 +82,6 @@ document.querySelector("form").onclick = function() {
 
     if (!form.checkValidity()) {
         const invalid_inputs = [...form.querySelectorAll(":invalid")];
-        console.log(invalid_inputs.map(i => form.querySelector(`[for=${i.id}]`)))
         invalid_inputs.map(i => form.querySelector(`[for=${i.id}]`).classList.add("invalid"))
 
         // invalid cards
@@ -106,12 +106,15 @@ document.querySelector("form").onclick = function() {
 function get_ip(element_in_card) {
     const card = element_in_card.closest(".card");
     const card_container = element_in_card.closest(".accordion-panel");
-    return parseInt(card.querySelector(".input-field .ip")?.value || 0) ||
-           parseInt(card_container.querySelector(".head .ip")?.innerHTML || 0);
+
+    return parseInt(card.querySelector(".input-field .ip")?.value) ||
+           parseInt(card_container.querySelector(".head .ip")?.innerHTML) || 0;
 }
 
 function update_ip(diff) {
     const ip_pool = document.querySelector("#ip_pool");
+
+    if (!is_vorteil) { diff *= -1; }
     ip_pool.innerHTML = parseInt(ip_pool.innerHTML) + diff;
 }
 

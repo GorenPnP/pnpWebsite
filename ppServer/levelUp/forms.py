@@ -11,6 +11,8 @@ class PersonalForm(forms.ModelForm):
         widgets = {"persönlichkeit": M2MSelect()}
         fields = [
             "name",
+            "persönlichkeit",
+
             "gewicht",
             "größe",
             "alter",
@@ -23,7 +25,6 @@ class PersonalForm(forms.ModelForm):
             "haarfarbe",
             "augenfarbe",
 
-            "persönlichkeit",
             "persönlicheZiele",
             "notizen"
         ]
@@ -31,8 +32,10 @@ class PersonalForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        for field in self.fields.values():
-            field.required = True
+        required_fields = ["name", "persönlichkeit", "gewicht", "größe", "alter"]
+        for field in required_fields:
+            self.fields[field].label += "*"
+            self.fields[field].required = True
 
         if kwargs["instance"].larp:
             self.fields['beruf'].widget = forms.HiddenInput()

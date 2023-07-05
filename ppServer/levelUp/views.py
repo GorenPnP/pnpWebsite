@@ -21,11 +21,10 @@ from ppServer.mixins import VerifiedAccountMixin
 from base.abstract_views import DynamicTableView, DynamicTablesView, GenericTable
 from character.enums import würfelart_enum
 from character.models import *
-from create.forms import PersonalForm
 from shop.models import Zauber
 
+from .forms import PersonalForm
 from .mixins import OwnCharakterMixin
-from .models import *
 
 
 class GenericAttributView(LoginRequiredMixin, OwnCharakterMixin, DynamicTableView):
@@ -44,8 +43,8 @@ class GenericAttributView(LoginRequiredMixin, OwnCharakterMixin, DynamicTableVie
             fields = ["attribut__titel", "aktuell_ap", "max_ap", "result"]
             attrs = GenericTable.Meta.attrs
 
-        aktuell_ap = TemplateColumn(template_name="create/_number_input.html", extra_context={"add_field": "aktuell", "max_field": "aktuell_limit", "base_name": BASE_AKTUELL, "base_class": BASE_AKTUELL, "dataset_id": "dataset_id"})
-        max_ap = TemplateColumn(template_name="create/_number_input.html", extra_context={"add_field": "max","max_field": None, "base_name": BASE_MAX, "base_class": BASE_MAX, "dataset_id": "dataset_id"})
+        aktuell_ap = TemplateColumn(template_name="levelUp/_number_input.html", extra_context={"add_field": "aktuell", "max_field": "aktuell_limit", "base_name": BASE_AKTUELL, "base_class": BASE_AKTUELL, "dataset_id": "dataset_id"})
+        max_ap = TemplateColumn(template_name="levelUp/_number_input.html", extra_context={"add_field": "max","max_field": None, "base_name": BASE_MAX, "base_class": BASE_MAX, "dataset_id": "dataset_id"})
 
         def render_attribut__titel(self, value, record):
             return f"{value} ({record.attribut.beschreibung})"
@@ -57,7 +56,7 @@ class GenericAttributView(LoginRequiredMixin, OwnCharakterMixin, DynamicTableVie
 
 
     topic = "Attribute"
-    template_name = "create/ap.html"
+    template_name = "levelUp/ap.html"
     model = RelAttribut
 
     table_class = Table
@@ -145,8 +144,8 @@ class GenericFertigkeitView(LoginRequiredMixin, OwnCharakterMixin, DynamicTables
             fields = ["fertigkeit__titel", "attribute", "fp", "fg", "pool"]
             attrs = GenericTable.Meta.attrs
 
-        fp = TemplateColumn(template_name="create/_number_input.html", extra_context={"add_field": "fp_bonus", "max_field": "fp_limit", "base_name": "fp", "base_class": "fp", "dataset_id": "id"})
-        fg = TemplateColumn(template_name="create/_number_input.html", extra_context={"add_field": "fg_bonus", "max_field": "fp_limit", "base_name": "fg", "base_class": "fg", "dataset_id": "attr_dataset_id"})
+        fp = TemplateColumn(template_name="levelUp/_number_input.html", extra_context={"add_field": "fp_bonus", "max_field": "fp_limit", "base_name": "fp", "base_class": "fp", "dataset_id": "id"})
+        fg = TemplateColumn(template_name="levelUp/_number_input.html", extra_context={"add_field": "fg_bonus", "max_field": "fp_limit", "base_name": "fg", "base_class": "fg", "dataset_id": "attr_dataset_id"})
 
         def render_attribute(self, value, record):
             # like SCH (1)
@@ -161,7 +160,7 @@ class GenericFertigkeitView(LoginRequiredMixin, OwnCharakterMixin, DynamicTables
             fields = ["fertigkeit__titel", "attribute", "fp", "pool"]
             attrs = GenericTable.Meta.attrs
 
-        fp = TemplateColumn(template_name="create/_number_input.html", extra_context={"add_field": "fp_bonus", "max_field": "fp_limit", "base_name": "fp", "base_class": "fp", "dataset_id": "id"})
+        fp = TemplateColumn(template_name="levelUp/_number_input.html", extra_context={"add_field": "fp_bonus", "max_field": "fp_limit", "base_name": "fp", "base_class": "fp", "dataset_id": "id"})
 
         def render_attribute(self, value, record):
             # like SCH + IN (1)
@@ -172,7 +171,7 @@ class GenericFertigkeitView(LoginRequiredMixin, OwnCharakterMixin, DynamicTables
 
 
     topic = "Fertigkeiten"
-    template_name = "create/fert.html"
+    template_name = "levelUp/fert.html"
     model = RelFertigkeit
 
     tables = [Table1, TableElse]
@@ -312,9 +311,8 @@ class GenericFertigkeitView(LoginRequiredMixin, OwnCharakterMixin, DynamicTables
         return redirect(request.build_absolute_uri())
 
 
-class GenericVorteilView(LoginRequiredMixin, OwnCharakterMixin, TemplateView):
-    template_name = "campaign/hub_teil.html"
-    topic = "Vorteile"
+class GenericTeilView(LoginRequiredMixin, OwnCharakterMixin, TemplateView):
+    template_name = "levelUp/teil/teil.html"
 
     def get_character(self) -> Charakter: raise NotImplementedError()
 
@@ -332,11 +330,12 @@ class GenericVorteilView(LoginRequiredMixin, OwnCharakterMixin, TemplateView):
     def get_context_data(self, *args, **kwargs) -> Dict[str, Any]:
         char = self.get_character()
         situations = ["i", "e"] if char.in_erstellung else ["i", "n"]
-        rels = RelVorteil.objects.filter(char=char)
+        rels = self.RelModel.objects.filter(char=char)
+        rel_set_name = f"{self.RelModel._meta.model_name}_set"
 
-        teils = list(Vorteil.objects\
+        teils = list(self.Model.objects\
                 .filter(wann_wählbar__in=situations)\
-                .prefetch_related("relvorteil_set")\
+                .prefetch_related(rel_set_name)\
                 .annotate(
                     has_rel=Exists(rels.filter(teil__id=OuterRef("id")))
                 )\
@@ -346,17 +345,20 @@ class GenericVorteilView(LoginRequiredMixin, OwnCharakterMixin, TemplateView):
         for teil in teils:
             teil["rel"] = rels.filter(teil__id=teil["id"])
 
-        return {
-            "topic": self.get_topic(),
-            "app_index": self.get_app_index(),
-            "app_index_url": self.get_app_index_url(),
-            
-            "char": char,
-            "object_list": teils,
-            "attribute": Attribut.objects.all(),
-            "fertigkeiten": Fertigkeit.objects.all(),
-            "engelsroboter": Engelsroboter.objects.all()
-        }
+        context = super().get_context_data(*args, **kwargs,
+            topic = self.get_topic(),
+            app_index = self.get_app_index(),
+            app_index_url = self.get_app_index_url(),
+
+            is_vorteil = self.is_vorteil,
+            object_list = teils,
+
+            attribute = Attribut.objects.all(),
+            fertigkeiten = Fertigkeit.objects.all(),
+            engelsroboter = Engelsroboter.objects.all()
+        )
+        context["char"] = char
+        return context
 
     def post(self, request, *args, **kwargs):
 
@@ -364,12 +366,12 @@ class GenericVorteilView(LoginRequiredMixin, OwnCharakterMixin, TemplateView):
         char = self.get_character()
         ip = 0
 
-        ####### no updates of existing RelVorteil possible #########
+        ####### no updates of existing RelModel possible #########
 
         # handle deletions
         deletions = [int(re.search(r'\d+$', key).group(0)) for key in changes.keys() if "delete" in key]
-        qs_deletions = RelVorteil.objects.filter(id__in=deletions, char=char)
-        ip += sum([rel.ip if rel.teil.needs_ip else rel.teil.ip for rel in qs_deletions.prefetch_related("teil")])
+        qs_deletions = self.RelModel.objects.filter(id__in=deletions, char=char)
+        ip = self.calc_ip_on_deletion(ip, sum([rel.ip if rel.teil.needs_ip else rel.teil.ip for rel in qs_deletions.prefetch_related("teil")]))
         qs_deletions.delete()
 
 
@@ -379,10 +381,10 @@ class GenericVorteilView(LoginRequiredMixin, OwnCharakterMixin, TemplateView):
 
         for teil_id in additions:
             fields = {(k.replace(f"-{teil_id}", '')): v for (k, v) in changes.items() if f"-{teil_id}" in k}
-            teil = Vorteil.objects.get(id=teil_id)
+            teil = self.Model.objects.get(id=teil_id)
 
             # amount
-            if teil.max_amount and teil.max_amount <= teil.relvorteil_set.filter(char=char).count():
+            if teil.max_amount and teil.max_amount <= self.RelModel.objects.filter(char=char, teil=teil).count():
                 messages.error(request, f"Maximale Anzahl von {teil.titel} überschritten")
                 continue
 
@@ -421,8 +423,8 @@ class GenericVorteilView(LoginRequiredMixin, OwnCharakterMixin, TemplateView):
                 continue
 
             # create relation
-            RelVorteil.objects.create(teil=teil, char=char, **fields)
-            ip -= teil.ip if not teil.needs_ip else fields["ip"]
+            self.RelModel.objects.create(teil=teil, char=char, **fields)
+            ip = self.calc_ip_on_creation(ip, teil.ip if not teil.needs_ip else fields["ip"])
 
 
         # apply ip
@@ -430,6 +432,30 @@ class GenericVorteilView(LoginRequiredMixin, OwnCharakterMixin, TemplateView):
         char.save()
 
         return redirect(request.build_absolute_uri())
+
+class GenericNachteilView(GenericTeilView):
+    topic = "Nachteile"
+    RelModel = RelNachteil
+    Model = Nachteil
+    is_vorteil = False
+
+    def calc_ip_on_creation(self, ip, ip_of_teil) -> int:
+        return ip + ip_of_teil
+    
+    def calc_ip_on_deletion(self, ip, ip_of_teil) -> int:
+        return ip - ip_of_teil
+
+class GenericVorteilView(GenericTeilView):
+    topic = "Vorteile"
+    RelModel = RelVorteil
+    Model = Vorteil
+    is_vorteil = True
+
+    def calc_ip_on_creation(self, ip, ip_of_teil) -> int:
+        return ip - ip_of_teil
+    
+    def calc_ip_on_deletion(self, ip, ip_of_teil) -> int:
+        return ip + ip_of_teil
 
 
 class GenericZauberView(LoginRequiredMixin, OwnCharakterMixin, DynamicTableView):
@@ -464,17 +490,28 @@ class GenericZauberView(LoginRequiredMixin, OwnCharakterMixin, DynamicTableView)
             return format_html(f"<div class='scroll-y'>{value}</div>")
 
     topic = "Zauber"
-    template_name = "create/zauber.html"
+    template_name = "levelUp/zauber.html"
     model = Zauber
 
     table_class = Table
     table_pagination = False
 
+    def get_tier_cost_with_sp(self):
+        return {
+            1: 1,
+            2: 1,
+            3: 1,
+            4: 2,
+            5: 2,
+            6: 2,
+            7: 3
+        }
+
 
     def get_queryset(self):
         char = self.get_character()
         
-        max_stufe = max([int(k) for k in char.zauberplätze.keys()])
+        max_stufe = max([int(k) for k in char.zauberplätze.keys()], default=-1)
 
         return Zauber.objects\
             .filter(frei_editierbar=False, ab_stufe__lte=max_stufe)\
@@ -487,67 +524,184 @@ class GenericZauberView(LoginRequiredMixin, OwnCharakterMixin, DynamicTableView)
     def get_context_data(self, *args, **kwargs):
         char = self.get_character()
         rel_ma = RelAttribut.objects.get(char=char, attribut__titel='MA')
+        max_stufe = max([int(k) for k in char.zauberplätze.keys()], default=-1)
+        zauber = Zauber.objects\
+                .filter(frei_editierbar=False, ab_stufe__lte=max_stufe)\
+                .exclude(id__in=char.zauber.values("id"))\
+                .values("id", "name")
+        
+        for z in zauber:
+            z["geld"] = min([f.getPrice() for f in FirmaZauber.objects.filter(item__id=z["id"])])
 
-        context = super().get_context_data(*args, **kwargs,
+        return super().get_context_data(*args, **kwargs,
                                            
             char = char,
-            max_tier_allowed = min(1 + floor(char.ep_stufe_in_progress / 4), 7),
-            existing_zauber = RelZauber.objects.filter(char=char, will_create=False).order_by("item__name"),
-            new_zauber = RelZauber.objects.filter(char=char, will_create=True).order_by("item__name"),
-            
-            zauber = Zauber.objects\
-                .filter(frei_editierbar=False, ab_stufe__lte=max([int(e) for e in char.zauberplätze.keys()]))\
-                .exclude(id__in=char.zauber.values("id")),
+            own_zauber = RelZauber.objects.filter(char=char).order_by("item__name"),
+            zauber = zauber,
 
             MA_aktuell = rel_ma.aktuellerWert + rel_ma.aktuellerWert_temp,
+            free_slots = sum(char.zauberplätze.values()),
+            get_tier_cost_with_sp = self.get_tier_cost_with_sp(),
         )
-
-        # free zauber slots
-        zauber_available = sum(char.zauberplätze.values())
-        zauber_spent = context["new_zauber"].count() # +\
-        for rel in RelZauber.objects.filter(char=char):
-            zauber_spent += len([r for r in rel.tier_notes.values() if r == "slot"])
-
-        context["free_slots"] = zauber_available - zauber_spent
-
-        return context
 
 
     def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
         char = self.get_character()
+        operation = request.POST.get("operation")
 
-        # collect values
-        zauber_ids = set([int(key.replace("zauber-", "")) for key in request.POST.keys() if "zauber-" in key])
+        if operation == "create":
+            zauber_id = request.POST.get("zauber_id")
+            zauber = get_object_or_404(Zauber, id=zauber_id)
+            
+            # checks
+            if RelZauber.objects.filter(char=char, item=zauber).exists():
+                messages.error(request, f"Den Zauber {zauber.name} kennst du bereits.")
+                return redirect(request.build_absolute_uri())
 
-        # test them
-        zauber_max = RelZauber.objects\
-            .filter(char=char)\
-            .aggregate( spent = Count("*") )["spent"] + sum(char.zauberplätze.values())
+            min_stufe_of_slots = min([int(z) for z in char.zauberplätze.keys() if int(z) >= zauber.ab_stufe], default=-1)
+            if min_stufe_of_slots == -1:
+                messages.error(request, f"Du hast keinen passenden Zauberplatz für {zauber.name}.")
+                return redirect(request.build_absolute_uri())
+            
+            price = min([t.getPrice() for t in FirmaZauber.objects.filter(item=zauber)])
+            if not char.in_erstellung and char.geld < price:
+                messages.error(request, f"Du hast nicht genug Geld für {zauber.name}.")
+                return redirect(request.build_absolute_uri())
 
-        if len(zauber_ids) > zauber_max:
-            messages.error(request, "Du hast zu viele Zauber gewählt")
 
-        # all fine or not?
-        if len(messages.get_messages(request)):
+            # apply
+            # zauberplätze
+            char.zauberplätze[str(min_stufe_of_slots)] -= 1
+            if char.zauberplätze[str(min_stufe_of_slots)] == 0:
+                del char.zauberplätze[str(min_stufe_of_slots)]
+            # geld
+            if not char.in_erstellung: char.geld -= price
+            char.save(update_fields=["zauberplätze", "geld"])
+
+            RelZauber.objects.create(char=char, item=zauber)
             return redirect(request.build_absolute_uri())
 
-        # # apply them to db
-        # char.zauber = zauber_max - len(zauber_ids)
-        # char.save(update_fields=["zauber"])
+        if operation == "update":
+            # GATHER DATA
+            rel_zauber_ids = [int(id) for id in request.POST.keys() if id.isnumeric()]
 
-        RelZauber.objects.filter(char=char).delete()
-        for zauber in Zauber.objects.filter(id__in=zauber_ids):
-            RelZauber.objects.create(char=char, item=zauber)
+            new_tiers = {id: int(request.POST.get(str(id))) for id in rel_zauber_ids}
+            rel_zauber = RelZauber.objects.filter(char=char, id__in=rel_zauber_ids)
 
-        # return response
-        messages.success(request, "Erfolgreich gespeichert")
+
+            # PERFORM CHECKS
+
+            # char already has zauber
+            if rel_zauber.count() != len(rel_zauber_ids):
+                messages.error(request, "Du wolltest Tier zu Zaubern vergeben, die du gar nicht kennst")
+                return redirect(request.build_absolute_uri())
+
+            for rel in rel_zauber:
+                # not lower than current value
+                if rel.tier > new_tiers[rel.id]:
+                    messages.error(request, "Du kannst Tier nicht wieder verkaufen")
+                    return redirect(request.build_absolute_uri())
+                
+                # has to be lower than max_tier
+                if rel.tier > char.max_tier_allowed():
+                    messages.error(request, f"Du kannst Tier nicht über {char.max_tier_allowed()} steigern")
+                    return redirect(request.build_absolute_uri())
+
+
+            if request.POST.get("payment_method") == "slot":
+
+                # char has enough zauberplätze to pay for
+                num_slots_char = sum(char.zauberplätze.values())
+                num_slots_new_tier = sum(new_tiers.values()) - rel_zauber.aggregate(tier_sum=Sum("tier"))["tier_sum"]
+                if num_slots_char < num_slots_new_tier:
+                    messages.error(request, f"Du hast mehr neue Tier gewählt als du Zauberplätze hast")
+                    return redirect(request.build_absolute_uri())
+
+
+                # APPLY
+
+                # pay <num_slots_new_tier> many zauberplätze
+                while num_slots_new_tier > 0:
+                    min_stufe = min([int(k) for k in char.zauberplätze.keys()])
+                    diff = min(char.zauberplätze[str(min_stufe)], num_slots_new_tier)
+
+                    num_slots_new_tier -= diff
+                    if char.zauberplätze[str(min_stufe)] == diff:
+                        del char.zauberplätze[str(min_stufe)]
+                    else:
+                        char.zauberplätze[str(min_stufe)] -= diff
+
+                char.save(update_fields=["zauberplätze"])
+
+
+            if request.POST.get("payment_method") == "sp":
+                sp = 0
+                for rel in rel_zauber:
+                    new_tier = new_tiers[rel.id]
+                    existing_tier = rel.tier
+                    while new_tier > existing_tier:
+                        sp += self.get_tier_cost_with_sp()[new_tier]
+                        new_tier -= 1
+
+                # char has enough sp to pay for
+                if char.sp < sp:
+                    messages.error(request, "Du hast zu wenig SP")
+                    return redirect(request.build_absolute_uri())
+
+
+                # pay SP
+                char.sp -= sp
+                char.save(update_fields=["sp"])
+
+            if request.POST.get("payment_method") == "ap":
+                rel_ma = get_object_or_404(RelAttribut, char=char, attribut__titel="MA")
+                
+                ap_available = char.ap + rel_ma.aktuellerWert + rel_ma.aktuellerWert_temp
+                ap_to_pay = sum(new_tiers.values()) - rel_zauber.aggregate(tier_sum=Sum("tier"))["tier_sum"]
+                
+
+                # char has enough AP/MA.aktuellerWert to pay for
+                if ap_available < ap_to_pay:
+                    messages.error(request, "Du hast zu wenig AP / Magie")
+                    return redirect(request.build_absolute_uri())
+
+                # pay AP
+                ap_diff = min(char.ap, ap_to_pay)
+                ap_to_pay -= ap_diff
+                char.ap -= ap_diff
+                char.save(update_fields=["ap"])
+
+                # pay MA
+                ap_diff = min(rel_ma.aktuellerWert_temp, ap_to_pay)
+                ap_to_pay -= ap_diff
+                rel_ma.aktuellerWert_temp -= ap_diff
+
+                ap_diff = min(rel_ma.aktuellerWert, ap_to_pay)
+                ap_to_pay -= ap_diff
+                rel_ma.aktuellerWert -= ap_diff
+                rel_ma.save(update_fields=["aktuellerWert", "aktuellerWert_temp"])
+
+
+            # receive
+            rels = []
+            for rel in rel_zauber:
+                rel.tier = new_tiers[rel.id]
+                rels.append(rel)
+            RelZauber.objects.bulk_update(rels, fields=["tier"])
+
+            # return
+            messages.success(request, "Tiers erfolgreich gespeichert")
+            return redirect(request.build_absolute_uri())
+
+
+
         return redirect(request.build_absolute_uri())
 
 
 
 
 class GenericPersonalView(LoginRequiredMixin, VerifiedAccountMixin, TemplateView):
-    template_name = "create/personal.html"
+    template_name = "levelUp/personal.html"
     topic = "Persönliches"
 
     def get_character(self) -> Charakter: raise NotImplementedError()
@@ -565,13 +719,14 @@ class GenericPersonalView(LoginRequiredMixin, VerifiedAccountMixin, TemplateView
     def get_context_data(self, *args, **kwargs):
         char = self.get_character()
 
-        return {
-            "topic": self.get_topic(),
-            "app_index": self.get_app_index(),
-            "app_index_url": self.get_app_index_url(),
-            "form": PersonalForm(instance=char),
-            "char": char
-        }
+        context = super().get_context_data(*args, **kwargs,
+            topic = self.get_topic(),
+            app_index = self.get_app_index(),
+            app_index_url = self.get_app_index_url(),
+            form = PersonalForm(instance=char),
+        )
+        context["char"] = char
+        return context
 
 
     def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
@@ -631,33 +786,48 @@ class GenericSpF_wFView(LoginRequiredMixin, OwnCharakterMixin, tables.SingleTabl
                 return ", ".join([wi.titel for wi in wissen.fertigkeit.all().order_by("titel")])
 
         def render_wp(self, value, record):
-            value = record["stufe"] or 0
+            value = record["stufe"]
             id = record["id"]
 
             if record["art"] == "Spezial":
-                return format_html(f"<input type='number' form='form' name='spezial-{id}' class='spezial-input' min=0 value='{value}'>")
+                args = "min='-5'"
+                if record["stufe"] is not None:
+                    args = f"min='{value-5}' value='{value-5}' required"
+
+                return format_html(f"<input type='number' form='form' name='spezial-{id}' class='spezial-input' {args}>")
 
             if record["art"] == "Wissen":
                 dice = ["---", "W4", "W6", "W8", "W10", "W12", "W20", "W100"]
-                options = "".join([f"<option value='{ stufe }' {'selected' if stufe == value else ''}>{ d }</option>" for stufe, d in enumerate(dice)])
+                options = "".join([f"<option value='{ index-1 if index else '' }' {'selected' if value is not None and index-1 == value else ''}>{ d }</option>" for index, d in enumerate(dice) if value is None or index > value])
                 return format_html(f"<select form='form' name='wissen-{id}' class='wissen-input'>{options}</select>")
 
 
     topic = "Spezial- & Wissensf."
-    template_name = "create/spF_wF.html"
+    template_name = "levelUp/spF_wF.html"
 
     table_class = Table
     table_pagination = False
 
 
     def get_context_data(self, *args, **kwargs):
-        return {
-            "topic": self.get_topic(),
-            "app_index": self.get_app_index(),
-            "app_index_url": self.get_app_index_url(),
-            "char": self.get_character()
-        }
+        context = super().get_context_data(*args, **kwargs,
+            topic = self.get_topic(),
+            app_index = self.get_app_index(),
+            app_index_url = self.get_app_index_url(),
+            table = self.Table(self.get_table_data())
+        )
+        context["char"] = self.get_character()
+        return context
     
+
+    def würfel2_to_stufe(self, würfel2) -> int:
+        w_stufen = [w[0] for w in würfelart_enum]
+        return w_stufen.index(würfel2)
+
+    def stufe_to_würfel2(self, stufe) -> int:
+        return würfelart_enum[stufe][0]
+
+
     def get_table_data(self):
         """
         Return the table data that should be used to populate the rows.
@@ -666,8 +836,7 @@ class GenericSpF_wFView(LoginRequiredMixin, OwnCharakterMixin, tables.SingleTabl
         #     return self.table_data
         char = self.get_character()
 
-        objects = \
-            list(
+        spezial = list(
                 Spezialfertigkeit.objects.all()\
                     .prefetch_related("attr1", "attr2")\
                     .annotate(
@@ -677,12 +846,12 @@ class GenericSpF_wFView(LoginRequiredMixin, OwnCharakterMixin, tables.SingleTabl
                         wp = Value(0),
                         stufe = Subquery(RelSpezialfertigkeit.objects.filter(char=char, spezialfertigkeit__id=OuterRef("id")).values("stufe")[:1]),
                     )\
-                    .values("id", "titel", "art" ,
+                    .values("id", "titel", "art",
                             "attrs", "attr1__titel", "attr2__titel",
                             "ferts", "wp", "stufe"
                     )
-            ) +\
-            list(
+            )
+        wissen = list(
                 Wissensfertigkeit.objects.all()\
                     .prefetch_related("attr1", "attr2", "attr3")\
                     .annotate(
@@ -690,62 +859,78 @@ class GenericSpF_wFView(LoginRequiredMixin, OwnCharakterMixin, tables.SingleTabl
                         ferts = Value(0),
                         attrs = Value(0),
                         wp = Value(0),
-                        stufe = Subquery(RelWissensfertigkeit.objects.filter(char=char, wissensfertigkeit__id=OuterRef("id")).values("stufe")[:1]),
+                        würfel2 = Subquery(RelWissensfertigkeit.objects.filter(char=char, wissensfertigkeit__id=OuterRef("id")).values("würfel2")[:1]),
                     )\
                     .values("id", "titel", "art",
                             "attrs", "attr1__titel", "attr2__titel", "attr3__titel",
-                            "ferts" , "wp", "stufe"
+                            "ferts", "wp", "würfel2"
                     )
             )
+        # transform würfel2 to stufe
+        wissen = [{**w, "stufe": self.würfel2_to_stufe(w["würfel2"]) if w["würfel2"] else None} for w in wissen]
 
         # return objects (ordered by name)
-        return sorted(objects, key=lambda x: x["titel"])
+        return sorted(spezial + wissen, key=lambda x: x["titel"])
 
 
     def post(self, request: HttpRequest, char: Charakter) -> HttpResponse:
 
         # collect values
-        spezial_ids = {int(key.replace("spezial-", "")): int(stufe) for key, stufe in request.POST.items() if "spezial-" in key and int(stufe)}
-        wissen_ids = {int(key.replace("wissen-", "")): int(stufe) for key, stufe in request.POST.items() if "wissen-" in key and int(stufe)}
+        payment_method = request.POST.get("payment_method")
+        spezial_ids = {int(key.replace("spezial-", "")): int(stufe)+5 for key, stufe in request.POST.items() if "spezial-" in key and len(stufe)}
+        wissen_ids = {int(key.replace("wissen-", "")): int(stufe) for key, stufe in request.POST.items() if "wissen-" in key and len(stufe)}
 
         # test them
+        if payment_method not in ["points", "sp"]:
+            messages.error(request, "Die Zahlungsart für neue Fertigkeiten kenne ich nicht.")
+
         spezial = RelSpezialfertigkeit.objects\
             .filter(char=char)\
             .aggregate(
                 wp = Sum("stufe"),
                 fert = Count("*")
             )
-        wissen = RelWissensfertigkeit.objects\
-            .filter(char=char)\
-            .aggregate(
-                wp = Sum("stufe"),
-                fert = Count("*")
-            )
-        
-        fert_max = (spezial["fert"] or 0) + (wissen["fert"] or 0) + char.spF_wF
-        wp_max = (spezial["wp"] or 0) + (wissen["wp"] or 0) + char.wp
+        wissen_qs = RelWissensfertigkeit.objects.filter(char=char)
+        wissen_wp = sum([self.würfel2_to_stufe(relw.würfel2) for relw in wissen_qs])
 
+        fert_max = (spezial["fert"] or 0) + (wissen_qs.count() or 0) + char.spF_wF
+        wp_max = (spezial["wp"] or 0) + (wissen_wp or 0) + char.wp
+        fert_max = char.spF_wF if payment_method == "points" else char.sp
+        fert_max += (spezial["fert"] or 0) + (wissen_qs.count() or 0)
+
+        # enough to pay for new ferts?
         if len(spezial_ids) + len(wissen_ids) > fert_max:
             messages.error(request, "Du hast zu viele gewählt")
 
+        # enough wp?
         if sum(spezial_ids.values()) + sum(wissen_ids.values()) > wp_max:
             messages.error(request, "Du hast zu viele WP verteilt")
+
+        # permit selling stufe
+        faulty_spezial = [rel.spezialfertigkeit.titel for rel in RelSpezialfertigkeit.objects.prefetch_related("spezialfertigkeit").filter(char=char) if rel.spezialfertigkeit.id not in spezial_ids.keys() or spezial_ids[rel.spezialfertigkeit.id] < rel.stufe]
+        faulty_wissen = [rel.wissensfertigkeit.titel for rel in RelWissensfertigkeit.objects.prefetch_related("wissensfertigkeit").filter(char=char) if rel.wissensfertigkeit.id not in wissen_ids.keys() or wissen_ids[rel.wissensfertigkeit.id] < self.würfel2_to_stufe(rel.würfel2)]
+        if len(faulty_spezial) + len(faulty_wissen) > 0:
+            messages.error(request, f"Du kannst keine Stufen (von {', '.join([*faulty_spezial, *faulty_wissen])}) verkaufen")
+
 
         # all fine or not?
         if len(messages.get_messages(request)):
             return redirect(request.build_absolute_uri())
 
         # apply them to db
-        char.spF_wF = fert_max - len(spezial_ids) - len(wissen_ids)
+        if payment_method == "points":
+            char.spF_wF = fert_max - len(spezial_ids) - len(wissen_ids)
+        else:
+            char.sp = fert_max - len(spezial_ids) - len(wissen_ids)
         char.wp = wp_max - sum(spezial_ids.values()) - sum(wissen_ids.values())
-        char.save(update_fields=["spF_wF", "wp"])
+        char.save(update_fields=["spF_wF", "sp", "wp"])
 
         RelSpezialfertigkeit.objects.filter(char=char).delete()
         RelWissensfertigkeit.objects.filter(char=char).delete()
         for sp in Spezialfertigkeit.objects.filter(id__in=spezial_ids):
             RelSpezialfertigkeit.objects.create(char=char, spezialfertigkeit=sp, stufe=spezial_ids[sp.id])
         for wi in Wissensfertigkeit.objects.filter(id__in=wissen_ids):
-            RelWissensfertigkeit.objects.create(char=char, wissensfertigkeit=wi, stufe=wissen_ids[wi.id])
+            RelWissensfertigkeit.objects.create(char=char, wissensfertigkeit=wi, würfel2=self.stufe_to_würfel2(wissen_ids[wi.id]))
 
         # return response
         messages.success(request, "Erfolgreich gespeichert")
