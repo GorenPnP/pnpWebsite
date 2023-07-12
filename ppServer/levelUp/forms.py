@@ -32,7 +32,7 @@ class PersonalForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        required_fields = ["name", "persönlichkeit", "gewicht", "größe", "alter"]
+        required_fields = ["name", "persönlichkeit", "gewicht", "größe", "alter", "beruf", "religion"]
         for field in required_fields:
             self.fields[field].label += "*"
             self.fields[field].required = True

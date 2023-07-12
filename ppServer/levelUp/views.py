@@ -1,16 +1,14 @@
-import json, re
-from math import floor
+import re
 from typing import Any, Dict
 
 from django.db.models import F, Subquery, OuterRef, Q, Count, Sum, Value, Window, Func, Exists
 from django.contrib import messages
-from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http.request import HttpRequest
-from django.http.response import HttpResponse, JsonResponse
-from django.shortcuts import render, get_object_or_404, redirect
+from django.http.response import HttpResponse
+from django.shortcuts import get_object_or_404, redirect
 from django.views.generic.base import TemplateView
 from django.urls import reverse
-from django.utils.decorators import method_decorator
 from django.utils.html import format_html
 
 import django_tables2 as tables
@@ -25,6 +23,40 @@ from shop.models import Zauber
 
 from .forms import PersonalForm
 from .mixins import OwnCharakterMixin
+
+def get_required_aktuellerWert(char: Charakter, attr_titel: str) -> int:
+    ''' get min aktuellerWert of attr__titel by current fp, fg '''
+
+    # get attr aktuell
+    attribute = {rel.attribut.titel: rel.aktuell for rel in RelAttribut.objects.filter(char=char).annotate(aktuell = F("aktuellerWert") + F("aktuellerWert_temp") + F("aktuellerWert_bonus"))}
+
+    # check with fp
+    base_relfert_qs = RelFertigkeit.objects.prefetch_related("fertigkeit__attr1", "fertigkeit__attr2").filter(char=char)
+
+    one_attr_fert = base_relfert_qs.filter(fertigkeit__attr1__titel=attr_titel, fertigkeit__attr2=None).annotate(sum=F("fp") + F("fp_temp"))\
+            .aggregate(Max("sum"))["sum__max"] or 0
+
+    two_attr_fert_1 = base_relfert_qs.exclude(fertigkeit__attr2=None).filter(fertigkeit__attr1__titel=attr_titel).annotate(
+        sum=F("fp") + F("fp_temp"),
+        attr_titel=F("fertigkeit__attr2__titel")
+    )
+    two_attr_fert_2 = base_relfert_qs.exclude(fertigkeit__attr2=None).filter(fertigkeit__attr2__titel=attr_titel).annotate(
+        sum=F("fp") + F("fp_temp"),
+        attr_titel=F("fertigkeit__attr1__titel")
+    )
+    needed_in_two_attr_ferts = []
+    for rel in list([*two_attr_fert_1, *two_attr_fert_2]):
+        if (attribute[attr_titel] + attribute[rel.attr_titel]) % 2 == 0:
+            needed_in_two_attr_ferts.append(2 * rel.sum - attribute[rel.attr_titel])
+        else:
+            needed_in_two_attr_ferts.append(2 * rel.sum - attribute[rel.attr_titel] -1)
+
+
+    # check fg
+    fg = RelAttribut.objects.filter(char=char, attribut__titel=attr_titel).annotate(sum=F("fg") + F("fg_temp")).values("sum")[0]["sum"]
+
+    # calc max of all
+    return max(one_attr_fert, fg, *needed_in_two_attr_ferts)
 
 
 class GenericAttributView(LoginRequiredMixin, OwnCharakterMixin, DynamicTableView):
@@ -94,6 +126,11 @@ class GenericAttributView(LoginRequiredMixin, OwnCharakterMixin, DynamicTableVie
             max = int(request.POST.get(f"{self.BASE_MAX}-{attr.id}"))
             if relattr.aktuell + aktuell > relattr.max + max:
                 messages.error(request, f"Bei {attr} ist der Wert höher als das Maximum")
+
+            min_aktuell = get_required_aktuellerWert(char, attr.titel)
+            if relattr.aktuell + aktuell < min_aktuell:
+                messages.error(request, f"Im {attr}-Pool musst du mindestens {min_aktuell} haben, weil du das für deine verteilten FP/FG brauchst")
+
 
             # save in temporal datastructure
             ap[attr.id] = {
@@ -539,7 +576,7 @@ class GenericZauberView(LoginRequiredMixin, OwnCharakterMixin, DynamicTableView)
             own_zauber = RelZauber.objects.filter(char=char).order_by("item__name"),
             zauber = zauber,
 
-            MA_aktuell = rel_ma.aktuellerWert + rel_ma.aktuellerWert_temp,
+            MA_aktuell = rel_ma.aktuellerWert + rel_ma.aktuellerWert_temp - get_required_aktuellerWert(char, "MA"),
             free_slots = sum(char.zauberplätze.values()),
             get_tier_cost_with_sp = self.get_tier_cost_with_sp(),
         )
@@ -656,9 +693,9 @@ class GenericZauberView(LoginRequiredMixin, OwnCharakterMixin, DynamicTableView)
             if request.POST.get("payment_method") == "ap":
                 rel_ma = get_object_or_404(RelAttribut, char=char, attribut__titel="MA")
                 
-                ap_available = char.ap + rel_ma.aktuellerWert + rel_ma.aktuellerWert_temp
+                ap_available = char.ap + rel_ma.aktuellerWert + rel_ma.aktuellerWert_temp - get_required_aktuellerWert(char, "MA")
                 ap_to_pay = sum(new_tiers.values()) - rel_zauber.aggregate(tier_sum=Sum("tier"))["tier_sum"]
-                
+
 
                 # char has enough AP/MA.aktuellerWert to pay for
                 if ap_available < ap_to_pay:
