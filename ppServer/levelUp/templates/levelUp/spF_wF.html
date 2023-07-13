@@ -42,7 +42,7 @@
 {% endblock %}
 
 {% block after_table %}
-<form id="form" method="post" class="d-flex justify-content-center">
+<form id="form" method="post" class="d-flex justify-content-center sticky-footer">
     {% csrf_token %}
     <button type="submit" class="btn btn-lg btn-primary m-2" disabled>Speichern</button>
     <a class="btn btn-lg btn-outline-primary m-2" href="{{ back_url }}">Zurück</a>

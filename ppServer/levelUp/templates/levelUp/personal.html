@@ -7,8 +7,10 @@
         {% csrf_token %}
         {{ form.as_p }}
 
-        <button type="submit" class="btn btn-lg btn-primary m-2">Speichern</button>
-        <a class="btn btn-lg btn-outline-primary m-2" href="{{ back_url }}">Zurück</a>
+        <div class="sticky-footer">
+            <button type="submit" class="btn btn-lg btn-primary m-2">Speichern</button>
+            <a class="btn btn-lg btn-outline-primary m-2" href="{{ back_url }}">Zurück</a>
+        </div>
     </form>
 </div>
 {% endblock %}

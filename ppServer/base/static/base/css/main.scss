@@ -131,6 +131,12 @@ footer.email-footer {
 	a { color: #8b0000; }
 }
 
+.sticky-footer {
+	position: sticky;
+	bottom: 0;
+	backdrop-filter: blur(1px);
+}
+
 
 /* frequently used classes */
 
