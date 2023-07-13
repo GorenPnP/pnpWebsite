@@ -83,7 +83,6 @@ class LandingPageView(LoginRequiredMixin, CreateMixin, OwnCharakterMixin, Templa
         # infos
         infos = [
             "<strong>Deine Gfs/Klasse</strong> kannst du dir <a href='{}' target='_blank'>hier</a> nochmal angucken.".format(reverse("wiki:stufenplan", args=[char.gfs.id])),
-            "Im <strong><a href='{}' target='_blank'>Shop</a></strong> kannst du Ausrüstung kaufen.".format(reverse("shop:index")),
         ]
 
         # assemble context & render
@@ -96,7 +95,7 @@ class LandingPageView(LoginRequiredMixin, CreateMixin, OwnCharakterMixin, Templa
             "app_index_url": reverse("create:gfs"),
 
             "is_teil_done": is_teil_done(request, char=char),
-            "ip": char.ip,
+            "char": char,
         }
         return render(request, "create/landing_page.html", context=context)
 

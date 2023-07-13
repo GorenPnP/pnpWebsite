@@ -13,8 +13,8 @@
 
 {% block asides %}{{ block.super }}
     {% resources %}{% localize off %}
-        <p>FP übrig: <b id="fp_pool">{{ char.fp }}</b></p>
-        <p>FG übrig: <b id="fg_pool">{{ char.fg }}</b></p>
+        <p><b id="fp_pool">{{ char.fp }}</b> FP übrig</p>
+        <p><b id="fg_pool">{{ char.fg }}</b> FG übrig</p>
     {% endlocalize %}{% endresources %}
 {% endblock %}
 

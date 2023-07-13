@@ -86,5 +86,7 @@ document.querySelector("[name='zauber_id']")?.addEventListener("change", functio
     const price = this.selectedIndex ? parseInt(this.options[this.selectedIndex].dataset.money) : 0;
     const formatted_price = price.toLocaleString("de-DE")
 
-    document.querySelector("#pay-money").innerHTML = price ? ` (-${formatted_price})` : "";
+    if (document.querySelector("#pay-money")) {
+        document.querySelector("#pay-money").innerHTML = price ? ` (-${formatted_price})` : "";
+    }
 });

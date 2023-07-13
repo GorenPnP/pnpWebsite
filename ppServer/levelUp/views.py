@@ -370,8 +370,10 @@ class GenericTeilView(LoginRequiredMixin, OwnCharakterMixin, TemplateView):
         rels = self.RelModel.objects.filter(char=char)
         rel_set_name = f"{self.RelModel._meta.model_name}_set"
 
+        # TODO: let sellable sell, but not buy new if in campaign
+        # | (Q(is_sellable=True) & Q(relteil_char=char)))\
         teils = list(self.Model.objects\
-                .filter(wann_wählbar__in=situations)\
+                .filter(Q(wann_wählbar__in=situations))\
                 .prefetch_related(rel_set_name)\
                 .annotate(
                     has_rel=Exists(rels.filter(teil__id=OuterRef("id")))

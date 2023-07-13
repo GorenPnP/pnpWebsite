@@ -136,7 +136,7 @@ class RelPersönlichkeitInline(SpielerReadonlyInLine):
 
 
 class RelAttributInline(SpielerReadonlyInLine):
-    fields = ['attribut', 'aktuellerWert', 'aktuellerWert_bonus', 'maxWert', 'maxWert_bonus', 'fg']
+    fields = ['attribut', 'aktuellerWert', 'aktuellerWert_temp', 'aktuellerWert_bonus', 'maxWert', 'maxWert_temp', 'maxWert_bonus', 'fg']
     readonly_fields = ['attribut']
     model = RelAttribut
     extra = 0
@@ -327,7 +327,7 @@ class CharakterAdmin(admin.ModelAdmin):
 
     list_display = ['name', 'eigentümer', "gfs", "wesen_", "profession", "ep_system", "larp", "in_erstellung"]
 
-    list_filter = ['larp', 'ep_system', 'eigentümer']
+    list_filter = ['in_erstellung', 'larp', 'ep_system', 'eigentümer']
     search_fields = ['name', 'eigentümer__name']
 
     save_on_top = True

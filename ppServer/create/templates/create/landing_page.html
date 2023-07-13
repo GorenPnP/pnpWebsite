@@ -9,6 +9,7 @@
 {% endblock %}
 
 {% block main %}
+{% if char.name %}<h2 class="text-center">{{ char.name }}</h2>{% endif %}
 
 <div class="container-fluid" style="max-width: 600px; margin: 3em auto 0">
     <table id="hub-table" class="table table-dark table-striped table-hover">
@@ -34,7 +35,7 @@
             </tr>
             {% endfor %}
 
-
+            <!-- Vor- und Nachteile -->
             <tr>
                 <td>
                     <div class="checkbox {% if is_teil_done %}checked{% endif %}" style="--checkbox-mark-color: #888888"></div>
@@ -42,7 +43,17 @@
                 <td><a href="{{ row.link }}">
                     <b><a href="{% url 'create:vorteil' %}">Vorteile</a> und <a href="{% url 'create:nachteil' %}">Nachteile</a></b> nehmen
                 </a></td>
-                <td>{{ ip }} IP</td>
+                <td>{{ char.ip }} IP</td>
+            </tr>
+
+            <!-- le schöp -->
+            <tr>
+                <td>
+                    <div class="checkbox checked" style="--checkbox-mark-color: #888888"></div>
+                </td>
+                <td><a href="{{ row.link }}">
+                    <a href="{% url 'shop:index' %}" target="_blank"><b>Ausrüstung</b> einkaufen</a></td>
+                <td>{{ char.geld }} Drachmen</td>
             </tr>
         </tbody>
     </table>
