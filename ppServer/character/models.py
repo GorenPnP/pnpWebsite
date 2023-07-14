@@ -425,7 +425,7 @@ class Teil(models.Model):
     beschreibung = models.TextField(max_length=1000, blank=True, default="")
 
     wann_wählbar = models.CharField(max_length=1, choices=enums.teil_erstellung_enum, default=enums.teil_erstellung_enum[0][0])
-    is_sellable = models.BooleanField(default=True)
+    is_sellable = models.BooleanField(default=True, verbose_name="ist verkaufbar?")
     max_amount = models.PositiveSmallIntegerField(default=1, null=True, blank=True, help_text="Leer lassen für keine Beschränkung")
 
     needs_attribut = models.BooleanField(default=False)

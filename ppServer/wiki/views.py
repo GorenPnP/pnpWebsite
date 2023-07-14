@@ -27,12 +27,13 @@ def index(request):
 
 class VorteilView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTableView):
     model = Vorteil
-    table_fields = ["titel", "ip", "beschreibung", "wann_wählbar"]
+    table_fields = ["titel", "ip", "beschreibung", "wann_wählbar", "is_sellable"]
     filterset_fields = {
         "titel": ["icontains"],
         "ip": ["lte"],
         "beschreibung": ["icontains"],
-        "wann_wählbar": ["exact"]
+        "wann_wählbar": ["exact"],
+        "is_sellable": ["exact"]
     }
 
     app_index = "Wiki"
@@ -41,12 +42,13 @@ class VorteilView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTableView):
 
 class NachteilView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTableView):
     model = Nachteil
-    table_fields = ["titel", "ip", "beschreibung", "wann_wählbar"]
+    table_fields = ["titel", "ip", "beschreibung", "wann_wählbar", "is_sellable"]
     filterset_fields = {
         "titel": ["icontains"],
         "ip": ["gte"],
         "beschreibung": ["icontains"],
-        "wann_wählbar": ["exact"]
+        "wann_wählbar": ["exact"],
+        "is_sellable": ["exact"]
     }
 
     app_index = "Wiki"
