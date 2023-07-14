@@ -1,0 +1,25 @@
+{% extends 'base/dynamic-table.html' %}
+{% load static resources l10n %}
+
+{% block extra-head %}
+<style>
+    table {
+        max-width: 700px;
+        margin-inline: auto;
+    }
+</style>
+
+<script src="{% static 'levelUp/js/ap.js' %}" type="text/javascript"></script>
+{% endblock %}
+
+{% block asides %}{{ block.super }}
+    {% resources %}<p><b id="ap_pool">{% localize off %}{{ char.ap }}{% endlocalize %}</b> AP</p>{% endresources %}
+{% endblock %}
+
+{% block after_table %}
+<form id="form" method="post" class="d-flex justify-content-center sticky-footer">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-lg btn-primary m-2" disabled>Speichern</button>
+    <a class="btn btn-lg btn-outline-primary m-2" href="{{ back_url }}">Zurück</a>
+</form>
+{% endblock %}

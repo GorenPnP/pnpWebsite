@@ -1,0 +1,73 @@
+{% load l10n %}
+{% localize off %}
+<div class="card {% if not rel %}card--add{% endif %} text-bg-light">
+    <div class="card-body d-flex flex-wrap align-items-start justify-content-center" style="gap: 1em">
+        {% if not rel %}
+        <div>
+            <input type="checkbox" class="add-checkbox" name="add-{{teil.id}}" id="add-{{teil.id}}">
+            <label for="add-{{teil.id}}">neu wählen</label>
+        </div>
+        {% endif %}
+        {% if teil.needs_ip %}
+        <div class="input-field d-flex flex-column">
+            <label for="ip-{{teil.id}}-{{rel.id}}">IP</label>
+            <input type="number" class="ip" name="ip-{{teil.id}}" id="ip-{{teil.id}}-{{rel.id}}" value="{{ rel.ip }}" {% if rel %}disabled{% endif %} data-required="true">
+        </div>
+        {% endif %}
+
+        {% if teil.needs_attribut %}
+        <div class="input-field d-flex flex-column">
+            <label for="attribut-{{teil.id}}-{{rel.id}}">Attribut</label>
+            <select name="attribut-{{teil.id}}" id="attribut-{{teil.id}}-{{rel.id}}" {% if rel %}disabled{% endif %} data-required="true">
+                {% if not rel %}<option disabled selected value="">---</option>{% endif %}
+                {% for a in attribute %}
+                <option value="{{ a.id }}" {% if a.id == rel.attribut.id %}selected{% endif %}>{{ a.titel }} ({{ a.beschreibung }})</option>
+                {% endfor %}
+            </select>
+        </div>
+        {% endif %}
+        
+        {% if teil.needs_fertigkeit %}
+        <div class="input-field d-flex flex-column">
+            <label for="fertigkeit-{{teil.id}}-{{rel.id}}">Fertigkeit</label>
+            <select name="fertigkeit-{{teil.id}}" id="fertigkeit-{{teil.id}}-{{rel.id}}" {% if rel %}disabled{% endif %} data-required="true">
+                {% if not rel %}<option disabled selected value="">---</option>{% endif %}
+                {% for f in fertigkeiten %}
+                <option value="{{ f.id }}" {% if f.id == rel.fertigkeit.id %}selected{% endif %}>{{ f.titel }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        {% endif %}
+        
+        {% if teil.needs_engelsroboter %}
+        <div class="input-field d-flex flex-column">
+            <label for="engelsroboter-{{teil.id}}-{{rel.id}}">Engelsroboter</label>
+            <select name="engelsroboter-{{teil.id}}" id="engelsroboter-{{teil.id}}-{{rel.id}}" {% if rel %}disabled{% endif %} data-required="true">
+                {% if not rel %}<option disabled selected value="">---</option>{% endif %}
+                {% for e in engelsroboter %}
+                <option value="{{ e.id }}" {% if e.id == rel.engelsroboter.id %}selected{% endif %}>{{ e.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        {% endif %}
+        
+        <div class="input-field d-flex flex-column">
+            <label for="notizen-{{teil.id}}-{{rel.id}}">Notizen</label>
+            <textarea name="notizen-{{teil.id}}" id="notizen-{{teil.id}}-{{rel.id}}" {% if rel %}disabled{% endif %} {% if teil.needs_notiz %}data-required="true"{% endif %}>{{ rel.notizen|default:"" }}</textarea>
+        </div>
+    </div>
+
+    {% if teil.is_sellable and rel %}
+    <div class="card-footer">
+        <button type="button" aria-label="delete" data-delete="delete-{{rel.id}}" class="del-btn btn btn-lg btn-danger d-block m-auto">
+            <svg style="width:1em; margin: auto; display: block;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
+                <!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
+                <path fill="#ffffff" d="M135.2 17.7L128 32H32C14.3 32 0 46.3 0 64S14.3 96 32 96H416c17.7 0 32-14.3 32-32s-14.3-32-32-32H320l-7.2-14.3C307.4 6.8 296.3 0 284.2 0H163.8c-12.1 0-23.2 6.8-28.6 17.7zM416 128H32L53.2 467c1.6 25.3 22.6 45 47.9 45H346.9c25.3 0 46.3-19.7 47.9-45L416 128z"/>
+            </svg>
+        </button>
+
+        <input type="hidden" name="delete-{{rel.id}}">
+    </div>
+    {% endif %}
+</div>
+{% endlocalize %}

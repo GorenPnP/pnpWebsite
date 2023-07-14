@@ -56,7 +56,7 @@
 
     <h4>Hilfreiches:</h4>
     <ul>
-        <li><a href="{% url 'wiki:stufenplan' gfs.id %}" target="_blank">{{ gfs.titel }} öffnen</a></li>
+        <li><a href="{% url 'wiki:stufenplan' gfs.id %}" target="_blank" class="text-light">{{ gfs.titel }} öffnen</a></li>
         {% for n in notizen %}<li>{{ n }}</li>{% endfor %}
     </ul>
 </aside>

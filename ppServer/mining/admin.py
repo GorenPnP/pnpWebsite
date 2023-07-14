@@ -90,12 +90,12 @@ class ItemAdmin(admin.ModelAdmin):
     def _icon(self, obj):
         return format_html('<img src="{0}" style="max-width: 32px; max-height:32px;" />'.format(obj.crafting_item.icon.url))
 
-admin.site.register(Material, MaterialAdmin)
-admin.site.register(MaterialGroup, MaterialGroupAdmin)
-admin.site.register(Region, RegionAdmin)
-admin.site.register(Layer, LayerAdmin)
-admin.site.register(CraftingOriginatedMaterial, CraftingOriginatedMaterialAdmin)
-admin.site.register(ProfileEntity)
+# admin.site.register(Material, MaterialAdmin)
+# admin.site.register(MaterialGroup, MaterialGroupAdmin)
+# admin.site.register(Region, RegionAdmin)
+# admin.site.register(Layer, LayerAdmin)
+# admin.site.register(CraftingOriginatedMaterial, CraftingOriginatedMaterialAdmin)
+# admin.site.register(ProfileEntity)
 
-admin.site.register(Inventory, InventoryAdmin)
-admin.site.register(Item, ItemAdmin)
+# admin.site.register(Inventory, InventoryAdmin)
+# admin.site.register(Item, ItemAdmin)

@@ -10,7 +10,7 @@
     <form method="post">
         {% csrf_token %}
 
-        {% with ''|center:question.anz_stimmen as range %}
+        {% with ''|center:8 as range %}
         {% for _ in range %}
         <select name="answer" class="d-block mb-3 p-1" style="min-width: 170px;" required>
             <option value="" selected>---</option>

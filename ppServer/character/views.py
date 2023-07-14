@@ -17,12 +17,20 @@ from django.http import HttpResponse
 @verified_account
 def index(request):
 
-    if User.objects.filter(username=request.user.username, groups__name='spielleiter').exists():
+    is_spielleiter = User.objects.filter(username=request.user.username, groups__name='spielleiter').exists()
+
+    if is_spielleiter:
         charaktere = Charakter.objects.all().order_by('name')
     else:
         charaktere = Charakter.objects.filter(eigentümer__name=request.user.username).order_by('name')
 
-    context = {'charaktere': charaktere, 'topic': "Charaktere", "plus": "+ Charakter", "plus_url": reverse('create:gfs')}
+    context = {
+        'charaktere': charaktere,
+        'is_spielleiter': is_spielleiter,
+        'topic': "Charaktere",
+        "plus": "+ Charakter",
+        "plus_url": reverse('create:gfs')
+    }
     return render(request, "character/index.html", context)
 
 

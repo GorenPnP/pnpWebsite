@@ -1,0 +1,33 @@
+{% load l10n %}
+{% comment %}
+needs:
+    <link rel="stylesheet" href="{% static 'levelUp/css/teil.css' %}">
+    <script defer src="{% static 'levelUp/js/teil.js' %}"></script>
+{% endcomment %}
+
+<div class="accordion-panel {% if teil.has_rel %}text-bg-primary{% else %}text-bg-dark{% endif %}">
+    <div class="head" id="panel{{ forloop.counter }}-title">
+        <button type="button" class="accordion-trigger head__text" aria-expanded="false" aria-controls="accordion{{ forloop.counter }}-content">
+            <div>
+                <div class="badge rounded-pill text-bg-light"><span class="ip">{% localize off %}{{ teil.ip|default:"?" }}{% endlocalize %}</span> IP</div>
+                <b aria-describedby="description{{ forloop.counter }}">{{ teil.titel }}</b>
+            </div>
+            <small id="description{{ forloop.counter }}">{{ teil.beschreibung }}</small>
+        </button>
+    </div>
+    <div class="accordion-content" role="region" aria-labelledby="panel{{ forloop.counter }}-title" aria-hidden="true" id="panel{{ forloop.counter }}-content">
+        <div class="content-bg">
+        {% for rel in teil.rel %}
+            {% include  'levelUp/teil/_teil_rel.html' with teil=teil rel=rel attribute=attribute fertigkeit=fertigkeit engelsroboter=engelsroboter %}
+        {% endfor %}
+
+            
+        <!-- empty row -->
+        {% if not teil.max_amount or teil.rel|length < teil.max_amount %}
+            {% include 'levelUp/teil/_teil_rel.html' with teil=teil attribute=attribute fertigkeit=fertigkeit engelsroboter=engelsroboter %}
+        {% endif %}
+
+        {{ teil.rel|length }} / {{ teil.max_amount|default:"∞" }}
+        </div>
+    </div>
+</div>

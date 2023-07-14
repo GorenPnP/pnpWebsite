@@ -66,17 +66,17 @@ https://cloud.google.com/sdk/docs/install?hl=de#deb
 * `gcloud init` & auth with own google account
 
 ## Restore db
-**Info**: See all available backups to restore from: `python3 manage.py listbackups`
+**Info**: See all available backups to restore from: `py manage.py listbackups`
 
 **Note**: migrations & db-backup have to be using the same format. So use git history if necessary. Ideally the newest versions should work together. 
 
 1. download (latest) backup from [Google Cloud](https://console.cloud.google.com/storage/browser/backup-goren-pnp.appspot.com/backups?hl=de&project=backup-goren-pnp&pageState=(%22StorageObjectListTable%22:(%22f%22:%22%255B%255D%22))&prefix=&forceOnObjectsSortingFiltering=false)
-1. unpack (note: backup is a .tar.gz, sometimes the file-ending is chopped off)
-1. copy *.psql file into /ppServer/backups
-1. run `python3 manage.py dbrestore` to use the latest or `python3 manage.py dbrestore -i *.psql` for a specific one
+2. unpack (note: backup is a .tar.gz, sometimes the file-ending is chopped off)
+3. copy *.psql file into /ppServer/backups
+4. run `py manage.py dbrestore` to use the latest or `py manage.py dbrestore -i *.psql` for a specific one
 
     * if that doesn't work,try this:
-        1. clear the db first: run `python3 manage.py dbshell` and paste
+        1. clear the db first: run `py manage.py dbshell` and paste
             ```sql
             DO $$ DECLARE
                 r RECORD;
@@ -89,9 +89,9 @@ https://cloud.google.com/sdk/docs/install?hl=de#deb
                 END LOOP;
             END $$;
             ```
-        1. exit shell
-        1. run `python3 manage.py migrate`
-        1. try `python3 manage.py dbrestore` again OR `pg_restore  -U admin -d goren_db -1 .\backups\*.psql.bin` (will prompt for password)
+        2. exit shell
+        3. run `py manage.py migrate`
+        4. try `py manage.py dbrestore` again OR `pg_restore  -U admin -d goren_db -1 .\backups\*.psql.bin` (will prompt for password)
 
 ## Restore media
 1. download (latest) backup from [Google Cloud](https://console.cloud.google.com/storage/browser/backup-goren-pnp.appspot.com/backups?hl=de&project=backup-goren-pnp&pageState=(%22StorageObjectListTable%22:(%22f%22:%22%255B%255D%22))&prefix=&forceOnObjectsSortingFiltering=false)
@@ -105,10 +105,10 @@ https://cloud.google.com/sdk/docs/install?hl=de#deb
 
 ## Run locally
 1. spin up db-container `docker-compose start db` (see docker-compose.yml -> db-service)
-1. run `python3 manage.py runserver`
+2. run `py manage.py runserver`
 
     if that didn't work, you have to add /ppServer/.env.dev and /ppServer/.env.dev.db variables to /ppServer/ppServer/settings.py
-1. [open in browser](http://localhost:8000)
+3. [open in browser](http://localhost:8000)
 
 ## Run in prod
 `docker-compose -f docker-compose.prod.yml up --build --remove-orphans -d`

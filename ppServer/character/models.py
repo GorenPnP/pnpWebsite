@@ -1,3 +1,4 @@
+from math import floor
 import random, string
 
 from datetime import date
@@ -656,6 +657,9 @@ class Charakter(models.Model):
     def get_max_stufe(self) -> int:
         return GfsStufenplanBase.objects.filter(ep__lte=self.ep).aggregate(Max("stufe"))["stufe__max"] or 0
 
+    def max_tier_allowed(self) -> int:
+        return min(1 + floor(self.ep_stufe_in_progress / 4), 7)
+
     def init_stufenhub(self):
         max_stufe = self.get_max_stufe()
         if self.ep_stufe_in_progress >= max_stufe or self.gfs is None: return
@@ -955,7 +959,7 @@ class RelWissensfertigkeit(models.Model):
     würfel2 = models.SmallIntegerField(choices=enums.würfelart_enum, default=enums.würfelart_enum[0][0])
 
     def __str__(self):
-        return "'{}' von ’{}’".format(self.wissensfertigkeit.__str__(), self.char.__str__())
+        return "'{}' von '{}'".format(self.wissensfertigkeit.__str__(), self.char.__str__())
 
 
 class RelSpezialfertigkeit(models.Model):
@@ -972,7 +976,7 @@ class RelSpezialfertigkeit(models.Model):
     stufe = models.PositiveIntegerField(default=0, validators=[MaxValueValidator(50)])
 
     def __str__(self):
-        return "'{}' von ’{}’".format(self.spezialfertigkeit.__str__(), self.char.__str__())
+        return "'{}' von '{}'".format(self.spezialfertigkeit.__str__(), self.char.__str__())
 
 
 ############ RelShop ###########
@@ -1079,7 +1083,6 @@ class RelZauber(RelShop):
         verbose_name_plural = "Zauber"
 
     item = models.ForeignKey(Zauber, on_delete=models.CASCADE)
-    will_create = models.BooleanField(default=False)
 
     # tier
     tier = models.PositiveSmallIntegerField(default=0, validators=[MaxValueValidator(7)])

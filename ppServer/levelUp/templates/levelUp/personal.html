@@ -1,0 +1,16 @@
+{% extends 'base/headed_main.html' %}
+{% load static %}
+{% block extra-head %}<link rel="stylesheet" href="{% static 'auth/css/centered_form.css' %}">{% endblock %}
+{% block main %}
+<div class="text-container">
+    <form class='form' method="POST" class="input-group">
+        {% csrf_token %}
+        {{ form.as_p }}
+
+        <div class="sticky-footer">
+            <button type="submit" class="btn btn-lg btn-primary m-2">Speichern</button>
+            <a class="btn btn-lg btn-outline-primary m-2" href="{{ back_url }}">Zurück</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

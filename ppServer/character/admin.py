@@ -136,7 +136,7 @@ class RelPersönlichkeitInline(SpielerReadonlyInLine):
 
 
 class RelAttributInline(SpielerReadonlyInLine):
-    fields = ['attribut', 'aktuellerWert', 'aktuellerWert_bonus', 'maxWert', 'maxWert_bonus', 'fg']
+    fields = ['attribut', 'aktuellerWert', 'aktuellerWert_temp', 'aktuellerWert_bonus', 'maxWert', 'maxWert_temp', 'maxWert_bonus', 'fg']
     readonly_fields = ['attribut']
     model = RelAttribut
     extra = 0
@@ -184,14 +184,14 @@ class AffektivitätInLine(admin.TabularInline):
 
 class RelVorteilInLine(SpielerReadonlyInLine):
     model = RelVorteil
-    fields = ["anzahl", "teil", "attribut", "fertigkeit", "engelsroboter", "notizen", "will_create"]
+    fields = ["anzahl", "teil", "attribut", "fertigkeit", "engelsroboter", "notizen", "ip", "will_create"]
     readonly_fields = ["will_create"]
     extra = 1
 
 
 class RelNachteilInLine(SpielerReadonlyInLine):
     model = RelNachteil
-    fields = ["anzahl", "teil", "attribut", "notizen"]
+    fields = ["anzahl", "teil", "attribut", "fertigkeit", "notizen", "ip"]
     extra = 1
 
 class RelTalentInLine(SpielerReadonlyInLine):
@@ -255,7 +255,7 @@ class RelEinbautenInLine(RelShopInLine):
 
 
 class RelZauberInLine(RelShopInLine):
-    fields = fields = ["anz", "item", "tier", "notizen", "will_create", "tier_notes"]
+    fields = fields = ["anz", "item", "tier", "notizen", "tier_notes"]
     model = RelZauber
 
 
@@ -327,7 +327,7 @@ class CharakterAdmin(admin.ModelAdmin):
 
     list_display = ['name', 'eigentümer', "gfs", "wesen_", "profession", "ep_system", "larp", "in_erstellung"]
 
-    list_filter = ['larp', 'ep_system', 'eigentümer']
+    list_filter = ['in_erstellung', 'larp', 'ep_system', 'eigentümer']
     search_fields = ['name', 'eigentümer__name']
 
     save_on_top = True

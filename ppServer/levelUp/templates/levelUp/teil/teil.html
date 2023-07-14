@@ -1,0 +1,31 @@
+{% extends 'base/headed_main.html' %}
+{% load static resources l10n %}
+
+{% block extra-head %}{{ block.super }}
+<link rel="stylesheet" href="{% static 'levelUp/css/teil.css' %}">
+{{ is_vorteil|json_script:"is_vorteil" }}
+<script src="{% static 'levelUp/js/teil.js' %}" defer></script>
+{% endblock %}
+
+{% block asides %}
+    {% resources %}
+        <p><b id="ip_pool"> {% localize off %}{{ char.ip }}{% endlocalize %}</b> IP</p>
+    {% endresources %}
+{% endblock %}
+
+{% block main %}
+<form method="post">
+    {% csrf_token %}
+
+    <div class="accordion">
+    {% for teil in object_list %}
+        {% include 'levelUp/teil/_teil.html' with teil=teil %}
+    {% endfor %}
+    </div>
+    
+    <div class="sticky-footer d-flex justify-content-center">
+        <button type="submit" class="btn btn-lg btn-primary m-2">Speichern</button>
+        <a class="btn btn-lg btn-outline-primary m-2" href="{{ back_url }}">Zurück</a>
+    </div>
+</form>
+{% endblock %}

@@ -1,0 +1,56 @@
+<style>
+    body { overflow-x: hidden; }
+    .character-resources {
+        z-index: 10000;
+        position: sticky;
+        top: 0;
+        right: 0;
+        height: 0;
+
+        overflow-x: visible;
+    }
+    .character-resources .offcanvas { bottom: unset; }
+    .character-resources .offcanvas.offcanvas-end, .character-resources-trigger {
+        /* color */
+        --pink-rgb: 132, 31, 82;
+
+        background-color: RGBA(var(--pink-rgb), var(--bs-bg-opacity,1)) !important;
+
+        /* position & size */
+        position: absolute;
+        
+        top: 10px;
+        right: 10px;
+        margin-left: auto;
+        width: fit-content;
+    }
+
+    .character-resources-trigger {
+        color: white !important;
+        transition: filter 200ms;
+    }
+    .character-resources-trigger:hover {
+        filter: brightness(.8);
+    }
+</style>
+
+<!-- Resources -->
+<aside class="character-resources">
+
+    <div class="offcanvas offcanvas-end show text-bg-dark" tabindex="-1" id="characterResources" aria-labelledby="offcanvasExampleLabel" data-bs-scroll="true" data-bs-backdrop="false">
+        <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="offcanvasExampleLabel">Ressoucen</h5>
+            <button type="button" class="btn-close btn-close-white text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body">
+            {{ res }}
+        </div>
+    </div>
+    
+    <button class="character-resources-trigger btn btn-outline-light" type="button" data-bs-toggle="offcanvas" data-bs-target="#characterResources" aria-controls="offcanvasScrolling">
+        <svg xmlns="http://www.w3.org/2000/svg" width="1.5em" height="1.5em" fill="currentColor" class="bi bi-question-circle" viewBox="0 0 16 16">
+            <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+            <path d="M5.255 5.786a.237.237 0 0 0 .241.247h.825c.138 0 .248-.113.266-.25.09-.656.54-1.134 1.342-1.134.686 0 1.314.343 1.314 1.168 0 .635-.374.927-.965 1.371-.673.489-1.206 1.06-1.168 1.987l.003.217a.25.25 0 0 0 .25.246h.811a.25.25 0 0 0 .25-.25v-.105c0-.718.273-.927 1.01-1.486.609-.463 1.244-.977 1.244-2.056 0-1.511-1.276-2.241-2.673-2.241-1.267 0-2.655.59-2.75 2.286zm1.557 5.763c0 .533.425.927 1.01.927.609 0 1.028-.394 1.028-.927 0-.552-.42-.94-1.029-.94-.584 0-1.009.388-1.009.94z"/>
+        </svg>
+    </button>
+</aside>
