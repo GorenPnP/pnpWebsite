@@ -463,7 +463,7 @@ class GenericTeilView(LoginRequiredMixin, OwnCharakterMixin, TemplateView):
 
             # create relation
             self.RelModel.objects.create(teil=teil, char=char, **fields)
-            ip = self.calc_ip_on_creation(ip, teil.ip if not teil.needs_ip else fields["ip"])
+            ip = self.calc_ip_on_creation(ip, teil.ip if not teil.needs_ip else int(fields["ip"]))
 
 
         # apply ip
