@@ -231,13 +231,15 @@ class GfsVorteil(models.Model):
     engelsroboter = models.ForeignKey(Engelsroboter, on_delete=models.SET_NULL, null=True, blank=True)
     ip = models.PositiveSmallIntegerField(null=True, blank=True)
 
+    is_sellable = models.BooleanField(default=True, verbose_name="ist verkaufbar?")
+
 
 class GfsNachteil(models.Model):
     class Meta:
         ordering = ['teil']
         verbose_name = "Startnachteil"
         verbose_name_plural = "Startnachteile"
-        unique_together = ["teil", "gfs"]
+        unique_together = ["teil", "gfs", "notizen"]
 
     teil = models.ForeignKey('Nachteil', on_delete=models.CASCADE)
     gfs = models.ForeignKey(Gfs, on_delete=models.CASCADE)
@@ -249,6 +251,8 @@ class GfsNachteil(models.Model):
     fertigkeit = models.ForeignKey("Fertigkeit", on_delete=models.SET_NULL, null=True, blank=True)
     engelsroboter = models.ForeignKey(Engelsroboter, on_delete=models.SET_NULL, null=True, blank=True)
     ip = models.PositiveSmallIntegerField(null=True, blank=True)
+
+    is_sellable = models.BooleanField(default=True, verbose_name="ist verkaufbar?")
 
 
 class ProfessionAttribut(models.Model):
@@ -415,8 +419,6 @@ class Teil(models.Model):
     """super for Vorteil, Nachteil"""
     class Meta:
         abstract = True
-        ordering = ['titel', 'ip']
-        unique_together = (('titel', 'ip', "beschreibung"),)
 
     titel = models.CharField(max_length=40)
     ip = models.PositiveIntegerField(default=0, validators=[MaxValueValidator(1000)])
@@ -438,8 +440,11 @@ class Teil(models.Model):
 class Vorteil(Teil):
 
     class Meta:
+        ordering = ['titel', 'ip']
         verbose_name_plural = "Vorteile"
         verbose_name = "Vorteil"
+
+        unique_together = (('titel', 'ip', "beschreibung"),)
 
     def __str__(self):
         return "{} (kostet {} IP)".format(self.titel, self.ip)
@@ -448,8 +453,11 @@ class Vorteil(Teil):
 class Nachteil(Teil):
 
     class Meta:
+        ordering = ['titel', 'ip']
         verbose_name_plural = "Nachteile"
         verbose_name = "Nachteil"
+
+        unique_together = (('titel', 'ip', "beschreibung"),)
 
     def __str__(self):
         return "{} (gibt {} IP)".format(self.titel, self.ip)
@@ -597,7 +605,7 @@ class Charakter(models.Model):
     tp = models.IntegerField(null=True, blank=True)
     spF_wF = models.IntegerField(null=True, blank=True)
     wp = models.IntegerField(null=True, blank=True)
-    zauberplätze = models.JSONField(null=True, blank=True) # {"0": 2, "2": 1}
+    zauberplätze = models.JSONField(null=True, blank=True, default=dict) # {"0": 2, "2": 1}
     geld = models.IntegerField(default=0)
     konzentration = models.PositiveSmallIntegerField(null=True, blank=True)
     prestige = models.PositiveIntegerField(default=0)
@@ -658,7 +666,8 @@ class Charakter(models.Model):
         return GfsStufenplanBase.objects.filter(ep__lte=self.ep).aggregate(Max("stufe"))["stufe__max"] or 0
 
     def max_tier_allowed(self) -> int:
-        return min(1 + floor(self.ep_stufe_in_progress / 4), 7)
+        new_tiers_at_stufe = [0, 2, 5, 8, 12, 16, 20]
+        return len([stufe for stufe in new_tiers_at_stufe if stufe <= self.ep_stufe_in_progress])
 
     def init_stufenhub(self):
         max_stufe = self.get_max_stufe()
@@ -842,8 +851,7 @@ class RelTeil(models.Model):
     class Meta:
         abstract = True
         ordering = ['char', 'teil']
-
-        unique_together = (('char', 'teil', "extra", "notizen"),)
+        unique_together = ["teil", "char", "notizen"]
 
     char = models.ForeignKey(Charakter, on_delete=models.CASCADE)
     teil = None
@@ -855,6 +863,8 @@ class RelTeil(models.Model):
     fertigkeit = models.ForeignKey(Fertigkeit, on_delete=models.SET_NULL, null=True, blank=True)
     engelsroboter = models.ForeignKey(Engelsroboter, on_delete=models.SET_NULL, null=True, blank=True)
     ip = models.PositiveSmallIntegerField(null=True, blank=True)
+
+    is_sellable = models.BooleanField(default=True, verbose_name="ist verkaufbar?")
 
     def __str__(self):
         return "'{}' zu Charakter '{}'".format(self.teil.titel, self.char.name)

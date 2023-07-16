@@ -638,23 +638,19 @@ class CharacterExportView(LoginRequiredMixin, VerifiedAccountMixin, DetailView):
         
         # Wissensfertigkeiten
         spF_wF_ws.write_row(0, 0, ['Wissensfertigkeit', 'Attribute', 'Fertigkeit', '2. Würfel', 'Schwellwert'], format_section_titel)
-        wissen_qs = Wissensfertigkeit.objects.annotate(
+        wissen_qs = Wissensfertigkeit.objects.prefetch_related("fertigkeit", "attr1", "attr2", "attr3").annotate(
                         attr=Concat(F("attr1__titel"), Value(' + '), F("attr2__titel"), Value(' + '), F("attr3__titel"), output_field=CharField()),
                         nd_dice=Subquery(RelWissensfertigkeit.objects.filter(wissensfertigkeit=OuterRef("id"), char=char)[:1].values("würfel2")),
-                    )\
-                    .values_list(
-                        "titel",
-                        "attr",
-                        "fertigkeit__titel",
-                        "nd_dice",
                     )
-        for i, wissen in enumerate(wissen_qs):
-            wert = "-".join([POSITION[attr] for attr in wissen[1].split(" + ")])
 
-            spF_wF_ws.write(f"A{i+2}", wissen[0], format_align_center_center)
-            spF_wF_ws.write(f"B{i+2}", wissen[1], format_wissen_attr)
-            spF_wF_ws.write(f"C{i+2}", wissen[2], format_align_center_center)
-            spF_wF_ws.write(f"D{i+2}", wissen[3], format_wissen_dice)
+        for i, wissen in enumerate(wissen_qs):
+            ferts = " + ".join([s.titel for s in wissen.fertigkeit.all()])
+            wert = "-".join([POSITION[e] for e in [*wissen.attr.split(" + "), *ferts.split(" + ")]])
+
+            spF_wF_ws.write(f"A{i+2}", wissen.titel, format_align_center_center)
+            spF_wF_ws.write(f"B{i+2}", wissen.attr, format_wissen_attr)
+            spF_wF_ws.write(f"C{i+2}", ferts, format_align_center_center)
+            spF_wF_ws.write(f"D{i+2}", wissen.nd_dice, format_wissen_dice)
             spF_wF_ws.write(f"E{i+2}", f'=100-{wert}', format_wissen_wert)
 
 

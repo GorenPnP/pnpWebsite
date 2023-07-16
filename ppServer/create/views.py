@@ -205,7 +205,10 @@ class GfsFormView(LoginRequiredMixin, VerifiedAccountMixin, TemplateView):
                     attribut=gfs_teil.attribut,
                     fertigkeit=gfs_teil.fertigkeit,
                     engelsroboter=gfs_teil.engelsroboter,
-                    ip=gfs_teil.ip
+                    ip=gfs_teil.ip,
+
+                    # sellable?
+                    is_sellable=gfs_teil.is_sellable,
                 )
 
             # Nachteile
@@ -218,7 +221,10 @@ class GfsFormView(LoginRequiredMixin, VerifiedAccountMixin, TemplateView):
                     attribut=gfs_teil.attribut,
                     fertigkeit=gfs_teil.fertigkeit,
                     engelsroboter=gfs_teil.engelsroboter,
-                    ip=gfs_teil.ip
+                    ip=gfs_teil.ip,
+
+                    # sellable?
+                    is_sellable=gfs_teil.is_sellable,
                 )
 
         return redirect("create:prio")

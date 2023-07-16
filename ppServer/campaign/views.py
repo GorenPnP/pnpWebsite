@@ -22,41 +22,6 @@ from .forms import AuswertungForm
 from .mixins import CampaignMixin
 
 
-class AuswertungView(LoginRequiredMixin, SpielleiterOnlyMixin, DetailView):
-    model = Charakter
-
-    template_name = "campaign/auswertung.html"
-
-    def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
-        context = super().get_context_data(**kwargs, form=AuswertungForm())
-        context["topic"] = 'Auswertung für ' + context["object"].name
-
-        return context
-
-    def post(self, request, *args, **kwargs):
-        form = AuswertungForm(request.POST)
-        form.full_clean()
-        if form.is_valid():
-            object = self.get_object()
-            fields = {**form.cleaned_data}
-            story = fields["story"]
-            del fields["story"]
-
-            for k, v in fields.items():
-                old_value = getattr(object, k)
-                setattr(object, k, old_value + v)
-
-            object.save(update_fields=fields)
-            logAuswertung(object.eigentümer, object, story, fields)
-
-            # check ep for new stufe
-            object.init_stufenhub()
-
-            return redirect("character:show", object.id)
-
-        return redirect(request.build_absolute_uri())
-
-
 class HubView(LoginRequiredMixin, CampaignMixin, OwnCharakterMixin, DetailView):
     model = Charakter
 

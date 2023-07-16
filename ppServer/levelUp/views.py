@@ -408,13 +408,19 @@ class GenericTeilView(LoginRequiredMixin, OwnCharakterMixin, TemplateView):
         ####### no updates of existing RelModel possible #########
 
         # handle deletions
+
+        # TODO check if deletion is allowed for the char
+
         deletions = [int(re.search(r'\d+$', key).group(0)) for key in changes.keys() if "delete" in key]
-        qs_deletions = self.RelModel.objects.filter(id__in=deletions, char=char)
+        qs_deletions = self.RelModel.objects.filter(id__in=deletions, char=char, is_sellable=True)
         ip = self.calc_ip_on_deletion(ip, sum([rel.ip if rel.teil.needs_ip else rel.teil.ip for rel in qs_deletions.prefetch_related("teil")]))
         qs_deletions.delete()
 
 
         # handle additions
+
+        # TODO check if addition is allowed for the char
+
         additions = [int(re.search(r'\d+$', key).group(0)) for key in changes.keys() if "add" in key]
         changes = {key:value for (key,value) in changes.items() if "delete" not in key and "add" not in key}
 
@@ -462,7 +468,7 @@ class GenericTeilView(LoginRequiredMixin, OwnCharakterMixin, TemplateView):
                 continue
 
             # create relation
-            self.RelModel.objects.create(teil=teil, char=char, **fields)
+            self.RelModel.objects.create(teil=teil, char=char, is_sellable=teil.is_sellable, **fields)
             ip = self.calc_ip_on_creation(ip, teil.ip if not teil.needs_ip else int(fields["ip"]))
 
 

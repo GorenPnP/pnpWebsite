@@ -18,14 +18,13 @@ from django.http import HttpResponse
 def index(request):
 
     is_spielleiter = User.objects.filter(username=request.user.username, groups__name='spielleiter').exists()
+    char_qs = Charakter.objects.prefetch_related("eigentümer").filter(in_erstellung=False).order_by('name')
 
-    if is_spielleiter:
-        charaktere = Charakter.objects.all().order_by('name')
-    else:
-        charaktere = Charakter.objects.filter(eigentümer__name=request.user.username).order_by('name')
+    if not is_spielleiter:
+        char_qs = char_qs.filter(eigentümer__name=request.user.username)
 
     context = {
-        'charaktere': charaktere,
+        'charaktere': char_qs,
         'is_spielleiter': is_spielleiter,
         'topic': "Charaktere",
         "plus": "+ Charakter",

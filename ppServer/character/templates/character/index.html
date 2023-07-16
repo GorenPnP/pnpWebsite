@@ -10,17 +10,15 @@
 {% endblock %}
 
 {% block main %}
+
 <ul class="list-group">
 	{% for c in charaktere %}
 	<li class="d-flex align-items-start list-group-item list-group-item-dark">
 		<a href="{% url 'character:show' c.id %}" class="char-name text-dark d-block w-100">
-			<p class="h4">{{ c.name|default:"&#60;no name&#62;" }}{% if c.larp %} (LARP){% endif %}</p>
+			<p><span class="h4">{{ c.name|default:"&#60;no name&#62;" }}{% if c.larp %} (LARP){% endif %}</span> {% if is_spielleiter %}<small> von {{ c.eigentümer.name|default:"?" }}</small>{% endif %}</p>
 			<p>{{ c.persönlicheZiele|default:""|linebreaks }}</p>
 		</a>
 
-		{% if is_spielleiter %}
-			<a class="btn btn-outline-dark mx-2" href="{% url 'campaign:auswertung' c.id %}">Auswertung</a>
-		{% endif %}
 		{% if c.ep_stufe != c.ep_stufe_in_progress %}
 			<a class="btn btn-dark" href="{% url 'campaign:hub' c.id %}">Bis Stufe {{ c.ep_stufe_in_progress }} verteilen</a>
 		{% endif %}
@@ -32,4 +30,10 @@
 	</div>
 	{% endfor %}
 </ul>
+
+{% if is_spielleiter %}
+<footer class="sticky-footer d-flex justify-content-center p-2 mt-5">
+	<a class="btn btn-lg btn-primary mx-2" href="{% url 'campaign:auswertung_hub' %}">Auswertung</a>
+</footer>
+{% endif %}
 {% endblock %}

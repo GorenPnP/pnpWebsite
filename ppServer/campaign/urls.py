@@ -1,11 +1,14 @@
 from django.urls import path
 
 from . import views
+from . import views_sp
 
 app_name = 'campaign'
 
 urlpatterns = [
-	path('auswertung/<int:pk>', views.AuswertungView.as_view(), name='auswertung'),
+	path('auswertung', views_sp.AuswertungListView.as_view(), name='auswertung_hub'),
+	path('auswertung/<int:pk>', views_sp.AuswertungView.as_view(), name='auswertung'),
+
 	path('hub/<int:pk>', views.HubView.as_view(), name='hub'),
 	path('hub/<int:pk>/attribute', views.HubAttributeView.as_view(), name='hub_attribute'),
 	path('hub/<int:pk>/fertigkeiten', views.HubFertigkeitenView.as_view(), name='hub_fertigkeiten'),

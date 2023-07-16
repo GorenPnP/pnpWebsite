@@ -1,0 +1,34 @@
+{% extends 'base/headed_main.html' %}
+{% load static resources l10n %}
+
+{% block extra-head %}
+<link rel="stylesheet" href="{% static 'base/css/checkbox.css' %}">
+<script src="{% static 'campaign/js/auswertung_hub.js' %}" defer></script>
+{% endblock %}
+
+{% block asides %}{{ block.super }}
+    {% resources %}
+        <ul id="selected-chars"></ul>
+    {% endresources %}
+{% endblock %}
+
+{% block main %}
+<h2>Alle Charaktere</h2>
+
+<ul>
+    {% for c in object_list %}
+    <li class="d-flex align-items-center my-2" style="gap: 5px">
+        <input type="checkbox" id="char-{% localize off %}{{ c.id }}{% endlocalize %}" name="{% localize off %}{{ c.id }}{% endlocalize %}">
+
+        <label for="char-{% localize off %}{{ c.id }}{% endlocalize %}">
+            <b>{{ c.name|default:"&#60;no name&#62;" }}{% if c.larp %} (LARP){% endif %} </b>
+            <small>von {{ c.eigentümer.name|default:"?" }}</small>
+        </label>
+    </li>
+    {% empty %}
+    <div>
+        <h1>Du hast keine Charaktere.</h1>
+    </div>
+    {% endfor %}
+</ul>
+{% endblock %}

@@ -396,7 +396,7 @@ class WesenkraftTableView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTable
                     ('f', 'manifest < ..')
                 ]
             """
-            if record.wesen == "w": return "nur " + ", ".join([gfs.titel for gfs in record.zusatz_gfsspezifisch.all()])
+            if record.wesen == "w": return ("startet bei Tier 1: ") + ", ".join([gfs.titel for gfs in record.zusatz_gfsspezifisch.all()])
             if record.wesen == "f": return f"Manifest < {record.zusatz_manifest}"
             return value
 

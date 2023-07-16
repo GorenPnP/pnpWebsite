@@ -184,14 +184,16 @@ class AffektivitätInLine(admin.TabularInline):
 
 class RelVorteilInLine(SpielerReadonlyInLine):
     model = RelVorteil
-    fields = ["anzahl", "teil", "attribut", "fertigkeit", "engelsroboter", "notizen", "ip", "will_create"]
-    readonly_fields = ["will_create"]
+    fields = ["teil", "attribut", "fertigkeit", "engelsroboter", "notizen", "ip", "is_sellable", "will_create"]
+    readonly_fields = ["will_create", "is_sellable"]
+    exclude = ["anzahl"]
     extra = 1
 
 
 class RelNachteilInLine(SpielerReadonlyInLine):
     model = RelNachteil
-    fields = ["anzahl", "teil", "attribut", "fertigkeit", "notizen", "ip"]
+    fields = ["teil", "attribut", "fertigkeit", "notizen", "ip", "is_sellable"]
+    readonly_fields = ["is_sellable"]
     extra = 1
 
 class RelTalentInLine(SpielerReadonlyInLine):
