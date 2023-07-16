@@ -258,3 +258,7 @@ if not DEBUG:
         # django.contrib.auth) you may enable sending PII data.
         send_default_pii=True
     )
+
+
+# AttributeError: 'Settings' object has no attribute 'SITE_URL' of markdown-field
+SITE_URL = ''
