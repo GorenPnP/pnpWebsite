@@ -9,18 +9,18 @@
 {% for d in dice %}
 <div class="section" {% if d.color %}style="border-color: {{ d.color }}"{% endif %}>
 
-    {% if not d.color %}
-    <div class="section__icon">
-        <span class="icon__num">{{ d.faces|length }}</span>
+    <div class="section__head">
+        {% if not d.color %}<h2>W</h2><div class="section__icon">{{ d.faces|length }}</div>
+        {% else %}<h2>{{ d.art }}</h2>{% endif %}
     </div>
-    {% endif %}
 
-    <h2>{{ d.art }}</h2>
-    <label for="num-{{ d.art }}">Würfelanzahl:</label>
-    <input type="text" class="faces" hidden value="{{ d.faces }}">
-    <input type="number" id="num-{{ d.art }}" class="num" placeholder="0" required>
+    <div class="input-container">
+        <label for="num-{{ d.art }}">Würfelanzahl:</label>
+        <input type="number" id="num-{{ d.art }}" class="num" placeholder="0" required data-faces="{{ d.faces }}">
+    </div>
+
     <button class="btn btn-outline-light">Würfeln</button>
-    <span class="result"></span>
+    <output class="result"></output>
     <span class="result-details"></span>
 </div>
 {% endfor %}

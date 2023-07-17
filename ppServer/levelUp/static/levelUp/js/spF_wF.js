@@ -43,7 +43,7 @@ function calc_pools() {
     // handle fert / sp
     const initial = payment_method === "points" ? initial_fert : initial_sp;
     const fert = fert_chosen() - spent_fert;
-console.log(payment_method)
+
     if (payment_method === "points") {
         // sp
         document.querySelector("#sp_calc").innerHTML = `<b>${initial_sp}</b> SP`;
@@ -56,11 +56,15 @@ console.log(payment_method)
         else if (fert <= initial_fert) { text = `<del>${initial_fert}</del> <b>${initial_fert-fert}</b> ` + text; }
         else { text = `<b>${fert-initial_fert}</b> ${payment_name} zu viel ausgegeben!`; }
 
-        document.querySelector("#fert_calc").innerHTML = text;
+        if (document.querySelector("#fert_calc")) {
+            document.querySelector("#fert_calc").innerHTML = text;
+        }
     } else {
         // points
         const fert_slug = `Fertigkeit${Math.abs(initial) !== 1 ? "en" : ''}`
-        document.querySelector("#fert_calc").innerHTML = `<b>${initial_fert}</b> ${fert_slug} übrig`;
+        if (document.querySelector("#fert_calc")) {
+            document.querySelector("#fert_calc").innerHTML = `<b>${initial_fert}</b> ${fert_slug} übrig`;
+        }
 
         // sp
         let text = "SP";

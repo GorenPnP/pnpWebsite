@@ -21,8 +21,46 @@ from character.enums import würfelart_enum
 from character.models import *
 from shop.models import Zauber
 
-from .forms import PersonalForm
+from .forms import PersonalForm, AffektivitätForm
 from .mixins import OwnCharakterMixin
+
+
+class HeaderMixin:
+    topic = None
+    plus = None
+    plus_url = None
+    app_index = None
+    app_index_url = None
+
+    def get_dataset_kwargs(self):
+        return {"title": self.topic}.update(self.dataset_kwargs or {})
+
+    def get_topic(self):
+        return self.topic or self.model._meta.verbose_name_plural or None
+
+    def get_plus(self):
+        return self.plus or None
+    
+    def get_plus_url(self):
+        return reverse(self.plus_url) if self.plus_url else None
+    
+    def get_app_index(self):
+        if self.app_index: return self.app_index
+        return self.model._meta.app_label.title() if self.model else None
+
+    def get_app_index_url(self):
+        if self.app_index_url: return reverse(self.app_index_url)
+        return reverse(f"{self.model._meta.app_label}:index") if self.model else None
+
+    def get_context_data(self, *args, **kwargs):
+        return super().get_context_data(*args, **kwargs,
+            topic=self.get_topic(),
+            plus=self.get_plus(),
+            plus_url=self.get_plus_url(),
+            app_index=self.get_app_index(),
+            app_index_url=self.get_app_index_url(),
+        )
+
 
 def get_required_aktuellerWert(char: Charakter, attr_titel: str) -> int:
     ''' get min aktuellerWert of attr__titel by current fp, fg '''
@@ -348,20 +386,10 @@ class GenericFertigkeitView(LoginRequiredMixin, OwnCharakterMixin, DynamicTables
         return redirect(request.build_absolute_uri())
 
 
-class GenericTeilView(LoginRequiredMixin, OwnCharakterMixin, TemplateView):
+class GenericTeilView(LoginRequiredMixin, OwnCharakterMixin, HeaderMixin, TemplateView):
     template_name = "levelUp/teil/teil.html"
 
     def get_character(self) -> Charakter: raise NotImplementedError()
-
-
-    def get_app_index(self):
-        return self.app_index
-
-    def get_app_index_url(self):
-        return reverse(self.app_index_url)
-
-    def get_topic(self):
-        return self.topic 
 
 
     def get_context_data(self, *args, **kwargs) -> Dict[str, Any]:
@@ -385,10 +413,6 @@ class GenericTeilView(LoginRequiredMixin, OwnCharakterMixin, TemplateView):
             teil["rel"] = rels.filter(teil__id=teil["id"])
 
         context = super().get_context_data(*args, **kwargs,
-            topic = self.get_topic(),
-            app_index = self.get_app_index(),
-            app_index_url = self.get_app_index_url(),
-
             is_vorteil = self.is_vorteil,
             object_list = teils,
 
@@ -396,6 +420,7 @@ class GenericTeilView(LoginRequiredMixin, OwnCharakterMixin, TemplateView):
             fertigkeiten = Fertigkeit.objects.all(),
             engelsroboter = Engelsroboter.objects.all()
         )
+        # create or override -> don't cause 'get_context_data() got multiple values for keyword argument 'char''
         context["char"] = char
         return context
 
@@ -503,73 +528,19 @@ class GenericVorteilView(GenericTeilView):
         return ip + ip_of_teil
 
 
-class GenericZauberView(LoginRequiredMixin, OwnCharakterMixin, DynamicTableView):
+class GenericZauberView(LoginRequiredMixin, OwnCharakterMixin, HeaderMixin, TemplateView):
     
     def get_character(self) -> Charakter: raise NotImplementedError()
 
-
-    class Table(GenericTable):
-
-        class Meta:
-            model = Zauber
-            fields = ["gewählt", "name", "ab_stufe", "beschreibung", "weiteres"]
-            attrs = GenericTable.Meta.attrs
-
-        def render_gewählt(self, value, record):
-            return format_html(f"<input type='checkbox' form='form' class='zauber-input' name='zauber-{record.id}' {'checked' if value else ''}>")
-
-        def render_beschreibung(self, value, record):
-            def func(matchobj):
-                return "<b>" + matchobj.group(1) + "</b>" + matchobj.group(2)
-
-            value = re.sub('([Tt]ier [0XVI]+)(:)', func, value).replace("\n", "<br>")
-
-            return format_html(f"<div class='scroll-y'>{value}</div>")
-        
-        def render_weiteres(self, value, record):
-            value = \
-                f"<b>Schaden</b>: {record.schaden or '-'}<br>" +\
-                f"<b>Astralschaden</b>: {record.astralschaden}<br>" +\
-                f"<b>Manaverbrauch</b>: {record.manaverbrauch}<br>" +\
-                f"<b>Kategorie</b>: {record.get_kategorie_display()}"
-            return format_html(f"<div class='scroll-y'>{value}</div>")
-
-    topic = "Zauber"
     template_name = "levelUp/zauber.html"
-    model = Zauber
+    topic = "Zauber"
 
-    table_class = Table
-    table_pagination = False
-
-    def get_tier_cost_with_sp(self):
-        return {
-            1: 1,
-            2: 1,
-            3: 1,
-            4: 2,
-            5: 2,
-            6: 2,
-            7: 3
-        }
-
-
-    def get_queryset(self):
-        char = self.get_character()
-        
-        max_stufe = max([int(k) for k in char.zauberplätze.keys()], default=-1)
-
-        return Zauber.objects\
-            .filter(frei_editierbar=False, ab_stufe__lte=max_stufe)\
-            .order_by("ab_stufe")\
-            .annotate(
-                gewählt = Exists(Subquery(RelZauber.objects.filter(char=char, item__id=OuterRef("id")))),
-                weiteres = Value(1)     # replace later
-            )
 
     def get_context_data(self, *args, **kwargs):
         char = self.get_character()
         rel_ma = RelAttribut.objects.get(char=char, attribut__titel='MA')
-        max_stufe = max([int(k) for k in char.zauberplätze.keys()], default=-1)
+        zauberplätze = char.zauberplätze if char.zauberplätze else {}
+        max_stufe = max([int(k) for k in zauberplätze.keys()], default=-1)
         zauber = Zauber.objects\
                 .filter(frei_editierbar=False, ab_stufe__lte=max_stufe)\
                 .exclude(id__in=char.zauber.values("id"))\
@@ -578,16 +549,17 @@ class GenericZauberView(LoginRequiredMixin, OwnCharakterMixin, DynamicTableView)
         for z in zauber:
             z["geld"] = min([f.getPrice() for f in FirmaZauber.objects.filter(item__id=z["id"])])
 
-        return super().get_context_data(*args, **kwargs,
-                                           
-            char = char,
+        context = super().get_context_data(*args, **kwargs,
             own_zauber = RelZauber.objects.filter(char=char).order_by("item__name"),
             zauber = zauber,
 
             MA_aktuell = rel_ma.aktuellerWert + rel_ma.aktuellerWert_temp - get_required_aktuellerWert(char, "MA"),
-            free_slots = sum(char.zauberplätze.values()),
-            get_tier_cost_with_sp = self.get_tier_cost_with_sp(),
+            free_slots = sum(zauberplätze.values()),
+            get_tier_cost_with_sp = get_tier_cost_with_sp(),
         )
+        # create or override -> don't cause 'get_context_data() got multiple values for keyword argument 'char''
+        context["char"] = char
+        return context
 
 
     def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
@@ -685,7 +657,7 @@ class GenericZauberView(LoginRequiredMixin, OwnCharakterMixin, DynamicTableView)
                     new_tier = new_tiers[rel.id]
                     existing_tier = rel.tier
                     while new_tier > existing_tier:
-                        sp += self.get_tier_cost_with_sp()[new_tier]
+                        sp += get_tier_cost_with_sp()[new_tier]
                         new_tier -= 1
 
                 # char has enough sp to pay for
@@ -745,31 +717,18 @@ class GenericZauberView(LoginRequiredMixin, OwnCharakterMixin, DynamicTableView)
 
 
 
-class GenericPersonalView(LoginRequiredMixin, VerifiedAccountMixin, TemplateView):
+class GenericPersonalView(LoginRequiredMixin, VerifiedAccountMixin, HeaderMixin, TemplateView):
     template_name = "levelUp/personal.html"
     topic = "Persönliches"
 
     def get_character(self) -> Charakter: raise NotImplementedError()
 
 
-    def get_app_index(self):
-        return self.app_index
-
-    def get_app_index_url(self):
-        return reverse(self.app_index_url)
-
-    def get_topic(self):
-        return self.topic 
-
     def get_context_data(self, *args, **kwargs):
         char = self.get_character()
 
-        context = super().get_context_data(*args, **kwargs,
-            topic = self.get_topic(),
-            app_index = self.get_app_index(),
-            app_index_url = self.get_app_index_url(),
-            form = PersonalForm(instance=char),
-        )
+        context = super().get_context_data(*args, **kwargs, form = PersonalForm(instance=char))
+        # create or override -> don't cause 'get_context_data() got multiple values for keyword argument 'char''
         context["char"] = char
         return context
 
@@ -785,19 +744,9 @@ class GenericPersonalView(LoginRequiredMixin, VerifiedAccountMixin, TemplateView
         return redirect(request.build_absolute_uri())
     
 
-class GenericSpF_wFView(LoginRequiredMixin, OwnCharakterMixin, tables.SingleTableMixin, TemplateView):
+class GenericSpF_wFView(LoginRequiredMixin, OwnCharakterMixin, tables.SingleTableMixin, HeaderMixin, TemplateView):
 
     def get_character(self) -> Charakter: raise NotImplementedError()
-
-
-    def get_app_index(self):
-        return self.app_index
-
-    def get_app_index_url(self):
-        return reverse(self.app_index_url)
-
-    def get_topic(self):
-        return self.topic 
 
 
     class Table(GenericTable):
@@ -855,12 +804,8 @@ class GenericSpF_wFView(LoginRequiredMixin, OwnCharakterMixin, tables.SingleTabl
 
 
     def get_context_data(self, *args, **kwargs):
-        context = super().get_context_data(*args, **kwargs,
-            topic = self.get_topic(),
-            app_index = self.get_app_index(),
-            app_index_url = self.get_app_index_url(),
-            table = self.Table(self.get_table_data())
-        )
+        context = super().get_context_data(*args, **kwargs, table = self.Table(self.get_table_data()))
+        # create or override -> don't cause 'get_context_data() got multiple values for keyword argument 'char''
         context["char"] = self.get_character()
         return context
     
@@ -976,6 +921,268 @@ class GenericSpF_wFView(LoginRequiredMixin, OwnCharakterMixin, tables.SingleTabl
             RelSpezialfertigkeit.objects.create(char=char, spezialfertigkeit=sp, stufe=spezial_ids[sp.id])
         for wi in Wissensfertigkeit.objects.filter(id__in=wissen_ids):
             RelWissensfertigkeit.objects.create(char=char, wissensfertigkeit=wi, würfel2=self.stufe_to_würfel2(wissen_ids[wi.id]))
+
+        # return response
+        messages.success(request, "Erfolgreich gespeichert")
+        return redirect(request.build_absolute_uri())
+
+
+class GenericTalentView(LoginRequiredMixin, OwnCharakterMixin, HeaderMixin, TemplateView):
+    
+    def get_character(self) -> Charakter: raise NotImplementedError()
+
+    template_name = "levelUp/talent.html"
+    topic = "Talent"
+
+
+    def get_available_talente(self, char):
+
+        own_talent_ids = [rel.talent.id for rel in RelTalent.objects.prefetch_related("talent").filter(char=char)]
+        talente = Talent.objects.prefetch_related("bedingung").filter(tp__lte=char.tp).exclude(id__in=own_talent_ids)
+
+        available_talente = []
+        for talent in talente:
+            bedingung_ids = [b.id for b in talent.bedingung.all()]
+
+            # test bedingungen
+            ok = True
+            for b_id in bedingung_ids:
+                if b_id not in own_talent_ids:
+                    ok = False
+                    break
+
+            # add if bedingungen all met
+            if ok: available_talente.append(talent)
+
+        return available_talente
+
+    def get_context_data(self, *args, **kwargs):
+        char = self.get_character()
+
+        context = super().get_context_data(*args, **kwargs,
+            own_talente = [rel.talent for rel in RelTalent.objects.filter(char=char)],
+            talente = self.get_available_talente(char),
+        )
+        # create or override -> don't cause 'get_context_data() got multiple values for keyword argument 'char''
+        context["char"] = char
+        return context
+
+
+    def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
+        char = self.get_character()
+
+        talent_id = request.POST.get("zauber_id")
+        talent = get_object_or_404(Talent, id=talent_id)
+        
+        # checks
+        if not talent in self.get_available_talente(char):
+            messages.error(request, f"Das Talent {talent.titel} hast du bereits oder kannst du nicht lernen.")
+            return redirect(request.build_absolute_uri())
+
+        # apply
+        char.tp -= talent.tp
+        char.save(update_fields=["tp"])
+
+        RelTalent.objects.create(char=char, talent=talent)
+        return redirect(request.build_absolute_uri())
+
+
+
+class GenericWesenkraftView(LoginRequiredMixin, OwnCharakterMixin, HeaderMixin, TemplateView):
+    
+    def get_character(self) -> Charakter: raise NotImplementedError()
+
+    template_name = "levelUp/wesenkraft.html"
+    topic = "Wesenkraft"
+
+
+    def get_context_data(self, *args, **kwargs):
+        char = self.get_character()
+        rel_ma = RelAttribut.objects.get(char=char, attribut__titel='MA')
+
+        context = super().get_context_data(*args, **kwargs,
+            own_wesenkraft = RelWesenkraft.objects.filter(char=char).order_by("wesenkraft__titel"),
+            MA_aktuell = rel_ma.aktuellerWert + rel_ma.aktuellerWert_temp - get_required_aktuellerWert(char, "MA"),
+            get_tier_cost_with_sp = get_tier_cost_with_sp(),
+        )
+        # create or override -> don't cause 'get_context_data() got multiple values for keyword argument 'char''
+        context["char"] = char
+        return context
+
+
+    def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
+        char = self.get_character()
+
+        # GATHER DATA
+        rel_wesenkraft_ids = [int(id) for id in request.POST.keys() if id.isnumeric()]
+
+        new_tiers = {id: int(request.POST.get(str(id))) for id in rel_wesenkraft_ids}
+        rel_wesenkraft = RelWesenkraft.objects.filter(char=char, id__in=rel_wesenkraft_ids)
+
+
+        # PERFORM CHECKS
+
+        # char already has wesenkraft
+        if rel_wesenkraft.count() != len(rel_wesenkraft_ids):
+            messages.error(request, "Du wolltest Tier zu Wesenkräften vergeben, die du gar nicht kennst")
+            return redirect(request.build_absolute_uri())
+
+        for rel in rel_wesenkraft:
+            # not lower than current value
+            if rel.tier > new_tiers[rel.id]:
+                messages.error(request, "Du kannst Tier nicht wieder verkaufen")
+                return redirect(request.build_absolute_uri())
+            
+            # has to be lower than max_tier
+            if rel.tier > char.max_tier_allowed():
+                messages.error(request, f"Du kannst Tier nicht über {char.max_tier_allowed()} steigern")
+                return redirect(request.build_absolute_uri())
+
+        if request.POST.get("payment_method") == "sp":
+            sp = 0
+            for rel in rel_wesenkraft:
+                new_tier = new_tiers[rel.id]
+                existing_tier = rel.tier
+                while new_tier > existing_tier:
+                    sp += get_tier_cost_with_sp()[new_tier]
+                    new_tier -= 1
+
+            # char has enough sp to pay for
+            if char.sp < sp:
+                messages.error(request, "Du hast zu wenig SP")
+                return redirect(request.build_absolute_uri())
+
+
+            # pay SP
+            char.sp -= sp
+            char.save(update_fields=["sp"])
+
+        if request.POST.get("payment_method") == "ap":
+            rel_ma = get_object_or_404(RelAttribut, char=char, attribut__titel="MA")
+            
+            ap_available = char.ap + rel_ma.aktuellerWert + rel_ma.aktuellerWert_temp - get_required_aktuellerWert(char, "MA")
+            ap_to_pay = sum(new_tiers.values()) - rel_wesenkraft.aggregate(tier_sum=Sum("tier"))["tier_sum"]
+
+
+            # char has enough AP/MA.aktuellerWert to pay for
+            if ap_available < ap_to_pay:
+                messages.error(request, "Du hast zu wenig AP / Magie")
+                return redirect(request.build_absolute_uri())
+
+            # pay AP
+            ap_diff = min(char.ap, ap_to_pay)
+            ap_to_pay -= ap_diff
+            char.ap -= ap_diff
+            char.save(update_fields=["ap"])
+
+            # pay MA
+            ap_diff = min(rel_ma.aktuellerWert_temp, ap_to_pay)
+            ap_to_pay -= ap_diff
+            rel_ma.aktuellerWert_temp -= ap_diff
+
+            ap_diff = min(rel_ma.aktuellerWert, ap_to_pay)
+            ap_to_pay -= ap_diff
+            rel_ma.aktuellerWert -= ap_diff
+            rel_ma.save(update_fields=["aktuellerWert", "aktuellerWert_temp"])
+
+
+        # receive
+        rels = []
+        for rel in rel_wesenkraft:
+            rel.tier = new_tiers[rel.id]
+            rels.append(rel)
+        RelWesenkraft.objects.bulk_update(rels, fields=["tier"])
+
+        # return
+        messages.success(request, "Tiers erfolgreich gespeichert")
+        return redirect(request.build_absolute_uri())
+
+
+class AffektivitätView(LoginRequiredMixin, OwnCharakterMixin, tables.SingleTableMixin, HeaderMixin, TemplateView):
+
+    def get_character(self) -> Charakter: raise NotImplementedError()
+
+
+    class Table(GenericTable):
+
+        class Meta:
+            attrs = GenericTable.Meta.attrs
+            model = Affektivität
+            fields = ["name", "wert", "notiz"]
+
+        def render_wert(self, value, record):
+            id = record.id
+            return format_html(f"<input type='number' form='form' name='wert-{id}' value='{value}' min='-200' max='200' class='input'>")
+
+        def render_notiz(self, value, record):
+            id = record.id
+            value = record.notizen
+            return format_html(f"<textarea form='form' name='notizen-{id}'>{value}</textarea>")
+
+
+    template_name = "levelUp/affektivität.html"
+    topic = "Affektivität"
+    model = Affektivität
+
+    table_class = Table
+    table_pagination = False
+
+    def get_queryset(self):
+        return Affektivität.objects.filter(char=self.get_character())\
+            .annotate(notiz=Value(1))   # replace later
+    
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs,
+            table = self.Table(self.get_table_data()),
+            form = AffektivitätForm()
+        )
+        # create or override -> don't cause 'get_context_data() got multiple values for keyword argument 'char''
+        context["char"] = self.get_character()
+        return context
+
+    def post(self, request, *args, **kwargs):
+        char = self.get_character()
+        method = request.POST.get("method")
+
+        if method == "update":
+
+            # collect values
+            wert_ids = {int(key.replace("wert-", "")): int(w) for key, w in request.POST.items() if "wert-" in key and len(w)}
+            notizen_ids = {int(key.replace("notizen-", "")): n for key, n in request.POST.items() if "notizen-" in key}
+
+            # test ids
+            if len(wert_ids.keys()) != len(notizen_ids.keys()):
+                messages.error(request, "Das Format habe ich nicht verstanden. Das waren unterschiedlich viele Werte und Notizen.")
+                return redirect(request.build_absolute_uri())
+
+            own_ids = [e.id for e in Affektivität.objects.filter(char=char)]
+            for id, wert in wert_ids.items():
+                if id not in own_ids or id not in notizen_ids.keys():
+                    messages.error(request, "Das Format habe ich nicht verstanden. Die IDs waren durcheinander.")
+                    return redirect(request.build_absolute_uri())
+
+            # # apply them to db
+            # TODO handle delete
+
+            # update or create
+            own_ids = [e.id for e in Affektivität.objects.filter(char=char)]
+            for id, wert in wert_ids.items():
+                Affektivität.objects.update_or_create(id=id, defaults={"wert": wert, "notizen": notizen_ids[id]})
+
+        if method == "create":
+            form = AffektivitätForm(request.POST)
+            form.full_clean()
+            form.cleaned_data["char"] = char
+
+            # invalid?
+            if not form.is_valid():
+                messages.error(request, "Nicht valid")
+                return redirect(request.build_absolute_uri())
+
+            # add char
+            aff = form.save(commit=False)
+            aff.char = char
+            aff.save()
 
         # return response
         messages.success(request, "Erfolgreich gespeichert")

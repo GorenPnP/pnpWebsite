@@ -21,6 +21,17 @@ from shop.models import *
 
 from . import enums
 
+def get_tier_cost_with_sp() -> dict:
+    return {
+        1: 1,
+        2: 1,
+        3: 1,
+        4: 2,
+        5: 2,
+        6: 2,
+        7: 3
+    }
+
 class Spieler(models.Model):
 
     class Meta:
@@ -255,6 +266,19 @@ class GfsNachteil(models.Model):
     is_sellable = models.BooleanField(default=True, verbose_name="ist verkaufbar?")
 
 
+class GfsZauber(models.Model):
+    class Meta:
+        ordering = ['gfs', "item"]
+        verbose_name = "Startzauber"
+        verbose_name_plural = "Startzauber"
+        unique_together = ["item", "gfs"]
+
+    item = models.ForeignKey('shop.Zauber', on_delete=models.CASCADE)
+    gfs = models.ForeignKey(Gfs, on_delete=models.CASCADE)
+
+    tier = models.PositiveSmallIntegerField(default=0, validators=[MaxValueValidator(7)])
+
+
 class ProfessionAttribut(models.Model):
     class Meta:
         ordering = ['attribut']
@@ -268,7 +292,7 @@ class ProfessionAttribut(models.Model):
     aktuellerWert = models.IntegerField(default=0)
 
     def __str__(self):
-        return "'{}' von ’{}’".format(self.attribut.__str__(), self.profession.__str__())
+        return "'{}' von '{}'".format(self.attribut.__str__(), self.profession.__str__())
 
 
 class ProfessionFertigkeit(models.Model):
@@ -396,6 +420,8 @@ class Talent(models.Model):
     tp = models.PositiveIntegerField(default=1)
     beschreibung = models.TextField()
     kategorie = models.CharField(max_length=1, choices=enums.talent_enum, default=enums.talent_enum[0][0])
+
+    bedingung = models.ManyToManyField("Talent")
 
     def __str__(self):
         return self.titel
@@ -779,6 +805,8 @@ class RelWesenkraft(models.Model):
     char = models.ForeignKey(Charakter, on_delete=models.CASCADE)
     wesenkraft = models.ForeignKey(Wesenkraft, on_delete=models.CASCADE)
 
+    tier = models.PositiveSmallIntegerField(default=0, validators=[MaxValueValidator(7)])
+
     def __str__(self):
         return "'{}' von Charakter '{}'".format(self.wesenkraft, self.char)
 
@@ -1093,10 +1121,7 @@ class RelZauber(RelShop):
         verbose_name_plural = "Zauber"
 
     item = models.ForeignKey(Zauber, on_delete=models.CASCADE)
-
-    # tier
     tier = models.PositiveSmallIntegerField(default=0, validators=[MaxValueValidator(7)])
-    tier_notes = models.JSONField(default=dict, blank=True)
 
     def __str__(self):
         return "{}".format(self.item)

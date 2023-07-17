@@ -356,7 +356,7 @@ def show(request, pk):
                 RelItem, RelWaffen_Werkzeuge, RelMagazin, RelPfeil_Bolzen,
                 RelSchusswaffen, RelMagische_Ausrüstung, RelRituale_Runen,
                 RelRüstung, RelAusrüstung_Technik, RelFahrzeug, RelEinbauten,
-                RelZauber, RelVergessenerZauber, RelAlchemie, RelTinker, RelBegleiter
+                RelWesenkraft, RelVergessenerZauber, RelAlchemie, RelTinker, RelBegleiter
             ]
 
             items = []

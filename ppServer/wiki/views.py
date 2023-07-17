@@ -234,6 +234,7 @@ def stufenplan(request, gfs_id):
 
     boni.append({"field": "Vorteile", "val": ", ".join(["{} {}".format(i.teil.titel, i.notizen).strip() for i in GfsVorteil.objects.filter(gfs=gfs)])})
     boni.append({"field": "Nachteile", "val": ", ".join(["{} {}".format(i.teil.titel, i.notizen).strip() for i in GfsNachteil.objects.filter(gfs=gfs)])})
+    boni.append({"field": "Zauber", "val": ", ".join(["{} (Tier {})".format(i.item.name, i.tier).strip() for i in GfsZauber.objects.prefetch_related("item").filter(gfs=gfs)])})
     boni.append({"field": "Wesenkräfte", "val": ", ".join([i.wesenkraft.titel for i in GfsWesenkraft.objects.filter(gfs=gfs)])})
 
     context = {

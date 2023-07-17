@@ -4,6 +4,8 @@ from django import forms
 from character.models import Charakter
 from httpChat.forms import M2MSelect
 
+from character.models import Affektivität
+
 
 class PersonalForm(forms.ModelForm):
     class Meta:
@@ -39,3 +41,9 @@ class PersonalForm(forms.ModelForm):
 
         if kwargs["instance"].larp:
             self.fields['beruf'].widget = forms.HiddenInput()
+
+
+class AffektivitätForm(forms.ModelForm):
+    class Meta:
+        model = Affektivität
+        fields = ["name", "wert", "notizen"]

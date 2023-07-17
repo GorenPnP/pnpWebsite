@@ -1,0 +1,36 @@
+{% extends 'base/dynamic-table.html' %}
+{% load static resources l10n %}
+{% block extra-head %}
+<style>
+    table {
+        max-width: 700px;
+        margin-inline: auto;
+    }
+
+    .input {
+        max-width: 100px;
+    }
+</style>
+{% endblock %}
+
+{% block after_table %}
+<form id="form" method="post" class="d-flex justify-content-center">
+    {% csrf_token %}
+    <input type="hidden" name="method" value="update">
+    
+    <button type="submit" class="btn btn-lg btn-primary m-2">Speichern</button>
+</form>
+
+
+<form method="post" class="mx-auto my-5" style="max-width: 300px;">
+    <h2>Neu</h2>
+
+    {% csrf_token %}
+    <input type="hidden" name="method" value="create">
+    {{ form.as_p }}
+
+    <button type="submit" class="btn btn-lg btn-primary m-2">Neu anlegen</button>
+</form>
+
+<a class="btn btn-lg btn-outline-primary my-2" href="{{ back_url }}">Zurück</a>
+{% endblock %}

@@ -99,3 +99,15 @@ class HubNachteileView(CampaignMixin, GenericNachteilView):
 
 class HubSpFwFView(CampaignMixin, GenericSpF_wFView):
     pass
+
+
+class HubTalentView(CampaignMixin, GenericTalentView):
+    pass
+
+
+class HubWesenkraftView(CampaignMixin, GenericWesenkraftView):
+    pass
+
+
+class HubAffektivitätView(CampaignMixin, AffektivitätView):
+    pass

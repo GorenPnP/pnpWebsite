@@ -8,16 +8,14 @@
 {% endblock %}
 
 {% block main %}
-<div id="prio-part">
 
-    <span id="ap-debt-text">Du brauchst noch <b id="ap-debt">{{ ap_cost }}</b> AP für die Gfs.</span>
-    <span id="ap-left-text">Du hast <b id="ap-left">{{ ap_cost }}</b> AP übrig.</span>
+<span id="ap-debt-text">Du brauchst noch <b id="ap-debt">{{ ap_cost }}</b> AP für die Gfs.</span>
+<span id="ap-left-text">Du hast <b id="ap-left">{{ ap_cost }}</b> AP übrig.</span>
 
+<div class="table-wrapper">
     <table>
-        <tbody>
         {% for row in table %}
         <tr>
-            <!-- <td class="grayed_out">{{ row.0 }}</td> -->
             <td id="0|{{ forloop.counter0 }}" {% if row.1 is None %}class="grayed_out"></td>
             {% else %}>{{ row.1 }} IP</td>{% endif %}
 
@@ -46,7 +44,6 @@
             </td>{% endif %}
         </tr>
         {% endfor %}
-    </tbody>
     </table>
 </div>
 

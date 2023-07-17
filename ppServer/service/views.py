@@ -11,17 +11,12 @@ from quiz.views import get_grade_score
 
 # dice roll
 @login_required
-@spielleiter_only()
 def random(request):
-
-    if not request.user.groups.filter(name="spielleiter").exists():
-        return redirect("base:index")
-
     dice = [
-        {"art": "pink", "faces": [0, 0, 0, 1, 1, 2], "color": "hotpink"},
-        {"art": "grün", "faces": [0, 0, 1, 1, 2, 2], "color": "green"},
-        {"art": "weiß", "faces": [0, 1, 2, 2, 2, 3], "color": "white"},
-        {"art": "schwarz", "faces": [0, 1, 2, 2, 3, 4], "color": "black"},
+        {"art": "grün", "faces": [0, 0, 0, 1, 1, 2], "color": "green"},
+        {"art": "gelb", "faces": [0, 1, 1, 1, 2, 2], "color": "yellow"},
+        {"art": "rot", "faces": [0, 1, 1, 2, 3, 3], "color": "red"},
+        {"art": "schwarz", "faces": [0, 2, 2, 3, 3, 4], "color": "black"},
 
         {"art": "W4", "faces": [i for i in range(1, 5)]},
         {"art": "W6", "faces": [i for i in range(1, 7)]},

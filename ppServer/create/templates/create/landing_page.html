@@ -46,13 +46,21 @@
                 <td>{{ char.ip }} IP</td>
             </tr>
 
+            <!-- affektivität -->
+            <tr>
+                <td>
+                    <div class="checkbox checked" style="--checkbox-mark-color: #888888"></div>
+                </td>
+                <td><a href="{% url 'create:affektivität' %}">Affektivität</a></td>
+                <td></td>
+            </tr>
+
             <!-- le schöp -->
             <tr>
                 <td>
                     <div class="checkbox checked" style="--checkbox-mark-color: #888888"></div>
                 </td>
-                <td><a href="{{ row.link }}">
-                    <a href="{% url 'shop:index' %}" target="_blank"><b>Ausrüstung</b> einkaufen</a></td>
+                <td><a href="{% url 'shop:index' %}" target="_blank"><b>Ausrüstung</b> einkaufen</a></td>
                 <td>{{ char.geld }} Drachmen</td>
             </tr>
         </tbody>

@@ -60,6 +60,11 @@ class GfsWesenkraftInLine(admin.TabularInline):
     extra = 1
 
 
+class GfsZauberInLine(admin.TabularInline):
+    model = GfsZauber
+    extra = 1
+
+
 class GfsStufenplanInLine(admin.TabularInline):
     model = GfsStufenplan
     fields = ["basis", "vorteile", "zauber", "wesenkräfte", "special_ability", "special_ability_description"]
@@ -257,7 +262,7 @@ class RelEinbautenInLine(RelShopInLine):
 
 
 class RelZauberInLine(RelShopInLine):
-    fields = fields = ["anz", "item", "tier", "notizen", "tier_notes"]
+    fields = fields = ["anz", "item", "tier", "notizen"]
     model = RelZauber
 
 
@@ -420,7 +425,7 @@ class SpeziesAdmin(admin.ModelAdmin):
     search_fields = ('komplexität', 'titel',)
 
 class GfsAdmin(admin.ModelAdmin):
-    list_display = ('titel', 'ap', 'difficulty', 'vorteil_', 'nachteil_',
+    list_display = ('titel', 'ap', 'difficulty', 'vorteil_', 'nachteil_', 'zauber_',
                     "wesenschaden_waff_kampf", "wesenschaden_andere_gestalt", "wesenkraft_", "startmanifest",)
     list_filter = ['ap', 'startmanifest', "wesenschaden_waff_kampf"]
     search_fields = ('titel', 'ap')
@@ -429,14 +434,17 @@ class GfsAdmin(admin.ModelAdmin):
 
     inlines = [GfsAttributInLine, GfsFertigkeitInLine,
                GfsVorteilInLine, GfsNachteilInLine,
-               GfsWesenkraftInLine, GfsSkilltreeInLine,
-               GfsStufenplanInLine]
+               GfsWesenkraftInLine, GfsZauberInLine,
+               GfsSkilltreeInLine, GfsStufenplanInLine]
 
     def vorteil_(self, obj):
         return ', '.join([a.titel for a in obj.vorteile.all()])
 
     def nachteil_(self, obj):
         return ', '.join([a.titel for a in obj.nachteile.all()])
+
+    def zauber_(self, obj):
+        return ', '.join([a.item.name for a in GfsZauber.objects.prefetch_related("item").filter(gfs=obj)])
 
     def wesenkraft_(self, obj):
         return ', '.join([a.titel for a in obj.wesenkraft.all()])
@@ -543,7 +551,10 @@ class ProfessionStufenplanBaseAdmin(admin.ModelAdmin):
 
 
 class TalentAdmin(admin.ModelAdmin):
-    list_display = ["titel", "tp", "beschreibung", "kategorie"]
+    list_display = ["titel", "tp", "beschreibung", "kategorie", "bedingung_"]
+
+    def bedingung_(self, obj):
+        return ", ".join([t.titel for t in obj.bedingung.all()])
 
 
 admin.site.register(Charakter, CharakterAdmin)

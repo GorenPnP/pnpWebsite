@@ -1,9 +1,8 @@
 :root {
-	--icon-height: 3em;
-	--icon-width: 3em;
-	--icon-offset-top: calc(var(--icon-height) / 4);
-	--icon-offset-right: calc(var(--icon-width) / 4);
-	--icon-padding: calc(var(--icon-height) / 4);
+	--icon-size: 3rem;
+	--icon-offset-top: calc(var(--icon-size) / 4);
+	--icon-offset-right: calc(var(--icon-size) / 4);
+	--icon-padding: calc(var(--icon-size) / 4);
 }
 
 .main-container {
@@ -17,7 +16,6 @@
   color: #c8c8c8;
 }
 
-label {margin-right: .5em;}
 .result {
   font-size: 20px;
   font-weight: 700;
@@ -26,33 +24,43 @@ label {margin-right: .5em;}
   border: 7px solid rgb(210, 206, 243);
   border-radius: 20px;
   padding: 1.3em;
-  margin: 0;
-  width: 250px;
+  width: 100%;
+  max-width: 250px;
 
   display: grid;
-  grid-gap: .8em;
+  gap: .8em;
 
   justify-items: center;
   align-items: center;
 }
 
+.section__head {
+  display: flex;
+  justify-content: space-evenly;
+  align-items: baseline;
+  gap: 0.4em;
+}
+.input-container {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+}
+
 /* card icon */
 .section__icon {
-  justify-self: start;
-  align-self: start;
-  position: absolute;
 
   background: rgb(210, 206, 243);
   color: black;
-
-	height: var(--icon-height);
-	width: var(--icon-width);
   border-radius: 50%;
+
+	height: var(--icon-size);
+	aspect-ratio: 1;
 
   display: flex;
   justify-content: center;
   align-items: center;
-}
-.icon__num {
   font-size: 1.5rem;
 }
+
+
+input { max-width: 50px; }

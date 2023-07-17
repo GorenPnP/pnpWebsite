@@ -1,0 +1,57 @@
+{% extends 'base/headed_main.html' %}
+{% load static resources l10n %}
+
+{% block extra-head %}{{ block.super }}
+<style>
+    .card {
+        width: fit-content;
+        min-width: min(100%, 300px);
+    }
+</style>
+{% endblock %}
+
+{% block asides %}
+    {% resources %}<b id="tp_pool">{{ char.tp }}</b> TP{% endresources %}
+{% endblock %}
+
+{% block main %}
+{% if own_talente|length == 0 and char.tp == 0 %}
+    <span class="h4 mb-3 d-block">Du hast keine Talente und kannst auch keine kaufen.</span>
+{% endif %}
+
+{% if own_talente|length > 0 %}
+    <h2>Deine Talente</h2>
+
+    <ul>
+        {% for t in own_talente %}
+        <li class="card text-bg-dark my-4">
+            <div class="card-header">{{ t.titel }}</div>
+        </li>
+        {% endfor %}
+    </ul>
+{% endif %}
+
+
+
+{% if talente|length > 0 %}
+    <form id="create-form" method="post">
+        {% csrf_token %}
+
+        <h2 class="mt-5">Neues Talent</h2>
+
+        <select class="form-select w-auto my-3" name="zauber_id" required>
+            <option selected value="">---</option>
+            {% for z in talente %}
+            <option value="{% localize off %}{{ z.id }}{% endlocalize %}">{{ z.titel }}</option>
+            {% endfor %}
+        </select>
+
+        <button id="learn-zauber" class="btn btn-lg btn-primary">lernen</button>
+    </form>
+{% endif %}
+
+        
+    <div class="d-flex justify-content-center">
+        <a class="btn btn-lg btn-outline-primary m-2" href="{{ back_url }}">Zurück</a>
+    </div>
+{% endblock %}

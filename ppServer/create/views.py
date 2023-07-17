@@ -193,7 +193,8 @@ class GfsFormView(LoginRequiredMixin, VerifiedAccountMixin, TemplateView):
 
             # Wesenkräfte
             for gfs_wesenkr in GfsWesenkraft.objects.filter(gfs=char.gfs):
-                RelWesenkraft.objects.create(char=char, wesenkraft=gfs_wesenkr.wesenkraft)
+                tier = 1 if gfs_wesenkr.wesenkraft.wesen == "w" and gfs_wesenkr.wesenkraft.zusatz_gfsspezifisch.filter(id=gfs.id).exists() else 0
+                RelWesenkraft.objects.create(char=char, wesenkraft=gfs_wesenkr.wesenkraft, tier=tier)
 
             # Vorteile
             for gfs_teil in GfsVorteil.objects.filter(gfs=char.gfs):
@@ -226,6 +227,11 @@ class GfsFormView(LoginRequiredMixin, VerifiedAccountMixin, TemplateView):
                     # sellable?
                     is_sellable=gfs_teil.is_sellable,
                 )
+
+            # Zauber
+            for gfs_zauber in GfsZauber.objects.filter(gfs=char.gfs):
+                RelWesenkraft.objects.create(char=char, item=gfs_zauber.item, tier=gfs_zauber.tier)
+
 
         return redirect("create:prio")
 
@@ -358,6 +364,12 @@ class SpF_wFFormView(CreateMixin, GenericSpF_wFView):
 class VorteilFormView(CreateMixin, GenericVorteilView):
     pass
 
+
 @method_decorator(hub_decorators, name="dispatch")
 class NachteilFormView(CreateMixin, GenericNachteilView):
+    pass
+
+
+@method_decorator(hub_decorators, name="dispatch")
+class AffektivitätFormView(CreateMixin, AffektivitätView):
     pass
