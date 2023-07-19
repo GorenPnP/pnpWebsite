@@ -198,6 +198,8 @@ class GfsFormView(LoginRequiredMixin, VerifiedAccountMixin, TemplateView):
 
             # Vorteile
             for gfs_teil in GfsVorteil.objects.filter(gfs=char.gfs):
+                will_create = gfs_teil.teil.needs_attribut or gfs_teil.teil.needs_engelsroboter or gfs_teil.teil.needs_fertigkeit or gfs_teil.teil.needs_notiz
+
                 RelVorteil.objects.create(
                     char=char, teil=gfs_teil.teil,
                     notizen=gfs_teil.notizen,
@@ -208,12 +210,15 @@ class GfsFormView(LoginRequiredMixin, VerifiedAccountMixin, TemplateView):
                     engelsroboter=gfs_teil.engelsroboter,
                     ip=gfs_teil.ip,
 
-                    # sellable?
+                    # sellable? needs info?
                     is_sellable=gfs_teil.is_sellable,
+                    will_create=will_create,
                 )
 
             # Nachteile
             for gfs_teil in GfsNachteil.objects.filter(gfs=char.gfs):
+                will_create = gfs_teil.teil.needs_attribut or gfs_teil.teil.needs_engelsroboter or gfs_teil.teil.needs_fertigkeit or gfs_teil.teil.needs_notiz
+
                 RelNachteil.objects.create(
                     char=char, teil=gfs_teil.teil,
                     notizen=gfs_teil.notizen,
@@ -226,6 +231,7 @@ class GfsFormView(LoginRequiredMixin, VerifiedAccountMixin, TemplateView):
 
                     # sellable?
                     is_sellable=gfs_teil.is_sellable,
+                    will_create=will_create,
                 )
 
             # Zauber

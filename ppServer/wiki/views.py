@@ -193,13 +193,16 @@ def stufenplan(request, gfs_id):
             "ap": None if e.basis.ap == 0 else "+{}".format(e.basis.ap),
             "fert": [None if e.basis.fp == 0 else "+{}".format(e.basis.fp),
                     None if e.basis.fg == 0 else "+{} Gr.".format(e.basis.fg)],
-            "special_ability": e.special_ability,
-            "special_ability_description": e.special_ability_description,
             "zauber": "+{}".format(e.zauber) if e.zauber else None,
             "tp": None if e.basis.tp == 0 else "+{}".format(e.basis.tp),
             "wesenkräfte": ", ".join([i.titel for i in e.wesenkräfte.all()]),
             "vorteile": ", ".join([i.titel for i in e.vorteile.all()])
         }
+        if hasattr(e, "ability") and e.ability:
+            entry["ability"] = {
+                "name": e.ability,
+                "beschreibung": e.ability.beschreibung,
+            }
 
         entries.append(entry)
 
@@ -513,7 +516,7 @@ class GeburtstageView(LoginRequiredMixin, VerifiedAccountMixin, TemplateView):
 
 class GfsSpecialAbilities(LoginRequiredMixin, DynamicTableView):
     model = GfsStufenplan
-    queryset = GfsStufenplan.objects.select_related('gfs').filter(special_ability__isnull=False).exclude(special_ability="").order_by("special_ability")
+    queryset = GfsStufenplan.objects.select_related('gfs').filter(ability__isnull=False).order_by("ability")
 
     topic = "Gfs-spezifische Fähigkeiten"
 

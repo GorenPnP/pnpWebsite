@@ -108,9 +108,9 @@
     
     
                 <td>
-                    {% if not e.special_ability and not e.special_ability_description %}-{% else %}
-                    <strong>{{ e.special_ability|default:"-"|linebreaks }}</strong><br>
-                    {{ e.special_ability_description|default:"-"|linebreaks }}
+                    {% if not e.ability  %}-{% else %}
+                    <strong>{{ e.ability.name|default:"-"|linebreaks }}</strong><br>
+                    {{ e.ability.beschreibung|default:"-"|linebreaks }}
                     {% endif %}
                 </td>
             </tr>

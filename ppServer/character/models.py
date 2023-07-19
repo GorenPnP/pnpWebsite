@@ -364,6 +364,24 @@ class GfsStufenplanBase(models.Model):
         return "{} (EP: {})".format(self.stufe, self.ep)
 
 
+class GfsAbility(models.Model):
+    class Meta:
+        ordering = ["name"]
+        verbose_name = "Gfs-Fähigkeit"
+        verbose_name_plural = "Gfs-Fähigkeiten"
+
+    name = models.CharField(max_length=100, null=False, unique=True, verbose_name="Fähigkeit")
+    beschreibung = models.TextField(max_length=2000, null=False, verbose_name="Beschreibung")
+
+    needs_implementation = models.BooleanField(default=False)
+    has_choice = models.BooleanField(default=False)
+
+    notizen = models.TextField(null=True, blank=True)
+
+    def __str__(self):
+        return self.name
+
+
 class GfsStufenplan(models.Model):
     class Meta:
         ordering = ['gfs', "basis"]
@@ -377,9 +395,12 @@ class GfsStufenplan(models.Model):
     vorteile = models.ManyToManyField("Vorteil", blank=True)
     zauber = models.PositiveSmallIntegerField(default=0)
     wesenkräfte = models.ManyToManyField("Wesenkraft", blank=True)
-    special_ability = models.CharField(max_length=100, default=None, blank=True, null=True, verbose_name="Fähigkeit")
-    special_ability_description = models.TextField(max_length=2000, default=None, blank=True, null=True, verbose_name="Beschreibung")
 
+    # TODO delete these
+    # special_ability = models.CharField(max_length=100, default=None, blank=True, null=True, verbose_name="Fähigkeit")
+    # special_ability_description = models.TextField(max_length=2000, default=None, blank=True, null=True, verbose_name="Beschreibung")
+
+    ability = models.OneToOneField(GfsAbility, on_delete=models.SET_NULL, null=True, blank=True)
 
 class ProfessionStufenplanBase(models.Model):
     class Meta:
@@ -678,6 +699,7 @@ class Charakter(models.Model):
     engelsroboter = models.ManyToManyField(Engelsroboter, through='character.RelEngelsroboter', blank=True)
 
     sonstige_items = models.TextField(max_length=1000, default='', blank=True)
+    processing_notes = models.JSONField(default=dict, null=False, blank=False)
 
     def __str__(self):
         return "{} ({})".format(self.name, self.eigentümer)
@@ -696,6 +718,7 @@ class Charakter(models.Model):
         return len([stufe for stufe in new_tiers_at_stufe if stufe <= self.ep_stufe_in_progress])
 
     def init_stufenhub(self):
+        # new Stufe verteilen?
         max_stufe = self.get_max_stufe()
         if self.ep_stufe_in_progress >= max_stufe or self.gfs is None: return
 
@@ -703,94 +726,96 @@ class Charakter(models.Model):
             .prefetch_related("basis")\
             .filter(basis__stufe__gt=self.ep_stufe_in_progress or self.ep_stufe, basis__stufe__lte=max_stufe)
 
+
         # numeric values
-        numeric_values = base_qs\
-            .aggregate(
-                ap=Sum("basis__ap"),
-                fp=Sum("basis__fp"),
-                fg=Sum("basis__fg"),
-            )
-
-
-        # vorteile
-        vorteil_ids = base_qs.filter(vorteile__isnull=False).values_list("vorteile__id", flat=True)
-        vorteile = Vorteil.objects.filter(id__in=vorteil_ids)
-        rel_vorteile = RelVorteil.objects\
-            .filter(char=self, teil__in=vorteile)\
-            .values("teil__id", "anzahl")
-
-        for vorteil_id in set(vorteil_ids):
-            vorteil = vorteile.get(id=vorteil_id)
-            sum_rel_vorteile = len([x for x in rel_vorteile if x["teil__id"] == vorteil_id])
-            sum_vorteile = len([x for x in vorteil_ids if x == vorteil_id])
-            total_sum = sum_rel_vorteile + sum_vorteile
-            max_amount = vorteil.max_amount if vorteil.max_amount is not None else sys.maxsize
-
-            # some not allowed, give ip
-            amount_in_overflow = total_sum - max_amount
-            if amount_in_overflow > 0:
-                print(amount_in_overflow, "x", f"Will give you {vorteil.ip} IP for ", vorteil.titel)
-                self.ip += amount_in_overflow * vorteil.ip
-
-            # needs more information
-            amount_to_create = min(max_amount - sum_rel_vorteile, sum_vorteile)
-            if max_amount != 1 and amount_to_create > 0:
-                print(amount_to_create, "x", "create RelVorteil for", vorteil.titel)
-                for _ in range(amount_to_create):
-                    RelVorteil.objects.create(teil=vorteil, char=self, anzahl=1, will_create=True)
-
-        # persist
+        numeric_values = base_qs.aggregate(
+            ap=Sum("basis__ap"),
+            fp=Sum("basis__fp"),
+            fg=Sum("basis__fg"),
+            tp=Sum("basis__tp"),
+        )
+        
+        # persist numeric values
         self.ap += numeric_values["ap"]
         self.fp += numeric_values["fp"]
         self.fg += numeric_values["fg"]
+        self.tp += numeric_values["tp"]
         self.ep_stufe_in_progress = max_stufe
+
+        self.save(update_fields=["ap", "fp", "fg", "tp", "ep_stufe_in_progress"])
+
+
+        # vorteile
+        vorteil_ids_new = base_qs.filter(vorteile__isnull=False).values_list("vorteile__id", flat=True)
+        vorteil_ids_current = RelVorteil.objects.prefetch_related("teil").filter(char=self, teil__id__in=vorteil_ids_new).values_list("teil__id", flat=True)
+
+        for vorteil_id in set(vorteil_ids_new):
+            vorteil = Vorteil.objects.get(id=vorteil_id)
+
+            # sum of all vorteile
+            sum_current = len([teil_id for teil_id in vorteil_ids_current if teil_id == vorteil_id])
+            sum_new = len([teil_id for teil_id in vorteil_ids_new if teil_id == vorteil_id])
+            total_sum = sum_current + sum_new
+
+            max_amount = vorteil.max_amount if vorteil.max_amount is not None else sys.maxsize
+            amount_in_overflow = total_sum - max_amount
+
+            # some not allowed, give ip
+            if amount_in_overflow > 0:
+                if not hasattr(self.processing_notes, "campaign") or not self.processing_notes["campaign"]:
+                    self.processing_notes["campaign"] = []
+
+                self.processing_notes["camapign"].append(f"Du erhälst je {vorteil.ip} IP für {amount_in_overflow}x {vorteil.titel}")
+                self.ip += amount_in_overflow * vorteil.ip
+
+            # add new RelVorteil, (also the ones that need more information, see "will_create=True")
+            amount_to_create = min(max_amount - sum_current, sum_new)
+            if amount_to_create > 0:
+                will_create = vorteil.needs_attribut or vorteil.needs_engelsroboter or vorteil.needs_fertigkeit or vorteil.needs_notiz
+
+                print(amount_to_create, "x", "create RelVorteil for", vorteil.titel)
+                for _ in range(amount_to_create):
+                    RelVorteil.objects.create(teil=vorteil, char=self, will_create=will_create)
         
-        logStufenaufstieg(self.eigentümer, self)
-        print("alte Stufe", self.ep_stufe, "Neue Stufe", max_stufe)
+        self.save(update_fields=["ip", "processing_notes"])
 
-        self.save(update_fields=["ap", "fp", "fg", "ip", "ep_stufe_in_progress"])
-
-    def submit_stufenhub(self):
-        if self.ep_stufe >= self.ep_stufe_in_progress or self.gfs is None: return
-
-        base_qs = self.gfs.gfsstufenplan_set\
-            .prefetch_related("basis")\
-            .filter(basis__stufe__gt=self.ep_stufe, basis__stufe__lte=self.ep_stufe_in_progress)
-
-        # tp (numeric values)
-        self.tp += base_qs.aggregate(tp=Sum("basis__tp"))["tp"]
 
         # zauber
+        if not hasattr(self, "zauberplätze") or not self.zauberplätze: self.zauberplätze = {}
         for plan in base_qs.filter(zauber__gt=0):
-            for _ in range(plan.zauber):
-                self.zauberplätze.append(plan.basis.stufe)
+            stufe = plan.basis.stufe
+            current = self.zauberplätze[stufe] if hasattr(self.zauberplätze, f"{stufe}") else 0
+            self.zauberplätze[stufe] = current + plan.zauber
+
+        self.save(update_fields=["zauberplätze"])
+
 
         # wesenkräfte
-        wesenkräfte = base_qs.filter(wesenkräfte__isnull=False).wesenkräfte
+        wesenkräfte = []
+        for stufe in base_qs:
+            for wk in stufe.wesenkräfte.all():
+                wesenkräfte.append(wk)
+
         for w in wesenkräfte:
             _, created = RelWesenkraft.objects.get_or_create(char=self, wesenkraft=w, defaults={"tier": 1 if w.wesen == "w" and self.gfs in w.zusatz_gfsspezifisch else 0})
             if not created:
                 # log that wesenkraft already existed
-                print(f"Wesenkraft {w.titel} war bei {self.name} ({self.gfs.titel}) im EP-Tree Stufe {self.ep_stufe+1} - {self.ep_stufe_in_progress}")
                 capture_message(f"Wesenkraft {w.titel} war bei {self.name} ({self.gfs.titel}) im EP-Tree Stufe {self.ep_stufe+1} - {self.ep_stufe_in_progress}", level='info')
 
-        # vorteile
-        new_vorteil = base_qs.filter(vorteile__isnull=False)
-        rel_vorteil = RelVorteil.objects\
-            .filter(char=self, teil__id__in=[v["id"] for v in vorteile])\
-            .values_list("teil", flat=True)
 
-        vorteile = Vorteil.objects\
-            .filter(id__in=new_vorteil, max_amount=1)\
-            .exclude(id__in=rel_vorteil)
+        print("alte Stufe", self.ep_stufe, "Neue Stufe", max_stufe)
+        logStufenaufstieg(self.eigentümer, self)
 
-        for vorteil in vorteile:
-            # add vorteil. No extra information needed.
-            print("1x add on submit of Stufe", vorteil.titel)
-            RelVorteil.objects.create(char=self, teil=vorteil)
 
+
+    def submit_stufenhub(self):
+        if self.ep_stufe >= self.ep_stufe_in_progress or self.gfs is None: return
+
+        if hasattr(self.processing_notes, "campaign"):
+            del self.processing_notes["campaign"]
+        
         self.ep_stufe = self.ep_stufe_in_progress
-        self.save(update_fields=["tp", "zauberplätze", "ep_stufe"])
+        self.save(update_fields=["ep_stufe", "processing_notes"])
 
 
 class RelWesenkraft(models.Model):
@@ -892,6 +917,7 @@ class RelTeil(models.Model):
     engelsroboter = models.ForeignKey(Engelsroboter, on_delete=models.SET_NULL, null=True, blank=True)
     ip = models.PositiveSmallIntegerField(null=True, blank=True)
 
+    will_create = models.BooleanField(default=False)
     is_sellable = models.BooleanField(default=True, verbose_name="ist verkaufbar?")
 
     def __str__(self):
@@ -904,8 +930,6 @@ class RelVorteil(RelTeil):
         verbose_name_plural = "Vorteile"
 
     teil = models.ForeignKey(Vorteil, on_delete=models.CASCADE)
-
-    will_create = models.BooleanField(default=False)
 
 
 class RelNachteil(RelTeil):

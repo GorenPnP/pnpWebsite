@@ -65,7 +65,7 @@ class AuswertungView(LoginRequiredMixin, SpielleiterOnlyMixin, DetailView):
             story = fields["story"]
             del fields["story"]
 
-            if fields["zauberplätze"]:
+            if hasattr(fields, "zauberplätze") and fields["zauberplätze"]:
                 for stufe, amount in fields["zauberplätze"].items():
                     print(type(stufe), stufe, type(amount), amount)
                     if not object.zauberplätze: object.zauberplätze = {}

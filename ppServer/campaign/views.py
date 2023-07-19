@@ -2,23 +2,14 @@ import re
 from typing import Any, Dict
 
 from django.contrib import messages
-from django.contrib.auth.mixins import UserPassesTestMixin, LoginRequiredMixin
-from django.db.models import OuterRef, Value, F, Sum, Exists
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpRequest, HttpResponse
-from django.shortcuts import get_object_or_404, redirect, reverse
+from django.shortcuts import reverse
 from django.views.generic import DetailView
 
-from django_tables2.columns import TemplateColumn
-
-from base.abstract_views import DynamicTableView, GenericTable
-from character.models import Charakter, Vorteil, RelVorteil, Spieler, RelAttribut, Attribut, Fertigkeit
-from levelUp.decorators import is_ap_done, is_ferts_done, is_personal_done, is_spF_wF_done, is_teil_done, is_zauber_done
+from character.models import Charakter, RelVorteil, RelAttribut
+from levelUp.decorators import is_ap_done, is_ferts_done, is_zauber_done
 from levelUp.views import *
-from log.create_log import logAuswertung
-from ppServer.mixins import SpielleiterOnlyMixin, VerifiedAccountMixin
-from shop.models import Engelsroboter
-
-from .forms import AuswertungForm
 from .mixins import CampaignMixin
 
 
@@ -45,7 +36,7 @@ class HubView(LoginRequiredMixin, CampaignMixin, OwnCharakterMixin, DetailView):
                 if stufe.basis.fg: stufen_str.append(f"<b class='badge rounded-pill' style='background-color: var(--bs-blue)'>+{stufe.basis.fg} FG</b>")
                 if stufe.basis.tp: stufen_str.append(f"+{stufe.basis.tp} TP")
                 if stufe.zauber: stufen_str.append(f"+{stufe.zauber} Zauberslots")
-                if stufe.special_ability: stufen_str.append(f"Gfs-Fähigkeit {stufe.special_ability}")
+                if stufe.ability: stufen_str.append(f"Gfs-Fähigkeit {stufe.ability.name}")
 
                 stufenbelohnung.append(f"Stufe {stufe.basis.stufe} gibt: " + ", ".join(stufen_str))
 
@@ -71,6 +62,16 @@ class HubView(LoginRequiredMixin, CampaignMixin, OwnCharakterMixin, DetailView):
             "app_index_url": reverse("character:show", args=[char.id]),
         }
 
+
+    def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
+        
+        # add messages from ep-stufe distribution
+        char = self.get_object()
+        if "campaign" in char.processing_notes:
+            for msg in char.processing_notes["campaign"]:
+                messages.error(request, msg)
+        
+        return super().get(request, *args, **kwargs)
 
 # class ApFormView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTableView):
 class HubAttributeView(CampaignMixin, GenericAttributView):

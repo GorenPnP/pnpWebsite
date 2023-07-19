@@ -67,7 +67,7 @@ class GfsZauberInLine(admin.TabularInline):
 
 class GfsStufenplanInLine(admin.TabularInline):
     model = GfsStufenplan
-    fields = ["basis", "vorteile", "zauber", "wesenkräfte", "special_ability", "special_ability_description"]
+    fields = ["basis", "vorteile", "zauber", "wesenkräfte", "ability"]
     extra = 0
 
 class GfsSkilltreeInLine(admin.TabularInline):
@@ -190,15 +190,15 @@ class AffektivitätInLine(admin.TabularInline):
 class RelVorteilInLine(SpielerReadonlyInLine):
     model = RelVorteil
     fields = ["teil", "attribut", "fertigkeit", "engelsroboter", "notizen", "ip", "is_sellable", "will_create"]
-    readonly_fields = ["will_create", "is_sellable"]
+    readonly_fields = ["is_sellable", "will_create"]
     exclude = ["anzahl"]
     extra = 1
 
 
 class RelNachteilInLine(SpielerReadonlyInLine):
     model = RelNachteil
-    fields = ["teil", "attribut", "fertigkeit", "notizen", "ip", "is_sellable"]
-    readonly_fields = ["is_sellable"]
+    fields = ["teil", "attribut", "fertigkeit", "notizen", "ip", "is_sellable", "will_create"]
+    readonly_fields = ["is_sellable", "will_create"]
     extra = 1
 
 class RelTalentInLine(SpielerReadonlyInLine):
@@ -299,7 +299,7 @@ class CharakterAdmin(admin.ModelAdmin):
         ("Manifest", {"fields": ["manifest", "sonstiger_manifestverlust", "notizen_sonstiger_manifestverlust"]}),
         ('HP', {'fields': ['rang', 'HPplus']}),
         ("Basischaden im Waffenlosen Kampf", {"fields": ["wesenschaden_waff_kampf", "wesenschaden_andere_gestalt"]}),
-        ('Kampagne', {'fields': ["ep", 'ep_stufe', 'ep_stufe_in_progress', 'ap', 'fp', 'fg']}),
+        ('Kampagne', {'fields': ["ep", 'ep_stufe', 'ep_stufe_in_progress', 'ap', 'fp', 'fg', "processing_notes"]}),
         ('Ressourcen', {'fields': ['sp', "geld", 'ip', 'tp', 'zauberplätze', 'spF_wF', 'wp', "nutzt_magie"]}),
         ('Geschreibsel', {'fields': ['persönlicheZiele', 'notizen', 'sonstige_items']}),
     ]
@@ -458,16 +458,10 @@ class GfsSkilltreeAdmin(admin.ModelAdmin):
     def stufe_(self, obj):
         return obj.context.stufe
 
-class GfsStufenplanAdmin(admin.ModelAdmin):
-    list_display = ('gfs_', 'stufe_', 'special_ability', 'special_ability_description')
+class GfsAbilityAdmin(admin.ModelAdmin):
+    list_display = ("name", "beschreibung", "needs_implementation", "has_choice")
+    list_editable = ["needs_implementation", "has_choice"]
 
-    list_editable = ['special_ability', 'special_ability_description']
-
-    def stufe_(self, obj):
-        return obj.basis.stufe
-
-    def gfs_(self, obj):
-        return obj.gfs.titel
 
 class ProfessionAdmin(admin.ModelAdmin):
     list_display = ('titel', 'beschreibung_')
@@ -528,19 +522,6 @@ class SkilltreeEntryWesenAdmin(admin.ModelAdmin):
     list_filter = ["wesen", "context"]
 
 
-class StufenplanAdmin(admin.ModelAdmin):
-    list_editable = ["ep", "ap", "ap_max", "fp", "fg", "zauber", "spezial", "wissensp"]
-    list_display = ["wesen", "stufe", "ep", "vorteile_", "ap", "ap_max", "fp", "fg", "zauber", "wesenkräfte_",
-                    "spezial", "wissensp", "special_ability", "special_ability_description"]
-    list_filter = ["wesen", "stufe"]
-
-    def vorteile_(self, obj):
-        return ', '.join([a.titel for a in obj.vorteile.all()])
-
-    def wesenkräfte_(self, obj):
-        return ', '.join([a.titel for a in obj.wesenkräfte.all()])
-
-
 class GfsStufenplanBaseAdmin(admin.ModelAdmin):
     list_display = ["stufe", "ep", "ap", "fp", "fg", "tp"]
     list_editable = ["ep", "ap", "fp", "fg", "tp"]
@@ -575,6 +556,7 @@ admin.site.register(Wissensfertigkeit, WissensfertigkeitAdmin)
 admin.site.register(SkilltreeBase, admin.ModelAdmin)
 admin.site.register(Talent, TalentAdmin)
 
+admin.site.register(GfsAbility, GfsAbilityAdmin)
 admin.site.register(GfsStufenplanBase, GfsStufenplanBaseAdmin)
 admin.site.register(ProfessionStufenplanBase, ProfessionStufenplanBaseAdmin)
 
@@ -582,4 +564,3 @@ admin.site.register(RangRankingEntry, RangRankingEntryAdmin)
 admin.site.register(Spieler, SpielerAdmin)
 
 admin.site.register(SkilltreeEntryGfs, GfsSkilltreeAdmin)
-admin.site.register(GfsStufenplan, GfsStufenplanAdmin)
