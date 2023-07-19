@@ -515,17 +515,17 @@ class GeburtstageView(LoginRequiredMixin, VerifiedAccountMixin, TemplateView):
 
 
 class GfsSpecialAbilities(LoginRequiredMixin, DynamicTableView):
-    model = GfsStufenplan
-    queryset = GfsStufenplan.objects.select_related('gfs').filter(ability__isnull=False).order_by("ability")
+    model = GfsAbility
+    queryset = GfsAbility.objects.select_related('gfsstufenplan__gfs', 'gfsstufenplan__basis').order_by("name")
 
     topic = "Gfs-spezifische Fähigkeiten"
 
-    table_fields = ("special_ability", "special_ability_description", "gfs", "basis__stufe")
+    table_fields = ("name", "beschreibung", "gfsstufenplan__gfs", "gfsstufenplan__basis__stufe")
     filterset_fields = {
-        "special_ability": ["icontains"],
-        "special_ability_description": ["icontains"],
-        "gfs": ["exact"],
-        "basis__stufe": ["exact"]
+        "name": ["icontains"],
+        "beschreibung": ["icontains"],
+        "gfsstufenplan__gfs": ["exact"],
+        "gfsstufenplan__basis__stufe": ["exact"],
     }
 
     export_formats = ["csv", "json", "latex", "ods", "tsv", "xls", "xlsx", "yaml"]

@@ -472,9 +472,9 @@ class CharacterExportView(LoginRequiredMixin, VerifiedAccountMixin, DetailView):
         # Gfs-Fähigkeiten
         werte_ws.merge_range("A44:H44", "Wesen-Eigenschaften/Fähigkeiten", format_ramsch_titel)
         if char.gfs:
-            for i, r in enumerate(char.gfs.gfsstufenplan_set.filter(basis__stufe__lte=char.ep_stufe).filter(special_ability__isnull=False, special_ability_description__isnull=False)):
-                werte_ws.write(f"A{45+i}", r.special_ability, format_border_left)
-                werte_ws.merge_range(f"B{45+i}:G{45+i}", r.special_ability_description, format_text_wrap)
+            for i, r in enumerate(RelGfsAbility.objects.filter(char=char)):
+                werte_ws.write(f"A{45+i}", r.ability.name, format_border_left)
+                werte_ws.merge_range(f"B{45+i}:G{45+i}", r.ability.beschreibung, format_text_wrap)
         # Zauber, Rituale & Runen
         werte_ws.merge_range("A55:H55", "Zauber, Rituale und Runen", format_ramsch_titel)
         for i, r in enumerate(char.relzauber_set.all()[:8]):

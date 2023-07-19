@@ -395,12 +395,8 @@ class GfsStufenplan(models.Model):
     vorteile = models.ManyToManyField("Vorteil", blank=True)
     zauber = models.PositiveSmallIntegerField(default=0)
     wesenkräfte = models.ManyToManyField("Wesenkraft", blank=True)
-
-    # TODO delete these
-    # special_ability = models.CharField(max_length=100, default=None, blank=True, null=True, verbose_name="Fähigkeit")
-    # special_ability_description = models.TextField(max_length=2000, default=None, blank=True, null=True, verbose_name="Beschreibung")
-
     ability = models.OneToOneField(GfsAbility, on_delete=models.SET_NULL, null=True, blank=True)
+
 
 class ProfessionStufenplanBase(models.Model):
     class Meta:
@@ -682,6 +678,7 @@ class Charakter(models.Model):
     fertigkeiten = models.ManyToManyField(Fertigkeit, through='character.RelFertigkeit', blank=True)
     spezialfertigkeiten = models.ManyToManyField(Spezialfertigkeit, through='character.RelSpezialfertigkeit', blank=True)
     wissensfertigkeiten = models.ManyToManyField(Wissensfertigkeit, through='character.RelWissensfertigkeit', blank=True)
+    gfs_fähigkeiten = models.ManyToManyField(GfsAbility, through='character.RelGfsAbility', blank=True)
 
     items = models.ManyToManyField(Item, through='character.RelItem', blank=True)
     waffenWerkzeuge = models.ManyToManyField(Waffen_Werkzeuge, through='character.RelWaffen_Werkzeuge', blank=True)
@@ -743,6 +740,11 @@ class Charakter(models.Model):
         self.ep_stufe_in_progress = max_stufe
 
         self.save(update_fields=["ap", "fp", "fg", "tp", "ep_stufe_in_progress"])
+
+
+        # gfs-abilities
+        for st in base_qs.filter(ability__isnull=False):
+            RelGfsAbility.objects.get_or_create(char=self, ability=st.ability)
 
 
         # vorteile
@@ -1039,6 +1041,23 @@ class RelSpezialfertigkeit(models.Model):
 
     def __str__(self):
         return "'{}' von '{}'".format(self.spezialfertigkeit.__str__(), self.char.__str__())
+
+
+class RelGfsAbility(models.Model):
+    class Meta:
+        ordering = ['char', 'ability']
+        verbose_name = "Gfs-Fähigkeit"
+        verbose_name_plural = "Gfs-Fähigkeiten"
+
+        unique_together = (('char', 'ability'),)
+
+    char = models.ForeignKey(Charakter, on_delete=models.CASCADE)
+    ability = models.ForeignKey(GfsAbility, on_delete=models.CASCADE)
+
+    notizen = models.TextField(null=True, blank=True)
+
+    def __str__(self):
+        return "'{}' von '{}'".format(self.ability.__str__(), self.char.__str__())
 
 
 ############ RelShop ###########

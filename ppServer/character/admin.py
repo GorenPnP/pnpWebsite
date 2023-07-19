@@ -187,6 +187,12 @@ class AffektivitätInLine(admin.TabularInline):
     exclude = ['grad', 'umgang']
 
 
+class GfsAbilityInLine(admin.TabularInline):
+    model = RelGfsAbility
+    fields = ["ability", "notizen"]
+    extra = 1
+
+
 class RelVorteilInLine(SpielerReadonlyInLine):
     model = RelVorteil
     fields = ["teil", "attribut", "fertigkeit", "engelsroboter", "notizen", "ip", "is_sellable", "will_create"]
@@ -313,6 +319,8 @@ class CharakterAdmin(admin.ModelAdmin):
                RelWissensfertigkeitInLine, RelVorteilInLine,
                RelNachteilInLine, RelTalentInLine,
                AffektivitätInLine,
+               GfsAbilityInLine,
+
                RelItemlInLine,
                RelWaffen_WerkzeugelInLine,
                RelMagazinInLine,
