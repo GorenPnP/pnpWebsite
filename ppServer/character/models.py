@@ -438,7 +438,7 @@ class Talent(models.Model):
     beschreibung = models.TextField()
     kategorie = models.CharField(max_length=1, choices=enums.talent_enum, default=enums.talent_enum[0][0])
 
-    bedingung = models.ManyToManyField("Talent")
+    bedingung = models.ManyToManyField("Talent", blank=True)
 
     def __str__(self):
         return self.titel
