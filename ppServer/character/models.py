@@ -560,6 +560,8 @@ class Fertigkeit(models.Model):
 
 class Wissensfertigkeit(models.Model):
 
+    WISSENSF_STUFENFAKTOR = 3
+
     class Meta:
         verbose_name = "Wissensfertigkeit"
         verbose_name_plural = "Wissensfertigkeiten"
@@ -1020,7 +1022,7 @@ class RelWissensfertigkeit(models.Model):
     char = models.ForeignKey(Charakter, on_delete=models.CASCADE)
     wissensfertigkeit = models.ForeignKey(Wissensfertigkeit, on_delete=models.CASCADE)
 
-    würfel2 = models.SmallIntegerField(choices=enums.würfelart_enum, default=enums.würfelart_enum[0][0])
+    stufe = models.PositiveSmallIntegerField(default=0, null=False, blank=False)
 
     def __str__(self):
         return "'{}' von '{}'".format(self.wissensfertigkeit.__str__(), self.char.__str__())

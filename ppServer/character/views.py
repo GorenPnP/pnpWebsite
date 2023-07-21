@@ -251,11 +251,12 @@ def show(request, pk):
                         rel.wissensfertigkeit.attr3.titel),
                     "ferts": ", ".join(ferts),
                     "ferts_sum": ferts_sum,
-                    "w2": rel.würfel2,
-                    "schwellwert": 100 - attrs[rel.wissensfertigkeit.attr1.id].aktuell() -
-                                   attrs[rel.wissensfertigkeit.attr2.id].aktuell() -
-                                   attrs[rel.wissensfertigkeit.attr3.id].aktuell() -
-                                   ferts_sum
+                    "wp": rel.stufe,
+                    "schwellwert": attrs[rel.wissensfertigkeit.attr1.id].aktuell() +
+                                   attrs[rel.wissensfertigkeit.attr2.id].aktuell() +
+                                   attrs[rel.wissensfertigkeit.attr3.id].aktuell() +
+                                   ferts_sum +
+                                   rel.stufe * Wissensfertigkeit.WISSENSF_STUFENFAKTOR
                 })
             context["wissen"] = wissen
 

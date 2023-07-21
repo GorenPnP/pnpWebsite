@@ -85,10 +85,11 @@ function highlight_rows() {
 
     [...document.querySelectorAll(".main-container tbody tr")].forEach(tr_tag => {
         const spezial = tr_tag.querySelector(`.spezial-input`);
-        spezial && parseInt(spezial.value) >= -5 ? tr_tag.classList.add(highlight_class) : tr_tag.classList.remove(highlight_class);
-        if (spezial) { return; }
+        if (spezial) {
+            return parseInt(spezial.value) >= -5 ? tr_tag.classList.add(highlight_class) : tr_tag.classList.remove(highlight_class);
+        }
         
-        const is_selected = tr_tag.querySelector(`.wissen-input`)?.value.length;
+        const is_selected = parseInt(tr_tag.querySelector(`.wissen-input`)?.value) >= 0;
         is_selected ? tr_tag.classList.add(highlight_class) : tr_tag.classList.remove(highlight_class);
     });
 }

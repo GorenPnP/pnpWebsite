@@ -780,20 +780,24 @@ class GenericSpF_wFView(LoginRequiredMixin, OwnCharakterMixin, tables.SingleTabl
                 return ", ".join([wi.titel for wi in wissen.fertigkeit.all().order_by("titel")])
 
         def render_wp(self, value, record):
-            value = record["stufe"]
+            value_exists = record["stufe"] is not None
             id = record["id"]
 
+            offset = -5 if record["art"] == "Spezial" else 0
+
+
+            args = f"min='{offset}'"
             if record["art"] == "Spezial":
-                args = "min='-5'"
-                if record["stufe"] is not None:
-                    args = f"min='{value-5}' value='{value-5}' required"
+                args += f" name='spezial-{id}' class='spezial-input'"
+            else:
+                args += f" name='wissen-{id}' class='wissen-input'"
 
-                return format_html(f"<input type='number' form='form' name='spezial-{id}' class='spezial-input' {args}>")
+            if value_exists:
+                args += f" value='{record['stufe']+offset}' required"
 
-            if record["art"] == "Wissen":
-                dice = ["---", "W4", "W6", "W8", "W10", "W12", "W20", "W100"]
-                options = "".join([f"<option value='{ index-1 if index else '' }' {'selected' if value is not None and index-1 == value else ''}>{ d }</option>" for index, d in enumerate(dice) if value is None or index > value])
-                return format_html(f"<select form='form' name='wissen-{id}' class='wissen-input'>{options}</select>")
+            print(args, record["stufe"])
+
+            return format_html(f"<input type='number' form='form' {args}>")
 
 
     topic = "Spezial- & Wissensf."
@@ -808,14 +812,6 @@ class GenericSpF_wFView(LoginRequiredMixin, OwnCharakterMixin, tables.SingleTabl
         # create or override -> don't cause 'get_context_data() got multiple values for keyword argument 'char''
         context["char"] = self.get_character()
         return context
-    
-
-    def würfel2_to_stufe(self, würfel2) -> int:
-        w_stufen = [w[0] for w in würfelart_enum]
-        return w_stufen.index(würfel2)
-
-    def stufe_to_würfel2(self, stufe) -> int:
-        return würfelart_enum[stufe][0]
 
 
     def get_table_data(self):
@@ -833,8 +829,8 @@ class GenericSpF_wFView(LoginRequiredMixin, OwnCharakterMixin, tables.SingleTabl
                         art = Value("Spezial"),
                         ferts = Value(0),
                         attrs = Value(0),
-                        wp = Value(0),
                         stufe = Subquery(RelSpezialfertigkeit.objects.filter(char=char, spezialfertigkeit__id=OuterRef("id")).values("stufe")[:1]),
+                        wp = Value(0), # replace later
                     )\
                     .values("id", "titel", "art",
                             "attrs", "attr1__titel", "attr2__titel",
@@ -848,16 +844,14 @@ class GenericSpF_wFView(LoginRequiredMixin, OwnCharakterMixin, tables.SingleTabl
                         art = Value("Wissen"),
                         ferts = Value(0),
                         attrs = Value(0),
+                        stufe = Subquery(RelWissensfertigkeit.objects.filter(char=char, wissensfertigkeit__id=OuterRef("id")).values("stufe")[:1]),
                         wp = Value(0),
-                        würfel2 = Subquery(RelWissensfertigkeit.objects.filter(char=char, wissensfertigkeit__id=OuterRef("id")).values("würfel2")[:1]),
                     )\
                     .values("id", "titel", "art",
                             "attrs", "attr1__titel", "attr2__titel", "attr3__titel",
-                            "ferts", "wp", "würfel2"
+                            "ferts", "stufe", "wp"
                     )
             )
-        # transform würfel2 to stufe
-        wissen = [{**w, "stufe": self.würfel2_to_stufe(w["würfel2"]) if w["würfel2"] else None} for w in wissen]
 
         # return objects (ordered by name)
         return sorted(spezial + wissen, key=lambda x: x["titel"])
@@ -870,6 +864,8 @@ class GenericSpF_wFView(LoginRequiredMixin, OwnCharakterMixin, tables.SingleTabl
         spezial_ids = {int(key.replace("spezial-", "")): int(stufe)+5 for key, stufe in request.POST.items() if "spezial-" in key and len(stufe)}
         wissen_ids = {int(key.replace("wissen-", "")): int(stufe) for key, stufe in request.POST.items() if "wissen-" in key and len(stufe)}
 
+        print(spezial_ids, wissen_ids)
+
         # test them
         if payment_method not in ["points", "sp"]:
             messages.error(request, "Die Zahlungsart für neue Fertigkeiten kenne ich nicht.")
@@ -881,7 +877,7 @@ class GenericSpF_wFView(LoginRequiredMixin, OwnCharakterMixin, tables.SingleTabl
                 fert = Count("*")
             )
         wissen_qs = RelWissensfertigkeit.objects.filter(char=char)
-        wissen_wp = sum([self.würfel2_to_stufe(relw.würfel2) for relw in wissen_qs])
+        wissen_wp = sum(wissen_qs.values_list("stufe", flat=True))
 
         fert_max = (spezial["fert"] or 0) + (wissen_qs.count() or 0) + char.spF_wF
         wp_max = (spezial["wp"] or 0) + (wissen_wp or 0) + char.wp
@@ -898,7 +894,7 @@ class GenericSpF_wFView(LoginRequiredMixin, OwnCharakterMixin, tables.SingleTabl
 
         # permit selling stufe
         faulty_spezial = [rel.spezialfertigkeit.titel for rel in RelSpezialfertigkeit.objects.prefetch_related("spezialfertigkeit").filter(char=char) if rel.spezialfertigkeit.id not in spezial_ids.keys() or spezial_ids[rel.spezialfertigkeit.id] < rel.stufe]
-        faulty_wissen = [rel.wissensfertigkeit.titel for rel in RelWissensfertigkeit.objects.prefetch_related("wissensfertigkeit").filter(char=char) if rel.wissensfertigkeit.id not in wissen_ids.keys() or wissen_ids[rel.wissensfertigkeit.id] < self.würfel2_to_stufe(rel.würfel2)]
+        faulty_wissen = [rel.wissensfertigkeit.titel for rel in RelWissensfertigkeit.objects.prefetch_related("wissensfertigkeit").filter(char=char) if rel.wissensfertigkeit.id not in wissen_ids.keys() or wissen_ids[rel.wissensfertigkeit.id] < rel.stufe]
         if len(faulty_spezial) + len(faulty_wissen) > 0:
             messages.error(request, f"Du kannst keine Stufen (von {', '.join([*faulty_spezial, *faulty_wissen])}) verkaufen")
 
@@ -920,7 +916,7 @@ class GenericSpF_wFView(LoginRequiredMixin, OwnCharakterMixin, tables.SingleTabl
         for sp in Spezialfertigkeit.objects.filter(id__in=spezial_ids):
             RelSpezialfertigkeit.objects.create(char=char, spezialfertigkeit=sp, stufe=spezial_ids[sp.id])
         for wi in Wissensfertigkeit.objects.filter(id__in=wissen_ids):
-            RelWissensfertigkeit.objects.create(char=char, wissensfertigkeit=wi, würfel2=self.stufe_to_würfel2(wissen_ids[wi.id]))
+            RelWissensfertigkeit.objects.create(char=char, wissensfertigkeit=wi, stufe=wissen_ids[wi.id])
 
         # return response
         messages.success(request, "Erfolgreich gespeichert")

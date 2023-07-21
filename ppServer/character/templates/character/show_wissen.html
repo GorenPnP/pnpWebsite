@@ -5,7 +5,7 @@
         <div class="chip__cell">Attribute</div>
         <div class="chip__cell">Fertigkeiten</div>
         <div class="chip__cell">Fert. Summe</div>
-        <div class="chip__cell chip__cell--emph">2. Würfelart</div>
+        <div class="chip__cell chip__cell--emph">WP</div>
         <div class="chip__cell chip__cell--emph">Schwellwert</div>
     </div>
 
@@ -15,7 +15,7 @@
             <div class="chip__cell">{{ s.attrs }}</div>
             <div class="chip__cell">{{ s.ferts }}</div>
             <div class="chip__cell">{{ s.ferts_sum }}</div>
-            <div class="chip__cell chip__cell--emph">W{{ s.w2 }}</div>
+            <div class="chip__cell chip__cell--emph">{{ s.wp }}</div>
             <div class="chip__cell chip__cell--emph">{{ s.schwellwert }}</div>
         </div>
     {% endfor %}
