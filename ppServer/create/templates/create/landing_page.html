@@ -5,6 +5,8 @@
 
 <style>
     .main-container a { color: var(--bs-light) !important; }
+
+    .checked--sufficient { --checkbox-mark-color: #888888; }
 </style>
 {% endblock %}
 
@@ -27,7 +29,7 @@
             <tr>
                 <td>
                     <a href="{{ row.link }}">
-                        <div class="checkbox {% if row.done %}checked{% endif %}"></div>
+                        <div class="checkbox {% if row.done %}checked{% endif %}{% if forloop.last %} checked--sufficient{% endif %}"></div>
                     </a>
                 </td>
                 <td><a href="{{ row.link }}">{{ row.text|safe }}</a></td>
@@ -38,7 +40,7 @@
             <!-- Vor- und Nachteile -->
             <tr>
                 <td>
-                    <div class="checkbox {% if is_teil_done %}checked{% endif %}" style="--checkbox-mark-color: #888888"></div>
+                    <div class="checkbox {% if is_teil_done %}checked{% endif %} checked--sufficient"></div>
                 </td>
                 <td><a href="{{ row.link }}">
                     <b><a href="{% url 'create:vorteil' %}">Vorteile</a> und <a href="{% url 'create:nachteil' %}">Nachteile</a></b> nehmen
@@ -49,7 +51,7 @@
             <!-- affektivität -->
             <tr>
                 <td>
-                    <div class="checkbox checked" style="--checkbox-mark-color: #888888"></div>
+                    <div class="checkbox checked checked--sufficient"></div>
                 </td>
                 <td><a href="{% url 'create:affektivität' %}">Affektivität</a></td>
                 <td></td>
@@ -58,7 +60,7 @@
             <!-- le schöp -->
             <tr>
                 <td>
-                    <div class="checkbox checked" style="--checkbox-mark-color: #888888"></div>
+                    <div class="checkbox checked checked--sufficient"></div>
                 </td>
                 <td><a href="{% url 'shop:index' %}" target="_blank"><b>Ausrüstung</b> einkaufen</a></td>
                 <td>{{ char.geld }} Drachmen</td>

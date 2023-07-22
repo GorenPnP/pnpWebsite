@@ -1,3 +1,4 @@
+from django.contrib import messages
 from django.contrib.auth.mixins import UserPassesTestMixin
 from django.shortcuts import get_object_or_404, reverse
 from django.urls import reverse
@@ -24,6 +25,13 @@ class CampaignMixin(UserPassesTestMixin):
 
         context["back_url"] = reverse("campaign:hub", args=[context["char"].id])
         return context
+    
+    def get(self, request, *args, **kwargs):
+        is_eigentümer = self.request.user.username == self.get_character().eigentümer.name
+        if not is_eigentümer:
+            messages.warning(self.request, "Dir gehört der Charakter nicht, als Spielleiter kannst du dir ihn aber bearbeiten")
+
+        return super().get(request, *args, **kwargs)
 
 
 class OwnCharakterMixin(UserPassesTestMixin):

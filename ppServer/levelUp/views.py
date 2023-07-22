@@ -734,10 +734,16 @@ class GenericPersonalView(LoginRequiredMixin, VerifiedAccountMixin, HeaderMixin,
 
 
     def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
-        form = PersonalForm(request.POST, instance=self.get_character())
+        char = self.get_character()
+
+        form = PersonalForm(request.POST, instance=char)
         form.full_clean()
         if form.is_valid():
             form.save()
+
+            # Persönlichkeit is not updated automatically if None and stayed on first element in formfield
+            RelPersönlichkeit.objects.filter(char=char).delete()
+            RelPersönlichkeit.objects.create(char=char, persönlichkeit=form.cleaned_data["persönlichkeit"].first())
 
             messages.success(request, "Erfolgreich gespeichert")
 

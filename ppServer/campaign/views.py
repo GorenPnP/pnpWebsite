@@ -8,7 +8,7 @@ from django.shortcuts import reverse
 from django.views.generic import DetailView
 
 from character.models import Charakter, RelVorteil, RelAttribut
-from levelUp.decorators import is_ap_done, is_ferts_done, is_zauber_done
+from levelUp.decorators import is_ferts_done, is_zauber_done, is_personal_done, is_spF_wF_done, is_teil_done
 from levelUp.views import *
 from .mixins import CampaignMixin
 
@@ -17,6 +17,21 @@ class HubView(LoginRequiredMixin, CampaignMixin, OwnCharakterMixin, DetailView):
     model = Charakter
 
     template_name = "campaign/hub.html"
+
+
+    def is_done(self):
+        char = self.get_character()
+        is_eigentümer = self.request.user.username == char.eigentümer.name
+            
+        return is_eigentümer and\
+            char.ap <= 1 and\
+            is_ferts_done(self.request, char=char) and\
+            is_zauber_done(self.request, char=char) and\
+            is_personal_done(self.request, char=char) and\
+            is_spF_wF_done(self.request, char=char) and\
+            is_teil_done(self.request, char=char)
+            # TODO teil if needed Rückmeldung?
+
 
     def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
         char = self.get_character()
@@ -41,20 +56,12 @@ class HubView(LoginRequiredMixin, CampaignMixin, OwnCharakterMixin, DetailView):
                 stufenbelohnung.append(f"Stufe {stufe.basis.stufe} gibt: " + ", ".join(stufen_str))
 
         rel_ma = RelAttribut.objects.get(char=char, attribut__titel='MA')
-        # TODO
-        done_completely =\
-            is_ap_done(self.request, char=char) and\
-            is_ferts_done(self.request, char=char) and\
-            is_zauber_done(self.request, char=char)
-            # is_personal_done(self.request, char=char) and\
-            # is_spF_wF_done(self.request, char=char) and\
-            # is_teil_done(self.request, char=char)
 
         return {
             **context,
             "topic": "Verteilungshub",
             'char': char,
-            "is_done": done_completely,
+            "is_done": self.is_done(),
             "vorteile": RelVorteil.objects.filter(char=char, will_create=True),
             "stufenbelohnung": stufenbelohnung,
             "MA_aktuell": rel_ma.aktuellerWert + rel_ma.aktuellerWert_temp,
@@ -66,14 +73,25 @@ class HubView(LoginRequiredMixin, CampaignMixin, OwnCharakterMixin, DetailView):
     def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
         
         # add messages from ep-stufe distribution
-        char = self.get_object()
+        char = self.get_character()
         if "campaign" in char.processing_notes:
             for msg in char.processing_notes["campaign"]:
                 messages.error(request, msg)
         
         return super().get(request, *args, **kwargs)
 
-# class ApFormView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTableView):
+
+    def post(self, request, *args, **kwargs):
+        if not self.is_done():
+            messages.error(request, "Du hast noch nicht alle nötigen Werte verteilt")
+            return redirect(request.build_absolute_uri())
+        
+        char = self.get_character()
+        char.submit_stufenhub()
+
+        return redirect(reverse("character:show", args=[char.id]))
+
+
 class HubAttributeView(CampaignMixin, GenericAttributView):
     pass
 

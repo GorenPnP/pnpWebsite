@@ -74,8 +74,11 @@ class AuswertungView(LoginRequiredMixin, SpielleiterOnlyMixin, DetailView):
                     object.zauberplätze[stufe] = old_val + amount
 
                 object.save(update_fields=["zauberplätze"])
-                del fields["zauberplätze"]
+            
+            # del "zauberplätze" from fields:
+            fields.pop("zauberplätze", None)
 
+            # apply all other/numeric fields
             for k, v in fields.items():
                 old_value = getattr(object, k)
                 setattr(object, k, old_value + v)

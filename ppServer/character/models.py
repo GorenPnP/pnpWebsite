@@ -647,10 +647,10 @@ class Charakter(models.Model):
     fg = models.PositiveIntegerField(null=True, blank=True)
     sp = models.PositiveIntegerField(null=True, blank=True)
     ip = models.IntegerField(null=True, blank=True)
-    tp = models.IntegerField(null=True, blank=True)
+    tp = models.PositiveSmallIntegerField(default=0)
     spF_wF = models.IntegerField(null=True, blank=True)
     wp = models.IntegerField(null=True, blank=True)
-    zauberplätze = models.JSONField(null=True, blank=True, default=dict) # {"0": 2, "2": 1}
+    zauberplätze = models.JSONField(default=dict, null=False, blank=True) # {"0": 2, "2": 1}
     geld = models.IntegerField(default=0)
     konzentration = models.PositiveSmallIntegerField(null=True, blank=True)
     prestige = models.PositiveIntegerField(default=0)
@@ -698,7 +698,7 @@ class Charakter(models.Model):
     engelsroboter = models.ManyToManyField(Engelsroboter, through='character.RelEngelsroboter', blank=True)
 
     sonstige_items = models.TextField(max_length=1000, default='', blank=True)
-    processing_notes = models.JSONField(default=dict, null=False, blank=False)
+    processing_notes = models.JSONField(default=dict, null=False, blank=True)
 
     def __str__(self):
         return "{} ({})".format(self.name, self.eigentümer)
@@ -809,7 +809,6 @@ class Charakter(models.Model):
 
         print("alte Stufe", self.ep_stufe, "Neue Stufe", max_stufe)
         logStufenaufstieg(self.eigentümer, self)
-
 
 
     def submit_stufenhub(self):

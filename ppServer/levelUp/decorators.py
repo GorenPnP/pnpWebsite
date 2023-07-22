@@ -87,12 +87,12 @@ def is_personal_done(*args, **kwargs):
     return done
 
 def is_ap_done(*args, **kwargs):
-    done = "char" in kwargs and kwargs["char"].ap == 0
+    done = "char" in kwargs and not kwargs["char"].ap
     not done and print("AP not done")
     return done
 
 def is_ferts_done(*args, **kwargs):
-    done = "char" in kwargs and kwargs["char"].fp == 0 and kwargs["char"].fg == 0
+    done = "char" in kwargs and not kwargs["char"].fp and not kwargs["char"].fg
     not done and print("FERTS not done")
     return done
 
@@ -108,6 +108,6 @@ def is_teil_done(*args, **kwargs):
     return done
 
 def is_spF_wF_done(*args, **kwargs):
-    done = "char" in kwargs and kwargs["char"].spF_wF == 0 and kwargs["char"].wp == 0
+    done = "char" in kwargs and not kwargs["char"].spF_wF and not kwargs["char"].wp
     not done and print("spF, wF not done")
     return done

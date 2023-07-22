@@ -65,9 +65,14 @@ class LandingPageView(LoginRequiredMixin, CreateMixin, OwnCharakterMixin, Templa
                 f"{char.sp} SP",
                 f"{char.ap} AP / {MA_aktuell} MA"
             ])
+            wesenkr_werte = "<br>".join([
+                f"{char.sp} SP",
+                f"{char.ap} AP / {MA_aktuell} MA"
+            ])
 
             rows.append({"done": is_zauber_done(request, char=char), "link": reverse("create:zauber"), "text": "<b>Zauber</b> aussuchen", "werte": zauber_werte})
             rows.append({"done": is_spF_wF_done(request, char=char), "link": reverse("create:spF_wF"), "text": "<b>Spezial- und Wissensfertigkeiten</b> wählen", "werte": "{} offen<br>{} WP<br>{} SP".format(char.spF_wF, char.wp, char.sp)})
+            rows.append({"done": True, "link": reverse("create:wesenkraft"), "text": "<b>Wesenkräfte</b> verbessern", "werte": wesenkr_werte})
 
 
         # submit-btn disabled state
@@ -378,4 +383,9 @@ class NachteilFormView(CreateMixin, GenericNachteilView):
 
 @method_decorator(hub_decorators, name="dispatch")
 class AffektivitätFormView(CreateMixin, AffektivitätView):
+    pass
+
+
+@method_decorator(hub_decorators, name="dispatch")
+class WesenkraftFormView(CreateMixin, GenericWesenkraftView):
     pass

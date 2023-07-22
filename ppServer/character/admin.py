@@ -300,7 +300,7 @@ class CharakterAdmin(admin.ModelAdmin):
 
     fieldsets = [
         ("Settings (Finger weg)", {'fields': ['eigentümer', "in_erstellung", "ep_system", "larp"]}),
-        ('Basic', {'fields': ['name', "gfs", "profession", "gewicht", "größe", 'alter', 'geschlecht', 'sexualität', 'beruf', "präf_arm",
+        ('Basic', {'fields': ['name', "gfs", "prestige", "verzehr", "profession", "gewicht", "größe", 'alter', 'geschlecht', 'sexualität', 'beruf', "präf_arm",
                               'religion', "hautfarbe", "haarfarbe", "augenfarbe"]}),
         ("Manifest", {"fields": ["manifest", "sonstiger_manifestverlust", "notizen_sonstiger_manifestverlust"]}),
         ('HP', {'fields': ['rang', 'HPplus']}),

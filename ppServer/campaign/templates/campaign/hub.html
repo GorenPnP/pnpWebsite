@@ -106,7 +106,8 @@
             <li><a href="{% url 'campaign:hub_affektivität' char.id %}">Affektivität</a></li>
         </ul>
 
-        <form method="get">
+        <form method="post">
+            {% csrf_token %}
             <button type="submit" class="btn btn-lg btn-primary" {% if not is_done %}disabled{% endif %}>Weiter</button>
         </form>
     </div>
