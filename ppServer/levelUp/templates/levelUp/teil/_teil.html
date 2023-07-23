@@ -5,7 +5,7 @@ needs:
     <script defer src="{% static 'levelUp/js/teil.js' %}"></script>
 {% endcomment %}
 
-<div class="accordion-panel {% if teil.has_rel %}text-bg-primary{% else %}text-bg-dark{% endif %}">
+<div class="accordion-panel {% if teil.rel|length %}text-bg-primary{% else %}text-bg-dark{% endif %}">
     <div class="head" id="panel{{ forloop.counter }}-title">
         <button type="button" class="accordion-trigger head__text" aria-expanded="false" aria-controls="accordion{{ forloop.counter }}-content">
             <div>
@@ -23,7 +23,7 @@ needs:
 
             
         <!-- empty row -->
-        {% if not teil.max_amount or teil.rel|length < teil.max_amount %}
+        {% if teil.is_buyable %}
             {% include 'levelUp/teil/_teil_rel.html' with teil=teil attribute=attribute fertigkeit=fertigkeit engelsroboter=engelsroboter %}
         {% endif %}
 

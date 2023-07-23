@@ -203,7 +203,7 @@ class GfsFormView(LoginRequiredMixin, VerifiedAccountMixin, TemplateView):
 
             # Vorteile
             for gfs_teil in GfsVorteil.objects.filter(gfs=char.gfs):
-                will_create = gfs_teil.teil.needs_attribut or gfs_teil.teil.needs_engelsroboter or gfs_teil.teil.needs_fertigkeit or gfs_teil.teil.needs_notiz
+                will_create = gfs_teil.teil.needs_attribut or gfs_teil.teil.needs_engelsroboter or gfs_teil.teil.needs_fertigkeit or (gfs_teil.teil.needs_notiz and not gfs_teil.notizen)
 
                 RelVorteil.objects.create(
                     char=char, teil=gfs_teil.teil,

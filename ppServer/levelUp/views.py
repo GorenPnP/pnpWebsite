@@ -1,3 +1,4 @@
+from functools import cmp_to_key
 import re
 from typing import Any, Dict
 
@@ -386,6 +387,12 @@ class GenericFertigkeitView(LoginRequiredMixin, OwnCharakterMixin, DynamicTables
         return redirect(request.build_absolute_uri())
 
 
+def sort_teils(a, b):
+    if len(a["rel"]) and not len(b["rel"]): return -1
+    if not len(a["rel"]) and len(b["rel"]): return 1
+
+    return -1 if a["titel"] <= b["titel"] else 1
+
 class GenericTeilView(LoginRequiredMixin, OwnCharakterMixin, HeaderMixin, TemplateView):
     template_name = "levelUp/teil/teil.html"
 
@@ -395,26 +402,45 @@ class GenericTeilView(LoginRequiredMixin, OwnCharakterMixin, HeaderMixin, Templa
     def get_context_data(self, *args, **kwargs) -> Dict[str, Any]:
         char = self.get_character()
         situations = ["i", "e"] if char.in_erstellung else ["i", "n"]
-        rels = self.RelModel.objects.filter(char=char)
-        rel_set_name = f"{self.RelModel._meta.model_name}_set"
+
+        teil_fields = ["id", "titel", "beschreibung", "needs_ip", "needs_attribut", "needs_fertigkeit", "needs_engelsroboter", "needs_notiz", "ip", "min_ip", "max_ip", "is_sellable", "max_amount"]
 
         # TODO: let sellable sell, but not buy new if in campaign
-        # | (Q(is_sellable=True) & Q(relteil_char=char)))\
-        teils = list(self.Model.objects\
-                .filter(Q(wann_wählbar__in=situations))\
-                .prefetch_related(rel_set_name)\
-                .annotate(
-                    has_rel=Exists(rels.filter(teil__id=OuterRef("id")))
-                )\
-                .order_by("-has_rel", "titel")
-                .values("id", "titel", "beschreibung", "has_rel", "needs_ip", "needs_attribut", "needs_fertigkeit", "needs_engelsroboter", "needs_notiz", "ip", "min_ip", "max_ip", "is_sellable", "max_amount")
+
+
+        # all RelTeils
+        # all Teils that are choosable right now
+        displayed_teils = list(
+            self.Model.objects
+                .filter(Q(wann_wählbar__in=situations))
+                .values(*teil_fields)
         )
-        for teil in teils:
-            teil["rel"] = rels.filter(teil__id=teil["id"])
+        displayed_teils_dict = {teil["id"]: teil for teil in displayed_teils}
+        for teil in displayed_teils_dict.values():
+            teil["rel"] = []
+            teil["is_buyable"] = True
+
+
+        for rel in self.RelModel.objects.prefetch_related("teil").filter(char=char):
+            if rel.teil.id in displayed_teils_dict:
+
+                displayed_teils_dict[rel.teil.id]["rel"].append(rel)
+
+            else:
+                displayed_teils_dict[rel.teil.id] = {
+                    **{field: getattr(rel.teil, field) for field in teil_fields},
+                    "rel": [rel],
+                    "is_buyable": False
+                }
+
+        # properties of every entry: is_buyable?
+        for teil in displayed_teils_dict.values():
+            teil["is_buyable"] = teil["is_buyable"] and (not teil["max_amount"] or teil["max_amount"] > len(teil["rel"]))
+
 
         context = super().get_context_data(*args, **kwargs,
             is_vorteil = self.is_vorteil,
-            object_list = teils,
+            object_list = sorted(displayed_teils_dict.values(), key=cmp_to_key(sort_teils)),
 
             attribute = Attribut.objects.all(),
             fertigkeiten = Fertigkeit.objects.all(),
@@ -440,6 +466,33 @@ class GenericTeilView(LoginRequiredMixin, OwnCharakterMixin, HeaderMixin, Templa
         qs_deletions = self.RelModel.objects.filter(id__in=deletions, char=char, is_sellable=True)
         ip = self.calc_ip_on_deletion(ip, sum([rel.ip if rel.teil.needs_ip else rel.teil.ip for rel in qs_deletions.prefetch_related("teil")]))
         qs_deletions.delete()
+
+
+        # handle changes
+        # [(teil_id, rel_id), (...), ...]
+        updates = [(int(re.findall(r'\d+', key)[0]), int(re.findall(r'\d+', key)[1])) for key in request.POST.keys() if "change" in key]
+        for teil_id, rel_id in updates:
+            try:
+                own_rel = self.RelModel.objects.get(id=rel_id, teil__id=teil_id, char=char)
+            except: continue
+
+
+            if f"ip-{teil_id}-{rel_id}" in request.POST:
+                own_rel.ip = int(request.POST.get(f"ip-{teil_id}-{rel_id}"))
+
+            if f"attribut-{teil_id}-{rel_id}" in request.POST:
+                own_rel.attribut_id = int(request.POST.get(f"attribut-{teil_id}-{rel_id}"))
+
+            if f"fertigkeit-{teil_id}-{rel_id}" in request.POST:
+                own_rel.fertigkeit_id = int(request.POST.get(f"fertigkeit-{teil_id}-{rel_id}"))
+
+            if f"engelsroboter-{teil_id}-{rel_id}" in request.POST:
+                own_rel.engelsroboter_id = int(request.POST.get(f"engelsroboter-{teil_id}-{rel_id}"))
+
+            if f"notizen-{teil_id}-{rel_id}" in request.POST:
+                own_rel.notizen = request.POST.get(f"notizen-{teil_id}-{rel_id}")
+
+            own_rel.save()
 
 
         # handle additions

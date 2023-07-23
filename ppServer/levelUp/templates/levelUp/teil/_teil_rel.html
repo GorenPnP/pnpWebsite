@@ -8,17 +8,23 @@
             <label for="add-{{teil.id}}">neu wählen</label>
         </div>
         {% endif %}
+
+        {% if rel %}<input type="hidden" name="change-{{teil.id}}-{{rel.id}}">{% endif %}
+
         {% if teil.needs_ip %}
         <div class="input-field d-flex flex-column">
             <label for="ip-{{teil.id}}-{{rel.id}}">IP</label>
-            <input type="number" class="ip" name="ip-{{teil.id}}" id="ip-{{teil.id}}-{{rel.id}}" value="{{ rel.ip }}" {% if rel %}disabled{% endif %} data-required="true">
+            <input type="number" class="ip"
+                name="{% if rel %}ip-{{teil.id}}-{{rel.id}}{% else %}ip-{{teil.id}}{% endif %}"
+                id="ip-{{teil.id}}-{{rel.id}}" value="{{ rel.ip }}"
+                {% if rel.ip %}disabled{% endif %}{% if rel %} required{% endif %} data-required="true">
         </div>
         {% endif %}
 
         {% if teil.needs_attribut %}
         <div class="input-field d-flex flex-column">
             <label for="attribut-{{teil.id}}-{{rel.id}}">Attribut</label>
-            <select name="attribut-{{teil.id}}" id="attribut-{{teil.id}}-{{rel.id}}" {% if rel %}disabled{% endif %} data-required="true">
+            <select name="{% if rel %}attribut-{{teil.id}}-{{rel.id}}{% else %}attribut-{{teil.id}}{% endif %}" id="attribut-{{teil.id}}-{{rel.id}}" {% if rel.attribut %}disabled{% endif %}{% if rel %} required{% endif %} data-required="true">
                 {% if not rel %}<option disabled selected value="">---</option>{% endif %}
                 {% for a in attribute %}
                 <option value="{{ a.id }}" {% if a.id == rel.attribut.id %}selected{% endif %}>{{ a.titel }} ({{ a.beschreibung }})</option>
@@ -30,7 +36,7 @@
         {% if teil.needs_fertigkeit %}
         <div class="input-field d-flex flex-column">
             <label for="fertigkeit-{{teil.id}}-{{rel.id}}">Fertigkeit</label>
-            <select name="fertigkeit-{{teil.id}}" id="fertigkeit-{{teil.id}}-{{rel.id}}" {% if rel %}disabled{% endif %} data-required="true">
+            <select name="{% if rel %}fertigkeit-{{teil.id}}-{{rel.id}}{% else %}fertigkeit-{{teil.id}}{% endif %}" id="fertigkeit-{{teil.id}}-{{rel.id}}" {% if rel.fertigkeit %}disabled{% endif %}{% if rel %} required{% endif %} data-required="true">
                 {% if not rel %}<option disabled selected value="">---</option>{% endif %}
                 {% for f in fertigkeiten %}
                 <option value="{{ f.id }}" {% if f.id == rel.fertigkeit.id %}selected{% endif %}>{{ f.titel }}</option>
@@ -42,7 +48,7 @@
         {% if teil.needs_engelsroboter %}
         <div class="input-field d-flex flex-column">
             <label for="engelsroboter-{{teil.id}}-{{rel.id}}">Engelsroboter</label>
-            <select name="engelsroboter-{{teil.id}}" id="engelsroboter-{{teil.id}}-{{rel.id}}" {% if rel %}disabled{% endif %} data-required="true">
+            <select name="{% if rel %}engelsroboter-{{teil.id}}-{{rel.id}}{% else %}engelsroboter-{{teil.id}}{% endif %}" id="engelsroboter-{{teil.id}}-{{rel.id}}" {% if rel.engelsroboter %}disabled{% endif %}{% if rel %} required{% endif %} data-required="true">
                 {% if not rel %}<option disabled selected value="">---</option>{% endif %}
                 {% for e in engelsroboter %}
                 <option value="{{ e.id }}" {% if e.id == rel.engelsroboter.id %}selected{% endif %}>{{ e.name }}</option>
@@ -53,7 +59,7 @@
         
         <div class="input-field d-flex flex-column">
             <label for="notizen-{{teil.id}}-{{rel.id}}">Notizen</label>
-            <textarea name="notizen-{{teil.id}}" id="notizen-{{teil.id}}-{{rel.id}}" {% if rel %}disabled{% endif %} {% if teil.needs_notiz %}data-required="true"{% endif %}>{{ rel.notizen|default:"" }}</textarea>
+            <textarea name="{% if rel %}notizen-{{teil.id}}-{{rel.id}}{% else %}notizen-{{teil.id}}{% endif %}" id="notizen-{{teil.id}}-{{rel.id}}" {% if rel.notizen %}disabled{% endif %} {% if teil.needs_notiz %}{% if rel %}required {% endif %}data-required="true"{% endif %}>{{ rel.notizen|default:"" }}</textarea>
         </div>
     </div>
 

@@ -801,7 +801,7 @@ class Charakter(models.Model):
                 wesenkräfte.append(wk)
 
         for w in wesenkräfte:
-            _, created = RelWesenkraft.objects.get_or_create(char=self, wesenkraft=w, defaults={"tier": 1 if w.wesen == "w" and self.gfs in w.zusatz_gfsspezifisch else 0})
+            _, created = RelWesenkraft.objects.get_or_create(char=self, wesenkraft=w, defaults={"tier": 1 if w.wesen == "w" and self.gfs in w.zusatz_gfsspezifisch.all() else 0})
             if not created:
                 # log that wesenkraft already existed
                 capture_message(f"Wesenkraft {w.titel} war bei {self.name} ({self.gfs.titel}) im EP-Tree Stufe {self.ep_stufe+1} - {self.ep_stufe_in_progress}", level='info')
