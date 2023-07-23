@@ -435,9 +435,11 @@ class ZauberTableView(ShopTableView):
         "schaden": ["icontains"],
         "astralschaden": ["icontains"],
         "manaverbrauch": ["icontains"],
+        "astralsch_is_direct": ["exact"],
+        "verteidigung": ["exact"],
         "kategorie": ["exact"]
     }
-    table_fields = ("icon", "name", "beschreibung", "ab_stufe", "schaden", "astralschaden", "manaverbrauch", "kategorie", "preis")
+    table_fields = ("icon", "name", "beschreibung", "ab_stufe", "schaden", "astralschaden", "astralsch_is_direct", "manaverbrauch", "verteidigung", "kategorie", "preis")
 
 
 class VergessenerZauberTableView(ShopTableView):
