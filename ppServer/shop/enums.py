@@ -93,6 +93,7 @@ zauber_enum = [
     ('g', 'Geistermagie')
 ]
 zauberverteidigung_enum = [
+    ('n', 'kein Ziel gewählt'),
     ('a', 'Astralwiderstand'),
     ('r', 'Reaktion'),
 ]
