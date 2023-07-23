@@ -92,6 +92,10 @@ zauber_enum = [
     ('h', 'Heil- und Schutzzauber'),
     ('g', 'Geistermagie')
 ]
+zauberverteidigung_enum = [
+    ('a', 'Astralwiderstand'),
+    ('r', 'Reaktion'),
+]
 
 
 alchemie_enum = [

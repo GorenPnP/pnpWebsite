@@ -17,12 +17,24 @@ document.addEventListener("DOMContentLoaded", function() {
         var sum = solution.reduce((acc, count, i) => acc + (count * faces[i]), 0);
         section.getElementsByClassName("result")[0].innerHTML = sum;
 
-        // if dice is ordinary w6, show individual faces
-        if (faces.length == 6 && section.querySelector(".num").id.toLowerCase().includes("w6")) {
-            var details = [];
-            solution.forEach((number, index) => { if (number) details.push(` ${number}x${index+1}`) })
+        // show individual faces
 
-            section.querySelector(".result-details").innerHTML = details.join(",")
-        }
+        // combine faces with same number
+        const reduced_solution = solution
+            .reduce((acc, amount, face_index) => {
+                if (!amount) return acc;
+
+                const face = faces[face_index];
+                acc[face] = (acc[face] || 0) + amount;
+                return acc;
+            }, {});
+
+        const details = 
+            Object.entries(reduced_solution)
+                .sort(([a], [b]) => parseInt(a) - parseInt(b))
+                .map(([face, amount]) => ` ${amount}x ${face}`)
+                .join(", ");
+
+        section.querySelector(".result-details").innerHTML = details;
     }))
 })

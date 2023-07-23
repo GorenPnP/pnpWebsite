@@ -266,9 +266,11 @@ class ZauberAdmin(BaseAdmin):
     shop_model = Zauber
     firma_shop_model = FirmaZauber
 
-    list_display = ('name', 'beschreibung', "ab_stufe", 'schaden', 'astralschaden', 'manaverbrauch', 'billigste',
+    list_display = ('name', 'beschreibung', "ab_stufe", 'schaden', 'astralschaden', 'manaverbrauch', "verteidigung", 'billigste',
                     'kategorie', 'illegal_', 'lizenz_benötigt_', "frei_editierbar_")
-    list_filter = ['kategorie', 'schaden', 'astralschaden', 'manaverbrauch', 'illegal', 'lizenz_benötigt', "frei_editierbar"]
+    list_filter = ['kategorie', 'schaden', 'astralschaden', 'manaverbrauch', "verteidigung", 'illegal', 'lizenz_benötigt', "frei_editierbar"]
+
+    list_editable = ["verteidigung"]
 
     inlines = [FirmaZauberInLine]
 
