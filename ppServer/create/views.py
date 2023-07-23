@@ -1,8 +1,4 @@
-import json, re
-from math import floor
-
-from django.db.models import F, Subquery, OuterRef, Q, Count, Sum, Value, Window, Func, Exists
-from django.contrib import messages
+import json
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http.request import HttpRequest
 from django.http.response import HttpResponse, JsonResponse
@@ -10,19 +6,14 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.views.generic.base import TemplateView
 from django.urls import reverse
 from django.utils.decorators import method_decorator
-from django.utils.html import format_html
 
-import django_tables2 as tables
-from django_tables2.columns import TemplateColumn
 
 from ppServer.mixins import VerifiedAccountMixin
 
-from base.abstract_views import DynamicTableView, DynamicTablesView, GenericTable
+from base.abstract_views import DynamicTableView
 from levelUp.decorators import *
 from levelUp.views import *
-from character.enums import würfelart_enum
 from character.models import *
-from shop.models import Zauber
 
 from .mixins import CreateMixin
 from .models import *
@@ -75,16 +66,6 @@ class LandingPageView(LoginRequiredMixin, CreateMixin, OwnCharakterMixin, Templa
             rows.append({"done": True, "link": reverse("create:wesenkraft"), "text": "<b>Wesenkräfte</b> verbessern", "werte": wesenkr_werte})
 
 
-        # submit-btn disabled state
-        done_completely =\
-            is_personal_done(request, char=char) and\
-            is_ap_done(request, char=char) and\
-            is_ferts_done(request, char=char) and\
-            is_zauber_done(request, char=char) and\
-            is_spF_wF_done(request, char=char) and\
-            is_teil_done(request, char=char)
-
-
         # infos
         infos = [
             "<strong>Deine Gfs/Klasse</strong> kannst du dir <a href='{}' target='_blank'>hier</a> nochmal angucken.".format(reverse("wiki:stufenplan", args=[char.gfs.id])),
@@ -94,7 +75,7 @@ class LandingPageView(LoginRequiredMixin, CreateMixin, OwnCharakterMixin, Templa
         context = {
             "topic": "Erstellungshub",
             "rows": rows,
-            "done": done_completely,
+            "done": is_done_entirely(char), # submit-btn disabled state
             "infos": infos,
             "app_index": "Erstellung",
             "app_index_url": reverse("create:gfs"),

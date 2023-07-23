@@ -67,7 +67,6 @@ class AuswertungView(LoginRequiredMixin, SpielleiterOnlyMixin, DetailView):
 
             if hasattr(fields, "zauberplätze") and fields["zauberplätze"]:
                 for stufe, amount in fields["zauberplätze"].items():
-                    print(type(stufe), stufe, type(amount), amount)
                     if not object.zauberplätze: object.zauberplätze = {}
 
                     old_val = object.zauberplätze[stufe] if hasattr(object.zauberplätze, stufe) else 0

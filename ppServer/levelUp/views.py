@@ -206,7 +206,7 @@ class GenericAttributView(LoginRequiredMixin, OwnCharakterMixin, DynamicTableVie
         # return response
         messages.success(request, "Erfolgreich gespeichert")
         return redirect(request.build_absolute_uri())
-    
+
 
 class GenericFertigkeitView(LoginRequiredMixin, OwnCharakterMixin, DynamicTablesView):
     
@@ -854,8 +854,6 @@ class GenericSpF_wFView(LoginRequiredMixin, OwnCharakterMixin, tables.SingleTabl
             if value_exists:
                 args += f" value='{record['stufe']+offset}' required"
 
-            print(args, record["stufe"])
-
             return format_html(f"<input type='number' form='form' {args}>")
 
 
@@ -922,8 +920,6 @@ class GenericSpF_wFView(LoginRequiredMixin, OwnCharakterMixin, tables.SingleTabl
         payment_method = request.POST.get("payment_method")
         spezial_ids = {int(key.replace("spezial-", "")): int(stufe)+5 for key, stufe in request.POST.items() if "spezial-" in key and len(stufe)}
         wissen_ids = {int(key.replace("wissen-", "")): int(stufe) for key, stufe in request.POST.items() if "wissen-" in key and len(stufe)}
-
-        print(spezial_ids, wissen_ids)
 
         # test them
         if payment_method not in ["points", "sp"]:

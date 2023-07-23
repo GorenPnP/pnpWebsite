@@ -22,7 +22,6 @@ def makedirs(path):
 def get_mc_recipes(request):
 
     timeFactor = int(request.GET.get("second_multiplier", TICKS_PER_SECOND))
-    print(timeFactor)
 
     # prepare the scene
     os.chdir(STATIC_ROOT)

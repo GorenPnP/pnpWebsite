@@ -9,8 +9,7 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-from django.db.models.functions import Concat
-from django.db.models import Max, Sum, FilteredRelation, Q, F, OuterRef, Subquery, Count
+from django.db.models import Max, Sum
 from django.shortcuts import get_object_or_404
 
 from markdownfield.models import MarkdownField, RenderedMarkdownField
@@ -777,7 +776,6 @@ class Charakter(models.Model):
             if amount_to_create > 0:
                 will_create = vorteil.needs_attribut or vorteil.needs_engelsroboter or vorteil.needs_fertigkeit or vorteil.needs_notiz
 
-                print(amount_to_create, "x", "create RelVorteil for", vorteil.titel)
                 for _ in range(amount_to_create):
                     RelVorteil.objects.create(teil=vorteil, char=self, will_create=will_create)
         
@@ -806,16 +804,18 @@ class Charakter(models.Model):
                 # log that wesenkraft already existed
                 capture_message(f"Wesenkraft {w.titel} war bei {self.name} ({self.gfs.titel}) im EP-Tree Stufe {self.ep_stufe+1} - {self.ep_stufe_in_progress}", level='info')
 
-
-        print("alte Stufe", self.ep_stufe, "Neue Stufe", max_stufe)
         logStufenaufstieg(self.eigentümer, self)
 
 
     def submit_stufenhub(self):
-        if self.ep_stufe >= self.ep_stufe_in_progress or self.gfs is None: return
+        from levelUp.decorators import is_done_entirely
+        if self.ep_stufe >= self.ep_stufe_in_progress or self.gfs is None or not is_done_entirely(self): return
 
         if hasattr(self.processing_notes, "campaign"):
             del self.processing_notes["campaign"]
+
+        RelVorteil.objects.filter(char=self, will_create=True).update(will_create=False)
+        RelNachteil.objects.filter(char=self, will_create=True).update(will_create=False)
         
         self.ep_stufe = self.ep_stufe_in_progress
         self.save(update_fields=["ep_stufe", "processing_notes"])

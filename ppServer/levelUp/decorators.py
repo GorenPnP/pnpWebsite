@@ -1,8 +1,7 @@
 from django.http.response import JsonResponse
 from django.shortcuts import get_object_or_404, redirect
 
-from character.models import Spieler, Charakter
-from shop.models import Zauber
+from character.models import Spieler, Charakter, RelVorteil, RelNachteil
 
 
 def provide_char(view_func):
@@ -11,7 +10,6 @@ def provide_char(view_func):
         if error:
             return JsonResponse({"message": "Charakter konnte nicht gefunden werden"}, status=418)
 
-        # print(char)
         return view_func(request, *args, **kwargs, char=char)
     return wrap
 
@@ -104,6 +102,14 @@ def is_zauber_done(*args, **kwargs):
 
 def is_teil_done(*args, **kwargs):
     done = "char" in kwargs and kwargs["char"].ip >= 0
+    for rel_v in list(RelVorteil.objects.prefetch_related("teil").filter(char=kwargs["char"])) + list(RelNachteil.objects.prefetch_related("teil").filter(char=kwargs["char"])):
+        if (rel_v.teil.needs_attribut and not rel_v.attribut) or\
+            (rel_v.teil.needs_fertigkeit and not rel_v.fertigkeit) or\
+            (rel_v.teil.needs_engelsroboter and not rel_v.engelsroboter) or\
+            (rel_v.teil.needs_ip and not rel_v.ip):
+                done = False
+                break
+
     not done and print("TEIL not done")
     return done
 
@@ -111,3 +117,11 @@ def is_spF_wF_done(*args, **kwargs):
     done = "char" in kwargs and not kwargs["char"].spF_wF and not kwargs["char"].wp
     not done and print("spF, wF not done")
     return done
+
+def is_done_entirely(char=Charakter, max_ap=0, request=None) -> bool:
+    return char.ap <= max_ap and\
+        is_ferts_done(request, char=char) and\
+        is_zauber_done(request, char=char) and\
+        is_personal_done(request, char=char) and\
+        is_spF_wF_done(request, char=char) and\
+        is_teil_done(request, char=char)

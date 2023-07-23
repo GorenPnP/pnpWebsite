@@ -1,4 +1,3 @@
-import re
 from typing import Any, Dict
 
 from django.contrib import messages
@@ -8,7 +7,7 @@ from django.shortcuts import reverse
 from django.views.generic import DetailView
 
 from character.models import Charakter, RelVorteil, RelAttribut
-from levelUp.decorators import is_ferts_done, is_zauber_done, is_personal_done, is_spF_wF_done, is_teil_done
+from levelUp.decorators import is_done_entirely
 from levelUp.views import *
 from .mixins import CampaignMixin
 
@@ -23,14 +22,7 @@ class HubView(LoginRequiredMixin, CampaignMixin, OwnCharakterMixin, DetailView):
         char = self.get_character()
         is_eigentümer = self.request.user.username == char.eigentümer.name
             
-        return is_eigentümer and\
-            char.ap <= 1 and\
-            is_ferts_done(self.request, char=char) and\
-            is_zauber_done(self.request, char=char) and\
-            is_personal_done(self.request, char=char) and\
-            is_spF_wF_done(self.request, char=char) and\
-            is_teil_done(self.request, char=char)
-            # TODO teil if needed Rückmeldung?
+        return is_eigentümer and is_done_entirely(char, 1)
 
 
     def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:

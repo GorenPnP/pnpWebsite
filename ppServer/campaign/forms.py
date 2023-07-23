@@ -23,8 +23,6 @@ class ZauberplätzeWidget(forms.MultiWidget):
 
 
     def decompress(self, value):
-
-        print("decompress", value)
         return [None for _ in range(self.MIN_STUFE, self.MAX_STUFE+1)]
 
 
