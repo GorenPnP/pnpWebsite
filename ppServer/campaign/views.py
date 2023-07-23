@@ -122,3 +122,7 @@ class HubWesenkraftView(CampaignMixin, GenericWesenkraftView):
 
 class HubAffektivitätView(CampaignMixin, AffektivitätView):
     pass
+
+
+class HubSkilltreeView(CampaignMixin, GenericSkilltreeView):
+    pass

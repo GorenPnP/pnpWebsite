@@ -1238,3 +1238,116 @@ class AffektivitätView(LoginRequiredMixin, OwnCharakterMixin, tables.SingleTabl
         # return response
         messages.success(request, "Erfolgreich gespeichert")
         return redirect(request.build_absolute_uri())
+
+
+
+class GenericSkilltreeView(LoginRequiredMixin, OwnCharakterMixin, tables.SingleTableMixin, HeaderMixin, TemplateView):
+
+    def get_character(self) -> Charakter: raise NotImplementedError()
+
+
+    class Table(GenericTable):
+
+        class Meta:
+            attrs = GenericTable.Meta.attrs
+            model = SkilltreeEntryGfs
+            fields = ["chosen", "context__stufe", "text"]
+
+        chosen = tables.Column(verbose_name="")
+
+        def render_context__stufe(self, value, record):
+            return format_html(f"<span class='stufe'>{value}</span> (<span class='sp'>{record['context__sp']}</span> SP)")
+
+        def render_chosen(self, value, record):
+            return format_html(f"<input type='checkbox' form='form' name='{record['context__stufe']}' {'checked disabled' if record['chosen'] else ''}>")
+
+
+    template_name = "levelUp/skilltree.html"
+    topic = "Skilltree"
+    model = SkilltreeEntryGfs
+
+    table_class = Table
+    table_pagination = False
+
+    def get_queryset(self):
+        skilltree = list(
+            SkilltreeEntryGfs.objects.prefetch_related("context")\
+            .filter(gfs=self.get_character().gfs)\
+            .order_by("context__stufe")\
+            .values("id", "context__stufe", "context__sp", "text")
+        )
+
+        char = self.get_character()
+        return [{**s, "chosen": s["context__stufe"] <= char.skilltree_stufe} for s in skilltree]
+    
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs,
+            table = self.Table(self.get_table_data())
+        )
+        # create or override -> don't cause 'get_context_data() got multiple values for keyword argument 'char''
+        context["char"] = self.get_character()
+        return context
+
+    def post(self, request, *args, **kwargs):
+        char = self.get_character()
+
+        skilltree_stufen = set([int(st) for st in request.POST.keys() if st.isnumeric()])
+        skilltree = SkilltreeEntryGfs.objects.prefetch_related("context").filter(gfs=char.gfs, context__stufe__gt=char.skilltree_stufe, context__stufe__lte=max(skilltree_stufen))
+
+        # check
+
+        if len(skilltree_stufen) != skilltree.count():
+            messages.error(request, "Die Übermittlung der Stufen ist lückenhaft")
+            return redirect(request.build_absolute_uri())
+        
+        for st in skilltree_stufen:
+            if not skilltree.filter(context__stufe=st).exists():
+                messages.error(request, f"Stufe {st} hast du schon oder gibt es gar nicht")
+                return redirect(request.build_absolute_uri())
+
+        sp_cost = skilltree.aggregate(sp=Sum("context__sp"))["sp"]
+        if char.sp < sp_cost:
+            messages.error(request, f"So viele SP hast du gar nicht")
+            return redirect(request.build_absolute_uri())
+
+
+        # pay
+        char.sp -= sp_cost
+        char.skilltree_stufe = max(skilltree_stufen)
+
+        # collect values
+        for s in skilltree:
+            matches = re.match("^[+](?P<amount>\d+)\W+(?P<kind>\w+)$", s.text)
+
+            if matches:
+                amount = int(matches.group("amount"))
+                kind = matches.group("kind")
+
+                if kind == "AP":
+                    char.ap += amount
+                    continue
+                if kind == "FP":
+                    char.fp += amount
+                    continue
+                if kind == "FG":
+                    char.fg += amount
+                    continue
+                if kind == "SP":
+                    char.sp += amount
+                    continue
+                if kind == "IP":
+                    char.ip += amount
+                    continue
+                if kind == "TP":
+                    char.tp += amount
+                    continue
+
+            char.notizen += f"""
+{s.text} (Skilltree St. {s.context.stufe})"""
+                
+
+        char.save()
+
+        # return response
+        messages.success(request, "Erfolgreich gespeichert")
+        return redirect(request.build_absolute_uri())

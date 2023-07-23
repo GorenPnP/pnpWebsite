@@ -48,6 +48,24 @@
                 <td>{{ char.ip }} IP</td>
             </tr>
 
+            <!-- skilltree -->
+            <tr>
+                <td>
+                    <div class="checkbox checked checked--sufficient"></div>
+                </td>
+                <td><a href="{% url 'create:skilltree' %}">Skilltree</a></td>
+                <td>{{ char.sp }} SP</td>
+            </tr>
+
+            <!-- talent -->
+            <tr>
+                <td>
+                    <div class="checkbox checked checked--sufficient"></div>
+                </td>
+                <td><a href="{% url 'create:talent' %}">Talente</a></td>
+                <td>{{ char.tp }} TP</td>
+            </tr>
+
             <!-- affektivität -->
             <tr>
                 <td>

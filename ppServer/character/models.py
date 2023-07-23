@@ -658,6 +658,7 @@ class Charakter(models.Model):
     ep = models.PositiveIntegerField(default=0)
     ep_stufe = models.PositiveIntegerField(default=0)
     ep_stufe_in_progress = models.PositiveIntegerField(default=0)
+    skilltree_stufe = models.PositiveSmallIntegerField(default=1)
 
     HPplus = models.IntegerField(default=0, blank=True)
     HPplus_fix = models.IntegerField(default=None, null=True, blank=True)

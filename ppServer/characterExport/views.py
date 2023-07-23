@@ -291,7 +291,7 @@ class CharacterExportView(LoginRequiredMixin, VerifiedAccountMixin, DetailView):
         persönlichkeiten = ", ".join([p["persönlichkeit__titel"] for p in char.relpersönlichkeit_set.values("persönlichkeit__titel")])
 
         werte_ws.write("I27", "Lebewesen (Stufe):", format_wesen_titel)
-        werte_ws.merge_range("J27:L27", f"{char.gfs.titel if char.gfs else ', '.join([s['titel'] for s in char.spezies.values('titel')])} (0)", format_wesen)
+        werte_ws.merge_range("J27:L27", f"{char.gfs.titel if char.gfs else ', '.join([s['titel'] for s in char.spezies.values('titel')])} ({char.skilltree_stufe})", format_wesen)
         werte_ws.write("I28", "Persönlichkeit:", format_wesen_titel)
         werte_ws.merge_range("J28:L28", persönlichkeiten, format_wesen)
 

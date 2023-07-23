@@ -370,3 +370,13 @@ class AffektivitätFormView(CreateMixin, AffektivitätView):
 @method_decorator(hub_decorators, name="dispatch")
 class WesenkraftFormView(CreateMixin, GenericWesenkraftView):
     pass
+
+
+@method_decorator(hub_decorators, name="dispatch")
+class TalentFormView(CreateMixin, GenericTalentView):
+    pass
+
+
+@method_decorator(hub_decorators, name="dispatch")
+class SkilltreeFormView(CreateMixin, GenericSkilltreeView):
+    pass

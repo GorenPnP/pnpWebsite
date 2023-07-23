@@ -21,6 +21,7 @@ urlpatterns = [
 	path('hub/<int:pk>/talent', views.HubTalentView.as_view(), name='hub_talent'),
 	path('hub/<int:pk>/wesenkraft', views.HubWesenkraftView.as_view(), name='hub_wesenkraft'),
 	path('hub/<int:pk>/affektivität', views.HubAffektivitätView.as_view(), name='hub_affektivität'),
+	path('hub/<int:pk>/skilltree', views.HubSkilltreeView.as_view(), name='hub_skilltree'),
 	
 	path('<int:pk>', views.HubView.as_view(), name='hub'),
 ]

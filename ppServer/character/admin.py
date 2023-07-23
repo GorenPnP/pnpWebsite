@@ -299,7 +299,7 @@ class CharakterAdmin(admin.ModelAdmin):
         model = Charakter
 
     fieldsets = [
-        ("Settings (Finger weg)", {'fields': ['eigentümer', "in_erstellung", "ep_system", "larp"]}),
+        ("Settings (Finger weg)", {'fields': ['eigentümer', "in_erstellung", "ep_system", "skilltree_stufe", "larp"]}),
         ('Basic', {'fields': ['name', "gfs", "prestige", "verzehr", "profession", "gewicht", "größe", 'alter', 'geschlecht', 'sexualität', 'beruf', "präf_arm",
                               'religion', "hautfarbe", "haarfarbe", "augenfarbe"]}),
         ("Manifest", {"fields": ["manifest", "sonstiger_manifestverlust", "notizen_sonstiger_manifestverlust"]}),

@@ -16,6 +16,8 @@ urlpatterns = [
         path('zauber', views.ZauberFormView.as_view(), name='zauber'),
         path('affektivität', views.AffektivitätFormView.as_view(), name='affektivität'),
         path('wesenkraft', views.WesenkraftFormView.as_view(), name='wesenkraft'),
+        path('talent', views.TalentFormView.as_view(), name='talent'),
+        path('skilltree', views.SkilltreeFormView.as_view(), name='skilltree'),
 
         path('vorteil', views.VorteilFormView.as_view(), name='vorteil'),
         path('nachteil', views.NachteilFormView.as_view(), name='nachteil'),
