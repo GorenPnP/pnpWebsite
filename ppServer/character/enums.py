@@ -26,6 +26,13 @@ skilltreeentry_enum = [
 
     ('z', 'zauberslot'),
 
+    ('v', 'neuer Vorteil'),
+    ('n', 'neuer Nachteil'),
+    ('x', 'Vorteil weg'),
+    ('z', 'Nachteil weg'),
+
+    ('e', 'neue Wesenkraft'),
+
     ('s', 'neue Spezialfertigkeit'),
     ('w', 'neue Wissensfertigkeit'),
     ('S', 'WP in Spezialfertigkeit'),
@@ -37,6 +44,12 @@ skilltreeentry_enum = [
     ('V', '+ Crit-Verteidigung'),
     ('K', '+ körperliche HP'),
     ('G', '+ geistige HP'),
+    ('k', 'Schaden waff. Kampf'),
+
+    ('I', '+ Initiative fix'),
+    ('r', 'Reaktion'),
+    ('N', 'natürlicher Schadenswiderstand'),
+    ('T', 'Astral-Widerstand'),
 
     ('h', 'Shop'),
 

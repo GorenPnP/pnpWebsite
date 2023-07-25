@@ -485,7 +485,7 @@ class TalentAdmin(admin.ModelAdmin):
 
 class GfsSkilltreeEntryAdmin(admin.ModelAdmin):
     list_display = ["context_", "original_", "amount", "operation", "stufe", "text", "fertigkeit", "vorteil", "nachteil", "spezialfertigkeit", "wissensfertigkeit"]
-    list_editable = ["amount", "operation", "stufe", "text"]
+    list_editable = ["operation"]
 
     def original_(self, obj):
         return SkilltreeEntryGfs.objects.get(gfs=obj.gfs, context=obj.base).text
