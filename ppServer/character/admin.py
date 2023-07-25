@@ -484,7 +484,7 @@ class TalentAdmin(admin.ModelAdmin):
 
 
 class GfsSkilltreeEntryAdmin(admin.ModelAdmin):
-    list_display = ["context_", "original_", "amount", "operation", "stufe", "text", "fertigkeit", "vorteil", "nachteil", "spezialfertigkeit", "wissensfertigkeit"]
+    list_display = ["context_", "original_", "amount", "operation", "stufe", "text", "fertigkeit", "vorteil", "nachteil", "spezialfertigkeit", "wissensfertigkeit", "wesenkraft", "magische_ausrüstung"]
     list_editable = ["operation"]
 
     def original_(self, obj):

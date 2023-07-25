@@ -1301,10 +1301,12 @@ class GfsSkilltreeEntry(models.Model):
     vorteil = models.ForeignKey(Vorteil, on_delete=models.SET_NULL, null=True, blank=True, help_text="für neuen Vorteil")
     nachteil = models.ForeignKey(Nachteil, on_delete=models.SET_NULL, null=True, blank=True, help_text="für neuen Nachteil")
     
+    wesenkraft = models.ForeignKey(Wesenkraft, on_delete=models.SET_NULL, null=True, blank=True, help_text="Für neue Wesenkraft")
     spezialfertigkeit = models.ForeignKey(Spezialfertigkeit, on_delete=models.SET_NULL, null=True, blank=True, help_text="Für neue Spezi und WP in einer Spezi")
     wissensfertigkeit = models.ForeignKey(Wissensfertigkeit, on_delete=models.SET_NULL, null=True, blank=True, help_text="Für neue Wissi und WP in einer Wissi")
 
-    # TODO shop
+    # shop
+    magische_ausrüstung = models.ForeignKey(Magische_Ausrüstung, on_delete=models.SET_NULL, null=True, blank=True, help_text="Für ein magisches Item")
 
     def __str__(self):
         return f"{self.gfs} Stufe {self.base.stufe}: {self.get_operation_display()}"

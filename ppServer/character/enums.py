@@ -51,7 +51,7 @@ skilltreeentry_enum = [
     ('N', 'natürlicher Schadenswiderstand'),
     ('T', 'Astral-Widerstand'),
 
-    ('h', 'Shop'),
+    ('h', 'magisches Item'),
 
     ('R', 'Roleplay-Text'),
 ]
