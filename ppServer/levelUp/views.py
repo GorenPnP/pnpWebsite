@@ -1250,15 +1250,16 @@ class GenericSkilltreeView(LoginRequiredMixin, OwnCharakterMixin, tables.SingleT
         class Meta:
             attrs = GenericTable.Meta.attrs
             model = SkilltreeEntryGfs
-            fields = ["chosen", "context__stufe", "text"]
+            fields = ["chosen", "stufe", "text"]
 
         chosen = tables.Column(verbose_name="")
 
-        def render_context__stufe(self, value, record):
-            return format_html(f"<span class='stufe'>{value}</span> (<span class='sp'>{record['context__sp']}</span> SP)")
-
         def render_chosen(self, value, record):
-            return format_html(f"<input type='checkbox' form='form' name='{record['context__stufe']}' {'checked disabled' if record['chosen'] else ''}>")
+            return format_html(f"<input type='checkbox' form='form' name='{record['stufe']}' {'checked disabled' if record['chosen'] else ''}>")
+
+        def render_stufe(self, value, record):
+            return format_html(f"<span class='stufe'>{value}</span> (<span class='sp'>{record['sp']}</span> SP)")
+
 
 
     template_name = "levelUp/skilltree.html"
@@ -1269,15 +1270,24 @@ class GenericSkilltreeView(LoginRequiredMixin, OwnCharakterMixin, tables.SingleT
     table_pagination = False
 
     def get_queryset(self):
-        skilltree = list(
-            SkilltreeEntryGfs.objects.prefetch_related("context")\
-            .filter(gfs=self.get_character().gfs)\
-            .order_by("context__stufe")\
-            .values("id", "context__stufe", "context__sp", "text")
-        )
-
         char = self.get_character()
-        return [{**s, "chosen": s["context__stufe"] <= char.skilltree_stufe} for s in skilltree]
+
+        skilltree = [{"stufe": entry.stufe, "sp": entry.sp, "text": []} for entry in SkilltreeBase.objects.filter(stufe__gt=0).order_by("stufe")]
+        entries = GfsSkilltreeEntry.objects.prefetch_related("base")\
+            .filter(gfs=char.gfs, base__stufe__gt=0)\
+            .order_by("base__stufe")
+
+        # Gfs Skilltree
+        for s in entries:
+
+            # offset is -2, because anyone lacks the bonus (with Stufe 0) and starts at Stufe 2
+            skilltree[s.base.stufe-2]["text"].append(s.__repr__())
+
+        # list to string
+        for s in skilltree: s["text"] = ", ".join(s["text"])
+
+        
+        return [{**s, "chosen": s["stufe"] <= char.skilltree_stufe} for s in skilltree]
     
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs,
@@ -1291,61 +1301,29 @@ class GenericSkilltreeView(LoginRequiredMixin, OwnCharakterMixin, tables.SingleT
         char = self.get_character()
 
         skilltree_stufen = set([int(st) for st in request.POST.keys() if st.isnumeric()])
-        skilltree = SkilltreeEntryGfs.objects.prefetch_related("context").filter(gfs=char.gfs, context__stufe__gt=char.skilltree_stufe, context__stufe__lte=max(skilltree_stufen))
+        skilltree = GfsSkilltreeEntry.objects.prefetch_related("base").filter(gfs=char.gfs, base__stufe__gt=char.skilltree_stufe, base__stufe__lte=max(skilltree_stufen))
 
         # check
-
-        if len(skilltree_stufen) != skilltree.count():
-            messages.error(request, "Die Übermittlung der Stufen ist lückenhaft")
-            return redirect(request.build_absolute_uri())
         
+        # allowed, consecutive stufen?
         for st in skilltree_stufen:
-            if not skilltree.filter(context__stufe=st).exists():
+            if not skilltree.filter(base__stufe=st).exists():
                 messages.error(request, f"Stufe {st} hast du schon oder gibt es gar nicht")
                 return redirect(request.build_absolute_uri())
 
-        sp_cost = skilltree.aggregate(sp=Sum("context__sp"))["sp"]
+        # affordable?
+        sp_cost = SkilltreeBase.objects.filter(stufe__in=skilltree_stufen).aggregate(sp=Sum("sp"))["sp"]
         if char.sp < sp_cost:
             messages.error(request, f"So viele SP hast du gar nicht")
             return redirect(request.build_absolute_uri())
 
-
         # pay
         char.sp -= sp_cost
         char.skilltree_stufe = max(skilltree_stufen)
+        char.save(update_fields=["sp", "skilltree_stufe"])
 
         # collect values
-        for s in skilltree:
-            matches = re.match("^[+](?P<amount>\d+)\W+(?P<kind>\w+)$", s.text)
-
-            if matches:
-                amount = int(matches.group("amount"))
-                kind = matches.group("kind")
-
-                if kind == "AP":
-                    char.ap += amount
-                    continue
-                if kind == "FP":
-                    char.fp += amount
-                    continue
-                if kind == "FG":
-                    char.fg += amount
-                    continue
-                if kind == "SP":
-                    char.sp += amount
-                    continue
-                if kind == "IP":
-                    char.ip += amount
-                    continue
-                if kind == "TP":
-                    char.tp += amount
-                    continue
-
-            char.notizen += f"""
-{s.text} (Skilltree St. {s.context.stufe})"""
-                
-
-        char.save()
+        for s in skilltree: s.apply_to(char)
 
         # return response
         messages.success(request, "Erfolgreich gespeichert")

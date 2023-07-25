@@ -210,17 +210,22 @@ def stufenplan(request, gfs_id):
 
         entries.append(entry)
 
-    # Gfs Skilltree
-    skilltree_model = SkilltreeEntryGfs.objects.filter(gfs=gfs)
 
-    # offset is +2, because anyone lacks the bonus (with Stufe 0)
-    # otherwise it would be +1
-    skilltree = [{} for _ in range(skilltree_model.count() + 2)]
-    for s in skilltree_model:
-        skilltree[s.context.stufe] = {"sp": s.context.sp, "text": s.text}
+    skilltree = [{"sp": entry.sp, "text": []} for entry in SkilltreeBase.objects.filter(stufe__gt=0).order_by("stufe")]
+
+    # Gfs Skilltree
+    for s in GfsSkilltreeEntry.objects.prefetch_related("base").filter(gfs=gfs, base__stufe__gt=0):
+
+        # offset is -2, because anyone lacks the bonus (with Stufe 0) and starts at Stufe 2
+        skilltree[s.base.stufe-2]["text"].append(s.__repr__())
+
+    # list to string
+    for s in skilltree: s["text"] = ", ".join(s["text"])
 
     # set bonus (has stufe 0) as last entry
-    skilltree.append(skilltree.pop(0))
+    bonus = GfsSkilltreeEntry.objects.prefetch_related("base").filter(gfs=gfs, base__stufe=0)
+    skilltree.append({"sp": 0, "text": ", ".join([b.__repr__() for b in bonus])})
+
 
     # startboni
     boni = []

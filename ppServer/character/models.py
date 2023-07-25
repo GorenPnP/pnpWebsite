@@ -60,7 +60,6 @@ class Wesenkraft(models.Model):
     probe = models.CharField(max_length=200, null=False, default="")
     wirkung = models.TextField(null=False, default="")
     manaverbrauch = models.CharField(max_length=100, null=True, blank=True, default="")
-    min_rang = models.PositiveIntegerField(default=0)
 
     wesen = models.CharField(max_length=1, choices=enums.enum_wesenkr, null=False, default=enums.enum_wesenkr[0][0])
     zusatz_gfsspezifisch = models.ManyToManyField("Gfs", blank=True, related_name="zusatz_gfsspezifisch")
@@ -68,7 +67,7 @@ class Wesenkraft(models.Model):
                                           validators=[MaxValueValidator(10), MinValueValidator(0)], null=True, blank=True)
 
     def __str__(self):
-        return "{} (Rang {})".format(self.titel, self.min_rang)
+        return self.titel
 
 
 class Spezies(models.Model):
@@ -536,11 +535,19 @@ class Charakter(models.Model):
     ep_stufe_in_progress = models.PositiveIntegerField(default=0)
     skilltree_stufe = models.PositiveSmallIntegerField(default=1)
 
+    HPplus_geistig = models.IntegerField(default=0, blank=True)
     HPplus = models.IntegerField(default=0, blank=True)
     HPplus_fix = models.IntegerField(default=None, null=True, blank=True)
     wesenschaden_waff_kampf = models.IntegerField(default=0)
     wesenschaden_andere_gestalt = models.IntegerField("BS andere Gestalt", blank=True, null=True)
     rang = models.PositiveIntegerField(default=0, validators=[MaxValueValidator(500)], blank=True)
+
+    crit_attack = models.PositiveSmallIntegerField(default=0)
+    crit_defense = models.PositiveSmallIntegerField(default=0)
+    initiative_bonus = models.SmallIntegerField(default=0)
+    reaktion_bonus = models.SmallIntegerField(default=0)
+    natürlicher_schadenswiderstand_bonus = models.SmallIntegerField(default=0)
+    astralwiderstand_bonus = models.SmallIntegerField(default=0)
 
     vorteile = models.ManyToManyField(Vorteil, through="character.RelVorteil", blank=True)
     nachteile = models.ManyToManyField(Nachteil, through="character.RelNachteil", blank=True)
@@ -1311,6 +1318,187 @@ class GfsSkilltreeEntry(models.Model):
     def __str__(self):
         return f"{self.gfs} Stufe {self.base.stufe}: {self.get_operation_display()}"
     
+    def __repr__(self) -> str:
+
+        # AP, FP, FG, SP, IP, TP, Crit-Angriff, Crit-Verteidigung, körperliche HP, geistige HP, HP Schaden waff. Kampf,
+        # Initiative fix, Reaktion, natürlicher Schadenswiderstand, Astral-Widerstand
+        if self.operation in ["a", "f", "F", "p", "i", "t", "A", "V", "K", "G", "k", "I", "r", "N", "T"]:
+            return f"+{self.amount} {self.get_operation_display()}"
+
+        # Roleplay-Text
+        if self.operation == "R": return f"{self.text} (Achtung, keine automatische Verechnung!)"
+        
+        # optional Stufe: Zauberslots, magisches Item
+        if self.operation == "z": return f"{self.amount} Zauberslots" + (f" Stufe {self.stufe}" if self.stufe else "")
+        if self.operation == "h": return f"{self.amount} {self.magische_ausrüstung.name}" + (f" Stufe {self.stufe}" if self.stufe else "")
+
+        # Bonus in Fertigkeit
+        if self.operation == "B": return f"+{self.amount} Bonus in {self.fertigkeit.titel}"
+
+        # neu! (Wesenkraft, Spezi, Wissi)
+        if self.operation == "e": return self.wesenkraft.titel
+        if self.operation == "s": return self.spezialfertigkeit.titel
+        if self.operation == "w": return self.wissensfertigkeit.titel
+
+        # WP in Spezialfertigkeit & Wissensfertigkeit
+        if self.operation == "S": return f"+{self.amount} WP in {self.spezialfertigkeit.titel}"
+        if self.operation == "W": return f"+{self.amount} WP in {self.wissensfertigkeit.titel}"
+
+        # new Teil
+        if self.operation == "v": return f"{self.vorteil.titel}" + (f" {self.text}" if self.text else "") + (f" ({self.fertigkeit.titel})" if self.fertigkeit else "")
+        if self.operation == "n": return f"{self.nachteil.titel}" + (f" {self.text}" if self.text else "") + (f" ({self.fertigkeit.titel})" if self.fertigkeit else "")
+    
+
+    def apply_to(self, char: Charakter) -> None:
+
+        # AP
+        if self.operation == "a":
+            char.ap += self.amount
+            char.save(update_fields=["ap"])
+            return
+        # FP
+        if self.operation == "f":
+            char.fp += self.amount
+            char.save(update_fields=["fp"])
+            return
+        # FG
+        if self.operation == "F":
+            char.fg += self.amount
+            char.save(update_fields=["fg"])
+            return
+        # SP
+        if self.operation == "s":
+            char.sp += self.amount
+            char.save(update_fields=["sp"])
+            return
+        # IP
+        if self.operation == "i":
+            char.ip += self.amount
+            char.save(update_fields=["ip"])
+            return
+        # TP
+        if self.operation == "t":
+            char.tp += self.amount
+            char.save(update_fields=["tp"])
+            return
+        # Crit-Angriff
+        if self.operation == "A":
+            char.crit_attack += self.amount
+            char.save(update_fields=["crit_attack"])
+            return
+        # Crit-Verteidigung
+        if self.operation == "V":
+            char.crit_defense += self.amount
+            char.save(update_fields=["crit_defense"])
+            return
+        # körperliche HP
+        if self.operation == "K":
+            char.HPplus += self.amount
+            char.save(update_fields=["HPplus"])
+            return
+        # geistige HP
+        if self.operation == "G":
+            char.HPplus_geistig += self.amount
+            char.save(update_fields=["HPplus_geistig"])
+            return
+        # HP Schaden waff. Kampf
+        if self.operation == "k":
+            if not char.wesenschaden_waff_kampf: char.wesenschaden_waff_kampf = 0
+            if not char.wesenschaden_andere_gestalt: char.wesenschaden_andere_gestalt = 0
+            char.wesenschaden_waff_kampf += self.amount
+            char.wesenschaden_andere_gestalt += self.amount
+            char.save(update_fields=["wesenschaden_waff_kampf", "wesenschaden_andere_gestalt"])
+            return
+        # Initiative fix
+        if self.operation == "I":
+            char.initiative_bonus += self.amount
+            char.save(update_fields=["initiative_bonus"])
+            return
+        # Reaktion
+        if self.operation == "r":
+            char.reaktion_bonus += self.amount
+            char.save(update_fields=["areaktion_bonusp"])
+            return
+        # natürlicher Schadenswiderstand
+        if self.operation == "N":
+            char.natürlicher_schadenswiderstand_bonus += self.amount
+            char.save(update_fields=["natürlicher_schadenswiderstand_bonus"])
+            return
+        # Astral-Widerstand
+        if self.operation == "T":
+            char.astralwiderstand_bonus += self.amount
+            char.save(update_fields=["astralwiderstand_bonus"])
+            return
+
+        # Roleplay-Text
+        if self.operation == "R":
+            if not char.notizen: char.notizen = ""
+            char.notizen += f"\n{self.__repr__()}"
+            char.save(update_fields=["notizen"])
+            return
+        
+        # Zauberslots
+        if self.operation == "z":
+            stufe = self.stufe if self.stufe is not None else 30
+            prev_amount = char.zauberplätze[str(stufe)] if stufe in char.zauberplätze else 0
+            char.zauberplätze[str(stufe)] = prev_amount + self.amount
+            char.save(update_fields=["zauberplätze"])
+            return
+
+        # magisches Item
+        if self.operation == "h":
+            rel, created = RelMagische_Ausrüstung.objects.get_or_create(item=self.magische_ausrüstung, char=char, stufe=self.stufe)
+            rel.amount += self.amount
+            rel.save(update_fields=["amount"])
+            return
+
+        # Bonus in Fertigkeit
+        if self.operation == "B":
+            relfert = RelFertigkeit.objects.get(char=char, fertigkeit=self.fertigkeit)
+            relfert.fp_bonus += self.amount
+            char.save(update_fields=["sp"])
+            relfert.save(update_fields=["fp_bonus"])
+            return
+
+        # neu! Wesenkraft
+        if self.operation == "e":
+            RelWesenkraft.objects.get_or_create(char=char, wesenkraft=self.wesenkraft, defaults={"tier": 1 if self.wesenkraft.wesen == "w" and self.gfs in self.wesenkraft.zusatz_gfsspezifisch.all() else 0})
+            return
+        # neu! Spezi
+        if self.operation == "s":
+            RelSpezialfertigkeit.objects.get_or_create(char=char, spezialfertigkeit=self.spezialfertigkeit)
+            return
+        # neu! Wissi
+        if self.operation == "w":
+            RelWissensfertigkeit.objects.get_or_create(char=char, wissensfertigkeit=self.wissensfertigkeit)
+            return
+
+        # new Vorteil
+        if self.operation == "v":
+            RelVorteil.objects.create(char=char, teil=self.vorteil, fertigkeit=self.fertigkeit, notizen=self.text if self.text else None, is_sellable=self.vorteil.is_sellable)
+            return
+        # new Nachteil
+        if self.operation == "n":
+            RelVorteil.objects.create(char=char, teil=self.nachteil, fertigkeit=self.fertigkeit, notizen=self.text if self.text else None, is_sellable=self.nachteil.is_sellable)
+            return
+        
+        # WP in Spezialfertigkeit
+        created = False
+        if self.operation == "S":
+            rel, created = RelSpezialfertigkeit.objects.get_or_create(char=char, spezialfertigkeit=self.spezialfertigkeit)
+            rel.stufe += self.amount
+            rel.save(update_fields=["stufe"])
+        # WP in Wissensfertigkeit
+        if self.operation == "W":
+            rel, created = RelWissensfertigkeit.objects.get_or_create(char=char, wissensfertigkeit=self.wissensfertigkeit)
+            rel.stufe += self.amount
+            rel.save(update_fields=["stufe"])
+
+        # pay for new spezi/wissi where possible
+        if created and char.sp > 0:
+            char.sp -= 1
+            char.save(update_fields=["sp"])
+
 
 def fill_skilltree(*args):
 

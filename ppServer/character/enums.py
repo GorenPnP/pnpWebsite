@@ -24,12 +24,10 @@ skilltreeentry_enum = [
     ('i', 'IP'),
     ('t', 'TP'),
 
-    ('z', 'zauberslot'),
+    ('z', 'Zauberslot/s'),
 
     ('v', 'neuer Vorteil'),
     ('n', 'neuer Nachteil'),
-    ('x', 'Vorteil weg'),
-    ('z', 'Nachteil weg'),
 
     ('e', 'neue Wesenkraft'),
 
@@ -40,13 +38,13 @@ skilltreeentry_enum = [
 
     ('B', 'Bonus in Fertigkeit'),
 
-    ('A', '+ Crit-Angriff'),
-    ('V', '+ Crit-Verteidigung'),
-    ('K', '+ körperliche HP'),
-    ('G', '+ geistige HP'),
-    ('k', 'Schaden waff. Kampf'),
+    ('A', 'Crit-Angriff'),
+    ('V', 'Crit-Verteidigung'),
+    ('K', 'körperliche HP'),
+    ('G', 'geistige HP'),
+    ('k', 'HP Schaden waff. Kampf'),
 
-    ('I', '+ Initiative fix'),
+    ('I', 'Initiative fix'),
     ('r', 'Reaktion'),
     ('N', 'natürlicher Schadenswiderstand'),
     ('T', 'Astral-Widerstand'),

@@ -345,10 +345,10 @@ class FertigkeitAdmin(admin.ModelAdmin):
 
 class WesenkraftAdmin(admin.ModelAdmin):
 
-    fields = ['titel', 'min_rang', 'probe', 'wirkung', 'manaverbrauch', 'wesen', "zusatz_manifest"]
+    fields = ['titel', 'probe', 'wirkung', 'manaverbrauch', 'wesen', "zusatz_manifest"]
     inlines = [WesenkraftZusatzWesenspInLine]
 
-    list_display = ['titel', 'min_rang', 'probe', 'wirkung', 'wesen']
+    list_display = ['titel', 'probe', 'wirkung', 'wesen']
     search_fields = ['titel', 'wesen']
     list_filter = ['wesen']
 
@@ -484,14 +484,13 @@ class TalentAdmin(admin.ModelAdmin):
 
 
 class GfsSkilltreeEntryAdmin(admin.ModelAdmin):
-    list_display = ["context_", "original_", "amount", "operation", "stufe", "text", "fertigkeit", "vorteil", "nachteil", "spezialfertigkeit", "wissensfertigkeit", "wesenkraft", "magische_ausrüstung"]
-    list_editable = ["operation"]
-
-    def original_(self, obj):
-        return SkilltreeEntryGfs.objects.get(gfs=obj.gfs, context=obj.base).text
+    list_display = ["context_", "entry"]
 
     def context_(self, obj):
         return f"{obj.gfs.titel} St. {obj.base.stufe}"
+
+    def entry(self, obj):
+        return obj.__repr__()
 
 
 admin.site.register(Charakter, CharakterAdmin)
