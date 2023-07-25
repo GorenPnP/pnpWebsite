@@ -15,8 +15,6 @@ urlpatterns = [
     path('gfs/special-abilities', views.GfsSpecialAbilities.as_view(), name='gfs-special-abilities'),
     path('gfs/<int:gfs_id>', views.stufenplan, name='stufenplan'),
     path('persönlichkeiten', views.PersönlichkeitTableView.as_view(), name='persönlichkeiten'),
-    path('profession', views.ProfessionView.as_view(), name='profession'),
-    path('profession/<int:profession_id>', views.stufenplan_profession, name='stufenplan_profession'),
 
     path('spezial', views.SpezialfertigkeitTableView.as_view(), name='spezial'),
     path('wissen', views.WissensfertigkeitTableView.as_view(), name='wissen'),
@@ -25,6 +23,5 @@ urlpatterns = [
     path('berufe', views.BerufTableView.as_view(), name='berufe'),
     path('religionen', views.ReligionTableView.as_view(), name='religionen'),
 
-    path('rangRanking', views.RangRankingTableView.as_view(), name='rangRanking'),
     path('geburtstage', views.GeburtstageView.as_view(), name='geburtstage'),
 ]

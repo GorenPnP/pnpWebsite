@@ -265,95 +265,6 @@ class PersönlichkeitTableView(LoginRequiredMixin, VerifiedAccountMixin, Dynamic
     app_index_url = "wiki:index"
 
 
-class ProfessionView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTableView):
-    class Table(GenericTable):
-        class Meta:
-            model = Profession
-            fields = ["titel", "attr", "fert", "spezial", "wissen"]
-            attrs = GenericTable.Meta.attrs
-
-        titel = tables.Column(verbose_name="Profession")
-        attr = tables.Column(orderable=False, verbose_name="Attribut Bonus")
-        fert = tables.Column(orderable=False, verbose_name="Fertigkeit Bonus")
-        spezial = tables.Column(verbose_name="Spezialfert.")
-        wissen = tables.Column(verbose_name="Wissensfert.")
-
-        def render_titel(self, value, record):
-            return format_html("<a href='{url}'>{name}</a>", url=reverse("wiki:stufenplan_profession", args=[record.pk]), name=value)
-
-        def render_attr(self, value, record):
-            vals = [f"{v.attribut.titel} (<strong>+{v.aktuellerWert}</strong>)" for v in ProfessionAttribut.objects.filter(profession=record).exclude(aktuellerWert=0).prefetch_related("attribut")]
-            return format_html(", ".join(vals)) if vals else "—"
-    
-        def render_fert(self, value, record):
-            vals = [f"{v.fertigkeit.titel} (<strong>+{v.fp}</strong>)" for v in ProfessionFertigkeit.objects.filter(profession=record).exclude(fp=0).prefetch_related("fertigkeit")]
-            return format_html(", ".join(vals)) if vals else "—"
-
-        def render_spezial(self, value, record):
-            spezial = record.spezial.all().values("titel")
-            return ", ".join([r["titel"] for r in spezial]) if spezial else "—"
-        def render_wissen(self, value, record):
-            spezial = record.wissen.all().values("titel")
-            return ", ".join([r["titel"] for r in spezial]) if spezial else "—"
-
-    model = Profession
-    queryset = Profession.objects.all().annotate(attr=Value(1), fert=Value(1)) # let table render attr & fert
-
-    table_class = Table
-    filterset_fields = ["titel"]
-
-    app_index = "Wiki"
-    app_index_url = "wiki:index"
-
-
-@login_required
-@verified_account
-def stufenplan_profession(request, profession_id):
-    profession = get_object_or_404(Profession, id=profession_id)
-
-    prof = {}
-    attribute = []
-    ferts = []
-    for pAttr in ProfessionAttribut.objects.filter(profession=profession):
-        if pAttr.aktuellerWert:
-            attribute.append("{} (+{})".format(pAttr.attribut.titel, pAttr.aktuellerWert))
-
-    for pFert in ProfessionFertigkeit.objects.filter(profession=profession).exclude(fp=0):
-        ferts.append("{} (+{})".format(pFert.fertigkeit.titel, pFert.fp))
-
-    prof = {
-        "aktuell_bonus": ", ".join(attribute),
-        "fp_bonus": ", ".join(ferts),
-        "spezial": ", ".join([t.titel for t in profession.spezial.all()]),
-        "wissen": ", ".join([t.titel for t in profession.wissen.all()]),
-
-        "beschreibung": profession.beschreibung
-    }
-
-
-
-    entries = []
-
-    # stufenplan
-    for e in ProfessionStufenplan.objects.filter(profession=profession):
-        entry = {"stufe": e.basis.stufe,
-                 "ep": e.basis.ep,
-                 "tp": None if e.tp == 0 else "+{}".format(e.tp),
-                 "weiteres": e.weiteres
-                 }
-
-        entries.append(entry)
-
-    context = {
-        "stufenplan_entries": entries,
-        "topic": profession.titel,
-        "profession": prof,
-        "app_index": "Wiki",
-        "app_index_url": reverse("wiki:index"),
-    }
-    return render(request, "wiki/stufenplan_profession.html", context=context)
-
-
 class SpezialfertigkeitTableView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTableView):
     model = Spezialfertigkeit
     table_fields = ["titel", "attr1", "attr2", "ausgleich", "beschreibung"]
@@ -437,34 +348,6 @@ class BerufTableView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTableView)
     filterset_fields = {
         "titel": ["icontains"],
         "beschreibung": ["icontains"]
-    }
-
-    app_index = "Wiki"
-    app_index_url = "wiki:index"
-
-
-class RangRankingTableView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTableView):
-    class Table(GenericTable):
-        class Meta:
-            model = RangRankingEntry
-            fields = ["ranking", "min_rang", "survival", "power", "skills", "specials"]
-            attrs = GenericTable.Meta.attrs
-
-        min_rang = tables.Column(verbose_name="Rang")
-
-        def render_min_rang(self, value, record):
-            return f"{value} - {record.max_rang}"
-
-    model = RangRankingEntry
-    topic = "Erfahrungsranking"
-    table_class = Table
-    filterset_fields = {
-        "ranking": ["icontains"],
-        "min_rang": ["lte"],
-        "survival": ["icontains"],
-        "power": ["icontains"],
-        "skills": ["icontains"],
-        "specials": ["icontains"]
     }
 
     app_index = "Wiki"

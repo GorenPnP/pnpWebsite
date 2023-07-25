@@ -18,7 +18,6 @@ from django_tables2.columns import TemplateColumn
 from ppServer.mixins import VerifiedAccountMixin
 
 from base.abstract_views import DynamicTableView, DynamicTablesView, GenericTable
-from character.enums import würfelart_enum
 from character.models import *
 from shop.models import Zauber
 

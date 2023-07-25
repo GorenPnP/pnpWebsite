@@ -76,50 +76,6 @@ class GfsSkilltreeInLine(admin.TabularInline):
     extra = 0
 
 
-class ProfessionAttributInLine(admin.TabularInline):
-    model = ProfessionAttribut
-    fields = ["attribut", "aktuellerWert"]
-    readonly_fields = ["attribut"]
-    extra = 0
-
-    def has_add_permission(self, request, obj=None):
-        return False
-
-
-class ProfessionFertigkeitInLine(admin.TabularInline):
-    model = ProfessionFertigkeit
-    fields = ["fertigkeit", "fp"]
-    readonly_fields = ["fertigkeit"]
-    extra = 0
-
-    def has_add_permission(self, request, obj=None):
-        return False
-
-
-class ProfessionSpezialInLine(admin.TabularInline):
-    model = ProfessionSpezialfertigkeit
-    fields = ["spezial"]
-    extra = 1
-
-
-class ProfessionWissenInLine(admin.TabularInline):
-    model = ProfessionWissensfertigkeit
-    fields = ["wissen"]
-    extra = 1
-
-
-class ProfessionSkilltreeInLine(admin.TabularInline):
-    model = SkilltreeEntryProfession
-    fields = ["context", "text"]
-    extra = 0
-
-
-class ProfessionStufenplanInLine(admin.TabularInline):
-    model = ProfessionStufenplan
-    fields = ["basis", "tp", "weiteres"]
-    extra = 0
-
-
 class SpezialAusgleichInLine(admin.TabularInline):
     model = Spezialfertigkeit.ausgleich.through
     extra = 1
@@ -300,7 +256,7 @@ class CharakterAdmin(admin.ModelAdmin):
 
     fieldsets = [
         ("Settings (Finger weg)", {'fields': ['eigentümer', "in_erstellung", "ep_system", "skilltree_stufe", "larp"]}),
-        ('Basic', {'fields': ['name', "gfs", "prestige", "verzehr", "profession", "gewicht", "größe", 'alter', 'geschlecht', 'sexualität', 'beruf', "präf_arm",
+        ('Basic', {'fields': ['name', "gfs", "prestige", "verzehr", "gewicht", "größe", 'alter', 'geschlecht', 'sexualität', 'beruf', "präf_arm",
                               'religion', "hautfarbe", "haarfarbe", "augenfarbe"]}),
         ("Manifest", {"fields": ["manifest", "sonstiger_manifestverlust", "notizen_sonstiger_manifestverlust"]}),
         ('HP', {'fields': ['rang', 'HPplus']}),
@@ -340,7 +296,7 @@ class CharakterAdmin(admin.ModelAdmin):
                RelEngelsroboterInLine
     ]
 
-    list_display = ['name', 'eigentümer', "gfs", "wesen_", "profession", "ep_system", "larp", "in_erstellung"]
+    list_display = ['name', 'eigentümer', "gfs", "wesen_", "ep_system", "larp", "in_erstellung"]
 
     list_filter = ['in_erstellung', 'larp', 'ep_system', 'eigentümer']
     search_fields = ['name', 'eigentümer__name']
@@ -471,21 +427,6 @@ class GfsAbilityAdmin(admin.ModelAdmin):
     list_editable = ["needs_implementation", "has_choice"]
 
 
-class ProfessionAdmin(admin.ModelAdmin):
-    list_display = ('titel', 'beschreibung_')
-    search_fields = ('titel',)
-
-    inlines = [ProfessionAttributInLine, ProfessionFertigkeitInLine,
-               ProfessionSpezialInLine, ProfessionWissenInLine,
-               ProfessionSkilltreeInLine, ProfessionStufenplanInLine]
-
-    def beschreibung_(self, obj):
-        str = obj.beschreibung[:100]
-        if len(obj.beschreibung) > 100:
-            str += "..."
-        return str
-
-
 class PersönlichkeitAdmin(admin.ModelAdmin):
     list_display = ('titel', 'positiv', 'negativ')
     search_fields = ('titel', 'positiv', 'negativ')
@@ -520,11 +461,6 @@ class SpielerAdmin(admin.ModelAdmin):
     list_display = ["name", "geburtstag"]
 
 
-class RangRankingEntryAdmin(admin.ModelAdmin):
-    exclude = []
-    list_display = ["order", "ranking", "min_rang", "max_rang"]
-
-
 class SkilltreeEntryWesenAdmin(admin.ModelAdmin):
     list_display = ["wesen", "context"]
     list_filter = ["wesen", "context"]
@@ -533,10 +469,6 @@ class SkilltreeEntryWesenAdmin(admin.ModelAdmin):
 class GfsStufenplanBaseAdmin(admin.ModelAdmin):
     list_display = ["stufe", "ep", "ap", "fp", "fg", "tp"]
     list_editable = ["ep", "ap", "fp", "fg", "tp"]
-
-
-class ProfessionStufenplanBaseAdmin(admin.ModelAdmin):
-    list_display = ["stufe", "ep"]
 
 
 class TalentAdmin(admin.ModelAdmin):
@@ -549,7 +481,6 @@ class TalentAdmin(admin.ModelAdmin):
 admin.site.register(Charakter, CharakterAdmin)
 admin.site.register(Spezies, SpeziesAdmin)
 admin.site.register(Gfs, GfsAdmin)
-admin.site.register(Profession, ProfessionAdmin)
 admin.site.register(Persönlichkeit, PersönlichkeitAdmin)
 admin.site.register(Attribut, AttributAdmin)
 admin.site.register(Fertigkeit, FertigkeitAdmin)
@@ -566,9 +497,7 @@ admin.site.register(Talent, TalentAdmin)
 
 admin.site.register(GfsAbility, GfsAbilityAdmin)
 admin.site.register(GfsStufenplanBase, GfsStufenplanBaseAdmin)
-admin.site.register(ProfessionStufenplanBase, ProfessionStufenplanBaseAdmin)
 
-admin.site.register(RangRankingEntry, RangRankingEntryAdmin)
 admin.site.register(Spieler, SpielerAdmin)
 
 admin.site.register(SkilltreeEntryGfs, GfsSkilltreeAdmin)

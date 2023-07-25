@@ -1,6 +1,3 @@
-from math import floor
-import random, string
-
 from datetime import date
 import sys
 from sentry_sdk import capture_message
@@ -151,29 +148,6 @@ class Persönlichkeit(models.Model):
         return self.titel
 
 
-class Profession(models.Model):
-
-    class Meta:
-        ordering = ['titel']
-        verbose_name = "Profession"
-        verbose_name_plural = "Professionen"
-
-    titel = models.CharField(max_length=30, unique=True)
-    beschreibung = models.TextField(max_length=3000, blank=True, default='')
-
-    attribute = models.ManyToManyField('Attribut', through='ProfessionAttribut')
-    fertigkeiten = models.ManyToManyField("Fertigkeit", through="ProfessionFertigkeit")
-
-    spezial = models.ManyToManyField("Spezialfertigkeit", through="ProfessionSpezialfertigkeit")
-    wissen = models.ManyToManyField("Wissensfertigkeit", through="ProfessionWissensfertigkeit")
-
-    def __str__(self):
-        return self.titel
-
-    def relAttributQueryset(self):
-        return ProfessionAttribut.objects.filter(profession=self)
-
-
 class GfsAttribut(models.Model):
     class Meta:
         ordering = ['attribut']
@@ -204,7 +178,7 @@ class GfsFertigkeit(models.Model):
     pool = models.IntegerField(default=0)
 
     def __str__(self):
-        return "'{}' von ’{}’".format(self.fertigkeit.__str__(), self.gfs.__str__())
+        return "'{}' von '{}'".format(self.fertigkeit.__str__(), self.gfs.__str__())
 
 
 class GfsWesenkraft(models.Model):
@@ -278,72 +252,6 @@ class GfsZauber(models.Model):
     tier = models.PositiveSmallIntegerField(default=0, validators=[MaxValueValidator(7)])
 
 
-class ProfessionAttribut(models.Model):
-    class Meta:
-        ordering = ['attribut']
-        verbose_name = "Startattribut"
-        verbose_name_plural = "Startattribute"
-        unique_together = ["attribut", "profession"]
-
-    attribut = models.ForeignKey('Attribut', on_delete=models.CASCADE)
-    profession = models.ForeignKey(Profession, on_delete=models.CASCADE)
-
-    aktuellerWert = models.IntegerField(default=0)
-
-    def __str__(self):
-        return "'{}' von '{}'".format(self.attribut.__str__(), self.profession.__str__())
-
-
-class ProfessionFertigkeit(models.Model):
-
-    class Meta:
-        ordering = ['profession', 'fertigkeit']
-        verbose_name = "Fertigkeit"
-        verbose_name_plural = "Fertigkeiten"
-
-        unique_together = (('profession', 'fertigkeit'),)
-
-    profession = models.ForeignKey(Profession, on_delete=models.CASCADE)
-    fertigkeit = models.ForeignKey("Fertigkeit", on_delete=models.CASCADE)
-
-    fp = models.IntegerField(default=0)
-
-    def __str__(self):
-        return "'{}' von '{}'".format(self.fertigkeit.__str__(), self.profession.__str__())
-
-
-class ProfessionSpezialfertigkeit(models.Model):
-
-    class Meta:
-        ordering = ['profession', 'spezial']
-        verbose_name = "Startspezialfertigkeit"
-        verbose_name_plural = "Startspezialfertigkeiten"
-
-        unique_together = (('profession', 'spezial'),)
-
-    profession = models.ForeignKey(Profession, on_delete=models.CASCADE)
-    spezial = models.ForeignKey("Spezialfertigkeit", on_delete=models.CASCADE)
-
-    def __str__(self):
-        return "'{}' von '{}'".format(self.spezial.__str__(), self.profession.__str__())
-
-
-class ProfessionWissensfertigkeit(models.Model):
-
-    class Meta:
-        ordering = ['profession', 'wissen']
-        verbose_name = "Startwissensfertigkeit"
-        verbose_name_plural = "Startwissensfertigkeiten"
-
-        unique_together = (('profession', 'wissen'),)
-
-    profession = models.ForeignKey(Profession, on_delete=models.CASCADE)
-    wissen = models.ForeignKey("Wissensfertigkeit", on_delete=models.CASCADE)
-
-    def __str__(self):
-        return "'{}' von '{}'".format(self.wissen.__str__(), self.profession.__str__())
-
-
 class GfsStufenplanBase(models.Model):
     class Meta:
         ordering = ["stufe"]
@@ -395,34 +303,6 @@ class GfsStufenplan(models.Model):
     zauber = models.PositiveSmallIntegerField(default=0)
     wesenkräfte = models.ManyToManyField("Wesenkraft", blank=True)
     ability = models.OneToOneField(GfsAbility, on_delete=models.SET_NULL, null=True, blank=True)
-
-
-class ProfessionStufenplanBase(models.Model):
-    class Meta:
-        ordering = ["stufe"]
-        verbose_name = "Profession Basis-Stufenplan"
-        verbose_name_plural = "Profession Basis-Stufenpläne"
-        unique_together = ["stufe"]
-
-    stufe = models.PositiveIntegerField(default=0)
-    ep = models.PositiveIntegerField(default=0)
-
-    def __str__(self):
-        return "{} (EP: {})".format(self.stufe, self.ep)
-
-
-class ProfessionStufenplan(models.Model):
-    class Meta:
-        ordering = ['profession', "basis"]
-        verbose_name = "Stufenplan"
-        verbose_name_plural = "Stufenpläne"
-        unique_together = ["profession", "basis"]
-
-    profession = models.ForeignKey(Profession, on_delete=models.CASCADE)
-    basis = models.ForeignKey(ProfessionStufenplanBase, on_delete=models.CASCADE, null=True)
-
-    tp = models.PositiveSmallIntegerField(default=1)
-    weiteres = models.TextField(max_length=1000, default=None, blank=True, null=True)
 
 
 class Talent(models.Model):
@@ -599,11 +479,6 @@ class Spezialfertigkeit(models.Model):
         return "{} ({}, {})".format(self.titel, st, nd)
 
 
-# default for Charakter.name
-def rand_str():
-    return ''.join(random.choice(string.ascii_letters + string.digits) for _ in range(10))
-
-
 class Charakter(models.Model):
 
     class Meta:
@@ -619,7 +494,6 @@ class Charakter(models.Model):
     name = models.CharField(max_length=200, null=True, blank=True)
     spezies = models.ManyToManyField(Spezies, related_name='wesen', through='character.RelSpezies')
     gfs = models.ForeignKey(Gfs, on_delete=models.SET_NULL, null=True, blank=True)
-    profession = models.ForeignKey(Profession, on_delete=models.SET_NULL, null=True, blank=True)
 
     manifest = models.DecimalField('Startmanifest', max_digits=4, decimal_places=2, default=10.0,
                                    validators=[MaxValueValidator(10), MinValueValidator(0)])
@@ -638,8 +512,6 @@ class Charakter(models.Model):
     hautfarbe = models.CharField(max_length=100, default="", blank=True)
     haarfarbe = models.CharField(max_length=100, default="", blank=True)
     augenfarbe = models.CharField(max_length=100, default="", blank=True)
-
-    nutzt_magie = models.PositiveSmallIntegerField(choices=enums.nutzt_magie_enum, default=enums.nutzt_magie_enum[0][0], blank=True)
 
     ap = models.PositiveIntegerField(null=True, blank=True)
     fp = models.PositiveIntegerField(null=True, blank=True)
@@ -702,9 +574,6 @@ class Charakter(models.Model):
 
     def __str__(self):
         return "{} ({})".format(self.name, self.eigentümer)
-
-    def HP_plus_(self):
-        return self.HPplus
 
     def get_konzentration(self):
         return self.konzentration if self.konzentration is not None else RelAttribut.objects.get(char=self, attribut__titel="IN").aktuell() * 5
@@ -1382,16 +1251,17 @@ class RelFirmaRituale_Runen(RelFirmaShop):
 # bonus things
 class SkilltreeBase(models.Model):
     class Meta:
-        unique_together = ["kind", "stufe"]
+        verbose_name = "Base Skilltree"
+        verbose_name_plural = "Base Skilltrees"
 
-    kind = models.CharField(max_length=1, choices=enums.skilltreeBase_enum, null=True)
+        ordering = ["stufe"]
 
     # stufe == 0: Bonus
-    stufe = models.PositiveIntegerField(validators=[MaxValueValidator(10)], default=1)
+    stufe = models.PositiveIntegerField(validators=[MaxValueValidator(10)], default=1, unique=True)
     sp = models.PositiveIntegerField(default=1)
 
     def __str__(self):
-        return "{} (Stufe {}, {} SP)".format(self.get_kind_display(), self.stufe, self.sp)
+        return "Skilltree-Base Stufe {} ({} SP)".format(self.stufe, self.sp)
 
 
 class SkilltreeEntryGfs(models.Model):
@@ -1405,47 +1275,3 @@ class SkilltreeEntryGfs(models.Model):
 
     def __str__(self):
         return "{} (Stufe {})".format(self.gfs, self.context.stufe)
-
-
-class SkilltreeEntryProfession(models.Model):
-    class Meta:
-        unique_together = ["context", "profession"]
-
-    context = models.ForeignKey(SkilltreeBase, on_delete=models.CASCADE)
-
-    profession = models.ForeignKey(Profession, on_delete=models.CASCADE)
-    text = models.TextField(max_length=100, null=True)
-
-    def __str__(self):
-        return "{} (Stufe {})".format(self.profession, self.context.stufe)
-
-
-class SkilltreeEntryKategorie(models.Model):
-    class Meta:
-        unique_together = ["context", "kategorie"]
-
-    context = models.ForeignKey(SkilltreeBase, on_delete=models.CASCADE, null=True)
-
-    kategorie = models.CharField(max_length=2, choices=enums.skilltree_kategorie_enum, null=True)
-    text = models.TextField(max_length=100)
-
-    def __str__(self):
-        return "{}, {} (Stufe {})".format(self.context.get_kind_display(), self.get_kategorie_display(), self.context.stufe)
-
-
-class RangRankingEntry(models.Model):
-    class Meta:
-        ordering = ["order"]
-
-    order = models.PositiveIntegerField(default=0, primary_key=True)
-    ranking = models.CharField(max_length=3, default="Z")
-    min_rang = models.CharField(max_length=10, default="0")
-    max_rang = models.CharField(max_length=10, default="49")
-
-    survival = models.CharField(max_length=100, null=True, blank=True)
-    power = models.CharField(max_length=100, null=True, blank=True)
-    skills = models.CharField(max_length=100, null=True, blank=True)
-    specials = models.CharField(max_length=100, null=True, blank=True)
-
-    def __str__(self):
-        return "Rang {} ({} - {})".format(self.ranking, self.min_rang, self.max_rang)
