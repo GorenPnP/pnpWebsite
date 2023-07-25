@@ -1281,50 +1281,59 @@ class SkilltreeEntryGfs(models.Model):
         return "{} (Stufe {})".format(self.gfs, self.context.stufe)
 
 
-class MachinereadableSkilltreeEntry(models.Model):
+class GfsSkilltreeEntry(models.Model):
+    class Meta:
+        verbose_name = "Gfs Skilltree"
+        verbose_name_plural = "Gfs Skilltrees"
 
-    skilltree_entry = models.ForeignKey(SkilltreeEntryGfs, on_delete=models.CASCADE, null=False, blank=False)
+        ordering = ["gfs", "base", "operation"]
+
+    base = models.ForeignKey(SkilltreeBase, on_delete=models.CASCADE)
+    gfs = models.ForeignKey(Gfs, on_delete=models.CASCADE)
 
     operation = models.CharField(max_length=1, choices=enums.skilltreeentry_enum, default="R", null=False, blank=False)
 
-    amount = models.SmallIntegerField(null=True, blank=True)
-    stufe = models.SmallIntegerField(null=True, blank=True)
-    text = models.TextField(null=True, blank=True)
+    amount = models.SmallIntegerField(null=True, blank=True, help_text="für AP, FP, FG, SP, IP, TP und Anz. Zauber-slots, WP Speizis/Wissis, Fertigkeitsbonus, Crit und HP")
+    stufe = models.SmallIntegerField(null=True, blank=True, help_text="für Zauber-slots")
+    text = models.TextField(null=True, blank=True, help_text="für alles nicht-implementierbare, z. B. Bonuseffekte bei Angriffen")
 
-    fertigkeit = models.ForeignKey(Fertigkeit, on_delete=models.SET_NULL, null=True, blank=True)
-    vorteil = models.ForeignKey(Vorteil, on_delete=models.SET_NULL, null=True, blank=True)
-    nachteil = models.ForeignKey(Nachteil, on_delete=models.SET_NULL, null=True, blank=True)
+    fertigkeit = models.ForeignKey(Fertigkeit, on_delete=models.SET_NULL, null=True, blank=True, help_text="für Bonus in Fertigkeit")
+    vorteil = models.ForeignKey(Vorteil, on_delete=models.SET_NULL, null=True, blank=True, help_text="für neuen Vorteil")
+    nachteil = models.ForeignKey(Nachteil, on_delete=models.SET_NULL, null=True, blank=True, help_text="für neuen Nachteil")
     
-    spezialfertigkeit = models.ForeignKey(Spezialfertigkeit, on_delete=models.SET_NULL, null=True, blank=True)
-    wissensfertigkeit = models.ForeignKey(Wissensfertigkeit, on_delete=models.SET_NULL, null=True, blank=True)
+    spezialfertigkeit = models.ForeignKey(Spezialfertigkeit, on_delete=models.SET_NULL, null=True, blank=True, help_text="Für neue Spezi und WP in einer Spezi")
+    wissensfertigkeit = models.ForeignKey(Wissensfertigkeit, on_delete=models.SET_NULL, null=True, blank=True, help_text="Für neue Wissi und WP in einer Wissi")
 
-    # shop
+    # TODO shop
 
     def __str__(self):
-        return f"{self.amount}x {self.get_operation_display()}, {self.text}"
+        return f"{self.gfs} Stufe {self.base.stufe}: {self.get_operation_display()}"
     
 
-def fill_skilltree():
+def fill_skilltree(*args):
 
     entries = list(SkilltreeEntryGfs.objects.all())
     for s in entries:
-        for part in s.text.split(","):
-            matches = re.match("^[+](?P<amount>\d+)\W+(?P<kind>\w+)$", part)
+        matches = re.match("^\+?(?P<amount>\d+)\W+(?P<kind>[\w-]+)$", s.text)
 
-            if matches:
-                amount = int(matches.group("amount"))
-                kind = matches.group("kind")
+        if matches:
+            amount = int(matches.group("amount"))
+            kind = matches.group("kind")
 
-                operation = ""
-                if kind == "AP": operation = "a"
-                if kind == "FP": operation = "f"
-                if kind == "FG": operation = "F"
-                if kind == "SP": operation = "p"
-                if kind == "IP": operation = "i"
-                if kind == "TP": operation = "t"
+            operation = ""
+            if kind == "AP": operation = "a"
+            if kind == "FP": operation = "f"
+            if kind == "FG": operation = "F"
+            if kind == "SP": operation = "p"
+            if kind == "IP": operation = "i"
+            if kind == "TP": operation = "t"
 
-                if operation:
-                    MachinereadableSkilltreeEntry.objects.create(skilltree_entry=s, amount=amount, operation=operation)
-                    continue
+            if "auber" in kind: operation = "z"
+            if "ngriff" in kind: operation = "A"
+            if "erteidigung" in kind: operation = "V"
 
-            MachinereadableSkilltreeEntry.objects.create(skilltree_entry=s, operation="R", text=part)
+            if operation:
+                GfsSkilltreeEntry.objects.create(gfs=s.gfs, base=s.context, amount=amount, operation=operation)
+                continue
+
+        GfsSkilltreeEntry.objects.create(gfs=s.gfs, base=s.context, operation="R", text=s.text)

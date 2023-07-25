@@ -38,6 +38,8 @@ skilltreeentry_enum = [
     ('K', '+ körperliche HP'),
     ('G', '+ geistige HP'),
 
+    ('h', 'Shop'),
+
     ('R', 'Roleplay-Text'),
 ]
 

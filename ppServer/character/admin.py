@@ -483,13 +483,15 @@ class TalentAdmin(admin.ModelAdmin):
         return ", ".join([t.titel for t in obj.bedingung.all()])
 
 
-class MachinereadableSkilltreeEntryAdmin(admin.ModelAdmin):
-    list_display = ["skilltree_entry_", "operation", "amount", "text"]
-    list_editable = ["operation", "amount", "text"]
+class GfsSkilltreeEntryAdmin(admin.ModelAdmin):
+    list_display = ["context_", "original_", "amount", "operation", "stufe", "text", "fertigkeit", "vorteil", "nachteil", "spezialfertigkeit", "wissensfertigkeit"]
+    list_editable = ["amount", "operation", "stufe", "text"]
 
-    def skilltree_entry_(self, obj):
-        return obj.skilltree_entry.text
+    def original_(self, obj):
+        return SkilltreeEntryGfs.objects.get(gfs=obj.gfs, context=obj.base).text
 
+    def context_(self, obj):
+        return f"{obj.gfs.titel} St. {obj.base.stufe}"
 
 
 admin.site.register(Charakter, CharakterAdmin)
@@ -515,4 +517,4 @@ admin.site.register(GfsStufenplanBase, GfsStufenplanBaseAdmin)
 admin.site.register(Spieler, SpielerAdmin)
 
 admin.site.register(SkilltreeEntryGfs, GfsSkilltreeAdmin)
-admin.site.register(MachinereadableSkilltreeEntry, MachinereadableSkilltreeEntryAdmin)
+admin.site.register(GfsSkilltreeEntry, GfsSkilltreeEntryAdmin)
