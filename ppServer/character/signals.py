@@ -31,7 +31,7 @@ def init_gfs(sender, **kwargs):
     for basis in GfsStufenplanBase.objects.all():
         GfsStufenplan.objects.get_or_create(gfs=instance, basis=basis)
 
-    for sk in SkilltreeBase.objects.filter(kind="g"):
+    for sk in SkilltreeBase.objects.all():
         SkilltreeEntryGfs.objects.get_or_create(context=sk, gfs=instance)
 
 

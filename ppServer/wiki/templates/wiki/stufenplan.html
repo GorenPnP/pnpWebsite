@@ -1,75 +1,82 @@
 {% extends 'base/headed_main.html' %}
 {% load static %}
 {% block extra-head %}
-<link rel="stylesheet" href="{% static 'wiki/css/stufenplan.css' %}">
-<script>
-    document.addEventListener("DOMContentLoaded", function () {
-        breakpoint = 589;
-        window.dispatchEvent(new Event('resize'));
-    });
-</script>
+<style>
+    /* easily readable description without scrolling */
+.description__text {
+	max-width: 75ch;
+	line-height: 1.35em;
+}
+</style>
 {% endblock %}
 
 {% block main %}
-<div class="container">
-    <section class="content description">
-        <h2 class="title">Beschreibung</h2>
-        <p class="description__text">{{ gfs.beschreibung_rendered|safe }}</p>
-    </section>
+<section class="container">
+    <div class="row">
+        <img src="{% if gfs.image %}{{ gfs.image.url }}{% else %}{% static 'res/img/goren_logo.svg' %}{% endif %}" class="col-12 col-sm" style="height: fit-content; max-width: 500px; border-radius: 10px;">
 
-    <section class="content startbonus">
-        <h2 class="title">Bonus bei Wahl</h2>
-        <table class="startbonus__table table table-dark table-striped table-hover">
-            <tbody>
-                {% for b in boni %}
-                <tr>
-                    <td>{{ b.field }}</td>
-                    <td>{{ b.val|default:'-'|linebreaks }}</td>
-                </tr>
-                {% endfor %}
+        <div class="col-12 col-sm">
+            <h2 class="title">Beschreibung</h2>
+            <p class="description__text">{{ gfs.beschreibung_rendered|safe }}</p>
+        </div>
+    </div>
 
-                <tr>
-                    <td>Startmanifest</td>
-                    <td>{{ gfs.startmanifest|default:'-' }}</td>
-                </tr>
-                <tr>
-                    <td>Schaden waffenloser Kampf (andere Form) in HP</td>
-                    <td>{{ gfs.wesenschaden_waff_kampf|default:'-' }} ({{ gfs.wesenschaden_andere_gestalt|default:'-' }})</td>
-                </tr>
-                <tr>
-                    <td>Kosten in AP</td>
-                    <td>{{ gfs.ap|default:'-' }}</td>
-                </tr>
-            </tbody>
-        </table>
-    </section>
+    <div class="row my-4 justify-content-evenly">
 
-    <section class="content skilltree">
-        <h2 class="title">Skilltree</h2>
-        <table class="skilltree__table table table-dark table-striped table-hover">
-
-            <thead>
-                <tr>
-                    <th>Stufe (SP)</th>
-                    <th>Gibt</th>
-                </tr>
-            </thead>
-
-            <tbody>
-                {% for e in skilltree %}
-                <tr>
-                    <td>
-                        {% if not forloop.last %}
-                        <b>{{ forloop.counter }}</b><br><small>({{ e.sp|default:'0' }} SP)</small>
-                        {% else %}Bonus{% endif %}
-                    </td>
-                    <td>{{ e.text|default:'-'|linebreaks }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </section>
-</div>
+        <div class="col" style="width: fit-content; max-width: 400px;">
+            <h2 class="title">Bonus bei Wahl</h2>
+            <table class="startbonus__table table table-dark table-striped table-hover">
+                <tbody>
+                    {% for b in boni %}
+                    <tr>
+                        <td>{{ b.field }}</td>
+                        <td>{{ b.val|default:'-'|linebreaks }}</td>
+                    </tr>
+                    {% endfor %}
+    
+                    <tr>
+                        <td>Startmanifest</td>
+                        <td>{{ gfs.startmanifest|default:'-' }}</td>
+                    </tr>
+                    <tr>
+                        <td>Schaden waffenloser Kampf (andere Form) in HP</td>
+                        <td>{{ gfs.wesenschaden_waff_kampf|default:'-' }} ({{ gfs.wesenschaden_andere_gestalt|default:'-' }})</td>
+                    </tr>
+                    <tr>
+                        <td>Kosten in AP</td>
+                        <td>{{ gfs.ap|default:'-' }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    
+        <div class="col" style="width: fit-content; max-width: 400px;">
+            <h2 class="title">Skilltree</h2>
+            <table class="skilltree__table table table-dark table-striped table-hover">
+    
+                <thead>
+                    <tr>
+                        <th>Stufe (SP)</th>
+                        <th>Gibt</th>
+                    </tr>
+                </thead>
+    
+                <tbody>
+                    {% for e in skilltree %}
+                    <tr>
+                        <td>
+                            {% if not forloop.last %}
+                            <b>{{ forloop.counter }}</b><br><small>({{ e.sp|default:'0' }} SP)</small>
+                            {% else %}Bonus{% endif %}
+                        </td>
+                        <td>{{ e.text|default:'-'|linebreaks }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
 
 
 <section class="content ep-tree">

@@ -9,6 +9,7 @@ from django.db import models
 from django.db.models import Max, Sum
 from django.shortcuts import get_object_or_404
 
+from django_resized import ResizedImageField
 from markdownfield.models import MarkdownField, RenderedMarkdownField
 from markdownfield.validators import VALIDATOR_STANDARD
 
@@ -96,6 +97,9 @@ class Gfs(models.Model):
         ("f", "für Fortgeschrittene"),
         ("p", "für Profis"),
     ]
+
+    icon = ResizedImageField(size=[64, 64], null=True, blank=True)
+    image = ResizedImageField(size=[1024, 1024], null=True, blank=True)
 
     titel = models.CharField(max_length=30, unique=True)
     wesen = models.ForeignKey(Spezies, on_delete=models.SET_NULL, blank=True, null=True)
@@ -1275,3 +1279,24 @@ class SkilltreeEntryGfs(models.Model):
 
     def __str__(self):
         return "{} (Stufe {})".format(self.gfs, self.context.stufe)
+
+class MachinereadableSkilltreeEntry(models.Model):
+
+    skilltree_entry = models.ForeignKey(SkilltreeEntryGfs, on_delete=models.CASCADE, null=False, blank=False)
+
+    operation = models.CharField(max_length=1, choices=enums.skilltreeentry_enum, default="", null=False, blank=False)
+
+    amount = models.SmallIntegerField(default=1)
+    text = models.TextField(null=True, blank=True)
+
+    fertigkeit = models.ForeignKey(Fertigkeit, on_delete=models.SET_NULL, null=True, blank=True)
+    vorteil = models.ForeignKey(Vorteil, on_delete=models.SET_NULL, null=True, blank=True)
+    nachteil = models.ForeignKey(Nachteil, on_delete=models.SET_NULL, null=True, blank=True)
+    
+    spezialfertigkeit = models.ForeignKey(Spezialfertigkeit, on_delete=models.SET_NULL, null=True, blank=True)
+    wissensfertigkeit = models.ForeignKey(Wissensfertigkeit, on_delete=models.SET_NULL, null=True, blank=True)
+
+    # shop
+
+    def __str__(self):
+        return f"{self.amount}x {self.get_operation_display()}, {self.text}"

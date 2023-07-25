@@ -91,13 +91,14 @@ class GfsView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTableView):
 
         class Meta:
             model = Gfs
-            fields = ["titel", "difficulty", "ap", "SCH", "IN", "ST", "VER", "GES", "UM", "WK", "MA", "F", "N", "ap_netto"]
+            fields = ["icon", "titel", "difficulty", "ap", "SCH", "IN", "ST", "VER", "GES", "UM", "WK", "MA", "F", "N", "ap_netto"]
             attrs = GenericTable.Meta.attrs
 
         def order_ap_netto(self, queryset, is_descending):
             queryset = queryset.order_by(("-" if is_descending else "") + "ap_netto", "titel")
             return (queryset, True)
 
+        icon = tables.Column(verbose_name="")
         titel = tables.Column(verbose_name="Gfs / Klasse")
 
         SCH = AttrColumn(field="SCH")
@@ -110,6 +111,9 @@ class GfsView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTableView):
         MA = AttrColumn(field="MA")
         F = AttrColumn(field="F")
         N = AttrColumn(field="N")
+
+        def render_icon(self, value, record):
+            return format_html(f'<img src="{value.url}" style="max-width: 64px; max-height 64px;" />')
         
         def render_titel(self, value, record):
             url = reverse("wiki:stufenplan", args=[record.id])

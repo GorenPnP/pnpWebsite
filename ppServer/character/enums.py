@@ -15,6 +15,26 @@ limit_enum = [
 ]
 
 
+""" enum for SkilltreeEntry"""
+skilltreeentry_enum = [
+    ('a', 'AP'),
+    ('f', 'FP'),
+    ('F', 'FG'),
+    ('p', 'SP'),
+    ('i', 'IP'),
+    ('t', 'TP'),
+
+    ('z', 'zauberslot'),
+
+    ('s', 'neue Spezialfertigkeit'),
+    ('w', 'neue Wissensfertigkeit'),
+    ('S', 'WP in Spezialfertigkeit'),
+    ('W', 'WP in Wissensfertigkeit'),
+
+    ('', 'Roleplay-Text'),
+]
+
+
 teil_erstellung_enum = [
     ("i", "immer"),
     ("e", "in Erstellung"),
