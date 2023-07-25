@@ -31,7 +31,14 @@ skilltreeentry_enum = [
     ('S', 'WP in Spezialfertigkeit'),
     ('W', 'WP in Wissensfertigkeit'),
 
-    ('', 'Roleplay-Text'),
+    ('B', 'Bonus in Fertigkeit'),
+
+    ('A', '+ Crit-Angriff'),
+    ('V', '+ Crit-Verteidigung'),
+    ('K', '+ körperliche HP'),
+    ('G', '+ geistige HP'),
+
+    ('R', 'Roleplay-Text'),
 ]
 
 

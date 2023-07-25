@@ -1,5 +1,5 @@
 from datetime import date
-import sys
+import re, sys
 from sentry_sdk import capture_message
 
 from django.contrib.auth.models import User
@@ -1280,13 +1280,15 @@ class SkilltreeEntryGfs(models.Model):
     def __str__(self):
         return "{} (Stufe {})".format(self.gfs, self.context.stufe)
 
+
 class MachinereadableSkilltreeEntry(models.Model):
 
     skilltree_entry = models.ForeignKey(SkilltreeEntryGfs, on_delete=models.CASCADE, null=False, blank=False)
 
-    operation = models.CharField(max_length=1, choices=enums.skilltreeentry_enum, default="", null=False, blank=False)
+    operation = models.CharField(max_length=1, choices=enums.skilltreeentry_enum, default="R", null=False, blank=False)
 
-    amount = models.SmallIntegerField(default=1)
+    amount = models.SmallIntegerField(null=True, blank=True)
+    stufe = models.SmallIntegerField(null=True, blank=True)
     text = models.TextField(null=True, blank=True)
 
     fertigkeit = models.ForeignKey(Fertigkeit, on_delete=models.SET_NULL, null=True, blank=True)
@@ -1300,3 +1302,29 @@ class MachinereadableSkilltreeEntry(models.Model):
 
     def __str__(self):
         return f"{self.amount}x {self.get_operation_display()}, {self.text}"
+    
+
+def fill_skilltree():
+
+    entries = list(SkilltreeEntryGfs.objects.all())
+    for s in entries:
+        for part in s.text.split(","):
+            matches = re.match("^[+](?P<amount>\d+)\W+(?P<kind>\w+)$", part)
+
+            if matches:
+                amount = int(matches.group("amount"))
+                kind = matches.group("kind")
+
+                operation = ""
+                if kind == "AP": operation = "a"
+                if kind == "FP": operation = "f"
+                if kind == "FG": operation = "F"
+                if kind == "SP": operation = "p"
+                if kind == "IP": operation = "i"
+                if kind == "TP": operation = "t"
+
+                if operation:
+                    MachinereadableSkilltreeEntry.objects.create(skilltree_entry=s, amount=amount, operation=operation)
+                    continue
+
+            MachinereadableSkilltreeEntry.objects.create(skilltree_entry=s, operation="R", text=part)
