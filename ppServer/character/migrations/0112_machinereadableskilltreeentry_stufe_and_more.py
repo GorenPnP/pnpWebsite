@@ -2,15 +2,6 @@
 
 from django.db import migrations, models
 
-from character.models import fill_skilltree
-
-
-def pop_machine_readable(apps, schema_editor):
-    MachineSkilltree = apps.get_model('character', 'MachinereadableSkilltreeEntry')
-
-    MachineSkilltree.objects.all().delete()
-    fill_skilltree()
-
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -33,5 +24,4 @@ class Migration(migrations.Migration):
             name='operation',
             field=models.CharField(choices=[('a', 'AP'), ('f', 'FP'), ('F', 'FG'), ('p', 'SP'), ('i', 'IP'), ('t', 'TP'), ('z', 'zauberslot'), ('s', 'neue Spezialfertigkeit'), ('w', 'neue Wissensfertigkeit'), ('S', 'WP in Spezialfertigkeit'), ('W', 'WP in Wissensfertigkeit'), ('B', 'Bonus in Fertigkeit'), ('A', '+ Crit-Angriff'), ('V', '+ Crit-Verteidigung'), ('K', '+ körperliche HP'), ('G', '+ geistige HP'), ('R', 'Roleplay-Text')], default='R', max_length=1),
         ),
-        migrations.RunPython(pop_machine_readable)
     ]

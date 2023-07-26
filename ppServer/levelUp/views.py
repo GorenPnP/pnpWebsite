@@ -1249,7 +1249,7 @@ class GenericSkilltreeView(LoginRequiredMixin, OwnCharakterMixin, tables.SingleT
 
         class Meta:
             attrs = GenericTable.Meta.attrs
-            model = SkilltreeEntryGfs
+            model = GfsSkilltreeEntry
             fields = ["chosen", "stufe", "text"]
 
         chosen = tables.Column(verbose_name="")
@@ -1264,7 +1264,7 @@ class GenericSkilltreeView(LoginRequiredMixin, OwnCharakterMixin, tables.SingleT
 
     template_name = "levelUp/skilltree.html"
     topic = "Skilltree"
-    model = SkilltreeEntryGfs
+    model = GfsSkilltreeEntry
 
     table_class = Table
     table_pagination = False

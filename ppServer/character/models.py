@@ -84,6 +84,23 @@ class Spezies(models.Model):
         return self.titel
 
 
+class GfsImage(models.Model):
+
+    class Meta:
+        verbose_name = "Bild"
+        verbose_name_plural = "Bilder"
+
+        ordering = ["gfs", "order"]
+
+    gfs = models.ForeignKey("Gfs", on_delete=models.CASCADE)
+    order = models.FloatField(default=1.0)
+
+    img = ResizedImageField(size=[1024, 1024])
+    text = models.TextField(blank=True, null=True)
+
+    def __str__(self): return self.text if self.text else "-"
+
+
 class Gfs(models.Model):
 
     class Meta:
@@ -98,7 +115,6 @@ class Gfs(models.Model):
     ]
 
     icon = ResizedImageField(size=[64, 64], null=True, blank=True)
-    image = ResizedImageField(size=[1024, 1024], null=True, blank=True)
 
     titel = models.CharField(max_length=30, unique=True)
     wesen = models.ForeignKey(Spezies, on_delete=models.SET_NULL, blank=True, null=True)
@@ -1275,19 +1291,6 @@ class SkilltreeBase(models.Model):
         return "Skilltree-Base Stufe {} ({} SP)".format(self.stufe, self.sp)
 
 
-class SkilltreeEntryGfs(models.Model):
-    class Meta:
-        unique_together = ["context", "gfs"]
-
-    context = models.ForeignKey(SkilltreeBase, on_delete=models.CASCADE)
-
-    gfs = models.ForeignKey(Gfs, on_delete=models.CASCADE)
-    text = models.TextField(max_length=100, null=True)
-
-    def __str__(self):
-        return "{} (Stufe {})".format(self.gfs, self.context.stufe)
-
-
 class GfsSkilltreeEntry(models.Model):
     class Meta:
         verbose_name = "Gfs Skilltree"
@@ -1298,19 +1301,19 @@ class GfsSkilltreeEntry(models.Model):
     base = models.ForeignKey(SkilltreeBase, on_delete=models.CASCADE)
     gfs = models.ForeignKey(Gfs, on_delete=models.CASCADE)
 
-    operation = models.CharField(max_length=1, choices=enums.skilltreeentry_enum, default="R", null=False, blank=False)
+    operation = models.CharField(max_length=1, choices=enums.skilltreeentry_enum, default="R", null=False, blank=False, help_text="wichtigstes Feld, bestimmt die Art des Eintrags und welche anderen Felder benötigt werden.")
 
-    amount = models.SmallIntegerField(null=True, blank=True, help_text="für AP, FP, FG, SP, IP, TP und Anz. Zauber-slots, WP Speizis/Wissis, Fertigkeitsbonus, Crit und HP")
-    stufe = models.SmallIntegerField(null=True, blank=True, help_text="für Zauber-slots")
-    text = models.TextField(null=True, blank=True, help_text="für alles nicht-implementierbare, z. B. Bonuseffekte bei Angriffen")
+    amount = models.SmallIntegerField(null=True, blank=True, help_text="für AP, FP, FG, SP, IP, TP und Anz. Zauber-slots, WP in Speizis/Wissis, Fertigkeitsboni, Crit und HP")
+    stufe = models.SmallIntegerField(null=True, blank=True, help_text="für Zauber-slots und Stufen von Items")
+    text = models.TextField(null=True, blank=True, help_text="für Vor-/Nachteilnotizen und alles nicht-implementierbare, z. B. Bonuseffekte bei Angriffen")
 
-    fertigkeit = models.ForeignKey(Fertigkeit, on_delete=models.SET_NULL, null=True, blank=True, help_text="für Bonus in Fertigkeit")
+    fertigkeit = models.ForeignKey(Fertigkeit, on_delete=models.SET_NULL, null=True, blank=True, help_text="für Bonus in Fertigkeit und  ggf. Vor-/Nachteile wie Spezialisiert, die eine Fertigkeit brauchen.")
     vorteil = models.ForeignKey(Vorteil, on_delete=models.SET_NULL, null=True, blank=True, help_text="für neuen Vorteil")
     nachteil = models.ForeignKey(Nachteil, on_delete=models.SET_NULL, null=True, blank=True, help_text="für neuen Nachteil")
     
     wesenkraft = models.ForeignKey(Wesenkraft, on_delete=models.SET_NULL, null=True, blank=True, help_text="Für neue Wesenkraft")
-    spezialfertigkeit = models.ForeignKey(Spezialfertigkeit, on_delete=models.SET_NULL, null=True, blank=True, help_text="Für neue Spezi und WP in einer Spezi")
-    wissensfertigkeit = models.ForeignKey(Wissensfertigkeit, on_delete=models.SET_NULL, null=True, blank=True, help_text="Für neue Wissi und WP in einer Wissi")
+    spezialfertigkeit = models.ForeignKey(Spezialfertigkeit, on_delete=models.SET_NULL, null=True, blank=True, help_text="Für neue Spezi oder WP in einer Spezi")
+    wissensfertigkeit = models.ForeignKey(Wissensfertigkeit, on_delete=models.SET_NULL, null=True, blank=True, help_text="Für neue Wissi oder WP in einer Wissi")
 
     # shop
     magische_ausrüstung = models.ForeignKey(Magische_Ausrüstung, on_delete=models.SET_NULL, null=True, blank=True, help_text="Für ein magisches Item")
@@ -1319,35 +1322,38 @@ class GfsSkilltreeEntry(models.Model):
         return f"{self.gfs} Stufe {self.base.stufe}: {self.get_operation_display()}"
     
     def __repr__(self) -> str:
+        try:
 
-        # AP, FP, FG, SP, IP, TP, Crit-Angriff, Crit-Verteidigung, körperliche HP, geistige HP, HP Schaden waff. Kampf,
-        # Initiative fix, Reaktion, natürlicher Schadenswiderstand, Astral-Widerstand
-        if self.operation in ["a", "f", "F", "p", "i", "t", "A", "V", "K", "G", "k", "I", "r", "N", "T"]:
-            return f"+{self.amount} {self.get_operation_display()}"
+            # AP, FP, FG, SP, IP, TP, Crit-Angriff, Crit-Verteidigung, körperliche HP, geistige HP, HP Schaden waff. Kampf,
+            # Initiative fix, Reaktion, natürlicher Schadenswiderstand, Astral-Widerstand
+            if self.operation in ["a", "f", "F", "p", "i", "t", "A", "V", "K", "G", "k", "I", "r", "N", "T"]:
+                return f"+{self.amount} {self.get_operation_display()}"
 
-        # Roleplay-Text
-        if self.operation == "R": return f"{self.text} (Achtung, keine automatische Verechnung!)"
-        
-        # optional Stufe: Zauberslots, magisches Item
-        if self.operation == "z": return f"{self.amount} Zauberslots" + (f" Stufe {self.stufe}" if self.stufe else "")
-        if self.operation == "h": return f"{self.amount} {self.magische_ausrüstung.name}" + (f" Stufe {self.stufe}" if self.stufe else "")
+            # Roleplay-Text
+            if self.operation == "R": return f"{self.text} (Achtung, keine automatische Verechnung!)"
+            
+            # optional Stufe: Zauberslots, magisches Item
+            if self.operation == "z": return f"{self.amount} Zauberslots" + (f" Stufe {self.stufe}" if self.stufe else "")
+            if self.operation == "h": return f"{self.amount} {self.magische_ausrüstung.name}" + (f" Stufe {self.stufe}" if self.stufe else "")
 
-        # Bonus in Fertigkeit
-        if self.operation == "B": return f"+{self.amount} Bonus in {self.fertigkeit.titel}"
+            # Bonus in Fertigkeit
+            if self.operation == "B": return f"+{self.amount} Bonus in {self.fertigkeit.titel}"
 
-        # neu! (Wesenkraft, Spezi, Wissi)
-        if self.operation == "e": return self.wesenkraft.titel
-        if self.operation == "s": return self.spezialfertigkeit.titel
-        if self.operation == "w": return self.wissensfertigkeit.titel
+            # neu! (Wesenkraft, Spezi, Wissi)
+            if self.operation == "e": return self.wesenkraft.titel
+            if self.operation == "s": return self.spezialfertigkeit.titel
+            if self.operation == "w": return self.wissensfertigkeit.titel
 
-        # WP in Spezialfertigkeit & Wissensfertigkeit
-        if self.operation == "S": return f"+{self.amount} WP in {self.spezialfertigkeit.titel}"
-        if self.operation == "W": return f"+{self.amount} WP in {self.wissensfertigkeit.titel}"
+            # WP in Spezialfertigkeit & Wissensfertigkeit
+            if self.operation == "S": return f"+{self.amount} WP in {self.spezialfertigkeit.titel}"
+            if self.operation == "W": return f"+{self.amount} WP in {self.wissensfertigkeit.titel}"
 
-        # new Teil
-        if self.operation == "v": return f"{self.vorteil.titel}" + (f" {self.text}" if self.text else "") + (f" ({self.fertigkeit.titel})" if self.fertigkeit else "")
-        if self.operation == "n": return f"{self.nachteil.titel}" + (f" {self.text}" if self.text else "") + (f" ({self.fertigkeit.titel})" if self.fertigkeit else "")
+            # new Teil
+            if self.operation == "v": return f"{self.vorteil.titel}" + (f" {self.text}" if self.text else "") + (f" ({self.fertigkeit.titel})" if self.fertigkeit else "")
+            if self.operation == "n": return f"{self.nachteil.titel}" + (f" {self.text}" if self.text else "") + (f" ({self.fertigkeit.titel})" if self.fertigkeit else "")
     
+        except:
+            return f"FORMAT ERROR bei {self.get_operation_display()}"
 
     def apply_to(self, char: Charakter) -> None:
 
@@ -1498,32 +1504,3 @@ class GfsSkilltreeEntry(models.Model):
         if created and char.sp > 0:
             char.sp -= 1
             char.save(update_fields=["sp"])
-
-
-def fill_skilltree(*args):
-
-    entries = list(SkilltreeEntryGfs.objects.all())
-    for s in entries:
-        matches = re.match("^\+?(?P<amount>\d+)\W+(?P<kind>[\w-]+)$", s.text)
-
-        if matches:
-            amount = int(matches.group("amount"))
-            kind = matches.group("kind")
-
-            operation = ""
-            if kind == "AP": operation = "a"
-            if kind == "FP": operation = "f"
-            if kind == "FG": operation = "F"
-            if kind == "SP": operation = "p"
-            if kind == "IP": operation = "i"
-            if kind == "TP": operation = "t"
-
-            if "auber" in kind: operation = "z"
-            if "ngriff" in kind: operation = "A"
-            if "erteidigung" in kind: operation = "V"
-
-            if operation:
-                GfsSkilltreeEntry.objects.create(gfs=s.gfs, base=s.context, amount=amount, operation=operation)
-                continue
-
-        GfsSkilltreeEntry.objects.create(gfs=s.gfs, base=s.context, operation="R", text=s.text)

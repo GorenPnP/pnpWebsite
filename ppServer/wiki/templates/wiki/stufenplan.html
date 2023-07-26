@@ -7,14 +7,59 @@
 	max-width: 75ch;
 	line-height: 1.35em;
 }
+
+.row > * { margin-bottom: 2em; }
+
+.image-container {
+    height: fit-content;
+    max-width: 500px;
+}
 </style>
 {% endblock %}
 
 {% block main %}
 <section class="container">
     <div class="row">
-        <img src="{% if gfs.image %}{{ gfs.image.url }}{% else %}{% static 'res/img/goren_logo.svg' %}{% endif %}" class="col-12 col-sm" style="height: fit-content; max-width: 500px; border-radius: 10px;">
 
+        <!-- image/s -->
+        {% if gfs.gfsimage_set.all|length == 0 %}<img src="{% static 'res/img/goren_logo.svg' %}" class="col-12 col-sm image-container">{% endif %}
+        {% if gfs.gfsimage_set.all|length == 1 and gfs.gfsimage_set.all.0.text|length == 0 %}<img src="{{ gfs.gfsimage_set.all.0.img.url }}" class="col-12 col-sm image-container">{% endif %}
+        {% if gfs.gfsimage_set.all|length == 1 and gfs.gfsimage_set.all.0.text|length > 0 %}
+            <div class="col-12 col-sm image-container">
+                <img id="img" src="{{ gfs.gfsimage_set.all.0.img.url }}" class="w-100">
+                <label for="img" class="d-block my-2">{{ gfs.gfsimage_set.all.0.text }}</label>
+            </div>
+        {% endif %}
+
+        {% if gfs.gfsimage_set.all|length > 1 %}
+        <div id="image-carousel" class="carousel slide carousel-fade col-12 col-sm image-container" data-bs-ride="carousel">
+            <div class="carousel-inner">
+                {% for img in gfs.gfsimage_set.all %}
+                <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                    <img src="{{ img.img.url }}" class="d-block w-100">
+
+                    {% if img.text %}<div class="carousel-caption d-none d-md-block">{{ img.text }}</div>{% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            <button class="carousel-control-prev" type="button" data-bs-target="#image-carousel" data-bs-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Zurück</span>
+            </button>
+            <button class="carousel-control-next" type="button" data-bs-target="#image-carousel" data-bs-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Weiter</span>
+            </button>
+
+            <div class="carousel-indicators">
+                {% for img in gfs.gfsimage_set.all %}
+                <button type="button" data-bs-target="#image-carousel" data-bs-slide-to="{{ forloop.counter0 }}" {% if forloop.first %}class="active" aria-current="true"{% endif %} aria-label="{{ img.text }}"></button>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- description -->
         <div class="col-12 col-sm">
             <h2 class="title">Beschreibung</h2>
             <p class="description__text">{{ gfs.beschreibung_rendered|safe }}</p>
@@ -23,6 +68,7 @@
 
     <div class="row my-4 justify-content-evenly">
 
+        <!-- start-values -->
         <div class="col" style="width: fit-content; max-width: 400px;">
             <h2 class="title">Bonus bei Wahl</h2>
             <table class="startbonus__table table table-dark table-striped table-hover">
@@ -51,6 +97,8 @@
         </div>
     
         <div class="col" style="width: fit-content; max-width: 400px;">
+
+            <!-- skilltree -->
             <h2 class="title">Skilltree</h2>
             <table class="skilltree__table table table-dark table-striped table-hover">
     
@@ -78,7 +126,7 @@
     </div>
 </section>
 
-
+<!-- EP-tree -->
 <section class="content ep-tree">
     <h2 class="title">EP-Tree</h2>
     <table class="ep-tree__table table table-dark table-striped table-hover">

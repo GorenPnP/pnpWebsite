@@ -26,6 +26,11 @@ class WesenkraftZusatzWesenspInLine(admin.TabularInline):
     extra = 1
 
 
+class GfsImageInLine(admin.TabularInline):
+    model = GfsImage
+    fields = ["order", "img", "text"]
+    extra = 1
+
 class GfsAttributInLine(admin.TabularInline):
     model = GfsAttribut
     fields = ["attribut", "aktuellerWert", "maxWert"]
@@ -69,11 +74,6 @@ class GfsZauberInLine(admin.TabularInline):
 class GfsStufenplanInLine(admin.TabularInline):
     model = GfsStufenplan
     fields = ["basis", "vorteile", "zauber", "wesenkräfte", "ability"]
-    extra = 0
-
-class GfsSkilltreeInLine(admin.TabularInline):
-    model = SkilltreeEntryGfs
-    fields = ["context", "text"]
     extra = 0
 
 
@@ -398,10 +398,10 @@ class GfsAdmin(admin.ModelAdmin):
     list_editable = ['wesenschaden_waff_kampf', 'wesenschaden_andere_gestalt', 'difficulty']
     list_display_links = ["icon_", "titel"]
 
-    inlines = [GfsAttributInLine, GfsFertigkeitInLine,
+    inlines = [GfsImageInLine, GfsAttributInLine, GfsFertigkeitInLine,
                GfsVorteilInLine, GfsNachteilInLine,
                GfsWesenkraftInLine, GfsZauberInLine,
-               GfsSkilltreeInLine, GfsStufenplanInLine]
+               GfsStufenplanInLine]
     
     def icon_(self, obj):
         return format_html(f'<img src="{obj.icon.url}" style="max-width: 32px; max-height:32px;" />' if obj.icon else "-")
@@ -418,14 +418,6 @@ class GfsAdmin(admin.ModelAdmin):
     def wesenkraft_(self, obj):
         return ', '.join([a.titel for a in obj.wesenkraft.all()])
 
-
-class GfsSkilltreeAdmin(admin.ModelAdmin):
-    list_display = ('gfs', 'stufe_', 'text')
-
-    list_editable = ['text']
-
-    def stufe_(self, obj):
-        return obj.context.stufe
 
 class GfsAbilityAdmin(admin.ModelAdmin):
     list_display = ("name", "beschreibung", "needs_implementation", "has_choice")
@@ -484,13 +476,41 @@ class TalentAdmin(admin.ModelAdmin):
 
 
 class GfsSkilltreeEntryAdmin(admin.ModelAdmin):
-    list_display = ["context_", "entry"]
+    class IsCorrectlyFormattedFilter(admin.SimpleListFilter):
+        title = 'correctly_formatted'
+        parameter_name = 'correctly_formatted'
+
+        def lookups(self, request, model_admin):
+            return (
+                ("y", "Korrekt"),
+                ("n", "Falsch"),
+            )
+
+        def queryset(self, request, queryset):
+            if self.value() is None: return queryset
+            value = self.value() == "y"
+
+            ids = []
+            for e in queryset:
+                is_correct = "error" not in e.__repr__().lower()
+                if (value and is_correct) or (not value and not is_correct): ids.append(e.id)
+
+            return queryset.filter(id__in=ids)
+
+    list_display = ["context_", "entry", "operation", "correctly_formatted"]
+
+    search_fields = ["gfs__titel", "base__stufe", "text", "vorteil__titel", "nachteil__titel", "spezialfertigkeit__titel", "wissensfertigkeit__titel", "amount", "stufe", "wesenkraft__titel"]
+    list_filter = ["gfs", "base__stufe", "operation", IsCorrectlyFormattedFilter]
 
     def context_(self, obj):
         return f"{obj.gfs.titel} St. {obj.base.stufe}"
 
     def entry(self, obj):
         return obj.__repr__()
+    
+    def correctly_formatted(self, obj):
+        return "error" not in obj.__repr__().lower()
+    correctly_formatted.boolean = True
 
 
 admin.site.register(Charakter, CharakterAdmin)
@@ -515,5 +535,4 @@ admin.site.register(GfsStufenplanBase, GfsStufenplanBaseAdmin)
 
 admin.site.register(Spieler, SpielerAdmin)
 
-admin.site.register(SkilltreeEntryGfs, GfsSkilltreeAdmin)
 admin.site.register(GfsSkilltreeEntry, GfsSkilltreeEntryAdmin)
