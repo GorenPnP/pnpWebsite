@@ -22,6 +22,7 @@ urlpatterns = [
 	path('hub/<int:pk>/wesenkraft', views.HubWesenkraftView.as_view(), name='hub_wesenkraft'),
 	path('hub/<int:pk>/affektivität', views.HubAffektivitätView.as_view(), name='hub_affektivität'),
 	path('hub/<int:pk>/skilltree', views.HubSkilltreeView.as_view(), name='hub_skilltree'),
+	path('hub/<int:pk>/gfs_ability', views.HubGfsAbilityView.as_view(), name='hub_gfs_ability'),
 	
 	path('<int:pk>', views.HubView.as_view(), name='hub'),
 ]

@@ -1,0 +1,19 @@
+{% extends 'base/dynamic-table.html' %}
+{% block extra-head %}
+<style>
+    table {
+        max-width: 700px;
+        margin-inline: auto;
+    }
+</style>
+
+{% endblock %}
+
+{% block after_table %}
+<form id="form" method="post" class="d-flex justify-content-center">
+    {% csrf_token %}
+    <button id="sub-btn" type="submit" class="btn btn-lg btn-primary m-2">Speichern</button>
+</form>
+
+<a class="btn btn-lg btn-outline-primary my-2" href="{{ back_url }}">Zurück</a>
+{% endblock %}

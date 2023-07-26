@@ -1,7 +1,7 @@
 from django.http.response import JsonResponse
 from django.shortcuts import get_object_or_404, redirect
 
-from character.models import Spieler, Charakter, RelVorteil, RelNachteil
+from character.models import Spieler, Charakter, RelVorteil, RelNachteil, RelGfsAbility
 
 
 def provide_char(view_func):
@@ -118,10 +118,24 @@ def is_spF_wF_done(*args, **kwargs):
     not done and print("spF, wF not done")
     return done
 
-def is_done_entirely(char=Charakter, max_ap=0, request=None) -> bool:
-    return char.ap <= max_ap and\
-        is_ferts_done(request, char=char) and\
-        is_zauber_done(request, char=char) and\
-        is_personal_done(request, char=char) and\
-        is_spF_wF_done(request, char=char) and\
-        is_teil_done(request, char=char)
+def is_gfs_ability_done(*args, **kwargs):
+    done = "char" in kwargs and not RelGfsAbility.objects.prefetch_related("ability").filter(char=kwargs["char"], notizen__isnull=True, ability__has_choice=True).exists()
+    not done and print("gfs_ability not done")
+    return done
+
+
+def is_done_entirely(char: Charakter, max_ap=0, request=None) -> bool:
+    return len(pending_areas(char, max_ap, request)) == 0
+
+def pending_areas(char: Charakter, max_ap=0, request=None) -> list:
+        res = []
+
+        if not char.ap <= max_ap: res.append("Attribute")
+        if not is_ferts_done(request, char=char): res.append("Fertigkeiten")
+        if not is_zauber_done(request, char=char): res.append("Zauber")
+        if not is_personal_done(request, char=char): res.append("persönliche Informationen")
+        if not is_spF_wF_done(request, char=char): res.append("Spezial- und Wissensfertigkeiten")
+        if not is_teil_done(request, char=char): res.append("Vor- und Nachteile")
+        if not is_gfs_ability_done(request, char=char): res.append("Gfs-Fähigkeiten")
+
+        return res

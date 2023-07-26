@@ -505,21 +505,23 @@ class Charakter(models.Model):
         verbose_name_plural = "Charaktere"
         ordering = ["eigentümer", 'name']
 
+    # settings
     in_erstellung = models.BooleanField(default=True)
     ep_system = models.BooleanField(default=True)
     larp = models.BooleanField(default=False)
-
     eigentümer = models.ForeignKey(Spieler, on_delete=models.CASCADE, null=True, blank=True)
-    name = models.CharField(max_length=200, null=True, blank=True)
     spezies = models.ManyToManyField(Spezies, related_name='wesen', through='character.RelSpezies')
     gfs = models.ForeignKey(Gfs, on_delete=models.SET_NULL, null=True, blank=True)
 
+    # manifest
     manifest = models.DecimalField('Startmanifest', max_digits=4, decimal_places=2, default=10.0,
                                    validators=[MaxValueValidator(10), MinValueValidator(0)])
     sonstiger_manifestverlust = models.DecimalField("sonstiger Manifestverlust", max_digits=4, decimal_places=2, default=0.0,
                                                     validators=[MaxValueValidator(10), MinValueValidator(0)], blank=True)
     notizen_sonstiger_manifestverlust = models.CharField(max_length=200, default="", blank=True)
 
+    # roleplay
+    name = models.CharField(max_length=200, null=True, blank=True)
     gewicht = models.PositiveIntegerField(default=75, blank=True, verbose_name="Gewicht in kg")
     größe = models.PositiveIntegerField(default=170, blank=True, verbose_name="Größe in cm")
     alter = models.PositiveIntegerField(default=0, blank=True)
@@ -532,6 +534,7 @@ class Charakter(models.Model):
     haarfarbe = models.CharField(max_length=100, default="", blank=True)
     augenfarbe = models.CharField(max_length=100, default="", blank=True)
 
+    # currencies
     ap = models.PositiveIntegerField(null=True, blank=True)
     fp = models.PositiveIntegerField(null=True, blank=True)
     fg = models.PositiveIntegerField(null=True, blank=True)
@@ -546,18 +549,22 @@ class Charakter(models.Model):
     prestige = models.PositiveIntegerField(default=0)
     verzehr = models.PositiveIntegerField(default=0)
 
+    # Kampagne
     ep = models.PositiveIntegerField(default=0)
     ep_stufe = models.PositiveIntegerField(default=0)
     ep_stufe_in_progress = models.PositiveIntegerField(default=0)
     skilltree_stufe = models.PositiveSmallIntegerField(default=1)
+    processing_notes = models.JSONField(default=dict, null=False, blank=True)
 
+    # HP
     HPplus_geistig = models.IntegerField(default=0, blank=True)
     HPplus = models.IntegerField(default=0, blank=True)
     HPplus_fix = models.IntegerField(default=None, null=True, blank=True)
-    wesenschaden_waff_kampf = models.IntegerField(default=0)
-    wesenschaden_andere_gestalt = models.IntegerField("BS andere Gestalt", blank=True, null=True)
     rang = models.PositiveIntegerField(default=0, validators=[MaxValueValidator(500)], blank=True)
 
+    # kampf
+    wesenschaden_waff_kampf = models.IntegerField(default=0)
+    wesenschaden_andere_gestalt = models.IntegerField("BS andere Gestalt", blank=True, null=True)
     crit_attack = models.PositiveSmallIntegerField(default=0)
     crit_defense = models.PositiveSmallIntegerField(default=0)
     initiative_bonus = models.SmallIntegerField(default=0)
@@ -565,12 +572,16 @@ class Charakter(models.Model):
     natürlicher_schadenswiderstand_bonus = models.SmallIntegerField(default=0)
     astralwiderstand_bonus = models.SmallIntegerField(default=0)
 
+    # Geschreibsel
+    notizen = models.TextField(blank=True)
+    persönlicheZiele = models.TextField(blank=True)
+    sonstige_items = models.TextField(max_length=1000, default='', blank=True)
+
+    # M2M #
+
     vorteile = models.ManyToManyField(Vorteil, through="character.RelVorteil", blank=True)
     nachteile = models.ManyToManyField(Nachteil, through="character.RelNachteil", blank=True)
     talente = models.ManyToManyField(Talent, through="character.RelTalent", blank=True)
-
-    notizen = models.TextField(blank=True)
-    persönlicheZiele = models.TextField(blank=True)
 
     persönlichkeit = models.ManyToManyField(Persönlichkeit, blank=True)
     wesenkräfte = models.ManyToManyField(Wesenkraft, through="character.RelWesenkraft", blank=True)
@@ -595,9 +606,6 @@ class Charakter(models.Model):
     vergessene_zauber = models.ManyToManyField(VergessenerZauber, through='character.RelVergessenerZauber', blank=True)
     begleiter = models.ManyToManyField(Begleiter, through='character.RelBegleiter', blank=True)
     engelsroboter = models.ManyToManyField(Engelsroboter, through='character.RelEngelsroboter', blank=True)
-
-    sonstige_items = models.TextField(max_length=1000, default='', blank=True)
-    processing_notes = models.JSONField(default=dict, null=False, blank=True)
 
     def __str__(self):
         return "{} ({})".format(self.name, self.eigentümer)
@@ -706,14 +714,39 @@ class Charakter(models.Model):
 
     def submit_stufenhub(self):
         from levelUp.decorators import is_done_entirely
-        if self.ep_stufe >= self.ep_stufe_in_progress or self.gfs is None or not is_done_entirely(self): return
+        if self.ep_stufe >= self.ep_stufe_in_progress or self.gfs is None or not is_done_entirely(self, 1): return
 
         if hasattr(self.processing_notes, "campaign"):
             del self.processing_notes["campaign"]
 
+        # attributes
+        rels = []
+        for rel in RelAttribut.objects.filter(char=self):
+            rel.aktuellerWert += rel.aktuellerWert_temp
+            rel.aktuellerWert_temp = 0
+
+            rel.maxWert += rel.maxWert_temp
+            rel.maxWert_temp = 0
+
+            rel.fg += rel.fg_temp
+            rel.fg_temp = 0
+
+            rels.append(rel)
+        RelAttribut.objects.bulk_update(rels, ["aktuellerWert", "aktuellerWert_temp", "maxWert", "maxWert_temp", "fg", "fg_temp"])
+
+        # fertigkeiten
+        rels = []
+        for rel in RelFertigkeit.objects.filter(char=self):
+            rel.fp += rel.fp_temp
+            rel.fp_temp = 0
+            rels.append(rel)
+        RelFertigkeit.objects.bulk_update(rels, ["fp", "fp_temp"])
+
+        # teils
         RelVorteil.objects.filter(char=self, will_create=True).update(will_create=False)
         RelNachteil.objects.filter(char=self, will_create=True).update(will_create=False)
-        
+
+        # ep-stufe
         self.ep_stufe = self.ep_stufe_in_progress
         self.save(update_fields=["ep_stufe", "processing_notes"])
 

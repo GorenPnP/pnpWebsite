@@ -7,7 +7,7 @@ from django.shortcuts import reverse
 from django.views.generic import DetailView
 
 from character.models import Charakter, RelVorteil, RelAttribut
-from levelUp.decorators import is_done_entirely
+from levelUp.decorators import is_done_entirely, is_gfs_ability_done, pending_areas
 from levelUp.views import *
 from .mixins import CampaignMixin
 
@@ -47,6 +47,9 @@ class HubView(LoginRequiredMixin, CampaignMixin, OwnCharakterMixin, DetailView):
 
                 stufenbelohnung.append(f"Stufe {stufe.basis.stufe} gibt: " + ", ".join(stufen_str))
 
+        # unfinished Gfs-Abilities
+        gfs_abilities = ", ".join([rel.ability.name for rel in RelGfsAbility.objects.prefetch_related("ability").filter(char=char, notizen__isnull=True, ability__has_choice=True)])
+
         rel_ma = RelAttribut.objects.get(char=char, attribut__titel='MA')
 
         return {
@@ -54,9 +57,12 @@ class HubView(LoginRequiredMixin, CampaignMixin, OwnCharakterMixin, DetailView):
             "topic": "Verteilungshub",
             'char': char,
             "is_done": self.is_done(),
+            "pending_areas": ", ".join(pending_areas(char=char, max_ap=1)),
+            "is_gfs_ability_done": is_gfs_ability_done(char=char),
             "vorteile": RelVorteil.objects.filter(char=char, will_create=True),
             "stufenbelohnung": stufenbelohnung,
-            "MA_aktuell": rel_ma.aktuellerWert + rel_ma.aktuellerWert_temp,
+            "MA_aktuell": rel_ma.aktuellerWert + rel_ma.aktuellerWert_temp - get_required_aktuellerWert(char, "MA"),
+            "unfinished_gfs_abilities": gfs_abilities,
             "app_index": char.name,
             "app_index_url": reverse("character:show", args=[char.id]),
         }
@@ -125,4 +131,8 @@ class HubAffektivitätView(CampaignMixin, AffektivitätView):
 
 
 class HubSkilltreeView(CampaignMixin, GenericSkilltreeView):
+    pass
+
+
+class HubGfsAbilityView(CampaignMixin, GenericGfsAbilityView):
     pass

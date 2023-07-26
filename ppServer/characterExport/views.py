@@ -112,7 +112,6 @@ def split_position(position):
     return {"ws": ws, "alpha": alpha, "num": num}
 
 
-# Create your views here.
 class CharacterExportView(LoginRequiredMixin, VerifiedAccountMixin, DetailView):
     model = Charakter
 
@@ -188,9 +187,9 @@ class CharacterExportView(LoginRequiredMixin, VerifiedAccountMixin, DetailView):
 
         # right off
         werte_ws.merge_range("P2:R2", "Verzehr", format_prestige_titel)
-        werte_ws.merge_range("P3:R4", 0, format_prestige)
+        werte_ws.merge_range("P3:R4", char.verzehr, format_prestige)
         werte_ws.merge_range("P5:R5", "Prestige", format_prestige_titel)
-        werte_ws.merge_range("P6:R7", 0, format_prestige)
+        werte_ws.merge_range("P6:R7", char.prestige, format_prestige)
         werte_ws.merge_range("P9:R9", "Hat MG?", format_prestige_titel)
         werte_ws.merge_range("P10:R11", 0, format_prestige)
         werte_ws.merge_range("P12:R12", "0 = nein, 1 = ja")
@@ -214,11 +213,11 @@ class CharacterExportView(LoginRequiredMixin, VerifiedAccountMixin, DetailView):
         werte_ws.write("I4", "Humor", format_gsh_titel)
         werte_ws.write("J4", "=N8*5", format_gsh)
         werte_ws.write("I5", "Initiative", format_ini_titel)
-        werte_ws.write("J5", "=N9+N5", format_ini)
+        werte_ws.write("J5", "=N9+N5"+(f"+{char.initiative_bonus}" if char.initiative_bonus else ""), format_ini)
         werte_ws.write("I6", "W4", format_ini_titel)
         werte_ws.write("J6", "=N3", format_ini)
         werte_ws.merge_range("I7:I8", "Astral-WI", format_asWi_topic)
-        werte_ws.merge_range("J7:J8", "=N9+N10", format_asWi)
+        werte_ws.merge_range("J7:J8", "=N9+N10"+(f"+{char.astralwiderstand_bonus}" if char.astralwiderstand_bonus else ""), format_asWi)
         werte_ws.write("I9", "Limits", format_limit_topic__first)
         werte_ws.write("J9", None, format_limit_topic__last)
         werte_ws.write("I10", "Körperlich", format_limit_titel)
@@ -326,7 +325,7 @@ class CharacterExportView(LoginRequiredMixin, VerifiedAccountMixin, DetailView):
         format_colorful = wb.add_format(dict(form_sub_titel, **{"right": 1}))
 
         werte_ws.merge_range("M19:O19", "Reaktion", format_colorful_titel_emph)
-        werte_ws.merge_range("P19:R19", "=(N3+N7+N9)/2", format_colorful)
+        werte_ws.merge_range("P19:R19", "=(N3+N7+N9)/2"+(f"+{char.reaktion_bonus}" if char.reaktion_bonus else ""), format_colorful)
         werte_ws.write("S19", "(SCH+GES+WK)/2")
         werte_ws.merge_range("M20:O20", "Rüstung Schutz | Stärke", format_colorful_titel)
         werte_ws.merge_range("P20:R20", "__ | __ HP", format_colorful)
@@ -335,7 +334,7 @@ class CharacterExportView(LoginRequiredMixin, VerifiedAccountMixin, DetailView):
         werte_ws.merge_range("P21:R21", "__", format_colorful)
         werte_ws.write("S21", "s. Rüstung")
         werte_ws.merge_range("M22:O22", "nat. Schadenswiderstand", format_colorful_titel_emph)
-        werte_ws.merge_range("P22:R22", "=N5+N6", format_colorful)
+        werte_ws.merge_range("P22:R22", "=N5+N6"+(f"+{char.natürlicher_schadenswiderstand_bonus}" if char.natürlicher_schadenswiderstand_bonus else ""), format_colorful)
         werte_ws.write("S22", "ST+VER (xHP pro Erfolg, normal 1)")
         werte_ws.merge_range("M23:O23", "Intuition", format_colorful_titel)
         werte_ws.merge_range("P23:R23", "=(N4+2+N3)/2", format_colorful)
@@ -371,9 +370,9 @@ class CharacterExportView(LoginRequiredMixin, VerifiedAccountMixin, DetailView):
         werte_ws.merge_range("P33:R33", "=(N9+N10)*3", format_colorful)
         werte_ws.write("S33", "(WK+MA)*3")
         werte_ws.merge_range("M34:O34", "Crit.-Value Angriff", format_colorful_titel)
-        werte_ws.merge_range("P34:R34", 0, format_colorful)
+        werte_ws.merge_range("P34:R34", char.crit_attack, format_colorful)
         werte_ws.merge_range("M35:O35", "Crit.-Value Verteidigung", format_colorful_titel)
-        werte_ws.merge_range("P35:R35", 0, format_colorful)
+        werte_ws.merge_range("P35:R35", char.crit_defense, format_colorful)
         werte_ws.write_row("M36", [None, None, None, None, None, None], format_border_top)
 
 
@@ -389,7 +388,7 @@ class CharacterExportView(LoginRequiredMixin, VerifiedAccountMixin, DetailView):
         werte_ws.write("M38", "HP", format_section_titel)
         werte_ws.write("N38", "=N36+(N37/10)+(L25*2)+(N5*5)", format_hp)
         werte_ws.write("M39", "gHP", format_section_titel)
-        werte_ws.write("N39", "=N9*5", format_hp)
+        werte_ws.write("N39", "=N9*5"+(f"+{char.HPplus_geistig}"if char.HPplus_geistig else ""), format_hp)
         werte_ws.write_row("M40", [None, None], format_border_top)
         werte_ws.write(f"O36", None, format_border_top_left)
         for i in range(37, 40):
@@ -532,6 +531,12 @@ class CharacterExportView(LoginRequiredMixin, VerifiedAccountMixin, DetailView):
             werte_ws.merge_range(f"D{index}:E{index}", a[3] if a is not None else None, format_border_right)
             werte_ws.merge_range(f"F{index}:H{index}", a[4] if a is not None else None, format_border_right)
         # Notizen
+        notizen = char.notizen
+        if char.wesenschaden_waff_kampf:
+            notizen += f"\n+{char.wesenschaden_waff_kampf} HP im waffenlosen Kampf"
+        if char.wesenschaden_andere_gestalt:
+            notizen += f"\n+{char.wesenschaden_andere_gestalt} HP im waffenlosen Kampf der anderen Gestalt"
+
         werte_ws.merge_range("A135:H135", "Notizen", format_ramsch_titel)
         werte_ws.merge_range("A136:H143", char.notizen, format_large_cell)
 

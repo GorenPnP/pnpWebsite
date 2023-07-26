@@ -98,7 +98,7 @@ class RelPersönlichkeitInline(SpielerReadonlyInLine):
 
 
 class RelAttributInline(SpielerReadonlyInLine):
-    fields = ['attribut', 'aktuellerWert', 'aktuellerWert_temp', 'aktuellerWert_bonus', 'maxWert', 'maxWert_temp', 'maxWert_bonus', 'fg']
+    fields = ['attribut', 'aktuellerWert', 'aktuellerWert_temp', 'aktuellerWert_bonus', 'maxWert', 'maxWert_temp', 'maxWert_bonus', 'fg', "fg_temp"]
     readonly_fields = ['attribut']
     model = RelAttribut
     extra = 0
@@ -111,7 +111,7 @@ class RelAttributInline(SpielerReadonlyInLine):
 
 
 class RelFertigkeitInLine(SpielerReadonlyInLine):
-    fields = ['fertigkeit', 'fp', 'fp_bonus']
+    fields = ['fertigkeit', 'fp', "fp_temp", 'fp_bonus']
     readonly_fields = ['fertigkeit']
     model = RelFertigkeit
     extra = 0
@@ -256,15 +256,18 @@ class CharakterAdmin(admin.ModelAdmin):
         model = Charakter
 
     fieldsets = [
-        ("Settings (Finger weg)", {'fields': ['eigentümer', "in_erstellung", "ep_system", "skilltree_stufe", "larp"]}),
-        ('Basic', {'fields': ['name', "gfs", "prestige", "verzehr", "gewicht", "größe", 'alter', 'geschlecht', 'sexualität', 'beruf', "präf_arm",
+        ("Settings (Finger weg)", {'fields': ['eigentümer', "in_erstellung", "ep_system", "larp", "gfs"]}),
+        ('Roleplay', {'fields': ['name', "gewicht", "größe", 'alter', 'geschlecht', 'sexualität', 'beruf', "präf_arm",
                               'religion', "hautfarbe", "haarfarbe", "augenfarbe"]}),
+        
         ("Manifest", {"fields": ["manifest", "sonstiger_manifestverlust", "notizen_sonstiger_manifestverlust"]}),
-        ('HP', {'fields': ['rang', 'HPplus']}),
-        ("Basischaden im Waffenlosen Kampf", {"fields": ["wesenschaden_waff_kampf", "wesenschaden_andere_gestalt"]}),
-        ('Kampagne', {'fields': ["ep", 'ep_stufe', 'ep_stufe_in_progress', 'ap', 'fp', 'fg', "processing_notes"]}),
-        ('Ressourcen', {'fields': ['sp', "geld", 'ip', 'tp', 'zauberplätze', 'spF_wF', 'wp', "nutzt_magie"]}),
-        ('Geschreibsel', {'fields': ['persönlicheZiele', 'notizen', 'sonstige_items']}),
+        ('HP', {'fields': ['rang', 'HPplus', 'HPplus_fix', 'HPplus_geistig']}),
+        ('Kampf', {'fields': ['wesenschaden_waff_kampf', 'wesenschaden_andere_gestalt', 'crit_attack', 'crit_defense',
+                              'initiative_bonus', 'reaktion_bonus', 'natürlicher_schadenswiderstand_bonus', 'astralwiderstand_bonus']}),
+
+        ('Kampagne', {'fields': ["ep", 'ep_stufe', 'ep_stufe_in_progress', "skilltree_stufe", "processing_notes"]}),
+        ('Währungen', {'fields': ['ap', 'fp', 'fg', 'sp', 'ip', 'tp', 'spF_wF', 'wp', 'zauberplätze', "geld", 'konzentration', "prestige", "verzehr"]}),
+        ('Geschreibsel', {'fields': ['notizen', 'persönlicheZiele', 'sonstige_items']}),
     ]
 
     inlines = [

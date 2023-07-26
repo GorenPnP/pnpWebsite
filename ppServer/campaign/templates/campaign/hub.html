@@ -77,7 +77,7 @@
                         </ul>
                     </td>
                 </tr>
-
+                
                 {% if vorteile.count %}
                 <tr>
                     <td>
@@ -88,27 +88,120 @@
                     <td><a href="{% url 'campaign:hub_vorteile' char.id %}" class="text-light">Rückfragen für Vorteile</a></td>
                     <td>
                         {% for relteil in vorteile %}
-                            {{ relteil.teil.titel }}{% if not forloop.last %}, {% endif %}
+                        {{ relteil.teil.titel }}{% if not forloop.last %}, {% endif %}
                         {% endfor %}
                     </td>
                 </tr>
                 {% endif %}
+
+                {% if unfinished_gfs_abilities|length %}
+                <tr>
+                    <td>
+                        <a href="{% url 'campaign:hub_gfs_ability' char.id %}">
+                            <div class="checkbox {% if is_gfs_ability_done %}checked{% endif %}"></div>
+                        </a>
+                    </td>
+                    <td><a href="{% url 'campaign:hub_gfs_ability' char.id %}" class="text-light">Rückfragen für Gfs-Fähigkeiten</a></td>
+                    <td>{{ unfinished_gfs_abilities }}</td>
+                </tr>
+                {% endif %}
+
+                <!-- persönliches -->
+                <tr>
+                    <td>
+                        <a href="{% url 'campaign:hub_personal' char.id %}" class="text-light">
+                            <div class="checkbox checked"></div>
+                        </a>
+                    </td>
+                    <td><a href="{% url 'campaign:hub_personal' char.id %}" class="text-light"><b>Persönliches</b> bearbeiten</a></td>
+                    <td>-</td>
+                </tr>
+
+                <!-- Teil -->
+                <tr>
+                    <td>
+                        <div class="checkbox {% if char.ip >= 0 %}checked{% endif %}"></div>
+                    </td>
+                    <td>
+                        <a href="{% url 'campaign:hub_vorteile' char.id %}" class="text-light">Vorteile</a> und
+                        <a href="{% url 'campaign:hub_nachteile' char.id %}" class="text-light">Nachteile</a> nehmen 
+                    </td>
+                    <td>{{ char.ip }} IP</td>
+                </tr>
+
+                <!-- Spezis & Wissis -->
+                <tr>
+                    <td>
+                        <div class="checkbox {% if not char.spF_wF and not char.wp %}checked{% endif %}"></div>
+                    </td>
+                    <td>
+                        <a href="{% url 'campaign:hub_spF_wF' char.id %}" class="text-light">Spezial- und Wissensfertigkeiten wählen</a> 
+                    </td>
+                    <td>
+                        <ul>
+                            <li>{{ char.spF_wF|default:0 }} offen</li>
+                            <li>{{ char.wp|default:0 }} WP</li>
+                            <li>{{ char.sp|default:0 }} SP</li>
+                        </ul>
+                    </td>
+                </tr>
+
+                <!-- Talente -->
+                <tr>
+                    <td>
+                        <div class="checkbox {% if not char.tp %}checked{% endif %}"></div>
+                    </td>
+                    <td>
+                        <a href="{% url 'campaign:hub_talent' char.id %}" class="text-light">Talente</a> 
+                    </td>
+                    <td>{{ char.tp }} TP</td>
+                </tr>
+
+                <!-- Wesenkräfte -->
+                <tr>
+                    <td>
+                        <div class="checkbox checked"></div>
+                    </td>
+                    <td>
+                        <a href="{% url 'campaign:hub_wesenkraft' char.id %}" class="text-light">Wesenkräfte</a> 
+                    </td>
+                    <td>
+                        <ul>
+                            <li>{{char.sp}} SP</li>
+                            <li>{{char.ap}} AP / {{MA_aktuell}} MA</li>
+                        </ul>
+                    </td>
+                </tr>
+
+                <!-- Skilltree -->
+                <tr>
+                    <td>
+                        <div class="checkbox checked"></div>
+                    </td>
+                    <td>
+                        <a href="{% url 'campaign:hub_skilltree' char.id %}" class="text-light">Skilltree</a> 
+                    </td>
+                    <td>{{ char.sp }} SP</td>
+                </tr>
+
+                <!-- Affektivität -->
+                <tr>
+                    <td>
+                        <div class="checkbox checked"></div>
+                    </td>
+                    <td>
+                        <a href="{% url 'campaign:hub_affektivität' char.id %}" class="text-light">Affektivität</a> 
+                    </td>
+                    <td>-</td>
+                </tr>
             </tbody>
         </table>
 
-        <ul>
-            <li><a href="{% url 'campaign:hub_personal' char.id %}">Persönliches</a></li>
-            <li><a href="{% url 'campaign:hub_vorteile' char.id %}">Vorteile</a></li>
-            <li><a href="{% url 'campaign:hub_nachteile' char.id %}">Nachteile</a></li>
-            <li><a href="{% url 'campaign:hub_spF_wF' char.id %}">Spezial- & Wissensfertigkeiten</a></li>
-            <li><a href="{% url 'campaign:hub_talent' char.id %}">Talente</a></li>
-            <li><a href="{% url 'campaign:hub_wesenkraft' char.id %}">Wesenkräfte</a></li>
-            <li><a href="{% url 'campaign:hub_affektivität' char.id %}">Affektivität</a></li>
-            <li><a href="{% url 'campaign:hub_skilltree' char.id %}">Skilltree</a></li>
-        </ul>
 
         <form method="post">
             {% csrf_token %}
+            {% if pending_areas %}<p>Es fehlt noch: {{ pending_areas }}</p>{% endif %}
+            {% if not pending_areas and not is_done %}<p>Du bist nicht derEigentümer dieses Charakters</p>{% endif %}
             <button type="submit" class="btn btn-lg btn-primary" {% if not is_done %}disabled{% endif %}>Weiter</button>
         </form>
     </div>

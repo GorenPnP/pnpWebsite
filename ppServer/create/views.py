@@ -50,7 +50,7 @@ class LandingPageView(LoginRequiredMixin, CreateMixin, OwnCharakterMixin, Templa
 
         if not char.larp:
             rel_ma = RelAttribut.objects.get(char=char, attribut__titel='MA')
-            MA_aktuell = rel_ma.aktuellerWert + rel_ma.aktuellerWert_temp
+            MA_aktuell = rel_ma.aktuellerWert + rel_ma.aktuellerWert_temp - get_required_aktuellerWert(char, 'MA')
             zauber_werte = "<br>".join([
                 *[f"{amount} Stufe {stufe} Zauber" for stufe, amount in char.zauberplätze.items()],
                 f"{char.sp} SP",

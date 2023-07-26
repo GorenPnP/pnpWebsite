@@ -17,7 +17,15 @@ document.addEventListener("DOMContentLoaded", function() {
 
     // load selected chars from storage
     selected_characters = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
-    selected_characters.forEach(selected_char => document.querySelector(`#char-${selected_char.id}`).checked = true);
+
+    const removed_chars = []
+    selected_characters.forEach(selected_char => {
+        const box = document.querySelector(`#char-${selected_char.id}`)
+        if (box) box.checked = true;
+        else removed_chars.push(selected_char)
+    });
+    selected_characters = selected_characters.filter(char => !removed_chars.includes(char));
+
     set_display();
 
     // listen for changes
