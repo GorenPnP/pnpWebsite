@@ -39,7 +39,7 @@
 
         <h2 class="mt-5">Neues Talent</h2>
 
-        <select class="form-select w-auto my-3" name="zauber_id" required>
+        <select class="form-select w-auto my-3" name="talent_id" required>
             <option selected value="">---</option>
             {% for z in talente %}
             <option value="{% localize off %}{{ z.id }}{% endlocalize %}">{{ z.titel }}</option>

@@ -178,11 +178,6 @@ class GfsView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTableView):
             )
 
 
-# TODO
-# class StufenplanDetailView(LoginRequiredMixin, VerifiedAccountMixin, DetailView):
-#     model = Gfs
-
-
 @login_required
 @verified_account
 def stufenplan(request, gfs_id):

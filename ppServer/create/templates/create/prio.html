@@ -9,8 +9,8 @@
 
 {% block main %}
 
-<span id="ap-debt-text">Du brauchst noch <b id="ap-debt">{{ ap_cost }}</b> AP für die Gfs.</span>
-<span id="ap-left-text">Du hast <b id="ap-left">{{ ap_cost }}</b> AP übrig.</span>
+<span id="ap-debt-text">Du brauchst noch <b id="ap-debt">{{ char.gfs.ap }}</b> AP für die Gfs.</span>
+<span id="ap-left-text">Du hast <b id="ap-left">{{ char.gfs.ap }}</b> AP übrig.</span>
 
 <div class="table-wrapper">
     <table>
@@ -53,7 +53,7 @@
 
     <h4>Hilfreiches:</h4>
     <ul>
-        <li><a href="{% url 'wiki:stufenplan' gfs.id %}" target="_blank" class="text-light">{{ gfs.titel }} öffnen</a></li>
+        <li><a href="{% url 'wiki:stufenplan' char.gfs.id %}" target="_blank" class="text-light">{{ char.gfs.titel }} öffnen</a></li>
         {% for n in notizen %}<li>{{ n }}</li>{% endfor %}
     </ul>
 </aside>

@@ -23,12 +23,12 @@
 			<div class="container-fluid">
 				<a href="{% url 'httpchat:account_chats' account.slug %}" class="btn btn-outline-dark" style="margin-right: 1em;">< Zurück</a>
 
-				<a class="navbar-brand d-flex align-items-center gap-2 avatar-container" href="#" onclick="alert('Affektivität?')">
+				<div class="navbar-brand d-flex align-items-center gap-2 avatar-container">
 					{{ chatroom|titel:account }}
 					{% for url in chatroom|get_avatar_urls:account %}
 						<img src="{{ url }}" alt="Logo" class="rounded-circle border border-primary d-inline-block align-text-top" style="height: 47px; aspect-ratio: 1">
 					{% endfor %}
-				</a>
+				</div>
 			  <!-- <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarTogglerDemo02" aria-controls="navbarTogglerDemo02" aria-expanded="false" aria-label="Toggle navigation">
 				<span class="navbar-toggler-icon"></span>
 			  </button>

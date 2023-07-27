@@ -714,7 +714,7 @@ class Charakter(models.Model):
 
     def submit_stufenhub(self):
         from levelUp.decorators import is_done_entirely
-        if self.ep_stufe >= self.ep_stufe_in_progress or self.gfs is None or not is_done_entirely(self, 1): return
+        if self.ep_stufe >= self.ep_stufe_in_progress or self.gfs is None or not is_done_entirely(self): return
 
         if hasattr(self.processing_notes, "campaign"):
             del self.processing_notes["campaign"]
@@ -747,8 +747,9 @@ class Charakter(models.Model):
         RelNachteil.objects.filter(char=self, will_create=True).update(will_create=False)
 
         # ep-stufe
+        self.in_erstellung = False
         self.ep_stufe = self.ep_stufe_in_progress
-        self.save(update_fields=["ep_stufe", "processing_notes"])
+        self.save(update_fields=["ep_stufe", "processing_notes", "in_erstellung"])
 
 
 class RelWesenkraft(models.Model):
@@ -842,7 +843,6 @@ class RelTeil(models.Model):
     char = models.ForeignKey(Charakter, on_delete=models.CASCADE)
     teil = None
 
-    anzahl = models.PositiveSmallIntegerField(default=1)
     notizen = models.CharField(max_length=500, blank=True, null=True)
 
     attribut = models.ForeignKey(Attribut, on_delete=models.SET_NULL, null=True, blank=True)

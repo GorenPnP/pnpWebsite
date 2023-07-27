@@ -44,13 +44,15 @@ class TableView(FilterView):
         return reverse(f"{self.model._meta.app_label}:index") if self.model else None
     
     def get_context_data(self, *args, **kwargs):
-        return super().get_context_data(*args, **kwargs,
-            topic=self.get_topic(),
-            plus=self.get_plus(),
-            plus_url=self.get_plus_url(),
-            app_index=self.get_app_index(),
-            app_index_url=self.get_app_index_url(),
-        )
+        context = super().get_context_data(*args, **kwargs)
+
+        # don't clash with other Mixins & stuff
+        if "topic" not in context: context["topic"] = self.get_topic()
+        if "plus" not in context: context["plus"] = self.get_plus()
+        if "plus_url" not in context: context["plus_url"] = self.get_plus_url()
+        if "app_index" not in context: context["app_index"] = self.get_app_index()
+        if "app_index_url" not in context: context["app_index_url"] = self.get_app_index_url()
+        return context
 
 
 class ExportTableMixin(ExportMixin):

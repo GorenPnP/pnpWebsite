@@ -3,6 +3,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http.request import HttpRequest
 from django.http.response import HttpResponse, JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
+from django.views.generic import DetailView
 from django.views.generic.base import TemplateView
 from django.urls import reverse
 from django.utils.decorators import method_decorator
@@ -11,15 +12,11 @@ from django.utils.decorators import method_decorator
 from ppServer.mixins import VerifiedAccountMixin
 
 from base.abstract_views import DynamicTableView
-from levelUp.decorators import *
-from levelUp.views import *
-from character.models import *
+from character.models import Spieler, Beruf, RelAttribut, RelFertigkeit, RelVorteil, RelNachteil, RelWesenkraft, GfsAttribut, GfsFertigkeit, GfsWesenkraft, GfsVorteil, GfsNachteil, GfsZauber
+from levelUp.mixins import LevelUpMixin
 
-from .mixins import CreateMixin
+from .decorators import *
 from .models import *
-
-hub_decorators = [provide_char, gfs_done, prio_done]
-
 
 
 class GfsWahlfilterView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTableView):
@@ -35,88 +32,12 @@ class GfsWahlfilterView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTableVi
     app_index_url = "create:gfs"
 
 
-
-@method_decorator(hub_decorators, name="dispatch")
-class LandingPageView(LoginRequiredMixin, CreateMixin, OwnCharakterMixin, TemplateView):
-
-    def get(self, request: HttpRequest, char: Charakter) -> HttpResponse:
-
-        # rows
-        rows = []
-        rows.append({"done": is_personal_done(request, char=char), "link": reverse("create:personal"), "text": "<b>Persönliches</b> festlegen", "werte": "-", "id": "personal"})
-        rows.append({"done": is_ap_done(request, char=char), "link": reverse("create:ap"), "text": "<b>Attribute</b> verteilen", "werte": "{} AP".format(char.ap), "id": "attr"})
-        rows.append({"done": is_ferts_done(request, char=char), "link": reverse("create:fert"), "text": "<b>Fertigkeiten</b> verteilen",
-                     "werte": "{} FP<br>{} FG".format(char.fp, char.fg), "id": "fert"})
-
-        if not char.larp:
-            rel_ma = RelAttribut.objects.get(char=char, attribut__titel='MA')
-            MA_aktuell = rel_ma.aktuellerWert + rel_ma.aktuellerWert_temp - get_required_aktuellerWert(char, 'MA')
-            zauber_werte = "<br>".join([
-                *[f"{amount} Stufe {stufe} Zauber" for stufe, amount in char.zauberplätze.items()],
-                f"{char.sp} SP",
-                f"{char.ap} AP / {MA_aktuell} MA"
-            ])
-            wesenkr_werte = "<br>".join([
-                f"{char.sp} SP",
-                f"{char.ap} AP / {MA_aktuell} MA"
-            ])
-
-            rows.append({"done": is_zauber_done(request, char=char), "link": reverse("create:zauber"), "text": "<b>Zauber</b> aussuchen", "werte": zauber_werte})
-            rows.append({"done": is_spF_wF_done(request, char=char), "link": reverse("create:spF_wF"), "text": "<b>Spezial- und Wissensfertigkeiten</b> wählen", "werte": "{} offen<br>{} WP<br>{} SP".format(char.spF_wF, char.wp, char.sp)})
-            rows.append({"done": True, "link": reverse("create:wesenkraft"), "text": "<b>Wesenkräfte</b> verbessern", "werte": wesenkr_werte})
-
-
-        # infos
-        infos = [
-            "<strong>Deine Gfs/Klasse</strong> kannst du dir <a href='{}' target='_blank'>hier</a> nochmal angucken.".format(reverse("wiki:stufenplan", args=[char.gfs.id])),
-        ]
-
-        # assemble context & render
-        context = {
-            "topic": "Erstellungshub",
-            "rows": rows,
-            "done": is_done_entirely(char), # submit-btn disabled state
-            "infos": infos,
-            "app_index": "Erstellung",
-            "app_index_url": reverse("create:gfs"),
-
-            "is_teil_done": is_teil_done(request, char=char),
-            "char": char,
-        }
-        return render(request, "create/landing_page.html", context=context)
-
-
-    def post(self, request: HttpRequest, char: Charakter) -> HttpResponse:
-
-        rels = []
-        for rel in RelAttribut.objects.filter(char=char):
-            rel.aktuellerWert += rel.aktuellerWert_temp
-            rel.aktuellerWert_temp = 0
-
-            rel.maxWert += rel.maxWert_temp
-            rel.maxWert_temp = 0
-
-            rels.append(rel)
-        RelAttribut.objects.bulk_update(rels, fields=["aktuellerWert", "aktuellerWert_temp", "maxWert", "maxWert_temp"])
-
-        char.in_erstellung = False
-        char.save(update_fields=["in_erstellung"])
-
-        return redirect(reverse("character:show", args=[char.id]))
-
-
 class GfsFormView(LoginRequiredMixin, VerifiedAccountMixin, TemplateView):
 
     def get(self, request: HttpRequest) -> HttpResponse:
-
-        username = request.user.username
-        old_scetches = Gfs.objects\
-            .prefetch_related("charakter_set__eigentümer")\
-            .filter(charakter__eigentümer__name=username, charakter__in_erstellung=True)
-
         context = {
             "gfs": Gfs.objects.all(),
-            "old_scetches": old_scetches,
+            "old_scetches": Charakter.objects.filter(eigentümer__name=request.user.username, in_erstellung=True),
             "topic": "Charakter erstellen",
             "app_index": "Erstellung",
             "app_index_url": reverse("create:gfs"),
@@ -225,11 +146,13 @@ class GfsFormView(LoginRequiredMixin, VerifiedAccountMixin, TemplateView):
                 RelWesenkraft.objects.create(char=char, item=gfs_zauber.item, tier=gfs_zauber.tier)
 
 
-        return redirect("create:prio")
+        return redirect(reverse("create:prio", args=[char.id]))
 
 
-@method_decorator([provide_char, gfs_done, prio_not_done], name="dispatch")
-class PriotableFormView(LoginRequiredMixin, CreateMixin, OwnCharakterMixin, TemplateView):
+@method_decorator([is_gfs_done, is_prio_missing], name="dispatch")
+class PriotableFormView(LevelUpMixin, DetailView):
+    template_name = "create/prio.html"
+    model = Charakter
 
     # number of WP per spF & wF chosen
     WP_FACTOR = 4
@@ -238,39 +161,25 @@ class PriotableFormView(LoginRequiredMixin, CreateMixin, OwnCharakterMixin, Temp
         return Priotable.objects.all().values_list("priority", "ip", "ap", "sp", "konzentration", "fp", "fg", "zauber", "drachmen", "spF_wF")
 
 
-    def get(self, request: HttpRequest, char: Charakter) -> HttpResponse:
-        entries = self.get_entries()
-
-        # # get MA maximum
-        # max_MA = max_MA = GfsAttribut.objects.get(gfs=char.gfs, attribut__titel="MA").maxWert
-
-        # # mundan => keine Zauber wählbar (nur 0 Zauber in prio F)
-        # if max_MA == 0:
-        #     for k in range(entries.count()):
-        #         entries[k][7] = entries[k][7] and None  # produces 0 | None
-
-        notes = [
-            "IP = für Vor- und Nachteile",
-            "AP = Aufwerten eines Attributs",
-            "SP = für alles Mögliche, vor Allem um nicht zu sterben",
-            "Konz. = Konzentration, um Proben besser zu würfeln als sonst",
-            "FP = Fertigkeitspunkte",
-            "FG = Fertigkeitsgruppen",
-        ]
-
-        context = {
-            "topic": "Prioritätentabelle",
-            'table': entries,
-            'notizen': notes,
-            "ap_cost": char.gfs.ap,
-            "gfs": char.gfs,
-            "app_index": "Erstellung",
-            "app_index_url": reverse("create:prio"),
-        }
-        return render(request, "create/prio.html", context)
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs,
+            topic = "Prioritätentabelle",
+            table = self.get_entries(),
+            notes = [
+                "IP = für Vor- und Nachteile",
+                "AP = Aufwerten eines Attributs",
+                "SP = für alles Mögliche, vor Allem um nicht zu sterben",
+                "Konz. = Konzentration, um Proben besser zu würfeln als sonst",
+                "FP = Fertigkeitspunkte",
+                "FG = Fertigkeitsgruppen",
+            ]
+        )
+        context["back_url"] = reverse("create:gfs")
+        return context
 
 
-    def post(self, request: HttpRequest, char: Charakter) -> HttpResponse:
+    def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
+        char = self.get_object()
         entries = self.get_entries()
 
         # collect data
@@ -323,60 +232,4 @@ class PriotableFormView(LoginRequiredMixin, CreateMixin, OwnCharakterMixin, Temp
         char.ap = ap
         char.save(update_fields=["ip", "sp", "konzentration", "fp", "fg", "zauberplätze", "geld", "spF_wF", "wp", "ap"])
 
-        return JsonResponse({"url": reverse("create:landing_page")})
-
-
-
-@method_decorator(hub_decorators, name="dispatch")
-class PersonalFormView(CreateMixin, GenericPersonalView):
-    pass
-
-
-@method_decorator(hub_decorators, name="dispatch")
-class ApFormView(CreateMixin, GenericAttributView):
-    pass
-
-
-@method_decorator(hub_decorators, name="dispatch")
-class FertigkeitFormView(CreateMixin, GenericFertigkeitView):
-    pass
-
-
-@method_decorator(hub_decorators, name="dispatch")
-class ZauberFormView(CreateMixin, GenericZauberView):
-    pass
-
-
-@method_decorator(hub_decorators, name="dispatch")
-class SpF_wFFormView(CreateMixin, GenericSpF_wFView):
-    pass
-
-
-@method_decorator(hub_decorators, name="dispatch")
-class VorteilFormView(CreateMixin, GenericVorteilView):
-    pass
-
-
-@method_decorator(hub_decorators, name="dispatch")
-class NachteilFormView(CreateMixin, GenericNachteilView):
-    pass
-
-
-@method_decorator(hub_decorators, name="dispatch")
-class AffektivitätFormView(CreateMixin, AffektivitätView):
-    pass
-
-
-@method_decorator(hub_decorators, name="dispatch")
-class WesenkraftFormView(CreateMixin, GenericWesenkraftView):
-    pass
-
-
-@method_decorator(hub_decorators, name="dispatch")
-class TalentFormView(CreateMixin, GenericTalentView):
-    pass
-
-
-@method_decorator(hub_decorators, name="dispatch")
-class SkilltreeFormView(CreateMixin, GenericSkilltreeView):
-    pass
+        return JsonResponse({"url": reverse("levelUp:index", args=[char.id])})

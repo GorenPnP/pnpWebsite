@@ -42,7 +42,7 @@
         <li><a class="text-light" href="{% url 'wiki:gfs' %}" target="_blank">Alle Infos zu <b>wählbaren Gfs/Klassen</b></a>
 
         {% for s in old_scetches %}
-        <li><a class="text-light" href="{% url 'create:prio' %}">Einen <b>bestehenden Entwurf ({{ s.titel }}) fortführen</b></a></li>
+        <li><a class="text-light" href="{% url 'create:prio' s.id %}">Einen <b>bestehenden Entwurf ({{ s.name|default:"" }} {{ s.gfs.titel }}) fortführen</b></a></li>
         {% endfor %}
     </ul>
 
