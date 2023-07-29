@@ -25,15 +25,15 @@ class GenericFertigkeitView(LevelUpMixin, DynamicTablesView):
             fields = ["fertigkeit__titel", "attribute", "fp", "fg", "pool"]
             attrs = GenericTable.Meta.attrs
 
-        fp = TemplateColumn(template_name="levelUp/_number_input.html", extra_context={"add_field": "fp_bonus", "max_field": "fp_limit", "base_name": "fp", "base_class": "fp", "dataset_id": "id"})
-        fg = TemplateColumn(template_name="levelUp/_number_input.html", extra_context={"add_field": "fg_bonus", "max_field": "fp_limit", "base_name": "fg", "base_class": "fg", "dataset_id": "attr_dataset_id"})
+        fp = TemplateColumn(template_name="levelUp/_number_input.html", extra_context={"add_field": "fp", "bonus_field": "fp_bonus", "input_field": "fp_temp", "max_field": "fp_limit", "base_name": "fp", "base_class": "fp", "dataset_id": "id"})
+        fg = TemplateColumn(template_name="levelUp/_number_input.html", extra_context={"add_field": "fg", "bonus_field": None, "input_field": "fg_temp", "max_field": "fg_limit", "base_name": "fg", "base_class": "fg", "dataset_id": "attr_dataset_id"})
 
         def render_attribute(self, value, record):
             # like SCH (1)
             return format_html(f"{record.fertigkeit.attr1.titel} (<span class='attr_sum'>{record.attr_sum}</span>)")
 
         def render_pool(self, value, record):
-            return record.attr_sum + record.fg + record.fg_bonus + record.fp + record.fp_bonus
+            return record.attr_sum + record.fg + record.fg_temp + record.fp + record.fp_temp + record.fp_bonus
 
     class TableElse(GenericTable):
         class Meta:
@@ -41,7 +41,7 @@ class GenericFertigkeitView(LevelUpMixin, DynamicTablesView):
             fields = ["fertigkeit__titel", "attribute", "fp", "pool"]
             attrs = GenericTable.Meta.attrs
 
-        fp = TemplateColumn(template_name="levelUp/_number_input.html", extra_context={"add_field": "fp_bonus", "max_field": "fp_limit", "base_name": "fp", "base_class": "fp", "dataset_id": "id"})
+        fp = TemplateColumn(template_name="levelUp/_number_input.html", extra_context={"add_field": "fp", "bonus_field": "fp_bonus", "input_field": "fp_temp", "max_field": "fp_limit", "base_name": "fp", "base_class": "fp", "dataset_id": "id"})
 
         def render_attribute(self, value, record):
             # like SCH + IN (1)
@@ -67,7 +67,8 @@ class GenericFertigkeitView(LevelUpMixin, DynamicTablesView):
             .filter(char=char)\
             .filter(Q(attribut=OuterRef("fertigkeit__attr1")) | Q(attribut=OuterRef("fertigkeit__attr2")))\
             .annotate(
-            aktuell = F("aktuellerWert") + F("aktuellerWert_bonus") + F("aktuellerWert_temp")
+            aktuell = F("aktuellerWert") + F("aktuellerWert_bonus") + F("aktuellerWert_temp"),
+            fg_limit = F("aktuell") - F("fg"),
         )
 
         return RelFertigkeit.objects\
@@ -84,16 +85,19 @@ class GenericFertigkeitView(LevelUpMixin, DynamicTablesView):
                     sum=Window( expression=Sum('aktuell') ),
                 ).values('sum')[:1]),
 
-                # calc limit for the fp. Round normally.
-                fp_limit = Func((F("attr_sum") *1.0) / F("attribut_count"), function='ROUND'),
 
-
-                # handle fg, fg_bonus. Only releveant for those with 1 attribute.
+                # handle fg, fg_temp. Only relevant for those with 1 attribute.
                 fg = Subquery(attr_qs.annotate(
                     sum=Window( expression=Sum('fg') ),
                 ).values('sum')[:1]),
-                fg_bonus = Subquery(attr_qs.annotate(
-                    sum=Window( expression=Sum('fg_bonus') ),
+                fg_temp = Subquery(attr_qs.annotate(
+                    sum=Window( expression=Sum('fg_temp') ),
+                ).values('sum')[:1]),
+
+                # calc limits. Round normally.
+                fp_limit = Func((F("attr_sum") *1.0) / F("attribut_count"), function='ROUND') - F("fp"),
+                fg_limit = Subquery(attr_qs.annotate(
+                    sum=Window( expression=Sum('fg_limit') ),
                 ).values('sum')[:1]),
 
                 attribute = Value("some name"),    # replace later
@@ -137,7 +141,7 @@ class GenericFertigkeitView(LevelUpMixin, DynamicTablesView):
 
             # get & sanitize
             rel_fg = int(request.POST.getlist(f"fg-{attr.id}")[0])  # getting array of 3 identical because html contains 3 with similar "name" attrs
-            if rel_fg + relfert.fg_bonus > relattr.aktuellerWert + relattr.aktuellerWert_bonus + relattr.aktuellerWert_temp:
+            if rel_fg > relattr.aktuellerWert + relattr.aktuellerWert_bonus + relattr.aktuellerWert_temp - relattr.fg:
                 messages.error(request, f"Bei {attr} sind die FG höher als erlaubt")
 
             # save in temporal datastructure
@@ -146,7 +150,7 @@ class GenericFertigkeitView(LevelUpMixin, DynamicTablesView):
         #### test them ####
         # fp
         fp_max = self.get_queryset().aggregate(
-                spent = Sum("fp")
+                spent = Sum("fp_temp")
             )["spent"] + char.fp
 
         if sum(fp.values()) > fp_max:
@@ -154,7 +158,7 @@ class GenericFertigkeitView(LevelUpMixin, DynamicTablesView):
 
         # fg
         fg_max = RelAttribut.objects.filter(char=char).aggregate(
-                spent = Sum("fg")
+                spent = Sum("fg_temp")
             )["spent"] + char.fg
 
         if sum(fg.values()) > fg_max:
@@ -171,15 +175,15 @@ class GenericFertigkeitView(LevelUpMixin, DynamicTablesView):
 
         relattrs = []
         for relattr in RelAttribut.objects.prefetch_related("attribut", "char").filter(char=char):
-            relattr.fg = fg[relattr.attribut.id]
+            relattr.fg_temp = fg[relattr.attribut.id]
             relattrs.append(relattr)
-        RelAttribut.objects.bulk_update(relattrs, ["fg"])
+        RelAttribut.objects.bulk_update(relattrs, ["fg_temp"])
         
         relferts = []
         for relfert in RelFertigkeit.objects.prefetch_related("fertigkeit", "char").filter(char=char):
-            relfert.fp = fp[relfert.fertigkeit.id]
+            relfert.fp_temp = fp[relfert.fertigkeit.id]
             relferts.append(relfert)
-        RelFertigkeit.objects.bulk_update(relferts, ["fp"])
+        RelFertigkeit.objects.bulk_update(relferts, ["fp_temp"])
 
         # return response
         messages.success(request, "Erfolgreich gespeichert")

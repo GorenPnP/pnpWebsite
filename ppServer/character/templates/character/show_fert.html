@@ -31,10 +31,7 @@
             {% elif e.attr_id in g %}chip__row--g
             {% else %}chip__row--s{% endif %}">
             <div class="chip__cell fg">
-                <span>
-                    {{ e.fg }}
-                    {% if e.fg_bonus %}+ {{ e.fg_bonus }}{% endif %}
-                </span>
+                <span>{{ e.fg }}</span>
             </div>
 
             {% for rel in e.ferts %}

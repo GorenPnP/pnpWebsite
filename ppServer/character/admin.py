@@ -98,7 +98,7 @@ class RelPersönlichkeitInline(SpielerReadonlyInLine):
 
 
 class RelAttributInline(SpielerReadonlyInLine):
-    fields = ['attribut', 'aktuellerWert', 'aktuellerWert_temp', 'aktuellerWert_bonus', 'maxWert', 'maxWert_temp', 'maxWert_bonus', 'fg', "fg_temp"]
+    fields = ['attribut', 'aktuellerWert', 'aktuellerWert_temp', 'aktuellerWert_bonus', 'maxWert', 'maxWert_temp', 'fg', "fg_temp"]
     readonly_fields = ['attribut']
     model = RelAttribut
     extra = 0

@@ -679,10 +679,9 @@ class Charakter(models.Model):
             # add new RelVorteil, (also the ones that need more information, see "will_create=True")
             amount_to_create = min(max_amount - sum_current, sum_new)
             if amount_to_create > 0:
-                will_create = vorteil.needs_attribut or vorteil.needs_engelsroboter or vorteil.needs_fertigkeit or vorteil.needs_notiz
-
                 for _ in range(amount_to_create):
-                    RelVorteil.objects.create(teil=vorteil, char=self, will_create=will_create)
+                    rel = RelVorteil.objects.create(teil=vorteil, char=self)
+                    rel.update_will_create()
         
         self.save(update_fields=["ip", "processing_notes"])
 
@@ -741,10 +740,6 @@ class Charakter(models.Model):
             rel.fp_temp = 0
             rels.append(rel)
         RelFertigkeit.objects.bulk_update(rels, ["fp", "fp_temp"])
-
-        # teils
-        RelVorteil.objects.filter(char=self, will_create=True).update(will_create=False)
-        RelNachteil.objects.filter(char=self, will_create=True).update(will_create=False)
 
         # ep-stufe
         self.in_erstellung = False
@@ -855,6 +850,28 @@ class RelTeil(models.Model):
 
     def __str__(self):
         return "'{}' zu Charakter '{}'".format(self.teil.titel, self.char.name)
+    
+    def update_will_create(self):
+        will_create = (self.teil.needs_attribut and not self.attribut) or\
+            (self.teil.needs_fertigkeit and not self.fertigkeit) or\
+            (self.teil.needs_engelsroboter and not self.engelsroboter) or\
+            (self.teil.needs_notiz and not self.notizen)
+
+        if self.will_create != will_create:
+            self.will_create = will_create
+            self.save(update_fields=["will_create"])
+
+    def __repr__(self):
+        if self.will_create: return self.teil.titel + "(WILL CREATE)"
+
+        addons = []
+        if self.teil.needs_ip: addons.append(f"{self.ip} IP")
+        if self.teil.needs_attribut: addons.append(self.attribut.titel)
+        if self.teil.needs_fertigkeit: addons.append(self.fertigkeit.titel)
+        if self.teil.needs_engelsroboter: addons.append(self.engelsroboter.name)
+        if self.notizen: addons.append(self.notizen)
+
+        return self.teil.titel + (f" ({', '.join(addons)})" if len(addons) else "")
 
 
 class RelVorteil(RelTeil):
@@ -892,19 +909,17 @@ class RelAttribut(models.Model):
 
     maxWert = models.PositiveIntegerField(default=0)
     maxWert_temp = models.PositiveIntegerField(default=0)
-    maxWert_bonus = models.PositiveIntegerField(default=0)
     maxWert_fix = models.PositiveIntegerField(null=True, blank=True)
 
     fg = models.PositiveIntegerField(default=0)
     fg_temp = models.PositiveIntegerField(default=0)
-    fg_bonus = models.PositiveIntegerField(default=0)
 
     def __str__(self):
         return "'{}' von '{}'".format(self.attribut.__str__(), self.char.__str__())
 
     def aktuell(self): return self.aktuellerWert + self.aktuellerWert_temp + self.aktuellerWert_bonus
-    def max(self): return self.maxWert + self.maxWert_temp + self.maxWert_bonus
-    def fg_sum(self): return self.fg + self.fg_temp + self.fg_bonus
+    def max(self): return self.maxWert + self.maxWert_temp
+    def fg_sum(self): return self.fg + self.fg_temp
 
 class RelFertigkeit(models.Model):
 
@@ -951,7 +966,7 @@ class RelWissensfertigkeit(models.Model):
     char = models.ForeignKey(Charakter, on_delete=models.CASCADE)
     wissensfertigkeit = models.ForeignKey(Wissensfertigkeit, on_delete=models.CASCADE)
 
-    stufe = models.PositiveSmallIntegerField(default=0, null=False, blank=False)
+    stufe = models.PositiveSmallIntegerField(default=0, null=False, blank=False, validators=[MaxValueValidator(15)])
 
     def __str__(self):
         return "'{}' von '{}'".format(self.wissensfertigkeit.__str__(), self.char.__str__())
@@ -968,7 +983,7 @@ class RelSpezialfertigkeit(models.Model):
     char = models.ForeignKey(Charakter, on_delete=models.CASCADE)
     spezialfertigkeit = models.ForeignKey(Spezialfertigkeit, on_delete=models.CASCADE)
 
-    stufe = models.PositiveIntegerField(default=0, validators=[MaxValueValidator(50)])
+    stufe = models.PositiveIntegerField(default=0, validators=[MaxValueValidator(15)])
 
     def __str__(self):
         return "'{}' von '{}'".format(self.spezialfertigkeit.__str__(), self.char.__str__())
@@ -1471,9 +1486,10 @@ class GfsSkilltreeEntry(models.Model):
 
         # Roleplay-Text
         if self.operation == "R":
-            if not char.notizen: char.notizen = ""
-            char.notizen += f"\n{self.__repr__()}"
-            char.save(update_fields=["notizen"])
+            if not char.processing_notes: char.processing_notes = {}
+            if "skilltree" not in char.processing_notes: char.processing_notes["skilltree"] = []
+            char.processing_notes["skilltree"].append(f"{self.__repr__()} (Skilltree St. {self.base.stufe})")
+            char.save(update_fields=["processing_notes"])
             return
         
         # Zauberslots

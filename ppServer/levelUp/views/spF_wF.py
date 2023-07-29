@@ -56,7 +56,7 @@ class GenericSpF_wFView(LevelUpMixin, tables.SingleTableMixin, TemplateView):
             offset = -5 if record["art"] == "Spezial" else 0
 
 
-            args = f"min='{offset}'"
+            args = f"min='{0+offset}' max='{15+offset}'"
             if record["art"] == "Spezial":
                 args += f" name='spezial-{id}' class='spezial-input'"
             else:

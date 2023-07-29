@@ -15,8 +15,7 @@
                 {% if rel.aktuellerWert_bonus %}+ {{ rel.aktuellerWert_bonus }}{% endif %}
             </div>
             <span class="chip__cell">/</span>
-            <div class="chip__cell">{{ rel.maxWert|default:'0' }}
-                {% if rel.maxWert_bonus %}+{{ rel.maxWert_bonus }}{% endif %}</div>
+            <div class="chip__cell">{{ rel.maxWert|default:'0' }}</div>
         </div>
     {% endfor %}
 </div>

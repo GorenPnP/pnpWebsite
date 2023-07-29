@@ -38,12 +38,12 @@
                 <tr>
                     <td>
                         {% if row.done is not None %}
-                        <a href="{{ row.link }}">
+                        <a href="{{ row.link }}" {% if row.extern %}target="_blank"{% endif %}>
                             <div class="checkbox {% if row.done %}checked{% endif %}{% if forloop.last %} checked--sufficient{% endif %}"></div>
                         </a>
                         {% endif %}
                     </td>
-                    <td><a href="{{ row.link }}" class="text-light">{{ row.text|safe }}</a></td>
+                    <td><a href="{{ row.link }}" {% if row.extern %}target="_blank"{% endif %} class="text-light">{{ row.text|safe }}</a></td>
                     <td>{% autoescape off %}{{ row.werte }}{% endautoescape %}</td>
                 </tr>
                 {% endfor %}
@@ -55,7 +55,7 @@
             {% csrf_token %}
 
             {% if pending_areas %}<p>Es fehlt noch: {{ pending_areas }}</p>{% endif %}
-            {% if not pending_areas and not is_done %}<p>Du bist nicht derEigentümer dieses Charakters</p>{% endif %}
+            {% if not pending_areas and not is_done %}<p>Du bist nicht der Eigentümer dieses Charakters</p>{% endif %}
 
             <button type="submit" class="btn btn-lg btn-primary" {% if not is_done %}disabled{% endif %}>Weiter</button>
         </form>

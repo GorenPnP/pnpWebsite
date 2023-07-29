@@ -98,6 +98,7 @@ document.querySelector("form").onclick = function() {
 
     }
 }
+document.querySelector("form").click();
 
 
 

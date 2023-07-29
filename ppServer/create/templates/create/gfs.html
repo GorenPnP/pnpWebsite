@@ -13,7 +13,25 @@
         margin-block: 1em;
         display: block;
     }
+    .form-field { max-width: 270px; }
+    input:not([type=checkbox]), select { width: 100%; }
 </style>
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        document.querySelector("#larp").addEventListener("input", function() {
+            const stufe = document.querySelector("#stufe");
+            stufe.disabled = this.checked;
+            if (this.checked) { stufe.value = 0; }
+        });
+
+        document.querySelector("#stufe").addEventListener("input", function() {
+            const value = parseInt(this.value || 0);
+            const larp = document.querySelector("#larp");
+            larp.disabled = value;
+            if (value) { larp.checked = false; }
+        });
+    })
+</script>
 {% endblock %}
 
 {% block main %}
@@ -21,16 +39,26 @@
     {% csrf_token %}
 
     <h2>neuen Charakter erstellen</h2>
-    <select name="gfs_id" autofocus>
-        {% for g in gfs %}
-            <option value=" {% localize off %}{{ g.id }}{% endlocalize %}" id="option{{ forloop.counter0 }}">{{ g.titel }} (AP: {{ g.ap }})</option>
-        {% endfor %}
-    </select>
 
-    <div class="d-flex" style="gap: 1.7em; align-items: center;">
+    <div class="form-field">
+        <label for="gfs">Klasse/Gfs</label>
+        <select name="gfs_id" id="gfs">
+            {% for g in gfs %}
+                <option value=" {% localize off %}{{ g.id }}{% endlocalize %}" id="option{{ forloop.counter0 }}">{{ g.titel }} (AP: {{ g.ap }})</option>
+            {% endfor %}
+        </select>
+    </div class="form-field">
+    
+    <div class="form-field">
+        <label for="stufe">Stufe</label>
+        <input type="number" id="stufe" name="stufe" min="0" max="30" value="0">
+    </div>
+
+    <div class="form-field d-flex" style="gap: 1.7em; align-items: center;">
         <input type="checkbox" name="larp" id="larp">
         <label for="larp">Im LARP</label>
     </div>
+
 
     <button type="submit" class="btn btn-lg btn-primary">Weiter</button>
 </form>

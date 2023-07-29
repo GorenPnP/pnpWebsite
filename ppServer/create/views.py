@@ -12,7 +12,9 @@ from django.utils.decorators import method_decorator
 from ppServer.mixins import VerifiedAccountMixin
 
 from base.abstract_views import DynamicTableView
-from character.models import Spieler, Beruf, RelAttribut, RelFertigkeit, RelVorteil, RelNachteil, RelWesenkraft, GfsAttribut, GfsFertigkeit, GfsWesenkraft, GfsVorteil, GfsNachteil, GfsZauber
+from character.models import Spieler, Beruf, RelAttribut, RelFertigkeit, RelVorteil,\
+    RelNachteil, RelWesenkraft, GfsAttribut, GfsFertigkeit, GfsWesenkraft, GfsVorteil,\
+    GfsNachteil, GfsZauber, GfsStufenplanBase
 from levelUp.mixins import LevelUpMixin
 
 from .decorators import *
@@ -49,6 +51,7 @@ class GfsFormView(LoginRequiredMixin, VerifiedAccountMixin, TemplateView):
         try:
             gfs_id = int(request.POST["gfs_id"])
             larp = "larp" in request.POST
+            stufe = int(request.POST.get("stufe")) if "stufe" in request.POST else 0
         except:
             return JsonResponse({"message": "Keine Gfs angekommen"}, status=418)
 
@@ -59,7 +62,7 @@ class GfsFormView(LoginRequiredMixin, VerifiedAccountMixin, TemplateView):
         Charakter.objects.filter(eigentümer=spieler, in_erstellung=True).delete()
 
         # create new character
-        char = Charakter.objects.create(eigentümer=spieler, gfs=gfs, larp=larp, in_erstellung=True)
+        char = Charakter.objects.create(eigentümer=spieler, gfs=gfs, larp=larp, in_erstellung=True, processing_notes={"creation_larp": larp, "creation_stufe": stufe})
 
         # set default vals
         if larp:
@@ -78,7 +81,9 @@ class GfsFormView(LoginRequiredMixin, VerifiedAccountMixin, TemplateView):
             char.manifest = char.gfs.startmanifest
             char.wesenschaden_waff_kampf = char.gfs.wesenschaden_waff_kampf
             char.wesenschaden_andere_gestalt = char.gfs.wesenschaden_andere_gestalt
-            char.save(update_fields=["manifest", "wesenschaden_waff_kampf", "wesenschaden_andere_gestalt"])
+            if stufe:
+                char.ep = GfsStufenplanBase.objects.get(stufe=stufe).ep
+            char.save(update_fields=["manifest", "wesenschaden_waff_kampf", "wesenschaden_andere_gestalt", "ep"])
 
             # Attributes
             objects = []
@@ -105,9 +110,7 @@ class GfsFormView(LoginRequiredMixin, VerifiedAccountMixin, TemplateView):
 
             # Vorteile
             for gfs_teil in GfsVorteil.objects.filter(gfs=char.gfs):
-                will_create = gfs_teil.teil.needs_attribut or gfs_teil.teil.needs_engelsroboter or gfs_teil.teil.needs_fertigkeit or (gfs_teil.teil.needs_notiz and not gfs_teil.notizen)
-
-                RelVorteil.objects.create(
+                rel = RelVorteil.objects.create(
                     char=char, teil=gfs_teil.teil,
                     notizen=gfs_teil.notizen,
 
@@ -119,14 +122,12 @@ class GfsFormView(LoginRequiredMixin, VerifiedAccountMixin, TemplateView):
 
                     # sellable? needs info?
                     is_sellable=gfs_teil.is_sellable,
-                    will_create=will_create,
                 )
+                rel.update_will_create()
 
             # Nachteile
             for gfs_teil in GfsNachteil.objects.filter(gfs=char.gfs):
-                will_create = gfs_teil.teil.needs_attribut or gfs_teil.teil.needs_engelsroboter or gfs_teil.teil.needs_fertigkeit or gfs_teil.teil.needs_notiz
-
-                RelNachteil.objects.create(
+                rel = RelNachteil.objects.create(
                     char=char, teil=gfs_teil.teil,
                     notizen=gfs_teil.notizen,
 
@@ -138,8 +139,8 @@ class GfsFormView(LoginRequiredMixin, VerifiedAccountMixin, TemplateView):
 
                     # sellable?
                     is_sellable=gfs_teil.is_sellable,
-                    will_create=will_create,
                 )
+                rel.update_will_create()
 
             # Zauber
             for gfs_zauber in GfsZauber.objects.filter(gfs=char.gfs):
@@ -231,5 +232,8 @@ class PriotableFormView(LevelUpMixin, DetailView):
 
         char.ap = ap
         char.save(update_fields=["ip", "sp", "konzentration", "fp", "fg", "zauberplätze", "geld", "spF_wF", "wp", "ap"])
+
+        if not char.processing_notes["creation_larp"] and char.ep:
+            char.init_stufenhub()
 
         return JsonResponse({"url": reverse("levelUp:index", args=[char.id])})

@@ -23,7 +23,7 @@ class GenericWesenkraftView(LevelUpMixin, TemplateView):
 
         return super().get_context_data(*args, **kwargs,
             own_wesenkraft = RelWesenkraft.objects.filter(char=char).order_by("wesenkraft__titel"),
-            MA_aktuell = rel_ma.aktuellerWert + rel_ma.aktuellerWert_temp - get_required_aktuellerWert(char, "MA"),
+            MA_aktuell = rel_ma.aktuellerWert + rel_ma.aktuellerWert_temp + rel_ma.aktuellerWert_bonus - get_required_aktuellerWert(char, "MA"),
             get_tier_cost_with_sp = get_tier_cost_with_sp(),
             topic = "Wesenkraft",
         )
@@ -79,7 +79,7 @@ class GenericWesenkraftView(LevelUpMixin, TemplateView):
         if request.POST.get("payment_method") == "ap":
             rel_ma = get_object_or_404(RelAttribut, char=char, attribut__titel="MA")
             
-            ap_available = char.ap + rel_ma.aktuellerWert + rel_ma.aktuellerWert_temp - get_required_aktuellerWert(char, "MA")
+            ap_available = char.ap + rel_ma.aktuellerWert + rel_ma.aktuellerWert_temp + rel_ma.aktuellerWert_bonus - get_required_aktuellerWert(char, "MA")
             ap_to_pay = sum(new_tiers.values()) - rel_wesenkraft.aggregate(tier_sum=Sum("tier"))["tier_sum"]
 
 
@@ -102,7 +102,11 @@ class GenericWesenkraftView(LevelUpMixin, TemplateView):
             ap_diff = min(rel_ma.aktuellerWert, ap_to_pay)
             ap_to_pay -= ap_diff
             rel_ma.aktuellerWert -= ap_diff
-            rel_ma.save(update_fields=["aktuellerWert", "aktuellerWert_temp"])
+
+            ap_diff = min(rel_ma.aktuellerWert_bonus, ap_to_pay)
+            ap_to_pay -= ap_diff
+            rel_ma.aktuellerWert_bonus -= ap_diff
+            rel_ma.save(update_fields=["aktuellerWert", "aktuellerWert_temp", "aktuellerWert_bonus"])
 
 
         # receive

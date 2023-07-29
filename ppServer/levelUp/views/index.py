@@ -14,6 +14,7 @@ from log.create_log import render_number
 
 from ..decorators import is_erstellung_done
 from ..mixins import LevelUpMixin
+from ..views import get_required_aktuellerWert
 
 
 @method_decorator([is_erstellung_done], name="dispatch")
@@ -31,7 +32,7 @@ class IndexView(LevelUpMixin, DetailView):
     def build_table(self, char: Charakter):
         # PREPARATIONS
         rel_ma = RelAttribut.objects.get(char=char, attribut__titel='MA')
-        MA_aktuell = rel_ma.aktuellerWert + rel_ma.aktuellerWert_temp - get_required_aktuellerWert(char, 'MA')
+        MA_aktuell = rel_ma.aktuellerWert + rel_ma.aktuellerWert_temp + rel_ma.aktuellerWert_bonus - get_required_aktuellerWert(char, 'MA')
         wesenkr_werte = "<br>".join([
             f"{char.sp} SP",
             f"{char.ap} AP / {MA_aktuell} MA"
@@ -116,7 +117,7 @@ class IndexView(LevelUpMixin, DetailView):
         if char.wesenkräfte.exists():
             rows.append({"done": None, "link": self._get_url("wesenkraft", char), "text": "<b>Wesenkräfte</b>", "werte": wesenkr_werte})
         # Shop
-        rows.append({"done": None, "link": reverse("shop:index"), "text": "<b>Shop</b>", "werte": f"{render_number(char.geld)} Drachmen"})
+        rows.append({"done": None, "extern": True, "link": reverse("shop:index"), "text": "<b>Shop</b>", "werte": f"{render_number(char.geld)} Drachmen"})
         # Affektivität
         rows.append({"done": None, "link": self._get_url("affektivität", char), "text": "<b>Affektivität</b>", "werte": "-"})
 
@@ -183,7 +184,7 @@ class IndexView(LevelUpMixin, DetailView):
         
         # not eigentümer
         if self.request.user.username != char.eigentümer.name:
-            messages.error(request, "Du bist nichtEigentümer des Charakters und kannst deshalb die Verteilung nicht beenden.")
+            messages.error(request, "Du bist nicht Eigentümer des Charakters und kannst deshalb die Verteilung nicht beenden.")
             return redirect(request.build_absolute_uri())
         
         char = self.get_character()

@@ -140,7 +140,6 @@ def show(request, pk):
                 attrs.append({
                     "attr_id": relAttr.attribut.id,
                     "fg": relAttr.fg,
-                    "fg_bonus": relAttr.fg_bonus,
                     "ferts": RelFertigkeit.objects.filter(char=char, fertigkeit__attr2=None, fertigkeit__attr1=relAttr.attribut)
                 })
 
@@ -270,7 +269,7 @@ def show(request, pk):
         # nachteil
         elif section == sections[7]["name"]:
             context["teil_kind"] = "Nachteil"
-            context["teil"] = RelNachteil.objects.filter(char=char)
+            context["teil"] = RelNachteil.objects.filter(char=char, will_create=False)
 
 
         # talent

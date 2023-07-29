@@ -14,7 +14,7 @@ def is_erstellung_done(view_func, redirect_to="create:gfs"):
     return wrap
 
 def is_personal_done(char: Charakter):
-    return char is not None and char.name and char.persönlichkeit.exists()
+    return char is not None and char.name is not None and len(char.name) > 0 and char.persönlichkeit.exists()
 
 def is_ap_done(char: Charakter, max_ap: int = 0):
     return char is not None and char.ap <= max_ap
@@ -26,16 +26,9 @@ def is_zauber_done(char: Charakter):
     return char is not None and len(char.zauberplätze.keys()) == 0
 
 def is_teil_done(char: Charakter):
-    done = char is not None and char.ip >= 0
-    for rel_v in list(RelVorteil.objects.prefetch_related("teil").filter(char=char)) + list(RelNachteil.objects.prefetch_related("teil").filter(char=char)):
-        if (rel_v.teil.needs_attribut and not rel_v.attribut) or\
-            (rel_v.teil.needs_fertigkeit and not rel_v.fertigkeit) or\
-            (rel_v.teil.needs_engelsroboter and not rel_v.engelsroboter) or\
-            (rel_v.teil.needs_ip and not rel_v.ip):
-                done = False
-                break
-
-    return done
+    return char is not None and char.ip >= 0 and\
+        not RelVorteil.objects.filter(char=char, will_create=True).exists() and\
+        not RelNachteil.objects.filter(char=char, will_create=True).exists()
 
 def is_spF_wF_done(char: Charakter):
     return char is not None and not char.spF_wF and not char.wp

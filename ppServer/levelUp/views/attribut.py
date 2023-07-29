@@ -29,15 +29,15 @@ class GenericAttributView(LevelUpMixin, DynamicTableView):
             fields = ["attribut__titel", "aktuell_ap", "max_ap", "result"]
             attrs = GenericTable.Meta.attrs
 
-        aktuell_ap = TemplateColumn(template_name="levelUp/_number_input.html", extra_context={"add_field": "aktuell", "max_field": "aktuell_limit", "base_name": BASE_AKTUELL, "base_class": BASE_AKTUELL, "dataset_id": "dataset_id"})
-        max_ap = TemplateColumn(template_name="levelUp/_number_input.html", extra_context={"add_field": "max","max_field": None, "base_name": BASE_MAX, "base_class": BASE_MAX, "dataset_id": "dataset_id"})
+        aktuell_ap = TemplateColumn(template_name="levelUp/_number_input.html", extra_context={"add_field": "aktuellerWert", "bonus_field": "aktuellerWert_bonus", "input_field": "aktuellerWert_temp", "max_field": "aktuell_limit", "base_name": BASE_AKTUELL, "base_class": BASE_AKTUELL, "dataset_id": "dataset_id"})
+        max_ap = TemplateColumn(template_name="levelUp/_number_input.html", extra_context={"add_field": "maxWert", "bonus_field": None, "input_field": "maxWert_temp", "max_field": None, "base_name": BASE_MAX, "base_class": BASE_MAX, "dataset_id": "dataset_id"})
 
         def render_attribut__titel(self, value, record):
             return f"{value} ({record.attribut.beschreibung})"
 
         def render_result(self, value, record):
-            curr = (record.aktuell or 0) + (record.aktuell_ap or 0)
-            max = (record.max or 0) + (record.max_ap or 0)
+            curr = (record.aktuellerWert or 0) + (record.aktuellerWert_temp or 0) + (record.aktuellerWert_bonus or 0)
+            max = (record.maxWert or 0) + (record.maxWert_temp or 0)
             return f"{curr} / {max}"
 
 
@@ -52,11 +52,7 @@ class GenericAttributView(LevelUpMixin, DynamicTableView):
         char = self.get_character()
 
         return RelAttribut.objects.prefetch_related("char").filter(char=char).annotate(
-            aktuell = F("aktuellerWert") + F("aktuellerWert_bonus"),
-            aktuell_ap = F("aktuellerWert_temp"),
-            aktuell_limit = F("maxWert") + F("maxWert_bonus") + F("maxWert_temp") - F("aktuellerWert") - F("aktuellerWert_bonus"),
-            max = F("maxWert") + F("maxWert_bonus"),
-            max_ap = F("maxWert_temp"),
+            aktuell_limit = F("maxWert") + F("maxWert_temp") - F("aktuellerWert"),
             result=Value(1), # override later
             dataset_id=F("attribut__id")
         )
@@ -74,11 +70,11 @@ class GenericAttributView(LevelUpMixin, DynamicTableView):
             # get & sanitize
             aktuell = int(request.POST.get(f"{self.BASE_AKTUELL}-{attr.id}"))
             max = int(request.POST.get(f"{self.BASE_MAX}-{attr.id}"))
-            if relattr.aktuell + aktuell > relattr.max + max:
+            if relattr.aktuellerWert + aktuell > relattr.maxWert + max:
                 messages.error(request, f"Bei {attr} ist der Wert höher als das Maximum")
 
             min_aktuell = get_required_aktuellerWert(char, attr.titel)
-            if relattr.aktuell + aktuell < min_aktuell:
+            if relattr.aktuellerWert + relattr.aktuellerWert_bonus + aktuell < min_aktuell:
                 messages.error(request, f"Im {attr}-Pool musst du mindestens {min_aktuell} haben, weil du das für deine verteilten FP/FG brauchst")
 
 
@@ -93,7 +89,7 @@ class GenericAttributView(LevelUpMixin, DynamicTableView):
         ap_max = self.get_queryset()\
             .prefetch_related("attribut")\
             .aggregate(
-                spent = Sum("aktuell_ap") + 2* Sum("max_ap")
+                spent = Sum("aktuellerWert_temp") + 2* Sum("maxWert_temp")
             )["spent"] + char.ap
 
         if ap_spent > ap_max:
@@ -108,7 +104,7 @@ class GenericAttributView(LevelUpMixin, DynamicTableView):
         char.save(update_fields=["ap"])
 
         relattrs = []
-        for relattr in RelAttribut.objects.prefetch_related("attribut", "char").filter(char=char):
+        for relattr in RelAttribut.objects.prefetch_related("attribut").filter(char=char):
             relattr.aktuellerWert_temp = ap[relattr.attribut.id]["aktuell"]
             relattr.maxWert_temp = ap[relattr.attribut.id]["max"]
             relattrs.append(relattr)

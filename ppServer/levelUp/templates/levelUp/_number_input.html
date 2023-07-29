@@ -1,22 +1,33 @@
 {% load getattr l10n %}
 
 <div>
+    {% localize off %}
+
+    <!-- input -->
     <input
         type="number"
-        min=0
-        max="{% localize off %}{{ record|getattribute:max_field }}{% endlocalize %}"
+        min="0"
+        max="{{ record|getattribute:max_field }}"
         
         class="{{ base_class }}-input"
-        data-id="{% localize off %}{{ record|getattribute:dataset_id }}{% endlocalize %}"
+        data-id="{{ record|getattribute:dataset_id }}"
         
         form="form"
-        name="{{ base_name }}-{% localize off %}{{ record|getattribute:dataset_id }}{% endlocalize %}"
-        value="{% localize off %}{{ value|default:0 }}{% endlocalize %}"
+        name="{{ base_name }}-{{ record|getattribute:dataset_id }}"
+        value="{{ record|getattribute:input_field|default:0 }}"
 
         style="max-width:100px"
     >
-    
+
+    <!-- + fixwert -->
     {% if record|getattribute:add_field %}
-    + <span data-id="{% localize off %}{{ record|getattribute:dataset_id }}{% endlocalize %}" class="{{ base_class }}-fix">{% localize off %}{{ record|getattribute:add_field }}{% endlocalize %}</span>
+    +<span data-id="{{ record|getattribute:dataset_id }}" class="{{ base_class }}-fix">{{ record|getattribute:add_field }}</span>
     {% endif %}
+
+    <!-- (+ bonus) -->
+    {% if record|getattribute:bonus_field %}
+    (+<span data-id="{{ record|getattribute:dataset_id }}" class="{{ base_class }}-bonus">{{ record|getattribute:bonus_field }})</span>
+    {% endif %}
+
+    {% endlocalize %}
 </div>

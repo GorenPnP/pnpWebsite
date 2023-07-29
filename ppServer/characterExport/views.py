@@ -232,10 +232,10 @@ class CharacterExportView(LoginRequiredMixin, VerifiedAccountMixin, DetailView):
         format_vorteil = wb.add_format(dict(form_text_wrap, **form_cell_border, **form_align_top_left, **{"bg_color": COLOR["green"]}))
         format_nachteil = wb.add_format(dict(form_text_wrap, **form_cell_border, **form_align_top_left, **{"bg_color": COLOR["red"]}))
         werte_ws.merge_range("I13:I15", "Vorteile", format_teil_titel)
-        werte_ws.merge_range("J13:R15", ", ".join([f"{teil[0]}{' (' + teil[1] + ')' if teil[1] else ''}" for teil in char.relvorteil_set.order_by("teil__titel").filter(will_create=False).values_list("teil__titel", "notizen")]), format_vorteil)
+        werte_ws.merge_range("J13:R15", ", ".join([rel.__repr__() for rel in char.relvorteil_set.order_by("teil__titel").filter(will_create=False)]), format_vorteil)
 
         werte_ws.merge_range("I16:I18", "Nachteile", format_teil_titel)
-        werte_ws.merge_range("J16:R18", ", ".join([f"{teil[0]}{' (' + teil[1] + ')' if teil[1] else ''}" for teil in char.relnachteil_set.order_by("teil__titel").values_list("teil__titel", "notizen")]), format_nachteil)
+        werte_ws.merge_range("J16:R18", ", ".join([rel.__repr__() for rel in char.relnachteil_set.order_by("teil__titel").filter(will_create=False)]), format_nachteil)
 
         # continue center down
         format_state_titel = wb.add_format(dict(form_sub_titel, **form_italic, **{"left": 1}))
@@ -408,7 +408,7 @@ class CharacterExportView(LoginRequiredMixin, VerifiedAccountMixin, DetailView):
         format_fg = wb.add_format(dict(form_align_bottom_center, **form_cell_border, **{"font_size": 14, "bg_color": COLOR["grau 1"]}))
 
         werte_ws.write_row(1, 10, ["Attribut", "Basis", "Bonus", "Wert", "Max."], format_attr_titel)
-        for attr in char.relattribut_set.values(titel=F("attribut__titel"), basis=F("aktuellerWert"), bonus=F("aktuellerWert_bonus"), max=F("maxWert") + F("maxWert_bonus"), fg_total=F("fg") + F("fg_bonus")):
+        for attr in char.relattribut_set.values("fg", titel=F("attribut__titel"), basis=F("aktuellerWert"), bonus=F("aktuellerWert_bonus"), max=F("maxWert")):
             # attr
             row = split_position(POSITION[attr["titel"]])
             row_num = row["num"]
@@ -428,7 +428,7 @@ class CharacterExportView(LoginRequiredMixin, VerifiedAccountMixin, DetailView):
             fg_num = fg_row["num"]
             werte_ws.merge_range(f"B{fg_num}:B{fg_num+2}", f"=K{row['num']}", format_fert_attr if fg_num%2 == 0 else format_fert_attr__odd)
             werte_ws.merge_range(f"C{fg_num}:C{fg_num+2}", f"={row['alpha']}{row['num']}", format_fert_ap)
-            werte_ws.merge_range(f"{fg_alpha}{fg_num}:{fg_alpha}{fg_num+2}", attr["fg_total"], format_fg)
+            werte_ws.merge_range(f"{fg_alpha}{fg_num}:{fg_alpha}{fg_num+2}", attr["fg"], format_fg)
 
 
         # Fertigkeiten
@@ -531,14 +531,17 @@ class CharacterExportView(LoginRequiredMixin, VerifiedAccountMixin, DetailView):
             werte_ws.merge_range(f"D{index}:E{index}", a[3] if a is not None else None, format_border_right)
             werte_ws.merge_range(f"F{index}:H{index}", a[4] if a is not None else None, format_border_right)
         # Notizen
-        notizen = char.notizen
+        notizen = []
+        if char.notizen: notizen.append(char.notizen)
         if char.wesenschaden_waff_kampf:
-            notizen += f"\n+{char.wesenschaden_waff_kampf} HP im waffenlosen Kampf"
+            notizen.append(f"+{char.wesenschaden_waff_kampf} HP im waffenlosen Kampf")
         if char.wesenschaden_andere_gestalt:
-            notizen += f"\n+{char.wesenschaden_andere_gestalt} HP im waffenlosen Kampf der anderen Gestalt"
+            notizen.append(f"+{char.wesenschaden_andere_gestalt} HP im waffenlosen Kampf der anderen Gestalt")
+        if "skilltree" in char.processing_notes:
+            for s in char.processing_notes["skilltree"]: notizen.append(s)
 
         werte_ws.merge_range("A135:H135", "Notizen", format_ramsch_titel)
-        werte_ws.merge_range("A136:H143", char.notizen, format_large_cell)
+        werte_ws.merge_range("A136:H143", "\n".join(notizen), format_large_cell)
 
 
 

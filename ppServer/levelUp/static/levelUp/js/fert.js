@@ -27,10 +27,11 @@ function update_result(tr_tag) {
 
     let sum =
         (parseInt(tr_tag.querySelector(".attr_sum").innerHTML) || 0) +
-        (parseInt(tr_tag.querySelector(".fp-fix")?.innerHTML) || 0) +
         (parseInt(tr_tag.querySelector(".fp-input").value) || 0) +
-        (parseInt(tr_tag.querySelector(".fg-fix")?.innerHTML) || 0) +
-        (parseInt(tr_tag.querySelector(".fg-input")?.value) || 0);
+        (parseInt(tr_tag.querySelector(".fp-fix")?.innerHTML) || 0) +
+        (parseInt(tr_tag.querySelector(".fp-bonus")?.innerHTML) || 0) +
+        (parseInt(tr_tag.querySelector(".fg-input")?.value) || 0) +
+        (parseInt(tr_tag.querySelector(".fg-fix")?.innerHTML) || 0);
 
     tr_tag.lastChild.innerHTML = `${sum}`;
 }

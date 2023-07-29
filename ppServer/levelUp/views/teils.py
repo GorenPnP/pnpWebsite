@@ -85,9 +85,7 @@ class GenericTeilView(LevelUpMixin, TemplateView):
 
         ####### no updates of existing RelModel possible #########
 
-        # handle deletions
-
-        # TODO check if deletion is allowed for the char
+        # handle deletions, including check if deletion is allowed for the char
 
         deletions = [int(re.search(r'\d+$', key).group(0)) for key in changes.keys() if "delete" in key]
         qs_deletions = self.RelModel.objects.filter(id__in=deletions, char=char, is_sellable=True)
@@ -120,6 +118,7 @@ class GenericTeilView(LevelUpMixin, TemplateView):
                 own_rel.notizen = request.POST.get(f"notizen-{teil_id}-{rel_id}")
 
             own_rel.save()
+            own_rel.update_will_create()
 
 
         # handle additions
@@ -173,7 +172,9 @@ class GenericTeilView(LevelUpMixin, TemplateView):
                 continue
 
             # create relation
-            self.RelModel.objects.create(teil=teil, char=char, is_sellable=teil.is_sellable, **fields)
+            rel = self.RelModel.objects.create(teil=teil, char=char, is_sellable=teil.is_sellable, **fields)
+            rel.update_will_create()
+
             ip = self.calc_ip_on_creation(ip, teil.ip if not teil.needs_ip else int(fields["ip"]))
 
 

@@ -9,9 +9,10 @@ from character.models import Charakter, Spieler
 class LevelUpMixin(LoginRequiredMixin, UserPassesTestMixin):
     # let only owner and spielleiter access
     def test_func(self) -> bool:
-        if self.request.user.groups.filter(name="spielleiter").exists(): return True
-
         char = self.get_character()
+        if not char.ep_system: return False
+
+        if self.request.user.groups.filter(name="spielleiter").exists(): return True
         if not hasattr(char, "eigentümer"): return False
 
         spieler = get_object_or_404(Spieler, name=self.request.user.username)
@@ -38,6 +39,6 @@ class LevelUpMixin(LoginRequiredMixin, UserPassesTestMixin):
     def get(self, request, *args, **kwargs):
         is_eigentümer = self.request.user.username == self.get_character().eigentümer.name
         if not is_eigentümer:
-            messages.warning(self.request, "Dir gehört der Charakter nicht, als Spielleiter kannst du dir ihn aber bearbeiten")
+            messages.warning(self.request, "Dir gehört der Charakter nicht, als Spielleiter kannst du ihn aber bearbeiten")
 
         return super().get(request, *args, **kwargs)
