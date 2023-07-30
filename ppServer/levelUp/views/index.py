@@ -151,6 +151,10 @@ class IndexView(LevelUpMixin, DetailView):
         notizen = ["Du kannst alle TP sparen"]
         if not char.in_erstellung: notizen.append("Du kannst 1 AP sparen")
 
+        sub_btn_text = "Zur Charakterübersicht"
+        if char.in_erstellung: sub_btn_text = "Charaktererstellung abschließen"
+        if len(stufenbelohnung): sub_btn_text = "verteilte Stufen speichern"
+
         return {
             **context,
             "topic": "Hub",
@@ -160,7 +164,8 @@ class IndexView(LevelUpMixin, DetailView):
             "stufenbelohnung": stufenbelohnung,
             "app_index": char.name,
             "app_index_url": reverse("character:show", args=[char.id]),
-            "notizen": notizen
+            "notizen": notizen,
+            "sub_btn_text": sub_btn_text,
         }
 
 

@@ -713,7 +713,7 @@ class Charakter(models.Model):
 
     def submit_stufenhub(self):
         from levelUp.decorators import is_done_entirely
-        if self.ep_stufe >= self.ep_stufe_in_progress or self.gfs is None or not is_done_entirely(self): return
+        if self.gfs is None or not is_done_entirely(self): return
 
         if hasattr(self.processing_notes, "campaign"):
             del self.processing_notes["campaign"]
