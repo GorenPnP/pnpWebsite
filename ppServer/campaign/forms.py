@@ -6,6 +6,7 @@ class AuswertungForm(forms.Form):
 
     ep = forms.IntegerField(initial=0, label="EP", required=True, min_value=1)
     sp = forms.IntegerField(initial=0, label="SP", required=True)
+    geld = forms.IntegerField(initial=0, label="Geld", required=True)
     rang = forms.IntegerField(initial=0, label="Ränge", required=True)
     prestige = forms.IntegerField(initial=0, label="Prestige", required=True)
     verzehr = forms.IntegerField(initial=0, label="Verzehr", required=True)
@@ -45,6 +46,7 @@ class LarpAuswertungForm(forms.Form):
     fg = forms.IntegerField(initial=0, label="FG", required=True)
     zauberplätze = forms.JSONField(initial=dict, label="Zauberslots", required=False, widget=ZauberplätzeWidget(attrs={'class': 'zauberplätze-input'}))
     sp = forms.IntegerField(initial=0, label="SP", required=True)
+    geld = forms.IntegerField(initial=0, label="Geld", required=True)
     rang = forms.IntegerField(initial=0, label="Ränge", required=True)
     prestige = forms.IntegerField(initial=0, label="Prestige", required=True)
     verzehr = forms.IntegerField(initial=0, label="Verzehr", required=True)

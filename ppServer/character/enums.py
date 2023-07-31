@@ -1,11 +1,3 @@
-enum_wesenkr = [
-    ('a', 'alle'),
-    ('m', 'magisch'),
-    ('w', "wesenspezifisch"),
-    ('f', 'manifest < ..')
-]
-
-
 """ enum for <code>Fertigkeit</code>"""
 limit_enum = [
     ('-', 'keins'),

@@ -102,8 +102,10 @@ document.addEventListener("DOMContentLoaded", function () {
         input.dataset.old = input.value;
         
         // register change listener
-        input.addEventListener("input", function() {
-            if (!this.dataset.old?.length && this.value) {
+        input.addEventListener("keyup", function(e) {
+
+            // only on arrow up or down
+            if ([38, 40].includes(e.keyCode) && !this.dataset.old?.length && this.value) {
                 this.value = this.min || 0;
             }
             this.dataset.old = this.value;

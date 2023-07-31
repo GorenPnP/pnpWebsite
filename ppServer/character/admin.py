@@ -22,7 +22,7 @@ class SpielerReadonlyInLine(admin.TabularInline):
 
 
 class WesenkraftZusatzWesenspInLine(admin.TabularInline):
-    model = Wesenkraft.zusatz_gfsspezifisch.through
+    model = Wesenkraft.skilled_gfs.through
     extra = 1
 
 
@@ -257,7 +257,7 @@ class CharakterAdmin(admin.ModelAdmin):
 
     fieldsets = [
         ("Settings (Finger weg)", {'fields': ['eigentümer', "in_erstellung", "ep_system", "larp", "gfs"]}),
-        ('Roleplay', {'fields': ['name', "gewicht", "größe", 'alter', 'geschlecht', 'sexualität', 'beruf', "präf_arm",
+        ('Roleplay', {'fields': ['image', 'name', "gewicht", "größe", 'alter', 'geschlecht', 'sexualität', 'beruf', "präf_arm",
                               'religion', "hautfarbe", "haarfarbe", "augenfarbe"]}),
         
         ("Manifest", {"fields": ["manifest", "sonstiger_manifestverlust", "notizen_sonstiger_manifestverlust"]}),
@@ -300,12 +300,16 @@ class CharakterAdmin(admin.ModelAdmin):
                RelEngelsroboterInLine
     ]
 
-    list_display = ['name', 'eigentümer', "gfs", "wesen_", "ep_system", "larp", "in_erstellung"]
+    list_display = ['image_', 'name', 'eigentümer', "gfs", "wesen_", "ep_system", "larp", "in_erstellung"]
 
     list_filter = ['in_erstellung', 'larp', 'ep_system', 'eigentümer']
     search_fields = ['name', 'eigentümer__name']
+    list_display_links = ["name"]
 
     save_on_top = True
+
+    def image_(self, obj):
+        return format_html(f"<img src='{obj.image.url}' style='max-width: 32px; max-height:32px;'>") if obj.image else "-"
 
     def wesen_(self, obj):
         return ', '.join([w.titel for w in obj.spezies.all()])
@@ -348,12 +352,15 @@ class FertigkeitAdmin(admin.ModelAdmin):
 
 class WesenkraftAdmin(admin.ModelAdmin):
 
-    fields = ['titel', 'probe', 'wirkung', 'manaverbrauch', 'wesen', "zusatz_manifest"]
+    fields = ['titel', 'probe', 'wirkung', 'manaverbrauch', "skilled_gfs"]
     inlines = [WesenkraftZusatzWesenspInLine]
 
-    list_display = ['titel', 'probe', 'wirkung', 'wesen']
-    search_fields = ['titel', 'wesen']
-    list_filter = ['wesen']
+    list_display = ['titel', 'probe', 'manaverbrauch', 'wirkung', 'skilled_gfs_']
+    search_fields = ['titel', 'skilled_gfs']
+    list_filter = ['skilled_gfs']
+
+    def skilled_gfs_(self, obj):
+        return ", ".join([gfs.titel for gfs in obj.skilled_gfs.all()])
 
 
 class SpezialfertigkeitAdmin(admin.ModelAdmin):

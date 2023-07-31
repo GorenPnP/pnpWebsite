@@ -105,7 +105,7 @@ class GfsFormView(LoginRequiredMixin, VerifiedAccountMixin, TemplateView):
 
             # Wesenkräfte
             for gfs_wesenkr in GfsWesenkraft.objects.filter(gfs=char.gfs):
-                tier = 1 if gfs_wesenkr.wesenkraft.wesen == "w" and gfs_wesenkr.wesenkraft.zusatz_gfsspezifisch.filter(id=gfs.id).exists() else 0
+                tier = 1 if gfs_wesenkr.wesenkraft.skilled_gfs.filter(id=gfs.id).exists() else 0
                 RelWesenkraft.objects.create(char=char, wesenkraft=gfs_wesenkr.wesenkraft, tier=tier)
 
             # Vorteile

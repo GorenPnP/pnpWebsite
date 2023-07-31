@@ -293,7 +293,8 @@ class WissensfertigkeitTableView(LoginRequiredMixin, VerifiedAccountMixin, Dynam
         "attr2": ["exact"],
         "attr3": ["exact"],
         "fertigkeit": ["exact"],
-        "beschreibung": ["icontains"]
+        "beschreibung": ["icontains"],
+        "skilled_gfs": ["exact"]
     }
 
     app_index = "Wiki"
@@ -304,20 +305,12 @@ class WesenkraftTableView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTable
     class Table(GenericTable):
         class Meta:
             model = Wesenkraft
-            fields = ["titel", "probe", "manaverbrauch", "wirkung", "wesen"]
+            fields = ["titel", "probe", "manaverbrauch", "wirkung", "skilled_gfs"]
             attrs = GenericTable.Meta.attrs
 
 
-        def render_wesen(self, value, record):
-            """ see: enum_wesenkr = [('a', 'alle'),
-                    ('m', 'magisch'),
-                    ('w', "wesenspezifisch"),
-                    ('f', 'manifest < ..')
-                ]
-            """
-            if record.wesen == "w": return ("startet bei Tier 1: ") + ", ".join([gfs.titel for gfs in record.zusatz_gfsspezifisch.all()])
-            if record.wesen == "f": return f"Manifest < {record.zusatz_manifest}"
-            return value
+        def render_skilled_gfs(self, value, record):
+            return ("startet bei Tier 1: ") + ", ".join([gfs.titel for gfs in record.skilled_gfs.all()])
 
 
     model = Wesenkraft
@@ -327,7 +320,7 @@ class WesenkraftTableView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTable
         "probe": ["icontains"],
         "manaverbrauch": ["icontains"],
         "wirkung": ["icontains"],
-        "wesen": ["exact"]
+        "skilled_gfs": ["exact"]
     }
 
     app_index = "Wiki"

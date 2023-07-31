@@ -61,10 +61,7 @@ class Wesenkraft(models.Model):
     wirkung = models.TextField(null=False, default="")
     manaverbrauch = models.CharField(max_length=100, null=True, blank=True, default="")
 
-    wesen = models.CharField(max_length=1, choices=enums.enum_wesenkr, null=False, default=enums.enum_wesenkr[0][0])
-    zusatz_gfsspezifisch = models.ManyToManyField("Gfs", blank=True, related_name="zusatz_gfsspezifisch")
-    zusatz_manifest = models.DecimalField('zusatz_manifest', max_digits=4, decimal_places=2,
-                                          validators=[MaxValueValidator(10), MinValueValidator(0)], null=True, blank=True)
+    skilled_gfs = models.ManyToManyField("Gfs", blank=True, related_name="skilled_gfs")
 
     def __str__(self):
         return self.titel
@@ -226,7 +223,6 @@ class GfsVorteil(models.Model):
     teil = models.ForeignKey('Vorteil', on_delete=models.CASCADE)
     gfs = models.ForeignKey(Gfs, on_delete=models.CASCADE)
 
-    anzahl = models.PositiveSmallIntegerField(default=1)
     notizen = models.CharField(max_length=100, default='', blank=True)
 
     attribut = models.ForeignKey("Attribut", on_delete=models.SET_NULL, null=True, blank=True)
@@ -247,7 +243,6 @@ class GfsNachteil(models.Model):
     teil = models.ForeignKey('Nachteil', on_delete=models.CASCADE)
     gfs = models.ForeignKey(Gfs, on_delete=models.CASCADE)
 
-    anzahl = models.PositiveSmallIntegerField(default=1)
     notizen = models.CharField(max_length=100, default='', blank=True)
 
     attribut = models.ForeignKey("Attribut", on_delete=models.SET_NULL, null=True, blank=True)
@@ -505,6 +500,8 @@ class Charakter(models.Model):
         verbose_name_plural = "Charaktere"
         ordering = ["eigentümer", 'name']
 
+    image = ResizedImageField(size=[1024, 1024], null=True, blank=True)
+
     # settings
     in_erstellung = models.BooleanField(default=True)
     ep_system = models.BooleanField(default=True)
@@ -703,7 +700,7 @@ class Charakter(models.Model):
                 wesenkräfte.append(wk)
 
         for w in wesenkräfte:
-            _, created = RelWesenkraft.objects.get_or_create(char=self, wesenkraft=w, defaults={"tier": 1 if w.wesen == "w" and self.gfs in w.zusatz_gfsspezifisch.all() else 0})
+            _, created = RelWesenkraft.objects.get_or_create(char=self, wesenkraft=w, defaults={"tier": 1 if w.skilled_gfs.filter(id=self.gfs).exists() else 0})
             if not created:
                 # log that wesenkraft already existed
                 capture_message(f"Wesenkraft {w.titel} war bei {self.name} ({self.gfs.titel}) im EP-Tree Stufe {self.ep_stufe+1} - {self.ep_stufe_in_progress}", level='info')
@@ -1517,7 +1514,7 @@ class GfsSkilltreeEntry(models.Model):
 
         # neu! Wesenkraft
         if self.operation == "e":
-            RelWesenkraft.objects.get_or_create(char=char, wesenkraft=self.wesenkraft, defaults={"tier": 1 if self.wesenkraft.wesen == "w" and self.gfs in self.wesenkraft.zusatz_gfsspezifisch.all() else 0})
+            RelWesenkraft.objects.get_or_create(char=char, wesenkraft=self.wesenkraft, defaults={"tier": 1 if self.wesenkraft.skilled_gfs.filter(id=self.gfs).exists() else 0})
             return
         # neu! Spezi
         if self.operation == "s":

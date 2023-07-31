@@ -24,7 +24,7 @@ class GenericPersonalView(LevelUpMixin, TemplateView):
     def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
         char = self.get_character()
 
-        form = PersonalForm(request.POST, instance=char)
+        form = PersonalForm(request.POST, request.FILES, instance=char)
         form.full_clean()
         if form.is_valid():
             form.save()

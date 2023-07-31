@@ -1,5 +1,5 @@
 import xlsxwriter, re
-from typing import Any
+from io import BytesIO
 
 from django.db.models.functions import Concat
 from django.db.models import F, Subquery, OuterRef, Q, Value, CharField,  prefetch_related_objects
@@ -326,49 +326,49 @@ class CharacterExportView(LoginRequiredMixin, VerifiedAccountMixin, DetailView):
 
         werte_ws.merge_range("M19:O19", "Reaktion", format_colorful_titel_emph)
         werte_ws.merge_range("P19:R19", "=(N3+N7+N9)/2"+(f"+{char.reaktion_bonus}" if char.reaktion_bonus else ""), format_colorful)
-        werte_ws.write("S19", "(SCH+GES+WK)/2")
+        # werte_ws.write("S19", "(SCH+GES+WK)/2")
         werte_ws.merge_range("M20:O20", "Rüstung Schutz | Stärke", format_colorful_titel)
         werte_ws.merge_range("P20:R20", "__ | __ HP", format_colorful)
-        werte_ws.write("S20", "s. Rüstung")
+        # werte_ws.write("S20", "s. Rüstung")
         werte_ws.merge_range("M21:O21", "Haltbarkeit der Rüstung", format_colorful_titel)
         werte_ws.merge_range("P21:R21", "__", format_colorful)
-        werte_ws.write("S21", "s. Rüstung")
+        # werte_ws.write("S21", "s. Rüstung")
         werte_ws.merge_range("M22:O22", "nat. Schadenswiderstand", format_colorful_titel_emph)
         werte_ws.merge_range("P22:R22", "=N5+N6"+(f"+{char.natürlicher_schadenswiderstand_bonus}" if char.natürlicher_schadenswiderstand_bonus else ""), format_colorful)
-        werte_ws.write("S22", "ST+VER (xHP pro Erfolg, normal 1)")
+        # werte_ws.write("S22", "ST+VER (xHP pro Erfolg, normal 1)")
         werte_ws.merge_range("M23:O23", "Intuition", format_colorful_titel)
         werte_ws.merge_range("P23:R23", "=(N4+2+N3)/2", format_colorful)
-        werte_ws.write("S23", "(IN+2*SCH)/2")
+        # werte_ws.write("S23", "(IN+2*SCH)/2")
         werte_ws.merge_range("M24:O24", "Geh-/Lauf- und Sprintrate", format_colorful_titel)
         werte_ws.write_row("P24", ["=N3*2", "=N3*4", "=N3*4+G3"], format_colorful)
-        werte_ws.write("S24", "SCH*2, SCH*4, SCH*4 + Laufen + NE auf Laufen *2m")
+        # werte_ws.write("S24", "SCH*2, SCH*4, SCH*4 + Laufen + NE auf Laufen *2m")
         werte_ws.merge_range("M25:O25", "Bewegung Astral (in m/10sek)", format_colorful_titel)
         werte_ws.merge_range("P25:R25", "=2*N10*(N9+N3)", format_colorful)
-        werte_ws.write("S25", "2*MA*(WK+SCH)")
+        # werte_ws.write("S25", "2*MA*(WK+SCH)")
         werte_ws.merge_range("M26:O26", "Schwimmen (in m/10sek)", format_colorful_titel)
         werte_ws.merge_range("P26:R26", "=P24/3+G4/5", format_colorful)
-        werte_ws.write("S26", "Gehrate/3+Schwimmen/5")
+        # werte_ws.write("S26", "Gehrate/3+Schwimmen/5")
         werte_ws.merge_range("M27:O27", "Tauchen (in m/10sek)", format_colorful_titel)
         werte_ws.merge_range("P27:R27", "=P24/5+G4/5", format_colorful)
-        werte_ws.write("S27", "Gehrate/5+Schwimmen/5")
+        # werte_ws.write("S27", "Gehrate/5+Schwimmen/5")
         werte_ws.merge_range("M28:O28", "Tragfähigkeit", format_colorful_titel)
         werte_ws.merge_range("P28:R28", "=N5*3+N7", format_colorful)
-        werte_ws.write("S28", "ST*3+GES")
+        # werte_ws.write("S28", "ST*3+GES")
         werte_ws.merge_range("M29:O29", "Heben pro Erfolg (kg)", format_colorful_titel)
         werte_ws.merge_range("P29:R29", "=N5*4+N12", format_colorful)
-        werte_ws.write("S29", "ST*4+N")
+        # werte_ws.write("S29", "ST*4+N")
         werte_ws.merge_range("M30:O30", "Ersticken nach x Sekunden", format_colorful_titel)
         werte_ws.merge_range("P30:R30", "=N9*3+G10+G22+G4*3", format_colorful)
-        werte_ws.write("S30", "WK*3+Heben+Entschlossenheit+Schwimmen*3")
+        # werte_ws.write("S30", "WK*3+Heben+Entschlossenheit+Schwimmen*3")
         werte_ws.merge_range("M31:O31", "Immunsystem (W100)", format_colorful_titel)
         werte_ws.merge_range("P31:R31", "=N5*5+N6+G23+G11", format_colorful)
-        werte_ws.write("S31", "ST*5+VER+Resistenz+Konstitution")
+        # werte_ws.write("S31", "ST*5+VER+Resistenz+Konstitution")
         werte_ws.merge_range("M32:O32", "Regeneration in HP pro Tag", format_colorful_titel)
         werte_ws.merge_range("P32:R32", "=N5+N9", format_colorful)
-        werte_ws.write("S32", "ST+WK")
+        # werte_ws.write("S32", "ST+WK")
         werte_ws.merge_range("M33:O33", "Manaoverflow", format_colorful_titel)
         werte_ws.merge_range("P33:R33", "=(N9+N10)*3", format_colorful)
-        werte_ws.write("S33", "(WK+MA)*3")
+        # werte_ws.write("S33", "(WK+MA)*3")
         werte_ws.merge_range("M34:O34", "Crit.-Value Angriff", format_colorful_titel)
         werte_ws.merge_range("P34:R34", char.crit_attack, format_colorful)
         werte_ws.merge_range("M35:O35", "Crit.-Value Verteidigung", format_colorful_titel)
@@ -747,6 +747,10 @@ class CharacterExportView(LoginRequiredMixin, VerifiedAccountMixin, DetailView):
             },
         })
         werte_ws.insert_chart('S1', chart)
+
+        # add image
+        if char.image:
+            werte_ws.insert_image('S16', 'image name', {'image_data': BytesIO(char.image.storage.open(char.image.name).read())})
         
         # construct response
         wb.close()

@@ -3,7 +3,7 @@
 {% block extra-head %}<link rel="stylesheet" href="{% static 'auth/css/centered_form.css' %}">{% endblock %}
 {% block main %}
 <div class="text-container">
-    <form class='form' method="POST" class="input-group">
+    <form class='form' method="POST" enctype='multipart/form-data' class="input-group">
         {% csrf_token %}
         {{ form.as_p }}
 

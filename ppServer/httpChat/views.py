@@ -149,6 +149,9 @@ class ChatroomView(LoginRequiredMixin, OwnChatMixin, TemplateView):
                 type=Message.choices[0][0]
             )
 
+            # set message for all own characters in this group to read
+            ChatroomAccount.objects.filter(chatroom=objects["chatroom"], account__spieler=objects["account"].spieler).update(latest_access=timezone.now())
+
         # redirect to chatroom
         return redirect(request.build_absolute_uri())
 

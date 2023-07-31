@@ -12,6 +12,7 @@ class PersonalForm(forms.ModelForm):
         model = Charakter
         widgets = {"persönlichkeit": M2MSelect()}
         fields = [
+            "image",
             "name",
             "persönlichkeit",
 
@@ -28,6 +29,7 @@ class PersonalForm(forms.ModelForm):
             "augenfarbe",
 
             "persönlicheZiele",
+            "sonstige_items",
             "notizen"
         ]
 
