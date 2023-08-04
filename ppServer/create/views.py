@@ -188,50 +188,54 @@ class PriotableFormView(LevelUpMixin, DetailView):
         if char is None:
             return JsonResponse({"url": reverse("create:gfs")}, status=300)
 
-        fields = {}
+
         try:
-            for k, v in json.loads(request.body.decode("utf-8")).items(): fields[k] = int(v)
+            unordered_fields = list(json.loads(request.body.decode("utf-8")).items())
         except:
             return JsonResponse({'message': 'Falsche Auswahl (Format)'}, status=418)
 
-        if len(fields.values()) != num_entries:
+        if len(unordered_fields) != num_entries:
             return JsonResponse({"message": "Falsche Auswahl (Anzahl Felder)"}, status=418)
 
-        for val in fields.values():
+        for _, val in unordered_fields:
             if val < 0 or val >= num_entries:
                 return JsonResponse({"message": "Falsche Auswahl (Inhalt Felder)"}, status=418)
 
         # start logic
-        for category in fields.keys():
-            row = fields[category]
-            col = int(category) + 1
+        fields = [{"prio": priority_enum[int(v)][0], "col": int(k)} for k, v in sorted(unordered_fields, key=lambda e: int(e[1]))]
+        for index, row in enumerate(Priotable.objects.all()):
+            col  = fields[index]["col"]
 
-            # row: [priority, IP, AP, (SP, konzentration), (FP, FG), Zauber, Drachmen]
-            if col == 1:
-                char.ip = entries[row][col]
+            if col == 0:
+                char.ip = row.ip
+                fields[index]["text"] = f"{row.ip} IP"
+            elif col == 1:
+                ap = row.ap
+                fields[index]["text"] = f"{row.ap} AP"
             elif col == 2:
-                ap = entries[row][col]
-
+                char.sp = row.sp
+                char.konzentration = row.konzentration
+                fields[index]["text"] = f"{row.sp} SP, {row.konzentration} Konz."
             elif col == 3:
-                char.sp = entries[row][col]
-                char.konzentration = entries[row][col + 1]
+                char.fp = row.fp
+                char.fg = row.fg
+                fields[index]["text"] = f"{row.fp} FP, {row.fg} FG"
             elif col == 4:
-                char.fp = entries[row][col + 1]
-                char.fg = entries[row][col + 2]
-            elif col == 5:
-                amount = entries[row][col + 2]
-                char.zauberplätze = {"0": amount} if amount else {}
+                char.zauberplätze = {"0": row.zauber} if row.zauber else {}
+                fields[index]["text"] = f"{row.zauber} Zauber"
             else:
-                char.geld = entries[row][col + 2]
-                char.spF_wF = entries[row][col + 3]
-                char.wp = entries[row][col + 3] * self.WP_FACTOR
+                char.geld = row.drachmen
+                char.spF_wF = row.spF_wF
+                char.wp = row.spF_wF * self.WP_FACTOR
+                fields[index]["text"] = f"{row.drachmen} Drachmen, {row.spF_wF} Sp-Fert/W-Fert"
 
         ap -= char.gfs.ap
         if ap < 0:
             return JsonResponse({"message": "Zu wenig AP für Gfs"}, status=418)
 
         char.ap = ap
-        char.save(update_fields=["ip", "sp", "konzentration", "fp", "fg", "zauberplätze", "geld", "spF_wF", "wp", "ap"])
+        char.processing_notes["priotable"] = fields
+        char.save(update_fields=["ip", "sp", "konzentration", "fp", "fg", "zauberplätze", "geld", "spF_wF", "wp", "ap", "processing_notes"])
 
         if not char.processing_notes["creation_larp"] and char.ep:
             char.init_stufenhub()
