@@ -294,7 +294,6 @@ class WissensfertigkeitTableView(LoginRequiredMixin, VerifiedAccountMixin, Dynam
         "attr3": ["exact"],
         "fertigkeit": ["exact"],
         "beschreibung": ["icontains"],
-        "skilled_gfs": ["exact"]
     }
 
     app_index = "Wiki"
