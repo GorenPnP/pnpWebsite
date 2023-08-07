@@ -1,34 +1,216 @@
-{% extends 'base/main.html' %}
-{% load static %}
+{% extends 'base/headed_main.html' %}
+{% load static resources django_tables2 %}
 {% block extra-head %}
-<link rel="stylesheet" href="{% static 'character/css/show.css' %}" type="text/css">
-
-<script src="{% static 'res/js/axios.min.js' %}" type='text/javascript'></script>
-<script src="{% static 'base/js/ajax.js' %}"></script>
-<script src="{% static 'character/js/show_nav.js' %}"></script>
+<link rel="stylesheet" href="{% static 'character/css/show.css' %}">
 {% endblock %}
 
-
-{% block header %}
-    {% include 'character/show_header.html' %}
+{% block asides %}
+<div id="nav-mobile" class="d-md-none">
+    {% resources %}
+    <nav id="navbar-character-mobile" class="navbar navbar-dark flex-column">
+        <nav class="nav nav-pills nav-pills-light flex-column">
+            <a class="nav-link" href="#personal">Persönliches</a>
+            <a class="nav-link" href="#resources">Währungen/Ressourcen</a>
+            <a class="nav-link" href="#values">errechnete Werte</a>
+            <a class="nav-link" href="#attrs">Attribute + Fertigkeiten</a>
+            <a class="nav-link" href="#hp">HP</a>
+            <a class="nav-link" href="#vorteil">Vorteile</a>
+            <a class="nav-link" href="#nachteil">Nachteile</a>
+            <a class="nav-link" href="#wesenkraft">Wesenkräfte</a>
+            <a class="nav-link" href="#talent">Talente</a>
+            <a class="nav-link" href="#gfs">Gfs-Fähigkeiten</a>
+            <a class="nav-link" href="#affekt">Affektivität</a>
+            <a class="nav-link" href="#inventory">Inventar & Ramsch</a>
+            <a class="nav-link" href="#zauber">Zauber, Rituale & Runen</a>
+            <a class="nav-link" href="#nahkampf">Nahkampfwaffen</a>
+            <a class="nav-link" href="#fernkampf">Fernkampfwaffen</a>
+            <a class="nav-link disabled" href="#" tabindex="-1" aria-disabled="true">Disabled</a>
+        </nav>
+    </nav>
+    {% endresources %}
+</div>
 {% endblock %}
 
 {% block main %}
-    <!-- navbar for character -->
-    <nav class="show-nav">
-        <ul class="show-nav__list">
-            {% for s in sections %}
-            <li class="show-nav__item {% if forloop.first %}current{% endif %}"
-                onclick="changeSection(event)">{{ s.name }}</li>
-            {% endfor %}
-        </ul>
+<div class="d-flex align-items-start gap-3">
+
+    <nav id="navbar-character" class="navbar navbar-dark bg-dark flex-column p-3 d-none d-md-flex">
+        <a class="navbar-brand" href="#">{{ object.name }}</a>
+        <nav class="nav nav-pills flex-column">
+            <a class="nav-link" href="#personal">Persönliches</a>
+            <a class="nav-link" href="#resources">Währungen/Ressourcen</a>
+            <a class="nav-link" href="#values">errechnete Werte</a>
+            <a class="nav-link" href="#attrs">Attribute + Fertigkeiten</a>
+            <a class="nav-link" href="#hp">HP</a>
+            <a class="nav-link" href="#vorteil">Vorteile</a>
+            <a class="nav-link" href="#nachteil">Nachteile</a>
+            <a class="nav-link" href="#wesenkraft">Wesenkräfte</a>
+            <a class="nav-link" href="#talent">Talente</a>
+            <a class="nav-link" href="#gfs">Gfs-Fähigkeiten</a>
+            <a class="nav-link" href="#affekt">Affektivität</a>
+            <a class="nav-link" href="#inventory">Inventar & Ramsch</a>
+            <a class="nav-link" href="#zauber">Zauber, Rituale & Runen</a>
+            <a class="nav-link" href="#nahkampf">Nahkampfwaffen</a>
+            <a class="nav-link" href="#fernkampf">Fernkampfwaffen</a>
+            <a class="nav-link disabled" href="#" tabindex="-1" aria-disabled="true">Disabled</a>
+        </nav>
     </nav>
 
-    <nav class="mobile-nav btn">
-        <img class="mobile-nav__img sec" src="{% static 'res/img/icon-section.svg' %}" alt="">
-        <img class="mobile-nav__img close" src="{% static 'res/img/icon-close.svg' %}" alt="">
-    </nav>
+    <div data-bs-spy="scroll" data-bs-target="#navbar-character" data-bs-offset="0" tabindex="0">
+    <div data-bs-spy="scroll" data-bs-target="#navbar-character-mobile" data-bs-offset="0" tabindex="0" class="container">
+        <section id="personal">
+            <h2>Persönliches</h2>
+            {% if object.image %}<img id="profile-image" src="{{ object.image.url }}" class="mb-3">{% endif %}
+            
+            <table>
+                <tbody>
+                    {% for field in personal__fields %}
+                    <tr>
+                        <td>{{ field.0 }}</td>
+                        <td>{{ field.1 }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </section>
 
-    <!-- content (changed via js) -->
-    <div class="container">{% include 'character/show_persönlich.html' %}</div>
+        <section id="resources">
+            <h2>Währungen/Ressourcen</h2>
+            <table>
+                <tbody>
+                    {% for field in resources__fields %}
+                    <tr>
+                        <td>{{ field.0 }}</td>
+                        <td>{{ field.1 }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </section>
+        <section id="values">
+            <h2>errechnete Werte</h2>
+            <table>
+                <tbody>
+                    {% for field in calculated__fields %}
+                    <tr>
+                        <td>{{ field.0 }}</td>
+                        <td>{{ field.1 }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </section>
+        <section id="attrs">
+            <h2>Attribute + Fertigkeiten</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Fertigkeit</th>
+                        <th>Attribut</th>
+                        <th>AP</th>
+                        <th>FP</th>
+                        <th>Bonus</th>
+                        <th>FG</th>
+                        <th>Pool</th>
+                        <th>Limit</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for fert in attr__fields %}
+                    <tr>
+                        {% for field in fert %}<td>{{ field }}</td>{% endfor %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            {% render_table attr__table %}
+        </section>
+        <section id="hp">
+            <h2>HP</h2>
+
+            <h3>körperlich</h3>
+            <table>
+                <tbody>
+                    {% for field in hp__k_fields %}
+                    <tr>
+                        <td>{{ field.0 }}</td>
+                        <td>{{ field.1 }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <h3>geistig</h3>
+            <table>
+                <tbody>
+                    {% for field in hp__g_fields %}
+                    <tr>
+                        <td>{{ field.0 }}</td>
+                        <td>{{ field.1 }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </section>
+        <section id="vorteil">
+            <h2>Vorteile</h2>
+            {% render_table vorteil__table %}
+        </section>
+        <section id="nachteil">
+            <h2>Nachteile</h2>
+            {% render_table nachteil__table %}
+        </section>
+        <section id="wesenkraft">
+            <h2>Wesenkräfte</h2>
+            {% render_table wesenkraft__table %}
+        </section>
+        <section id="talent">
+            <h2>Talente</h2>
+            {% render_table talent__table %}
+        </section>
+        <section id="gfs">
+            <h2>Gfs-Fähigkeiten</h2>
+            {% render_table gfs_ability__table %}
+        </section>
+        <section id="affekt">
+            <h2>Affektivität</h2>
+            {% render_table affektivität__table %}
+        </section>
+        <section id="inventory">
+            <h2>Inventar & Ramsch</h2>
+            {% render_table inventory__table %}
+            {{ char.inventory__random_items }}
+        </section>
+        <section id="zauber">
+            <h2>Zauber, Rituale & Runen</h2>
+            {% render_table zauber__table %}
+            {% render_table ritual__table %}
+        </section>
+        <section id="nahkampf">
+            <h2>Nahkampfwaffen</h2>
+            {% render_table nahkampf__table %}
+        </section>
+        <section id="fernkampf">
+            <h2>Fernkampfwaffen</h2>
+            {% render_table fernkampf__table %}
+        </section>
+    </div>
+    </div>
+</div>
+
+<footer class="sticky-footer d-flex justify-content-center p-2 mt-5">
+    {% if object.ep_stufe != object.ep_stufe_in_progress %}
+    <a class="btn btn-primary mx-3" href="{% url 'levelUp:index' object.id %}">Stufe {{ object.ep_stufe_in_progress }} verteilen</a>
+    {% else %}
+        <a class="btn btn-primary d-flex align-items-center gap-1" href="{% url 'levelUp:index' object.id %}">
+            <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil" viewBox="0 0 16 16">
+                <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207 11.207 2.5zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293l6.5-6.5zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325z"/>
+            </svg>
+            bearbeiten
+        </a>
+    {% endif %}
+
+    <a class="btn btn-primary mx-3" href="{% url 'character_export:export' object.id %}">Export</a>
+</footer>
 {% endblock %}

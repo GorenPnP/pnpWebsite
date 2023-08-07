@@ -858,9 +858,7 @@ class RelTeil(models.Model):
             self.will_create = will_create
             self.save(update_fields=["will_create"])
 
-    def __repr__(self):
-        if self.will_create: return self.teil.titel + "(WILL CREATE)"
-
+    def full_addons(self):
         addons = []
         if self.teil.needs_ip: addons.append(f"{self.ip} IP")
         if self.teil.needs_attribut: addons.append(self.attribut.titel)
@@ -868,7 +866,13 @@ class RelTeil(models.Model):
         if self.teil.needs_engelsroboter: addons.append(self.engelsroboter.name)
         if self.notizen: addons.append(self.notizen)
 
-        return self.teil.titel + (f" ({', '.join(addons)})" if len(addons) else "")
+        return ', '.join(addons) if len(addons) else ""
+
+    def __repr__(self):
+        if self.will_create: return self.teil.titel + "(WILL CREATE)"
+
+        addons = self.full_addons()
+        return self.teil.titel + (f" ({addons})" if len(addons) else "")
 
 
 class RelVorteil(RelTeil):

@@ -5,6 +5,6 @@ from . import views
 app_name = 'character'
 
 urlpatterns = [
-    path('', views.index, name='index'),
-    path('<int:pk>/', views.show, name='show'),
+    path('', views.CharacterListView.as_view(), name='index'),
+    path('<int:pk>/', views.ShowView.as_view(), name='show'),
 ]
