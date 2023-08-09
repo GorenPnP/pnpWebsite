@@ -1,21 +1,24 @@
+// large nav styles
 #navbar-character {
     position: sticky;
     top: 10px;
-    
+
     z-index: 10000;
-    
+
     overflow: hidden auto;
     max-height: 100vh;
     flex-wrap: nowrap;
 
     flex: fit-content 0 0;
 }
+
+// mobile nav styles
 #nav-mobile {
     position: sticky;
     top: 10px;
 
     z-index: 10000;
-    
+
     #characterResources {
         overflow: auto;
         max-height: 85vh;
@@ -23,18 +26,7 @@
     .offcanvas-body { overflow-x: hidden; }
 }
 
-#navbar-character {
-    position: sticky;
-    top: 10px;
-    
-    z-index: 10000;
-    
-    overflow: hidden auto;
-    max-height: 100vh;
-    flex-wrap: nowrap;
 
-    flex: fit-content 0 0;
-}
 .nav-pills-light {
     --bs-nav-pills-link-active-bg: var(--bs-light);
     --bs-nav-pills-link-active-color: var(--bs-dark);
@@ -42,5 +34,13 @@
     --bs-nav-link-hover-color: var(--bs-gray-500);
 }
 
+// profile image size
+#profile-image { max-width: 100%; max-height: 50vh; }
 
-#profile-image { max-width: 100%; }
+// padding around sections & stuff
+section h2 { margin-bottom: 1em; }
+section + section > h2 { margin: 2em 0 1em; }
+
+// let tables scroll in x direction, everything else not
+table { overflow-x: auto; }
+.table-responsive { max-width: calc(100dvw - 4em); }

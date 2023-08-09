@@ -514,22 +514,22 @@ class Charakter(models.Model):
     manifest = models.DecimalField('Startmanifest', max_digits=4, decimal_places=2, default=10.0,
                                    validators=[MaxValueValidator(10), MinValueValidator(0)])
     sonstiger_manifestverlust = models.DecimalField("sonstiger Manifestverlust", max_digits=4, decimal_places=2, default=0.0,
-                                                    validators=[MaxValueValidator(10), MinValueValidator(0)], blank=True)
+                                                    validators=[MaxValueValidator(10), MinValueValidator(0)])
     notizen_sonstiger_manifestverlust = models.CharField(max_length=200, default="", blank=True)
 
     # roleplay
     name = models.CharField(max_length=200, null=True, blank=True)
-    gewicht = models.PositiveIntegerField(default=75, blank=True, verbose_name="Gewicht in kg")
-    größe = models.PositiveIntegerField(default=170, blank=True, verbose_name="Größe in cm")
-    alter = models.PositiveIntegerField(default=0, blank=True)
-    geschlecht = models.CharField(max_length=100, blank=True)
-    sexualität = models.CharField(max_length=100, blank=True)
-    beruf = models.ForeignKey(Beruf, null=True, on_delete=models.SET_NULL, blank=True)
-    präf_arm = models.CharField(max_length=100, default="", blank=True, verbose_name="präferierter Arm (rechts/links?)")
-    religion = models.ForeignKey(Religion, null=True, on_delete=models.SET_NULL, blank=True)
-    hautfarbe = models.CharField(max_length=100, default="", blank=True)
-    haarfarbe = models.CharField(max_length=100, default="", blank=True)
-    augenfarbe = models.CharField(max_length=100, default="", blank=True)
+    gewicht = models.PositiveIntegerField(default=75, verbose_name="Gewicht in kg")
+    größe = models.PositiveIntegerField(default=170, verbose_name="Größe in cm")
+    alter = models.PositiveIntegerField(default=0)
+    geschlecht = models.CharField(max_length=100, blank=True, null=True)
+    sexualität = models.CharField(max_length=100, blank=True, null=True)
+    beruf = models.ForeignKey(Beruf, on_delete=models.SET_NULL, null=True, blank=True)
+    präf_arm = models.CharField(max_length=100, default="", verbose_name="präferierter Arm (rechts/links?)")
+    religion = models.ForeignKey(Religion, on_delete=models.SET_NULL, null=True, blank=True)
+    hautfarbe = models.CharField(max_length=100, default="")
+    haarfarbe = models.CharField(max_length=100, default="")
+    augenfarbe = models.CharField(max_length=100, default="")
 
     # currencies
     ap = models.PositiveIntegerField(null=True, blank=True)
@@ -554,10 +554,11 @@ class Charakter(models.Model):
     processing_notes = models.JSONField(default=dict, null=False, blank=True)
 
     # HP
-    HPplus_geistig = models.IntegerField(default=0, blank=True)
-    HPplus = models.IntegerField(default=0, blank=True)
+    HPplus_geistig = models.IntegerField(default=0)
+    HPplus = models.IntegerField(default=0)
     HPplus_fix = models.IntegerField(default=None, null=True, blank=True)
-    rang = models.PositiveIntegerField(default=0, validators=[MaxValueValidator(500)], blank=True)
+    rang = models.PositiveIntegerField(default=0)
+    larp_rang = models.PositiveIntegerField(default=0)
 
     # kampf
     wesenschaden_waff_kampf = models.IntegerField(default=0)
@@ -570,8 +571,8 @@ class Charakter(models.Model):
     astralwiderstand_bonus = models.SmallIntegerField(default=0)
 
     # Geschreibsel
-    notizen = models.TextField(blank=True)
-    persönlicheZiele = models.TextField(blank=True)
+    notizen = models.TextField(blank=True, null=True)
+    persönlicheZiele = models.TextField(blank=True, null=True)
     sonstige_items = models.TextField(max_length=1000, default='', blank=True)
 
     # M2M #

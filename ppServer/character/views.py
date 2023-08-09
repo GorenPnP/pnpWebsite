@@ -88,42 +88,44 @@ class ShowView(LoginRequiredMixin, VerifiedAccountMixin, DetailView):
     
 
     def get_personal(self, char):
+        fields = [
+                ["Name", char.name],
+                ["Gfs (Stufe)", f"{char.gfs.titel if char.gfs is not None else ', '.join([s.titel for s in char.spezies.all()])} ({char.skilltree_stufe})"],
+                ["Persönlichkeit", ", ".join(char.persönlichkeit.all().values_list("titel", flat=True))],
+                ["Geschlecht", char.geschlecht],
+                ["Alter", char.alter],
+                ["Größe", f"{char.größe} cm"],
+                ["Gewicht", f"{char.gewicht} kg"],
+                ["Religion", char.religion.titel],
+                ["Augenfarbe", char.augenfarbe],
+                ["Hautfarbe", char.hautfarbe],
+                ["Haarfarbe", char.haarfarbe],
+                ["Sexualität", char.sexualität],
+                ["präferierter Arm", char.präf_arm],
+                ["Beruf", char.beruf.titel],
+                ["Notizen", format_html(re.sub("\n", "<br>", char.notizen, 0, re.MULTILINE))],
+                ["persönliche Ziele", format_html(re.sub("\n", "<br>", char.persönlicheZiele, 0, re.MULTILINE))],
+        ]
         return {
-            "personal__fields": [
-                ("Name", char.name),
-                ("Gfs (Stufe)", f"{char.gfs.titel if char.gfs is not None else ', '.join([s.titel for s in char.spezies.all()])} ({char.skilltree_stufe})"),
-                ("Persönlichkeit", ", ".join(char.persönlichkeit.all().values_list("titel", flat=True))),
-                ("Geschlecht", char.geschlecht),
-                ("Alter", char.alter),
-                ("Größe", f"{char.größe} cm"),
-                ("Gewicht", f"{char.gewicht} kg"),
-                ("Religion", char.religion.titel),
-                ("Augenfarbe", char.augenfarbe),
-                ("Hautfarbe", char.hautfarbe),
-                ("Haarfarbe", char.haarfarbe),
-                ("Sexualität", char.sexualität),
-                ("präferierter Arm", char.präf_arm),
-                ("Beruf", char.beruf.titel),
-                ("Notizen", format_html(re.sub("\n", "<br>", char.notizen, 0, re.MULTILINE))),
-                ("persönliche Ziele", format_html(re.sub("\n", "<br>", char.persönlicheZiele, 0, re.MULTILINE))),
-            ]
+            "personal__fields": [[k, v if v else "-"] for k, v in fields]
         }
 
     def get_resources(self, char):
+        fields = [
+            ["Geld", f"{render_number(char.geld)} Drachmen"],
+            ["SP", char.sp],
+            ["IP", char.ip],
+            ["TP", char.tp],
+            ["EP (Stufe)", f"{render_number(char.ep)} ({char.ep_stufe})"],
+            ["Prestige", render_number(char.prestige)],
+            ["Verzehr", render_number(char.verzehr)],
+            ["Manifest", char.manifest - char.sonstiger_manifestverlust],
+            ["Konzentration", char.konzentration],
+            ["Krit-Angriff", char.crit_attack],
+            ["Krit-Verteidigung", char.crit_defense],
+        ]
         return {
-            "resources__fields": [
-                ("Geld", f"{render_number(char.geld)} Drachmen"),
-                ("SP", char.sp),
-                ("IP", char.ip),
-                ("TP", char.tp),
-                ("EP (Stufe)", f"{render_number(char.ep)} ({char.ep_stufe})"),
-                ("Prestige", render_number(char.prestige)),
-                ("Verzehr", render_number(char.verzehr)),
-                ("Manifest", char.manifest - char.sonstiger_manifestverlust),
-                ("Konzentration", char.konzentration),
-                ("Krit-Angriff", char.crit_attack),
-                ("Krit-Verteidigung", char.crit_defense),
-            ]
+            "resources__fields": [[k, v if v else 0] for k, v in fields]
         }
     
     def get_calculated(self, char):
@@ -132,30 +134,30 @@ class ShowView(LoginRequiredMixin, VerifiedAccountMixin, DetailView):
         fg = { rel.attribut.titel: rel.fg for rel in char.relattribut_set.all() }
         ferts = { rel.fertigkeit.titel: rel.fp + rel.fp_bonus + attrs[rel.fertigkeit.attr1.titel] + fg[rel.fertigkeit.attr1.titel] for rel in char.relfertigkeit_set.all() }
 
-        fields = [
-            ["Limits (k | g | m)", f'{(attrs["SCH"] + attrs["ST"] + attrs["VER"] + attrs["GES"]) / 2} | {(attrs["IN"] + attrs["WK"] + attrs["UM"]) / 2} | {(attrs["MA"] + attrs["WK"]) / 2}'],
-            ["Reaktion", (attrs["SCH"] + attrs["GES"] + attrs["WK"])/2 + char.reaktion_bonus],
-            ["nat. Schadenswiderstand", attrs["ST"] + attrs["VER"] + char.natürlicher_schadenswiderstand_bonus],
-            ["Intuition", (attrs["IN"] + 2*attrs["SCH"]) / 2],
-            ["Geh-/ Lauf-/ Sprintrate", f'{attrs["SCH"]*2} | {attrs["SCH"]*4} | {attrs["SCH"]*4 + ferts["Laufen"]} m / 10sek'],
-            ["Bewegung Astral", f'{2*attrs["MA"]*(attrs["WK"] + attrs["SCH"])}m / 10sek'],
-            ["Schwimmen", f'{"{0:.1f}".format(attrs["SCH"]*2/3 + ferts["Schwimmen"]/5)}m / 10sek'],
-            ["Tauchen", f'{attrs["SCH"]*2/5 + ferts["Schwimmen"]/5}m / 10sek'],
-            ["Tragfähigkeit", f'{attrs["ST"]*3 + attrs["GES"]}kg'],
-            ["Heben", f'{attrs["ST"]*4 + attrs["N"]}kg / Erfolg'],
-            ["Ersticken", f'nach {attrs["WK"]*3 + ferts["Heben"] + ferts["Entschlossenheit"] + ferts["Schwimmen"]*3} sek'],
-            ["Immunsystem (W100)", attrs["ST"]*5 + attrs["VER"] + ferts["Konstitution"] + ferts["Resistenz"]],
-            ["Glück", 100],
-            ["Sanität", 100],
-            ["Regeneration", f'{attrs["ST"] + attrs["WK"]}HP / Tag'],
-            ["Manaoverflow", (attrs["WK"] + MA_raw)*3],
-            ["Initiative", f'{attrs["WK"] + attrs["ST"] + char.initiative_bonus} + {attrs["SCH"]}W4'],
-            ["Astral-Widerstand", attrs["MA"] + attrs["WK"] + char.astralwiderstand_bonus],
-            ["Astrale Schadensverhinderung", f'{math.ceil(min(attrs["WK"], MA_raw) / 6)}HP / Erfolg'],
-        ]
+        num = lambda n: "{0:.1f}".format(n) if type(n) is float else n
 
         return {
-            "calculated__fields": [[k, "{0:.1f}".format(v) if type(v) is float else v] for k, v in fields]
+            "calculated__fields": [
+                ["Limits (k | g | m)", f'{num((attrs["SCH"] + attrs["ST"] + attrs["VER"] + attrs["GES"]) / 2)} | {num((attrs["IN"] + attrs["WK"] + attrs["UM"]) / 2)} | {num((attrs["MA"] + attrs["WK"]) / 2)}'],
+                ["Reaktion", num((attrs["SCH"] + attrs["GES"] + attrs["WK"])/2 + char.reaktion_bonus)],
+                ["nat. Schadenswiderstand", num(attrs["ST"] + attrs["VER"] + char.natürlicher_schadenswiderstand_bonus)],
+                ["Intuition", num((attrs["IN"] + 2*attrs["SCH"]) / 2)],
+                ["Geh-/ Lauf-/ Sprintrate", f'{num(attrs["SCH"]*2)} | {num(attrs["SCH"]*4)} | {num(attrs["SCH"]*4 + ferts["Laufen"])} m / 10sek'],
+                ["Bewegung Astral", f'{num(2*attrs["MA"]*(attrs["WK"] + attrs["SCH"]))}m / 10sek'],
+                ["Schwimmen", f'{num(attrs["SCH"]*2/3 + ferts["Schwimmen"]/5)}m / 10sek'],
+                ["Tauchen", f'{num(attrs["SCH"]*2/5 + ferts["Schwimmen"]/5)}m / 10sek'],
+                ["Tragfähigkeit", f'{num(attrs["ST"]*3 + attrs["GES"])}kg'],
+                ["Heben", f'{num(attrs["ST"]*4 + attrs["N"])}kg / Erfolg'],
+                ["Ersticken", f'nach {num(attrs["WK"]*3 + ferts["Heben"] + ferts["Entschlossenheit"] + ferts["Schwimmen"]*3)} sek'],
+                ["Immunsystem (W100)", num(attrs["ST"]*5 + attrs["VER"] + ferts["Konstitution"] + ferts["Resistenz"])],
+                ["Glück", num(100)],
+                ["Sanität", num(100)],
+                ["Regeneration", f'{num(attrs["ST"] + attrs["WK"])}HP / Tag'],
+                ["Manaoverflow", num((attrs["WK"] + MA_raw)*3)],
+                ["Initiative", f'{num(attrs["WK"] + attrs["ST"] + char.initiative_bonus)} + {attrs["SCH"]}W4'],
+                ["Astral-Widerstand", num(attrs["MA"] + attrs["WK"] + char.astralwiderstand_bonus)],
+                ["Astrale Schadensverhinderung", f'{num(math.ceil(min(attrs["WK"], MA_raw) / 6))}HP / Erfolg'],
+            ]
         }
 
     def get_attr(self, char):
@@ -164,6 +166,7 @@ class ShowView(LoginRequiredMixin, VerifiedAccountMixin, DetailView):
                 model = RelFertigkeit
                 fields = ("fertigkeit__titel", "attribute", "ap", "fp", "fp_bonus", "pool", "fertigkeit__limit")
                 orderable = False
+                attrs = {"class": "table table-dark table-striped table-hover"}
 
             def render_ap(self, value, record):
                 return char.relattribut_set.get(attribut=record.fertigkeit.attr1).aktuell() + char.relattribut_set.get(attribut=record.fertigkeit.attr2).aktuell()
@@ -207,28 +210,34 @@ class ShowView(LoginRequiredMixin, VerifiedAccountMixin, DetailView):
     def get_hp(self, char):
         khp = [
             char.relattribut_set.get(attribut__titel="ST").aktuell() * 5,
-            char.ep_stufe * 2,
+            char.ep_stufe * 2 + math.floor(char.larp_rang / 20),
             math.floor(char.rang / 10),
-            char.HPplus_fix if char.HPplus_fix is not None else char.HPplus
+            char.HPplus_fix if char.HPplus_fix is not None else char.HPplus,
         ]
         ghp = [
             char.relattribut_set.get(attribut__titel="WK").aktuell() * 5,
-            char.HPplus_geistig
+            char.HPplus_geistig,
+            math.ceil(char.larp_rang / 20),
         ]
 
+        fields_khp = [
+            ["HP durch Stärke", khp[0]],
+            ["HP durch LARP-Ränge" if char.larp else "HP durch Stufe", khp[1]],
+            ["HP durch Ränge", khp[2]],
+            ["HP-Bonus", khp[3]],
+            [format_html("<b>Körperliche HP</b>"), format_html(f"<b>{sum(khp)}</b>")],
+        ]
+        fields_ghp = [
+            ["HP durch Willenskraft", ghp[0]],
+            ["HP-Bonus", ghp[1]],
+            [format_html("<b>geistige HP</b>"), format_html(f"<b>{sum(ghp)}</b>")],
+        ]
+        if char.larp:
+            fields_ghp.insert(1, ["HP durch LARP-Ränge", ghp[2]])
+
         return {
-            "hp__k_fields": [
-                ("HP durch Stärke", khp[0]),
-                ("HP durch Stufe", khp[1]),
-                ("HP durch Ränge", khp[2]),
-                ("HP-Bonus", khp[3]),
-                (format_html("<b>Körperliche HP</b>"), format_html(f"<b>{sum(khp)}</b>")),
-            ],
-            "hp__g_fields": [
-                ("HP durch Willenskraft", ghp[0]),
-                ("HP-Bonus", ghp[1]),
-                (format_html("<b>geistige HP</b>"), format_html(f"<b>{sum(ghp)}</b>")),
-            ],
+            "hp__k_fields": fields_khp,
+            "hp__g_fields": fields_ghp,
         }
 
     def get_teils(self, char):
@@ -237,6 +246,7 @@ class ShowView(LoginRequiredMixin, VerifiedAccountMixin, DetailView):
                 model = RelTeil
                 fields = ("teil__titel", "teil__beschreibung", "notizen")
                 orderable = False
+                attrs = {"class": "table table-dark table-striped table-hover"}
 
             def render_notizen(self, value, record):
                 return record.full_addons()
@@ -252,6 +262,7 @@ class ShowView(LoginRequiredMixin, VerifiedAccountMixin, DetailView):
                 model = RelWesenkraft
                 fields = ("wesenkraft__titel", "tier", "wesenkraft__probe", "wesenkraft__wirkung", "wesenkraft__manaverbrauch")
                 orderable = False
+                attrs = {"class": "table table-dark table-striped table-hover"}
 
             def render_wesenkraft__wirkung(self, value):
                 regex = "Tier [0IVX]+:"
@@ -267,6 +278,7 @@ class ShowView(LoginRequiredMixin, VerifiedAccountMixin, DetailView):
                 model = RelTalent
                 fields = ("talent__titel", "talent__beschreibung")
                 orderable = False
+                attrs = {"class": "table table-dark table-striped table-hover"}
 
         return {
             "talent__table": TalentTable(char.reltalent_set.all())
@@ -278,6 +290,7 @@ class ShowView(LoginRequiredMixin, VerifiedAccountMixin, DetailView):
                 model = RelGfsAbility
                 fields = ("ability__name", "ability__beschreibung", "notizen")
                 orderable = False
+                attrs = {"class": "table table-dark table-striped table-hover"}
 
         return {
             "gfs_ability__table": GfsAbilityTable(char.relgfsability_set.all())
@@ -289,6 +302,7 @@ class ShowView(LoginRequiredMixin, VerifiedAccountMixin, DetailView):
                 model = Affektivität
                 fields = ("name", "wert", "notizen")
                 orderable = False
+                attrs = {"class": "table table-dark table-striped table-hover"}
 
         return {
             "affektivität__table": AffektivitätTable(char.affektivität_set.all())
@@ -300,6 +314,7 @@ class ShowView(LoginRequiredMixin, VerifiedAccountMixin, DetailView):
                 model = RelShop
                 fields = ("anz", "item__name", "item__beschreibung", "notizen")
                 orderable = False
+                attrs = {"class": "table table-dark table-striped table-hover"}
 
         qs = char.relitem_set.all().values("anz", "item__name", "item__beschreibung", "notizen").union(
             char.relmagazin_set.all().values("anz", "item__name", "item__beschreibung", "notizen"),
@@ -324,6 +339,7 @@ class ShowView(LoginRequiredMixin, VerifiedAccountMixin, DetailView):
                 model = RelZauber
                 fields = ("item__name", "tier", "item__beschreibung", "item__manaverbrauch", "item__astralschaden")
                 orderable = False
+                attrs = {"class": "table table-dark table-striped table-hover"}
 
             def render_item__beschreibung(self, value):
                 regex = "Tier [0IVX]+:"
@@ -344,6 +360,7 @@ class ShowView(LoginRequiredMixin, VerifiedAccountMixin, DetailView):
                 model = RelRituale_Runen
                 fields = ("anz", "item__name", "stufe", "item__beschreibung", "item__kategorie")
                 orderable = False
+                attrs = {"class": "table table-dark table-striped table-hover"}
 
         return {
             "ritual__table": RitualTable(char.relrituale_runen_set.all())
@@ -355,6 +372,7 @@ class ShowView(LoginRequiredMixin, VerifiedAccountMixin, DetailView):
                 model = RelWaffen_Werkzeuge
                 fields = ("anz", "item__name", "item__bs", "item__zs", "item__dk", "notizen")
                 orderable = False
+                attrs = {"class": "table table-dark table-striped table-hover"}
 
             def render_item__bs(self, value, record):
                 return f"{value} (ab {record.item.erfolge})"
@@ -369,6 +387,7 @@ class ShowView(LoginRequiredMixin, VerifiedAccountMixin, DetailView):
                 model = RelSchusswaffen
                 fields = ("anz", "item__name", "item__bs", "item__zs", "item__dk", "item__präzision", "notizen")
                 orderable = False
+                attrs = {"class": "table table-dark table-striped table-hover"}
 
             def render_item__bs(self, value, record):
                 return f"{value} (ab {record.item.erfolge})"

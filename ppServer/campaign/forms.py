@@ -48,5 +48,6 @@ class LarpAuswertungForm(forms.Form):
     sp = forms.IntegerField(initial=0, label="SP", required=True)
     geld = forms.IntegerField(initial=0, label="Geld", required=True)
     rang = forms.IntegerField(initial=0, label="Ränge", required=True)
+    larp_rang = forms.IntegerField(initial=0, label="LARP-Ränge", required=True)
     prestige = forms.IntegerField(initial=0, label="Prestige", required=True)
     verzehr = forms.IntegerField(initial=0, label="Verzehr", required=True)

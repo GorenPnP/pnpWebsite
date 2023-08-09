@@ -261,7 +261,7 @@ class CharakterAdmin(admin.ModelAdmin):
                               'religion', "hautfarbe", "haarfarbe", "augenfarbe"]}),
         
         ("Manifest", {"fields": ["manifest", "sonstiger_manifestverlust", "notizen_sonstiger_manifestverlust"]}),
-        ('HP', {'fields': ['rang', 'HPplus', 'HPplus_fix', 'HPplus_geistig']}),
+        ('HP', {'fields': ['rang', 'larp_rang', 'HPplus', 'HPplus_fix', 'HPplus_geistig']}),
         ('Kampf', {'fields': ['wesenschaden_waff_kampf', 'wesenschaden_andere_gestalt', 'crit_attack', 'crit_defense',
                               'initiative_bonus', 'reaktion_bonus', 'natürlicher_schadenswiderstand_bonus', 'astralwiderstand_bonus']}),
 

@@ -9,22 +9,7 @@
     {% resources %}
     <nav id="navbar-character-mobile" class="navbar navbar-dark flex-column">
         <nav class="nav nav-pills nav-pills-light flex-column">
-            <a class="nav-link" href="#personal">Persönliches</a>
-            <a class="nav-link" href="#resources">Währungen/Ressourcen</a>
-            <a class="nav-link" href="#values">errechnete Werte</a>
-            <a class="nav-link" href="#attrs">Attribute + Fertigkeiten</a>
-            <a class="nav-link" href="#hp">HP</a>
-            <a class="nav-link" href="#vorteil">Vorteile</a>
-            <a class="nav-link" href="#nachteil">Nachteile</a>
-            <a class="nav-link" href="#wesenkraft">Wesenkräfte</a>
-            <a class="nav-link" href="#talent">Talente</a>
-            <a class="nav-link" href="#gfs">Gfs-Fähigkeiten</a>
-            <a class="nav-link" href="#affekt">Affektivität</a>
-            <a class="nav-link" href="#inventory">Inventar & Ramsch</a>
-            <a class="nav-link" href="#zauber">Zauber, Rituale & Runen</a>
-            <a class="nav-link" href="#nahkampf">Nahkampfwaffen</a>
-            <a class="nav-link" href="#fernkampf">Fernkampfwaffen</a>
-            <a class="nav-link disabled" href="#" tabindex="-1" aria-disabled="true">Disabled</a>
+            {% include 'character/_show_nav.html' %}
         </nav>
     </nav>
     {% endresources %}
@@ -37,92 +22,84 @@
     <nav id="navbar-character" class="navbar navbar-dark bg-dark flex-column p-3 d-none d-md-flex">
         <a class="navbar-brand" href="#">{{ object.name }}</a>
         <nav class="nav nav-pills flex-column">
-            <a class="nav-link" href="#personal">Persönliches</a>
-            <a class="nav-link" href="#resources">Währungen/Ressourcen</a>
-            <a class="nav-link" href="#values">errechnete Werte</a>
-            <a class="nav-link" href="#attrs">Attribute + Fertigkeiten</a>
-            <a class="nav-link" href="#hp">HP</a>
-            <a class="nav-link" href="#vorteil">Vorteile</a>
-            <a class="nav-link" href="#nachteil">Nachteile</a>
-            <a class="nav-link" href="#wesenkraft">Wesenkräfte</a>
-            <a class="nav-link" href="#talent">Talente</a>
-            <a class="nav-link" href="#gfs">Gfs-Fähigkeiten</a>
-            <a class="nav-link" href="#affekt">Affektivität</a>
-            <a class="nav-link" href="#inventory">Inventar & Ramsch</a>
-            <a class="nav-link" href="#zauber">Zauber, Rituale & Runen</a>
-            <a class="nav-link" href="#nahkampf">Nahkampfwaffen</a>
-            <a class="nav-link" href="#fernkampf">Fernkampfwaffen</a>
-            <a class="nav-link disabled" href="#" tabindex="-1" aria-disabled="true">Disabled</a>
+            {% include 'character/_show_nav.html' %}
         </nav>
     </nav>
 
     <div data-bs-spy="scroll" data-bs-target="#navbar-character" data-bs-offset="0" tabindex="0">
-    <div data-bs-spy="scroll" data-bs-target="#navbar-character-mobile" data-bs-offset="0" tabindex="0" class="container">
+    <div data-bs-spy="scroll" data-bs-target="#navbar-character-mobile" data-bs-offset="0" tabindex="0">
         <section id="personal">
             <h2>Persönliches</h2>
             {% if object.image %}<img id="profile-image" src="{{ object.image.url }}" class="mb-3">{% endif %}
             
-            <table>
-                <tbody>
-                    {% for field in personal__fields %}
-                    <tr>
-                        <td>{{ field.0 }}</td>
-                        <td>{{ field.1 }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+            <div class="table-container table-responsive">
+                <table class="table table-dark table-striped table-hover">
+                    <tbody>
+                        {% for field in personal__fields %}
+                        <tr>
+                            <td>{{ field.0 }}</td>
+                            <td>{{ field.1 }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </section>
-
         <section id="resources">
             <h2>Währungen/Ressourcen</h2>
-            <table>
-                <tbody>
-                    {% for field in resources__fields %}
-                    <tr>
-                        <td>{{ field.0 }}</td>
-                        <td>{{ field.1 }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+            <div class="table-container table-responsive">
+                <table class="table table-dark table-striped table-hover">
+                    <tbody>
+                        {% for field in resources__fields %}
+                        <tr>
+                            <td>{{ field.0 }}</td>
+                            <td>{{ field.1 }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </section>
         <section id="values">
             <h2>errechnete Werte</h2>
-            <table>
-                <tbody>
-                    {% for field in calculated__fields %}
-                    <tr>
-                        <td>{{ field.0 }}</td>
-                        <td>{{ field.1 }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+            <div class="table-container table-responsive">
+                <table class="table table-dark table-striped table-hover">
+                    <tbody>
+                        {% for field in calculated__fields %}
+                        <tr>
+                            <td>{{ field.0 }}</td>
+                            <td>{{ field.1 }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </section>
         <section id="attrs">
             <h2>Attribute + Fertigkeiten</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Fertigkeit</th>
-                        <th>Attribut</th>
-                        <th>AP</th>
-                        <th>FP</th>
-                        <th>Bonus</th>
-                        <th>FG</th>
-                        <th>Pool</th>
-                        <th>Limit</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for fert in attr__fields %}
-                    <tr>
-                        {% for field in fert %}<td>{{ field }}</td>{% endfor %}
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+            <div class="table-container table-responsive">
+                <table class="table table-dark table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th>Fertigkeit</th>
+                            <th>Attribut</th>
+                            <th>AP</th>
+                            <th>FP</th>
+                            <th>Bonus</th>
+                            <th>FG</th>
+                            <th>Pool</th>
+                            <th>Limit</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for fert in attr__fields %}
+                        <tr>
+                            {% for field in fert %}<td>{{ field }}</td>{% endfor %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
 
             {% render_table attr__table %}
         </section>
@@ -130,71 +107,100 @@
             <h2>HP</h2>
 
             <h3>körperlich</h3>
-            <table>
-                <tbody>
-                    {% for field in hp__k_fields %}
-                    <tr>
-                        <td>{{ field.0 }}</td>
-                        <td>{{ field.1 }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+            <div class="table-container table-responsive">
+                <table class="table table-dark table-striped table-hover">
+                    <tbody>
+                        {% for field in hp__k_fields %}
+                        <tr>
+                            <td>{{ field.0 }}</td>
+                            <td>{{ field.1 }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
 
             <h3>geistig</h3>
-            <table>
-                <tbody>
-                    {% for field in hp__g_fields %}
-                    <tr>
-                        <td>{{ field.0 }}</td>
-                        <td>{{ field.1 }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+            <div class="table-container table-responsive">
+                <table class="table table-dark table-striped table-hover">
+                    <tbody>
+                        {% for field in hp__g_fields %}
+                        <tr>
+                            <td>{{ field.0 }}</td>
+                            <td>{{ field.1 }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </section>
+        {% if vorteil__table.data|length %}
         <section id="vorteil">
             <h2>Vorteile</h2>
             {% render_table vorteil__table %}
         </section>
+        {% endif %}
+        {% if nachteil__table.data|length %}
         <section id="nachteil">
             <h2>Nachteile</h2>
             {% render_table nachteil__table %}
         </section>
+        {% endif %}
+        {% if wesenkraft__table.data|length %}
         <section id="wesenkraft">
             <h2>Wesenkräfte</h2>
             {% render_table wesenkraft__table %}
         </section>
+        {% endif %}
+        {% if talent__table.data|length %}
         <section id="talent">
             <h2>Talente</h2>
             {% render_table talent__table %}
         </section>
+        {% endif %}
+        {% if gfs_ability__table.data|length %}
         <section id="gfs">
             <h2>Gfs-Fähigkeiten</h2>
             {% render_table gfs_ability__table %}
         </section>
+        {% endif %}
+        {% if affektivität__table.data|length %}
         <section id="affekt">
             <h2>Affektivität</h2>
             {% render_table affektivität__table %}
         </section>
+        {% endif %}
+        {% if inventory__table.data|length or char.inventory__random_items %}
         <section id="inventory">
             <h2>Inventar & Ramsch</h2>
             {% render_table inventory__table %}
             {{ char.inventory__random_items }}
         </section>
+        {% endif %}
+        {% if zauber__table.data|length %}
         <section id="zauber">
-            <h2>Zauber, Rituale & Runen</h2>
+            <h2>Zauber</h2>
             {% render_table zauber__table %}
+        </section>
+        {% endif %}
+        {% if ritual__table.data|length %}
+        <section id="rit_runen">
+            <h2>Rituale & Runen</h2>
             {% render_table ritual__table %}
         </section>
+        {% endif %}
+        {% if nahkampf__table.data|length %}
         <section id="nahkampf">
             <h2>Nahkampfwaffen</h2>
             {% render_table nahkampf__table %}
         </section>
+        {% endif %}
+        {% if fernkampf__table.data|length %}
         <section id="fernkampf">
             <h2>Fernkampfwaffen</h2>
             {% render_table fernkampf__table %}
         </section>
+        {% endif %}
     </div>
     </div>
 </div>

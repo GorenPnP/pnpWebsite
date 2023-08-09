@@ -119,10 +119,8 @@ class ChatroomView(LoginRequiredMixin, OwnChatMixin, TemplateView):
         objects = self.get_objects()
 
         # set accessed
-        chatroom_account = objects["chatroomaccount"]
-        self.latest_access = chatroom_account.latest_access
-        chatroom_account.latest_access = timezone.now()
-        chatroom_account.save(update_fields=["latest_access"])
+        self.latest_access = objects["chatroomaccount"].latest_access
+        ChatroomAccount.objects.filter(chatroom=objects["chatroom"], account__spieler__name=request.user.username).update(latest_access=timezone.now())
 
         # if opening chatroom for the first time, add welcome msg
         if self.latest_access.year == ancient_datetime().year:

@@ -10,5 +10,5 @@ register = template.Library()
 def getField(form: forms.Form, fieldname: str) -> Any:
     for key in form.fields.keys():
 
-        if key.split("__")[0] == fieldname or key == fieldname:
+        if key == fieldname or key.rpartition("__")[0] == fieldname:
             return form.fields[key].get_bound_field(form, key)
