@@ -7,27 +7,29 @@
 {% endblock %}
 
 {% block main %}
-<table class="table table-dark table-striped table-hover">
-    <thead class="sticky-top">
-        <tr>
-            <th>Platz</th>
-            <th>Punkte</th>
-            <th>Name</th>
-        </tr>
-    </thead>
+<div class="table-container table-responsive">
+    <table class="table table-dark table-striped table-hover">
+        <thead class="sticky-top">
+            <tr>
+                <th>Platz</th>
+                <th>Punkte</th>
+                <th>Name</th>
+            </tr>
+        </thead>
 
-    <tbody>
-        {% for position in spieler %}
-        {% for relQuiz in position %}
-        <tr>
-            <td>{% if forloop.first %}{{ forloop.parentloop.counter }}{% endif %}</td>
-            <td class="punkte">{{ relQuiz.quiz_points_achieved|floatformat:"-2" }}</td>
-            <td class="name">{{ relQuiz.spieler.name }}</td>
-        </tr>
-        {% endfor %}
-        {% endfor %}
-    </tbody>
-</table>
+        <tbody>
+            {% for position in spieler %}
+            {% for relQuiz in position %}
+            <tr>
+                <td>{% if forloop.first %}{{ forloop.parentloop.counter }}{% endif %}</td>
+                <td class="punkte">{{ relQuiz.quiz_points_achieved|floatformat:"-2" }}</td>
+                <td class="name">{{ relQuiz.spieler.name }}</td>
+            </tr>
+            {% endfor %}
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
 
 <button class="btn btn-primary" onclick="history.back()">Zurück</button>
 {% endblock %}

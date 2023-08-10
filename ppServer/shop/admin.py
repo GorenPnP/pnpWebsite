@@ -1,4 +1,6 @@
+from typing import Any, List, Optional, Tuple, Union
 from django.contrib import admin
+from django.http.request import HttpRequest
 from django.utils.html import format_html
 
 from .models import *
@@ -111,6 +113,20 @@ class BaseAdmin(admin.ModelAdmin):
 
         return sorted([o.getPrice() for o in offers])[0]
 
+
+    def get_readonly_fields(self, request: HttpRequest, obj = ...):
+        # spielleiter
+        if request.user.groups.filter(name__iexact="spielleiter").exists():
+            return super().get_readonly_fields(request, obj)
+        
+        # spieler (create OR frei_editierbar)
+        if not obj or obj.frei_editierbar:
+            return ["frei_editierbar"]
+        
+        # spieler, not frei_editierbar
+        return [field.name for field in self.opts.local_fields if field.name != "icon"]
+
+
 ########### ShopAdmin ###############
 
 class ItemAdmin(BaseAdmin):
@@ -209,6 +225,19 @@ class Rituale_RunenAdmin(admin.ModelAdmin):
         if self.shop_model.objects.get(pk=obj.pk).frei_editierbar:
             return "frei_editierbar"
         return None
+    
+
+    def get_readonly_fields(self, request: HttpRequest, obj = ...):
+        # spielleiter
+        if request.user.groups.filter(name__iexact="spielleiter").exists():
+            return super().get_readonly_fields(request, obj)
+        
+        # spieler (create OR frei_editierbar)
+        if not obj or obj.frei_editierbar:
+            return ["frei_editierbar"]
+        
+        # spieler, not frei_editierbar
+        return [field.name for field in self.opts.local_fields if field.name != "icon"]
 
 
 class RüstungenAdmin(BaseAdmin):

@@ -9,95 +9,99 @@
 {% endblock %}
 
 {% block main %}
-<table class="table table-dark table-striped table-hover">
-    <thead>
-        <tr>
-            <th>Anzahl</th>
-            <th>Stufe</th>
-            <th>Stufe 1</th>
-            <th>Stufe 2</th>
-            <th>Stufe 3</th>
-            <th>Stufe 4</th>
-            <th>Stufe 5</th>
-            <th>für ...</th>
-            <th>Firma</th>
-            <th>Verfügbarkeit</th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
+<div class="table-container table-responsive">
+    <table class="table table-dark table-striped table-hover">
+        <thead>
+            <tr>
+                <th>Anzahl</th>
+                <th>Stufe</th>
+                <th>Stufe 1</th>
+                <th>Stufe 2</th>
+                <th>Stufe 3</th>
+                <th>Stufe 4</th>
+                <th>Stufe 5</th>
+                <th>für ...</th>
+                <th>Firma</th>
+                <th>Verfügbarkeit</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
 
-        {% for e in entries %}
-        <tr>
-            <td><input name="amount" type="number" value="1" min="1" form="form-{{ forloop.counter0 }}" required></td>
-            <td><input name="stufe" type="number" value="1" min="1" form="form-{{ forloop.counter0 }}" required></td>
-        
-            <td>{{ e.getPriceStufe1 }} Dr. {% if e.getPriceStufe1 != e.stufe_1 %}<small>(enthält +{{ e.getPriceStufe1|subtract:e.stufe_1 }} Dr.)</small>{% endif %}</td>
-            <td>{{ e.getPriceStufe2 }} Dr. {% if e.getPriceStufe2 != e.stufe_2 %}<small>(enthält +{{ e.getPriceStufe2|subtract:e.stufe_2 }} Dr.)</small>{% endif %}</td>
-            <td>{{ e.getPriceStufe3 }} Dr. {% if e.getPriceStufe3 != e.stufe_3 %}<small>(enthält +{{ e.getPriceStufe3|subtract:e.stufe_3 }} Dr.)</small>{% endif %}</td>
-            <td>{{ e.getPriceStufe4 }} Dr. {% if e.getPriceStufe4 != e.stufe_4 %}<small>(enthält +{{ e.getPriceStufe4|subtract:e.stufe_4 }} Dr.)</small>{% endif %}</td>
-            <td>{{ e.getPriceStufe5 }} Dr. {% if e.getPriceStufe5 != e.stufe_5 %}<small>(enthält +{{ e.getPriceStufe5|subtract:e.stufe_5 }} Dr.)</small>{% endif %}</td>
+            {% for e in entries %}
+            <tr>
+                <td><input name="amount" type="number" value="1" min="1" form="form-{{ forloop.counter0 }}" required></td>
+                <td><input name="stufe" type="number" value="1" min="1" form="form-{{ forloop.counter0 }}" required></td>
             
-            <td>
-                {% if charaktere %}
-                    <select name="character" form="form-{{ forloop.counter0 }}" required>
-                        {% for c in charaktere %}
-                            <option value="{{ c.id }}">{{ c.name }} ({{c.geld }} Dr.)</option>
-                        {% endfor %}
-                    </select>
-                {% else %}Du hast keine Charaktere{% endif %}
-            </td>
-            <td>{{ e.firma }}</td>
-            <td>{{ e.verfügbarkeit }}%</td>
-            <td>
-                <form method="post" id="form-{{ forloop.counter0 }}">
-                    {% csrf_token %}
-                    <input hidden name="firmashop_id" value="{{ e.id }}">
-                    <button type="submit" class="btn btn-primary">Kaufen</button>
-                </form>
-            </td>
+                <td>{{ e.getPriceStufe1 }} Dr. {% if e.getPriceStufe1 != e.stufe_1 %}<small>(enthält +{{ e.getPriceStufe1|subtract:e.stufe_1 }} Dr.)</small>{% endif %}</td>
+                <td>{{ e.getPriceStufe2 }} Dr. {% if e.getPriceStufe2 != e.stufe_2 %}<small>(enthält +{{ e.getPriceStufe2|subtract:e.stufe_2 }} Dr.)</small>{% endif %}</td>
+                <td>{{ e.getPriceStufe3 }} Dr. {% if e.getPriceStufe3 != e.stufe_3 %}<small>(enthält +{{ e.getPriceStufe3|subtract:e.stufe_3 }} Dr.)</small>{% endif %}</td>
+                <td>{{ e.getPriceStufe4 }} Dr. {% if e.getPriceStufe4 != e.stufe_4 %}<small>(enthält +{{ e.getPriceStufe4|subtract:e.stufe_4 }} Dr.)</small>{% endif %}</td>
+                <td>{{ e.getPriceStufe5 }} Dr. {% if e.getPriceStufe5 != e.stufe_5 %}<small>(enthält +{{ e.getPriceStufe5|subtract:e.stufe_5 }} Dr.)</small>{% endif %}</td>
+                
+                <td>
+                    {% if charaktere %}
+                        <select name="character" form="form-{{ forloop.counter0 }}" required>
+                            {% for c in charaktere %}
+                                <option value="{{ c.id }}">{{ c.name }} ({{c.geld }} Dr.)</option>
+                            {% endfor %}
+                        </select>
+                    {% else %}Du hast keine Charaktere{% endif %}
+                </td>
+                <td>{{ e.firma }}</td>
+                <td>{{ e.verfügbarkeit }}%</td>
+                <td>
+                    <form method="post" id="form-{{ forloop.counter0 }}">
+                        {% csrf_token %}
+                        <input hidden name="firmashop_id" value="{{ e.id }}">
+                        <button type="submit" class="btn btn-primary">Kaufen</button>
+                    </form>
+                </td>
 
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
 
 {% if extra_preis_field %}
-<table class="table table-dark table-striped table-hover">
-    <thead>
-        <tr>
-            <th>Anzahl</th>
-            <th>Stufe</th>
-            <th>Preis</th>
-            <th>für ...</th>
-            <th></th>
-        </tr>
-    </thead>
+<div class="table-container table-responsive">
+    <table class="table table-dark table-striped table-hover">
+        <thead>
+            <tr>
+                <th>Anzahl</th>
+                <th>Stufe</th>
+                <th>Preis</th>
+                <th>für ...</th>
+                <th></th>
+            </tr>
+        </thead>
 
-    <tbody>
-        <tr>
-            <td><input name="amount" type="number" value="1" min="1" form="form-special" required></td>
-            <td><input name="stufe" type="number" value="1" min="1" form="form-special" required></td>
-            <td><input name="price" type="number" value="0" min="0" form="form-special" required> Dr.</td>
-            <td>
-                {% if charaktere %}
-                    <select name="character" form="form-special" required>
-                        {% for c in charaktere %}
-                            <option value="{{ c.id }}">{{ c.name }} ({{ c.geld }} Dr.)</option>
-                        {% endfor %}
-                    </select>
-                {% else %}Du hast keine Charaktere{% endif %}
-            </td>
-            
-            <td>
-                <form method="post" id="form-special">
-                    {% csrf_token %}
-                    <input hidden type="checkbox" name="extra" checked>
-                    <button type="submit" class="btn btn-primary">Kaufen</button>
-                </form>
-            </td>
-        </tr>
-    </tbody>
-</table>
+        <tbody>
+            <tr>
+                <td><input name="amount" type="number" value="1" min="1" form="form-special" required></td>
+                <td><input name="stufe" type="number" value="1" min="1" form="form-special" required></td>
+                <td><input name="price" type="number" value="0" min="0" form="form-special" required> Dr.</td>
+                <td>
+                    {% if charaktere %}
+                        <select name="character" form="form-special" required>
+                            {% for c in charaktere %}
+                                <option value="{{ c.id }}">{{ c.name }} ({{ c.geld }} Dr.)</option>
+                            {% endfor %}
+                        </select>
+                    {% else %}Du hast keine Charaktere{% endif %}
+                </td>
+                
+                <td>
+                    <form method="post" id="form-special">
+                        {% csrf_token %}
+                        <input hidden type="checkbox" name="extra" checked>
+                        <button type="submit" class="btn btn-primary">Kaufen</button>
+                    </form>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
 {% endif %}
 {% endblock %}

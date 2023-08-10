@@ -7,6 +7,11 @@
         {% csrf_token %}
         {{ form.as_p }}
 
+        <div class="d-flex gap-3 mt-2 mb-5">
+            <a class="btn btn-outline-light" href="{% url 'admin:character_religion_add' %}">neue Religion</a>
+            <a class="btn btn-outline-light" href="{% url 'admin:character_beruf_add' %}">neuer Beruf</a>
+        </div>
+
         <div class="sticky-footer">
             <button type="submit" class="btn btn-lg btn-primary m-2">Speichern</button>
             <a class="btn btn-lg btn-outline-primary m-2" href="{{ back_url }}">Zurück</a>

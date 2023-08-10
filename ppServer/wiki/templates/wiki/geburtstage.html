@@ -11,28 +11,30 @@
 {% endblock %}
 
 {% block main %}
-<table class="table table-dark table-striped table-hover">
-    <thead>
-        <tr>
-            <th>Name</th>
-            <th>Geburtstag</th>
-        </tr>
-    </thead>
+<div class="table-container table-responsive">
+    <table class="table table-dark table-striped table-hover">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Geburtstag</th>
+            </tr>
+        </thead>
 
-    <tbody>
-        {% for s in spieler %}
-        <tr class="odd even{% if s.next_party %} highlight{% endif %}">
-            <td>{{ s.get_real_name }}</td>
-            <td>{{ s.geburtstag|date }}</td>
-        </tr>
-        {% empty %}
-        <tr>
-            <td>
-                <b>Nix zu sehen</b>
-            </td>
-            <td></td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+        <tbody>
+            {% for s in spieler %}
+            <tr class="odd even{% if s.next_party %} highlight{% endif %}">
+                <td>{{ s.get_real_name }}</td>
+                <td>{{ s.geburtstag|date }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td>
+                    <b>Nix zu sehen</b>
+                </td>
+                <td></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
 {% endblock %}

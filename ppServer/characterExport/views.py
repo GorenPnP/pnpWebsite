@@ -386,9 +386,9 @@ class CharacterExportView(LoginRequiredMixin, VerifiedAccountMixin, DetailView):
         werte_ws.write("M37", "Rang HP", format_align_center_center)
         werte_ws.write("N37", char.rang, format_sub_titel)
         werte_ws.write("M38", "HP", format_section_titel)
-        werte_ws.write("N38", "=N36+(N37/10)+(L25*2)+(N5*5)", format_hp)
+        werte_ws.write("N38", f"=N36+(N37/10)+(L25*2)+(N5*5)+{math.floor(char.larp_rang/20)}", format_hp)
         werte_ws.write("M39", "gHP", format_section_titel)
-        werte_ws.write("N39", "=N9*5"+(f"+{char.HPplus_geistig}"if char.HPplus_geistig else ""), format_hp)
+        werte_ws.write("N39", f"=N9*5+{math.ceil(char.larp_rang/20)}"+(f"+{char.HPplus_geistig}"if char.HPplus_geistig else ""), format_hp)
         werte_ws.write_row("M40", [None, None], format_border_top)
         werte_ws.write(f"O36", None, format_border_top_left)
         for i in range(37, 40):

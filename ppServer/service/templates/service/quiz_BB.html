@@ -9,39 +9,41 @@
 
 <span>Maxima und erreichte Punkte aus allen Fragen, die mindestens 1x beantwortet wurden.</span>
 
-<table class="table table-dark table-striped table-hover mt-3" style="margin-bottom: 100px">
-{% for row in table %}
-    {% if forloop.first %}
-    <thead class="sticky-top">
+<div class="table-container table-responsive">
+    <table class="table table-dark table-striped table-hover mt-3" style="margin-bottom: 100px">
+    {% for row in table %}
+        {% if forloop.first %}
+        <thead class="sticky-top">
+            <tr>
+                {% for e in row %}
+                <th>
+                    {% if e.link %}<a href="{{ e.link }}" class="text-light">{{ e.text }}</a>
+                    {% else %}{{ e.text }}{% endif %}
+                </th>
+                {% endfor %}
+            </tr>
+        </thead>
+
+        <tbody>
+        {% else %}
         <tr>
             {% for e in row %}
-            <th>
-                {% if e.link %}<a href="{{ e.link }}" class="text-light">{{ e.text }}</a>
-                {% else %}{{ e.text }}{% endif %}
-            </th>
+            <td  style="text-align: center">
+                {% if forloop.counter0 < 2 %}
+                    {% if e.link %}<a href="{{ e.link }}" class="text-light">{{ e.text }}</a>{% else %}{{ e.text }}{% endif %}
+                {% else %}
+                    <div class="score{% if e.tag_class %} {{ e.tag_class }}{% endif %}">
+                        {{ e.grade_score|default:"-" }}
+                    </div>
+                    <small class="text-light">{{ e.text }}</small>
+                {% endif %}
+            </td>
             {% endfor %}
         </tr>
-    </thead>
-
-    <tbody>
-    {% else %}
-    <tr>
-        {% for e in row %}
-        <td  style="text-align: center">
-            {% if forloop.counter0 < 2 %}
-                {% if e.link %}<a href="{{ e.link }}" class="text-light">{{ e.text }}</a>{% else %}{{ e.text }}{% endif %}
-            {% else %}
-                <div class="score{% if e.tag_class %} {{ e.tag_class }}{% endif %}">
-                    {{ e.grade_score|default:"-" }}
-                </div>
-                <small class="text-light">{{ e.text }}</small>
-            {% endif %}
-        </td>
-        {% endfor %}
-    </tr>
-    {% endif %}
-{% endfor %}
-</tbody>
-</table>
+        {% endif %}
+    {% endfor %}
+    </tbody>
+    </table>
+</div>
 
 {% endblock %}

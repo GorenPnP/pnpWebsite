@@ -12,7 +12,9 @@ from django.views.generic.base import TemplateView
 
 import django_tables2 as tables
 
+from base.abstract_views import DynamicTableView, GenericTable
 from log.create_log import render_number
+from log.models import Log
 from ppServer.mixins import VerifiedAccountMixin
 
 from .models import *
@@ -57,6 +59,9 @@ class ShowView(LoginRequiredMixin, VerifiedAccountMixin, DetailView):
             topic = char.name,
             app_index = "Charaktere",
             app_index_url = reverse("character:index"),
+            plus = "History",
+            plus_url = reverse("character:history", args=[char.id]),
+
             **self.get_personal(char),
             **self.get_resources(char),
             **self.get_calculated(char),
@@ -395,3 +400,32 @@ class ShowView(LoginRequiredMixin, VerifiedAccountMixin, DetailView):
         return {
             "fernkampf__table": SchusswaffenTable(char.relschusswaffen_set.all())
         }
+
+
+class HistoryView(LoginRequiredMixin, VerifiedAccountMixin, tables.SingleTableMixin, TemplateView):
+
+    class Table(GenericTable):
+        class Meta:
+            model = Log
+            fields = ["spieler", "art", "notizen", "kosten", "timestamp"]
+            attrs = GenericTable.Meta.attrs
+
+    template_name = "character/history.html"
+    model = Log
+    table_class=Table
+    
+    def get_table_data(self):
+        char = get_object_or_404(Charakter, pk=self.kwargs["pk"])
+        return Log.objects.filter(char=char, art__in=("s", "u", "i"))
+    
+
+    def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
+        char = get_object_or_404(Charakter, pk=self.kwargs["pk"])
+
+        return super().get_context_data(
+            **kwargs,
+            topic = "History",
+            app_index=char.name,
+            app_index_url=reverse("character:show", args=[char.id]),
+            priotable=char.processing_notes["priotable"] if "priotable" in char.processing_notes else None,
+        )

@@ -15,23 +15,25 @@
     <div class="transaction-container">
 
         {% if transactions|length %}
-        <table class="transactions">
-            <tr>
-                <td>Betrag</td>
-                <td>Person</td>
-                <td>Grund</td>
-                <td>Zeitpunkt</td>
-            </tr>
-    
-            {% for t in transactions %}
-                <tr class="{% if t.sender == object %}send{% else %}received{% endif %}">
-                    <td class="amount">{% if t.sender == object %}-{% else %}+{% endif %}{{ t.amount }} Dr.</td>
-                    <td>{% if t.sender == object %}an {{ t.receiver|default:"-" }}{% else %}von {{ t.sender|default:"-" }}{% endif %}</td>
-                    <td class="reason">{{ t.reason }}</td>
-                    <td class="timestamp">{{ t.timestamp }}</td>
+        <div class="table-container table-responsive">
+            <table class="table table-hover transactions">
+                <tr>
+                    <td>Betrag</td>
+                    <td>Person</td>
+                    <td>Grund</td>
+                    <td>Zeitpunkt</td>
                 </tr>
-            {% endfor %}
-        </table>
+        
+                {% for t in transactions %}
+                    <tr class="{% if t.sender == object %}send{% else %}received{% endif %}">
+                        <td class="amount">{% if t.sender == object %}-{% else %}+{% endif %}{{ t.amount }} Dr.</td>
+                        <td>{% if t.sender == object %}an {{ t.receiver|default:"-" }}{% else %}von {{ t.sender|default:"-" }}{% endif %}</td>
+                        <td class="reason">{{ t.reason }}</td>
+                        <td class="timestamp">{{ t.timestamp }}</td>
+                    </tr>
+                {% endfor %}
+            </table>
+        </div>
         {% else %}
             Noch keine Transaktionen vorhanden
         {% endif %}

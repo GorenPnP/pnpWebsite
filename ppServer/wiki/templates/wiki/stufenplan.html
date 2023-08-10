@@ -71,57 +71,61 @@
         <!-- start-values -->
         <div class="col" style="width: fit-content; max-width: 400px;">
             <h2 class="title">Bonus bei Wahl</h2>
-            <table class="startbonus__table table table-dark table-striped table-hover">
-                <tbody>
-                    {% for b in boni %}
-                    <tr>
-                        <td>{{ b.field }}</td>
-                        <td>{{ b.val|default:'-'|linebreaks }}</td>
-                    </tr>
-                    {% endfor %}
-    
-                    <tr>
-                        <td>Startmanifest</td>
-                        <td>{{ gfs.startmanifest|default:'-' }}</td>
-                    </tr>
-                    <tr>
-                        <td>Schaden waffenloser Kampf (andere Form) in HP</td>
-                        <td>{{ gfs.wesenschaden_waff_kampf|default:'-' }} ({{ gfs.wesenschaden_andere_gestalt|default:'-' }})</td>
-                    </tr>
-                    <tr>
-                        <td>Kosten in AP</td>
-                        <td>{{ gfs.ap|default:'-' }}</td>
-                    </tr>
-                </tbody>
-            </table>
+            <div class="table-container table-responsive">
+                <table class="startbonus__table table table-dark table-striped table-hover">
+                    <tbody>
+                        {% for b in boni %}
+                        <tr>
+                            <td>{{ b.field }}</td>
+                            <td>{{ b.val|default:'-'|linebreaks }}</td>
+                        </tr>
+                        {% endfor %}
+        
+                        <tr>
+                            <td>Startmanifest</td>
+                            <td>{{ gfs.startmanifest|default:'-' }}</td>
+                        </tr>
+                        <tr>
+                            <td>Schaden waffenloser Kampf (andere Form) in HP</td>
+                            <td>{{ gfs.wesenschaden_waff_kampf|default:'-' }} ({{ gfs.wesenschaden_andere_gestalt|default:'-' }})</td>
+                        </tr>
+                        <tr>
+                            <td>Kosten in AP</td>
+                            <td>{{ gfs.ap|default:'-' }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     
         <div class="col" style="width: fit-content; max-width: 400px;">
 
             <!-- skilltree -->
             <h2 class="title">Skilltree</h2>
-            <table class="skilltree__table table table-dark table-striped table-hover">
-    
-                <thead>
-                    <tr>
-                        <th>Stufe (SP)</th>
-                        <th>Gibt</th>
-                    </tr>
-                </thead>
-    
-                <tbody>
-                    {% for e in skilltree %}
-                    <tr>
-                        <td>
-                            {% if not forloop.last %}
-                            <b>{{ forloop.counter0|add:2 }}</b><br><small>({{ e.sp }} SP)</small>
-                            {% else %}Bonus{% endif %}
-                        </td>
-                        <td>{{ e.text|default:'-'|linebreaks }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+            <div class="table-container table-responsive">
+                <table class="skilltree__table table table-dark table-striped table-hover">
+        
+                    <thead>
+                        <tr>
+                            <th>Stufe (SP)</th>
+                            <th>Gibt</th>
+                        </tr>
+                    </thead>
+        
+                    <tbody>
+                        {% for e in skilltree %}
+                        <tr>
+                            <td>
+                                {% if not forloop.last %}
+                                <b>{{ forloop.counter0|add:2 }}</b><br><small>({{ e.sp }} SP)</small>
+                                {% else %}Bonus{% endif %}
+                            </td>
+                            <td>{{ e.text|default:'-'|linebreaks }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </section>
@@ -129,48 +133,50 @@
 <!-- EP-tree -->
 <section class="content ep-tree">
     <h2 class="title">EP-Tree</h2>
-    <table class="ep-tree__table table table-dark table-striped table-hover">
-        <thead>
-            <tr>
-                <th>Stufe (EP)</th>
-                <th>Vorteile</th>
-                <th>AP</th>
-                <th>FP, FG</th>
-                <th>TP</th>
-                <th>Zauber</th>
-                <th>Wesenkräfte</th>
-                <th>Weiteres</th>
-            </tr>
-        </thead>
+    <div class="table-container table-responsive">
+        <table class="ep-tree__table table table-dark table-striped table-hover">
+            <thead>
+                <tr>
+                    <th>Stufe (EP)</th>
+                    <th>Vorteile</th>
+                    <th>AP</th>
+                    <th>FP, FG</th>
+                    <th>TP</th>
+                    <th>Zauber</th>
+                    <th>Wesenkräfte</th>
+                    <th>Weiteres</th>
+                </tr>
+            </thead>
 
-        <tbody>
-            {% for e in stufenplan_entries %}
-            <tr>
-                <td><b>{{ e.stufe }}</b><br><small>({{ e.ep }} EP)</small></td>
-                <td>{{ e.vorteile|default:"-" }}</td>
-                <td>{{ e.ap|default:'-' }}</td>
-    
-                <td>
-                    {% if e.fert.0 %}{{ e.fert.0 }}
-                        {% if e.fert.1 %}, {{ e.fert.1 }}{% endif %}
-                    {% elif e.fert.1 %}{{ e.fert.1 }}
-                    {% else %}-{% endif %}
-                </td>
-                
-                <td>{{ e.tp|default:"-" }}</td>
-                    <td>{{ e.zauber|default:"-" }}</td>
-                        <td>{{ e.wesenkräfte|default:"-" }}</td>
-    
-    
-                <td>
-                    {% if not e.ability  %}-{% else %}
-                    <strong>{{ e.ability.name|default:"-"|linebreaks }}</strong><br>
-                    {{ e.ability.beschreibung|default:"-"|linebreaks }}
-                    {% endif %}
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+            <tbody>
+                {% for e in stufenplan_entries %}
+                <tr>
+                    <td><b>{{ e.stufe }}</b><br><small>({{ e.ep }} EP)</small></td>
+                    <td>{{ e.vorteile|default:"-" }}</td>
+                    <td>{{ e.ap|default:'-' }}</td>
+        
+                    <td>
+                        {% if e.fert.0 %}{{ e.fert.0 }}
+                            {% if e.fert.1 %}, {{ e.fert.1 }}{% endif %}
+                        {% elif e.fert.1 %}{{ e.fert.1 }}
+                        {% else %}-{% endif %}
+                    </td>
+                    
+                    <td>{{ e.tp|default:"-" }}</td>
+                        <td>{{ e.zauber|default:"-" }}</td>
+                            <td>{{ e.wesenkräfte|default:"-" }}</td>
+        
+        
+                    <td>
+                        {% if not e.ability  %}-{% else %}
+                        <strong>{{ e.ability.name|default:"-"|linebreaks }}</strong><br>
+                        {{ e.ability.beschreibung|default:"-"|linebreaks }}
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 </section>
 {% endblock %}

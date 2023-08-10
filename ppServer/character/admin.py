@@ -1,24 +1,8 @@
-import itertools
-
 from django.contrib import admin
 from django.http.request import HttpRequest
 from django.utils.html import format_html
 
 from .models import *
-
-
-class SpielerReadonlyInLine(admin.TabularInline):
-    def has_delete_permission(self, request: HttpRequest, obj) -> bool:
-        if request.user.groups.filter(name__iexact="spieler"): return False
-        return super().has_delete_permission(request, obj)
-
-    def has_change_permission(self, request: HttpRequest, obj) -> bool:
-        if request.user.groups.filter(name__iexact="spieler"): return False
-        return super().has_change_permission(request, obj)
-    
-    def has_add_permission(self, request: HttpRequest, obj) -> bool:
-        if request.user.groups.filter(name__iexact="spieler"): return False
-        return super().has_add_permission(request, obj)
 
 
 class WesenkraftZusatzWesenspInLine(admin.TabularInline):
@@ -92,12 +76,12 @@ class RelSpeziesInline(admin.TabularInline):
     extra = 1
 
 
-class RelPersönlichkeitInline(SpielerReadonlyInLine):
+class RelPersönlichkeitInline(admin.TabularInline):
     model = RelPersönlichkeit
     extra = 1
 
 
-class RelAttributInline(SpielerReadonlyInLine):
+class RelAttributInline(admin.TabularInline):
     fields = ['attribut', 'aktuellerWert', 'aktuellerWert_temp', 'aktuellerWert_bonus', 'maxWert', 'maxWert_temp', 'fg', "fg_temp"]
     readonly_fields = ['attribut']
     model = RelAttribut
@@ -110,7 +94,7 @@ class RelAttributInline(SpielerReadonlyInLine):
         return False
 
 
-class RelFertigkeitInLine(SpielerReadonlyInLine):
+class RelFertigkeitInLine(admin.TabularInline):
     fields = ['fertigkeit', 'fp', "fp_temp", 'fp_bonus']
     readonly_fields = ['fertigkeit']
     model = RelFertigkeit
@@ -123,17 +107,17 @@ class RelFertigkeitInLine(SpielerReadonlyInLine):
         return False
 
 
-class RelWesenkraftInLine(SpielerReadonlyInLine):
+class RelWesenkraftInLine(admin.TabularInline):
     model = RelWesenkraft
     extra = 1
 
 
-class RelSpezialfertigkeitInLine(SpielerReadonlyInLine):
+class RelSpezialfertigkeitInLine(admin.TabularInline):
     model = RelSpezialfertigkeit
     extra = 1
 
 
-class RelWissensfertigkeitInLine(SpielerReadonlyInLine):
+class RelWissensfertigkeitInLine(admin.TabularInline):
     model = RelWissensfertigkeit
     extra = 1
 
@@ -150,7 +134,7 @@ class GfsAbilityInLine(admin.TabularInline):
     extra = 1
 
 
-class RelVorteilInLine(SpielerReadonlyInLine):
+class RelVorteilInLine(admin.TabularInline):
     model = RelVorteil
     fields = ["teil", "attribut", "fertigkeit", "engelsroboter", "notizen", "ip", "is_sellable", "will_create"]
     readonly_fields = ["is_sellable", "will_create"]
@@ -158,20 +142,20 @@ class RelVorteilInLine(SpielerReadonlyInLine):
     extra = 1
 
 
-class RelNachteilInLine(SpielerReadonlyInLine):
+class RelNachteilInLine(admin.TabularInline):
     model = RelNachteil
     fields = ["teil", "attribut", "fertigkeit", "notizen", "ip", "is_sellable", "will_create"]
     readonly_fields = ["is_sellable", "will_create"]
     extra = 1
 
-class RelTalentInLine(SpielerReadonlyInLine):
+class RelTalentInLine(admin.TabularInline):
     model = RelTalent
     fields = ["talent"]
     extra = 1
 
 ########## generic (st)shop ##############
 
-class RelShopInLine(SpielerReadonlyInLine):
+class RelShopInLine(admin.TabularInline):
     extra = 1
     fields = ["anz", "item", "notizen"]
 
@@ -314,23 +298,21 @@ class CharakterAdmin(admin.ModelAdmin):
     def wesen_(self, obj):
         return ', '.join([w.titel for w in obj.spezies.all()])
 
-    def get_readonly_fields(self, request, obj=None):
-        if request.user.groups.filter(name__iexact="spieler"):
-            all_fields = set(itertools.chain.from_iterable([fs[1]["fields"] for fs in self.fieldsets]))
-            allowed_fields = set([
-                "name", "gewicht", "größe", "alter", "geschlecht", "sexualität", "beruf",
-                "präf_arm", "religion", "hautfarbe", "haarfarbe", "augenfarbe",
-                'persönlicheZiele', 'notizen', 'sonstige_items'
-            ])
-            return all_fields - allowed_fields
 
-        return super().get_readonly_fields(request, obj)
+    def _is_spielleiter(self, request):
+        return request.user.groups.filter(name__iexact="spielleiter").exists()
 
-    def get_queryset(self, request):
-        if request.user.groups.filter(name__iexact="spieler"):
-            return Charakter.objects.filter(eigentümer__name__exact=request.user.username)
-        else:
-            return super().get_queryset(request)
+    def has_add_permission(self, request: HttpRequest) -> bool:
+        return self._is_spielleiter(request) and super().has_add_permission(request)
+
+    def has_change_permission(self, request: HttpRequest, obj = ...) -> bool:
+        return self._is_spielleiter(request) and super().has_change_permission(request, obj)
+
+    def has_delete_permission(self, request: HttpRequest, obj = ...) -> bool:
+        return self._is_spielleiter(request) and super().has_delete_permission(request, obj)
+
+    def has_view_permission(self, request: HttpRequest, obj = ...) -> bool:
+        return self._is_spielleiter(request) and super().has_view_permission(request, obj)
 
 
 class AttributAdmin(admin.ModelAdmin):

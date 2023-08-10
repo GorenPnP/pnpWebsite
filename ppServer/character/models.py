@@ -519,7 +519,7 @@ class Charakter(models.Model):
 
     # roleplay
     name = models.CharField(max_length=200, null=True, blank=True)
-    gewicht = models.PositiveIntegerField(default=75, verbose_name="Gewicht in kg")
+    gewicht = models.FloatField(default=75, validators=[MinValueValidator(0)], verbose_name="Gewicht in kg")
     größe = models.PositiveIntegerField(default=170, verbose_name="Größe in cm")
     alter = models.PositiveIntegerField(default=0)
     geschlecht = models.CharField(max_length=100, blank=True, null=True)

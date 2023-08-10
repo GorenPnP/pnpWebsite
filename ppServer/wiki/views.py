@@ -336,6 +336,8 @@ class ReligionTableView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTableVi
 
     app_index = "Wiki"
     app_index_url = "wiki:index"
+    plus = "+ Religion"
+    plus_url = "admin:character_religion_add"
 
 
 class BerufTableView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTableView):
@@ -348,6 +350,8 @@ class BerufTableView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTableView)
 
     app_index = "Wiki"
     app_index_url = "wiki:index"
+    plus = "+ Beruf"
+    plus_url = "admin:character_beruf_add"
 
 
 class GeburtstageView(LoginRequiredMixin, VerifiedAccountMixin, TemplateView):

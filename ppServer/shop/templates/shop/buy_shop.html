@@ -9,78 +9,80 @@
 {% endblock %}
 
 {% block main %}
-<table class="table table-dark table-striped table-hover">
-    <thead>
-        <tr>
-            <th>Anzahl</th>
-            {% if st %}<th>Stufe</th>{% endif %}
-            <th>Preis {% if st %}pro Stufe{% endif %} pro Item</th>
-            <th>für ...</th>
-            <th>Firma</th>
-            <th>Verfügbarkeit</th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
+<div class="table-container table-responsive">
+    <table class="table table-dark table-striped table-hover">
+        <thead>
+            <tr>
+                <th>Anzahl</th>
+                {% if st %}<th>Stufe</th>{% endif %}
+                <th>Preis {% if st %}pro Stufe{% endif %} pro Item</th>
+                <th>für ...</th>
+                <th>Firma</th>
+                <th>Verfügbarkeit</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
 
-        {% for e in entries %}
-        <tr>
-            <td><input name="amount" type="number" value="1" min="1" form="form-{{ forloop.counter0 }}" required></td>
-            {% if st %}
-            <td><input name="stufe" type="number" value="1" min="1" form="form-{{ forloop.counter0 }}" required></td>
+            {% for e in entries %}
+            <tr>
+                <td><input name="amount" type="number" value="1" min="1" form="form-{{ forloop.counter0 }}" required></td>
+                {% if st %}
+                <td><input name="stufe" type="number" value="1" min="1" form="form-{{ forloop.counter0 }}" required></td>
+                {% endif %}
+
+                <td><b>{{ e.getPrice }} Dr.</b> {% if e.getPrice != e.preis %}<small class="d-block">(enthält +{{ e.getPrice|subtract:e.preis }} Dr.)</small>{% endif %}</td>
+                <td>
+                    {% if charaktere %}
+                        <select name="character" form="form-{{ forloop.counter0 }}" required>
+                            {% for c in charaktere %}
+                                <option value="{{ c.id }}">{{ c.name }} ({{c.geld }} Dr.)</option>
+                            {% endfor %}
+                        </select>
+                    {% else %}Du hast keine Charaktere{% endif %}
+                </td>
+                <td>{{ e.firma }}</td>
+                <td>{{ e.verfügbarkeit }}%</td>
+                <td>
+                    <form method="post" id="form-{{ forloop.counter0 }}">
+                        {% csrf_token %}
+                        <input hidden name="firmashop_id" value="{{ e.id }}">
+                        <button type="submit" class="btn btn-primary">Kaufen</button>
+                    </form>
+                </td>
+
+            </tr>
+            {% endfor %}
+
+            {% if extra_preis_field %}
+            <tr>
+                <td><input name="amount" type="number" value="1" min="1" form="form-special" required></td>
+                {% if st %}
+                <td><input name="stufe" type="number" value="1" min="1" form="form-special" required></td>
+                {% endif %}
+                <td><input name="price" type="number" value="0" min="0" form="form-special" required> Dr.</td>
+                <td>
+                    {% if charaktere %}
+                        <select name="character" form="form-special" required>
+                            {% for c in charaktere %}
+                                <option value="{{ c.id }}">{{ c.name }} ({{ c.geld }} Dr.)</option>
+                            {% endfor %}
+                        </select>
+                    {% else %}Du hast keine Charaktere{% endif %}
+                </td>
+
+                <td>-</td>
+                <td>-</td>
+                <td>
+                    <form method="post" id="form-special">
+                        {% csrf_token %}
+                        <input hidden type="checkbox" name="extra" checked>
+                        <button type="submit" class="btn btn-primary">Kaufen</button>
+                    </form>
+                </td>
+            </tr>
             {% endif %}
-
-            <td><b>{{ e.getPrice }} Dr.</b> {% if e.getPrice != e.preis %}<small class="d-block">(enthält +{{ e.getPrice|subtract:e.preis }} Dr.)</small>{% endif %}</td>
-            <td>
-                {% if charaktere %}
-                    <select name="character" form="form-{{ forloop.counter0 }}" required>
-                        {% for c in charaktere %}
-                            <option value="{{ c.id }}">{{ c.name }} ({{c.geld }} Dr.)</option>
-                        {% endfor %}
-                    </select>
-                {% else %}Du hast keine Charaktere{% endif %}
-            </td>
-            <td>{{ e.firma }}</td>
-            <td>{{ e.verfügbarkeit }}%</td>
-            <td>
-                <form method="post" id="form-{{ forloop.counter0 }}">
-                    {% csrf_token %}
-                    <input hidden name="firmashop_id" value="{{ e.id }}">
-                    <button type="submit" class="btn btn-primary">Kaufen</button>
-                </form>
-            </td>
-
-        </tr>
-        {% endfor %}
-
-        {% if extra_preis_field %}
-        <tr>
-            <td><input name="amount" type="number" value="1" min="1" form="form-special" required></td>
-            {% if st %}
-            <td><input name="stufe" type="number" value="1" min="1" form="form-special" required></td>
-            {% endif %}
-            <td><input name="price" type="number" value="0" min="0" form="form-special" required> Dr.</td>
-            <td>
-                {% if charaktere %}
-                    <select name="character" form="form-special" required>
-                        {% for c in charaktere %}
-                            <option value="{{ c.id }}">{{ c.name }} ({{ c.geld }} Dr.)</option>
-                        {% endfor %}
-                    </select>
-                {% else %}Du hast keine Charaktere{% endif %}
-            </td>
-
-            <td>-</td>
-            <td>-</td>
-            <td>
-                <form method="post" id="form-special">
-                    {% csrf_token %}
-                    <input hidden type="checkbox" name="extra" checked>
-                    <button type="submit" class="btn btn-primary">Kaufen</button>
-                </form>
-            </td>
-        </tr>
-        {% endif %}
-    </tbody>
-</table>
+        </tbody>
+    </table>
+</div>
 {% endblock %}

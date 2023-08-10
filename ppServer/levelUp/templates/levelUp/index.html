@@ -23,32 +23,34 @@
 {% block main %}
 
     <div class="container-fluid" style="max-width: 600px; margin: 3em auto 0">
-        <table id="hub-table" class="table table-dark table-striped table-hover">
-            <thead>
-                <tr>
-                    <th>Erledigt?</th>
-                    <th>Links</th>
-                    <th>Werte</th>
-                </tr>
-            </thead>
-            
-            <tbody>
-                <!-- rows -->
-                {% for row in rows %}
-                <tr>
-                    <td>
-                        {% if row.done is not None %}
-                        <a href="{{ row.link }}" {% if row.extern %}target="_blank"{% endif %}>
-                            <div class="checkbox {% if row.done %}checked{% endif %}{% if forloop.last %} checked--sufficient{% endif %}"></div>
-                        </a>
-                        {% endif %}
-                    </td>
-                    <td><a href="{{ row.link }}" {% if row.extern %}target="_blank"{% endif %} class="text-light">{{ row.text|safe }}</a></td>
-                    <td>{% autoescape off %}{{ row.werte }}{% endautoescape %}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+        <div class="table-container table-responsive">
+            <table id="hub-table" class="table table-dark table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th>Erledigt?</th>
+                        <th>Links</th>
+                        <th>Werte</th>
+                    </tr>
+                </thead>
+                
+                <tbody>
+                    <!-- rows -->
+                    {% for row in rows %}
+                    <tr>
+                        <td>
+                            {% if row.done is not None %}
+                            <a href="{{ row.link }}" {% if row.extern %}target="_blank"{% endif %}>
+                                <div class="checkbox {% if row.done %}checked{% endif %}{% if forloop.last %} checked--sufficient{% endif %}"></div>
+                            </a>
+                            {% endif %}
+                        </td>
+                        <td><a href="{{ row.link }}" {% if row.extern %}target="_blank"{% endif %} class="text-light">{{ row.text|safe }}</a></td>
+                        <td>{% autoescape off %}{{ row.werte }}{% endautoescape %}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
 
 
         <form method="post">
