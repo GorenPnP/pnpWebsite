@@ -372,6 +372,9 @@ class Teil(models.Model):
     needs_notiz = models.BooleanField(default=False)
     needs_ip = models.BooleanField(default=False)
 
+    needs_implementation = models.BooleanField(default=False, verbose_name="muss implementiert werden")
+    has_implementation = models.BooleanField(default=False, verbose_name="ist implementiert")
+
 
 class Vorteil(Teil):
 

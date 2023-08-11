@@ -423,8 +423,8 @@ class PersönlichkeitAdmin(admin.ModelAdmin):
 
 class VorNachteilAdmin(admin.ModelAdmin):
 
-    list_display = ('titel', 'ip', 'beschreibung', "wann_wählbar", "is_sellable", "_max_amount", "needs_ip", "needs_attribut", "needs_fertigkeit", "needs_engelsroboter", "needs_notiz")
-    list_editable = ("is_sellable", "needs_ip", "needs_attribut", "needs_fertigkeit", "needs_engelsroboter", "needs_notiz")
+    list_display = ('titel', 'ip', 'beschreibung', "needs_implementation", "has_implementation", "wann_wählbar", "is_sellable", "_max_amount", "needs_ip", "needs_attribut", "needs_fertigkeit", "needs_engelsroboter", "needs_notiz")
+    list_editable = ("needs_implementation", "has_implementation")
     list_filter = ['ip', "wann_wählbar"]
     search_fields = ['titel', 'ip', "wann_wählbar"]
 
