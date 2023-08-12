@@ -134,6 +134,18 @@
                 </table>
             </div>
         </section>
+        {% if spF_wF_spezial.data|length %}
+        <section id="spezial">
+            <h2>Spezialfertigkeiten</h2>
+            {% render_table spF_wF_spezial %}
+        </section>
+        {% endif %}
+        {% if spF_wF_wissen.data|length %}
+        <section id="wissen">
+            <h2>Wissensfertigkeiten</h2>
+            {% render_table spF_wF_wissen %}
+        </section>
+        {% endif %}
         {% if vorteil__table.data|length %}
         <section id="vorteil">
             <h2>Vorteile</h2>

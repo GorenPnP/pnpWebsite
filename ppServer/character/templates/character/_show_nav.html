@@ -3,6 +3,8 @@
 <a class="nav-link" href="#values">errechnete Werte</a>
 <a class="nav-link" href="#attrs">Attribute + Fertigkeiten</a>
 <a class="nav-link" href="#hp">HP</a>
+{% if spF_wF_spezial.data|length %}<a class="nav-link" href="#spezial">Spezialfertigkeiten</a>{% endif %}
+{% if spF_wF_wissen.data|length %}<a class="nav-link" href="#wissen">Wissensfertigkeiten</a>{% endif %}
 {% if vorteil__table.data|length %}<a class="nav-link" href="#vorteil">Vorteile</a>{% endif %}
 {% if nachteil__table.data|length %}<a class="nav-link" href="#nachteil">Nachteile</a>{% endif %}
 {% if wesenkraft__table.data|length %}<a class="nav-link" href="#wesenkraft">Wesenkräfte</a>{% endif %}

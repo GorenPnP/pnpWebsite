@@ -1,6 +1,6 @@
 from typing import Any, Dict
 
-from django.db.models import Value, CharField
+from django.db.models import Value, CharField, F
 from django.db.models.functions import Concat
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
@@ -12,7 +12,7 @@ from django.views.generic.base import TemplateView
 
 import django_tables2 as tables
 
-from base.abstract_views import DynamicTableView, GenericTable
+from base.abstract_views import GenericTable
 from log.create_log import render_number
 from log.models import Log
 from ppServer.mixins import VerifiedAccountMixin
@@ -67,6 +67,7 @@ class ShowView(LoginRequiredMixin, VerifiedAccountMixin, DetailView):
             **self.get_calculated(char),
             **self.get_attr(char),
             **self.get_hp(char),
+            **self.get_spF_wF(char),
             **self.get_teils(char),
             **self.get_wesenkraft(char),
             **self.get_talent(char),
@@ -88,6 +89,8 @@ class ShowView(LoginRequiredMixin, VerifiedAccountMixin, DetailView):
             "relmagazin_set__item", "relpfeil_bolzen_set__item", "relmagische_ausrüstung_set__item", "relrüstung_set__item",
             "relausrüstung_technik_set__item", "relfahrzeug_set__item", "releinbauten_set__item", "relalchemie_set__item",
             "reltinker_set__item", "relbegleiter_set__item",
+            "relspezialfertigkeit_set__spezialfertigkeit__attr1", "relspezialfertigkeit_set__spezialfertigkeit__attr2", "relspezialfertigkeit_set__spezialfertigkeit__ausgleich",
+            "relwissensfertigkeit_set__wissensfertigkeit__attr1", "relwissensfertigkeit_set__wissensfertigkeit__attr2", "relwissensfertigkeit_set__wissensfertigkeit__attr3", "relwissensfertigkeit_set__wissensfertigkeit__fertigkeit",
         )
         return super().get_object(qs)
     
@@ -243,6 +246,83 @@ class ShowView(LoginRequiredMixin, VerifiedAccountMixin, DetailView):
         return {
             "hp__k_fields": fields_khp,
             "hp__g_fields": fields_ghp,
+        }
+    
+    def get_spF_wF(self, char):
+        attr = {rel.attribut.titel: rel.aktuell() for rel in char.relattribut_set.all()}
+        fg = {rel.attribut.titel: rel.fg for rel in char.relattribut_set.all()}
+        fert = {rel.fertigkeit.titel: attr[rel.fertigkeit.attr1.titel] + (attr[rel.fertigkeit.attr2.titel] if rel.fertigkeit.attr2 else fg[rel.fertigkeit.attr1.titel]) +  rel.fp + rel.fp_bonus for rel in char.relfertigkeit_set.all()}
+
+        class SpezialTable(tables.Table):
+            class Meta:
+                model = RelSpezialfertigkeit
+                fields = (
+                    "spezialfertigkeit__titel", "spezialfertigkeit__attr1__titel", "spezialfertigkeit__attr2__titel", "gesamt",
+                    "spezialfertigkeit__ausgleich", "korrektur", "wp", "w20_probe"
+                )
+                orderable = False
+                attrs = {"class": "table table-dark table-striped table-hover"}
+
+            spezialfertigkeit__attr1__titel = tables.Column(verbose_name="Attribut 1")
+            spezialfertigkeit__attr2__titel = tables.Column(verbose_name="Attribut 2")
+
+            def render_gesamt(self, value, record):
+                return attr[record.spezialfertigkeit.attr1.titel] + attr[record.spezialfertigkeit.attr2.titel]
+
+            def render_korrektur(self, value, record):
+                return math.floor(sum([fert[f.titel] for f in record.spezialfertigkeit.ausgleich.all()]) / 2 + 0.5)
+            
+            def render_w20_probe(self, value, record):
+                return attr[record.spezialfertigkeit.attr1.titel] + attr[record.spezialfertigkeit.attr2.titel] + record.wp
+
+
+        class WissenTable(tables.Table):
+            class Meta:
+                model = RelWissensfertigkeit
+                fields = (
+                    "wissensfertigkeit__titel", "attribute", "gesamt",
+                    "wissensfertigkeit__fertigkeit", "wp", "schwellwert"
+                )
+                orderable = False
+                attrs = {"class": "table table-dark table-striped table-hover"}
+
+            def render_attribute(self, value, record):
+                return " + ".join([record.wissensfertigkeit.attr1.titel, record.wissensfertigkeit.attr2.titel, record.wissensfertigkeit.attr3.titel])
+
+            def render_gesamt(self, value, record):
+                return sum([
+                    attr[record.wissensfertigkeit.attr1.titel],
+                    attr[record.wissensfertigkeit.attr2.titel],
+                    attr[record.wissensfertigkeit.attr3.titel]
+                ])
+            
+            def render_schwellwert(self, value, record):
+                return sum([
+                    attr[record.wissensfertigkeit.attr1.titel],
+                    attr[record.wissensfertigkeit.attr2.titel],
+                    attr[record.wissensfertigkeit.attr3.titel],
+                    sum([fert[rel.fertigkeit.titel] for rel in char.relfertigkeit_set.filter(fertigkeit__in=record.wissensfertigkeit.fertigkeit.all())]),
+                    record.wp * Wissensfertigkeit.WISSENSF_STUFENFAKTOR
+                ])
+
+
+        spezi_qs = char.relspezialfertigkeit_set.all().annotate(
+            gesamt=Value(1),
+            korrektur=Value(1),
+            w20_probe=Value(1),
+            wp=F("stufe") - 5
+        )
+
+        wissen_qs = char.relwissensfertigkeit_set.all().annotate(
+            attribute=Value("attr"),
+            gesamt=Value(1),
+            wp=F("stufe"),
+            schwellwert=Value(1)
+        )
+
+        return {
+            "spF_wF_spezial": SpezialTable(spezi_qs),
+            "spF_wF_wissen": WissenTable(wissen_qs),
         }
 
     def get_teils(self, char):
