@@ -170,11 +170,11 @@
             {% render_table affektivität__table %}
         </section>
         {% endif %}
-        {% if inventory__table.data|length or char.inventory__random_items %}
+        {% if inventory__table.data|length or inventory__random_items %}
         <section id="inventory">
             <h2>Inventar & Ramsch</h2>
-            {% render_table inventory__table %}
-            {{ char.inventory__random_items }}
+            {% if inventory__table.data|length %}{% render_table inventory__table %}{% endif %}
+            {% if inventory__random_items %}{{ inventory__random_items }}{% endif %}
         </section>
         {% endif %}
         {% if zauber__table.data|length %}
