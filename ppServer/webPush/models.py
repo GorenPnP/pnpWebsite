@@ -11,6 +11,7 @@ class PushTag(enum.Enum):
     chat = "chat"
     news = "news"
     quiz = "quiz"
+    quiz_control = "quiz-control"
     changelog = "changelog"
     polls = "polls"
 
@@ -43,6 +44,7 @@ class PushSettings(models.Model):
             PushTag.chat: reverse("httpchat:index"),
             PushTag.news: reverse("news:index"),
             PushTag.quiz: reverse("quiz:index"),
+            PushTag.quiz_control: reverse("quiz:sp_modules"),
             PushTag.changelog: reverse("changelog:index"),
             PushTag.polls: reverse("base:index"),
 
@@ -53,9 +55,13 @@ class PushSettings(models.Model):
         # transform tag to string
         tag = tag.value if type(tag) == PushTag else tag
 
+        # spielleiter-only tags
+        if tag in [PushTag.quiz_control.value]:
+            recipients = recipients.filter(groups__name="spielleiter")
+
         # get filtered recipients
         filters = {"user__in": recipients}
-        if tag: filters[tag] = True
+        if tag and hasattr(PushSettings(), tag): filters[tag] = True
         users = PushSettings.objects.filter(**filters).values_list("user", flat=True)
 
         # send message
