@@ -80,7 +80,7 @@ class IndexView(LevelUpMixin, DetailView):
         # Gfs-Abilities
         relabilities = RelGfsAbility.objects.prefetch_related("ability").filter(Q(char=char) & Q(ability__has_choice=True) & (Q(notizen__isnull=True) | Q(notizen="")))
         if relabilities.count():
-            rows.append({"done": False, "link": self._get_url("gfs_ability", char), "text": "<b>Rückfragen bei Gfs-Fähigkeiten</b>", "werte": ", ".join([rel.teil.name for rel in relabilities])})
+            rows.append({"done": False, "link": self._get_url("gfs_ability", char), "text": "<b>Rückfragen bei Gfs-Fähigkeiten</b>", "werte": ", ".join([rel.ability.name for rel in relabilities])})
 
 
 
