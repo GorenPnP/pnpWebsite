@@ -142,11 +142,15 @@ class ModuleAdmin(admin.ModelAdmin):
 
 
 class SpielerModuleAdmin(admin.ModelAdmin):
-    list_display = ["spieler", "module", "state", "optional", "achieved_points"]
+    list_display = ["spieler", "module", "state", "optional", "spent_reward", "spent_reward_larp", "_reward", "achieved_points"]
     list_filter = ["spieler", "module", ModelStateFilter]
     search_fields = ["spieler__name", "module__title", "state"]
+    list_editable = ["spent_reward", "spent_reward_larp"]
 
     exclude = ["sessions"]
+
+    def _reward(self, obj):
+        return obj.module.reward
 
 
 class SpielerSessionAdmin(admin.ModelAdmin):
