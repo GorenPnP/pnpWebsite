@@ -24,6 +24,9 @@ class GfsAttributInLine(admin.TabularInline):
     def has_add_permission(self, request, obj=None):
         return False
 
+    def get_queryset(self, request):
+        return super().get_queryset(request).prefetch_related('attribut')
+
 
 class GfsFertigkeitInLine(admin.TabularInline):
     model = GfsFertigkeit
@@ -33,6 +36,9 @@ class GfsFertigkeitInLine(admin.TabularInline):
 
     def has_add_permission(self, request, obj=None):
         return False
+    
+    def get_queryset(self, request):
+        return super().get_queryset(request).prefetch_related('fertigkeit')
 
 
 class GfsVorteilInLine(admin.TabularInline):
@@ -59,6 +65,9 @@ class GfsStufenplanInLine(admin.TabularInline):
     model = GfsStufenplan
     fields = ["basis", "vorteile", "zauber", "wesenkräfte", "ability"]
     extra = 0
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).prefetch_related('basis', 'vorteile', 'wesenkräfte', 'ability')
 
 
 class SpezialAusgleichInLine(admin.TabularInline):
@@ -92,6 +101,8 @@ class RelAttributInline(admin.TabularInline):
 
     def has_delete_permission(self, request, obj=None):
         return False
+    def get_queryset(self, request):
+        return super().get_queryset(request).prefetch_related('attribut')
 
 
 class RelFertigkeitInLine(admin.TabularInline):
@@ -105,6 +116,9 @@ class RelFertigkeitInLine(admin.TabularInline):
 
     def has_delete_permission(self, request, obj=None):
         return False
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).prefetch_related('fertigkeit')
 
 
 class RelWesenkraftInLine(admin.TabularInline):
@@ -133,6 +147,9 @@ class GfsAbilityInLine(admin.TabularInline):
     fields = ["ability", "notizen"]
     extra = 1
 
+    def get_queryset(self, request):
+        return super().get_queryset(request).prefetch_related('ability')
+
 
 class RelVorteilInLine(admin.TabularInline):
     model = RelVorteil
@@ -141,6 +158,9 @@ class RelVorteilInLine(admin.TabularInline):
     exclude = ["anzahl"]
     extra = 1
 
+    def get_queryset(self, request):
+        return super().get_queryset(request).prefetch_related('teil', 'attribut', 'fertigkeit', 'engelsroboter')
+
 
 class RelNachteilInLine(admin.TabularInline):
     model = RelNachteil
@@ -148,16 +168,26 @@ class RelNachteilInLine(admin.TabularInline):
     readonly_fields = ["is_sellable", "will_create"]
     extra = 1
 
+    def get_queryset(self, request):
+        return super().get_queryset(request).prefetch_related('teil', 'attribut', 'fertigkeit')
+    
+
 class RelTalentInLine(admin.TabularInline):
     model = RelTalent
     fields = ["talent"]
     extra = 1
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).prefetch_related('talent')
 
 ########## generic (st)shop ##############
 
 class RelShopInLine(admin.TabularInline):
     extra = 1
     fields = ["anz", "item", "notizen"]
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).prefetch_related('item')
 
 
 ################## Shop ############################
@@ -190,6 +220,9 @@ class RelRituale_RunenInLine(RelShopInLine):
     model = RelRituale_Runen
     fields = ["anz", "stufe", "item", "notizen"]
 
+    def get_queryset(self, request):
+        return super().get_queryset(request).prefetch_related('item')
+
 
 class RelRüstungInLine(RelShopInLine):
     model = RelRüstung
@@ -198,6 +231,9 @@ class RelRüstungInLine(RelShopInLine):
 class RelAusrüstung_TechnikInLine(RelShopInLine):
     model = RelAusrüstung_Technik
     fields = ["anz", "item", "notizen", "selbst_eingebaut"]
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).prefetch_related('item')
 
 
 class RelFahrzeugInLine(RelShopInLine):
@@ -211,6 +247,9 @@ class RelEinbautenInLine(RelShopInLine):
 class RelZauberInLine(RelShopInLine):
     fields = fields = ["anz", "item", "tier", "notizen"]
     model = RelZauber
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).prefetch_related('item')
 
 
 class RelVergessenerZauberInLine(RelShopInLine):
@@ -292,6 +331,9 @@ class CharakterAdmin(admin.ModelAdmin):
 
     save_on_top = True
 
+    def get_queryset(self, request):
+        return super().get_queryset(request).prefetch_related('eigentümer', 'spezies')
+
     def image_(self, obj):
         return format_html(f"<img src='{obj.image.url}' style='max-width: 32px; max-height:32px;'>") if obj.image else "-"
 
@@ -331,6 +373,9 @@ class FertigkeitAdmin(admin.ModelAdmin):
     search_fields = ['titel', 'attr1__titel', 'attr2__titel', 'limit']
     list_filter = ['attr1', 'attr2', 'limit']
 
+    def get_queryset(self, request):
+        return super().get_queryset(request).prefetch_related('attr1', 'attr2')
+
 
 class WesenkraftAdmin(admin.ModelAdmin):
 
@@ -343,6 +388,9 @@ class WesenkraftAdmin(admin.ModelAdmin):
 
     def skilled_gfs_(self, obj):
         return ", ".join([gfs.titel for gfs in obj.skilled_gfs.all()])
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).prefetch_related('skilled_gfs')
 
 
 class SpezialfertigkeitAdmin(admin.ModelAdmin):
@@ -360,6 +408,9 @@ class SpezialfertigkeitAdmin(admin.ModelAdmin):
     def ausgleich_(self, obj):
         return ', '.join([a.titel for a in obj.ausgleich.all()])
 
+    def get_queryset(self, request):
+        return super().get_queryset(request).prefetch_related('attr1', 'attr2', 'ausgleich')
+
 
 class WissensfertigkeitAdmin(admin.ModelAdmin):
     fieldsets = [
@@ -375,6 +426,9 @@ class WissensfertigkeitAdmin(admin.ModelAdmin):
 
     def fertigkeit_(self, obj):
         return ', '.join([a.titel for a in obj.fertigkeit.all()])
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).prefetch_related('attr1', 'attr2', 'attr3', 'fertigkeit')
 
 
 class SpeziesAdmin(admin.ModelAdmin):
@@ -395,20 +449,23 @@ class GfsAdmin(admin.ModelAdmin):
                GfsWesenkraftInLine, GfsZauberInLine,
                GfsStufenplanInLine]
     
+    def get_queryset(self, request):
+        return super().get_queryset(request).prefetch_related('nachteile', 'vorteile', 'wesenkraft', 'gfszauber_set__item')
+    
     def icon_(self, obj):
         return format_html(f'<img src="{obj.icon.url}" style="max-width: 32px; max-height:32px;" />' if obj.icon else "-")
 
     def vorteil_(self, obj):
-        return ', '.join([a.titel for a in obj.vorteile.all()])
+        return ', '.join([a.titel for a in obj.vorteile.all()]) or None
 
     def nachteil_(self, obj):
-        return ', '.join([a.titel for a in obj.nachteile.all()])
+        return ', '.join([a.titel for a in obj.nachteile.all()]) or None
 
     def zauber_(self, obj):
-        return ', '.join([a.item.name for a in GfsZauber.objects.prefetch_related("item").filter(gfs=obj)])
+        return ', '.join([a.item.name for a in obj.gfszauber_set.all()]) or None
 
     def wesenkraft_(self, obj):
-        return ', '.join([a.titel for a in obj.wesenkraft.all()])
+        return ', '.join([a.titel for a in obj.wesenkraft.all()]) or None
 
 
 class GfsAbilityAdmin(admin.ModelAdmin):
@@ -453,6 +510,9 @@ class SpielerAdmin(admin.ModelAdmin):
 class SkilltreeEntryWesenAdmin(admin.ModelAdmin):
     list_display = ["wesen", "context"]
     list_filter = ["wesen", "context"]
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).prefetch_related('wesen')
 
 
 class GfsStufenplanBaseAdmin(admin.ModelAdmin):
@@ -503,6 +563,11 @@ class GfsSkilltreeEntryAdmin(admin.ModelAdmin):
     def correctly_formatted(self, obj):
         return "error" not in obj.__repr__().lower()
     correctly_formatted.boolean = True
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).prefetch_related(
+            'gfs', 'base', 'fertigkeit', 'vorteil', 'nachteil', 'wesenkraft', 'spezialfertigkeit', 'wissensfertigkeit', 'magische_ausrüstung'
+        )
 
 
 admin.site.register(Charakter, CharakterAdmin)
