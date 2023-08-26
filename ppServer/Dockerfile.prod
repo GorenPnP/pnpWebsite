@@ -1,6 +1,6 @@
 
 # pull official base image
-FROM ubuntu:22.04
+FROM ubuntu:20.04
 
 # create the app user
 RUN adduser --force-badname ppServer
