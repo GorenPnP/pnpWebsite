@@ -20,7 +20,6 @@ django-bootstrap5==22.*     # styling :)
 
 # tables
 tablib==3.3.*               # export table
-tablib[xls, ods, yaml]==3.3.*  # export table as xls, ods, yaml
 django-filter==22.*         # filter queryset-data (for tables)
 django-tables2==2.5.*       # add table-templates
 

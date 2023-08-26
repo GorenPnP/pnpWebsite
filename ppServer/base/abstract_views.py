@@ -62,7 +62,7 @@ class ExportTableMixin(ExportMixin):
     export_name = None
     # don't export following columns
     exclude_columns = []
-    # options are: ["csv", "json", "latex", "ods", "tsv", "xls", "xlsx", "yaml"]
+    # options are: ["csv", "json", "latex", "ods", "tsv"]
     export_formats = []
 
     def get_export_filename(self, export_format):

@@ -411,4 +411,4 @@ class GfsSpecialAbilities(LoginRequiredMixin, DynamicTableView):
         "gfsstufenplan__basis__stufe": ["exact"],
     }
 
-    export_formats = ["csv", "json", "latex", "ods", "tsv", "xls", "xlsx", "yaml"]
+    export_formats = ["csv", "json", "latex", "ods", "tsv"]
