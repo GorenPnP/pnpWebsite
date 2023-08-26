@@ -248,7 +248,7 @@ def old_answer(request, sp_mo_id, question_id, question_index):    # id of curre
     if not request.user.groups.filter(name="spielleiter").exists():
         return redirect("quiz:index")
 
-    sp_mo = get_object_or_404(models.SpielerModule, id=sp_mo_id)
+    sp_mo = get_object_or_404(SpielerModule, id=sp_mo_id)
     old_session = sp_mo.getFinishedSession()
     if not old_session:
         return redirect(reverse("quiz:sp_correct_index", args=[sp_mo_id, question_index]))
