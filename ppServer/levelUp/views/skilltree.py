@@ -70,7 +70,8 @@ class GenericSkilltreeView(LevelUpMixin, tables.SingleTableMixin, TemplateView):
         char = self.get_character()
 
         skilltree_stufen = set([int(st) for st in request.POST.keys() if st.isnumeric()])
-        skilltree = GfsSkilltreeEntry.objects.prefetch_related("base").filter(gfs=char.gfs, base__stufe__gt=char.skilltree_stufe, base__stufe__lte=max(skilltree_stufen))
+        max_stufe = max(skilltree_stufen) if len(skilltree_stufen) else 0
+        skilltree = GfsSkilltreeEntry.objects.prefetch_related("base").filter(gfs=char.gfs, base__stufe__gt=char.skilltree_stufe, base__stufe__lte=max_stufe)
 
         # check
         
@@ -81,14 +82,14 @@ class GenericSkilltreeView(LevelUpMixin, tables.SingleTableMixin, TemplateView):
                 return redirect(request.build_absolute_uri())
 
         # affordable?
-        sp_cost = SkilltreeBase.objects.filter(stufe__in=skilltree_stufen).aggregate(sp=Sum("sp"))["sp"]
+        sp_cost = SkilltreeBase.objects.filter(stufe__in=skilltree_stufen).aggregate(sp=Sum("sp"))["sp"] or 0
         if char.sp < sp_cost:
             messages.error(request, f"So viele SP hast du gar nicht")
             return redirect(request.build_absolute_uri())
 
         # pay
         char.sp -= sp_cost
-        char.skilltree_stufe = max(skilltree_stufen)
+        char.skilltree_stufe = max_stufe
         char.save(update_fields=["sp", "skilltree_stufe"])
 
         # collect values

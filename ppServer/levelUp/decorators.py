@@ -17,7 +17,7 @@ def is_personal_done(char: Charakter):
     return char is not None and char.name is not None and len(char.name) > 0 and char.persönlichkeit.exists()
 
 def is_ap_done(char: Charakter, max_ap: int = 0):
-    return char is not None and char.ap <= max_ap
+    return char is not None and (char.ap is None or char.ap <= max_ap)
 
 def is_ferts_done(char: Charakter):
     return char is not None and not char.fp and not char.fg

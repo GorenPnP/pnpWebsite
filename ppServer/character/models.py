@@ -704,7 +704,7 @@ class Charakter(models.Model):
                 wesenkräfte.append(wk)
 
         for w in wesenkräfte:
-            _, created = RelWesenkraft.objects.get_or_create(char=self, wesenkraft=w, defaults={"tier": 1 if w.skilled_gfs.filter(id=self.gfs).exists() else 0})
+            _, created = RelWesenkraft.objects.get_or_create(char=self, wesenkraft=w, defaults={"tier": 1 if w.skilled_gfs.filter(id=self.gfs.id).exists() else 0})
             if not created:
                 # log that wesenkraft already existed
                 capture_message(f"Wesenkraft {w.titel} war bei {self.name} ({self.gfs.titel}) im EP-Tree Stufe {self.ep_stufe+1} - {self.ep_stufe_in_progress}", level='info')
@@ -865,9 +865,9 @@ class RelTeil(models.Model):
     def full_addons(self):
         addons = []
         if self.teil.needs_ip: addons.append(f"{self.ip} IP")
-        if self.teil.needs_attribut: addons.append(self.attribut.titel)
-        if self.teil.needs_fertigkeit: addons.append(self.fertigkeit.titel)
-        if self.teil.needs_engelsroboter: addons.append(self.engelsroboter.name)
+        if self.teil.needs_attribut and self.attribut: addons.append(self.attribut.titel)
+        if self.teil.needs_fertigkeit and self.fertigkeit: addons.append(self.fertigkeit.titel)
+        if self.teil.needs_engelsroboter and self.engelsroboter: addons.append(self.engelsroboter.name)
         if self.notizen: addons.append(self.notizen)
 
         return ', '.join(addons) if len(addons) else ""

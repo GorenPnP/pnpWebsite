@@ -127,7 +127,7 @@ class GenericFertigkeitView(LevelUpMixin, DynamicTablesView):
             fert = relfert.fertigkeit
 
             # get & sanitize
-            rel_fp = int(request.POST.get(f"fp-{relfert.id}"))
+            rel_fp = int(request.POST.get(f"fp-{relfert.id}") or 0)
             if rel_fp > relfert.fp_limit:
                 messages.error(request, f"Bei {fert} sind die FP höher als erlaubt")
 
@@ -140,7 +140,15 @@ class GenericFertigkeitView(LevelUpMixin, DynamicTablesView):
             attr = relattr.attribut
 
             # get & sanitize
-            rel_fg = int(request.POST.getlist(f"fg-{attr.id}")[0])  # getting array of 3 identical because html contains 3 with similar "name" attrs
+
+            ## fg
+            temp_fg = [int(fg) for fg in request.POST.getlist(f"fg-{attr.id}") if fg.isnumeric()]
+            all_equal = len(temp_fg) == 0 or False not in [fg == temp_fg[0] for fg in temp_fg]
+            if not all_equal:
+                messages.error(request, f"Bei {attr} sind die FG der einzelnen Fertigkeiten nicht gleich")
+                return redirect(request.build_absolute_uri())
+
+            rel_fg = int(temp_fg[0]) if len(temp_fg) else 0  # getting array of (max. 3) identical because html contains 3 with similar "name" attrs
             if rel_fg > relattr.aktuellerWert + relattr.aktuellerWert_bonus + relattr.aktuellerWert_temp - relattr.fg:
                 messages.error(request, f"Bei {attr} sind die FG höher als erlaubt")
 

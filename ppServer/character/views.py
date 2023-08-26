@@ -329,16 +329,16 @@ class ShowView(LoginRequiredMixin, VerifiedAccountMixin, DetailView):
         class TeilTable(tables.Table):
             class Meta:
                 model = RelTeil
-                fields = ("teil__titel", "teil__beschreibung", "notizen")
+                fields = ("teil__titel", "teil__beschreibung", "notiz")
                 orderable = False
                 attrs = {"class": "table table-dark table-striped table-hover"}
 
-            def render_notizen(self, value, record):
-                return record.full_addons()
+            def render_notiz(self, value, record):
+                return record.full_addons() or "—"
 
         return {
-            "vorteil__table": TeilTable(char.relvorteil_set.all()),
-            "nachteil__table": TeilTable(char.relnachteil_set.all()),
+            "vorteil__table": TeilTable(char.relvorteil_set.all().annotate(notiz=Value(" "))),
+            "nachteil__table": TeilTable(char.relnachteil_set.all().annotate(notiz=Value(" "))),
         }
 
     def get_wesenkraft(self, char):
