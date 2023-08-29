@@ -38,7 +38,7 @@ RUN curl -sL https://deb.nodesource.com/setup_14.x | bash
 # and install nodejs for npm
 RUN apt-get install -y nodejs
 # install shit via npm
-RUN npm update npm && npm i opencollective && npm ci --only=production
+RUN npm update npm && npm i opencollective && npm i
 
 # copy project
 COPY . $APP_HOME

@@ -13,6 +13,7 @@ fi
 
 python3 manage.py migrate
 python3 manage.py collectstatic --noinput && \
-./node_modules/sass/sass.js ./static --update --no-source-map
+npx sass ./static --update --no-source-map
+npx tsc --project ./
 
 exec "$@"
