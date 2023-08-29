@@ -26,3 +26,6 @@ django-tables2==2.5.*       # add table-templates
 django-markdownfield==0.10.*
 
 XlsxWriter==3.1.*           # Export (characters) to xlsx
+
+# complete view + template for a .md file
+django-markdown-view==0.0.*

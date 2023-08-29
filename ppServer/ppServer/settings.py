@@ -75,6 +75,7 @@ INSTALLED_APPS = [
     'django_filters',
     'django_tables2',
     'markdownfield',
+    'markdown_view',
 ]
 
 MIDDLEWARE = [

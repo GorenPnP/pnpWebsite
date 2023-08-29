@@ -1,0 +1,43 @@
+{% extends 'base/headed_main.html' %}
+{% load static %}
+
+{% block extra-head %}
+    {% if object %}{{ object.tiles|json_script:"game" }}{% endif %}
+    <script defer src="{% static 'time_space/js/types.js' %}"></script>
+    <script defer src="{% static 'time_space/js/utils.js' %}"></script>
+    <script defer src="{% static 'time_space/js/fields.js' %}"></script>
+    <script defer src="{% static 'time_space/js/editor/tiles.js' %}"></script>
+    <script defer src="{% static 'time_space/js/editor/grid.js' %}"></script>
+    <script defer src="{% static 'time_space/js/editor/toolbar.js' %}"></script>
+    <script defer src="{% static 'time_space/js/editor/index.js' %}"></script>
+
+    <link href="{% static 'time_space/css/editor.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block main %}
+    <form id="form" class="container" method="post">
+        {% csrf_token %}
+        <h1><input placeholder="Level" name="levelName" value="{% if object %}{{ object.name }}{% endif %}" required></h1>
+
+
+        <main>
+            <canvas id="grid"></canvas>
+
+            <div>
+                <label>Breite</label>
+                <input type="number" min="1" value="{% if object %}{{ object.width }}{% else %}10{% endif %}" name="width" required>
+            </div>
+            <div>
+                <label>Höhe</label>
+                <input type="number" min="1" value="{% if object %}{{ object.height }}{% else %}6{% endif %}" name="height" required>
+            </div>
+        </main>
+    
+        <aside aria-label="Fields">
+            <h2 style="text-align: center">Fields</h2>
+            <div id="fields" class="toolbar"></div>
+        </aside>
+    </form>
+
+    <button type="submit" class="btn btn-lg btn-primary my-4" form="form">Speichern</button>
+{% endblock %}

@@ -1,250 +1,78 @@
-from copy import deepcopy
 import json
-
-from django.contrib.auth.decorators import login_required
-from django.http.response import JsonResponse
+from typing import Any, Dict
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import get_object_or_404, redirect, render, reverse
+from django.views.generic import DetailView
+from django.views.generic.base import TemplateView
+from django.views.generic.list import ListView
 
-from ppServer.decorators import spielleiter_only
+from markdown_view.views import MarkdownView
 
-from .models import Net
-from .models.time_fissures import Looper
-from .models.gates import Mirror
-from .models.interfaces import Node
-from time_space.enums import NodeType, Signal
+from ppServer.mixins import SpielleiterOnlyMixin
 
-@login_required
-def index(request):
+from .models import *
 
-	context = {
-		"topic": "Zeituhr",
-		"plus": "+ Netz",
-		"plus_url": "/time_space/createNet",
-		"nets": Net.objects.all()
-	}
-	return render(request, "time_space/index.html", context)
+class IndexView(LoginRequiredMixin, SpielleiterOnlyMixin, ListView):
+	model = Level
+	template_name = "time_space/index.html"
 
-@login_required
-@spielleiter_only()
-def net(request, id):
+	def get_context_data(self, *args, **kwargs):
+		return super().get_context_data(*args, **kwargs,
+			topic = "Zeituhr",
+			plus = "+ Netz",
+			plus_url = reverse("time_space:createNet"),
+		)
 
-	net = get_object_or_404(Net, id=id)
 
-	if request.method == "GET":
-		node_designs = netDesign().values()
-		design = {
-			"time_fissures": [n for n in node_designs if n["id"] < 30],
-			"time_annanomalies": [n for n in node_designs if n["id"] >= 30 and n["id"] < 70],
-			"room_fissures": [n for n in node_designs if n["id"] >= 70 and n["id"] < 100],
-			"gates": [n for n in node_designs if n["id"] >= 100],
+class PlayNetView(LoginRequiredMixin, SpielleiterOnlyMixin, DetailView):
+	model = Level
+	template_name = "time_space/net.html"
+
+	def get_context_data(self, *args, **kwargs):
+		context = super().get_context_data(*args, **kwargs)
+		context["topic"] = context["object"].name
+		context["app_index"] = "Zeituhr"
+		context["app_index_url"] = reverse("time_space:index")
+
+		return context
+
+
+class EditNetView(LoginRequiredMixin, SpielleiterOnlyMixin, TemplateView):
+	template_name = "time_space/editor.html"
+	
+	def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
+		level = Level.objects.get(pk=self.kwargs["pk"]) if "pk" in self.kwargs else None
+		return super().get_context_data(**kwargs,
+			object = level,
+			topic = level.name if level else "Neues Zeitproblem",
+			app_index = "Zeituhr",
+			app_index_url = reverse("time_space:index")
+		)
+	
+	def post(self, request, *args, **kwargs):
+		level_data = {
+			"name": request.POST.get("levelName"),
+			"width": int(request.POST.get("width")),
+			"height": int(request.POST.get("height")),
+			"tiles": json.loads(request.POST.get("tiles")),
 		}
-		return render(request, "time_space/net.html", {
-			"topic": net.text,
-			"design": design,
-			"app_index": "Zeituhr",
-			"app_index_url": reverse("time_space:index")
-		})
 
-	if request.method == "POST":
+		id = self.kwargs["pk"] if "pk" in self.kwargs else None
+		if id:
+			level = Level.objects.filter(id=id).update(**level_data)
+		else:
+			level = Level.objects.create(**level_data)
 
-		json_dict = json.loads(request.body.decode("utf-8"))
-		cause = json_dict["cause"]
-
-		if cause == "load":
-			return JsonResponse(loadNet(net))
+		return redirect(reverse("time_space:editNet", args=[level.id]))
 
 
-		if cause == "save":
-			nodes = json_dict["nodes"]
-			edges = json_dict["edges"]
+class ManualView(LoginRequiredMixin, SpielleiterOnlyMixin, MarkdownView):
+	template_name = "time_space/manual.html"
+	file_name='/static/time_space/manual.md'
 
-			newSpecStrings = [n["id"] for n in nodes]
-
-			# get a list from net of all used nodes
-			netSpecs = []
-			for layer in net.getLayers():
-				netSpecs +=  [Node.toSpecs(n) for n in layer]
-
-			# delete all those which are not in received nodes
-			for spec in netSpecs:
-
-				specString = "{}-{}".format(*spec)
-
-				# delete node
-				if specString not in newSpecStrings:
-					net.removeNodeSpec(*spec)
-
-				else:
-					# delete all known, leaving newly added nodes ...
-					newSpecStrings.remove(specString)
-
-			# ... and add all which haven't been in there before
-			connectedNodes = set()
-			for edge in edges:
-				connectedNodes.add(edge["from"])
-				connectedNodes.add(edge["to"])
-
-			for newSpecString in newSpecStrings:
-
-				# test if there are edges connecting the new node
-				# if not, don't instantiate it
-				if newSpecString not in connectedNodes: continue
-
-				# add new node
-				nodeType = int( newSpecString.split("-")[0] )
-
-				newNode = net.addNode(nodeType)
-
-				# update edges with new id of node
-				nodeSpecString = "{}-{}".format(nodeType, newNode.id)
-				for edge in edges:
-					if edge["from"] == newSpecString: edge["from"] = nodeSpecString
-					if edge["to"] == newSpecString:   edge["to"] = nodeSpecString
-
-
-			# get all new edges
-			newEdges = {}
-			for e in edges:
-				if e["from"] not in newEdges.keys(): newEdges[e["from"]] = []
-
-				toSpec = [int(i) for i in e["to"].split("-")]
-				newEdges[e["from"]].append(Node.toNode( *toSpec) )
-
-			# go through all nodes and update their edges (add & delete) where changed
-			for nodeSpecString, next in newEdges.items():
-
-				nodeSpec = [int(i) for i in nodeSpecString.split("-")]
-				node = Node.toNode(*nodeSpec)
-
-				# delete all old
-				childSpecs = node.getNext()
-				for child in childSpecs:
-					node.removeFromNext(*child)
-
-				# create new
-				for n in next:
-					node.addNodeToNext(n)
-
-			# update graph
-			net.updateLayers()
-
-			return JsonResponse(loadNet(net))
-
-		if cause == "command":
-			valid_command = json_dict["command"] in [m.value for m in Signal.__members__.values()]
-			if not valid_command:
-				return JsonResponse({"message": "invalid"})
-
-			signal = Signal(json_dict["command"])
-			outputs = net.sendSignal(signal)
-			return JsonResponse({"status": "valid", "outputs": outputs})
-
-
-@login_required
-@spielleiter_only()
-def createNet(request):
-	net = Net.objects.create()
-	return redirect(reverse("time_space:net", args=[net.id]))
-
-
-def netDesign():
-
-	gate_design = {
-		"color": "#ddd",
-		"shape": "ellipse",
-		"font": { "color": "black" }
-	}
-	time_fissure_blue = {
-		"color": "#00dcf5",
-		"shape": "box",
-		"font": { "color": "black" }
-	}
-	time_fissure_red = {
-		"color": "#de073c",
-		"shape": "box",
-		"font": { "color": "white" }
-	}
-	time_fissure_yellow = {
-		"color": "#FFB61E",
-		"shape": "box",
-		"font": { "color": "black" }
-	}
-	time_fissure_black = {
-		"color": "black",
-		"shape": "box",
-		"font": { "color": "white" }
-	}
-	time_fissure_transparent = {
-		"color": {
-			"border": "black",
-			"background": "#808080"
-		},
-		"shape": "box",
-		"font": { "color": "black" }
-	}
-
-	design = {
-		NodeType.Mirror: gate_design,
-		NodeType.Inverter: gate_design,
-		NodeType.Aktivator: gate_design,
-		NodeType.Switch: gate_design,
-		NodeType.Konverter: gate_design,
-		NodeType.Barriere: gate_design,
-		NodeType.Manadegenerator: gate_design,
-		NodeType.Manabombe: gate_design,
-		NodeType.Supportgatter: gate_design,
-		NodeType.Teleportgatter: gate_design,
-		NodeType.Sensorgatter: gate_design,
-		NodeType.Tracinggatter: gate_design,
-
-		NodeType.Linearriss: time_fissure_blue,
-		NodeType.Liniendeletion: time_fissure_black,
-		NodeType.Splinter: time_fissure_red,
-		NodeType.Duplikator: time_fissure_blue,
-		NodeType.Looper: time_fissure_blue,
-		NodeType.Timelagger: time_fissure_transparent,
-		NodeType.Timedelayer: time_fissure_blue,
-		NodeType.Runner: time_fissure_blue,
-		NodeType.Metasplinter: time_fissure_yellow,
-	}
-
-	designs = {}
-	for node_type in NodeType:
-
-		node_design = deepcopy(design[node_type]) if node_type in design else {}
-		node_design.update({
-			"id": node_type.value,
-			"label": node_type.name,
-			"heightConstraint": {"minimum": 20}
-		})
-		designs[node_type.value] = node_design
-
-	return designs
-
-@login_required
-def getNetDesign(request):
-	return JsonResponse(netDesign())
-
-def loadNet(net: Net):
-	design = netDesign()
-
-	nodes = []
-	edges = []
-	for layer in net.getLayers():
-		for node in layer:
-			nodeType = NodeType.fromModel(type(node))
-			n = deepcopy(design[nodeType]) if nodeType in design else {}
-			n.update({
-				"id": "{}-{}".format(n["id"], node.id),
-				"heightConstraint": {"minimum": 20}
-			})
-			nodes.append(n)
-
-			for toNodeSpec in node.getNext():
-				edges.append({
-					"from": "{}-{}".format(nodeType, node.id),
-					"to": "{}-{}".format(toNodeSpec[0], toNodeSpec[1]),
-					"color": "#ddd"
-				})
-
-	return {"nodes": nodes, "edges": edges}
+	def get_context_data(self, *args, **kwargs):
+		return super().get_context_data(*args, **kwargs,
+			topic = "Manual",
+			app_index = "Zeituhr",
+			app_index_url = reverse("time_space:index"),
+		)

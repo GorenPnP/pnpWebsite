@@ -1,0 +1,29 @@
+section:not(#markdown_view_toc) {
+    h1 { margin-top: 1.5em; }
+    h2 { margin-top: 1em; }
+    h3 { margin-top: 0.75em; }
+}
+
+code {
+    color: var(--bs-orange);
+
+    &.hljs {
+        background-color: var(--bs-gray-100);
+        border-radius: 4px;
+    }
+}
+
+table {
+    margin-bottom: 2em;
+}
+table :where(td, th) {
+    padding: .5em;
+    border-bottom: 1px solid var(--bs-gray-600);
+}
+
+a, p { max-width: 60ch; }
+li, a, p {
+    color: var(--bs-gray-400);
+    line-height: 1.8em;
+}
+a:hover { color: var(--bs-gray-100); }

@@ -3,8 +3,24 @@
 {% block extra-head %}
 <script src="{% static 'res/js/axios.min.js' %}" type='text/javascript'></script>
 <script src="{% static 'base/js/ajax.js' %}"></script>
-<script src="{% static 'res/js/vis-network.min.js' %}"></script>
-<script src="{% static 'time_space/js/net.js' %}"></script>
+
+{{ object.tiles|json_script:"game" }}
+{{ object.width|json_script:"width" }}
+{{ object.height|json_script:"height" }}
+
+<script defer src="{% static 'time_space/js/types.js' %}"></script>
+<script defer src="{% static 'time_space/js/utils.js' %}"></script>
+<script defer src="{% static 'time_space/js/game/logger.js' %}"></script>
+<script defer src="{% static 'time_space/js/fields.js' %}"></script>
+<script defer src="{% static 'time_space/js/wires.js' %}"></script>
+<script defer src="{% static 'time_space/js/gates.js' %}"></script>
+<script defer src="{% static 'time_space/js/space_fissures.js' %}"></script>
+<script defer src="{% static 'time_space/js/time_fissures.js' %}"></script>
+<script defer src="{% static 'time_space/js/anomalies.js' %}"></script>
+<script defer src="{% static 'time_space/js/placeholders.js' %}"></script>
+<script defer src="{% static 'time_space/js/game/board.js' %}"></script>
+<script defer src="{% static 'time_space/js/config_models.js' %}"></script>
+<script defer src="{% static 'time_space/js/game/index.js' %}"></script>
 
 <link rel="stylesheet" href="{% static 'time_space/css/net.css' %}">
 {% endblock %}
@@ -12,44 +28,50 @@
 {% block main %}
 <section class="non-terminal">
 
-    <aside class="controls">
-        
-        <div class="add-node">
+    <p>Runde <span id="rounds">0</span></p>
     
-            <label for="add-node-select">Nächstes Element ist:</label>
-            <select id="add-node-select">
-                <optgroup label="Gatter">
-                    {% for nodeStyle in design.gates %}<option value="{{nodeStyle.id}}">{{nodeStyle.label}}</option>{% endfor %}
-                </optgroup>
-                <optgroup label="Zeitrisse">
-                    {% for nodeStyle in design.time_fissures %}<option value="{{nodeStyle.id}}">{{nodeStyle.label}}</option>{% endfor %}
-                </optgroup>
-                <optgroup label="Zeitannanomalien">
-                    {% for nodeStyle in design.time_annanomalies %}<option value="{{nodeStyle.id}}">{{nodeStyle.label}}</option>{% endfor %}
-                </optgroup>
-                <optgroup label="Raumrisse">
-                    {% for nodeStyle in design.room_fissures %}<option value="{{nodeStyle.id}}">{{nodeStyle.label}}</option>{% endfor %}
-                </optgroup>
-            </select>
-        </div>
-    
-        <div class="rotation">
-            <label for="rotation-select">Fokus auf:</label>
-            <select id="rotation-select">
-                <option value="vert">Abbildung</option>
-                <option value="horiz">Terminal</option>
-            </select>
-        </div>
-    </aside>
-    
-    <main><div id="mynetwork"></div></main>
+    <main class="canvas-container"><canvas id="grid"></canvas></main>
 </section>
 
 <section id="terminal">
-    <output>terminal output...</output>
-    <form method="post" autocomplete="off">
+    <output class="output"></output>
+    <div class="prompt">
+        {% csrf_token %}
         <label for="command" aria-label="Command Prompt">></label>
-        <input id="command" name="command">
-    </form>
+        <input id="command" list="commands" onkeydown="run_round(event, this.value)">
+    </div>
 </section>
+
+<datalist id="commands">
+    <option value="//analyze"></option>
+    <option value="//crystallize"></option>
+    <option value="//delete"></option>
+    <option value="//drag"></option>
+    <option value="//drop"></option>
+    <option value="//forward"></option>
+    <option value="//inject"></option>
+    <option value="//naturalize"></option>
+    <option value="//normalize"></option>
+    <option value="//return"></option>
+    <option value="//skip"></option>
+    <option value="//bdv"></option>
+    <option value="//mdv"></option>
+    <option value="//mdbv"></option>
+
+    <option value="/init"></option>
+    <option value="/s"></option>
+    <option value="/type"></option>
+    <option value="/response"></option>
+    <option value="/splits"></option>
+    <option value="/splitn"></option>
+    <option value="/help"></option>
+    <option value="/help1"></option>
+    <option value="/help2"></option>
+</datalist>
+
+<div>
+    <b>blockierte Befehle:</b>
+
+    <ul id="blocked-commands"></ul>
+</div>
 {% endblock %}

@@ -1,17 +1,24 @@
 {% extends 'base/headed_main.html' %}
+{% load static %}
+
+{% block extra-head %}
+<link rel="stylesheet" href="{% static 'time_space/css/index.css' %}">
+{% endblock %}
 
 {% block main %}
-	{% if nets %}
+	<a href="{% url 'time_space:manual' %}" class="d-block mb-4">Manual</a>
+
+	{% if object_list|length %}
 		<h2>Offene Probleme</h2>
 	{% endif %}
 
 	<ul>
-		{% for net in nets %}
-		<li><a href="{% url 'time_space:net' net.id %}">
-			<h2>{{ net.text }}</h2>
+		{% for net in object_list %}
+		<li class="my-3"><a href="{% url 'time_space:net' net.id %}">
+			<b>{{ net.name }}</b>
 		</a></li>
 		{% empty %}
-		<h1>Alles ist safe</h1>
+		<b>Alles ist safe</b>
 		{% endfor %}
 	</ul>
 {% endblock %}
