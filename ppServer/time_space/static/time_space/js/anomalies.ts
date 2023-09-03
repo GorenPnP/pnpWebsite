@@ -131,22 +131,20 @@ class Blurr extends Anomaly {
 
         this._log();
 
-        for (let times = 0; times < this.stufe!; times++) {
-            if (Math.random() >= 0.01) { continue; }
+        if (Math.random() >= (0.01 * this.stufe)) { return; }
 
-            // blur 1 random BlockTile
-            logger.info("BLUR RANDOM BLOCK-TILE");
-            const block_tiles = game_board.all().filter(tile => !Object.values(WireType).includes(tile.TYPE as any) && !blockTile.is_blurred) as BlockTile[];
+        // blur 1 random BlockTile
+        logger.info("BLUR RANDOM BLOCK-TILE");
+        const block_tiles = game_board.all().filter(tile => !Object.values(WireType).includes(tile.TYPE as any) && !(tile as BlockTile).is_blurred) as BlockTile[];
 
-            if (!block_tiles.length) {
-                logger.error("Nothing to blurr");
-                return;
-            }
-
-            const blockTile = get_random_of(block_tiles);
-            blockTile.is_blurred = true;
-            blockTile.draw();
+        if (!block_tiles.length) {
+            logger.error("Nothing to blurr");
+            return;
         }
+
+        const blockTile = get_random_of(block_tiles);
+        blockTile.is_blurred = true;
+        blockTile.draw();
     }
 
     constructor(pos: Position, stufe?: number, connective_tags?: ConnectiveTag[]) {
