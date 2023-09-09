@@ -1,6 +1,5 @@
-
 # pull official base image
-FROM ubuntu:20.04
+FROM ubuntu:22.04
 
 # create the app user
 RUN adduser --force-badname ppServer
@@ -17,31 +16,33 @@ WORKDIR $APP_HOME
 # set Europe/Berlin as timezone. (install tzdata later with apt-get)
 RUN ln -fs /usr/share/zoneinfo/Europe/Berlin /etc/localtime
 
+
+# add repo for postgresql-client 15
+RUN apt-get update && apt-get install -y dirmngr ca-certificates software-properties-common gnupg gnupg2 apt-transport-https curl
+RUN curl -fSsL https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor | tee /usr/share/keyrings/postgresql.gpg > /dev/null
+RUN echo deb [arch=amd64,arm64,ppc64el signed-by=/usr/share/keyrings/postgresql.gpg] http://apt.postgresql.org/pub/repos/apt/ jammy-pgdg main | tee -a /etc/apt/sources.list.d/postgresql.list
+
+# add repo for nodejs/npm
+RUN apt-get update && apt-get install -y curl
+RUN curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor | tee /usr/share/keyrings/nodejs.gpg > /dev/null
+RUN echo deb [signed-by=/usr/share/keyrings/nodejs.gpg] https://deb.nodesource.com/node_18.x nodistro main | tee /etc/apt/sources.list.d/nodesource.list
+
 # dependencies:
 # - python3-pip for pip3
 # - netcat for nc in entrypoint.sh
-# - postgresql-client-12 for dbbackup
-# - curl for nodejs for npm
-RUN apt-get update && apt-get install -y python3-pip netcat postgresql-client-12 curl tzdata
-
-# install dependencies
-COPY ./requirements.txt .
-RUN pip3 install -r requirements.txt
-
-# copy entrypoint-prod.sh
-COPY ./entrypoint.prod.sh $APP_HOME
-
-# copy package*.json, install dependencies over npm
-COPY ./package*.json $APP_HOME/
-# exec install script for npm v14 by curl
-RUN curl -sL https://deb.nodesource.com/setup_14.x | bash
-# and install nodejs for npm
-RUN apt-get install -y nodejs
-# install shit via npm
-RUN npm update npm && npm i opencollective && npm i
+# - postgresql-client-15 for dbbackup
+# - tzdata for correct time zome (especially in chat)
+RUN apt-get update && apt-get upgrade -y
+RUN apt-get install -y postgresql-client-15 nodejs python3-pip netcat tzdata
 
 # copy project
-COPY . $APP_HOME
+COPY . .
+
+# install dependencies
+RUN pip3 install -r requirements.txt
+
+# install shit via npm
+RUN npm update npm && npm i opencollective && npm i
 
 
 # # chown all the files to the app user

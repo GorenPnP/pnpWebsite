@@ -33,7 +33,7 @@ services:
 
   wordpress:
     container_name: wordpress
-    image: wordpress:latest
+    image: wordpress:6
     restart: unless-stopped
     env_file:
       - ./.env.prod
