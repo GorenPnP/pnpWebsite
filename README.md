@@ -55,6 +55,8 @@ six==1.* # generate token for email confirmation on signup
 
     run interactive (bash-)shell: `docker exec -it <containername> /bin/bash`
 
+# unpack tar.gz
+`tar -xvzf *.tar.gz`
 
 ## Backup db & media via cronjob
 add cronjob on serverhost: `sudo crontab -e`

@@ -1,8 +1,9 @@
-import os, zipfile, xlsxwriter, re
+import json, os, xlsxwriter, re
 from io import BytesIO
 
 from django.db.models.functions import Concat
 from django.db.models import F, Subquery, OuterRef, Value, CharField,  prefetch_related_objects
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import HttpRequest, HttpResponse
 from django.http.response import FileResponse
@@ -11,6 +12,7 @@ from django.shortcuts import redirect
 from ppServer.decorators import spielleiter_only
 from ppServer.settings import STATIC_ROOT
 from character.models import *
+from log.models import Log
 
 
 POSITION = {
@@ -131,6 +133,10 @@ def character_export(request: HttpRequest, pk, *args, **kwargs) -> HttpResponse:
     if request.user.groups.filter(name__iexact="spieler") and char.eigentümer.name != request.user.username:
         return redirect("character:index")
 
+    return generate_char_xslx(char)
+
+
+def generate_char_xslx(char: Charakter):
 
     # prepare response & xlsx-workbook
     response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
@@ -724,6 +730,13 @@ def character_export(request: HttpRequest, pk, *args, **kwargs) -> HttpResponse:
 
 
 
+    # history
+    history_ws = wb.add_worksheet("History & Debug")
+    spF_wF_ws.write(f"A1", json.dumps(char.processing_notes))
+
+    history_ws.write_row(f"A3", ["Spieler", "Art", "Notizen", "Kosten", "Timestamp"])
+    for i, log in enumerate(Log.objects.filter(char=char, art__in=("s", "u", "i"))):
+        history_ws.write_row(f"A{4+i}", [log.spieler.name if log.spieler else "", log.get_art_display(), log.notizen, log.kosten, log.timestamp.__str__()])
 
 
 
@@ -786,31 +799,13 @@ def character_export(request: HttpRequest, pk, *args, **kwargs) -> HttpResponse:
     wb.close()
     return response
 
-    
+
 @login_required
 @spielleiter_only(redirect_to="character:index")
 def export_all(request, *args, **kwargs):
-    ZIP_FILENAME = "characters.zip"
-
-    # prepare the scene
-    os.chdir(STATIC_ROOT)
-    if not os.path.exists("character_exports"):
-        os.makedirs("character_exports")
-    os.chdir("character_exports")
-    if os.path.exists(ZIP_FILENAME):
-        os.remove(ZIP_FILENAME)
-
-    # init zip archive. add all json files of recipes
-    with zipfile.ZipFile(ZIP_FILENAME, mode="w", compression=zipfile.ZIP_DEFLATED) as zip_file:
-
-        file_response = character_export(request, Charakter.objects.first().pk)
-        for char in Charakter.objects.all():
-            file_response = character_export(request, char.id)
-            filename = f"{char.name.replace('/', '_') if char.name else 'NO_NAME'}.xlsx"
-
-            with open(filename, "wb") as file:
-                file.write(file_response.content)
-
-            zip_file.write(filename)
-
-    return FileResponse(open(ZIP_FILENAME, 'rb'), filename=ZIP_FILENAME, as_attachment=True)
+    try:
+        path = os.path.join(STATIC_ROOT, "character_export", "characters.zip")
+        return FileResponse(open(path, 'rb'), as_attachment=True)
+    except:
+        messages.error(request, "Konnte das .zip-file nicht finden. Versuch es in 5 Minuten nochmal")
+        return redirect("character:index")
