@@ -3,10 +3,10 @@
 `cd ppServer && ./venv/Scripts/activate && py .\manage.py runserver 0.0.0.0:80`
 
 ## Virtual Env
-- create  `python3 -m venv ./venv`
-- enter   `./venv/Scripts/activate`
+- create `python3 -m venv ./venv`
+- enter `./venv/Scripts/activate`
 - if accessing python, use `py <params>` (if pip is messed up, you can use `py -m pip <params>` to specify the python version of pip, which is the same as of `py`.)
-- leave   `deactivate`
+- leave `deactivate`
 
 
 ## DNS things & other integrations
@@ -138,3 +138,14 @@ https://cloud.google.com/sdk/docs/install?hl=de#deb
 
 ## update os on OVH
 [Guide](https://docs.ovh.com/de/public-cloud/upgrade-os/)
+
+# Update database version
+1. check if django libs needs updates to connect to the new version
+1. save backup in `.\ppServer\backups\`!
+1. make sure `pg_restore` is available (install with `apt install postgresql`)
+1. stop db (and everything else) `docker-compose -f .\docker-compose.prod.yml down`
+1. remove db-volume (all data will be lost) `docker volume rm pnpwebsite_postgres_data`
+1. change docker-imageversion manually in docker-compose.prod.yml -> services -> db -> image
+1. start db again `docker-compose -f .\docker-compose.prod.yml up -d`
+1. apply backup to new db volume `pg_restore -U admin -d goren_db -1 ppServer\backups\*.psql.bin`
+1. restart everything `docker-compose -f .\docker-compose.prod.yml up -d`
