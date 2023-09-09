@@ -732,9 +732,9 @@ def generate_char_xslx(char: Charakter):
 
     # history
     history_ws = wb.add_worksheet("History & Debug")
-    spF_wF_ws.write(f"A1", json.dumps(char.processing_notes))
+    history_ws.write("A1", json.dumps(char.processing_notes))
 
-    history_ws.write_row(f"A3", ["Spieler", "Art", "Notizen", "Kosten", "Timestamp"])
+    history_ws.write_row("A3", ["Spieler", "Art", "Notizen", "Kosten", "Timestamp"])
     for i, log in enumerate(Log.objects.filter(char=char, art__in=("s", "u", "i"))):
         history_ws.write_row(f"A{4+i}", [log.spieler.name if log.spieler else "", log.get_art_display(), log.notizen, log.kosten, log.timestamp.__str__()])
 
