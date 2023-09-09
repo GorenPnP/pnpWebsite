@@ -139,13 +139,26 @@ https://cloud.google.com/sdk/docs/install?hl=de#deb
 ## update os on OVH
 [Guide](https://docs.ovh.com/de/public-cloud/upgrade-os/)
 
-# Update database version
+# Update postgres version
+
 1. check if django libs needs updates to connect to the new version
 1. save backup in `.\ppServer\backups\`!
 1. make sure `pg_restore` is available (install with `apt install postgresql`)
 1. stop db (and everything else) `docker-compose -f .\docker-compose.prod.yml down`
 1. remove db-volume (all data will be lost) `docker volume rm pnpwebsite_postgres_data`
+
+## local in dev
 1. change docker-imageversion manually in docker-compose.prod.yml -> services -> db -> image
-1. start db again `docker-compose -f .\docker-compose.prod.yml up -d`
-1. apply backup to new db volume `pg_restore -U admin -d goren_db -1 ppServer\backups\*.psql.bin`
-1. restart everything `docker-compose -f .\docker-compose.prod.yml up -d`
+2. start db again `docker-compose -f docker-compose.prod.yml up -d db`
+3. apply backup to new db volume `pg_restore -U admin -d goren_db -1 ppServer\backups\*.psql.bin`
+4. enter db password when prompted
+5. restart everything `docker-compose -f docker-compose.prod.yml up -d`
+
+## prod-server
+1. `git pull` changes in `docker-compose.prod.yml`
+2. change port settings for the db-service. Replace `expose: -5432` to `ports: -5432:5430` in docker-compose.prod.yml 
+3. start db again `docker-compose -f docker-compose.prod.yml up -d db`
+4. apply backup `pg_restore -U admin -d goren_db -1 backups/*.psql.bin -p 5430 -h 0.0.0.0`
+5. enter db password when prompted
+6. change port settings back. Replace `ports: -5432:5430` to `expose: -5432` in docker-compose.prod.yml 
+7. restart everything `docker-compose -f docker-compose.prod.yml up -d`
