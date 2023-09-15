@@ -82,7 +82,7 @@ class ShowView(LoginRequiredMixin, VerifiedAccountMixin, DetailView):
     
     def get_object(self) -> Charakter:
         qs = Charakter.objects.prefetch_related(
-            "gfs", "spezies", "persönlichkeit", "religion", "beruf", "relfertigkeit_set__fertigkeit__attr1", "relfertigkeit_set__fertigkeit__attr2",
+            "gfs", "persönlichkeit", "religion", "beruf", "relfertigkeit_set__fertigkeit__attribut", "relgruppe_set",
             "relattribut_set__attribut", "relwesenkraft_set__wesenkraft", "reltalent_set__talent",
             "relgfsability_set__ability", "affektivität_set", "relvorteil_set__teil", "relnachteil_set__teil",
             "relzauber_set__item", "relrituale_runen_set__item", "relschusswaffen_set__item", "relwaffen_werkzeuge_set__item",
@@ -98,7 +98,7 @@ class ShowView(LoginRequiredMixin, VerifiedAccountMixin, DetailView):
     def get_personal(self, char):
         fields = [
                 ["Name", char.name],
-                ["Gfs (Stufe)", f"{char.gfs.titel if char.gfs is not None else ', '.join([s.titel for s in char.spezies.all()])} ({char.skilltree_stufe})"],
+                ["Gfs (Stufe)", f"{char.gfs.titel if char.gfs is not None else '-'} ({char.skilltree_stufe})"],
                 ["Persönlichkeit", ", ".join(char.persönlichkeit.all().values_list("titel", flat=True))],
                 ["Geschlecht", char.geschlecht],
                 ["Alter", char.alter],
@@ -139,8 +139,8 @@ class ShowView(LoginRequiredMixin, VerifiedAccountMixin, DetailView):
     def get_calculated(self, char):
         MA_raw = char.relattribut_set.get(attribut__titel="MA").aktuellerWert
         attrs = { rel.attribut.titel: rel.aktuell() for rel in char.relattribut_set.all() }
-        fg = { rel.attribut.titel: rel.fg for rel in char.relattribut_set.all() }
-        ferts = { rel.fertigkeit.titel: rel.fp + rel.fp_bonus + attrs[rel.fertigkeit.attr1.titel] + fg[rel.fertigkeit.attr1.titel] for rel in char.relfertigkeit_set.all() }
+        fg = { rel.gruppe: rel.fg for rel in RelGruppe.objects.filter(char=char) }
+        ferts = { rel.fertigkeit.titel: rel.fp + rel.fp_bonus + attrs[rel.fertigkeit.attribut.titel] + fg[rel.fertigkeit.gruppe] for rel in char.relfertigkeit_set.all() }
 
         num = lambda n: "{0:.1f}".format(n) if type(n) is float else n
 
@@ -177,19 +177,19 @@ class ShowView(LoginRequiredMixin, VerifiedAccountMixin, DetailView):
                 attrs = {"class": "table table-dark table-striped table-hover"}
 
             def render_ap(self, value, record):
-                return char.relattribut_set.get(attribut=record.fertigkeit.attr1).aktuell() + char.relattribut_set.get(attribut=record.fertigkeit.attr2).aktuell()
+                return char.relattribut_set.get(attribut=record.fertigkeit.attribut).aktuell()
 
             def render_pool(self, value, record):
                 return\
-                    char.relattribut_set.get(attribut=record.fertigkeit.attr1).aktuell() +\
-                    char.relattribut_set.get(attribut=record.fertigkeit.attr2).aktuell() +\
+                    char.relattribut_set.get(attribut=record.fertigkeit.attribut).aktuell() +\
+                    char.relgruppe_set.get(gruppe=record.fertigkeit.gruppe).fg +\
                     record.fp + record.fp_bonus
 
             def render_fertigkeit__limit(self, value, record):
                 return record.fertigkeit.limit
         
         qs_fert2 = char.relfertigkeit_set.exclude(fertigkeit__attr2=None).annotate(
-            attribute=Concat("fertigkeit__attr1__titel", Value(", "), "fertigkeit__attr2__titel", output_field=CharField()),
+            attribute=Concat("fertigkeit__attribut__titel", output_field=CharField()),
             ap=Value(1),
             pool=Value(1)
         )
@@ -198,7 +198,7 @@ class ShowView(LoginRequiredMixin, VerifiedAccountMixin, DetailView):
             ap=Value(1),
             fg=Value(1),
             pool=Value(1),
-        ).values_list("fertigkeit__titel", "fertigkeit__attr1__titel", "ap", "fp", "fp_bonus", "fg", "pool", "fertigkeit__limit")
+        ).values_list("fertigkeit__titel", "fertigkeit__attribut__titel", "ap", "fp", "fp_bonus", "fg", "pool", "fertigkeit__limit")
 
         fert1 = []
         for fert in qs_fert1:
@@ -251,7 +251,7 @@ class ShowView(LoginRequiredMixin, VerifiedAccountMixin, DetailView):
     def get_spF_wF(self, char):
         attr = {rel.attribut.titel: rel.aktuell() for rel in char.relattribut_set.all()}
         fg = {rel.attribut.titel: rel.fg for rel in char.relattribut_set.all()}
-        fert = {rel.fertigkeit.titel: attr[rel.fertigkeit.attr1.titel] + (attr[rel.fertigkeit.attr2.titel] if rel.fertigkeit.attr2 else fg[rel.fertigkeit.attr1.titel]) +  rel.fp + rel.fp_bonus for rel in char.relfertigkeit_set.all()}
+        fert = {rel.fertigkeit.titel: attr[rel.fertigkeit.attribut.titel] + fg[rel.fertigkeit.gruppe] + rel.fp + rel.fp_bonus for rel in char.relfertigkeit_set.all()}
 
         class SpezialTable(tables.Table):
             class Meta:

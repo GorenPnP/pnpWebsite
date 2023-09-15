@@ -29,5 +29,7 @@
     (+<span data-id="{{ record|getattribute:dataset_id }}" class="{{ base_class }}-bonus">{{ record|getattribute:bonus_field }})</span>
     {% endif %}
 
+    {{ record|getattribute:text|default:"" }}
+
     {% endlocalize %}
 </div>

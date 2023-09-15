@@ -56,3 +56,12 @@ document.addEventListener("DOMContentLoaded", function () {
         calc_fp_fg_pools();
     }));
 });
+
+
+// gray-out all rows that don't have an fp and can't be improvised
+document.querySelectorAll("tr:not(.impro_possible) .fp-input").forEach(input => input.addEventListener("input", function() {
+    this.closest("tr").classList.toggle("grayed-out", !(parseInt(this.value) || 0));
+}));
+document.querySelectorAll("tr:not(.impro_possible) .fp-input").forEach(input =>
+    input.closest("tr").classList.toggle("grayed-out", !(parseInt(input.value) || 0))
+);

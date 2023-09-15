@@ -36,10 +36,13 @@ class PersonalForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        required_fields = ["name", "persönlichkeit", "gewicht", "größe", "alter", "beruf", "religion"]
+        required_fields = ["persönlichkeit"]
         for field in required_fields:
-            self.fields[field].label += "*"
             self.fields[field].required = True
+
+        for field in self.fields.values():
+            if field.required:
+                field.label += "*" 
 
         if kwargs["instance"].larp:
             self.fields['beruf'].widget = forms.HiddenInput()

@@ -65,3 +65,23 @@ talent_enum = [
     ('p', 'Gameplay'),
     ('v', 'Verteidigung'),
 ]
+
+gruppen_enum = [
+    ('a', 'Athletiker'),
+    ('b', 'Gelehrter'),
+    ('c', 'Weiser'),
+    ('d', 'Akrobat'),
+    ('e', 'Tank'),
+    ('f', 'Heiler'),
+    ('g', 'Techniker'),
+    ('h', 'Dieb'),
+    ('i', 'Händler'),
+    ('j', 'Zauberer'),
+    ('k', 'Hexer'),
+    ('l', 'Metamagier'),
+    ('m', 'Selbstkenner'),
+    ('n', 'Schütze'),
+    ('o', 'Artillerist'),
+    ('p', 'Barbar'),
+    ('q', 'Ritter'),
+]

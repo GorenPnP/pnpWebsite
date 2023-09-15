@@ -122,7 +122,7 @@ def character_export(request: HttpRequest, pk, *args, **kwargs) -> HttpResponse:
     # get char
     char = get_object_or_404(Charakter, id=pk)
     prefetch_related_objects([char],
-        "eigentümer", "gfs__gfsstufenplan_set__basis", "relpersönlichkeit_set", "spezies",
+        "eigentümer", "gfs__gfsstufenplan_set__basis", "relpersönlichkeit_set",
         "beruf", "religion", "relattribut_set", "relfertigkeit_set",
         "affektivität_set", "releinbauten_set__item", "relausrüstung_technik_set__item",
         "relschusswaffen_set__item", "relwaffen_werkzeuge_set__item", "relitem_set__item",
@@ -295,7 +295,7 @@ def generate_char_xslx(char: Charakter):
     persönlichkeiten = ", ".join([p["persönlichkeit__titel"] for p in char.relpersönlichkeit_set.values("persönlichkeit__titel")])
 
     werte_ws.write("I27", "Lebewesen (Stufe):", format_wesen_titel)
-    werte_ws.merge_range("J27:L27", f"{char.gfs.titel if char.gfs else ', '.join([s['titel'] for s in char.spezies.values('titel')])} ({char.skilltree_stufe})", format_wesen)
+    werte_ws.merge_range("J27:L27", f"{char.gfs.titel if char.gfs else '-'} ({char.skilltree_stufe})", format_wesen)
     werte_ws.write("I28", "Persönlichkeit:", format_wesen_titel)
     werte_ws.merge_range("J28:L28", persönlichkeiten, format_wesen)
 
@@ -446,22 +446,14 @@ def generate_char_xslx(char: Charakter):
     
     werte_ws.write_row("A2", ["Fertigkeit", "Attribut", "AP", "FP", "+", "FG", "Pool", "Limit"], format_fert_heading)
     werte_ws.write_row("A33", ["Fertigkeit", "Attribute", "CP1", "CP2", "FP", "+", "Pool", "Limit"], format_fert_heading)
-    for fert in char.relfertigkeit_set.values("fertigkeit__titel", "fertigkeit__limit", "fp", "fp_bonus", attr1=F("fertigkeit__attr1__titel"), attr2=F("fertigkeit__attr2__titel")):
+    for fert in char.relfertigkeit_set.values("fertigkeit__titel", "fertigkeit__limit", "fp", "fp_bonus", attribut=F("fertigkeit__attribut__titel")):
         row= split_position(POSITION[fert["fertigkeit__titel"]])["num"]
 
         werte_ws.write(f"A{row}", fert["fertigkeit__titel"], format_fert_titel)
-        werte_ws.write(f"{'D' if not fert['attr2']  else 'E'}{row}", fert["fp"], format_fert_fp)
-        werte_ws.write(f"{'E' if not fert['attr2']  else 'F'}{row}", fert["fp_bonus"], format_fert_fp_bonus)
+        werte_ws.write(f"D{row}", fert["fp"], format_fert_fp)
+        werte_ws.write(f"E{row}", fert["fp_bonus"], format_fert_fp_bonus)
         werte_ws.write(f"H{row}", fert["fertigkeit__limit"], format_fert_limit)
-
-        if fert['attr2']:
-            werte_ws.write(f"B{row}", f"{fert['attr1']} + {fert['attr2']}", format_fert_titel)
-            werte_ws.write(f"C{row}", f"={POSITION[fert['attr1']]}", format_fert_titel)
-            werte_ws.write(f"D{row}", f"={POSITION[fert['attr2']]}", format_fert_titel)
-            werte_ws.write(f"G{row}", f"=SUM(C{row}:F{row})", format_fert_pool)
-
-        else:
-            werte_ws.write(f"G{row}", f"=C{row - row%3} + D{row} + E{row} + F{row - row%3}", format_fert_pool)
+        werte_ws.write(f"G{row}", f"=C{row - row%3} + D{row} + E{row} + F{row - row%3}", format_fert_pool)
 
 
     # formatting below fertigkeiten
@@ -700,7 +692,7 @@ def generate_char_xslx(char: Charakter):
 
     # spezialfertigkeiten
     spF_wF_ws.write_row(0, 6, ['Spezialfertigkeit', 'Attribute', 'Gesamt', 'Ausgleich', 'Korr.', 'WP', 'W20 Probe'], format_section_titel)
-    spezial_qs = Spezialfertigkeit.objects.annotate(
+    spezial_qs = Spezialfertigkeit.objects.prefetch_related("attr1", "attr2").annotate(
                     attr=Concat(F("attr1__titel"), Value(' + '), F("attr2__titel"), output_field=CharField()))
 
     for i, spezial in enumerate(spezial_qs):

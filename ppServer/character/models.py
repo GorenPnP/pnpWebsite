@@ -67,7 +67,7 @@ class Wesenkraft(models.Model):
         return self.titel
 
 
-class Spezies(models.Model):
+class Wesen(models.Model):
 
     class Meta:
         ordering = ['komplexität']
@@ -118,7 +118,7 @@ class Gfs(models.Model):
     icon = ResizedImageField(size=[64, 64], null=True, blank=True)
 
     titel = models.CharField(max_length=30, unique=True)
-    wesen = models.ForeignKey(Spezies, on_delete=models.SET_NULL, blank=True, null=True)
+    wesen = models.ForeignKey(Wesen, on_delete=models.SET_NULL, blank=True, null=True)
     beschreibung = MarkdownField(rendered_field='beschreibung_rendered', validator=VALIDATOR_STANDARD)
     beschreibung_rendered = RenderedMarkdownField(null=True)
 
@@ -195,7 +195,6 @@ class GfsFertigkeit(models.Model):
     fertigkeit = models.ForeignKey("Fertigkeit", on_delete=models.CASCADE)
 
     fp = models.IntegerField(default=0)
-    pool = models.IntegerField(default=0)
 
     def __str__(self):
         return "'{}' von '{}'".format(self.fertigkeit.__str__(), self.gfs.__str__())
@@ -442,20 +441,16 @@ class Fertigkeit(models.Model):
         verbose_name_plural = "Fertigkeiten"
 
     titel = models.CharField(max_length=50, unique=True)
-    attr1 = models.ForeignKey(Attribut, null=True, on_delete=models.SET_NULL, related_name="attr1")
-    attr2 = models.ForeignKey(Attribut, on_delete=models.SET_NULL, related_name="attr2", blank=True, null=True)
-    limit = models.CharField(choices=enums.limit_enum, max_length=20, default=enums.limit_enum[0])
     beschreibung = models.CharField(max_length=100, blank=True, default='')
+    
+    attribut = models.ForeignKey(Attribut, null=True, on_delete=models.SET_NULL)
+    gruppe = models.CharField(max_length=1, choices=enums.gruppen_enum, null=True)
+
+    impro_possible = models.BooleanField(default=True)
+    limit = models.CharField(choices=enums.limit_enum, max_length=20, default=enums.limit_enum[0])
 
     def __str__(self):
-        if self.attr2 is None:
-            return "{} ({})".format(self.titel, self.attr1)
-        else:
-            return "{} ({}, {})".format(self.titel, self.attr1, self.attr2)
-
-    def clean(self):
-        if self.attr1 is None and self.attr2 is not None:
-            raise ValidationError("Erstes Attribut wählen, wenn nur eins gebraucht wird!")
+        return "{} ({})".format(self.titel, self.attribut)
 
 
 class Wissensfertigkeit(models.Model):
@@ -511,10 +506,8 @@ class Charakter(models.Model):
 
     # settings
     in_erstellung = models.BooleanField(default=True)
-    ep_system = models.BooleanField(default=True)
     larp = models.BooleanField(default=False)
     eigentümer = models.ForeignKey(Spieler, on_delete=models.CASCADE, null=True, blank=True)
-    spezies = models.ManyToManyField(Spezies, related_name='wesen', through='character.RelSpezies')
     gfs = models.ForeignKey(Gfs, on_delete=models.SET_NULL, null=True, blank=True)
 
     # manifest
@@ -525,14 +518,14 @@ class Charakter(models.Model):
     notizen_sonstiger_manifestverlust = models.CharField(max_length=200, default="", blank=True)
 
     # roleplay
-    name = models.CharField(max_length=200, null=True, blank=True)
-    gewicht = models.FloatField(default=75, validators=[MinValueValidator(0)], verbose_name="Gewicht in kg")
-    größe = models.PositiveIntegerField(default=170, verbose_name="Größe in cm")
-    alter = models.PositiveIntegerField(default=0)
-    geschlecht = models.CharField(max_length=100, blank=True, null=True)
+    name = models.CharField(max_length=200, null=True)
+    gewicht = models.FloatField(null=True, validators=[MinValueValidator(0)], verbose_name="Gewicht in kg")
+    größe = models.PositiveIntegerField(null=True, verbose_name="Größe in cm")
+    alter = models.PositiveIntegerField(null=True)
+    geschlecht = models.CharField(max_length=100, null=True)
     sexualität = models.CharField(max_length=100, blank=True, null=True)
     beruf = models.ForeignKey(Beruf, on_delete=models.SET_NULL, null=True, blank=True)
-    präf_arm = models.CharField(max_length=100, default="", verbose_name="präferierter Arm (rechts/links?)")
+    präf_arm = models.CharField(max_length=100, null=True, blank=True, verbose_name="präferierter Arm (rechts/links?)")
     religion = models.ForeignKey(Religion, on_delete=models.SET_NULL, null=True, blank=True)
     hautfarbe = models.CharField(max_length=100, default="")
     haarfarbe = models.CharField(max_length=100, default="")
@@ -732,11 +725,17 @@ class Charakter(models.Model):
             rel.maxWert += rel.maxWert_temp
             rel.maxWert_temp = 0
 
+            rels.append(rel)
+        RelAttribut.objects.bulk_update(rels, ["aktuellerWert", "aktuellerWert_temp", "maxWert", "maxWert_temp"])
+
+        # gruppen
+        rels = []
+        for rel in RelGruppe.objects.filter(char=self):
             rel.fg += rel.fg_temp
             rel.fg_temp = 0
 
             rels.append(rel)
-        RelAttribut.objects.bulk_update(rels, ["aktuellerWert", "aktuellerWert_temp", "maxWert", "maxWert_temp", "fg", "fg_temp"])
+        RelGruppe.objects.bulk_update(rels, ["fg", "fg_temp"])
 
         # fertigkeiten
         rels = []
@@ -786,21 +785,6 @@ class Affektivität(models.Model):
 
     def __str__(self):
         return "'{}' zu Charakter '{}'".format(self.name, self.char)
-
-
-class RelSpezies(models.Model):
-    class Meta:
-        ordering = ['char', 'spezies']
-        verbose_name = "Wesen"
-        verbose_name_plural = "Wesen"
-
-        unique_together = (('char', 'spezies'),)
-
-    char = models.ForeignKey(Charakter, on_delete=models.CASCADE)
-    spezies = models.ForeignKey(Spezies, on_delete=models.CASCADE, related_name="Wesen")
-
-    def __str__(self):
-        return "Charakter '{}' ist ein/e '{}'".format(self.char.name, self.spezies.titel)
 
 
 class RelPersönlichkeit(models.Model):
@@ -920,15 +904,30 @@ class RelAttribut(models.Model):
     maxWert_temp = models.PositiveIntegerField(default=0)
     maxWert_fix = models.PositiveIntegerField(null=True, blank=True)
 
-    fg = models.PositiveIntegerField(default=0)
-    fg_temp = models.PositiveIntegerField(default=0)
-
     def __str__(self):
         return "'{}' von '{}'".format(self.attribut.__str__(), self.char.__str__())
 
     def aktuell(self): return self.aktuellerWert + self.aktuellerWert_temp + self.aktuellerWert_bonus
     def max(self): return self.maxWert + self.maxWert_temp
-    def fg_sum(self): return self.fg + self.fg_temp
+
+class RelGruppe(models.Model):
+    
+    class Meta:
+        ordering = ['char', 'gruppe']
+        verbose_name = "Fertigkeitsgruppe"
+        verbose_name_plural = "Fertigkeitsgruppen"
+
+        unique_together = (('char', 'gruppe'),)
+
+    char = models.ForeignKey(Charakter, on_delete=models.CASCADE)
+    gruppe = models.CharField(max_length=1, choices=enums.gruppen_enum)
+
+    fg = models.SmallIntegerField(default=0)
+    fg_temp = models.SmallIntegerField(default=0)
+
+    def __str__(self):
+        return "'{}' von '{}'".format(self.get_gruppe_display(), self.char.__str__())
+
 
 class RelFertigkeit(models.Model):
 
@@ -948,19 +947,6 @@ class RelFertigkeit(models.Model):
 
     def __str__(self):
         return "'{}' von '{}'".format(self.fertigkeit.__str__(), self.char.__str__())
-
-    def pool(self):
-        pool = self.fp + self.fp_temp + self.fp_bonus
-        relAttr1 = RelAttribut.objects.get(char=self.char, attribut=self.fertigkeit.attr1)
-        pool += relAttr1.aktuell()
-
-        if (self.fertigkeit.attr2):
-            relAttr2 = RelAttribut.objects.get(char=self.char, attribut=self.fertigkeit.attr2)
-            pool += relAttr2.aktuell()
-        else:
-            pool += relAttr1.fg_sum()
-
-        return pool
 
 
 class RelWissensfertigkeit(models.Model):
