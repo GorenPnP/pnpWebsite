@@ -1,15 +1,17 @@
-import sys
 from datetime import date
+from typing import Any
 
-from django.db.models import F, Subquery, OuterRef, Value, Min, ExpressionWrapper, Q
+from django.db.models import F, Subquery, OuterRef, Min, ExpressionWrapper, Q
 from django.db.models.fields import BooleanField
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.shortcuts import render, get_object_or_404
+from django.db.models.query import QuerySet
+from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse
 from django.utils.html import format_html
 from django.views.generic.base import TemplateView
+from django.views.generic.list import ListView
 
 import django_tables2 as tables
 
@@ -65,6 +67,30 @@ class TalentView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTableView):
 
     app_index = "Wiki"
     app_index_url = "wiki:index"
+
+
+class WesenView(LoginRequiredMixin, VerifiedAccountMixin, ListView):
+    model = Spezies
+    template_name = "wiki/wesen.html"
+
+    def get_queryset(self) -> QuerySet[Any]:
+        return super().get_queryset().prefetch_related("gfs_set__gfsimage_set")
+    
+    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
+        return super().get_context_data(**kwargs,
+            topic = "Wesen",
+            app_index = "Wiki",
+            app_index_url = reverse("wiki:index"),
+            gfs=Gfs.objects.all(),
+        )
+    
+    def post(self, request, *args, **kwargs):
+        gfs = Gfs.objects.filter(titel=request.POST.get("gfs"))
+        if not gfs.count():
+            messages.error(request, f"Gfs/Klasse '{request.POST.get('gfs')}' gibt es leider nicht")
+            return redirect(request.build_absolute_uri())
+                                 
+        return redirect(reverse("wiki:stufenplan", args=[gfs.first().id]))
 
 
 class GfsView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTableView):

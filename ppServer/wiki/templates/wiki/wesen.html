@@ -1,0 +1,71 @@
+{% extends 'base/main.html' %}
+{% load static %}
+{% block title %}Wiki{% endblock %}
+{% block extra-head %}
+<style>
+.main-container {
+    max-width: 700px;
+    margin-inline: auto;
+}
+.accordion-button { color: var(--bs-black); }
+.avatar {
+    width: 48px;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    border: 1px solid var(--bs-primary);
+}
+.gfs-container { gap: 2em; }
+.card { width: 15rem; }
+</style>
+{% endblock %}
+{% block header %}{% include 'base/header.html' %}{% endblock %}
+{% block main %}
+
+<form method="post" class="d-flex rounded" style="overflow: hidden; width: fit-content">
+    {% csrf_token %}
+    
+    <input type="text" list="gfs" name="gfs" placeholder="Gfs/Klasse" autocomplete="off" required autofocus class="d-block px-1">
+	<datalist id="gfs">
+        {% for g in gfs %}<option value="{{ g.titel }}"></option>{% endfor %}
+	</datalist>
+
+    <input type="submit" class="btn btn-primary" style="border-radius: 0;" value="Suche">
+</form>
+
+<a class="text-light d-block mt-3 mb-5" href="{% url 'wiki:gfs' %}">Alle Klassen/Gfs</a>
+
+<ul class="accordion list-unstyled" id="wesenAccordion">
+    {% for wesen in object_list %}
+    <li class="accordion-item">
+        <h2 class="accordion-header" id="heading-{{ forloop.counter0 }}">
+            <button class="accordion-button py-2 ps-2 {% if forloop.counter0 %} collapsed{% endif %}" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-{{ forloop.counter0 }}" aria-expanded="{% if forloop.counter0 %}false{% else %}true{% endif %}" aria-controls="collapse-{{ forloop.counter0 }}">
+                <div class="d-flex justify-content-between align-items-center" style="width: calc(100% - 2em)">
+                    <span>
+                        <img src="{% if wesen.icon %}{{ wesen.icon.url }}{% else %}{% static 'res/img/goren_logo.svg' %}{% endif %}" class="avatar me-3">
+                        <b>{{ wesen.titel }}</b>
+                    </span>
+                    <span class="badge rounded-pill bg-primary">{{ wesen.gfs_set.count }}</span>
+                </div>
+            </button>
+        </h2>
+        <div id="collapse-{{ forloop.counter0 }}" class="accordion-collapse collapse{% if not forloop.counter0 %} show{% endif %}" aria-labelledby="heading-{{ forloop.counter0 }}" data-bs-parent="#wesenAccordion">
+            <div class="accordion-body">
+
+                <p>{{ wesen.beschreibung_rendered|default:""|safe }}</p>
+
+                <div class="gfs-container d-flex flex-wrap justify-content-center">
+                    {% for gfs in wesen.gfs_set.all %}
+                    <a class="card text-decoration-none" href="{% url 'wiki:stufenplan' gfs.id %}">
+                        <img src="{% if gfs.gfsimage_set.count %}{{ gfs.gfsimage_set.first.img.url }}{% else %}{% static 'res/img/goren_logo.svg' %}{% endif %}" class="card-img-top">
+                        <div class="card-body">
+                          <p class="card-text">{{ gfs.titel }}</p>
+                        </div>
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </li>
+    {% endfor %}
+</ul>
+{% endblock %}

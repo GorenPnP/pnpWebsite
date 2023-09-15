@@ -75,7 +75,11 @@ class Spezies(models.Model):
         verbose_name_plural = "Wesen"
 
     komplexität = models.PositiveIntegerField(default=0)
+
+    icon = ResizedImageField(size=[64, 64], null=True, blank=True)
     titel = models.CharField(max_length=20, unique=True)
+    beschreibung = MarkdownField(rendered_field='beschreibung_rendered', validator=VALIDATOR_STANDARD)
+    beschreibung_rendered = RenderedMarkdownField(null=True)
 
     def __str__(self):
         return self.titel
