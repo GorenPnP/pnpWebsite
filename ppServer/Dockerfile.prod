@@ -32,7 +32,8 @@ RUN echo deb [signed-by=/usr/share/keyrings/nodejs.gpg] https://deb.nodesource.c
 # - netcat for nc in entrypoint.sh
 # - postgresql-client-15 for dbbackup
 # - tzdata for correct time zome (especially in chat)
-RUN apt-get update && apt-get install -y postgresql-client-15 nodejs python3-pip netcat tzdata
+RUN apt-get update && apt-get upgrade -y
+RUN apt-get install -y postgresql-client-15 nodejs python3-pip netcat tzdata
 
 # copy project
 COPY . .
