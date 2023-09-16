@@ -1,7 +1,6 @@
 from typing import Any, Dict
 
-from django.db.models import Value, CharField, F
-from django.db.models.functions import Concat
+from django.db.models import Value, F
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
 from django.shortcuts import redirect
@@ -66,6 +65,7 @@ class ShowView(LoginRequiredMixin, VerifiedAccountMixin, DetailView):
             **self.get_resources(char),
             **self.get_calculated(char),
             **self.get_attr(char),
+            **self.get_fert(char),
             **self.get_hp(char),
             **self.get_spF_wF(char),
             **self.get_teils(char),
@@ -104,13 +104,13 @@ class ShowView(LoginRequiredMixin, VerifiedAccountMixin, DetailView):
                 ["Alter", char.alter],
                 ["Größe", f"{char.größe} cm"],
                 ["Gewicht", f"{char.gewicht} kg"],
-                ["Religion", char.religion.titel],
+                ["Religion", char.religion.titel if char.religion else ""],
                 ["Augenfarbe", char.augenfarbe],
                 ["Hautfarbe", char.hautfarbe],
                 ["Haarfarbe", char.haarfarbe],
                 ["Sexualität", char.sexualität],
                 ["präferierter Arm", char.präf_arm],
-                ["Beruf", char.beruf.titel],
+                ["Beruf", char.beruf.titel if char.beruf else ""],
                 ["Notizen", format_html(re.sub("\n", "<br>", char.notizen, 0, re.MULTILINE))],
                 ["persönliche Ziele", format_html(re.sub("\n", "<br>", char.persönlicheZiele, 0, re.MULTILINE))],
         ]
@@ -147,72 +147,77 @@ class ShowView(LoginRequiredMixin, VerifiedAccountMixin, DetailView):
         return {
             "calculated__fields": [
                 ["Limits (k | g | m)", f'{num((attrs["SCH"] + attrs["ST"] + attrs["VER"] + attrs["GES"]) / 2)} | {num((attrs["IN"] + attrs["WK"] + attrs["UM"]) / 2)} | {num((attrs["MA"] + attrs["WK"]) / 2)}'],
+                ["Initiative", f'{num(attrs["WK"] + attrs["ST"] + char.initiative_bonus)} + {attrs["SCH"]}W4'],
+                ["Manaoverflow", num((attrs["WK"] + MA_raw)*3)],
+
+                ["Astral-Widerstand", num(attrs["MA"] + attrs["WK"] + char.astralwiderstand_bonus)],
+                ["Astrale Schadensverhinderung", f'{num(math.ceil(min(attrs["WK"], MA_raw) / 6))}HP / Erfolg'],
                 ["Reaktion", num((attrs["SCH"] + attrs["GES"] + attrs["WK"])/2 + char.reaktion_bonus)],
                 ["nat. Schadenswiderstand", num(attrs["ST"] + attrs["VER"] + char.natürlicher_schadenswiderstand_bonus)],
+                ["nat. Schadensverhinderung", f'{num(math.ceil(min(attrs["ST"], attrs["VER"]) / 6))}HP / Erfolg'],
                 ["Intuition", num((attrs["IN"] + 2*attrs["SCH"]) / 2)],
-                ["Geh-/ Lauf-/ Sprintrate", f'{num(attrs["SCH"]*2)} | {num(attrs["SCH"]*4)} | {num(attrs["SCH"]*4 + ferts["Laufen"])} m / 10sek'],
-                ["Bewegung Astral", f'{num(2*attrs["MA"]*(attrs["WK"] + attrs["SCH"]))}m / 10sek'],
-                ["Schwimmen", f'{num(attrs["SCH"]*2/3 + ferts["Schwimmen"]/5)}m / 10sek'],
-                ["Tauchen", f'{num(attrs["SCH"]*2/5 + ferts["Schwimmen"]/5)}m / 10sek'],
+                ["Geh-/ Lauf-/ Sprintrate", f'{num(attrs["SCH"]*2)} | {num(attrs["SCH"]*4)} | {num(attrs["SCH"]*4 + ferts["Laufen"])} m / 6sek'],
+                ["Bewegung Astral", f'{num(2*attrs["MA"]*(attrs["WK"] + attrs["SCH"]))}m / 6sek'],
+                ["Schwimmen", f'{num(attrs["SCH"]*2/3 + ferts["Schwimmen"]/5)}m / 6sek'],
+                ["Tauchen", f'{num(attrs["SCH"]*2/5 + ferts["Schwimmen"]/5)}m / 6sek'],
                 ["Tragfähigkeit", f'{num(attrs["ST"]*3 + attrs["GES"])}kg'],
                 ["Heben", f'{num(attrs["ST"]*4 + attrs["N"])}kg / Erfolg'],
-                ["Ersticken", f'nach {num(attrs["WK"]*3 + ferts["Heben"] + ferts["Entschlossenheit"] + ferts["Schwimmen"]*3)} sek'],
-                ["Immunsystem (W100)", num(attrs["ST"]*5 + attrs["VER"] + ferts["Konstitution"] + ferts["Resistenz"])],
+                ["Ersticken", f'nach {num(attrs["ST"]*3 + attrs["VER"]*3)} sek'],
+                ["Immunsystem (W100)", num(attrs["ST"]*4 + attrs["VER"]*3 + attrs["WK"]*2)],
                 ["Glück", num(100)],
                 ["Sanität", num(100)],
                 ["Regeneration", f'{num(attrs["ST"] + attrs["WK"])}HP / Tag'],
-                ["Manaoverflow", num((attrs["WK"] + MA_raw)*3)],
-                ["Initiative", f'{num(attrs["WK"] + attrs["ST"] + char.initiative_bonus)} + {attrs["SCH"]}W4'],
-                ["Astral-Widerstand", num(attrs["MA"] + attrs["WK"] + char.astralwiderstand_bonus)],
-                ["Astrale Schadensverhinderung", f'{num(math.ceil(min(attrs["WK"], MA_raw) / 6))}HP / Erfolg'],
             ]
         }
 
     def get_attr(self, char):
-        class Fert2Table(tables.Table):
+
+        class AttrTable(tables.Table):
             class Meta:
-                model = RelFertigkeit
-                fields = ("fertigkeit__titel", "attribute", "ap", "fp", "fp_bonus", "pool", "fertigkeit__limit")
+                model = RelAttribut
+                fields = ("attribut__titel", "aktuellerWert", "maxWert")
                 orderable = False
                 attrs = {"class": "table table-dark table-striped table-hover"}
 
-            def render_ap(self, value, record):
-                return char.relattribut_set.get(attribut=record.fertigkeit.attribut).aktuell()
+            def render_attribut__titel(self, value, record):
+                return f"{record.attribut.beschreibung} ({value})"
 
-            def render_pool(self, value, record):
-                return\
-                    char.relattribut_set.get(attribut=record.fertigkeit.attribut).aktuell() +\
-                    char.relgruppe_set.get(gruppe=record.fertigkeit.gruppe).fg +\
-                    record.fp + record.fp_bonus
-
-            def render_fertigkeit__limit(self, value, record):
-                return record.fertigkeit.limit
-        
-        qs_fert2 = char.relfertigkeit_set.exclude(fertigkeit__attr2=None).annotate(
-            attribute=Concat("fertigkeit__attribut__titel", output_field=CharField()),
-            ap=Value(1),
-            pool=Value(1)
-        )
-
-        qs_fert1 = char.relfertigkeit_set.filter(fertigkeit__attr2=None).annotate(
-            ap=Value(1),
-            fg=Value(1),
-            pool=Value(1),
-        ).values_list("fertigkeit__titel", "fertigkeit__attribut__titel", "ap", "fp", "fp_bonus", "fg", "pool", "fertigkeit__limit")
-
-        fert1 = []
-        for fert in qs_fert1:
-            fert = list(fert)
-            relattr = char.relattribut_set.get(attribut__titel=fert[1])
-            aktuell = relattr.aktuellerWert + relattr.aktuellerWert_bonus
-            fert[2] = f"{relattr.aktuellerWert}{'+' +str(relattr.aktuellerWert_bonus) if relattr.aktuellerWert_bonus else ''} / {relattr.maxWert}"
-            fert[5] = relattr.fg
-            fert[6] = sum([aktuell, fert[3], fert[4], relattr.fg])
-            fert1.append(fert)
+            def render_attribut__aktuellerWert(self, value, record):
+                return str(value) + (f"+{record.aktuellerWert_bonus}" if record.aktuellerWert_bonus else "")
 
         return {
-            "attr__fields": fert1,
-            "attr__table": Fert2Table(qs_fert2)
+            "attr__table": AttrTable(char.relattribut_set.all()),
+        }
+
+    def get_fert(self, char):
+        class FertTable(tables.Table):
+            class Meta:
+                model = RelFertigkeit
+                fields = ("fertigkeit__titel", "fertigkeit__attribut__titel", "fp", "fg", "fp_bonus", "pool", "fertigkeit__limit","fertigkeit__gruppe")
+                orderable = False
+                attrs = {"class": "table table-dark table-striped table-hover"}
+
+            def render_fertigkeit__limit(self, value):
+                return [name for token, name in enums.limit_enum if token == value][0]
+
+            def render_fertigkeit__gruppe(self, value):
+                return [name for token, name in enums.gruppen_enum if token == value][0]
+
+        gruppen = {rel.gruppe: rel.fg for rel in char.relgruppe_set.all()}
+        qs_fert = char.relfertigkeit_set.all().prefetch_related("fertigkeit__attribut").annotate(
+            fg=Value(1),
+            pool=Value(1),
+        ).values("fertigkeit__titel", "fertigkeit__attribut__titel", "fp", "fg", "fp_bonus", "pool", "fertigkeit__limit", "fertigkeit__gruppe")
+
+        for fert in qs_fert:
+            fert["fg"] = gruppen[fert["fertigkeit__gruppe"]]
+
+            relattr = char.relattribut_set.get(attribut__titel=fert["fertigkeit__attribut__titel"])
+            aktuell = relattr.aktuellerWert + relattr.aktuellerWert_bonus
+            fert["pool"] = sum([aktuell, fert["fp"], fert["fp_bonus"], fert["fg"]])
+
+        return {
+            "fert__table": FertTable(qs_fert),
         }
 
     def get_hp(self, char):
@@ -250,8 +255,8 @@ class ShowView(LoginRequiredMixin, VerifiedAccountMixin, DetailView):
     
     def get_spF_wF(self, char):
         attr = {rel.attribut.titel: rel.aktuell() for rel in char.relattribut_set.all()}
-        fg = {rel.attribut.titel: rel.fg for rel in char.relattribut_set.all()}
-        fert = {rel.fertigkeit.titel: attr[rel.fertigkeit.attribut.titel] + fg[rel.fertigkeit.gruppe] + rel.fp + rel.fp_bonus for rel in char.relfertigkeit_set.all()}
+        fg = {rel.gruppe: rel.fg for rel in char.relgruppe_set.all()}
+        fert = {rel.fertigkeit.titel: attr[rel.fertigkeit.attribut.titel] + fg[rel.fertigkeit.gruppe] + rel.fp + rel.fp_bonus for rel in char.relfertigkeit_set.prefetch_related("fertigkeit").all()}
 
         class SpezialTable(tables.Table):
             class Meta:
