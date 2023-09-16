@@ -114,7 +114,7 @@ def add_ferts(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('character', '0134_remove_fertigkeit_attr1_remove_fertigkeit_attr2_and_more'),
+        ('character', '0134a_remove_fertigkeit_attr1_remove_fertigkeit_attr2_and_more'),
     ]
 
     operations = [

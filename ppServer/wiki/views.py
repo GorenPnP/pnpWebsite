@@ -70,7 +70,7 @@ class TalentView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTableView):
 
 
 class WesenView(LoginRequiredMixin, VerifiedAccountMixin, ListView):
-    model = Spezies
+    model = Wesen
     template_name = "wiki/wesen.html"
 
     def get_queryset(self) -> QuerySet[Any]:

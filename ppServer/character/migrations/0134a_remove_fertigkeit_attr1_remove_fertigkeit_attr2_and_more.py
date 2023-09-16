@@ -7,7 +7,7 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('character', '0133_alter_nachteil_has_implementation_and_more'),
+        ('character', '0134_spezies_beschreibung_spezies_beschreibung_rendered_and_more'),
     ]
 
     operations = [
