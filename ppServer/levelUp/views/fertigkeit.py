@@ -76,7 +76,7 @@ class GenericFertigkeitView(LevelUpMixin, DynamicTableView):
         #### collect values ####
         # fp
         fp = {}
-        for relfert in self.get_queryset().prefetch_related("fertigkeit__attribut"):
+        for relfert in char.relfertigkeit_set.all():
             fert = relfert.fertigkeit
 
             # get & sanitize

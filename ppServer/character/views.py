@@ -196,6 +196,9 @@ class ShowView(LoginRequiredMixin, VerifiedAccountMixin, DetailView):
                 fields = ("fertigkeit__titel", "fertigkeit__attribut__titel", "fp", "fg", "fp_bonus", "pool", "fertigkeit__limit","fertigkeit__gruppe")
                 orderable = False
                 attrs = {"class": "table table-dark table-striped table-hover"}
+                row_attrs = {
+                    "class": lambda record: "impro_possible" if record["impro_possible"] else ""
+                }
 
             def render_fertigkeit__limit(self, value):
                 return [name for token, name in enums.limit_enum if token == value][0]
@@ -207,7 +210,8 @@ class ShowView(LoginRequiredMixin, VerifiedAccountMixin, DetailView):
         qs_fert = char.relfertigkeit_set.all().prefetch_related("fertigkeit__attribut").annotate(
             fg=Value(1),
             pool=Value(1),
-        ).values("fertigkeit__titel", "fertigkeit__attribut__titel", "fp", "fg", "fp_bonus", "pool", "fertigkeit__limit", "fertigkeit__gruppe")
+            impro_possible=F("fertigkeit__impro_possible"),
+        ).values("fertigkeit__titel", "fertigkeit__attribut__titel", "fp", "fg", "fp_bonus", "pool", "fertigkeit__limit", "fertigkeit__gruppe", "impro_possible")
 
         for fert in qs_fert:
             fert["fg"] = gruppen[fert["fertigkeit__gruppe"]]

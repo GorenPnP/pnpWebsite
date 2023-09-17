@@ -281,7 +281,7 @@ class CharakterExporter:
         werte_ws.write(f"I{ROW}", "Magisch", format_limit_titel)
         werte_ws.write(f"J{ROW}", f"=({self._position('MA')}+{self._position('WK')})/2", format_limit)
 
-        ROW = max(ROW, int(re.search("\d+$", self._position("attr_labels")).group(0)))
+        ROW = max(ROW+1, int(re.search("\d+$", self._position("attr_labels")).group(0)))
 
         # Vor- & Nachteile
         ROW+1

@@ -15,25 +15,6 @@ def remove_all_ferts(apps, schema_editor):
     Fertigkeit = apps.get_model('character', 'Fertigkeit')
     Fertigkeit.objects.all().delete()
 
-def add_some_attrs(apps, schema_editor):
-    Attribut = apps.get_model('character', 'Attribut')
-    Gfs = apps.get_model('character', 'Gfs')
-    GfsAttribut = apps.get_model('character', 'GfsAttribut')
-
-    attrs = [
-        ("MG", "Manergetik"),
-        ("LB", "Leitungsbahn"),
-        ("DM", "Die Macht"),
-        ("11", "11"),
-    ]
-
-    for titel, beschreibung in attrs:
-        attr = Attribut.objects.create(titel=titel, beschreibung=beschreibung)
-
-        for gfs in Gfs.objects.all():
-            GfsAttribut.objects.create(gfs=gfs, attribut=attr)
-
-
 
 def add_ferts(apps, schema_editor):
     Fertigkeit = apps.get_model('character', 'Fertigkeit')
@@ -53,9 +34,9 @@ def add_ferts(apps, schema_editor):
     Fertigkeit.objects.create(titel="Erinnern", attribut=attrs["IN"], limit="g", gruppe="c")
     Fertigkeit.objects.create(titel="Lernen", attribut=attrs["IN"], limit="g", gruppe="c")
     
-    Fertigkeit.objects.create(titel="Heben", attribut=attrs["SCH"], limit="k", gruppe="d")
-    Fertigkeit.objects.create(titel="Werfen", attribut=attrs["SCH"], limit="k", gruppe="d")
-    Fertigkeit.objects.create(titel="Fingerfertigkeit", attribut=attrs["SCH"], limit="k", gruppe="d")
+    Fertigkeit.objects.create(titel="Heben", attribut=attrs["ST"], limit="k", gruppe="d")
+    Fertigkeit.objects.create(titel="Werfen", attribut=attrs["ST"], limit="k", gruppe="d")
+    Fertigkeit.objects.create(titel="Fingerfertigkeit", attribut=attrs["GES"], limit="k", gruppe="d")
     
     Fertigkeit.objects.create(titel="Zähigkeit", attribut=attrs["VER"], limit="k", gruppe="e")
     Fertigkeit.objects.create(titel="Kontern", attribut=attrs["VER"], limit="k", gruppe="e", impro_possible=False)
@@ -69,9 +50,9 @@ def add_ferts(apps, schema_editor):
     Fertigkeit.objects.create(titel="Technik", attribut=attrs["GES"], limit="k", gruppe="g")
     Fertigkeit.objects.create(titel="Schlösser", attribut=attrs["GES"], limit="k", gruppe="g", impro_possible=False)
     
-    Fertigkeit.objects.create(titel="Heimlichkeit", attribut=attrs["SCH"], limit="g", gruppe="h")
-    Fertigkeit.objects.create(titel="Schauspiel", attribut=attrs["SCH"], limit="k", gruppe="h", impro_possible=False)
-    Fertigkeit.objects.create(titel="Täuschen", attribut=attrs["SCH"], limit="g", gruppe="h")
+    Fertigkeit.objects.create(titel="Heimlichkeit", attribut=attrs["GES"], limit="g", gruppe="h")
+    Fertigkeit.objects.create(titel="Schauspiel", attribut=attrs["UM"], limit="k", gruppe="h", impro_possible=False)
+    Fertigkeit.objects.create(titel="Täuschen", attribut=attrs["UM"], limit="g", gruppe="h")
     
     Fertigkeit.objects.create(titel="Verhalten", attribut=attrs["UM"], limit="g", gruppe="i")
     Fertigkeit.objects.create(titel="Verhandeln", attribut=attrs["UM"], limit="g", gruppe="i")
@@ -121,6 +102,5 @@ class Migration(migrations.Migration):
         migrations.RunPython(remove_non_wesen),
         migrations.RunPython(remove_all_chars),
         migrations.RunPython(remove_all_ferts),
-        migrations.RunPython(add_some_attrs),
         migrations.RunPython(add_ferts),
     ]

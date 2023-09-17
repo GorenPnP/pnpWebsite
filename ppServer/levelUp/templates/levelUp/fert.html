@@ -8,6 +8,12 @@
         max-width: 700px;
         margin-inline: auto;
     }
+    tbody tr:not(.impro_possible) td:first-of-type {
+        color: var(--bs-danger) !important;
+    }
+    tbody tr:nth-of-type(3n-2) {
+        border-top: 4px solid #ddd;
+    }
 </style>
 {% endblock %}
 
