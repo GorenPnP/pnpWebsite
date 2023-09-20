@@ -112,7 +112,7 @@ class GenericFertigkeitView(LevelUpMixin, DynamicTableView):
 
         #### test them ####
         # fp
-        fp_max = self.get_queryset().aggregate(
+        fp_max = RelFertigkeit.objects.filter(char=char).aggregate(
                 spent = Sum("fp_temp")
             )["spent"] + char.fp
 

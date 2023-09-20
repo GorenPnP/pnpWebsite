@@ -200,6 +200,15 @@ class ShowView(LoginRequiredMixin, VerifiedAccountMixin, DetailView):
                     "class": lambda record: "impro_possible" if record["impro_possible"] else ""
                 }
 
+            def render_fg(self, value):
+                return format_html(f"<i>{value}</i>")
+
+            def render_fp_bonus(self, value):
+                return f"+{value}" if value else "-"
+
+            def render_pool(self, value):
+                return format_html(f"<b>{value}</b>")
+
             def render_fertigkeit__limit(self, value):
                 return [name for token, name in enums.limit_enum if token == value][0]
 
