@@ -5,7 +5,7 @@ from django.core.management.base import BaseCommand
 from ppServer.settings import STATIC_ROOT
 from character.models import Charakter
 
-from characterExport.views import generate_char_xslx
+from characterExport.export import CharakterExporter
 
 
 class Command(BaseCommand):
@@ -35,7 +35,7 @@ class Command(BaseCommand):
         with zipfile.ZipFile(ZIP_FILENAME, mode="w", compression=zipfile.ZIP_DEFLATED) as zip_file:
 
             for char in Charakter.objects.all().prefetch_related("eigentümer"):
-                file_response = generate_char_xslx(char)
+                file_response = CharakterExporter(char).export()
 
                 owner = char.eigentümer.name if char.eigentümer is not None else 'NO_OWNER'
                 name = char.name if char.name is not None else 'NO_NAME'

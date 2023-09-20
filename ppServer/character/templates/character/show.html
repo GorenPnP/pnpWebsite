@@ -76,32 +76,12 @@
             </div>
         </section>
         <section id="attrs">
-            <h2>Attribute + Fertigkeiten</h2>
-            <div class="table-container table-responsive">
-                <table class="table table-dark table-striped table-hover">
-                    <thead>
-                        <tr>
-                            <th>Fertigkeit</th>
-                            <th>Attribut</th>
-                            <th>AP</th>
-                            <th>FP</th>
-                            <th>Bonus</th>
-                            <th>FG</th>
-                            <th>Pool</th>
-                            <th>Limit</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for fert in attr__fields %}
-                        <tr>
-                            {% for field in fert %}<td>{{ field }}</td>{% endfor %}
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-
+            <h2>Attribute</h2>
             {% render_table attr__table %}
+        </section>
+        <section id="ferts">
+            <h2>Fertigkeiten</h2>
+            {% render_table fert__table %}
         </section>
         <section id="hp">
             <h2>HP</h2>

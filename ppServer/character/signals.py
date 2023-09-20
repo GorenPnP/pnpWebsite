@@ -42,6 +42,9 @@ def init_character(sender, **kwargs):
     for f in Fertigkeit.objects.all():
         RelFertigkeit.objects.get_or_create(char=instance, fertigkeit=f)
 
+    for token, _ in enums.gruppen_enum:
+        RelGruppe.objects.get_or_create(char=instance, gruppe=token)
+
 
 
 

@@ -90,7 +90,7 @@ class IndexView(LevelUpMixin, DetailView):
         if char.ap or char.relattribut_set.filter(Q(aktuellerWert_temp__gt=0) | Q(maxWert_temp__gt=0)).exists():
             rows.append({"done": is_ap_done(char, 1), "link": self._get_url("attribute", char), "text": "<b>Attribute</b>", "werte": f"{char.ap} AP"})
         # Fertigkeiten
-        if char.fp or char.fg or char.relattribut_set.filter(fg_temp__gt=0).exists() or char.relfertigkeit_set.filter(fp_temp__gt=0).exists():
+        if char.fp or char.fg or char.relgruppe_set.filter(fg_temp__gt=0).exists() or char.relfertigkeit_set.filter(fp_temp__gt=0).exists():
             rows.append({"done": is_ferts_done(char), "link": self._get_url("fertigkeiten", char), "text": "<b>Fertigkeiten</b>", "werte": f"{char.fp} FP<br>{char.fg} FG"})
 
 

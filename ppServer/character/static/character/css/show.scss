@@ -44,3 +44,12 @@ section + section > h2 { margin: 2em 0 1em; }
 // let tables scroll in x direction, everything else not
 table { overflow-x: auto; }
 .table-responsive { max-width: calc(100dvw - 4em); }
+
+#ferts tbody tr {
+    &:not(.impro_possible) td:first-of-type {
+        color: var(--bs-danger) !important;
+    }
+    &:nth-of-type(3n-2) {
+        border-top: 4px solid #ddd;
+    }
+}

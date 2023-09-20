@@ -80,18 +80,13 @@ class WissenFertInLine(admin.TabularInline):
     extra = 1
 
 
-class RelSpeziesInline(admin.TabularInline):
-    model = RelSpezies
-    extra = 1
-
-
 class RelPersönlichkeitInline(admin.TabularInline):
     model = RelPersönlichkeit
     extra = 1
 
 
 class RelAttributInline(admin.TabularInline):
-    fields = ['attribut', 'aktuellerWert', 'aktuellerWert_temp', 'aktuellerWert_bonus', 'maxWert', 'maxWert_temp', 'fg', "fg_temp"]
+    fields = ['attribut', 'aktuellerWert', 'aktuellerWert_temp', 'aktuellerWert_bonus', 'maxWert', 'maxWert_temp']
     readonly_fields = ['attribut']
     model = RelAttribut
     extra = 0
@@ -103,6 +98,19 @@ class RelAttributInline(admin.TabularInline):
         return False
     def get_queryset(self, request):
         return super().get_queryset(request).prefetch_related('attribut')
+
+
+class RelGruppeInLine(admin.TabularInline):
+    fields = ['gruppe', 'fg', "fg_temp"]
+    readonly_fields = ['gruppe']
+    model = RelGruppe
+    extra = 0
+
+    def has_add_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
 
 
 class RelFertigkeitInLine(admin.TabularInline):
@@ -279,7 +287,7 @@ class CharakterAdmin(admin.ModelAdmin):
         model = Charakter
 
     fieldsets = [
-        ("Settings (Finger weg)", {'fields': ['eigentümer', "in_erstellung", "ep_system", "larp", "gfs"]}),
+        ("Settings (Finger weg)", {'fields': ['eigentümer', "in_erstellung", "larp", "gfs"]}),
         ('Roleplay', {'fields': ['image', 'name', "gewicht", "größe", 'alter', 'geschlecht', 'sexualität', 'beruf', "präf_arm",
                               'religion', "hautfarbe", "haarfarbe", "augenfarbe"]}),
         
@@ -295,8 +303,9 @@ class CharakterAdmin(admin.ModelAdmin):
 
     inlines = [
                RelPersönlichkeitInline,
-               RelSpeziesInline, RelWesenkraftInLine,
+               RelWesenkraftInLine,
                RelAttributInline,
+               RelGruppeInLine,
                RelFertigkeitInLine,
                RelSpezialfertigkeitInLine,
                RelWissensfertigkeitInLine, RelVorteilInLine,
@@ -323,23 +332,19 @@ class CharakterAdmin(admin.ModelAdmin):
                RelEngelsroboterInLine
     ]
 
-    list_display = ['image_', 'name', 'eigentümer', "gfs", "wesen_", "ep_system", "larp", "in_erstellung"]
+    list_display = ['image_', 'name', 'eigentümer', "gfs", "larp", "in_erstellung"]
 
-    list_filter = ['in_erstellung', 'larp', 'ep_system', 'eigentümer']
+    list_filter = ['in_erstellung', 'larp', 'eigentümer']
     search_fields = ['name', 'eigentümer__name']
     list_display_links = ["name"]
 
     save_on_top = True
 
     def get_queryset(self, request):
-        return super().get_queryset(request).prefetch_related('eigentümer', 'spezies')
+        return super().get_queryset(request).prefetch_related('eigentümer')
 
     def image_(self, obj):
         return format_html(f"<img src='{obj.image.url}' style='max-width: 32px; max-height:32px;'>") if obj.image else "-"
-
-    def wesen_(self, obj):
-        return ', '.join([w.titel for w in obj.spezies.all()])
-
 
     def _is_spielleiter(self, request):
         return request.user.groups.filter(name__iexact="spielleiter").exists()
@@ -364,17 +369,12 @@ class AttributAdmin(admin.ModelAdmin):
 
 class FertigkeitAdmin(admin.ModelAdmin):
 
-    fieldsets = [
-        (None, {'fields': ['titel', 'limit', 'attr1', 'attr2']}),
-        ('Beschreibung', {'fields': ['beschreibung']})
-    ]
-
-    list_display = ('titel', 'attr1', 'attr2', 'limit', 'beschreibung')
-    search_fields = ['titel', 'attr1__titel', 'attr2__titel', 'limit']
-    list_filter = ['attr1', 'attr2', 'limit']
+    list_display = ('titel', 'attribut', 'gruppe', 'impro_possible', 'limit', 'beschreibung')
+    search_fields = ['titel', 'attribut__titel', 'limit']
+    list_filter = ['attribut', 'gruppe', 'impro_possible', 'limit']
 
     def get_queryset(self, request):
-        return super().get_queryset(request).prefetch_related('attr1', 'attr2')
+        return super().get_queryset(request).prefetch_related('attribut')
 
 
 class WesenkraftAdmin(admin.ModelAdmin):
@@ -436,12 +436,12 @@ class SpeziesAdmin(admin.ModelAdmin):
     search_fields = ('komplexität', 'titel',)
 
 class GfsAdmin(admin.ModelAdmin):
-    list_display = ('icon_', 'titel', 'ap', 'difficulty', 'vorteil_', 'nachteil_', 'zauber_',
+    list_display = ('icon_', 'titel', 'ap', "wesen", 'difficulty', 'vorteil_', 'nachteil_', 'zauber_',
                     "wesenschaden_waff_kampf", "wesenschaden_andere_gestalt", "wesenkraft_", "startmanifest",)
-    list_filter = ['ap', 'startmanifest', "wesenschaden_waff_kampf"]
+    list_filter = ["wesen", 'ap', 'startmanifest', "wesenschaden_waff_kampf"]
     search_fields = ('titel', 'ap')
 
-    list_editable = ['wesenschaden_waff_kampf', 'wesenschaden_andere_gestalt', 'difficulty']
+    list_editable = ["wesen", 'wesenschaden_waff_kampf', 'wesenschaden_andere_gestalt', 'difficulty']
     list_display_links = ["icon_", "titel"]
 
     inlines = [GfsImageInLine, GfsAttributInLine, GfsFertigkeitInLine,
@@ -571,7 +571,7 @@ class GfsSkilltreeEntryAdmin(admin.ModelAdmin):
 
 
 admin.site.register(Charakter, CharakterAdmin)
-admin.site.register(Spezies, SpeziesAdmin)
+admin.site.register(Wesen, SpeziesAdmin)
 admin.site.register(Gfs, GfsAdmin)
 admin.site.register(Persönlichkeit, PersönlichkeitAdmin)
 admin.site.register(Attribut, AttributAdmin)

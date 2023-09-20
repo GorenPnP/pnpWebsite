@@ -10,7 +10,6 @@ class LevelUpMixin(LoginRequiredMixin, UserPassesTestMixin):
     # let only owner and spielleiter access
     def test_func(self) -> bool:
         char = self.get_character()
-        if not char.ep_system: return False
 
         if self.request.user.groups.filter(name="spielleiter").exists(): return True
         if not hasattr(char, "eigentümer"): return False

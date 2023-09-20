@@ -1,4 +1,4 @@
-{% extends 'base/dynamic-tables.html' %}
+{% extends 'base/dynamic-table.html' %}
 {% load static resources l10n %}
 {% block extra-head %}{{ block.super }}
 <script src="{% static 'levelUp/js/fert.js' %}" type="text/javascript"></script>
@@ -7,6 +7,12 @@
     table {
         max-width: 700px;
         margin-inline: auto;
+    }
+    tbody tr:not(.impro_possible) td:first-of-type {
+        color: var(--bs-danger) !important;
+    }
+    tbody tr:nth-of-type(3n-2) {
+        border-top: 4px solid #ddd;
     }
 </style>
 {% endblock %}

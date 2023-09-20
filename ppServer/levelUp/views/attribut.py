@@ -29,8 +29,8 @@ class GenericAttributView(LevelUpMixin, DynamicTableView):
             fields = ["attribut__titel", "aktuell_ap", "max_ap", "result"]
             attrs = GenericTable.Meta.attrs
 
-        aktuell_ap = TemplateColumn(template_name="levelUp/_number_input.html", extra_context={"add_field": "aktuellerWert", "bonus_field": "aktuellerWert_bonus", "input_field": "aktuellerWert_temp", "max_field": "aktuell_limit", "base_name": BASE_AKTUELL, "base_class": BASE_AKTUELL, "dataset_id": "dataset_id"})
-        max_ap = TemplateColumn(template_name="levelUp/_number_input.html", extra_context={"add_field": "maxWert", "bonus_field": None, "input_field": "maxWert_temp", "max_field": None, "base_name": BASE_MAX, "base_class": BASE_MAX, "dataset_id": "dataset_id"})
+        aktuell_ap = TemplateColumn(template_name="levelUp/_number_input.html", extra_context={"add_field": "aktuellerWert", "bonus_field": "aktuellerWert_bonus", "input_field": "aktuellerWert_temp", "max_field": "aktuell_limit", "base_name": BASE_AKTUELL, "base_class": BASE_AKTUELL, "dataset_id": "dataset_id", "text": None})
+        max_ap = TemplateColumn(template_name="levelUp/_number_input.html", extra_context={"add_field": "maxWert", "bonus_field": None, "input_field": "maxWert_temp", "max_field": None, "base_name": BASE_MAX, "base_class": BASE_MAX, "dataset_id": "dataset_id", "text": None})
 
         def render_attribut__titel(self, value, record):
             return f"{value} ({record.attribut.beschreibung})"

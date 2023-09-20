@@ -1,7 +1,6 @@
 from typing import Optional
 
 from django.contrib.auth.mixins import UserPassesTestMixin
-from django.db.models import Q
 from django.shortcuts import redirect
 from django.utils import timezone
 
