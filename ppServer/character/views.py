@@ -151,7 +151,7 @@ class ShowView(LoginRequiredMixin, VerifiedAccountMixin, DetailView):
                 ["Manaoverflow", num((attrs["WK"] + MA_raw)*3)],
 
                 ["Astral-Widerstand", num(attrs["MA"] + attrs["WK"] + char.astralwiderstand_bonus)],
-                ["Astrale Schadensverhinderung", f'{num(math.ceil(min(attrs["WK"], MA_raw) / 6))}HP / Erfolg'],
+                ["Astrale Schadensverhinderung", f'{1+ num(math.ceil(min(attrs["WK"], MA_raw) / 6))}HP / Erfolg'],
                 ["Reaktion", num((attrs["SCH"] + attrs["GES"] + attrs["WK"])/2 + char.reaktion_bonus)],
                 ["nat. Schadenswiderstand", num(attrs["ST"] + attrs["VER"] + char.natürlicher_schadenswiderstand_bonus)],
                 ["nat. Schadensverhinderung", f'{num(math.ceil(min(attrs["ST"], attrs["VER"]) / 6))}HP / Erfolg'],
@@ -197,7 +197,9 @@ class ShowView(LoginRequiredMixin, VerifiedAccountMixin, DetailView):
                 orderable = False
                 attrs = {"class": "table table-dark table-striped table-hover"}
                 row_attrs = {
-                    "class": lambda record: "impro_possible" if record["impro_possible"] else ""
+                    "class": lambda record:
+                        ("impro_possible" if record["impro_possible"] else " ") +
+                        ("fert_impossible" if not record["impro_possible"] and record["fp"] == 0 else " ")
                 }
 
             def render_fg(self, value):
@@ -206,8 +208,8 @@ class ShowView(LoginRequiredMixin, VerifiedAccountMixin, DetailView):
             def render_fp_bonus(self, value):
                 return f"+{value}" if value else "-"
 
-            def render_pool(self, value):
-                return format_html(f"<b>{value}</b>")
+            def render_pool(self, value, record):
+                return format_html(f"<b>{value}</b>") if record["impro_possible"] or record["fp"] else "-"
 
             def render_fertigkeit__limit(self, value):
                 return [name for token, name in enums.limit_enum if token == value][0]

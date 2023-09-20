@@ -46,6 +46,13 @@ table { overflow-x: auto; }
 .table-responsive { max-width: calc(100dvw - 4em); }
 
 #ferts tbody tr {
+    &.fert_impossible {
+        text-decoration: line-through 2px;
+
+        td:first-of-type {
+            text-decoration: line-through 2px var(--bs-danger);
+        }
+    }
     &:not(.impro_possible) td:first-of-type {
         color: var(--bs-danger) !important;
     }
