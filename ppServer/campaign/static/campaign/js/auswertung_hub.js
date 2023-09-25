@@ -47,4 +47,16 @@ document.addEventListener("DOMContentLoaded", function() {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(selected_characters));
         set_display();
     }));
+
+    // filter chars
+    document.querySelector("#char-filter").addEventListener("input", function() {
+        const search = this.value.toLowerCase();
+        console.log(search)
+
+        document.querySelectorAll(".all-chars li").forEach(li => {
+            const hidden = search && !li.querySelector("label b").innerHTML.toLowerCase().includes(search);
+            if (hidden) li.classList.add("hidden");
+            else li.classList.remove("hidden");
+        });
+    });
 });

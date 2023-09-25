@@ -94,7 +94,7 @@ class FullShopTableView(LoginRequiredMixin, VerifiedAccountMixin, ExportMixin, S
 
     export_name = "kompletter shop"
     exclude_columns = ["icon"]
-    export_formats = ["csv", "json", "latex", "ods", "tsv"]
+    export_formats = ["csv", "json", "latex", "tsv"]
 
     def get_topic(self): return "Shop"
     def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
@@ -224,7 +224,7 @@ class ShopTableView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTableView):
 
     export_name = "<shop>"
     exclude_columns = ["icon"]
-    export_formats = ["csv", "json", "latex", "ods", "tsv"]
+    export_formats = ["csv", "json", "latex", "tsv"]
 
     def get_export_filename(self, export_format):
         return super().get_export_filename(export_format).replace("<shop>", self.model._meta.verbose_name_plural)

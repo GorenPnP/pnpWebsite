@@ -3,6 +3,7 @@
 
 {% block extra-head %}
 <link rel="stylesheet" href="{% static 'base/css/checkbox.css' %}">
+<link rel="stylesheet" href="{% static 'campaign/css/auswertung_hub.css' %}">
 <script src="{% static 'campaign/js/auswertung_hub.js' %}" defer></script>
 {% endblock %}
 
@@ -15,7 +16,21 @@
 {% block main %}
 <h2>Alle Charaktere</h2>
 
-<ul>
+<aside class="search-container">
+    <input list="chars" id="char-filter">
+    <datalist id="chars">
+		{% for c in object_list %}<option value="{{ c.name|default:"&#60;no name&#62;" }}{% if c.larp %} (LARP){% endif %}"></option>{% endfor %}
+	</datalist>
+
+    <button class="btn btn-primary pt-0">
+        <svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 512 512">
+            <!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
+            <path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352a144 144 0 1 0 0-288 144 144 0 1 0 0 288z"/>
+        </svg>
+    </button>
+</aside>
+
+<ul class="all-chars">
     {% for c in object_list %}
     <li class="d-flex align-items-center my-2" style="gap: 5px">
         <input type="checkbox" id="char-{% localize off %}{{ c.id }}{% endlocalize %}" name="{% localize off %}{{ c.id }}{% endlocalize %}">

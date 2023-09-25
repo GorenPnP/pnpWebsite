@@ -1,0 +1,14 @@
+.search-container {
+    display: flex;
+    overflow: hidden;
+    border-radius: 5px;
+    width: fit-content;
+
+    > * {
+        border-radius: 0;
+    }
+}
+
+.hidden {
+    display: none !important;
+}

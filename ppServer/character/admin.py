@@ -472,6 +472,8 @@ class GfsAbilityAdmin(admin.ModelAdmin):
     list_display = ("name", "beschreibung", "needs_implementation", "has_choice")
     list_editable = ["needs_implementation", "has_choice"]
 
+    search_fields = ("name", "beschreibung")
+
 
 class PersönlichkeitAdmin(admin.ModelAdmin):
     list_display = ('titel', 'positiv', 'negativ')
