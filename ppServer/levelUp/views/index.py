@@ -152,7 +152,7 @@ class IndexView(LevelUpMixin, DetailView):
         notizen = ["Du kannst alle TP sparen"]
         if not char.in_erstellung: notizen.append("Du kannst 1 AP sparen")
 
-        sub_btn_text = "Zur Charakterübersicht"
+        sub_btn_text = "Speichern & zur Charakterübersicht"
         if char.in_erstellung: sub_btn_text = "Charaktererstellung abschließen"
         if len(stufenbelohnung): sub_btn_text = "verteilte Stufen speichern"
 
@@ -160,7 +160,7 @@ class IndexView(LevelUpMixin, DetailView):
             **context,
             "topic": "Hub",
             "rows": self.build_table(char),
-            "is_done": self.request.user.username == char.eigentümer.name and is_done_entirely(char), # is eigentümer & done
+            "is_done": char.eigentümer is not None and self.request.user.username == char.eigentümer.name and is_done_entirely(char), # is eigentümer & done
             "pending_areas": ", ".join(pending_areas(char)),
             "stufenbelohnung": stufenbelohnung,
             "app_index": char.name,
@@ -189,7 +189,7 @@ class IndexView(LevelUpMixin, DetailView):
             return redirect(request.build_absolute_uri())
         
         # not eigentümer
-        if self.request.user.username != char.eigentümer.name:
+        if char.eigentümer and self.request.user.username != char.eigentümer.name:
             messages.error(request, "Du bist nicht Eigentümer des Charakters und kannst deshalb die Verteilung nicht beenden.")
             return redirect(request.build_absolute_uri())
         

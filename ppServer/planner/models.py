@@ -71,10 +71,16 @@ class Day(models.Model):
                 "start": self.appointment.start
             }
 
+        def format_spieler(user: User):
+            name = user.first_name
+            if user.last_name:
+                name += " " + user.last_name
+            return name if name else user.username
+
         return {
             "date": self.date,
             "open_for_participation": self.open_for_participation,
-            "proposals": [p.player.username for p in Proposal.objects.filter(day=self).order_by("order")],
+            "proposals": [format_spieler(p.player) for p in Proposal.objects.filter(day=self).order_by("order")],
             "appointment": appointment,
             "blocked_time":  blocked,
             "status": self.status()
@@ -126,7 +132,7 @@ class Proposal(models.Model):
 
     player = models.ForeignKey(User, on_delete=models.CASCADE)
     order = models.PositiveSmallIntegerField()
-    
+
     start = models.TimeField(default=default_time)
     note = models.TextField(blank=True, null=True)
 

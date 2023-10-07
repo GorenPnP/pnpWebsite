@@ -162,7 +162,6 @@ class GfsAbilityInLine(admin.TabularInline):
 class RelVorteilInLine(admin.TabularInline):
     model = RelVorteil
     fields = ["teil", "attribut", "fertigkeit", "engelsroboter", "notizen", "ip", "is_sellable", "will_create"]
-    readonly_fields = ["is_sellable", "will_create"]
     exclude = ["anzahl"]
     extra = 1
 
@@ -173,7 +172,6 @@ class RelVorteilInLine(admin.TabularInline):
 class RelNachteilInLine(admin.TabularInline):
     model = RelNachteil
     fields = ["teil", "attribut", "fertigkeit", "notizen", "ip", "is_sellable", "will_create"]
-    readonly_fields = ["is_sellable", "will_create"]
     extra = 1
 
     def get_queryset(self, request):

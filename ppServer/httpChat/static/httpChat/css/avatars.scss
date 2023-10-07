@@ -1,6 +1,10 @@
-.avatar-container img:not(:last-of-type) {
-    margin-right: -30px;
-    transition: margin 100ms ease-in-out;
+.avatar-container {
+    margin-right: 30px;
 
-    &:where(:hover) { margin-right: 0; }
+    img:not(:last-of-type) {
+        margin-right: -30px;
+        transition: margin 100ms ease-in-out;
+
+        &:where(:hover) { margin-right: 0; }
+    }
 }

@@ -23,14 +23,17 @@
 			<div class="container-fluid">
 				<a href="{% url 'httpchat:account_chats' account.slug %}" class="btn btn-outline-dark" style="margin-right: 1em;">< Zurück</a>
 
-				<div class="navbar-brand d-flex align-items-center gap-2 avatar-container">
+				<div class="navbar-brand d-flex align-items-center gap-2 chat-navbar-content">
 					{{ chatroom|titel:account }}
-					{% for url in chatroom|get_avatar_urls:account %}
-						<img src="{{ url }}" alt="Logo" class="rounded-circle border border-primary d-inline-block align-text-top" style="height: 47px; aspect-ratio: 1">
-					{% endfor %}
+
+					<div class="avatar-container">
+						{% for url in chatroom|get_avatar_urls:account %}
+							<img src="{{ url }}" alt="Logo" class="rounded-circle border border-primary d-inline-block align-text-top" style="height: 47px; aspect-ratio: 1">
+						{% endfor %}
+					</div>
 				</div>
 			</div>
-		  </nav>
+		</nav>
 
 		<main id="message-container">
 			{% for message in chatroom.message_set.all %}
@@ -58,7 +61,7 @@
 		</main>
 
 		<footer class="sticky-bottom">
-			<form method="post" class="footer" id="prompt-form">
+			<form method="post" class="footer w-100" id="prompt-form">
 				{% csrf_token %}
 				<input type="text" id="prompt" name="message-text" placeholder="Nachricht">
 				<input type="submit" id="submit-prompt-btn" value=">">

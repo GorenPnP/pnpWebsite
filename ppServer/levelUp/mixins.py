@@ -36,7 +36,8 @@ class LevelUpMixin(LoginRequiredMixin, UserPassesTestMixin):
         )
     
     def get(self, request, *args, **kwargs):
-        is_eigentümer = self.request.user.username == self.get_character().eigentümer.name
+        char = self.get_character()
+        is_eigentümer = char.eigentümer is not None and self.request.user.username == char.eigentümer.name
         if not is_eigentümer:
             messages.warning(self.request, "Dir gehört der Charakter nicht, als Spielleiter kannst du ihn aber bearbeiten")
 

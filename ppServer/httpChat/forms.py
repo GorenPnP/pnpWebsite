@@ -1,4 +1,5 @@
 from django import forms
+from django.db.models import Count
 
 from markdownfield.forms import MarkdownFormField
 from markdownfield.widgets import MDEWidget
@@ -36,8 +37,12 @@ class ChatroomForm(forms.ModelForm):
 
         qs = Account.objects.all()
         if exclude_account:
-            # exclude all accounts that share a chatroom with  exclude_account. Including itself. 
-            qs = qs.exclude(chatroom__accounts=exclude_account).exclude(id=exclude_account.id)
+            # exclude all accounts that share a 2-person private_chatroom with exclude_account. Including that account itself. 
+            private_chatrooms = Chatroom.objects\
+                .annotate(num=Count('accounts'))\
+                .filter(accounts=exclude_account, num=2)
+
+            qs = qs.exclude(chatroom__in=private_chatrooms)
 
         self.fields['accounts'].queryset = qs
 

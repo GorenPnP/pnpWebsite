@@ -1,11 +1,15 @@
 body {
 	margin: 0;
+	overflow-y: hidden;
 	--footer-height: 3em;
 	--footer-padding: 10px;
 	--header-height: calc(57px + 2*8px);
 
 	background-color: #dac7c7;
 }
+.chat-navbar-content { max-width: 100%; margin-right: 0px; }
+.avatar-container { overflow-x: auto; margin-right: 0px; }
+
 .shadow { box-shadow: 0 0 10px darken(#dac7c7, 10%); }
 
 #message-container {
@@ -60,9 +64,9 @@ body {
 	content: "Neu!";
 	color: var(--bs-info);
 	position: absolute;
-	left: calc(100% + 5px);
-	bottom: 0;
-	text-shadow:  hsl(190, 90%, 70%) 0 0 2px;
+	top: 100%;
+	left: 0;
+	text-shadow: hsl(190, 90%, 70%) 0 0 2px;
 }
 
 .message__author { font-weight: 700; }
