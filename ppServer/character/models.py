@@ -548,8 +548,8 @@ class Charakter(models.Model):
 
     # Kampagne
     ep = models.PositiveIntegerField(default=0)
-    ep_stufe = models.PositiveIntegerField(default=0)
-    ep_stufe_in_progress = models.PositiveIntegerField(default=0)
+    ep_stufe = models.PositiveIntegerField(default=0, verbose_name="aktuelle Stufe des Charakters")
+    ep_stufe_in_progress = models.PositiveIntegerField(default=0, verbose_name="Stufe des Charakters, die noch verteilt werden muss")
     skilltree_stufe = models.PositiveSmallIntegerField(default=1)
     processing_notes = models.JSONField(default=dict, null=False, blank=True)
 

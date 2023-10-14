@@ -1,3 +1,4 @@
+from typing import Any
 from django.contrib import admin
 from django.http.request import HttpRequest
 from django.utils.html import format_html
@@ -150,7 +151,7 @@ class AffektivitätInLine(admin.TabularInline):
     exclude = ['grad', 'umgang']
 
 
-class GfsAbilityInLine(admin.TabularInline):
+class RelGfsAbilityInLine(admin.TabularInline):
     model = RelGfsAbility
     fields = ["ability", "notizen"]
     extra = 1
@@ -309,7 +310,7 @@ class CharakterAdmin(admin.ModelAdmin):
                RelWissensfertigkeitInLine, RelVorteilInLine,
                RelNachteilInLine, RelTalentInLine,
                AffektivitätInLine,
-               GfsAbilityInLine,
+               RelGfsAbilityInLine,
 
                RelItemlInLine,
                RelWaffen_WerkzeugelInLine,
@@ -338,26 +339,59 @@ class CharakterAdmin(admin.ModelAdmin):
 
     save_on_top = True
 
-    def get_queryset(self, request):
-        return super().get_queryset(request).prefetch_related('eigentümer')
 
     def image_(self, obj):
         return format_html(f"<img src='{obj.image.url}' style='max-width: 32px; max-height:32px;'>") if obj.image else "-"
 
+
+    # utils for groups
+
     def _is_spielleiter(self, request):
         return request.user.groups.filter(name__iexact="spielleiter").exists()
+    def _adds_own_chars(self, request):
+        return request.user.groups.filter(name__iexact="trägt seine chars ein").exists() and not self._is_spielleiter(request)
+
+
+    # permissions
 
     def has_add_permission(self, request: HttpRequest) -> bool:
-        return self._is_spielleiter(request) and super().has_add_permission(request)
+        return (self._is_spielleiter(request) or self._adds_own_chars(request)) and super().has_add_permission(request)
 
     def has_change_permission(self, request: HttpRequest, obj = ...) -> bool:
-        return self._is_spielleiter(request) and super().has_change_permission(request, obj)
+        return (self._is_spielleiter(request) or self._adds_own_chars(request)) and super().has_change_permission(request, obj)
 
     def has_delete_permission(self, request: HttpRequest, obj = ...) -> bool:
-        return self._is_spielleiter(request) and super().has_delete_permission(request, obj)
+        return (self._is_spielleiter(request) or self._adds_own_chars(request)) and super().has_delete_permission(request, obj)
 
     def has_view_permission(self, request: HttpRequest, obj = ...) -> bool:
-        return self._is_spielleiter(request) and super().has_view_permission(request, obj)
+        return (self._is_spielleiter(request) or self._adds_own_chars(request)) and super().has_view_permission(request, obj)
+    
+
+    # specials for "trägt seine chars ein"-group
+
+    # display only own chars if user has "trägt seine chars ein"-group
+    def get_queryset(self, request):
+        qs = super().get_queryset(request).prefetch_related('eigentümer')
+
+        if not self._adds_own_chars(request): return qs
+        return qs.filter(eigentümer__name=request.user.username)
+    
+    # set "eigentümer" to readonly if user has the "trägt seine chars ein"-group
+    def get_readonly_fields(self, request: HttpRequest, obj: Any or None = ...) -> list[str] or tuple[Any, ...]:
+        fields = list(super().get_readonly_fields(request, obj))
+
+        if not self._adds_own_chars(request): return fields
+        return fields + ["eigentümer"]
+    
+    # set "eigentümer" to logged-in-user if user has the "trägt seine chars ein"-group
+    def save_form(self, request: Any, form: Any, change: Any) -> Any:
+        char = super().save_form(request, form, change)
+
+        if self._adds_own_chars(request):
+            spieler = get_object_or_404(Spieler, name=request.user.username)
+            char.eigentümer = spieler
+            char.save()
+        return char
 
 
 class AttributAdmin(admin.ModelAdmin):
