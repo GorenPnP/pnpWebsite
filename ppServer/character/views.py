@@ -182,7 +182,7 @@ class ShowView(LoginRequiredMixin, VerifiedAccountMixin, DetailView):
             def render_attribut__titel(self, value, record):
                 return f"{record.attribut.beschreibung} ({value})"
 
-            def render_attribut__aktuellerWert(self, value, record):
+            def render_aktuellerWert(self, value, record):
                 return str(value) + (f"+{record.aktuellerWert_bonus}" if record.aktuellerWert_bonus else "")
 
         return {

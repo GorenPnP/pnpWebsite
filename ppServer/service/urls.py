@@ -8,11 +8,11 @@ app_name = 'service'
 
 urlpatterns = [
     # quizboard of some person
-    path('quizTimetable/<int:spieler_id>', quiz_v.index, name='quizTimetable'),
+    path('quizTimetable/<int:spieler_id>/', quiz_v.index, name='quizTimetable'),
 
     # quiz BB
-    path('quiz_BB', views.quiz_BB, name='quiz_BB'),
+    path('quiz_BB/', views.quiz_BB, name='quiz_BB'),
 
     # dice
-    path('random', views.random, name='random'),
+    path('random/', views.random, name='random'),
 ]

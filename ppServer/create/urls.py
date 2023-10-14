@@ -6,8 +6,8 @@ from . import views
 app_name = 'create'
 
 urlpatterns = [
-        path('gfs_characterization', views.GfsWahlfilterView.as_view(), name='gfs_characterization'),
+        path('gfs_characterization/', views.GfsWahlfilterView.as_view(), name='gfs_characterization'),
 
         path('', csrf_protect(views.GfsFormView.as_view()), name='gfs'),
-        path('<int:pk>/priotable', csrf_protect(views.PriotableFormView.as_view()), name='prio'),
+        path('<int:pk>/priotable/', csrf_protect(views.PriotableFormView.as_view()), name='prio'),
 ]
