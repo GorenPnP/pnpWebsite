@@ -16,13 +16,13 @@ urlpatterns = [
     # change email with confirmation
     path('change_email/', views.change_email, name='change_email'),
     path('change_email/done/', TemplateView.as_view(template_name="auth/change_email_done.html"), name='change_email_done'),
-    path('activate/<uidb64>/<token>', views.activate, name='activate'),
+    path('activate/<uidb64>/<token>', views.activate, name='activate_'),
     path('activate/<uidb64>/<token>/', views.activate, name='activate'),
 
     # forgot password
     path('password_reset/', PasswordResetView.as_view(template_name='auth/password_reset.html', email_template_name = 'auth/email/password_reset_email.html', success_url='/auth/password_reset/done/'), name="reset_password"),
     path('password_reset/done/', PasswordResetDoneView.as_view(template_name='auth/password_reset_done.html'), name="password_reset_done"),
-    path('password_reset/<uidb64>/<token>', PasswordResetConfirmView.as_view(template_name='auth/password_reset_confirm.html', success_url="/auth/password_reset/complete/"), name="password_reset_confirm"),
+    path('password_reset/<uidb64>/<token>', PasswordResetConfirmView.as_view(template_name='auth/password_reset_confirm.html', success_url="/auth/password_reset/complete/"), name="password_reset_confirm_"),
     path('password_reset/<uidb64>/<token>/', PasswordResetConfirmView.as_view(template_name='auth/password_reset_confirm.html', success_url="/auth/password_reset/complete/"), name="password_reset_confirm"),
     path('password_reset/complete/', PasswordResetCompleteView.as_view(template_name='auth/password_reset_complete.html'), name="password_reset_complete"),
 ]
