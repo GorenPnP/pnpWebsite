@@ -6,7 +6,7 @@ function set_display() {
     const list = document.querySelector("#selected-chars");
 
     if (selected_characters.length) {
-        list.innerHTML = selected_characters.map(char => `<li><a href="${location.href}/${char.id}" class="text-light">${char.label}</a></li>`).join("");
+        list.innerHTML = selected_characters.map(char => `<li><a href="${location.href.replace(/\/+$/, '')}/${char.id}/" class="text-light">${char.label}</a></li>`).join("");
     } else {
         list.innerHTML = "<small>keine Charaktere gewählt</small>";
     }
