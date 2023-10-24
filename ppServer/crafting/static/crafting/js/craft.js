@@ -77,7 +77,7 @@ function constructRecipes(recipes, include_table=false) {
 					<button class="btn btn-primary id-${recipe.id}" onclick="craft(event)" data-locked="${recipe.locked }">Craft</button>
 				</div>
 
-				<a class="info" href="/crafting/details/${recipe.id}">
+				<a class="info" href="/crafting/details/${recipe.id}/">
 					<img src="/static/res/img/info.svg" alt="Info">
 				</a>
 			</div>`;
