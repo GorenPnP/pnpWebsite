@@ -1,4 +1,6 @@
 from typing import Any
+
+from django.db.models import Q
 from django.contrib import admin
 from django.http.request import HttpRequest
 from django.utils.html import format_html
@@ -346,41 +348,41 @@ class CharakterAdmin(admin.ModelAdmin):
 
     # utils for groups
 
-    def _is_spielleiter(self, request):
-        return request.user.groups.filter(name__iexact="spielleiter").exists()
-    def _adds_own_chars(self, request):
-        return request.user.groups.filter(name__iexact="trägt seine chars ein").exists() and not self._is_spielleiter(request)
+    def _is_spielleiter_or_adds_chars(self, request):
+        return request.user.groups.filter(name__in=["spielleiter", "trägt seine chars ein"]).exists()
 
+    def _only_adds_chars(self, request):
+        return request.user.groups.filter(~Q(name="spielleiter") & Q(name="trägt seine chars ein")).exists()
 
     # permissions
 
     def has_add_permission(self, request: HttpRequest) -> bool:
-        return (self._is_spielleiter(request) or self._adds_own_chars(request)) and super().has_add_permission(request)
+        return self._is_spielleiter_or_adds_chars(request) and super().has_add_permission(request)
 
     def has_change_permission(self, request: HttpRequest, obj = ...) -> bool:
-        return (self._is_spielleiter(request) or self._adds_own_chars(request)) and super().has_change_permission(request, obj)
+        return self._is_spielleiter_or_adds_chars(request) and super().has_change_permission(request, obj)
 
     def has_delete_permission(self, request: HttpRequest, obj = ...) -> bool:
-        return (self._is_spielleiter(request) or self._adds_own_chars(request)) and super().has_delete_permission(request, obj)
+        return request.user.groups.filter(name="spielleiter").exists() and super().has_delete_permission(request, obj)
 
     def has_view_permission(self, request: HttpRequest, obj = ...) -> bool:
-        return (self._is_spielleiter(request) or self._adds_own_chars(request)) and super().has_view_permission(request, obj)
+        return self._is_spielleiter_or_adds_chars(request) and super().has_view_permission(request, obj)
     
 
     # specials for "trägt seine chars ein"-group
 
     # display only own chars if user has "trägt seine chars ein"-group
     def get_queryset(self, request):
-        qs = super().get_queryset(request).prefetch_related('eigentümer')
+        qs = super().get_queryset(request).prefetch_related('eigentümer', "gfs__wesen")
 
-        if not self._adds_own_chars(request): return qs
-        return qs.filter(eigentümer__name=request.user.username)
+        if self._only_adds_chars(request): return qs.filter(eigentümer__name=request.user.username)
+        return qs
     
     # set "eigentümer" to readonly if user has the "trägt seine chars ein"-group
     def get_readonly_fields(self, request: HttpRequest, obj: Any or None = ...) -> list[str] or tuple[Any, ...]:
         fields = list(super().get_readonly_fields(request, obj))
 
-        if not self._adds_own_chars(request): return fields
+        if not self._only_adds_chars(request): return fields
         return fields + ["eigentümer"]
     
     # set "eigentümer" to logged-in-user if user has the "trägt seine chars ein"-group

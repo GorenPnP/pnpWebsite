@@ -85,7 +85,7 @@ def index(request, spieler_id=None):
     if request.method == "GET":
 
         timetable = []
-        for sp_m in models.SpielerModule.objects.filter(spieler=spieler):
+        for sp_m in models.SpielerModule.objects.filter(spieler=spieler).prefetch_related("module__questions", "module__icon", "module__prerequisite_modules"):
 
             score, score_class = get_grade_score(sp_m.achieved_points, sp_m.module.max_points) if sp_m.achieved_points is not None else ("", "")
             timetable.append({"titel": sp_m.module.title, "id": sp_m.id, "questions": sp_m.module.questions.count(),

@@ -65,7 +65,7 @@ def inventory(request):
 			"add_form": AddToInventoryForm(),
 			"restricted_profile": rel.profil.restricted,
 			"duration": rel.profil.craftingTime,
-			"items": InventoryItem.objects.filter(char=rel.profil).order_by("item__name"),
+			"items": InventoryItem.objects.filter(char=rel.profil).order_by("item__name").prefetch_related("item"),
 			"app_index": "Crafting",
 			"app_index_url": reverse("crafting:craft")
 		}
