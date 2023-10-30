@@ -39,7 +39,7 @@ class GfsFertigkeitInLine(admin.TabularInline):
 
     def has_add_permission(self, request, obj=None):
         return False
-    
+
     def get_queryset(self, request):
         return super().get_queryset(request).prefetch_related('fertigkeit')
 
@@ -179,7 +179,7 @@ class RelNachteilInLine(admin.TabularInline):
 
     def get_queryset(self, request):
         return super().get_queryset(request).prefetch_related('teil', 'attribut', 'fertigkeit')
-    
+
 
 class RelTalentInLine(admin.TabularInline):
     model = RelTalent
@@ -291,7 +291,7 @@ class CharakterAdmin(admin.ModelAdmin):
         ("Settings (Finger weg)", {'fields': ['eigentümer', "in_erstellung", "larp", "gfs"]}),
         ('Roleplay', {'fields': ['image', 'name', "gewicht", "größe", 'alter', 'geschlecht', 'sexualität', 'beruf', "präf_arm",
                               'religion', "hautfarbe", "haarfarbe", "augenfarbe"]}),
-        
+
         ("Manifest", {"fields": ["manifest", "sonstiger_manifestverlust", "notizen_sonstiger_manifestverlust"]}),
         ('HP', {'fields': ['rang', 'larp_rang', 'HPplus', 'HPplus_fix', 'HPplus_geistig']}),
         ('Kampf', {'fields': ['wesenschaden_waff_kampf', 'wesenschaden_andere_gestalt', 'crit_attack', 'crit_defense',
@@ -352,7 +352,7 @@ class CharakterAdmin(admin.ModelAdmin):
         return request.user.groups.filter(name__in=["spielleiter", "trägt seine chars ein"]).exists()
 
     def _only_adds_chars(self, request):
-        request.user.groups.filter(~Q(name="spielleiter") & Q(name="trägt seine chars ein")).exists()
+        return request.user.groups.filter(~Q(name="spielleiter") & Q(name="trägt seine chars ein")).exists()
 
     # permissions
 
