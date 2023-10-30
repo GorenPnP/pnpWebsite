@@ -99,7 +99,7 @@ class ChatroomView(LoginRequiredMixin, OwnChatMixin, TemplateView):
     def get_objects(self):
         return {
             "account": Account.objects.get(slug=self.kwargs["account_name"]),
-            "chatroom": Chatroom.objects.get(id=self.kwargs["room_id"]),
+            "chatroom": Chatroom.objects.prefetch_related("message_set__author").get(id=self.kwargs["room_id"]),
             "chatroomaccount": ChatroomAccount.objects.get(
                 account__slug=self.kwargs["account_name"],
                 chatroom__id=self.kwargs["room_id"]

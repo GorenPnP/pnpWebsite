@@ -92,10 +92,11 @@ class SpModulesView(LoginRequiredMixin, SpielleiterOnlyMixin, DynamicTableView):
 
 
     model = SpielerModule
-    queryset = SpielerModule.objects.prefetch_related("sessions")\
-    .annotate(
-       timestamp = Subquery(SpielerSession.objects.filter(spielerModule__id=OuterRef("id")).order_by("-started")[:1].values("started"))
-    )
+    queryset = SpielerModule.objects\
+        .prefetch_related("sessions", "module__icon", "spieler")\
+        .annotate(
+            timestamp = Subquery(SpielerSession.objects.filter(spielerModule__id=OuterRef("id")).order_by("-started")[:1].values("started"))
+        )
     filterset_fields = {
         "module": ["exact"],
         "spieler": ["exact"],
