@@ -389,7 +389,7 @@ class CharakterAdmin(admin.ModelAdmin):
     def save_form(self, request: Any, form: Any, change: Any) -> Any:
         char = super().save_form(request, form, change)
 
-        if self._adds_own_chars(request):
+        if self._only_adds_chars(request):
             spieler = get_object_or_404(Spieler, name=request.user.username)
             char.eigentümer = spieler
             char.save()
