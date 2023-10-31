@@ -569,6 +569,7 @@ class Charakter(models.Model):
     reaktion_bonus = models.SmallIntegerField(default=0)
     natürlicher_schadenswiderstand_bonus = models.SmallIntegerField(default=0)
     astralwiderstand_bonus = models.SmallIntegerField(default=0)
+    manaoverflow_bonus = models.SmallIntegerField(default=0)
 
     # Geschreibsel
     notizen = models.TextField(blank=True, null=True)

@@ -464,7 +464,7 @@ class CharakterExporter:
         ROW += 1
         self._POSITION["manaoverflow"] = f"Werte!P{ROW}"
         werte_ws.merge_range(f"M{ROW}:O{ROW}", "Manaoverflow", format_colorful_titel)
-        werte_ws.merge_range(f"P{ROW}:R{ROW}", f"=({self._position('WK')}+{self._position('MA')})*3", format_colorful)
+        werte_ws.merge_range(f"P{ROW}:R{ROW}", f"=({self._position('WK')}+{self._position('MA')})*3 + {self.char.manaoverflow_bonus}", format_colorful)
         werte_ws.write(f"S{ROW}", "(WK+MA)*3")
         
         ROW += 1

@@ -148,7 +148,7 @@ class ShowView(LoginRequiredMixin, VerifiedAccountMixin, DetailView):
             "calculated__fields": [
                 ["Limits (k | g | m)", f'{num((attrs["SCH"] + attrs["ST"] + attrs["VER"] + attrs["GES"]) / 2)} | {num((attrs["IN"] + attrs["WK"] + attrs["UM"]) / 2)} | {num((attrs["MA"] + attrs["WK"]) / 2)}'],
                 ["Initiative", f'{num(attrs["WK"] + attrs["ST"] + char.initiative_bonus)} + {attrs["SCH"]}W4'],
-                ["Manaoverflow", num((attrs["WK"] + MA_raw)*3)],
+                ["Manaoverflow", num((attrs["WK"] + MA_raw)*3 + char.manaoverflow_bonus)],
 
                 ["Astral-Widerstand", num(attrs["MA"] + attrs["WK"] + char.astralwiderstand_bonus)],
                 ["Astrale Schadensverhinderung", f'{1+ num(math.ceil(min(attrs["WK"], MA_raw) / 6))}HP / Erfolg'],
