@@ -104,7 +104,7 @@ def index(request, spieler_id=None):
 
     if request.method == "POST":
         sp_mo_id = int(request.POST.get("id").replace(".", ""))
-        sp_mo = get_object_or_404(models.SpielerModule, id=sp_mo_id)
+        sp_mo = get_object_or_404(models.SpielerModule, id=sp_mo_id, spieler=spieler)
 
         # opened
         if sp_mo.state == 2:
@@ -249,8 +249,8 @@ def score_board(request):
 @login_required
 @verified_account
 def review(request, id):
-
-    sp_mo = get_object_or_404(models.SpielerModule, id=id)
+    spieler = get_object_or_404(Spieler, name=request.user.username)
+    sp_mo = get_object_or_404(models.SpielerModule, id=id, spieler=spieler)
 
     # no module for player selected
     if sp_mo.state != 4:    # if not 'corrected'
@@ -271,7 +271,6 @@ def review(request, id):
             # change state to seen
             current_session.setSeen()
 
-            spieler = sp_mo.spieler
             rel = get_object_or_404(models.RelQuiz, spieler=spieler)
 
             # calc new score
