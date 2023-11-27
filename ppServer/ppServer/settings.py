@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     'chat',
     'crafting',
     'create',
+    'dex',
     'fileserver',
     'httpChat',
     'levelUp',
