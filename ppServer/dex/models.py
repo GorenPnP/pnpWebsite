@@ -95,8 +95,8 @@ class Monster(models.Model):
 
     alternativeForms = models.ManyToManyField("Monster", related_name="forms", related_query_name="forms", blank=True)
     opposites = models.ManyToManyField("Monster", related_name="opposite", related_query_name="opposite", blank=True)
-    evolutionPre = models.ForeignKey("Monster", related_name="evolution_pre", related_query_name="evolution_pre", on_delete=models.SET_NULL, null=True, blank=True)
-    evolutionPost = models.ForeignKey("Monster", related_name="evolution_post", related_query_name="evolution_post", on_delete=models.SET_NULL, null=True, blank=True)
+    evolutionPre = models.ManyToManyField("Monster", related_name="evolution_pre", related_query_name="evolution_pre", blank=True)
+    evolutionPost = models.ManyToManyField("Monster", related_name="evolution_post", related_query_name="evolution_post", blank=True)
 
     types = models.ManyToManyField(Typ, blank=True)
     attacken = models.ManyToManyField(Attacke, blank=True)
