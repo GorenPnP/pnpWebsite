@@ -672,7 +672,7 @@ class Charakter(models.Model):
                 if not hasattr(self.processing_notes, "campaign") or not self.processing_notes["campaign"]:
                     self.processing_notes["campaign"] = []
 
-                self.processing_notes["camapign"].append(f"Du erhälst je {vorteil.ip} IP für {amount_in_overflow}x {vorteil.titel}")
+                self.processing_notes["campaign"].append(f"Du erhälst je {vorteil.ip} IP für {amount_in_overflow}x {vorteil.titel}")
                 self.ip += amount_in_overflow * vorteil.ip
 
             # add new RelVorteil, (also the ones that need more information, see "will_create=True")
