@@ -160,14 +160,75 @@ class ParaPflanze(models.Model):
     def __str__(self):
         return self.name
 
-# class ParaTier(models.Model):
-#     class Meta:
-#         ordering = ["id"]
-#         verbose_name = ""
-#         verbose_name_plural = ""
 
-# class Geschöpf(models.Model):
-#     class Meta:
-#         ordering = ["id"]
-#         verbose_name = ""
-#         verbose_name_plural = ""
+class Fertigkeit(models.Model):
+    class Meta:
+        ordering = ["name"]
+        verbose_name = "Fertigkeit"
+        verbose_name_plural = "Fertigkeiten"
+
+    name = models.CharField(max_length=64, unique=True)
+
+
+class ParaTierFertigkeit(models.Model):
+    class Meta:
+        ordering = ["tier", "fertigkeit"]
+        verbose_name = "Fertigkeit (Para-Tier)"
+        verbose_name_plural = "Fertigkeiten (Para-Tier)"
+
+    tier = models.ForeignKey("ParaTier", on_delete=models.CASCADE)
+    fertigkeit = models.ForeignKey(Fertigkeit, on_delete=models.CASCADE)
+
+    pool = models.PositiveSmallIntegerField(default=5, help_text="W6")
+
+class ParaTier(models.Model):
+    class Meta:
+        ordering = ["name"]
+        verbose_name = "Para-Tier"
+        verbose_name_plural = "Para-Tiere"
+
+    name = models.CharField(max_length=128)
+    image = ResizedImageField(size=[1024, 1024], upload_to=upload_and_rename_to_id, blank=True)
+    description = models.TextField()
+    habitat = models.TextField()
+
+    fertigkeiten = models.ManyToManyField(Fertigkeit, through=ParaTierFertigkeit)
+
+
+class GeschöpfFertigkeit(models.Model):
+    class Meta:
+        ordering = ["geschöpf", "fertigkeit"]
+        verbose_name = "Fertigkeit (Geschöpf)"
+        verbose_name_plural = "Fertigkeiten (Geschöpf)"
+
+    geschöpf = models.ForeignKey("Geschöpf", on_delete=models.CASCADE)
+    fertigkeit = models.ForeignKey(Fertigkeit, on_delete=models.CASCADE)
+
+    pool = models.PositiveSmallIntegerField(default=5, help_text="W6")
+
+class Geschöpf(models.Model):
+    class Meta:
+        ordering = ["name"]
+        verbose_name = "Geschöpf"
+        verbose_name_plural = "Geschöpfe"
+
+    Gefahr = models.IntegerChoices("Gefahr", "sicher bedenklich lethal hortend")
+    Status = models.IntegerChoices("Status", "gefangen ausgebrochen noch_frei tot Existenz_noch_unsicher")
+
+    name = models.CharField(max_length=128)
+    number = models.PositiveSmallIntegerField(unique=True)
+    gefahrenklasse = models.PositiveSmallIntegerField(choices=Gefahr.choices, default=1)
+    verwahrungsklasse = models.PositiveSmallIntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)], default=3)
+    status = models.PositiveSmallIntegerField(choices=Status.choices, default=5)
+    verhalten = models.TextField()
+    gefahren_fähigkeiten = models.TextField()
+    gefahrenprävention = models.TextField()
+    aufenthaltsort = models.TextField()
+    forschungsstand = models.TextField()
+    hp = models.PositiveSmallIntegerField()
+    schaWI = models.ManyToManyField(Dice)
+    reaktion = models.PositiveSmallIntegerField(default=0)
+
+
+    image = ResizedImageField(size=[1024, 1024], upload_to=upload_and_rename_to_id, blank=True)
+    fertigkeiten = models.ManyToManyField(Fertigkeit, through=GeschöpfFertigkeit)
