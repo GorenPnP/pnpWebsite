@@ -1,9 +1,5 @@
-import requests, urllib
-from datetime import datetime, timedelta
-from django.utils.timezone import now
-
-from django.core.management.base import BaseCommand, CommandError
-from django.contrib.auth.models import User
+import requests
+from django.core.management.base import BaseCommand
 
 from dex.models import Typ, Dice, Attacke, Monster
 
@@ -14,9 +10,8 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         self._import_types()
-        # self._import_attacks()
-        # self._import_monsters()
-
+        self._import_attacks()
+        self._import_monsters()
 
 
     def _import_types(self):
@@ -36,7 +31,6 @@ class Command(BaseCommand):
         for eff in requests.get("https://pnp.eu.pythonanywhere.com", params).json()["typeEfficiency"]:
             efficiencies[int(eff["fromType"])][eff["efficiency"]].append(int(eff["toType"]))
 
-        print(efficiencies)
         for type_id, effs in efficiencies.items():
             type_object = Typ.objects.get(id=int(type_id))
 

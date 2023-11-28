@@ -10,7 +10,13 @@ from character.models import Spieler
 
 def upload_and_rename_to_id(instance, filename):
     file_extension = filename.split('.')[::-1][0]
-    filename_name = instance.number if hasattr(instance, "number") else instance.name
+    if hasattr(instance, "number"):
+        filename_name = instance.number
+    elif hasattr(instance, "name"):
+        filename_name =instance.name
+    else:
+        filename_name = f"{instance.plant}-{instance.phase}"
+
 
     return f"dex/{instance._meta.verbose_name}/{filename_name}.{file_extension}"
 
@@ -105,11 +111,54 @@ class Monster(models.Model):
     def __str__(self):
         return f"#{self.number} {self.name}"
 
-# class ParaPflanze(models.Model):
-#     class Meta:
-#         ordering = ["id"]
-#         verbose_name = ""
-#         verbose_name_plural = ""
+
+class ParaPflanzenImage(models.Model):
+    class Meta:
+        ordering = ["plant", "phase"]
+        verbose_name = "Para-Pflanzenbild"
+        verbose_name_plural = "Para-Pflanzenbilder"
+        unique_together = ("plant", "phase")
+
+    plant = models.ForeignKey("ParaPflanze", on_delete=models.CASCADE)
+    image = ResizedImageField(size=[1024, 1024], upload_to=upload_and_rename_to_id)
+    phase = models.PositiveSmallIntegerField(default=1)
+    aussehen = models.TextField()
+
+    is_vorschau = models.BooleanField(default=False)
+
+class ParaPflanze(models.Model):
+    class Meta:
+        ordering = ["id"]
+        verbose_name = "Para-Pflanze"
+        verbose_name_plural = "Para-Pflanzen"
+        unique_together = ("generation", "number")
+
+    Licht = models.IntegerChoices("Licht", "0/4 1/4 2/4 3/4 4/4")
+    Boden = models.IntegerChoices("Boden", "weich mittel hart")
+    Wasser = models.IntegerChoices("Wasser", "wenig mittel viel")
+    Krankheit = models.IntegerChoices("Krankheit", "sehr_gering gering mäßig hoch sehr_hoch extrem_hoch")
+    
+    name = models.CharField(max_length=128)
+    generation = models.PositiveSmallIntegerField(validators=[MinValueValidator(1), MaxValueValidator(4)], default=1)
+    number = models.PositiveSmallIntegerField(validators=[MinValueValidator(1)], default=1)
+    phasen = models.PositiveSmallIntegerField(validators=[MinValueValidator(1)], default=5)
+
+    erholungsphase = models.TextField()
+    vermehrung = models.TextField()
+    nahrung = models.TextField()
+    standort = models.TextField()
+    besonderheiten = models.TextField()
+    pH = models.FloatField(validators=[MinValueValidator(-4), MaxValueValidator(20)], default=7)
+    temperature = models.FloatField(validators=[MinValueValidator(-30), MaxValueValidator(50)], default=10, help_text="in °C")
+    licht = models.PositiveSmallIntegerField(choices=Licht.choices, default=3)
+    boden = models.PositiveSmallIntegerField(choices=Boden.choices, default=2)
+    wasser = models.PositiveSmallIntegerField(choices=Wasser.choices, default=2)
+    soziale_bedürfnisse = models.SmallIntegerField(validators=[MinValueValidator(-3), MaxValueValidator(3)], default=0, help_text="von -3 bis 3")
+    krankheitsanfälligkeit = models.SmallIntegerField(choices=Krankheit.choices, default=3)
+    größe = models.FloatField(validators=[MinValueValidator(0.001)], default=1, help_text="in Metern")
+
+    def __str__(self):
+        return self.name
 
 # class ParaTier(models.Model):
 #     class Meta:

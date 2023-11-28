@@ -96,9 +96,31 @@ class AttackeAdmin(admin.ModelAdmin):
         return ", ".join([t.__str__() for t in obj.types.all()]) or "-"
 
 
+class PflanzenImageInLineAdmin(admin.TabularInline):
+    verbose_name = "Bild"
+    verbose_name_plural = "Bilder"
+
+    model = ParaPflanzenImage
+    extra = 1
+
+class PflanzenAdmin(admin.ModelAdmin):
+
+    list_display = ["images_", 'name', 'generation', 'number', 'besonderheiten']
+    list_filter = ["generation"]
+    search_fields = ["name", "besonderheiten"]
+    list_display_links = ["name"]
+    
+    exclude = ["images"]
+    inlines = [PflanzenImageInLineAdmin]
+
+    def images_(self, obj):
+        pf_imgs = ParaPflanzenImage.objects.filter(plant=obj, is_vorschau=True)
+        return format_html("".join([format_html(f"<img src='{pf_img.image.url}' style='max-width: 32px; max-height:32px;'>") for pf_img in pf_imgs]) or "-")
+
 
 
 admin.site.register(Typ, TypAdmin)
 admin.site.register(Monster, MonsterAdmin)
 admin.site.register(Attacke, AttackeAdmin)
 admin.site.register(Dice)
+admin.site.register(ParaPflanze, PflanzenAdmin)
