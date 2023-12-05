@@ -88,7 +88,7 @@
                     <img src="{% static 'res/img/hero-monsterdex.jpg' %}">
                     <div class="carousel-caption h-100 d-flex flex-column justify-content-center align-items-center">
                         <h2 style="margin-block: 100px 30px">Der Monsterdex ist Online!</h2>
-                        <a href="https://monsterdex.info" target="_blank" class="btn btn-dark">Monster angucken</a>
+                        <a href="{% url 'dex:monster_index' %}" target="_blank" class="btn btn-dark">Monster angucken</a>
                     </div>
                 </div>
                 {% endif %}
@@ -304,7 +304,7 @@
 
     <!-- monsterdex -->
     <div class="card" id="monsterdex">
-        <a href="https://monsterdex.info" target="_blank">
+        <a href="{% url 'dex:monster_index' %}" target="_blank">
             <div class="card__icon bg-primary">
                 <img class="card__icon__img" src="{% static 'res/img/icon-animal.png' %}">
             </div>
@@ -315,7 +315,7 @@
                 Die überarbeitete Monsterdex-App & Website!
             </p>
             <div class="btns">
-                <a href="https://monsterdex.info"  target="_blank" class="btn btn-primary">Öffnen</a>
+                <a href="{% url 'dex:monster_index' %}"  target="_blank" class="btn btn-primary">Öffnen</a>
             </div>
         </div>
     </div>

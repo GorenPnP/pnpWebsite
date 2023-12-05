@@ -43,10 +43,10 @@ class AttackeInLineAdmin(admin.TabularInline):
 class MonsterAdmin(admin.ModelAdmin):
 
     fieldsets = [
-        ("Basics", {'fields': ['number', "name", "types"]}),
+        ("Basics", {'fields': ['number', "name", "types", "visible"]}),
         ("Aussehen", {'fields': ['image', 'height', "weight", "description", "habitat"]}),
         ('Start-Werte', {'fields': ['wildrang', 'base_hp', "base_schadensWI"]}),
-]
+    ]
 
     inlines = [MonsterFormsInLineAdmin, GegenmonsterInLineAdmin, EvoliutionPreInLineAdmin, EvolutionPostInLineAdmin,AttackeInLineAdmin]
 

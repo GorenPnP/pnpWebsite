@@ -86,7 +86,7 @@ class Monster(models.Model):
         verbose_name = "Monster"
         verbose_name_plural = "Monster"
 
-    image = ResizedImageField(size=[1024, 1024], upload_to=upload_and_rename_to_id)
+    image = ResizedImageField(size=[1024, 1024], upload_to=upload_and_rename_to_id, blank=True)
     number = models.PositiveSmallIntegerField(unique=True)
     name = models.CharField(max_length=128)
     description = models.TextField()

@@ -1,0 +1,101 @@
+{% extends 'base/headed_main.html' %}
+{% load static %}
+
+{% block extra-head %}
+<style>
+    .filter-container {
+        position: sticky;
+        top: 0;
+        margin: auto;
+        border-radius: 0 0 10px 10px;
+        
+        width: fit-content;
+        max-width: 100dvw;
+        gap: min(1em, 3%);
+
+        z-index: 100;
+    }
+
+    .dropdown-menu.dropdown-menu--grid.show { display: grid; }
+    .grid-col-2 { grid-template-columns: 1fr 1fr; }
+
+    main {
+      max-width: 400px;
+      margin: auto;
+    }
+    .hidden {
+      clip: rect(0 0 0 0);
+      clip-path: inset(50%);
+      overflow: hidden;
+      position: absolute;
+      white-space: nowrap;
+      height: 0px;
+      width: 0px;
+    }
+</style>
+
+<script src="{% static 'dex/js/monster_index.js' %}" defer></script>
+{% endblock %}
+
+{% block asides %}
+<div class="filter-container bg-dark d-flex justify-content-center pt-1 pb-2 px-3">
+    <div class="dropdown">
+        <button class="btn btn-sm rounded-pill btn-outline-light dropdown-toggle py-1" type="button" id="filter-name" data-bs-toggle="dropdown" aria-expanded="false">
+          Name
+        </button>
+        <div class="dropdown-menu">
+            <div class="mb-3 px-3">
+                <label for="name" class="form-label">Name</label>
+                <input class="form-control" id="name" placeholder="Amperon">
+                <div class="d-grid grid-col-2 mt-4" id="name-btn-container" style="gap: 1em;">
+                    <button type="button" id="clear-name" class="btn btn-outline-danger" disabled>Abbrechen</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="dropdown" id="filter-typ">
+        <button class="btn btn-sm rounded-pill btn-outline-light dropdown-toggle py-1" type="button" id="filter-typ" data-bs-toggle="dropdown" aria-expanded="false">
+          Typ
+        </button>
+        <ul class="dropdown-menu dropdown-menu--grid grid-col-2" aria-labelledby="filter-typ">
+            <li><a class="dropdown-item text-danger active" aria-active="true" href="#">X</a></li>
+            {% for typ in types %}
+            <li><a class="dropdown-item" data-value="{{ typ.name }}" href="#">{{ typ.name }}</a></li>
+            {% endfor %}
+          
+        </ul>
+      </div>
+    <div class="dropdown"  id="filter-known">
+        <button class="btn btn-sm rounded-pill btn-outline-light dropdown-toggle py-1" type="button" id="filter-known" data-bs-toggle="dropdown" aria-expanded="false">
+          bekannt
+        </button>
+        <ul class="dropdown-menu" aria-labelledby="filter-known">
+          <li><a class="dropdown-item text-danger active" aria-active="true" data-value="null" href="#">X</a></li>
+          <li><a class="dropdown-item" data-value="true" href="#">kenne ich</a></li>
+          <li><a class="dropdown-item" data-value="false" href="#">kenne ich nicht</a></li>
+        </ul>
+      </div>
+    <div class="dropdown"  id="sort">
+        <button class="btn btn-sm rounded-pill btn-outline-light dropdown-toggle py-1" type="button" id="filter-sort" data-bs-toggle="dropdown" aria-expanded="false">
+          Sort
+        </button>
+        <ul class="dropdown-menu" aria-labelledby="filter-sort">
+          <li><a class="dropdown-item text-danger active" aria-active="true" href="#">X</a></li>
+          <li><a class="dropdown-item" data-value="name asc" href="#">Name A-Z</a></li>
+          <li><a class="dropdown-item" data-value="name desc" href="#">Name Z-A</a></li>
+          <li><a class="dropdown-item" data-value="rang asc" href="#">kleiner Rang zuerst</a></li>
+          <li><a class="dropdown-item" data-value="rang desc" href="#">großer Rang zuerst</a></li>
+        </ul>
+    </div>
+</div>
+{% endblock %}
+
+{% block main %}
+<ul class="list-unstyled" id="monster-list">
+    {% for obj in object_list %}
+    <li>
+        {% include 'dex/monster-listentry.html' with monster=obj include_styles=forloop.first %}
+    </li>
+    {% endfor %}
+</ul>
+{% endblock %}

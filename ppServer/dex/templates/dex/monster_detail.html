@@ -1,0 +1,10 @@
+{% extends 'base/headed_main.html' %}
+{% load static %}
+
+{% block extra-head %}
+{% endblock %}
+
+{% block main %}
+  {% include 'dex/monster-listentry.html' with monster=object include_styles=True %}
+</ul>
+{% endblock %}
