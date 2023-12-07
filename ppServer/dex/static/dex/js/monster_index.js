@@ -53,13 +53,13 @@ function filter_and_sort() {
 
     // apply filter for visibility of monsters
     Array.from(document.querySelectorAll(".monster.card"))
-        .map(monster => { monster.classList.remove("hidden"); return monster; })
+        .map(monster => { monster.parentNode.classList.remove("hidden"); return monster; })
         .filter(monster =>
             (filter.name && !monster.querySelector(".monster__name").innerHTML.toLowerCase().includes(filter.name)) ||
             (filter.typ && !monster.querySelector(".monster__types").innerHTML.toLowerCase().includes(filter.typ)) ||
             (filter.known !== null && monster.classList.contains("monster--dummy") == filter.known)
         )
-        .forEach(monster => monster.classList.add("hidden"));
+        .forEach(monster => monster.parentNode.classList.add("hidden"));
 
     // apply sort for sorting of monsters
     const list = document.querySelector("#monster-list");
@@ -71,8 +71,8 @@ function filter_and_sort() {
                 const a_name = a.querySelector(".monster__name").innerHTML.toLowerCase();
                 const b_name = b.querySelector(".monster__name").innerHTML.toLowerCase();
                 
-                if (sort == "name asc") { return a_name > b_name ? -1 : (a_name === b_name ? 0 : 1); }
-                if (sort == "name desc") { return a_name < b_name ? -1 : (a_name === b_name ? 0 : 1); }
+                if (sort == "name asc") { return a_name < b_name ? -1 : (a_name === b_name ? 0 : 1); }
+                if (sort == "name desc") { return a_name > b_name ? -1 : (a_name === b_name ? 0 : 1); }
             }
             
             if (sort.startsWith("rang")) {

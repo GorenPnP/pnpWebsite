@@ -40,16 +40,26 @@ class MonsterDetailView(LoginRequiredMixin, DetailView):
             types = Typ.objects.all(),
             spieler = get_object_or_404(Spieler, name=self.request.user.username)
         )
-        context["topic"] = context["object"].name
-        
+        self.object = context["object"]
+        context["topic"] = self.object.name
+
         return context
 
     def get_queryset(self) -> QuerySet[Any]:
-        return super().get_queryset().prefetch_related("types", "visible")
+        return super().get_queryset().prefetch_related(
+            "types", "visible", "base_schadensWI",
+            "evolutionPre__types", "evolutionPre__visible",
+            "evolutionPost__types", "evolutionPost__visible",
+            "alternativeForms__types", "alternativeForms__visible",
+            "opposites__types", "opposites__visible",
+            "attacken__types", "attacken__damage"
+        )
         
     def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
+        response = super().get(request, *args, **kwargs)    # let self.get_context_data() set self.object to perform the query only once
+        
         spieler = get_object_or_404(Spieler, name=self.request.user.username)
-        if spieler not in self.get_object().visible.all():
+        if  not self.object.visible.filter(name=spieler.name).exists():
             return redirect("dex:monster_index")
 
-        return super().get(request, *args, **kwargs)
+        return response

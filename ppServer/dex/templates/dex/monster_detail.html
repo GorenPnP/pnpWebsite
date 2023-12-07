@@ -1,10 +1,80 @@
 {% extends 'base/headed_main.html' %}
-{% load static %}
+{% load static dice %}
 
 {% block extra-head %}
+<style>
+  main.main-container {
+    max-width: 400px;
+    margin: auto;
+    }
+</style>
 {% endblock %}
 
 {% block main %}
   {% include 'dex/monster-listentry.html' with monster=object include_styles=True %}
-</ul>
+
+  <!-- Allgemeines -->
+  <h2 class="mt-5">Allgemeines</h2>
+  <div class="card bg-dark">
+    <div class="card-body">
+      <div class="card-text">
+        <p>{{ monster.description }}</p>
+        <ul>
+          <li><b>Rang: </b><span>{{ monster.wildrang }}</span></li>
+          <li><b>Größe: </b><span>{{ monster.height }} m</span></li>
+          <li><b>Gewicht: </b><span>{{ monster.weight }} kg</span></li>
+          <li><b>HP: </b><span>{{ monster.base_hp }} HP</span></li>
+          <li><b>Schadenswiderstand: </b><span>{{ monster.base_schadensWI|dice }}</span></li>
+          <li><b>Habitat: </b><span>{{ monster.habitat }}</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  
+  {% if monster.evolutionPre.exists %}
+  <h2 class="mt-5">Vorentwicklung</h2>
+  <ul class="list-unstyled">
+    {% for m in monster.evolutionPre.all %}
+      <li>{% include 'dex/monster-listentry.html' with monster=m include_styles=False %}</li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+
+  {% if monster.evolutionPost.exists %}
+  <h2 class="mt-5">Weiterentwicklung</h2>
+  <ul class="list-unstyled">
+    {% for m in monster.evolutionPost.all %}
+      <li>{% include 'dex/monster-listentry.html' with monster=m include_styles=False %}</li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+
+  {% if monster.alternativeForms.exists %}
+  <h2 class="mt-5">Andere Formen</h2>
+  <ul class="list-unstyled">
+    {% for m in monster.alternativeForms.all %}
+      <li>{% include 'dex/monster-listentry.html' with monster=m include_styles=False %}</li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+
+  {% if monster.opposites.exists %}
+  <h2 class="mt-5">Gegenmonster</h2>
+  <ul class="list-unstyled">
+    {% for m in monster.opposites.all %}
+      <li>{% include 'dex/monster-listentry.html' with monster=m include_styles=False %}</li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+
+  <!-- Attacken -->
+  {% if monster.attacken.exists %}
+  <h2 class="mt-5">Attacken</h2>
+  <ul class="list-unstyled">
+    {% for a in monster.attacken.all %}
+      <li>{% include 'dex/attack-listentry.html' with attack=a include_styles=forloop.first %}</li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+
 {% endblock %}

@@ -3,35 +3,40 @@
 
 {% block extra-head %}
 <style>
-    .filter-container {
-        position: sticky;
-        top: 0;
-        margin: auto;
-        border-radius: 0 0 10px 10px;
-        
-        width: fit-content;
-        max-width: 100dvw;
-        gap: min(1em, 3%);
+  main {
+    max-width: 400px;
+    margin: auto;
+  }
 
-        z-index: 100;
-    }
+  .filter-container {
+    position: sticky;
+    top: 0;
+    margin: auto;
+    border-radius: 0 0 10px 10px;
+    
+    width: fit-content;
+    max-width: 100dvw;
+    gap: min(1em, 3%);
 
-    .dropdown-menu.dropdown-menu--grid.show { display: grid; }
-    .grid-col-2 { grid-template-columns: 1fr 1fr; }
+    z-index: 100;
+  }
 
-    main {
-      max-width: 400px;
-      margin: auto;
-    }
-    .hidden {
-      clip: rect(0 0 0 0);
-      clip-path: inset(50%);
-      overflow: hidden;
-      position: absolute;
-      white-space: nowrap;
-      height: 0px;
-      width: 0px;
-    }
+  .dropdown-menu.dropdown-menu--grid.show { display: grid; }
+  .grid-col-2 { grid-template-columns: 1fr 1fr; }
+
+  main {
+    max-width: 400px;
+    margin: auto;
+  }
+  .hidden {
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    overflow: hidden;
+    position: absolute;
+    white-space: nowrap;
+    height: 0px;
+    width: 0px;
+  }
 </style>
 
 <script src="{% static 'dex/js/monster_index.js' %}" defer></script>
@@ -46,7 +51,7 @@
         <div class="dropdown-menu">
             <div class="mb-3 px-3">
                 <label for="name" class="form-label">Name</label>
-                <input class="form-control" id="name" placeholder="Amperon">
+                <input class="form-control" id="name" placeholder="A...">
                 <div class="d-grid grid-col-2 mt-4" id="name-btn-container" style="gap: 1em;">
                     <button type="button" id="clear-name" class="btn btn-outline-danger" disabled>Abbrechen</button>
                 </div>
@@ -67,7 +72,7 @@
       </div>
     <div class="dropdown"  id="filter-known">
         <button class="btn btn-sm rounded-pill btn-outline-light dropdown-toggle py-1" type="button" id="filter-known" data-bs-toggle="dropdown" aria-expanded="false">
-          bekannt
+          Bekannt
         </button>
         <ul class="dropdown-menu" aria-labelledby="filter-known">
           <li><a class="dropdown-item text-danger active" aria-active="true" data-value="null" href="#">X</a></li>

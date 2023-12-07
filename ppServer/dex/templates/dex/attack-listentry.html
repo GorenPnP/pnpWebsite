@@ -1,0 +1,88 @@
+{% load static dice %}
+{% if include_styles %}
+<style>
+    .shadow {
+        box-shadow: var(--shadow-pos, .1em) var(--shadow-pos, .1em) 1em .1em rgba(var(--bs-dark-rgb), .4);
+    }
+
+    .attack.card {
+        --damage-size: 90px;
+
+        text-decoration: none;
+        margin-block: 1px;
+
+        display: grid;
+        grid-template-columns: auto var(--damage-size);
+        grid-template-rows: auto auto;
+        grid-template-areas: 'name damage'
+                             'type damage';
+        justify-content: space-between;
+        align-items: flex-start;
+
+        overflow: hidden;
+
+        background-color: rgba(104, 18, 243, .5);
+    }
+    .attack__name {
+        grid-area: name;
+
+        padding: 5px 10px 2px;
+        border-bottom-right-radius: 5px;
+        width: fit-content;
+
+        font-size: 1.1rem;
+        background-color: var(--bs-teal);
+        
+        --shadow-pos: .1em;
+    }
+    .attack__types {
+        grid-area: type;
+        
+        padding: .5em 0 0 .5em;
+        color: rgba(255, 255, 255, .8);
+    }
+    .attack__damage {
+        grid-area: damage;
+        
+        height: 100%;
+        aspect-ratio: 1.1;
+
+        color: var(--bs-light);
+        background-color: var(--bs-indigo);
+
+        border-bottom-left-radius: 50%;
+        border-top-left-radius: 50%;
+        overflow: hidden;
+
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        padding: .5em;
+        font-size: 1.2rem;
+        text-align: right;
+        
+        --shadow-pos: -.1em;
+    }
+
+    .attack-description .card {
+        /* background-color: var(--bs-indigo); */
+        background-color: transparent;
+        background-image: linear-gradient(rgba(104, 18, 243, .5) 50%, rgba(104, 18, 243, .6));
+        margin-block: -1px 1em;
+    }
+</style>
+{% endif %}
+
+
+<div class="attack card" type="button" data-bs-toggle="collapse" data-bs-target="#attack-description-{{ attack.id }}" aria-expanded="false" aria-controls="attack-description-{{ attack.id }}">
+    <b class="attack__name text-dark shadow">{{ attack.name }}</b>
+    <b class="attack__damage shadow">{{ attack.damage|dice }} </b>
+    <small class="attack__types">
+        {% for type in attack.types.all %}
+            {{ type.name }}{% if not forloop.last %}, {% endif %}
+        {% endfor %}
+    </small>
+</div>
+<div class="attack-description collapse" id="attack-description-{{ attack.id }}">
+    <i class="card card-body shadow"> {{ attack.description }}</i>
+</div>
