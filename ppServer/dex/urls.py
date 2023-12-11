@@ -10,4 +10,6 @@ urlpatterns = [
 
     path('monster', views.MonsterIndexView.as_view(), name='monster_index'),
     path('monster/<int:pk>', views.MonsterDetailView.as_view(), name='monster_detail'),
+
+    path('attack', views.AttackIndexView.as_view(), name='attack_index'),
 ]

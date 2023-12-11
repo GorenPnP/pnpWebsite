@@ -76,7 +76,7 @@
 
 <div class="attack card" type="button" data-bs-toggle="collapse" data-bs-target="#attack-description-{{ attack.id }}" aria-expanded="false" aria-controls="attack-description-{{ attack.id }}">
     <b class="attack__name text-dark shadow">{{ attack.name }}</b>
-    <b class="attack__damage shadow">{{ attack.damage|dice }} </b>
+    <b class="attack__damage shadow">{{ attack.damage|dice|default:"-" }} </b>
     <small class="attack__types">
         {% for type in attack.types.all %}
             {{ type.name }}{% if not forloop.last %}, {% endif %}

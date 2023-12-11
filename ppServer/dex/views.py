@@ -63,3 +63,19 @@ class MonsterDetailView(LoginRequiredMixin, DetailView):
             return redirect("dex:monster_index")
 
         return response
+    
+class AttackIndexView(LoginRequiredMixin, ListView):
+    model = Attacke
+    template_name = "dex/attack_index.html"
+
+    def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
+        return super().get_context_data(
+            **kwargs,
+            app_index = "Allesdex",
+            app_index_url = reverse("dex:index"),
+            topic = "Attacken",
+            types = Typ.objects.all()
+        )
+    
+    def get_queryset(self) -> QuerySet[Any]:
+        return super().get_queryset().prefetch_related("types")
