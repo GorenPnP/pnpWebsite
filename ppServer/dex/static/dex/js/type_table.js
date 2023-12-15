@@ -26,7 +26,7 @@ function draw_show() {
     let score = score_prep["x"] ? 0 : 1;
     if (score_prep["+"]) { score *= 2* score_prep["+"]; }
     if (score_prep["-"]) { score /= 2* score_prep["-"]; }
-    document.querySelector("#efficiency").innerHTML = ""+score;
+    document.querySelector("#efficiency").innerHTML = score.toFixed(2);
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -34,7 +34,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // select 1 type
     table.querySelectorAll(".tag").forEach(type => type.addEventListener("click", function(e) {
-        const type = e.target.closest("td, th").dataset.typeAttack || e.target.closest("td, th").dataset.typeVictim;
+        const type = parseInt(e.target.closest("td, th").dataset.typeAttack || e.target.closest("td, th").dataset.typeVictim);
 
         if (attacks.includes(type) && victims.includes(type)) {
             attacks.splice(attacks.indexOf(type), 1);

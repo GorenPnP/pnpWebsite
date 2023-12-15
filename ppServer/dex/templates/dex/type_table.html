@@ -9,33 +9,32 @@
 
 <label for="efficiency"><b>Effektivität</b> einer Attacke mit Typen links auf ein Monster mit Typen oben der Tabelle:</label>
 <result id="efficiency">1</result>
-<div class="table-container">
-    <table>
-        <thead>
-            <tr>
-                <th class="fw-light"></th>
-                {% for t in object_list %}<th class="tag" data-type-victim="{{ t.id }}">{{ t.tag }}</th>{% endfor %}
-            </tr>
-        </thead>
-    
-        <tbody>
-            {% for t in object_list %}
-            <tr>
-                <td class="tag" data-type-attack="{{ t.id }}">{{ t.tag }}</td>
-                {% for victim in object_list %}<td
-                    data-type-attack="{{ t.id }}"
-                    data-type-victim="{{ victim.id }}"
-                    class="
-                        {% if victim in t.stark_gegen.all %}cell-effective{% endif %}
-                        {% if victim in t.schwach_gegen.all %}cell-noneffective{% endif %}
-                        {% if victim in t.trifft_nicht.all %}cell-nohit{% endif %}">
-                        {% if victim in t.stark_gegen.all %}+{% endif %}
-                        {% if victim in t.schwach_gegen.all %}-{% endif %}
-                        {% if victim in t.trifft_nicht.all %}x{% endif %}
-                </td>{% endfor %}
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
+
+<table>
+    <thead>
+        <tr>
+            <th class="tag tag--placeholder"></th>
+            {% for t in object_list %}<th class="tag" data-type-victim="{{ t.id }}">{{ t.tag }}</th>{% endfor %}
+        </tr>
+    </thead>
+
+    <tbody>
+        {% for t in object_list %}
+        <tr>
+            <td class="tag" data-type-attack="{{ t.id }}">{{ t.tag }}</td>
+            {% for victim in object_list %}<td
+                data-type-attack="{{ t.id }}"
+                data-type-victim="{{ victim.id }}"
+                class="
+                    {% if victim in t.stark_gegen.all %}cell-effective{% endif %}
+                    {% if victim in t.schwach_gegen.all %}cell-noneffective{% endif %}
+                    {% if victim in t.trifft_nicht.all %}cell-nohit{% endif %}">
+                    {% if victim in t.stark_gegen.all %}+{% endif %}
+                    {% if victim in t.schwach_gegen.all %}-{% endif %}
+                    {% if victim in t.trifft_nicht.all %}x{% endif %}
+            </td>{% endfor %}
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
 {% endblock %}

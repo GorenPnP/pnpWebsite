@@ -70,7 +70,7 @@ class Typ(models.Model):
         return self.name
     
     def tag(self):
-        styles = f"max-width: 80px; color: {self.text_color}; background: {self.color}; font-weight: 500 !important; padding: .3em .5em; display: flex; justify-content: center; align-items: center; gap: .3em; border-radius: 300px; overflow: hidden;"
+        styles = f"color: {self.text_color}; background: {self.color}; font-weight: 500 !important; padding: .3em .5em; display: flex; justify-content: center; align-items: center; gap: .3em; border-radius: 300px; overflow: hidden;"
 
         if self.icon:
             return format_html(f"<div style='{styles}'><img src='{self.icon.url}' style='height: 1.2em; aspect-ratio: 1'>{self.name}</div>")
