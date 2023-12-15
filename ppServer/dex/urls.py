@@ -1,7 +1,7 @@
 from django.urls import path
 from django.views.generic.base import TemplateView
 
-from . import views
+from . import views, views_sp
 
 app_name = 'dex'
 
@@ -12,4 +12,7 @@ urlpatterns = [
     path('monster/<int:pk>', views.MonsterDetailView.as_view(), name='monster_detail'),
 
     path('attack', views.AttackIndexView.as_view(), name='attack_index'),
+
+    path('sp/visibility', views_sp.MonsterVisibilityView.as_view(), name='sp_monster_visibility'),
+    
 ]

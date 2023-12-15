@@ -1,0 +1,78 @@
+{% extends 'base/main.html' %}
+{% load static %}
+{% block title %}Monster Visibility{% endblock %}
+{% block extra-head %}
+<style>
+    .main-container { max-width: 500px; margin: auto; }
+    .fieldWrapper > label:first-of-type { font-size: 1.6rem; font-weight: 600; }
+    .select_all { margin-bottom: 1em; }
+</style>
+<script defer>
+
+    document.addEventListener("DOMContentLoaded", () => {
+        document.querySelectorAll(".select_all").forEach(function(check) {
+            check.addEventListener("input", function() {
+                this.parentNode.parentNode.parentNode.querySelectorAll("input").forEach(checkbox => checkbox.checked = this.checked);
+            })
+        });
+    })
+</script>
+{% endblock %}
+{% block main %}
+<h1 class="mb-4">Monster Visibility</h1>
+
+<form class='form container' id="form" method="POST">
+    {% csrf_token %}
+    <div class="row">
+
+        {% with field=form.monster %}
+        <div class="fieldWrapper col-sm">
+            {{ field.errors }}
+            {{ field.label_tag }}
+
+            <div><label for="monster_all"><input id="monster_all" class="select_all" type="checkbox"><i> Alle</i></label></div>
+            {{ field }}
+            {% if field.help_text %}
+            <p class="help">{{ field.help_text|safe }}</p>
+            {% endif %}
+        </div>
+        {% endwith %}
+
+        <div class="col-sm">
+
+            {% with field=form.spieler %}
+            <div class="fieldWrapper">
+                {{ field.errors }}
+                {{ field.label_tag }}
+                
+                <div><label for="monster_all"><input id="monster_all" class="select_all" type="checkbox"><i> Alle</i></label></div>
+                {{ field }}
+                {% if field.help_text %}
+                <p class="help">{{ field.help_text|safe }}</p>
+                {% endif %}
+            </div>
+            {% endwith %}
+            
+            {% with field=form.visible %}
+            <div class="fieldWrapper mt-5">
+                {{ field.errors }}
+                {{ field.label_tag }}
+                {{ field }}
+                {% if field.help_text %}
+                <p class="help">{{ field.help_text|safe }}</p>
+                {% endif %}
+            </div>
+            {% endwith %}
+        </div>
+    </div>
+    
+</form>
+{% endblock %}
+
+{% block footer %}
+{{ block.super }}
+
+<footer class="sticky-bottom d-block bg-dark py-2">
+    <button type="submit" class="btn btn-lg btn-primary d-block mx-auto px-4" form="form">OK</button>
+</footer>
+{% endblock %}

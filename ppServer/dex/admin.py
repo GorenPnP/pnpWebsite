@@ -41,6 +41,7 @@ class AttackeInLineAdmin(admin.TabularInline):
     extra = 1
 
 class MonsterAdmin(admin.ModelAdmin):
+    change_list_template = "dex/admin/change_list_monster.html"
 
     fieldsets = [
         ("Basics", {'fields': ['number', "name", "types", "fähigkeiten", "visible"]}),
@@ -48,7 +49,7 @@ class MonsterAdmin(admin.ModelAdmin):
         ('Start-Werte', {'fields': ['wildrang', 'base_hp', "base_schadensWI"]}),
     ]
 
-    inlines = [MonsterFormsInLineAdmin, GegenmonsterInLineAdmin, EvoliutionPreInLineAdmin, EvolutionPostInLineAdmin,AttackeInLineAdmin]
+    inlines = [MonsterFormsInLineAdmin, GegenmonsterInLineAdmin, EvoliutionPreInLineAdmin, EvolutionPostInLineAdmin, AttackeInLineAdmin]
 
     list_display = ['image_', 'number', 'name', 'types_', 'description']
 

@@ -94,7 +94,7 @@ class Monster(models.Model):
     name = models.CharField(max_length=128)
     description = models.TextField(verbose_name="Beschreibung")
     habitat = models.TextField()
-    fähigkeiten = models.ManyToManyField(MonsterFähigkeit)
+    fähigkeiten = models.ManyToManyField(MonsterFähigkeit, blank=True)
     
     wildrang = models.PositiveIntegerField(validators=[MinValueValidator(1)], default=1)
     weight = models.FloatField(validators=[MinValueValidator(0.001)], help_text="in kg", default=1)
