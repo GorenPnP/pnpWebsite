@@ -43,7 +43,7 @@ class AttackeInLineAdmin(admin.TabularInline):
 class MonsterAdmin(admin.ModelAdmin):
 
     fieldsets = [
-        ("Basics", {'fields': ['number', "name", "types", "visible"]}),
+        ("Basics", {'fields': ['number', "name", "types", "fähigkeiten", "visible"]}),
         ("Aussehen", {'fields': ['image', 'height', "weight", "description", "habitat"]}),
         ('Start-Werte', {'fields': ['wildrang', 'base_hp', "base_schadensWI"]}),
     ]
@@ -164,6 +164,7 @@ admin.site.register(Monster, MonsterAdmin)
 admin.site.register(Attacke, AttackeAdmin)
 admin.site.register(Dice)
 admin.site.register(Fertigkeit)
+admin.site.register(MonsterFähigkeit)
 admin.site.register(ParaPflanze, PflanzenAdmin)
 admin.site.register(ParaTier, TierAdmin)
 admin.site.register(Geschöpf, GeschöpfAdmin)

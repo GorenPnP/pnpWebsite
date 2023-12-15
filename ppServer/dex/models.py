@@ -39,11 +39,14 @@ class Dice(models.Model):
 
 ###### sub-models #########
 
-# class Fertigkeit(models.Model):
-#     class Meta:
-#         ordering = ["id"]
-#         verbose_name = ""
-#         verbose_name_plural = ""
+class MonsterFähigkeit(models.Model):
+    class Meta:
+        ordering = ["name"]
+        verbose_name = "Fähigkeit"
+        verbose_name_plural = "Fähigkeiten"
+
+    name = models.CharField(max_length=256, unique=True)
+    description = models.TextField(verbose_name="Beschreibung")
 
 class Typ(models.Model):
     class Meta:
@@ -68,7 +71,7 @@ class Attacke(models.Model):
 
     name = models.CharField(max_length=128, unique=True)
     damage = models.ManyToManyField(Dice, blank=True)
-    description = models.TextField()
+    description = models.TextField(verbose_name="Beschreibung")
     types = models.ManyToManyField(Typ)
 
     macht_schaden = models.BooleanField(default=False)
@@ -89,15 +92,16 @@ class Monster(models.Model):
     image = ResizedImageField(size=[1024, 1024], upload_to=upload_and_rename_to_id, blank=True)
     number = models.PositiveSmallIntegerField(unique=True)
     name = models.CharField(max_length=128)
-    description = models.TextField()
+    description = models.TextField(verbose_name="Beschreibung")
     habitat = models.TextField()
+    fähigkeiten = models.ManyToManyField(MonsterFähigkeit)
     
     wildrang = models.PositiveIntegerField(validators=[MinValueValidator(1)], default=1)
     weight = models.FloatField(validators=[MinValueValidator(0.001)], help_text="in kg", default=1)
     height = models.FloatField(validators=[MinValueValidator(0.001)], help_text="in Metern", default=1)
     
     base_hp = models.PositiveIntegerField(default=1)
-    base_schadensWI = models.ManyToManyField(Dice)
+    base_schadensWI = models.ManyToManyField(Dice, blank=True)
 
     alternativeForms = models.ManyToManyField("Monster", related_name="forms", related_query_name="forms", blank=True)
     opposites = models.ManyToManyField("Monster", related_name="opposite", related_query_name="opposite", blank=True)
@@ -189,7 +193,7 @@ class ParaTier(models.Model):
 
     name = models.CharField(max_length=128)
     image = ResizedImageField(size=[1024, 1024], upload_to=upload_and_rename_to_id, blank=True)
-    description = models.TextField()
+    description = models.TextField(verbose_name="Beschreibung")
     habitat = models.TextField()
 
     fertigkeiten = models.ManyToManyField(Fertigkeit, through=ParaTierFertigkeit)
