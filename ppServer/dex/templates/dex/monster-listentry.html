@@ -63,10 +63,10 @@
 <a class="monster card bg-primary text-light {% if spieler not in monster.visible.all %} monster--dummy{% else %}" data-rank="{{ monster.wildrang }}" href="{% url 'dex:monster_detail' monster.id %}{% endif %}" id="monster-{{ monster.id }}">
     <span class="monster__number shadow bg-warning text-dark">#{{ monster.number }}</span>
     <b class="monster__name fs-5">{% if spieler in monster.visible.all %}{{ monster.name }}{% else %}???{% endif %}</b>
-    <span class="monster__img shadow">
+    <span class="monster__img shadow h-100">
         {% if spieler in monster.visible.all and monster.image %}
-        <button class="open-modal-btn" type="button" data-bs-toggle="modal" data-bs-target="#monster-modal-{{ monster.id }}" aria-label="Monsterbild im Fullscreen öffnen">
-            <img class="img-fluid object-fit-cover" src="{{ monster.image.url }}" alt="{{ monster.description }}">
+        <button class="open-modal-btn border-0 w-100 h-100" type="button" data-bs-toggle="modal" data-bs-target="#monster-modal-{{ monster.id }}" aria-label="Monsterbild im Fullscreen öffnen">
+            <img class="object-fit-cover w-100 h-100" src="{{ monster.image.url }}" alt="{{ monster.description }}">
         </button>
         {% endif %}
     </span>
