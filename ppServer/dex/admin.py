@@ -66,20 +66,19 @@ class MonsterAdmin(admin.ModelAdmin):
 
 class TypAdmin(admin.ModelAdmin):
 
-    list_display = ['image_', 'name', "stark_gegen_", "schwach_gegen_", "trifft_nicht_"]
+    list_display = ['Aussehen_', "stark_gegen_", "schwach_gegen_", "trifft_nicht_"]
 
     list_filter = ['name', "stark_gegen", "schwach_gegen", "trifft_nicht"]
     search_fields = ['name']
-    list_display_links = ["name"]
 
     def stark_gegen_(self, obj):
-        return ", ".join([t.__str__() for t in obj.stark_gegen.all()]) or "-"
+        return format_html("".join([t.tag() for t in obj.stark_gegen.all()])) or "-"
     def schwach_gegen_(self, obj):
-        return ", ".join([t.__str__() for t in obj.schwach_gegen.all()]) or "-"
+        return format_html("".join([t.tag() for t in obj.schwach_gegen.all()])) or "-"
     def trifft_nicht_(self, obj):
-        return ", ".join([t.__str__() for t in obj.trifft_nicht.all()]) or "-"
-    def image_(self, obj):
-        return format_html(f"<img src='{obj.icon.url}' style='max-width: 32px; max-height:32px;'>") if obj.icon else "-"
+        return format_html("".join([t.tag() for t in obj.trifft_nicht.all()])) or "-"
+    def Aussehen_(self, obj):
+        return obj.tag()
 
 
 class AttackeAdmin(admin.ModelAdmin):

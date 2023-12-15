@@ -25,7 +25,7 @@ class MonsterIndexView(LoginRequiredMixin, ListView):
         )
     
     def get_queryset(self) -> QuerySet[Any]:
-        return super().get_queryset().prefetch_related("types", "visible")
+        return super().get_queryset().prefetch_related("types", "visible", "fähigkeiten")
 
 
 class MonsterDetailView(LoginRequiredMixin, DetailView):
@@ -79,3 +79,34 @@ class AttackIndexView(LoginRequiredMixin, ListView):
     
     def get_queryset(self) -> QuerySet[Any]:
         return super().get_queryset().prefetch_related("types")
+    
+    
+class TypeIndexView(LoginRequiredMixin, ListView):
+    model = Typ
+    template_name = "dex/type_index.html"
+
+    def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
+        return super().get_context_data(
+            **kwargs,
+            app_index = "Allesdex",
+            app_index_url = reverse("dex:index"),
+            topic = "Typen"
+        )
+    
+    def get_queryset(self) -> QuerySet[Any]:
+        return super().get_queryset().prefetch_related("stark_gegen", "schwach_gegen", "trifft_nicht")
+
+class TypeTableView(LoginRequiredMixin, ListView):
+    model = Typ
+    template_name = "dex/type_table.html"
+
+    def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
+        return super().get_context_data(
+            **kwargs,
+            app_index = "Allesdex",
+            app_index_url = reverse("dex:index"),
+            topic = "Typentabelle"
+        )
+    
+    def get_queryset(self) -> QuerySet[Any]:
+        return super().get_queryset().prefetch_related("stark_gegen", "schwach_gegen", "trifft_nicht")

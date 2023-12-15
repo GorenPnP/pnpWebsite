@@ -1,0 +1,68 @@
+{% extends 'base/headed_main.html' %}
+{% block extra-head %}
+{% endblock %}
+
+{% block asides %}
+<aside class="bg-dark pb-3">
+    <form method="get" class="container">
+        <h2 class="row">Rechner</h2>
+
+        <div class="row mt-3">
+            <div class="col">
+                <label for="of_attack">Typen der Attacke</label>
+                <select class="form-select" multiple id="of_attack">
+                    {% for type in object_list %}
+                    <option value="{{ type.id }}">{{ type.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        
+            <div class="col">
+                <label for="of_monster">Typen des Zielmonsters</label>
+                <select class="form-select" multiple id="of_monster">
+                    {% for type in object_list %}
+                    <option value="{{ type.id }}">{{ type.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <div class="row d-block mt-3">
+            <button type="submit" class="btn btn-primary btn-lg d-block m-auto" style="width: fit-content;">OK</button>
+        </div>
+    </form>
+
+</aside>
+{% endblock %}
+
+{% block main %}
+<ul class="accordion list-unstyled" id="accordion">
+    {% for type in object_list %}
+    <li class="accordion-item">
+        <h2 class="accordion-header" id="type-{{ type.id }}-heading">
+            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#type-{{ type.id }}" aria-expanded="{{ forloop.first }}" aria-controls="type-{{ type.id }}">
+                {{ type.tag }}
+            </button>
+        </h2>
+        <div id="type-{{ type.id }}" class="accordion-collapse collapse {% if forloop.first %}show{% endif %}" aria-labelledby="type-{{ type.id }}-heading" data-bs-parent="#accordion">
+            <div class="accordion-body">
+                <ul>
+                    <li>
+                        ... ist <b>stark gegen</b>:
+                        <div class="d-flex gap-1">{% for t in type.stark_gegen.all %}{{ t.tag }}{% empty %}-{% endfor %}</div>
+                    </li>
+                    <li>
+                        ... ist <b>schwach gegen</b>:
+                        <div class="d-flex gap-1">{% for t in type.schwach_gegen.all %}{{ t.tag }}{% empty %}-{% endfor %}</div>
+                    </li>
+                    <li>
+                        ... <b>trifft nicht</b>:
+                        <div class="d-flex gap-1">{% for t in type.trifft_nicht.all %}{{ t.tag }}{% empty %}-{% endfor %}</div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </li>
+    {% endfor %}
+</ul>
+{% endblock %}

@@ -12,6 +12,8 @@ urlpatterns = [
     path('monster/<int:pk>', views.MonsterDetailView.as_view(), name='monster_detail'),
 
     path('attack', views.AttackIndexView.as_view(), name='attack_index'),
+    path('type', views.TypeIndexView.as_view(), name='type_index'),
+    path('type/table', views.TypeTableView.as_view(), name='type_table'),
 
     path('sp/visibility', views_sp.MonsterVisibilityView.as_view(), name='sp_monster_visibility'),
     

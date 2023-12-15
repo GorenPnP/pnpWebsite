@@ -70,6 +70,7 @@ INSTALLED_APPS = [
     'wiki',
 
     # libs/plugins
+    'colorfield',
     'dbbackup',
     'debug_toolbar',
     'django_bootstrap5',

@@ -40,6 +40,10 @@
         
         padding: .5em 0 0 .5em;
         color: rgba(255, 255, 255, .8);
+
+        display: flex;
+        gap: 5px;
+        font-size: 0.67rem;
     }
     .attack__damage {
         grid-area: damage;
@@ -78,9 +82,7 @@
     <b class="attack__name text-dark shadow">{{ attack.name }}</b>
     <b class="attack__damage shadow">{{ attack.damage|dice|default:"-" }} </b>
     <small class="attack__types">
-        {% for type in attack.types.all %}
-            {{ type.name }}{% if not forloop.last %}, {% endif %}
-        {% endfor %}
+        {% for type in attack.types.all %}{{ type.tag }}{% endfor %}
     </small>
 </div>
 <div class="attack-description collapse" id="attack-description-{{ attack.id }}">

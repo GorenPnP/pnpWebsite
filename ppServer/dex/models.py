@@ -1,7 +1,9 @@
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from django.utils.html import format_html
 
 from django_resized import ResizedImageField
+from colorfield.fields import ColorField
 
 from character.models import Spieler
 
@@ -54,14 +56,28 @@ class Typ(models.Model):
         verbose_name = "Typ"
         verbose_name_plural = "Typen"
 
-    icon = ResizedImageField(size=[256, 256], upload_to=upload_and_rename_to_id)
+    color = ColorField(default='#B19071')
+    text_color = ColorField(default='#070707')
+    icon = ResizedImageField(size=[256, 256], upload_to=upload_and_rename_to_id, blank=True)
+
     name = models.CharField(max_length=128)
+
     stark_gegen = models.ManyToManyField("Typ", related_name="stark", related_query_name="stark", blank=True)
     schwach_gegen = models.ManyToManyField("Typ", related_name="schwach", related_query_name="schwach", blank=True)
     trifft_nicht = models.ManyToManyField("Typ", related_name="miss", related_query_name="miss", blank=True)
 
     def __str__(self):
         return self.name
+    
+    def tag(self):
+        styles = f"max-width: 80px; color: {self.text_color}; background: {self.color}; font-weight: 500 !important; padding: .3em .5em; display: flex; justify-content: center; align-items: center; gap: .3em; border-radius: 300px; overflow: hidden;"
+
+        if self.icon:
+            return format_html(f"<div style='{styles}'><img src='{self.icon.url}' style='height: 1.2em; aspect-ratio: 1'>{self.name}</div>")
+
+        else:
+            return format_html(f"<div style='{styles}'>{self.name}</div>")
+
 
 class Attacke(models.Model):
     class Meta:

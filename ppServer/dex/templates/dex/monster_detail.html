@@ -20,6 +20,12 @@
       <div class="card-text">
         <p>{{ monster.description }}</p>
         <ul>
+          <li><b>Fähigkeiten: </b><span>
+            {% for f in monster.fähigkeiten.all %}
+              f.name{% if not forloop.last %}, {% endif %}
+            {% empty %}-
+            {% endfor %}
+          </span></li>
           <li><b>Rang: </b><span>{{ monster.wildrang }}</span></li>
           <li><b>Größe: </b><span>{{ monster.height }} m</span></li>
           <li><b>Gewicht: </b><span>{{ monster.weight }} kg</span></li>

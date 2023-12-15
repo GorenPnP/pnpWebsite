@@ -29,3 +29,6 @@ XlsxWriter==3.1.*           # Export (characters) to xlsx
 
 # complete view + template for a .md file
 django-markdown-view==0.0.*
+
+# django model color field
+django-colorfield==0.11.*
