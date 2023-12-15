@@ -1,81 +1,19 @@
 {% extends 'base/headed_main.html' %}
+{% load static %}
 {% block extra-head %}
-<style>
-    .main-container {
-        padding-inline: 5px;
-        padding-bottom: 20px;
-    }
-
-    .table-container {
-        position: relative;
-        max-width: 100%;
-        overflow: auto;
-    }
-    table {
-        margin: auto;
-        color: var(--bs-light);
-        background-color: var(--bs-dark);
-    }
-    th { position: sticky; top: 1px; background-color: var(--bs-dark); }
-    table td:first-of-type { position: sticky; left: 0; background-color: var(--bs-dark); }
-
-    table th, table td { cursor: pointer; }
-    table td:not(.tag) {
-        font-weight: bold;
-        text-align: center;
-    }
-    table .cell-effective { color: #1fc997; }
-    table .cell-noneffective { color: #f93f9b; }
-    table .show.cell-effective { color: #00842d; }
-    table .show.cell-noneffective { color: #e30016; }
-    table .show.cell-nohit { color: #4b535c; }
-
-    table .highlight { background-color: rgba(var(--bs-light-rgb), 0.1) !important; }
-    table .show { background-color: rgba(var(--bs-light-rgb), 1) !important; }
-</style>
-<script>
-    document.addEventListener("DOMContentLoaded", () => {
-        const table = document.querySelector("table");
-
-        // select 1 type
-        table.querySelectorAll(".tag").forEach(type => type.addEventListener("click", function(e) {
-            const type = e.target.closest("td, th").dataset.typeAttack || e.target.closest("td, th").dataset.typeVictim;
-
-            table.querySelectorAll("th, td").forEach(cell => cell.classList.remove("show"));
-            table.querySelectorAll(`[data-type-attack="${type}"]`).forEach(cell => cell.classList.add("show"));
-            table.querySelectorAll(`[data-type-victim="${type}"]`).forEach(cell => cell.classList.add("show"));
-        }));
-
-        // select 1 cell inside
-        table.querySelectorAll("table :where(th, td):not(.tag)").forEach(type => type.addEventListener("click", function(e) {
-            const attack = e.target.dataset.typeAttack;
-            const victim = e.target.dataset.typeVictim;
-
-            table.querySelectorAll("th, td").forEach(cell => cell.classList.remove("show"));
-            table.querySelectorAll(`[data-type-attack="${attack}"]`).forEach(cell => cell.classList.add("show"));
-            table.querySelectorAll(`[data-type-victim="${victim}"]`).forEach(cell => cell.classList.add("show"));
-        }));
-
-        
-        // highlight table rows & cols on hover
-        table.addEventListener("pointerover", function(e) {
-            const attack = e.target.dataset.typeAttack;
-            const victim = e.target.dataset.typeVictim;
-
-            this.querySelectorAll("th, td").forEach(cell => cell.classList.remove("highlight"));
-            this.querySelectorAll(`[data-type-attack="${attack}"]`).forEach(cell => cell.classList.add("highlight"));
-            this.querySelectorAll(`[data-type-victim="${victim}"]`).forEach(cell => cell.classList.add("highlight"));
-        });
-    })
-</script>
+<link rel="stylesheet" href="{% static 'dex/css/type_table.css' %}">
+<script src="{% static 'dex/js/type_table.js' %}" defer></script>
 {% endblock %}
 
 {% block main %}
+
+<label for="efficiency"><b>Effektivität</b> einer Attacke mit Typen links auf ein Monster mit Typen oben der Tabelle:</label>
+<result id="efficiency">1</result>
 <div class="table-container">
     <table>
         <thead>
             <tr>
-                <th class="fw-light"><small>&lt;links&gt; trifft &lt;oben&gt;</small></th>
+                <th class="fw-light"></th>
                 {% for t in object_list %}<th class="tag" data-type-victim="{{ t.id }}">{{ t.tag }}</th>{% endfor %}
             </tr>
         </thead>
