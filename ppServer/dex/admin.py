@@ -71,6 +71,14 @@ class MonsterFähigkeitAdmin(admin.ModelAdmin):
     list_display = ["name", "description"]
     search_fields = ["name", "description"]
 
+
+class MonsterRangAdmin(admin.ModelAdmin):
+    list_display = ["rang", "hp", "schadensWI_", "reaktionsbonus", "angriffsbonus"]
+    list_editable = ["hp", "reaktionsbonus", "angriffsbonus"]
+
+    def schadensWI_(self, obj):
+        return " + ".join([t.__str__() for t in obj.schadensWI.all()]) or "-"
+
 class TypAdmin(admin.ModelAdmin):
 
     list_display = ['Aussehen_', "stark_gegen_", "schwach_gegen_", "trifft_nicht_"]
@@ -171,6 +179,7 @@ admin.site.register(Monster, MonsterAdmin)
 admin.site.register(Attacke, AttackeAdmin)
 admin.site.register(Dice)
 admin.site.register(Fertigkeit)
+admin.site.register(MonsterRang, MonsterRangAdmin)
 admin.site.register(MonsterFähigkeit, MonsterFähigkeitAdmin)
 admin.site.register(ParaPflanze, PflanzenAdmin)
 admin.site.register(ParaTier, TierAdmin)

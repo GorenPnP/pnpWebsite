@@ -53,6 +53,7 @@ class MonsterFähigkeit(models.Model):
     def __str__(self):
         return self.name
 
+
 class Typ(models.Model):
     class Meta:
         ordering = ["name"]
@@ -99,6 +100,22 @@ class Attacke(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class MonsterRang(models.Model):
+    class Meta:
+        ordering = ["rang"]
+        verbose_name = "Monster-Rang"
+        verbose_name_plural = "Monster-Ränge"
+
+    rang = models.PositiveSmallIntegerField(unique=True)
+    hp = models.PositiveSmallIntegerField(default=0)
+    schadensWI = models.ManyToManyField(Dice, blank=True)
+    reaktionsbonus = models.PositiveSmallIntegerField(default=0)
+    angriffsbonus = models.PositiveSmallIntegerField(default=0)
+
+    def __str__(self):
+        return f"Rang {self.rang}"
 
 
 ######## living things ########
