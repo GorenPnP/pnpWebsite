@@ -50,6 +50,9 @@ class MonsterFähigkeit(models.Model):
     name = models.CharField(max_length=256, unique=True)
     description = models.TextField(verbose_name="Beschreibung")
 
+    def __str__(self):
+        return self.name
+
 class Typ(models.Model):
     class Meta:
         ordering = ["name"]

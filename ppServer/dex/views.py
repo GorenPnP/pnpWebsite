@@ -94,4 +94,4 @@ class TypeTableView(LoginRequiredMixin, ListView):
         )
     
     def get_queryset(self) -> QuerySet[Any]:
-        return super().get_queryset().prefetch_related("stark_gegen", "schwach_gegen", "trifft_nicht")
+        return super().get_queryset().prefetch_related("stark_gegen", "schwach_gegen", "trifft_nicht", "stark", "schwach", "miss")

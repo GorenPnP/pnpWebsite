@@ -1,5 +1,5 @@
 {% extends 'base/headed_main.html' %}
-{% load static %}
+{% load static calc %}
 {% block extra-head %}
 <link rel="stylesheet" href="{% static 'dex/css/type_table.css' %}">
 <script src="{% static 'dex/js/type_table.js' %}" defer></script>
@@ -15,6 +15,7 @@
         <tr>
             <th class="tag tag--placeholder"></th>
             {% for t in object_list %}<th class="tag" data-type-victim="{{ t.id }}">{{ t.tag }}</th>{% endfor %}
+            <th><small class="fw-normal">Atk-Stärke:</small></th>
         </tr>
     </thead>
 
@@ -33,8 +34,17 @@
                     {% if victim in t.schwach_gegen.all %}-{% endif %}
                     {% if victim in t.trifft_nicht.all %}x{% endif %}
             </td>{% endfor %}
+
+            <td disabled>{{ t|attack_strength }}</td>
         </tr>
         {% endfor %}
+
+        <tr>
+            <td><small class="fw-normal">Def-Stärke:</small></td>
+            {% for t in object_list %}
+            <td>{{ t|def_strength }}</td>
+            {% endfor %}
+        </tr>
     </tbody>
 </table>
 {% endblock %}
