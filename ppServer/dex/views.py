@@ -25,7 +25,7 @@ class MonsterIndexView(LoginRequiredMixin, ListView):
         )
     
     def get_queryset(self) -> QuerySet[Any]:
-        return super().get_queryset().prefetch_related("types", "visible", "fähigkeiten")
+        return super().get_queryset().prefetch_related("types", "visible")
 
 
 class MonsterDetailView(LoginRequiredMixin, DetailView):
@@ -52,7 +52,7 @@ class MonsterDetailView(LoginRequiredMixin, DetailView):
             "evolutionPost__types", "evolutionPost__visible",
             "alternativeForms__types", "alternativeForms__visible",
             "opposites__types", "opposites__visible",
-            "attacken__types", "attacken__damage"
+            "attacken__types", "attacken__damage", "fähigkeiten"
         )
         
     def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
@@ -95,3 +95,20 @@ class TypeTableView(LoginRequiredMixin, ListView):
     
     def get_queryset(self) -> QuerySet[Any]:
         return super().get_queryset().prefetch_related("stark_gegen", "schwach_gegen", "trifft_nicht", "stark", "schwach", "miss")
+
+
+class MonsterFähigkeitView(LoginRequiredMixin, ListView):
+    model = MonsterFähigkeit
+    template_name = "dex/monster_fähigkeit_index.html"
+
+    def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
+        return super().get_context_data(
+            **kwargs,
+            app_index = "Allesdex",
+            app_index_url = reverse("dex:index"),
+            topic = "Fähigkeiten",
+            spieler = get_object_or_404(Spieler, name=self.request.user.username),
+        )
+
+    def get_queryset(self) -> QuerySet[Any]:
+        return super().get_queryset().prefetch_related("monster_set__visible", "monster_set__types")

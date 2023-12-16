@@ -1,0 +1,77 @@
+{% extends 'base/headed_main.html' %}
+{% load static %}
+
+{% block extra-head %}
+<style>
+  main {
+    --bg-rgb: 255, 146, 67;
+    --highlight-bg-rgb: rgb(2, 65, 7);
+    max-width: 400px;
+    margin: auto;
+  }
+
+  .shadow {
+      box-shadow: var(--shadow-pos, .1em) var(--shadow-pos, .1em) 1em .1em rgba(var(--bs-dark-rgb), .4);
+  }
+
+  .fähigkeit.card {
+      text-decoration: none;
+      margin-block: 1px;
+
+      overflow: hidden;
+      background-color: rgba(var(--bg-rgb), 1);
+      color: black;
+  }
+  .fähigkeit__name {
+      padding: 5px 10px 2px;
+      border-bottom-right-radius: 5px;
+      width: fit-content;
+
+      font-size: 1.1rem;
+      background-color: var(--highlight-bg-rgb);
+      color: white !important;
+      
+      --shadow-pos: .1em;
+
+      float: left;
+  }
+
+  .fähigkeit-description .card {
+      background-color: transparent;
+      background-image: linear-gradient(rgba(var(--bg-rgb), .9) 50%, rgba(var(--bg-rgb), 1));
+      margin-block: -1px 1em;
+      color: black !important;
+  }
+</style>
+{% endblock %}
+
+{% block main %}
+<ul class="list-unstyled" id="fähigkeit-list">
+    {% for fähigkeit in object_list %}
+    <li>
+      <a name="{{ fähigkeit.id }}" class="fähigkeit card" type="button" data-bs-toggle="collapse" data-bs-target="#fähigkeit-description-{{ fähigkeit.id }}" aria-expanded="false" aria-controls="fähigkeit-description-{{ fähigkeit.id }}">
+          <b class="fähigkeit__name text-dark shadow">{{ fähigkeit.name }}</b>
+          <small class="fähigkeit__teaser px-2 pb-1">{{ fähigkeit.description|truncatechars:40 }}</small>
+      </a>
+      <div class="fähigkeit-description collapse" id="fähigkeit-description-{{ fähigkeit.id }}">
+          <div class="card card-body shadow">
+            <i>{{ fähigkeit.description }}</i>
+            
+            {% if fähigkeit.monster_set.count %}
+              <hr>
+              <label class="h5" for="monsters-{{ fähigkeit.id }}">Bei Monstern:</label>
+              <ul class="list-unstyled" id="monsters-{{ fähigkeit.id }}">
+                {% for monster in fähigkeit.monster_set.all %}
+                  <li>
+                    {% include 'dex/monster-listentry.html' with monster=monster include_styles=forloop.first %}
+                  </li>
+                {% endfor %}
+              </ul>
+            {% endif %}
+          </div>
+      </div>
+
+    </li>
+    {% endfor %}
+</ul>
+{% endblock %}

@@ -13,6 +13,7 @@ urlpatterns = [
 
     path('attack', views.AttackIndexView.as_view(), name='attack_index'),
     path('type', views.TypeTableView.as_view(), name='type_table'),
+    path('fähigkeit', views.MonsterFähigkeitView.as_view(), name='monster_fähigkeit_index'),
 
     path('sp/visibility', views_sp.MonsterVisibilityView.as_view(), name='sp_monster_visibility'),
     

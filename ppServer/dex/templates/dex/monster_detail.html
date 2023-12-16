@@ -22,7 +22,7 @@
         <ul>
           <li><b>Fähigkeiten: </b><span>
             {% for f in monster.fähigkeiten.all %}
-              {{ f.name }}{% if not forloop.last %}, {% endif %}
+              <a href="{% url 'dex:monster_fähigkeit_index' %}#{{ f.id }}" class="text-light">{{ f.name }}</a>{% if not forloop.last %}, {% endif %}
             {% empty %}-
             {% endfor %}
           </span></li>
