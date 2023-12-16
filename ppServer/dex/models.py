@@ -76,7 +76,7 @@ class Typ(models.Model):
         styles = f"color: {self.text_color}; background: {self.color}; font-weight: 500 !important; padding: .3em .5em; display: flex; justify-content: center; align-items: center; gap: .3em; border-radius: 300px; overflow: hidden;"
 
         if self.icon:
-            icon_styles = f"mask-image: url({self.icon.url}); mask-position: center center; mask-repeat: no-repeat; mask-size: contain; background-color: {self.text_color}; height: 1.2em; aspect-ratio: 1"
+            icon_styles = f"mask-image: url({self.icon.url}); mask-position: center center; mask-repeat: no-repeat; mask-size: contain; -webkit-mask-image: url({self.icon.url}); -webkit-mask-position: center center; -webkit-mask-repeat: no-repeat; -webkit-mask-size: contain; background-color: {self.text_color}; height: 1.2em; aspect-ratio: 1"
             return format_html(f"<div style='{styles}'><span style='{icon_styles}' aria-hidden='true'></span>{self.name}</div>")
 
         else:
