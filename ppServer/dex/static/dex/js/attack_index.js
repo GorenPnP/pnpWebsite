@@ -55,7 +55,7 @@ function filter_and_sort() {
         .map(attack => { attack.parentNode.classList.remove("hidden"); return attack; })
         .filter(attack =>
             (filter.name && !attack.querySelector(".attack__name").innerHTML.toLowerCase().includes(filter.name)) ||
-            (filter.typ && !attack.querySelector(".attack__types").innerHTML.toLowerCase().includes(filter.typ))
+            (filter.typ && ![...attack.querySelectorAll(".attack__types div")].some(type_tag => type_tag.textContent.toLowerCase() === filter.typ))
         )
         .forEach(attack => attack.parentNode.classList.add("hidden"));
 

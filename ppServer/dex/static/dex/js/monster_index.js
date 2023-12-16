@@ -56,7 +56,7 @@ function filter_and_sort() {
         .map(monster => { monster.parentNode.classList.remove("hidden"); return monster; })
         .filter(monster =>
             (filter.name && !monster.querySelector(".monster__name").innerHTML.toLowerCase().includes(filter.name)) ||
-            (filter.typ && !monster.querySelector(".monster__types").innerHTML.toLowerCase().includes(filter.typ)) ||
+            (filter.typ && ![...monster.querySelectorAll(".monster__types div")].some(type_tag => type_tag.textContent.toLowerCase() === filter.typ)) ||
             (filter.known !== null && monster.classList.contains("monster--dummy") == filter.known)
         )
         .forEach(monster => monster.parentNode.classList.add("hidden"));
