@@ -22,7 +22,7 @@
         <ul>
           <li><b>Fähigkeiten: </b><span>
             {% for f in monster.fähigkeiten.all %}
-              f.name{% if not forloop.last %}, {% endif %}
+              {{ f.name }}{% if not forloop.last %}, {% endif %}
             {% empty %}-
             {% endfor %}
           </span></li>

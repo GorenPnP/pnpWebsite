@@ -122,6 +122,8 @@ class Monster(models.Model):
     
     base_hp = models.PositiveIntegerField(default=1)
     base_schadensWI = models.ManyToManyField(Dice, blank=True)
+    base_attackbonus = models.SmallIntegerField(default=0)
+    base_reaktionsbonus = models.SmallIntegerField(default=0)
 
     alternativeForms = models.ManyToManyField("Monster", related_name="forms", related_query_name="forms", blank=True)
     opposites = models.ManyToManyField("Monster", related_name="opposite", related_query_name="opposite", blank=True)

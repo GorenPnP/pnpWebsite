@@ -2,43 +2,7 @@
 {% load static %}
 
 {% block extra-head %}
-<style>
-  main {
-    max-width: 400px;
-    margin: auto;
-  }
-
-  .filter-container {
-    position: sticky;
-    top: 0;
-    margin: auto;
-    border-radius: 0 0 10px 10px;
-    
-    width: fit-content;
-    max-width: 100dvw;
-    gap: min(1em, 3%);
-
-    z-index: 100;
-  }
-
-  .dropdown-menu.dropdown-menu--grid.show { display: grid; }
-  .grid-col-2 { grid-template-columns: 1fr 1fr; }
-
-  main {
-    max-width: 400px;
-    margin: auto;
-  }
-  .hidden {
-    clip: rect(0 0 0 0);
-    clip-path: inset(50%);
-    overflow: hidden;
-    position: absolute;
-    white-space: nowrap;
-    height: 0px;
-    width: 0px;
-  }
-</style>
-
+<link rel="stylesheet" href="{% static 'dex/css/monster_index.css' %}">
 <script src="{% static 'dex/js/monster_index.js' %}" defer></script>
 {% endblock %}
 
@@ -65,7 +29,7 @@
         <ul class="dropdown-menu dropdown-menu--grid grid-col-2" aria-labelledby="filter-typ">
             <li><a class="dropdown-item text-danger active" aria-active="true" href="#">X</a></li>
             {% for typ in types %}
-            <li><a class="dropdown-item" data-value="{{ typ.name }}" href="#">{{ typ.name }}</a></li>
+            <li><a class="dropdown-item" data-value="{{ typ.name }}" href="#">{{ typ.tag }}</a></li>
             {% endfor %}
           
         </ul>

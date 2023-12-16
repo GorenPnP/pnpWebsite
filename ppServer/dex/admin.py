@@ -46,22 +46,25 @@ class MonsterAdmin(admin.ModelAdmin):
     fieldsets = [
         ("Basics", {'fields': ['number', "name", "types", "fähigkeiten", "visible"]}),
         ("Aussehen", {'fields': ['image', 'height', "weight", "description", "habitat"]}),
-        ('Start-Werte', {'fields': ['wildrang', 'base_hp', "base_schadensWI"]}),
+        ('Start-Werte', {'fields': ['wildrang', 'base_hp', "base_schadensWI", "base_attackbonus", "base_reaktionsbonus"]}),
     ]
 
     inlines = [MonsterFormsInLineAdmin, GegenmonsterInLineAdmin, EvoliutionPreInLineAdmin, EvolutionPostInLineAdmin, AttackeInLineAdmin]
 
-    list_display = ['image_', 'number', 'name', 'types_', 'description']
+    list_display = ['image_', 'number', 'name', 'types_', 'wildrang', 'base_hp', "base_schadensWI_", "base_attackbonus", "base_reaktionsbonus"]
 
     list_filter = ['base_hp', 'base_schadensWI']
     search_fields = ['number', 'name', 'description']
     list_display_links = ["name"]
+    list_editable = ['wildrang', 'base_hp', "base_attackbonus", "base_reaktionsbonus"]
 
 
     def image_(self, obj):
         return format_html(f"<img src='{obj.image.url}' style='max-width: 32px; max-height:32px;'>") if obj.image else "-"
     def types_(self, obj):
-        return ", ".join([t.__str__() for t in obj.types.all()]) or "-"
+        return format_html("".join([t.tag() for t in obj.types.all()])) or "-"
+    def base_schadensWI_(self, obj):
+        return " + ".join([t.__str__() for t in obj.base_schadensWI.all()]) or "-"
 
 
 class TypAdmin(admin.ModelAdmin):
