@@ -1,4 +1,8 @@
+from typing import Any
 from django.contrib import admin
+from django.db.models import Subquery, F, Q, OuterRef
+from django.db.models.query import QuerySet
+from django.http.request import HttpRequest
 from django.utils.html import format_html
 
 from .models import *
@@ -43,6 +47,7 @@ class AttackeInLineAdmin(admin.TabularInline):
 class MonsterAdmin(admin.ModelAdmin):
     change_list_template = "dex/admin/change_list_monster.html"
 
+
     fieldsets = [
         ("Basics", {'fields': ['number', "name", "types", "fähigkeiten", "visible"]}),
         ("Aussehen", {'fields': ['image', 'height', "weight", "description", "habitat"]}),
@@ -51,20 +56,37 @@ class MonsterAdmin(admin.ModelAdmin):
 
     inlines = [MonsterFormsInLineAdmin, GegenmonsterInLineAdmin, EvoliutionPreInLineAdmin, EvolutionPostInLineAdmin, AttackeInLineAdmin]
 
-    list_display = ['image_', 'number', 'name', 'types_', 'wildrang', 'base_hp', "base_schadensWI_", "base_attackbonus", "base_reaktionsbonus"]
+    list_display = ['image_', 'name_', 'types_', 'wildrang', 'base_hp', 'rang_hp', "schadensWI_", "base_attackbonus", "rang_attackbonus", "base_reaktionsbonus", "rang_reaktionsbonus"]
 
-    list_filter = ['base_hp', 'base_schadensWI']
     search_fields = ['number', 'name', 'description']
-    list_display_links = ["name"]
+    list_display_links = ["name_"]
     list_editable = ['wildrang', 'base_hp', "base_attackbonus", "base_reaktionsbonus"]
 
+    def get_queryset(self, request: HttpRequest) -> QuerySet[Any]:
+        rang_qs = MonsterRang.objects.filter(rang__lte=OuterRef("wildrang")).order_by("-rang")[:1]
+        return super().get_queryset(request).prefetch_related("base_schadensWI", "types").annotate(
+            rang_hp = Subquery(rang_qs.values("hp")),
+            rang_reaktionsbonus = Subquery(rang_qs.values("reaktionsbonus")),
+            rang_angriffsbonus = Subquery(rang_qs.values("angriffsbonus")),
+        )
 
     def image_(self, obj):
         return format_html(f"<img src='{obj.image.url}' style='max-width: 32px; max-height:32px;'>") if obj.image else "-"
+    def name_(self, obj):
+        return f"#{obj.number} {obj.name}"
     def types_(self, obj):
         return format_html("".join([t.tag() for t in obj.types.all()])) or "-"
-    def base_schadensWI_(self, obj):
-        return " + ".join([t.__str__() for t in obj.base_schadensWI.all()]) or "-"
+    def schadensWI_(self, obj):
+        base = " + ".join([t.__str__() for t in obj.base_schadensWI.all()])
+        rang = " + ".join([t.__str__() for t in MonsterRang.objects.filter(rang__lte=obj.wildrang).last().schadensWI.all()])
+        return format_html(f"{base or ''} <span style='color: red'>{'+' if base and rang else ''}{rang or ''}</span>")
+    
+    def rang_hp(self, obj):
+        return format_html(f"<span style='color: red'>+{obj.rang_hp}</span> = <b>{obj.base_hp + obj.rang_hp}</b>")
+    def rang_attackbonus(self, obj):
+        return format_html(f"<span style='color: red'>+{obj.rang_angriffsbonus}</span> = <b>{obj.base_attackbonus + obj.rang_angriffsbonus}</b>")
+    def rang_reaktionsbonus(self, obj):
+        return format_html(f"<span style='color: red'>+{obj.rang_reaktionsbonus}</span> = <b>{obj.base_reaktionsbonus + obj.rang_reaktionsbonus}</b>")
 
 
 class MonsterFähigkeitAdmin(admin.ModelAdmin):
