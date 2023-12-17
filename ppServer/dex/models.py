@@ -30,7 +30,7 @@ class Dice(models.Model):
         verbose_name_plural = "Dice"
         unique_together = ("amount", "type")
 
-    DiceType = models.TextChoices("DiceType", "W2 W4 W6 W8 W10 W12 W20 W100")
+    DiceType = models.TextChoices("DiceType", "W2 W3 W4 W6 W8 W10 W12 W20 W100")
 
     amount = models.SmallIntegerField(default=1)
     type = models.CharField(max_length=4, choices=DiceType.choices)
