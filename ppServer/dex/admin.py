@@ -63,12 +63,7 @@ class MonsterAdmin(admin.ModelAdmin):
     list_editable = ['wildrang', 'base_hp', "base_attackbonus", "base_reaktionsbonus"]
 
     def get_queryset(self, request: HttpRequest) -> QuerySet[Any]:
-        rang_qs = MonsterRang.objects.filter(rang__lte=OuterRef("wildrang")).order_by("-rang")[:1]
-        return super().get_queryset(request).prefetch_related("base_schadensWI", "types").annotate(
-            rang_hp = Subquery(rang_qs.values("hp")),
-            rang_reaktionsbonus = Subquery(rang_qs.values("reaktionsbonus")),
-            rang_angriffsbonus = Subquery(rang_qs.values("angriffsbonus")),
-        )
+        return self.model.objects.with_rang()
 
     def image_(self, obj):
         return format_html(f"<img src='{obj.image.url}' style='max-width: 32px; max-height:32px;'>") if obj.image else "-"

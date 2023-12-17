@@ -15,23 +15,37 @@
 
   <!-- Allgemeines -->
   <h2 class="mt-5">Allgemeines</h2>
-  <div class="card bg-dark">
+  <div class="card bg-dark mb-2">
+    <div class="card-body">
+      <div class="card-text">{{ monster.description }}</div>
+    </div>
+  </div>
+  <div class="card bg-dark mb-2">
     <div class="card-body">
       <div class="card-text">
-        <p>{{ monster.description }}</p>
         <ul>
-          <li><b>Fähigkeiten: </b><span>
-            {% for f in monster.fähigkeiten.all %}
-              <a href="{% url 'dex:monster_fähigkeit_index' %}#{{ f.id }}" class="text-light">{{ f.name }}</a>{% if not forloop.last %}, {% endif %}
-            {% empty %}-
-            {% endfor %}
-          </span></li>
           <li><b>Rang: </b><span>{{ monster.wildrang }}</span></li>
           <li><b>Größe: </b><span>{{ monster.height }} m</span></li>
           <li><b>Gewicht: </b><span>{{ monster.weight }} kg</span></li>
-          <li><b>HP: </b><span>{{ monster.base_hp }} HP</span></li>
-          <li><b>Schadenswiderstand: </b><span>{{ monster.base_schadensWI|dice }}</span></li>
           <li><b>Habitat: </b><span>{{ monster.habitat }}</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="card text-dark" style="background-color: var(--bs-orange)">
+    <div class="card-body">
+      <div class="card-text">
+        <ul>
+          <li><b>Fähigkeiten: </b><span>
+            {% for f in monster.fähigkeiten.all %}
+              <a href="{% url 'dex:monster_fähigkeit_index' %}#{{ f.id }}" class="text-dark">{{ f.name }}</a>{% if not forloop.last %}, {% endif %}
+            {% empty %}-
+            {% endfor %}
+          </span></li>
+          <li><b>HP: </b><span>{{ monster.base_hp|add:monster.rang_hp }} HP</span></li>
+          <li><b>Schadenswiderstand: </b><span>{{ schadensWI }}</span></li>
+          <li><b>Angriffsbonus: </b><span>{{ monster.base_attackbonus|add:monster.rang_angriffsbonus }}</span></li>
+          <li><b>Reaktionsbonus: </b><span>{{ monster.base_reaktionsbonus|add:monster.rang_reaktionsbonus }}</span></li>
         </ul>
       </div>
     </div>

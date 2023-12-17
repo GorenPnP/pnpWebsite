@@ -1,5 +1,6 @@
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from django.db.models import Subquery, OuterRef
 from django.utils.html import format_html
 
 from django_resized import ResizedImageField
@@ -37,6 +38,13 @@ class Dice(models.Model):
 
     def __str__(self):
         return f"{self.amount}{self.type}"
+
+    @classmethod
+    def toString(cls, *dices):
+        pool = {}
+        for dice in dices:
+            pool[dice.type] = dice.amount if dice.type.upper() not in pool else pool[dice.type.upper()] + dice.amount
+        return " + ".join(sorted([f"{amount}{type}" for type, amount in pool.items()]))
 
 
 ###### sub-models #########
@@ -153,6 +161,18 @@ class Monster(models.Model):
 
     def __str__(self):
         return f"#{self.number} {self.name}"
+    
+    class RangManager(models.Manager):
+        def with_rang(self):
+            rang_qs = MonsterRang.objects.filter(rang__lte=OuterRef("wildrang")).order_by("-rang")[:1]
+            return self.prefetch_related("base_schadensWI", "types").annotate(
+            rang_hp = Subquery(rang_qs.values("hp")),
+            rang_reaktionsbonus = Subquery(rang_qs.values("reaktionsbonus")),
+            rang_angriffsbonus = Subquery(rang_qs.values("angriffsbonus")),
+        )
+        # TODO: schadensWI
+        # Dice.toString(*obj.base_schadensWI.all(), *MonsterRang.objects.filter(rang__lte=obj.wildrang).last().schadensWI.all())
+    objects = RangManager()
 
 
 class ParaPflanzenImage(models.Model):

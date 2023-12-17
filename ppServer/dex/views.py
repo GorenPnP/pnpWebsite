@@ -43,10 +43,13 @@ class MonsterDetailView(LoginRequiredMixin, DetailView):
         self.object = context["object"]
         context["topic"] = self.object.name
 
+        rang = MonsterRang.objects.prefetch_related("schadensWI").filter(rang__lte=self.object.wildrang).last().schadensWI.all()
+        context["schadensWI"] = Dice.toString(*rang, *self.object.base_schadensWI.all())
+
         return context
 
     def get_queryset(self) -> QuerySet[Any]:
-        return super().get_queryset().prefetch_related(
+        return self.model.objects.with_rang().prefetch_related(
             "types", "visible", "base_schadensWI",
             "evolutionPre__types", "evolutionPre__visible",
             "evolutionPost__types", "evolutionPost__visible",
