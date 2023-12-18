@@ -1,6 +1,5 @@
 from typing import Any
 from django.contrib import admin
-from django.db.models import Subquery, F, Q, OuterRef
 from django.db.models.query import QuerySet
 from django.http.request import HttpRequest
 from django.utils.html import format_html
@@ -72,10 +71,10 @@ class MonsterAdmin(admin.ModelAdmin):
     def types_(self, obj):
         return format_html("".join([t.tag() for t in obj.types.all()])) or "-"
     def schadensWI_(self, obj):
-        base = " + ".join([t.__str__() for t in obj.base_schadensWI.all()])
-        rang = " + ".join([t.__str__() for t in MonsterRang.objects.filter(rang__lte=obj.wildrang).last().schadensWI.all()])
-        return format_html(f"{base or ''} <span style='color: red'>{'+' if base and rang else ''}{rang or ''}</span>")
-    
+        base = obj.base_schadensWI_str
+        rang = obj.rang_schadensWI_str
+        return format_html(f"{base or ''}<span style='color: red'>{' + ' if base and rang else ''}{rang or ''}</span>")
+
     def rang_hp(self, obj):
         return format_html(f"<span style='color: red'>+{obj.rang_hp}</span> = <b>{obj.base_hp + obj.rang_hp}</b>")
     def rang_attackbonus(self, obj):

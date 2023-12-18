@@ -1,12 +1,18 @@
+import re
+
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-from django.db.models import Subquery, OuterRef
+from django.db.models import Subquery, OuterRef, CharField, F
+from django.db.models.functions import Concat, Cast
+from django.db.models.query import QuerySet
 from django.utils.html import format_html
 
 from django_resized import ResizedImageField
 from colorfield.fields import ColorField
 
 from character.models import Spieler
+
+from .utils import ConcatSubquery
 
 
 ###### utils ########
@@ -40,11 +46,17 @@ class Dice(models.Model):
         return f"{self.amount}{self.type}"
 
     @classmethod
-    def toString(cls, *dices):
+    def toString(cls, *dices: list[str], separator=" + ") -> str:
+        """
+            collects same dice types together.
+            concats different types with the provided separator.
+            returns resulting string.
+        """
         pool = {}
-        for dice in dices:
-            pool[dice.type] = dice.amount if dice.type.upper() not in pool else pool[dice.type.upper()] + dice.amount
-        return " + ".join(sorted([f"{amount}{type}" for type, amount in pool.items()]))
+        for dice in [d for d in dices if re.match("^\d+W\d+$", d)]:
+            [amount, type] = dice.split("W")
+            pool[type] = int(amount) if type not in pool else pool[type] + int(amount)
+        return separator.join([f"{pool[type]}W{type}" for type in sorted(pool.keys(), key=lambda x: int(x), reverse=True)])
 
 
 ###### sub-models #########
@@ -163,15 +175,33 @@ class Monster(models.Model):
         return f"#{self.number} {self.name}"
     
     class RangManager(models.Manager):
+
+        def get_queryset(self) -> QuerySet:
+            """ adds 'base_schadensWI_str' field """
+            schadensWI_qs = Dice.objects.filter(monster__id= OuterRef("id")).annotate(
+                str=Concat(Cast("amount", output_field=CharField()), F("type"), output_field=CharField())
+            ).values("str")
+
+            return super().get_queryset().annotate(
+                base_schadensWI_str = ConcatSubquery(schadensWI_qs, separator=" + "),
+            )
+
         def with_rang(self):
+            """ adds 'rang_hp', 'rang_reaktionsbonus', 'rang_angriffsbonus' and 'rang_schadensWI_str' fields. """
+
             rang_qs = MonsterRang.objects.filter(rang__lte=OuterRef("wildrang")).order_by("-rang")[:1]
+            
+            schadensWI_qs = Dice.objects.filter(monsterrang__rang= OuterRef("rang_rang")).annotate(
+                str=Concat(Cast("amount", output_field=CharField()), F("type"), output_field=CharField())
+            ).values("str")
+
             return self.prefetch_related("base_schadensWI", "types").annotate(
-            rang_hp = Subquery(rang_qs.values("hp")),
-            rang_reaktionsbonus = Subquery(rang_qs.values("reaktionsbonus")),
-            rang_angriffsbonus = Subquery(rang_qs.values("angriffsbonus")),
-        )
-        # TODO: schadensWI
-        # Dice.toString(*obj.base_schadensWI.all(), *MonsterRang.objects.filter(rang__lte=obj.wildrang).last().schadensWI.all())
+                rang_rang = Subquery(rang_qs.values("rang")),
+                rang_hp = Subquery(rang_qs.values("hp")),
+                rang_reaktionsbonus = Subquery(rang_qs.values("reaktionsbonus")),
+                rang_angriffsbonus = Subquery(rang_qs.values("angriffsbonus")),
+                rang_schadensWI_str = ConcatSubquery(schadensWI_qs, separator=" + "),
+            )
     objects = RangManager()
 
 

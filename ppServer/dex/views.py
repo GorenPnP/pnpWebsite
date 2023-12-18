@@ -42,9 +42,10 @@ class MonsterDetailView(LoginRequiredMixin, DetailView):
         )
         self.object = context["object"]
         context["topic"] = self.object.name
-
-        rang = MonsterRang.objects.prefetch_related("schadensWI").filter(rang__lte=self.object.wildrang).last().schadensWI.all()
-        context["schadensWI"] = Dice.toString(*rang, *self.object.base_schadensWI.all())
+        context["schadensWI"] = Dice.toString(
+            *self.object.base_schadensWI_str.split(" + "),
+            *self.object.rang_schadensWI_str.split(" + ")
+        )
 
         return context
 
