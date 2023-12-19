@@ -95,6 +95,16 @@ class MonsterRangAdmin(admin.ModelAdmin):
     def schadensWI_(self, obj):
         return " + ".join([t.__str__() for t in obj.schadensWI.all()]) or "-"
 
+
+class MonsterTeamAdmin(admin.ModelAdmin):
+    list_display = ["name_", "monster_"]
+    list_display_links = ["name_"]
+
+    def name_(self, obj):
+        return format_html(f"<div style='color: {obj.textfarbe}; background-color: {obj.farbe}; padding: .1em .3em'>{obj.name}</div>")
+    def monster_(self, obj):
+        return ", ".join([t.__str__() for t in obj.monster.all()]) or "-"
+
 class TypAdmin(admin.ModelAdmin):
 
     list_display = ['Aussehen_', "stark_gegen_", "schwach_gegen_", "trifft_nicht_"]
@@ -192,6 +202,8 @@ class GeschöpfAdmin(admin.ModelAdmin):
 
 admin.site.register(Typ, TypAdmin)
 admin.site.register(Monster, MonsterAdmin)
+admin.site.register(SpielerMonster)
+admin.site.register(MonsterTeam, MonsterTeamAdmin)
 admin.site.register(Attacke, AttackeAdmin)
 admin.site.register(Dice)
 admin.site.register(Fertigkeit)

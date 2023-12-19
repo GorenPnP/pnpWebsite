@@ -1,75 +1,19 @@
 {% load static %}
+
 {% if include_styles %}
-<style>
-    .shadow {
-        box-shadow: var(--shadow-pos, .1em) var(--shadow-pos, .1em) 1em .1em rgba(var(--bs-dark-rgb), .4);
-    }
-
-    .monster.card {
-        --img-size: 75px;
-
-        text-decoration: none;
-        margin-block: 1px;
-
-        display: grid;
-        grid-template-columns: auto 1fr var(--img-size);
-        grid-template-rows: auto auto;
-        grid-template-areas: 'number name img'
-                             'type   type img';
-        align-items: flex-start;
-
-        overflow: hidden;
-    }
-    .monster--dummy { opacity: 0.5; }
-    .monster__number {
-        grid-area: number;
-
-        font-weight: 600;
-        padding: 5px 10px 2px;
-        border-bottom-right-radius: 5px;
-
-        --shadow-pos: .1em;
-    }
-    .monster__name {
-        grid-area: name;
-        margin-left: 1em;
-        word-wrap: anywhere;
-    }
-    .monster__types {
-        grid-area: type;
-
-        padding: .5em 0 0 .5em;
-        color: rgba(255, 255, 255, .9) !important;
-
-        display: flex;
-        gap: 5px;
-        font-size: 0.67rem;
-    }
-    .monster__img {
-        grid-area: img;
-        align-self: center;
-
-        width: 100%;
-        aspect-ratio: 1;
-        background-color: rgba(255, 255, 255, 0.7);
-
-        border-bottom-left-radius: 50%;
-        border-top-left-radius: 50%;
-        overflow: hidden;
-
-        --shadow-pos: -.1em;
-    }
-</style>
+{% block imports %}
+<link rel="stylesheet" href="{% static 'dex/css/monster-listentry.css' %}">
 <script src="{% static 'dex/js/monster_listentry.js' %}" defer></script>
+{% endblock %}
 {% endif %}
 
 
-<a class="monster card bg-primary text-light {% if spieler not in monster.visible.all %} monster--dummy{% else %}" data-rank="{{ monster.wildrang }}" href="{% url 'dex:monster_detail' monster.id %}{% endif %}" id="monster-{{ monster.id }}">
+<a class="monster card bg-primary text-light {% block extra_class %}{% endblock %} {% if spieler not in monster.visible.all %} monster--dummy{% else %}" data-rank="{% block rang %}{{ monster.wildrang }}{% endblock %}" href="{% block url %}{% url 'dex:monster_detail' monster.id %}{% endblock %}{% endif %}" id="monster-{{ id|default:monster.id }}">
     <span class="monster__number shadow bg-warning text-dark">#{{ monster.number }}</span>
-    <b class="monster__name fs-5">{% if spieler in monster.visible.all %}{{ monster.name }}{% else %}???{% endif %}</b>
+    <b class="monster__name fs-5">{% if spieler in monster.visible.all %}{% block name %}{{ monster.name }}{% endblock %}{% else %}???{% endif %}</b>
     <span class="monster__img shadow h-100">
         {% if spieler in monster.visible.all and monster.image %}
-        <button class="open-modal-btn border-0 w-100 h-100" type="button" data-bs-toggle="modal" data-bs-target="#monster-modal-{{ monster.id }}" aria-label="Monsterbild im Fullscreen öffnen">
+        <button class="open-modal-btn border-0 w-100 h-100" type="button" data-bs-toggle="modal" data-bs-target="#monster-modal-{{ id|default:monster.id }}" aria-label="Monsterbild im Fullscreen öffnen">
             <img class="object-fit-cover w-100 h-100" src="{{ monster.image.url }}" alt="{{ monster.description }}">
         </button>
         {% endif %}
@@ -85,16 +29,16 @@
 
 {% if spieler in monster.visible.all and monster.image %}
 <!-- Modal -->
-<div class="modal fade" id="monster-modal-{{ monster.id }}" tabindex="-1" aria-label="{{ monster.name }} - {{ monster.description }}" aria-hidden="true">
-        <div class="modal-dialog modal-fullscreen-sm-down">
-            <div class="modal-content">
-                <div class="modal-body">
-                    <img class="img-fluid object-fit-cover" src="{{ monster.image.url }}" alt="{{ monster.description }}">
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Schließen</button>
-                </div>
+<div class="modal fade" id="monster-modal-{{ id|default:monster.id }}" tabindex="-1" aria-label="{{ monster.name }} - {{ monster.description }}" aria-hidden="true">
+    <div class="modal-dialog modal-fullscreen-sm-down">
+        <div class="modal-content">
+            <div class="modal-body">
+                <img class="img-fluid object-fit-cover" src="{{ monster.image.url }}" alt="{{ monster.description }}">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Schließen</button>
             </div>
         </div>
+    </div>
 </div>
 {% endif %}

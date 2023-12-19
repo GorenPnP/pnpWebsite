@@ -1,0 +1,239 @@
+{% extends 'base/headed_main.html' %}
+{% load static dice %}
+
+{% block extra-head %}
+<style>
+  main.main-container {
+    max-width: 400px;
+    margin: auto;
+  }
+
+  .del-btn-container {
+    --del-btn-size: 35px;
+
+    position: relative;
+
+    margin-top: calc(.7* var(--del-btn-size));
+  }
+  .del-btn {
+    border-radius: 200px;
+    position: absolute;
+    top: calc(-0.5 * var(--del-btn-size));
+    right: calc(-0.5 * var(--del-btn-size));
+
+    height: var(--del-btn-size);
+    aspect-ratio: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  #badge {
+    --size: 125px;
+  
+    position: absolute;
+    right: calc(-1 * var(--size));
+    top: 50px;
+
+    background-image: url("/static/res/img/badge.png");
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-size: contain;
+    
+    width: var(--size);
+    padding: calc(var(--size) * 0.24) calc(var(--size) * 0.25) calc(var(--size) * 0.3);
+    aspect-ratio: 1;
+
+    word-wrap: break-word;
+    text-align: center;
+    font-size: calc(var(--size) / 10);
+  }
+  .main-container { position: relative; }
+</style>
+{% endblock %}
+
+{% block main %}
+
+<div id="badge" class="d-none d-md-block">seit {{ object.gefangen_am|date:"d.m.Y" }}</div>
+
+  <!-- Allgemeines -->
+  <h2>Allgemeines</h2>
+  
+  {% include 'dex/monster-listentry.html' with monster=monster include_styles=True %}
+  <div class="card bg-dark my-2">
+    <div class="card-body">
+      <div class="card-text">{{ monster.description }}</div>
+
+      <hr>
+      <ul>
+        <li><b>Größe: </b><span>{{ monster.height }} m</span></li>
+        <li><b>Gewicht: </b><span>{{ monster.weight }} kg</span></li>
+        <li><b>Habitat: </b><span>{{ monster.habitat }}</span></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Werte -->
+  <h2 class="mt-5">Werte</h2>
+  <div class="card text-dark" style="background-color: var(--bs-orange)">
+    <div class="card-body">
+      <div class="card-text">
+        <form method="post">
+          {% csrf_token %}
+          {{ form.as_p }}
+          <p><button class="btn btn-light">Speichern</button></p>
+        </form>
+        <hr>
+
+        <ul>
+          <li><b>Fähigkeiten: </b><span>
+            {% for f in monster.fähigkeiten.all %}
+              <a href="{% url 'dex:monster_fähigkeit_index' %}#{{ f.id }}" class="text-dark">{{ f.name }}</a>{% if not forloop.last %}, {% endif %}
+            {% empty %}-
+            {% endfor %}
+          </span></li>
+          <li><b>HP: </b><span>{{ monster.base_hp|add:object.rang_hp }} HP</span></li>
+          <li><b>Schadenswiderstand: </b><span>{{ schadensWI }}</span></li>
+          <li><b>Angriffsbonus: </b><span>{{ monster.base_attackbonus|add:object.rang_angriffsbonus }}</span></li>
+          <li><b>Reaktionsbonus: </b><span>{{ monster.base_reaktionsbonus|add:object.rang_reaktionsbonus }}</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  
+  {% if monster.evolutionPre.exists %}
+  <h2 class="mt-5">Vorentwicklung</h2>
+  <ul class="list-unstyled">
+    {% for m in monster.evolutionPre.all %}
+      <li>{% include 'dex/monster-listentry.html' with monster=m include_styles=False %}</li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+
+  {% if monster.evolutionPost.exists %}
+  <h2 class="mt-5">Weiterentwicklung</h2>
+  <ul class="list-unstyled">
+    {% for m in monster.evolutionPost.all %}
+      <li>{% include 'dex/monster-listentry.html' with monster=m include_styles=False %}</li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+
+  {% if monster.alternativeForms.exists %}
+  <h2 class="mt-5">Andere Formen</h2>
+  <ul class="list-unstyled">
+    {% for m in monster.alternativeForms.all %}
+      <li>{% include 'dex/monster-listentry.html' with monster=m include_styles=False %}</li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+
+  {% if monster.opposites.exists %}
+  <h2 class="mt-5">Gegenmonster</h2>
+  <ul class="list-unstyled">
+    {% for m in monster.opposites.all %}
+      <li>{% include 'dex/monster-listentry.html' with monster=m include_styles=False %}</li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+
+  <!-- Attacken -->
+  <h2 class="mt-5">Attacken</h2>
+  <ul class="list-unstyled">
+    {% for a in object.attacken.all %}
+      <li class="del-btn-container">
+        {% include 'dex/attack-listentry.html' with attack=a include_styles=forloop.first %}
+
+        <form action="{% url 'dex:spieler_monster_delete_attack' object.id %}" method="post" id="attack-form-{{ a.id }}">
+          {% csrf_token %}
+          <input hidden type="number" name="attack_id" value="{{ a.id }}">
+        </form>
+        <button type="submit" class="del-btn btn btn-sm btn-danger" form="attack-form-{{ a.id }}">
+          <svg xmlns="http://www.w3.org/2000/svg" height="16" width="14" viewBox="0 0 448 512">
+          <!--!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2023 Fonticons, Inc.-->
+          <path fill="#ffffff" d="M135.2 17.7L128 32H32C14.3 32 0 46.3 0 64S14.3 96 32 96H416c17.7 0 32-14.3 32-32s-14.3-32-32-32H320l-7.2-14.3C307.4 6.8 296.3 0 284.2 0H163.8c-12.1 0-23.2 6.8-28.6 17.7zM416 128H32L53.2 467c1.6 25.3 22.6 45 47.9 45H346.9c25.3 0 46.3-19.7 47.9-45L416 128z"/></svg>
+        </button>
+      </li>
+    {% endfor %}
+    <li class="del-btn-container">
+      <button class="open-modal-btn btn btn-lg btn-outline-light" type="button" data-bs-toggle="modal" data-bs-target="#attack-modal">+ Attacke</button>
+    </li>
+  </ul>
+
+  <!-- Teams -->
+  <h2 class="mt-5">Teams</h2>
+  <ul class="list-unstyled">
+    {% for team in object.monsterteam_set.all %}
+      <li class="del-btn-container">
+        <a href="{% url 'dex:monster_team_detail' team.id %}" style="display: block; background-color: {{team.farbe}}; color: {{team.textfarbe}}; border-radius:5px; padding: .2em .5em; font-weight: bold">{{ team.name }}</a>
+
+        <form action="{% url 'dex:monster_team_delete_monster' team.id %}?redirect={{ request.path|urlencode }}" method="post">
+          {% csrf_token %}
+          <input hidden type="number" name="monster_id" value="{{ object.id }}">
+          <button class="del-btn btn btn-sm btn-danger" type="submit">
+            <svg xmlns="http://www.w3.org/2000/svg" height="16" width="14" viewBox="0 0 448 512">
+              <!--!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2023 Fonticons, Inc.-->
+              <path fill="#ffffff" d="M135.2 17.7L128 32H32C14.3 32 0 46.3 0 64S14.3 96 32 96H416c17.7 0 32-14.3 32-32s-14.3-32-32-32H320l-7.2-14.3C307.4 6.8 296.3 0 284.2 0H163.8c-12.1 0-23.2 6.8-28.6 17.7zM416 128H32L53.2 467c1.6 25.3 22.6 45 47.9 45H346.9c25.3 0 46.3-19.7 47.9-45L416 128z"/>
+            </svg>
+          </button>
+        </form>
+      </li>
+    {% endfor %}
+    <li class="del-btn-container">
+      <button class="open-modal-btn btn btn-lg btn-outline-light" type="button" data-bs-toggle="modal" data-bs-target="#team-modal">+ einem Team hinzufügen</button>
+    </li>
+  </ul>
+
+  <!-- Team Modal -->
+  <div class="modal fade" id="team-modal" tabindex="-1" aria-label="Monster einem Team hinzufügen">
+    <div class="modal-dialog modal-fullscreen-sm-down">
+      <div class="modal-content">
+        <div class="modal-body">
+          <form action="{% url 'dex:spieler_monster_add_team' object.id %}" method="post" id="team-form">
+            {% csrf_token %}
+            <p>
+              <label for="id_team">Team: </label>
+              <select id="id_team" name="team_id" required>
+                <option value="" selected>---------</option>
+                {% for team in other_teams %}
+                <option value="{{ team.id }}">{{ team.name }}</option>
+                {% endfor %}
+              </select>
+            </p>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-primary" form="team-form">Team hinzufügen</button>
+          <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Schließen</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Attacken Modal -->
+  <div class="modal fade" id="attack-modal" tabindex="-1" aria-label="Attacke hinzufügen">
+    <div class="modal-dialog modal-fullscreen-sm-down">
+      <div class="modal-content">
+        <div class="modal-body">
+          <form action="{% url 'dex:spieler_monster_add_attack' object.id %}" method="post" id="attack-form">
+            {% csrf_token %}
+            <p>
+              <label for="id_attacke">Attacke: </label>
+              <select id="id_attacke" name="attack_id" required>
+                <option value="" selected>---------</option>
+                {% for attack in other_attacks %}
+                <option value="{{ attack.id }}">{{ attack.name }}</option>
+                {% endfor %}
+              </select>
+            </p>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-primary" form="attack-form">Attacke hinzufügen</button>
+          <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Schließen</button>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+

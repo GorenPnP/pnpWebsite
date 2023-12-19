@@ -18,20 +18,19 @@
   <div class="card bg-dark mb-2">
     <div class="card-body">
       <div class="card-text">{{ monster.description }}</div>
+
+      <hr>
+      <ul>
+        <li><b>Rang: </b><span>{{ monster.wildrang }}</span></li>
+        <li><b>Größe: </b><span>{{ monster.height }} m</span></li>
+        <li><b>Gewicht: </b><span>{{ monster.weight }} kg</span></li>
+        <li><b>Habitat: </b><span>{{ monster.habitat }}</span></li>
+      </ul>
     </div>
   </div>
-  <div class="card bg-dark mb-2">
-    <div class="card-body">
-      <div class="card-text">
-        <ul>
-          <li><b>Rang: </b><span>{{ monster.wildrang }}</span></li>
-          <li><b>Größe: </b><span>{{ monster.height }} m</span></li>
-          <li><b>Gewicht: </b><span>{{ monster.weight }} kg</span></li>
-          <li><b>Habitat: </b><span>{{ monster.habitat }}</span></li>
-        </ul>
-      </div>
-    </div>
-  </div>
+
+  <!-- Werte -->
+  <h2 class="mt-5">Werte</h2>
   <div class="card text-dark" style="background-color: var(--bs-orange)">
     <div class="card-body">
       <div class="card-text">
@@ -97,4 +96,31 @@
   </ul>
   {% endif %}
 
+{% endblock %}
+
+{% block footer %}
+{{ block.super }}
+<footer class="bg-dark">
+  <button class="open-modal-btn btn btn-lg btn-outline-light d-block mx-auto my-2" type="button" data-bs-toggle="modal" data-bs-target="#monster-modal">
+    + Monster fangen
+  </button>
+</footer>
+
+<!-- Modal -->
+<div class="modal fade" id="monster-modal" tabindex="-1" aria-label="Neues Monster fangen">
+  <div class="modal-dialog modal-fullscreen-sm-down">
+      <div class="modal-content">
+          <div class="modal-body">
+            <form method="post" id="catch-form">
+              {% csrf_token %}
+              {{ form.as_p }}
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-primary" type="submit" form="catch-form">Monster fangen</button>
+              <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Schließen</button>
+          </div>
+      </div>
+  </div>
+</div>
 {% endblock %}

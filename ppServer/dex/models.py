@@ -120,6 +120,13 @@ class Attacke(models.Model):
 
     def __str__(self):
         return self.name
+    
+    class CardManager(models.Manager):
+
+        def load_card(self):
+            """ preloads all fields needed for display of monster-listentry """
+            return self.prefetch_related("types", "damage")
+    objects = CardManager()
 
 
 class MonsterRang(models.Model):
@@ -202,7 +209,76 @@ class Monster(models.Model):
                 rang_angriffsbonus = Subquery(rang_qs.values("angriffsbonus")),
                 rang_schadensWI_str = ConcatSubquery(schadensWI_qs, separator=" + "),
             )
+        def load_card(self):
+            """ preloads all fields needed for display of monster-listentry. 'spieler' needs to be a variable to the template, too!"""
+            return self.prefetch_related("types", "visible")
     objects = RangManager()
+
+class SpielerMonster(models.Model):
+
+    class Meta:
+        ordering = ["spieler", "monster", "name"]
+        verbose_name = "Spieler-Monster"
+        verbose_name_plural = "Spieler-Monster"
+
+    spieler = models.ForeignKey(Spieler, on_delete=models.CASCADE)
+    monster = models.ForeignKey(Monster, on_delete=models.CASCADE)
+    gefangen_am = models.DateField(auto_now_add=True)
+
+    name = models.CharField(max_length=256, null=True, blank=True)
+    rang = models.SmallIntegerField()
+    attacken = models.ManyToManyField(Attacke)
+
+    def __str__(self):
+        return f"{self.name or self.monster} von {self.spieler}"
+
+
+    class RangManager(models.Manager):
+
+        def get_queryset(self) -> QuerySet:
+            """ adds 'base_schadensWI_str' field """
+            schadensWI_qs = Dice.objects.filter(monster= OuterRef("monster")).annotate(
+                str=Concat(Cast("amount", output_field=CharField()), F("type"), output_field=CharField())
+            ).values("str")
+
+            return super().get_queryset().annotate(
+                base_schadensWI_str = ConcatSubquery(schadensWI_qs, separator=" + "),
+            )
+
+        def with_rang(self):
+            """ adds 'rang_hp', 'rang_reaktionsbonus', 'rang_angriffsbonus' and 'rang_schadensWI_str' fields. """
+
+            rang_qs = MonsterRang.objects.filter(rang__lte=OuterRef("rang")).order_by("-rang")[:1]
+            
+            schadensWI_qs = Dice.objects.filter(monsterrang__rang= OuterRef("rang_rang")).annotate(
+                str=Concat(Cast("amount", output_field=CharField()), F("type"), output_field=CharField())
+            ).values("str")
+
+            return self.annotate(
+                rang_rang = Subquery(rang_qs.values("rang")),
+                rang_hp = Subquery(rang_qs.values("hp")),
+                rang_reaktionsbonus = Subquery(rang_qs.values("reaktionsbonus")),
+                rang_angriffsbonus = Subquery(rang_qs.values("angriffsbonus")),
+                rang_schadensWI_str = ConcatSubquery(schadensWI_qs, separator=" + "),
+            )
+    objects = RangManager()
+
+
+class MonsterTeam(models.Model):
+
+    class Meta:
+        ordering = ["spieler", "name"]
+        verbose_name = "Monster-Team"
+        verbose_name_plural = "Monster-Teams"
+
+    farbe = ColorField(default='#0000FF', blank=True)
+    textfarbe = ColorField(default='#FFFFFF', blank=True)
+    name = models.CharField(max_length=256, unique=True)
+    spieler = models.ForeignKey(Spieler, on_delete=models.CASCADE)
+    monster = models.ManyToManyField(SpielerMonster)
+
+    def __str__(self):
+        return f"Team {self.name} von {self.spieler}"
 
 
 class ParaPflanzenImage(models.Model):

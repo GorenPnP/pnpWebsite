@@ -19,10 +19,6 @@ main {
 .dropdown-menu.dropdown-menu--grid.show { display: grid; }
 .grid-col-2 { grid-template-columns: 1fr 1fr; }
 
-main {
-    max-width: 400px;
-    margin: auto;
-}
 .hidden {
     clip: rect(0 0 0 0);
     clip-path: inset(50%);

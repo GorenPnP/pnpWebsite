@@ -1,0 +1,39 @@
+{% extends 'dex/monster_index.html' %}
+
+{% block main %}
+<ul class="list-unstyled" id="monster-list">
+    {% for obj in object_list %}
+    <li>
+        {% include 'dex/monster-farm-listentry.html' with sp_mo=obj monster=obj.monster id=obj.id include_styles=forloop.first %}
+    </li>
+    {% endfor %}
+</ul>
+{% endblock %}
+
+{% block footer %}
+{{ block.super }}
+
+<footer class="bg-dark">
+  <button class="open-modal-btn btn btn-lg btn-outline-light d-block mx-auto my-2" type="button" data-bs-toggle="modal" data-bs-target="#monster-modal">
+    + Monster fangen
+  </button>
+</footer>
+
+<!-- Modal -->
+<div class="modal fade" id="monster-modal" tabindex="-1" aria-label="Neues Monster fangen">
+  <div class="modal-dialog modal-fullscreen-sm-down">
+      <div class="modal-content">
+          <div class="modal-body">
+            <form method="post" id="catch-form">
+              {% csrf_token %}
+              {{ form.as_p }}
+            </form>
+          </div>
+          <div class="modal-footer">
+              <button type="submit" class="btn btn-primary" form="catch-form">Monster fangen</button>
+              <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Schließen</button>
+          </div>
+      </div>
+  </div>
+</div>
+{% endblock %}

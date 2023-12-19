@@ -15,6 +15,18 @@ urlpatterns = [
     path('type', views.TypeTableView.as_view(), name='type_table'),
     path('fähigkeit', views.MonsterFähigkeitView.as_view(), name='monster_fähigkeit_index'),
 
+    path('monster/farm', views.MonsterFarmView.as_view(), name='monster_farm'),
+    path('monster/farm/<int:pk>', views.MonsterFarmDetailView.as_view(), name='monster_detail_farm'),
+    path('monster/team', views.MonsterTeamView.as_view(), name='monster_team'),
+    path('monster/team/<int:pk>', views.MonsterTeamDetailView.as_view(), name='monster_team_detail'),
+    
+    # utils
+    path('monster/farm/<int:pk>/new_attack', views.add_attack_to_spielermonster, name='spieler_monster_add_attack'),
+    path('monster/farm/<int:pk>/new_team', views.add_team_to_spielermonster, name='spieler_monster_add_team'),
+    path('monster/farm/<int:pk>/delete_attack', views.delete_attack_from_spielermonster, name='spieler_monster_delete_attack'),
+    path('monster/team/<int:pk>/new_monster', views.add_monster_to_team, name='monster_team_add_monster'),
+    path('monster/team/<int:pk>/delete_monster', views.delete_monster_from_team, name='monster_team_delete_monster'),
+
     path('sp/visibility', views_sp.MonsterVisibilityView.as_view(), name='sp_monster_visibility'),
     
 ]

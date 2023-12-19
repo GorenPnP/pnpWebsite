@@ -1,0 +1,58 @@
+.shadow {
+    box-shadow: var(--shadow-pos, .1em) var(--shadow-pos, .1em) 1em .1em rgba(var(--bs-dark-rgb), .4);
+}
+
+.monster.card {
+    --img-size: 75px;
+
+    text-decoration: none;
+    margin-block: 1px;
+
+    display: grid;
+    grid-template-columns: auto 1fr var(--img-size);
+    grid-template-rows: auto auto;
+    grid-template-areas: 'number name img'
+                         'type   type img';
+    align-items: flex-start;
+
+    overflow: hidden;
+}
+.monster--dummy { opacity: 0.5; }
+.monster__number {
+    grid-area: number;
+
+    font-weight: 600;
+    padding: 5px 10px 2px;
+    border-bottom-right-radius: 5px;
+
+    --shadow-pos: .1em;
+}
+.monster__name {
+    grid-area: name;
+    margin-left: 1em;
+    word-wrap: anywhere;
+}
+.monster__types {
+    grid-area: type;
+
+    padding: .5em 0 0 .5em;
+    color: rgba(255, 255, 255, .9) !important;
+
+    display: flex;
+    gap: 5px;
+    font-size: 0.67rem;
+}
+.monster__img {
+    grid-area: img;
+    align-self: center;
+
+    width: 100%;
+    aspect-ratio: 1;
+    background-color: rgba(255, 255, 255, 0.7);
+
+    border-bottom-left-radius: 50%;
+    border-top-left-radius: 50%;
+    overflow: hidden;
+
+    --shadow-pos: -.1em;
+}

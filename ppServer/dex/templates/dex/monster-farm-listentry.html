@@ -1,0 +1,14 @@
+{% extends 'dex/monster-listentry.html' %}
+
+{% block imports %}
+{{ block.super }}
+<style>
+    .monster--own.bg-primary {
+        --bs-primary-rgb: 214, 51, 132;
+    }
+</style>
+{% endblock %}
+{% block extra_class %}monster--own{% endblock %}
+{% block name %}{{ sp_mo.name|default:monster.name }}{% endblock %}
+{% block rang %}{{ sp_mo.rang }}{% endblock %}
+{% block url %}{% url 'dex:monster_detail_farm' sp_mo.id %}{% endblock %}

@@ -1,0 +1,71 @@
+{% extends 'base/headed_main.html' %}
+{% load static %}
+
+{% block extra-head %}
+<style>
+  main {
+    max-width: 400px;
+    margin: auto;
+  }
+  .accordion-header, .accordion-item {
+    color: var(--color);
+    --bs-accordion-btn-color: var(--color);
+    --bs-accordion-active-color: var(--color);
+    --bs-accordion-color: var(--color);
+    
+    background-color: var(--background-color);
+    --bs-accordion-btn-bg: var(--background-color);
+    --bs-accordion-active-bg: var(--background-color);
+    --bs-accordion-bg: var(--background-color);
+  }
+</style>
+{% endblock %}
+
+{% block main %}
+<ul class="accordion list-unstyled" id="team-list">
+  {% for obj in object_list %}
+  <li class="accordion-item" style="--color: {{ obj.textfarbe }}; --background-color: {{ obj.farbe }};">
+    <h2 class="accordion-header" id="head-{{ obj.id }}">
+      <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-{{ obj.id }}" aria-expanded="true" aria-controls="collapse-{{ obj.id }}">
+        {{ obj.name }}
+      </button>
+    </h2>
+    <div id="collapse-{{ obj.id }}" class="accordion-collapse collapse show" aria-labelledby="head-{{ obj.id }}" data-bs-parent="#team-list">
+      <div class="accordion-body">
+        {% for sp_mo in obj.monster.all %}
+          {% include 'dex/monster-farm-listentry.html' with sp_mo=sp_mo monster=sp_mo.monster id=obj.id include_styles=forloop.first|default:forloop.parentloop.first %}
+        {% endfor %}
+
+        <a class="btn btn-lg btn-light d-block mx-auto my-2 border-dark" href="{% url 'dex:monster_team_detail' obj.id %}">Team bearbeiten</a>
+      </div>
+    </div>
+  </li>
+  {% endfor %}
+</ul>
+{% endblock %}
+
+{% block footer %}
+{{ block.super }}
+
+<footer class="bg-dark">
+  <button class="open-modal-btn btn btn-lg btn-outline-light d-block mx-auto my-2" type="button" data-bs-toggle="modal" data-bs-target="#team-modal">+ neues Team</button>
+</footer>
+
+<!-- Modal -->
+<div class="modal fade" id="team-modal" tabindex="-1" aria-label="Neues Team erstellen">
+  <div class="modal-dialog modal-fullscreen-sm-down">
+      <div class="modal-content">
+          <div class="modal-body">
+            <form method="post" id="team-form">
+              {% csrf_token %}
+              {{ form.as_p }}
+            </form>
+          </div>
+          <div class="modal-footer">
+              <button type="submit" class="btn btn-primary" form="team-form">Team erstellen</button>
+              <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Schließen</button>
+          </div>
+      </div>
+  </div>
+</div>
+{% endblock %}
