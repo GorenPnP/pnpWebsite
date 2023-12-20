@@ -1,4 +1,3 @@
-import pytz
 from datetime import datetime
 
 from django.db import models
@@ -36,7 +35,7 @@ class Account(models.Model):
 
 
 def ancient_datetime():
-    return datetime(1990, 6, 1, 0, 0, 0, 0, tzinfo=pytz.UTC)
+    return datetime(1990, 6, 1, 0, 0, 0, 0, tzinfo=datetime.timezone.utc)
 
 class ChatroomAccount(models.Model):
     class Meta:

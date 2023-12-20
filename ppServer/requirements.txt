@@ -1,4 +1,4 @@
-Django==4.*						# need django for django. Makes sense, right?
+Django==4.2.*						# need django for django. Makes sense, right?
 
 # necessary shit
 django-dbbackup==4.0.*                 # db + media backup utility

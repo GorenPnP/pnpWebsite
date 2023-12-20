@@ -2,7 +2,6 @@ from datetime import datetime, timedelta
 
 from django import template
 from django.utils import timezone
-from pytz import utc
 
 
 register = template.Library()
