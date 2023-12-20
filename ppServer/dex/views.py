@@ -88,6 +88,7 @@ class MonsterDetailView(LoginRequiredMixin, DetailView):
             obj.spieler = spieler
             if obj.name == monster.name: obj.name = None
             obj.save()
+            obj.attacken.add(*list(obj.monster.attacken.all().values_list("id", flat=True)))
             messages.success(request, format_html(f"{obj.name or monster.name} ist in deiner <a class='text-light' href='{reverse('dex:monster_farm')}'>Monster-Farm</a> eingetroffen."))
         else:
             messages.error(request, "Etwas ist schief gelaufen. Das Monster konnte nicht gefangen werden.")
@@ -172,6 +173,7 @@ class MonsterFarmView(LoginRequiredMixin, ListView):
             obj = form.save(commit=False)
             obj.spieler = spieler
             obj.save()
+            obj.attacken.add(*list(obj.monster.attacken.all().values_list("id", flat=True)))
             messages.success(request, f"{obj.name or obj.monster.name} ist in deiner Monster-Farm eingetroffen.")
         else:
             messages.error(request, "Etwas ist schief gelaufen. Das Monster konnte nicht gefangen werden.")
