@@ -211,7 +211,7 @@ class MonsterFarmDetailView(LoginRequiredMixin, DetailView):
         return context
 
     def get_queryset(self) -> QuerySet[Any]:
-        return self.model.objects.with_rang().prefetch_related(
+        return self.model.objects.with_rang_and_stats().prefetch_related(
             Prefetch("attacken", queryset=Attacke.objects.load_card())
         )
         

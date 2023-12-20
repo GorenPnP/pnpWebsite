@@ -136,7 +136,6 @@ class MonsterRang(models.Model):
         verbose_name_plural = "Monster-Ränge"
 
     rang = models.PositiveSmallIntegerField(unique=True)
-    hp = models.PositiveSmallIntegerField(default=0)
     schadensWI = models.ManyToManyField(Dice, blank=True)
     reaktionsbonus = models.PositiveSmallIntegerField(default=0)
     angriffsbonus = models.PositiveSmallIntegerField(default=0)
@@ -163,11 +162,18 @@ class Monster(models.Model):
     wildrang = models.PositiveIntegerField(validators=[MinValueValidator(1)], default=1)
     weight = models.FloatField(validators=[MinValueValidator(0.001)], help_text="in kg", default=1)
     height = models.FloatField(validators=[MinValueValidator(0.001)], help_text="in Metern", default=1)
-    
-    base_hp = models.PositiveIntegerField(default=1)
+
+    base_hp = models.SmallIntegerField(default=0)
+    base_nahkampf = models.SmallIntegerField(default=0)
+    base_fernkampf = models.SmallIntegerField(default=0)
+    base_magie = models.SmallIntegerField(default=0)
+    base_verteidigung_geistig = models.SmallIntegerField(default=0)
+    base_verteidigung_körperlich = models.SmallIntegerField(default=0)
+
     base_schadensWI = models.ManyToManyField(Dice, blank=True)
     base_attackbonus = models.SmallIntegerField(default=0)
     base_reaktionsbonus = models.SmallIntegerField(default=0)
+
 
     alternativeForms = models.ManyToManyField("Monster", related_name="forms", related_query_name="forms", blank=True)
     opposites = models.ManyToManyField("Monster", related_name="opposite", related_query_name="opposite", blank=True)
@@ -194,7 +200,7 @@ class Monster(models.Model):
             )
 
         def with_rang(self):
-            """ adds 'rang_hp', 'rang_reaktionsbonus', 'rang_angriffsbonus' and 'rang_schadensWI_str' fields. """
+            """ adds 'rang_reaktionsbonus', 'rang_angriffsbonus' and 'rang_schadensWI_str' fields. """
 
             rang_qs = MonsterRang.objects.filter(rang__lte=OuterRef("wildrang")).order_by("-rang")[:1]
             
@@ -204,7 +210,6 @@ class Monster(models.Model):
 
             return self.prefetch_related("base_schadensWI", "types").annotate(
                 rang_rang = Subquery(rang_qs.values("rang")),
-                rang_hp = Subquery(rang_qs.values("hp")),
                 rang_reaktionsbonus = Subquery(rang_qs.values("reaktionsbonus")),
                 rang_angriffsbonus = Subquery(rang_qs.values("angriffsbonus")),
                 rang_schadensWI_str = ConcatSubquery(schadensWI_qs, separator=" + "),
@@ -213,6 +218,32 @@ class Monster(models.Model):
             """ preloads all fields needed for display of monster-listentry. 'spieler' needs to be a variable to the template, too!"""
             return self.prefetch_related("types", "visible")
     objects = RangManager()
+
+
+class RangStat(models.Model):
+    class Meta:
+        ordering = ["spielermonster", "stat"]
+        verbose_name = "Rang Stat"
+        verbose_name_plural = "Rang Stats"
+
+    StatType = [
+        ("HP", "HP"),
+        ("N", "Nahkampf"),
+        ("F", "Fernkampf"),
+        ("MA", "Magie"),
+        ("VER_G", "Verteidigung geistig"),
+        ("VER_K", "Verteidigung körperlich"),
+    ]
+    
+    spielermonster = models.ForeignKey("SpielerMonster", on_delete=models.CASCADE)
+    stat = models.CharField(max_length=5, choices=StatType)
+    
+    wert = models.PositiveSmallIntegerField(default=0)
+    skilled = models.BooleanField(default=False)
+    trained = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"{self.stat}: {self.wert}"
 
 class SpielerMonster(models.Model):
 
@@ -245,21 +276,28 @@ class SpielerMonster(models.Model):
                 base_schadensWI_str = ConcatSubquery(schadensWI_qs, separator=" + "),
             )
 
-        def with_rang(self):
-            """ adds 'rang_hp', 'rang_reaktionsbonus', 'rang_angriffsbonus' and 'rang_schadensWI_str' fields. """
+        def with_rang_and_stats(self):
+            """ adds 'rang_reaktionsbonus', 'rang_angriffsbonus' and 'rang_schadensWI_str' fields. """
 
+            stat_qs = RangStat.objects.filter(spielermonster__id=OuterRef("id"))
             rang_qs = MonsterRang.objects.filter(rang__lte=OuterRef("rang")).order_by("-rang")[:1]
             
             schadensWI_qs = Dice.objects.filter(monsterrang__rang= OuterRef("rang_rang")).annotate(
                 str=Concat(Cast("amount", output_field=CharField()), F("type"), output_field=CharField())
             ).values("str")
 
-            return self.annotate(
+            return self.prefetch_related("monster").annotate(
                 rang_rang = Subquery(rang_qs.values("rang")),
-                rang_hp = Subquery(rang_qs.values("hp")),
                 rang_reaktionsbonus = Subquery(rang_qs.values("reaktionsbonus")),
                 rang_angriffsbonus = Subquery(rang_qs.values("angriffsbonus")),
                 rang_schadensWI_str = ConcatSubquery(schadensWI_qs, separator=" + "),
+
+                nahkampf = F("monster__base_nahkampf") + Subquery(stat_qs.filter(stat="N").values("wert")[:1]),  
+                fernkampf = F("monster__base_fernkampf") + Subquery(stat_qs.filter(stat="F").values("wert")[:1]),    
+                magie = F("monster__base_magie") + Subquery(stat_qs.filter(stat="MA").values("wert")[:1]),    
+                verteidigung_geistig = F("monster__base_verteidigung_geistig") + Subquery(stat_qs.filter(stat="VER_G").values("wert")[:1]),
+                verteidigung_körperlich = F("monster__base_verteidigung_körperlich") + Subquery(stat_qs.filter(stat="VER_K").values("wert")[:1]),
+                hp = F("monster__base_hp") + Subquery(stat_qs.filter(stat="HP").values("wert")[:1]),
             )
     objects = RangManager()
 

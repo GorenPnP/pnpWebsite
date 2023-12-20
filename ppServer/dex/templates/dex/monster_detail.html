@@ -41,10 +41,15 @@
             {% empty %}-
             {% endfor %}
           </span></li>
-          <li><b>HP: </b><span>{{ monster.base_hp|add:monster.rang_hp }} HP</span></li>
           <li><b>Schadenswiderstand: </b><span>{{ schadensWI }}</span></li>
           <li><b>Angriffsbonus: </b><span>{{ monster.base_attackbonus|add:monster.rang_angriffsbonus }}</span></li>
           <li><b>Reaktionsbonus: </b><span>{{ monster.base_reaktionsbonus|add:monster.rang_reaktionsbonus }}</span></li>
+          <li class="mt-3"><b>HP: </b><span>{{ monster.base_hp }} HP</span></li>
+          <li><b>Nahkampf: </b><span>{{ monster.base_nahkampf }}</span></li>
+          <li><b>Fernkampf: </b><span>{{ monster.base_fernkampf }}</span></li>
+          <li><b>Magie: </b><span>{{ monster.base_magie }}</span></li>
+          <li><b>Verteidigung geistig: </b><span>{{ monster.base_verteidigung_geistig }}</span></li>
+          <li><b>Verteidigung körperlich: </b><span>{{ monster.base_verteidigung_körperlich }}</span></li>
         </ul>
       </div>
     </div>

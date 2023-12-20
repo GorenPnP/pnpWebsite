@@ -48,18 +48,18 @@ class MonsterAdmin(admin.ModelAdmin):
 
 
     fieldsets = [
-        ("Basics", {'fields': ['number', "name", "types", "fähigkeiten", "visible"]}),
+        ("Basics", {'fields': ['number', "name", "types", "fähigkeiten"]}),
         ("Aussehen", {'fields': ['image', 'height', "weight", "description", "habitat"]}),
-        ('Start-Werte', {'fields': ['wildrang', 'base_hp', "base_schadensWI", "base_attackbonus", "base_reaktionsbonus"]}),
+        ('Start-Werte', {'fields': ['wildrang', "base_schadensWI", "base_attackbonus", "base_reaktionsbonus", "base_hp", "base_nahkampf", "base_fernkampf", "base_magie", "base_verteidigung_geistig", "base_verteidigung_körperlich"]}),
     ]
 
     inlines = [MonsterFormsInLineAdmin, GegenmonsterInLineAdmin, EvoliutionPreInLineAdmin, EvolutionPostInLineAdmin, AttackeInLineAdmin]
 
-    list_display = ['image_', 'name_', 'types_', 'wildrang', 'base_hp', 'rang_hp', "schadensWI_", "base_attackbonus", "rang_attackbonus", "base_reaktionsbonus", "rang_reaktionsbonus"]
+    list_display = ['image_', 'name_', 'types_', 'wildrang', "schadensWI_", "base_attackbonus", "rang_attackbonus", "base_reaktionsbonus", "rang_reaktionsbonus"]
 
     search_fields = ['number', 'name', 'description']
     list_display_links = ["name_"]
-    list_editable = ['wildrang', 'base_hp', "base_attackbonus", "base_reaktionsbonus"]
+    list_editable = ['wildrang', "base_attackbonus", "base_reaktionsbonus"]
 
     def get_queryset(self, request: HttpRequest) -> QuerySet[Any]:
         return self.model.objects.with_rang()
@@ -75,12 +75,28 @@ class MonsterAdmin(admin.ModelAdmin):
         rang = obj.rang_schadensWI_str
         return format_html(f"{base or ''}<span style='color: red'>{' + ' if base and rang else ''}{rang or ''}</span>")
 
-    def rang_hp(self, obj):
-        return format_html(f"<span style='color: red'>+{obj.rang_hp}</span> = <b>{obj.base_hp + obj.rang_hp}</b>")
     def rang_attackbonus(self, obj):
         return format_html(f"<span style='color: red'>+{obj.rang_angriffsbonus}</span> = <b>{obj.base_attackbonus + obj.rang_angriffsbonus}</b>")
     def rang_reaktionsbonus(self, obj):
         return format_html(f"<span style='color: red'>+{obj.rang_reaktionsbonus}</span> = <b>{obj.base_reaktionsbonus + obj.rang_reaktionsbonus}</b>")
+
+
+class MonsterWerteAdmin(admin.ModelAdmin):
+
+    fieldsets = []
+    list_display = ['image_', 'name_', 'base_hp', 'base_nahkampf', "base_fernkampf", "base_magie", "base_verteidigung_geistig", "base_verteidigung_körperlich"]
+
+    search_fields = ['number', 'name']
+    list_display_links = ["name_"]
+    list_editable = ['base_hp', 'base_nahkampf', "base_fernkampf", "base_magie", "base_verteidigung_geistig", "base_verteidigung_körperlich"]
+
+    def get_queryset(self, request: HttpRequest) -> QuerySet[Any]:
+        return self.model.objects.with_rang()
+
+    def image_(self, obj):
+        return format_html(f"<img src='{obj.image.url}' style='max-width: 32px; max-height:32px;'>") if obj.image else "-"
+    def name_(self, obj):
+        return f"#{obj.number} {obj.name}"
 
 
 class MonsterFähigkeitAdmin(admin.ModelAdmin):
@@ -89,8 +105,8 @@ class MonsterFähigkeitAdmin(admin.ModelAdmin):
 
 
 class MonsterRangAdmin(admin.ModelAdmin):
-    list_display = ["rang", "hp", "schadensWI_", "reaktionsbonus", "angriffsbonus"]
-    list_editable = ["hp", "reaktionsbonus", "angriffsbonus"]
+    list_display = ["rang", "schadensWI_", "reaktionsbonus", "angriffsbonus"]
+    list_editable = ["reaktionsbonus", "angriffsbonus"]
 
     def schadensWI_(self, obj):
         return " + ".join([t.__str__() for t in obj.schadensWI.all()]) or "-"
@@ -135,6 +151,26 @@ class AttackeAdmin(admin.ModelAdmin):
         return " + ".join([t.__str__() for t in obj.damage.all()]) or "-"
     def types_(self, obj):
         return ", ".join([t.__str__() for t in obj.types.all()]) or "-"
+
+class StatInlineAdmin(admin.TabularInline):
+    model = RangStat
+
+    fields = ["stat", "wert", "skilled", "trained"]
+    readonly_fields = ["stat"]
+    extra = 0
+
+    def has_add_permission(self, *args, **kwargs) -> bool:
+        return False
+    def has_delete_permission(self, *args, **kwargs) -> bool:
+        return False
+
+class SpielerMonsterAdmin(admin.ModelAdmin):
+
+    list_display = ['spieler', 'name', 'monster', 'rang']
+
+    list_filter = ["spieler", "monster"]
+    search_fields = ['spieler__name", "monster__name']
+    inlines = [StatInlineAdmin]
 
 
 class PflanzenImageInLineAdmin(admin.TabularInline):
@@ -202,7 +238,8 @@ class GeschöpfAdmin(admin.ModelAdmin):
 
 admin.site.register(Typ, TypAdmin)
 admin.site.register(Monster, MonsterAdmin)
-admin.site.register(SpielerMonster)
+# admin.site.register(Monster, MonsterWerteAdmin)
+admin.site.register(SpielerMonster, SpielerMonsterAdmin)
 admin.site.register(MonsterTeam, MonsterTeamAdmin)
 admin.site.register(Attacke, AttackeAdmin)
 admin.site.register(Dice)
