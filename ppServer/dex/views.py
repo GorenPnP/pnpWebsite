@@ -47,10 +47,7 @@ class MonsterDetailView(LoginRequiredMixin, DetailView):
         self.object = context["object"]
         context["topic"] = self.object.name
         context["form"] = SpielerMonsterForm(initial={"name": self.object.name, "rang": self.object.wildrang})
-        context["schadensWI"] = Dice.toString(
-            *self.object.base_schadensWI_str.split(" + "),
-            *self.object.rang_schadensWI_str.split(" + ")
-        )
+        context["max_stat_wert"] = max(self.object.base_initiative, self.object.base_hp, self.object.base_nahkampf, self.object.base_fernkampf, self.object.base_magie, self.object.base_verteidigung_geistig, self.object.base_verteidigung_körperlich)
 
         return context
 

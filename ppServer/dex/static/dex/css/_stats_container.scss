@@ -1,0 +1,33 @@
+.stats-container {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: center;
+    gap: .6em .3em;
+}
+
+.wert {
+    display: block;
+    min-width: 100px;
+
+    position: relative;
+    border-radius: 5px;
+    background-color: rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+
+    box-shadow: .1em .1em .1em .1em rgba(var(--bs-dark-rgb), .4);
+}
+.wert small {
+    z-index: 2;
+    position: relative;
+    padding-inline: .5em;
+}
+.wert::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: var(--width);
+
+    background-color: var(--bs-warning);
+}
