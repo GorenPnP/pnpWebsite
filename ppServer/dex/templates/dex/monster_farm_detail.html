@@ -1,55 +1,10 @@
 {% extends 'base/headed_main.html' %}
-{% load static dice %}
+{% load static dice boobles l10n %}
 
 {% block extra-head %}
-<style>
-  main.main-container {
-    max-width: 400px;
-    margin: auto;
-  }
-
-  .del-btn-container {
-    --del-btn-size: 35px;
-
-    position: relative;
-
-    margin-top: calc(.7* var(--del-btn-size));
-  }
-  .del-btn {
-    border-radius: 200px;
-    position: absolute;
-    top: calc(-0.5 * var(--del-btn-size));
-    right: calc(-0.5 * var(--del-btn-size));
-
-    height: var(--del-btn-size);
-    aspect-ratio: 1;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-
-  #badge {
-    --size: 125px;
-  
-    position: absolute;
-    right: calc(-1 * var(--size));
-    top: 50px;
-
-    background-image: url("/static/res/img/badge.png");
-    background-position: center center;
-    background-repeat: no-repeat;
-    background-size: contain;
-    
-    width: var(--size);
-    padding: calc(var(--size) * 0.24) calc(var(--size) * 0.25) calc(var(--size) * 0.3);
-    aspect-ratio: 1;
-
-    word-wrap: break-word;
-    text-align: center;
-    font-size: calc(var(--size) / 10);
-  }
-  .main-container { position: relative; }
-</style>
+<link rel="stylesheet" href="{% static 'dex/css/monster_farm_detail.css' %}">
+{{ AMOUNT_TRAINED|json_script:"max_trained_amount" }}
+<script src="{% static 'dex/js/monster_farm_detail.js' %}" defer></script>
 {% endblock %}
 
 {% block main %}
@@ -96,15 +51,76 @@
           <li><b>Angriffsbonus: </b><span>{{ monster.base_attackbonus|add:object.rang_angriffsbonus }}</span></li>
           <li><b>Reaktionsbonus: </b><span>{{ monster.base_reaktionsbonus|add:object.rang_reaktionsbonus }}</span></li>
         </ul>
-        <ul class="mt-3">
-          <li><b>Rang: </b><span>{{ object.rang }}</span></li>                                  <!-- TODO add +btn-->
-          <li><b>HP: </b><span>{{ object.hp }} HP</span>                                        <!-- TODO add balls? --></li>
-          <li><b>Nahkampf: </b><span>{{ object.nahkampf }}</span>                               <!-- TODO add balls? --></li>
-          <li><b>Fernkampf: </b><span>{{ object.fernkampf }}</span>                             <!-- TODO add balls? --></li>
-          <li><b>Magie: </b><span>{{ object.magie }}</span>                                     <!-- TODO add balls? --></li>
-          <li><b>Verteidigung geistig: </b><span>{{ object.verteidigung_geistig }}</span>       <!-- TODO add balls? --></li>
-          <li><b>Verteidigung körperlich: </b><span>{{ object.verteidigung_körperlich }}</span> <!-- TODO add balls? --></li>
-        </ul>
+        <div class="stats-container mt-3">
+
+          <b>Rang:</b>
+          <div>{{ object.rang }}</div>
+          <div>
+            <button id="rang_increase_btn" class="btn btn-sm btn-success" data-bs-toggle="popover" data-bs-title="Level up" data-bs-content="Coming soon..">+</button>
+          </div>
+
+          <b class="stat">Initiative:</b>
+          <div class="wert" style="--width: calc({% localize off %}{{ object.initiative }} / {{ max_stat_wert }}{% endlocalize %} *100%)"><small>{{ object.initiative }}</small></div>
+          <button class="booble-container{% if ' INI ' in object.skilled_stats %} skilled{% endif %}{% if ' INI ' in object.trained_stats %} trained{% endif %}" data-stat="INI">
+            {% skilled_booble %}
+            {% trained_booble %}
+          </button>
+
+          <b class="stat">HP:</b>
+          <div class="wert" style="--width: calc({% localize off %}{{ object.hp }} / {{ max_stat_wert }}{% endlocalize %} *100%)"><small>{{ object.hp }} HP</small></div>
+          <button class="booble-container{% if ' HP ' in object.skilled_stats %} skilled{% endif %}{% if ' HP ' in object.trained_stats %} trained{% endif %}" data-stat="HP">
+            {% skilled_booble %}
+            {% trained_booble %}
+          </button>
+
+          <b class="stat">Nahkampf:</b>
+          <div class="wert" style="--width: calc({% localize off %}{{ object.nahkampf }} / {{ max_stat_wert }}{% endlocalize %} *100%)"><small>{{ object.nahkampf }}</small></div>
+          <button class="booble-container{% if ' N ' in object.skilled_stats %} skilled{% endif %}{% if ' N ' in object.trained_stats %} trained{% endif %}" data-stat="N">
+            {% skilled_booble %}
+            {% trained_booble %}
+          </button>
+
+          <b class="stat">Fernkampf:</b>
+          <div class="wert" style="--width: calc({% localize off %}{{ object.fernkampf }} / {{ max_stat_wert }}{% endlocalize %} *100%)"><small>{{ object.fernkampf }}</small></div>
+          <button class="booble-container{% if ' F ' in object.skilled_stats %} skilled{% endif %}{% if ' F ' in object.trained_stats %} trained{% endif %}" data-stat="F">
+            {% skilled_booble %}
+            {% trained_booble %}
+          </button>
+
+          <b class="stat">Magie:</b>
+          <div class="wert" style="--width: calc({% localize off %}{{ object.magie }} / {{ max_stat_wert }}{% endlocalize %} *100%)"><small>{{ object.magie }}</small></div>
+          <button class="booble-container{% if ' MA ' in object.skilled_stats %} skilled{% endif %}{% if ' MA ' in object.trained_stats %} trained{% endif %}" data-stat="MA">
+            {% skilled_booble %}
+            {% trained_booble %}
+          </button>
+              
+          <b class="stat">Vert. geistig:</b>
+          <div class="wert" style="--width: calc({% localize off %}{{ object.verteidigung_geistig }} / {{ max_stat_wert }}{% endlocalize %} *100%)"><small>{{ object.verteidigung_geistig }}</small></div>
+          <button class="booble-container{% if ' VER_G ' in object.skilled_stats %} skilled{% endif %}{% if ' VER_G ' in object.trained_stats %} trained{% endif %}" data-stat="VER_G">
+            {% skilled_booble %}
+            {% trained_booble %}
+          </button>
+              
+          <b class="stat">Vert. körperlich:</b>
+          <div class="wert" style="--width: calc({% localize off %}{{ object.verteidigung_körperlich }} / {{ max_stat_wert }}{% endlocalize %} *100%)"><small>{{ object.verteidigung_körperlich }}</small></div>
+          <button class="booble-container{% if ' VER_K ' in object.skilled_stats %} skilled{% endif %}{% if ' VER_K ' in object.trained_stats %} trained{% endif %}" data-stat="VER_K">
+            {% skilled_booble %}
+            {% trained_booble %}
+          </button>
+        </div>
+
+        <div class="mt-3 d-flex gap-1 align-items-center">
+          <b>übriges Training: </b><span id="open_training"></span>
+          <div class="booble-container trained">
+            {% trained_booble %}
+          </div>
+
+          <form action="{% url 'dex:spieler_monster_set_training' object.id %}" method="post">
+            {% csrf_token %}
+            <input hidden name="stat" id="stat_input">
+            <button type="submit" id="training_save_btn" class="btn btn-dark" disabled>Training speichern</button>
+          </form>
+        </div>
       </div>
     </div>
   </div>
@@ -243,5 +259,11 @@
       </div>
     </div>
   </div>
-{% endblock %}
 
+  <!-- popover stuff -->
+  <script>
+    const popoverTriggerList = document.querySelectorAll('[data-bs-toggle="popover"]')
+    const popoverList = [...popoverTriggerList].map(popoverTriggerEl => new bootstrap.Popover(popoverTriggerEl))
+  </script>
+  <style>.popover-header { color: black; }</style>
+{% endblock %}

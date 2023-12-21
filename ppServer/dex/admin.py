@@ -50,7 +50,7 @@ class MonsterAdmin(admin.ModelAdmin):
     fieldsets = [
         ("Basics", {'fields': ['number', "name", "types", "fähigkeiten", "visible"]}),
         ("Aussehen", {'fields': ['image', 'height', "weight", "description", "habitat"]}),
-        ('Start-Werte', {'fields': ['wildrang', "base_schadensWI", "base_attackbonus", "base_reaktionsbonus", "base_hp", "base_nahkampf", "base_fernkampf", "base_magie", "base_verteidigung_geistig", "base_verteidigung_körperlich"]}),
+        ('Start-Werte', {'fields': ['wildrang', "base_schadensWI", "base_attackbonus", "base_reaktionsbonus", "base_initiative", "base_hp", "base_nahkampf", "base_fernkampf", "base_magie", "base_verteidigung_geistig", "base_verteidigung_körperlich"]}),
     ]
 
     inlines = [MonsterFormsInLineAdmin, GegenmonsterInLineAdmin, EvoliutionPreInLineAdmin, EvolutionPostInLineAdmin, AttackeInLineAdmin]

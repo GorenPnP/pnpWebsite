@@ -1,0 +1,49 @@
+@import "./stats_container";
+@import "./del_btn";
+
+main.main-container {
+    max-width: 400px;
+    margin: auto;
+
+    --booble-size: 1em;
+}
+
+#badge {
+    --size: 125px;
+  
+    position: absolute;
+    right: calc(-1 * var(--size));
+    top: 50px;
+
+    background-image: url("/static/res/img/badge.png");
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-size: contain;
+    
+    width: var(--size);
+    padding: calc(var(--size) * 0.24) calc(var(--size) * 0.25) calc(var(--size) * 0.3);
+    aspect-ratio: 1;
+
+    word-wrap: break-word;
+    text-align: center;
+    font-size: calc(var(--size) / 10);
+}
+.main-container { position: relative; }
+
+
+
+.stats-container {
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    justify-content: stretch;
+
+}
+.booble-container {
+    display: flex;
+
+    // no button styles
+    border: 0;
+    background-color: transparent;
+    height: var(--booble-size);
+    aspect-ratio: 5;
+}

@@ -1,5 +1,5 @@
 {% extends 'base/headed_main.html' %}
-{% load static dice %}
+{% load static dice l10n %}
 
 {% block extra-head %}
 <link rel="stylesheet" href="{% static 'dex/css/monster_detail.css' %}">
@@ -41,37 +41,37 @@
           
         <div class="stats-container mt-3">
           <b>Initiative:</b>
-          <span class="wert" style="--width: calc({{ monster.base_initiative }} / {{ max_stat_wert }} *100%)">
+          <span class="wert" style="--width: calc({% localize off %}{{ monster.base_initiative }} / {{ max_stat_wert }}{% endlocalize %} *100%)">
             <small>{{ monster.base_initiative }}</small>
           </span>
           
           <b>HP:</b>
-          <span class="wert" style="--width: calc({{ monster.base_hp }} / {{ max_stat_wert }} *100%)">
+          <span class="wert" style="--width: calc({% localize off %}{{ monster.base_hp }} / {{ max_stat_wert }}{% endlocalize %} *100%)">
             <small>{{ monster.base_hp }} HP</small>
           </span>
           
           <b>Nahkampf:</b>
-          <span class="wert" style="--width: calc({{ monster.base_nahkampf }} / {{ max_stat_wert }} *100%)">
+          <span class="wert" style="--width: calc({% localize off %}{{ monster.base_nahkampf }} / {{ max_stat_wert }}{% endlocalize %} *100%)">
             <small>{{ monster.base_nahkampf }}</small>
           </span>
           
           <b>Fernkampf: </b>
-          <span class="wert" style="--width: calc({{ monster.base_fernkampf }} / {{ max_stat_wert }} *100%)">
+          <span class="wert" style="--width: calc({% localize off %}{{ monster.base_fernkampf }} / {{ max_stat_wert }}{% endlocalize %} *100%)">
             <small>{{ monster.base_fernkampf }}</small>
           </span>
           
           <b>Magie:</b>
-          <span class="wert" style="--width: calc({{ monster.base_magie }} / {{ max_stat_wert }} *100%)">
+          <span class="wert" style="--width: calc({% localize off %}{{ monster.base_magie }} / {{ max_stat_wert }}{% endlocalize %} *100%)">
             <small>{{ monster.base_magie }}</small>
           </span>
           
           <b>Vert. geistig:</b>
-          <span class="wert" style="--width: calc({{ monster.base_verteidigung_geistig }} / {{ max_stat_wert }} *100%)">
+          <span class="wert" style="--width: calc({% localize off %}{{ monster.base_verteidigung_geistig }} / {{ max_stat_wert }}{% endlocalize %} *100%)">
             <small>{{ monster.base_verteidigung_geistig }}</small>
           </span>
           
           <b>Vert. körperlich:</b>
-          <span class="wert" style="--width: calc({{ monster.base_verteidigung_körperlich }} / {{ max_stat_wert }} *100%)">
+          <span class="wert" style="--width: calc({% localize off %}{{ monster.base_verteidigung_körperlich }} / {{ max_stat_wert }}{% endlocalize %} *100%)">
             <small>{{ monster.base_verteidigung_körperlich }}</small>
           </span>
         </div>

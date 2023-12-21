@@ -205,6 +205,9 @@ class MonsterFarmDetailView(LoginRequiredMixin, DetailView):
             *context["monster"].base_schadensWI_str.split(" + "),
             *context["object"].rang_schadensWI_str.split(" + ")
         )
+        context["WEIGHT_SKILLED"] = RangStat.WEIGHT_SKILLED
+        context["WEIGHT_TRAINED"] = RangStat.WEIGHT_TRAINED
+        context["AMOUNT_TRAINED"] = RangStat.AMOUNT_TRAINED
 
         return context
 
@@ -340,6 +343,29 @@ def add_team_to_spielermonster(request, pk):
     team = get_object_or_404(MonsterTeam, pk=request.POST.get("team_id"))
     sp_mo.monsterteam_set.add(team)
     messages.success(request, f"{sp_mo.name or sp_mo.monster.name} ist {team.name} beigetreten")
+
+    redirect_path = request.GET.get("redirect")
+    return redirect(redirect_path if redirect_path and redirect_path.startswith("/dex/") else reverse("dex:monster_detail_farm", args=[pk]))
+
+@require_POST
+@login_required
+def set_training_of_spielermonster(request, pk):
+    sp_mo = get_object_or_404(SpielerMonster, pk=pk, spieler__name=request.user.username)
+    all_stats = [stat for stat, _ in RangStat.StatType]
+    stats = [stat.strip() for stat in request.POST.get("stat").split(" ")]
+    stats = set([stat for stat in stats if stat in all_stats])
+    if len(stats) != RangStat.AMOUNT_TRAINED:
+        messages.error(request, f"{sp_mo.name or sp_mo.monster.name} hat nicht genau {RangStat.AMOUNT_TRAINED} trainierte Stats!")
+
+    else:
+        db_stats = []
+        for rang_stat in RangStat.objects.filter(spielermonster=sp_mo):
+            rang_stat.trained = rang_stat.stat in stats
+            db_stats.append(rang_stat)
+        RangStat.objects.bulk_update(db_stats, fields=["trained"])
+
+        lables = [label for stat, label in RangStat.StatType if stat in stats]
+        messages.success(request, format_html(f"{sp_mo.name or sp_mo.monster.name} trainiert nun <b>{lables[0]}</b> und <b>{lables[1]}</b>!"))
 
     redirect_path = request.GET.get("redirect")
     return redirect(redirect_path if redirect_path and redirect_path.startswith("/dex/") else reverse("dex:monster_detail_farm", args=[pk]))

@@ -1,8 +1,9 @@
 import re
+from random import choice
 
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-from django.db.models import Subquery, OuterRef, CharField, F
+from django.db.models import Subquery, OuterRef, CharField, F, Value
 from django.db.models.functions import Concat, Cast
 from django.db.models.query import QuerySet
 from django.utils.html import format_html
@@ -244,6 +245,12 @@ class RangStat(models.Model):
         ("VER_G", "Verteidigung geistig"),
         ("VER_K", "Verteidigung körperlich"),
     ]
+    POLLS_PER_RANG = 2
+    WEIGHT_BASE = 1
+    WEIGHT_SKILLED = 2
+    WEIGHT_TRAINED = 3
+    AMOUNT_SKILLED = 2
+    AMOUNT_TRAINED = 3
     
     spielermonster = models.ForeignKey("SpielerMonster", on_delete=models.CASCADE)
     stat = models.CharField(max_length=5, choices=StatType)
@@ -261,6 +268,9 @@ class SpielerMonster(models.Model):
         ordering = ["spieler", "monster", "name"]
         verbose_name = "Spieler-Monster"
         verbose_name_plural = "Spieler-Monster"
+    
+    ARTSPEZIFISCHER_RANGFAKTOR = 20
+
 
     spieler = models.ForeignKey(Spieler, on_delete=models.CASCADE)
     monster = models.ForeignKey(Monster, on_delete=models.CASCADE)
@@ -272,6 +282,29 @@ class SpielerMonster(models.Model):
 
     def __str__(self):
         return f"{self.name or self.monster} von {self.spieler}"
+
+
+    def level_up(self):
+
+        # collect stat pool
+        pool = []
+        for stat in self.rangstat_set.all():
+            amount = RangStat.WEIGHT_BASE
+            if stat.skilled: amount += RangStat.WEIGHT_SKILLED
+            if stat.trained: amount += RangStat.WEIGHT_TRAINED
+            for _ in range(amount): pool.append(stat.stat)
+
+        # poll from stats
+        polls = []
+        for _ in range(RangStat.POLLS_PER_RANG):
+            polls.append(choice(pool))
+            pool = [p for p in pool if p not in polls]
+        print("polls:", polls)
+
+        # increase polled stats
+        for stat in self.rangstat_set.filter(stat__in=polls):
+            stat.wert += 1
+            stat.save()
 
 
     class RangManager(models.Manager):
@@ -298,17 +331,21 @@ class SpielerMonster(models.Model):
 
             return self.prefetch_related("monster").annotate(
                 rang_rang = Subquery(rang_qs.values("rang")),
+                rang_faktor = 1.0 * (F("rang_rang") + SpielerMonster.ARTSPEZIFISCHER_RANGFAKTOR) / SpielerMonster.ARTSPEZIFISCHER_RANGFAKTOR,
                 rang_reaktionsbonus = Subquery(rang_qs.values("reaktionsbonus")),
                 rang_angriffsbonus = Subquery(rang_qs.values("angriffsbonus")),
                 rang_schadensWI_str = ConcatSubquery(schadensWI_qs, separator=" + "),
 
-                initiative = F("monster__base_initiative") + Subquery(stat_qs.filter(stat="INI").values("wert")[:1]),
-                hp = F("monster__base_hp") + Subquery(stat_qs.filter(stat="HP").values("wert")[:1]),
-                nahkampf = F("monster__base_nahkampf") + Subquery(stat_qs.filter(stat="N").values("wert")[:1]),  
-                fernkampf = F("monster__base_fernkampf") + Subquery(stat_qs.filter(stat="F").values("wert")[:1]),    
-                magie = F("monster__base_magie") + Subquery(stat_qs.filter(stat="MA").values("wert")[:1]),    
-                verteidigung_geistig = F("monster__base_verteidigung_geistig") + Subquery(stat_qs.filter(stat="VER_G").values("wert")[:1]),
-                verteidigung_körperlich = F("monster__base_verteidigung_körperlich") + Subquery(stat_qs.filter(stat="VER_K").values("wert")[:1]),
+                initiative = Cast(F("monster__base_initiative") * F("rang_faktor") + Subquery(stat_qs.filter(stat="INI").values("wert")[:1]), output_field=models.IntegerField()),
+                hp = Cast(F("monster__base_hp") * F("rang_faktor") + Subquery(stat_qs.filter(stat="HP").values("wert")[:1]), output_field=models.IntegerField()),
+                nahkampf = Cast(F("monster__base_nahkampf") * F("rang_faktor") + Subquery(stat_qs.filter(stat="N").values("wert")[:1]), output_field=models.IntegerField()),
+                fernkampf = Cast(F("monster__base_fernkampf") * F("rang_faktor") + Subquery(stat_qs.filter(stat="F").values("wert")[:1]), output_field=models.IntegerField()),
+                magie = Cast(F("monster__base_magie") * F("rang_faktor") + Subquery(stat_qs.filter(stat="MA").values("wert")[:1]), output_field=models.IntegerField()),
+                verteidigung_geistig = Cast(F("monster__base_verteidigung_geistig") * F("rang_faktor") + Subquery(stat_qs.filter(stat="VER_G").values("wert")[:1]), output_field=models.IntegerField()),
+                verteidigung_körperlich = Cast(F("monster__base_verteidigung_körperlich") * F("rang_faktor") + Subquery(stat_qs.filter(stat="VER_K").values("wert")[:1]), output_field=models.IntegerField()),
+
+                skilled_stats = Concat(Value(" "), ConcatSubquery(stat_qs.filter(skilled=True).values("stat"), separator=" "), Value(" ")),
+                trained_stats = Concat(Value(" "), ConcatSubquery(stat_qs.filter(trained=True).values("stat"), separator=" "), Value(" ")),
             )
     objects = RangManager()
 

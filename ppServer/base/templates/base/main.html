@@ -11,6 +11,7 @@
 		<link rel="shortcut icon" href="{% static 'res/img/goren_logo.png' %}" type="image/x-icon">
 
 		{% bootstrap_css %}
+		<script src="{% static 'base/js/popper.min.js' %}"></script><!-- for bootstraps-popover -->
 		{% bootstrap_javascript %}
 		<link rel="stylesheet" href="{% static 'base/css/main.css' %}" type="text/css">
 		{% block extra-head %}{% endblock %}
