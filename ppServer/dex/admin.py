@@ -85,11 +85,11 @@ class MonsterWerteAdmin(admin.ModelAdmin):
     change_list_template = "dex/admin/change_list_monster.html"
 
     fieldsets = MonsterAdmin.fieldsets
-    list_display = ['image_', 'name_', 'base_hp', 'base_nahkampf', "base_fernkampf", "base_magie", "base_verteidigung_geistig", "base_verteidigung_körperlich"]
+    list_display = ['image_', 'name_', 'base_initiative', 'base_hp', 'base_nahkampf', "base_fernkampf", "base_magie", "base_verteidigung_geistig", "base_verteidigung_körperlich"]
 
     search_fields = ['number', 'name']
     list_display_links = ["name_"]
-    list_editable = ['base_hp', 'base_nahkampf', "base_fernkampf", "base_magie", "base_verteidigung_geistig", "base_verteidigung_körperlich"]
+    list_editable = ['base_initiative', 'base_hp', 'base_nahkampf', "base_fernkampf", "base_magie", "base_verteidigung_geistig", "base_verteidigung_körperlich"]
 
     def get_queryset(self, request: HttpRequest) -> QuerySet[Any]:
         return self.model.objects.with_rang()
@@ -141,17 +141,20 @@ class TypAdmin(admin.ModelAdmin):
 
 class AttackeAdmin(admin.ModelAdmin):
 
-    list_display = ['name', 'types_', 'description', 'damage_', 'macht_schaden', 'macht_effekt']
+    list_display = [
+        'name', 'types_', 'description', 'damage_', 'macht_schaden', 'macht_effekt', 'cost',
+        'angriff_nahkampf', 'angriff_fernkampf', 'angriff_magie', 'verteidigung_geistig', 'verteidigung_körperlich'
+    ]
 
-    list_filter = ["types", "macht_schaden", "macht_effekt"]
+    #list_filter = ["types", "macht_schaden", "macht_effekt", 'angriff_nahkampf', 'angriff_fernkampf', 'angriff_magie', 'verteidigung_geistig', 'verteidigung_körperlich']
     search_fields = ['name', "description"]
     list_display_links = ["name"]
-    list_editable = ["macht_schaden", "macht_effekt"]
+    list_editable = ['macht_schaden', "macht_effekt", "cost", 'angriff_nahkampf', 'angriff_fernkampf', 'angriff_magie', 'verteidigung_geistig', 'verteidigung_körperlich']
 
     def damage_(self, obj):
         return " + ".join([t.__str__() for t in obj.damage.all()]) or "-"
     def types_(self, obj):
-        return ", ".join([t.__str__() for t in obj.types.all()]) or "-"
+        return format_html(", ".join([t.tag() for t in obj.types.all()])) or "-"
 
 class StatInlineAdmin(admin.TabularInline):
     model = RangStat

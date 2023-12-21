@@ -118,6 +118,14 @@ class Attacke(models.Model):
     macht_schaden = models.BooleanField(default=False)
     macht_effekt = models.BooleanField(default=False)
 
+    angriff_nahkampf = models.BooleanField(default=False)
+    angriff_fernkampf = models.BooleanField(default=False)
+    angriff_magie = models.BooleanField(default=False)
+    verteidigung_geistig = models.BooleanField(default=False)
+    verteidigung_körperlich = models.BooleanField(default=False)
+
+    cost = models.PositiveSmallIntegerField(default=0, validators=[MaxValueValidator(7)])
+
     def __str__(self):
         return self.name
     
@@ -163,6 +171,7 @@ class Monster(models.Model):
     weight = models.FloatField(validators=[MinValueValidator(0.001)], help_text="in kg", default=1)
     height = models.FloatField(validators=[MinValueValidator(0.001)], help_text="in Metern", default=1)
 
+    base_initiative = models.SmallIntegerField(default=0)
     base_hp = models.SmallIntegerField(default=0)
     base_nahkampf = models.SmallIntegerField(default=0)
     base_fernkampf = models.SmallIntegerField(default=0)
@@ -227,6 +236,7 @@ class RangStat(models.Model):
         verbose_name_plural = "Rang Stats"
 
     StatType = [
+        ("INI", "Initiative"),
         ("HP", "HP"),
         ("N", "Nahkampf"),
         ("F", "Fernkampf"),
@@ -292,12 +302,13 @@ class SpielerMonster(models.Model):
                 rang_angriffsbonus = Subquery(rang_qs.values("angriffsbonus")),
                 rang_schadensWI_str = ConcatSubquery(schadensWI_qs, separator=" + "),
 
+                initiative = F("monster__base_initiative") + Subquery(stat_qs.filter(stat="INI").values("wert")[:1]),
+                hp = F("monster__base_hp") + Subquery(stat_qs.filter(stat="HP").values("wert")[:1]),
                 nahkampf = F("monster__base_nahkampf") + Subquery(stat_qs.filter(stat="N").values("wert")[:1]),  
                 fernkampf = F("monster__base_fernkampf") + Subquery(stat_qs.filter(stat="F").values("wert")[:1]),    
                 magie = F("monster__base_magie") + Subquery(stat_qs.filter(stat="MA").values("wert")[:1]),    
                 verteidigung_geistig = F("monster__base_verteidigung_geistig") + Subquery(stat_qs.filter(stat="VER_G").values("wert")[:1]),
                 verteidigung_körperlich = F("monster__base_verteidigung_körperlich") + Subquery(stat_qs.filter(stat="VER_K").values("wert")[:1]),
-                hp = F("monster__base_hp") + Subquery(stat_qs.filter(stat="HP").values("wert")[:1]),
             )
     objects = RangManager()
 

@@ -203,6 +203,7 @@ class MonsterFarmDetailView(LoginRequiredMixin, DetailView):
             Prefetch("alternativeForms", Monster.objects.load_card()),
             Prefetch("opposites", Monster.objects.load_card()),
         ).get(id=context["object"].monster.id)
+        context["max_stat_wert"] = max(self.object.initiative, self.object.hp, self.object.nahkampf, self.object.fernkampf, self.object.magie, self.object.verteidigung_geistig, self.object.verteidigung_körperlich)
         context["schadensWI"] = Dice.toString(
             *context["monster"].base_schadensWI_str.split(" + "),
             *context["object"].rang_schadensWI_str.split(" + ")

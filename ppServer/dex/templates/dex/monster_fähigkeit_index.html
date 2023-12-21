@@ -1,5 +1,5 @@
 {% extends 'base/headed_main.html' %}
-{% load static %}
+{% load static join_ids %}
 
 {% block extra-head %}
 <style>
@@ -63,7 +63,7 @@
               <ul class="list-unstyled" id="monsters-{{ fähigkeit.id }}">
                 {% for monster in fähigkeit.monster_set.all %}
                   <li>
-                    {% include 'dex/monster-listentry.html' with monster=monster include_styles=forloop.first %}
+                    {% include 'dex/monster-listentry.html' with monster=monster id=fähigkeit.id|join_ids:monster.id include_styles=forloop.first %}
                   </li>
                 {% endfor %}
               </ul>
