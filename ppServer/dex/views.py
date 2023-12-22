@@ -271,13 +271,28 @@ class MonsterFarmLevelupView(LoginRequiredMixin, DetailView):
         self.object = context["object"]
         context["topic"] = (self.object.name or self.object.monster.name) + " - Level up"
         context["max_stat_wert"] = max(self.object.initiative, self.object.hp, self.object.nahkampf, self.object.fernkampf, self.object.magie, self.object.verteidigung_geistig, self.object.verteidigung_körperlich)
-        context["new_rang"] = MonsterRang.objects.filter(rang=self.object.rang+1).first()
+        context["new_rang"] = MonsterRang.objects.prefetch_related("schadensWI").filter(rang=self.object.rang+1).first()
 
+        # stats & stat calculation values for js
         context["all_stats"] = [stat for stat, _ in RangStat.StatType]
         context["POLLS_PER_RANG"] = RangStat.POLLS_PER_RANG
         context["WEIGHT_BASE"] = RangStat.WEIGHT_BASE
         context["WEIGHT_SKILLED"] = RangStat.WEIGHT_SKILLED
         context["WEIGHT_TRAINED"] = RangStat.WEIGHT_TRAINED
+
+        # schadensWI
+        base_schadensWI = [d.__str__() for d in self.object.monster.base_schadensWI.all()]
+        context["schadensWI"] = Dice.toString(
+            *base_schadensWI,
+            *self.object.rang_schadensWI_str.split(" + ")
+        )
+        if context["new_rang"]:
+            context["new_schadensWI"] = Dice.toString(
+                *base_schadensWI,
+                *[d.__str__() for d in context["new_rang"].schadensWI.all()],
+            )
+        else: 
+            context["new_schadensWI"] = context["schadensWI"]
 
         return context
 

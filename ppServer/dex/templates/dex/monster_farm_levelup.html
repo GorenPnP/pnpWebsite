@@ -27,12 +27,9 @@
           </li>
 
           <!-- schadensWI -->
-          {% if new_rang and new_rang.schadensWI != object.rang_schadensWI %}
+          {% if schadensWI != new_schadensWI %}
           <li><b>Schadenswiderstand: </b><span>
-            {% with base_schadensWI=object.monster.base_schadensWI|dice %}
-            {{ base_schadensWI }} + {{ object.rang_schadensWI_str }} ➔
-            {{ base_schadensWI }} + {{ new_rang.schadensWI|dice }}
-            {% endwith %}
+            {{ schadensWI }} ➔ {{ new_schadensWI }}
           </span></li>
           {% endif %}
 
