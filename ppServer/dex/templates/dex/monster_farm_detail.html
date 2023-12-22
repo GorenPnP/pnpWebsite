@@ -50,13 +50,16 @@
           <li><b>Schadenswiderstand: </b><span>{{ schadensWI }}</span></li>
           <li><b>Angriffsbonus: </b><span>{{ monster.base_attackbonus|add:object.rang_angriffsbonus }}</span></li>
           <li><b>Reaktionsbonus: </b><span>{{ monster.base_reaktionsbonus|add:object.rang_reaktionsbonus }}</span></li>
+          <li><b>Attackenpunkte: </b><span>{{ object.attackenpunkte }}</span></li>
         </ul>
+        <hr>
+
         <div class="stats-container mt-3">
 
           <b>Rang:</b>
           <div>{{ object.rang }}</div>
           <div>
-            <button id="rang_increase_btn" class="btn btn-sm btn-success" data-bs-toggle="popover" data-bs-title="Level up" data-bs-content="Coming soon..">+</button>
+            <a id="rang_increase_btn" class="btn btn-sm btn-success" href="{% url 'dex:monster_farm_levelup' object.id %}">+</a>
           </div>
 
           <b class="stat">Initiative:</b>

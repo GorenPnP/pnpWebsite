@@ -281,18 +281,13 @@ class SpielerMonster(models.Model):
     rang = models.SmallIntegerField()
     attacken = models.ManyToManyField(Attacke)
 
+    attackenpunkte = models.SmallIntegerField(default=0)
+
     def __str__(self):
         return f"{self.name or self.monster} von {self.spieler}"
 
 
     def level_up(self):
-        # TODO:
-        # display:
-        #   reaktionsbonus, attackbonus, schadensWI
-        # calc:
-        #   7 stats of Monsterart
-        # calc & save:
-        #   this, attackenpunkte
 
         # collect stat pool
         pool = []
@@ -312,7 +307,7 @@ class SpielerMonster(models.Model):
         # increase polled stats
         for stat in self.rangstat_set.filter(stat__in=polls):
             stat.wert += 1
-            stat.save()
+            stat.save(update_fields=["wert"])
 
 
     class RangManager(models.Manager):
@@ -339,7 +334,7 @@ class SpielerMonster(models.Model):
 
             return self.prefetch_related("monster").annotate(
                 rang_rang = Subquery(rang_qs.values("rang")),
-                rang_faktor = 1.0 * (F("rang_rang") + SpielerMonster.ARTSPEZIFISCHER_RANGFAKTOR) / SpielerMonster.ARTSPEZIFISCHER_RANGFAKTOR,
+                rang_faktor = 1.0 * (F("rang") + SpielerMonster.ARTSPEZIFISCHER_RANGFAKTOR) / SpielerMonster.ARTSPEZIFISCHER_RANGFAKTOR,
                 rang_reaktionsbonus = Subquery(rang_qs.values("reaktionsbonus")),
                 rang_angriffsbonus = Subquery(rang_qs.values("angriffsbonus")),
                 rang_schadensWI_str = ConcatSubquery(schadensWI_qs, separator=" + "),

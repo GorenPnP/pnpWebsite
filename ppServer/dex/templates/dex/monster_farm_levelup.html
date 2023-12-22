@@ -1,0 +1,175 @@
+{% extends 'base/headed_main.html' %}
+{% load static dice boobles l10n %}
+
+{% block extra-head %}
+<link rel="stylesheet" href="{% static 'dex/css/monster_farm_levelup.css' %}">
+{{ object.skilled_stats|json_script:"skilled" }}
+{{ object.trained_stats|json_script:"trained" }}
+{{ all_stats|json_script:"all_stats" }}
+
+{{ WEIGHT_BASE|json_script:"weight_base" }}
+{{ WEIGHT_SKILLED|json_script:"weight_skilled" }}
+{{ WEIGHT_TRAINED|json_script:"weight_trained" }}
+{{ POLLS_PER_RANG|json_script:"amount_polls" }}
+<script src="{% static 'dex/js/monster_farm_levelup.js' %}" defer></script>
+{% endblock %}
+
+{% block main %}
+  <div class="card text-dark" style="background-color: var(--bs-orange)">
+    <div class="card-body">
+      <div class="card-text">
+
+        <h2 class="h4">Erhöhte Werte:</h2>
+        <ul class="auto-increased-list">
+          <!-- rang -->
+          <li><b>Rang: </b>
+            <span>{{ object.rang }} ➔ {{ object.rang|add:1 }}</span>
+          </li>
+
+          <!-- schadensWI -->
+          {% if new_rang and new_rang.schadensWI != object.rang_schadensWI %}
+          <li><b>Schadenswiderstand: </b><span>
+            {% with base_schadensWI=object.monster.base_schadensWI|dice %}
+            {{ base_schadensWI }} + {{ object.rang_schadensWI_str }} ➔
+            {{ base_schadensWI }} + {{ new_rang.schadensWI|dice }}
+            {% endwith %}
+          </span></li>
+          {% endif %}
+
+          <!-- angriffsbonus -->
+          {% if new_rang and new_rang.angriffsbonus != object.rang_angriffsbonus %}
+          <li><b>Angriffsbonus: </b><span>
+            {{ object.monster.base_attackbonus|add:object.rang_angriffsbonus }} ➔
+            {{ object.monster.base_attackbonus|add:new_rang.angriffsbonus }}
+          </span></li>
+          {% endif %}
+
+          <!-- reaktionsbonus -->
+          {% if new_rang and new_rang.reaktionsbonus != object.rang_reaktionsbonus %}
+          <li><b>Reaktionsbonus: </b><span>
+            {{ object.monster.base_reaktionsbonus|add:object.rang_reaktionsbonus }} ➔
+            {{ object.monster.base_reaktionsbonus|add:new_rang.reaktionsbonus }}
+          </span></li>
+          {% endif %}
+
+          <!-- attackenpunkte -->
+          {% if new_rang and new_rang.attackenpunkte %}
+          <li><b>Attackenpunkte: </b><span>
+            + {{ new_rang.attackenpunkte }}
+          </span></li>
+          {% endif %}
+        </ul>
+
+        <div class="stats-container mt-5">
+
+          <h2 class="h3">Stats:</h2>
+          <span></span>
+          <div><b>W20-Liste</b><small class="d-block">zum selbst würfeln</small></div>
+
+          <b class="stat">Initiative:</b>
+          <div class="wert" style="--width: calc({% localize off %}{{ object.initiative }} / {{ max_stat_wert }}{% endlocalize %} *100%)">
+            <small>{{ object.initiative }}{% if object.initiative != object.new_initiative %} ➔ {{ object.new_initiative }}{% endif %}
+            </small>
+          </div>
+          <button class="booble-container">
+            {% base_booble %}
+            {% if ' INI ' in object.skilled_stats %}{% skilled_booble %}{% endif %}
+            {% if ' INI ' in object.trained_stats %}{% trained_booble %}{% endif %}
+          </button>
+
+          <b class="stat">HP:</b>
+          <div class="wert" style="--width: calc({% localize off %}{{ object.hp }} / {{ max_stat_wert }}{% endlocalize %} *100%)"><small>
+            {{ object.hp }}{% if object.hp != object.new_hp %} ➔ {{ object.new_hp }}{% endif %} HP
+          </small></div>
+          <button class="booble-container">
+            {% base_booble %}
+            {% if ' HP ' in object.skilled_stats %}{% skilled_booble %}{% endif %}
+            {% if ' HP ' in object.trained_stats %}{% trained_booble %}{% endif %}
+          </button>
+
+          <b class="stat">Nahkampf:</b>
+          <div class="wert" style="--width: calc({% localize off %}{{ object.nahkampf }} / {{ max_stat_wert }}{% endlocalize %} *100%)">
+            <small>{{ object.nahkampf }}{% if object.nahkampf != object.new_nahkampf %} ➔ {{ object.new_nahkampf }}{% endif %}</small>
+          </div>
+          <button class="booble-container">
+            {% base_booble %}
+            {% if ' N ' in object.skilled_stats %}{% skilled_booble %}{% endif %}
+            {% if ' N ' in object.trained_stats %}{% trained_booble %}{% endif %}
+          </button>
+
+          <b class="stat">Fernkampf:</b>
+          <div class="wert" style="--width: calc({% localize off %}{{ object.fernkampf }} / {{ max_stat_wert }}{% endlocalize %} *100%)">
+            <small>{{ object.fernkampf }}{% if object.fernkampf != object.new_fernkampf %} ➔ {{ object.new_fernkampf }}{% endif %}</small>
+          </div>
+          <button class="booble-container">
+            {% base_booble %}
+            {% if ' F ' in object.skilled_stats %}{% skilled_booble %}{% endif %}
+            {% if ' F ' in object.trained_stats %}{% trained_booble %}{% endif %}
+          </button>
+
+          <b class="stat">Magie:</b>
+          <div class="wert" style="--width: calc({% localize off %}{{ object.magie }} / {{ max_stat_wert }}{% endlocalize %} *100%)">
+            <small>{{ object.magie }}{% if object.magie != object.new_magie %} ➔ {{ object.new_magie }}{% endif %}</small>
+          </div>
+          <button class="booble-container">
+            {% base_booble %}
+            {% if ' MA ' in object.skilled_stats %}{% skilled_booble %}{% endif %}
+            {% if ' MA ' in object.trained_stats %}{% trained_booble %}{% endif %}
+          </button>
+              
+          <b class="stat">Vert. geistig:</b>
+          <div class="wert" style="--width: calc({% localize off %}{{ object.verteidigung_geistig }} / {{ max_stat_wert }}{% endlocalize %} *100%)">
+            <small>{{ object.verteidigung_geistig }}{% if object.verteidigung_geistig != object.new_verteidigung_geistig %} ➔ {{ object.new_verteidigung_geistig }}{% endif %}</small>
+          </div>
+          <button class="booble-container">
+            {% base_booble %}
+            {% if ' VER_G ' in object.skilled_stats %}{% skilled_booble %}{% endif %}
+            {% if ' VER_G ' in object.trained_stats %}{% trained_booble %}{% endif %}
+          </button>
+              
+          <b class="stat">Vert. körperlich:</b>
+          <div class="wert" style="--width: calc({% localize off %}{{ object.verteidigung_körperlich }} / {{ max_stat_wert }}{% endlocalize %} *100%)">
+            <small>{{ object.verteidigung_körperlich }}{% if object.verteidigung_körperlich != object.new_verteidigung_körperlich %} ➔ {{ object.new_verteidigung_körperlich }}{% endif %}</small>
+          </div>
+          <button class="booble-container">
+            {% base_booble %}
+            {% if ' VER_K ' in object.skilled_stats %}{% skilled_booble %}{% endif %}
+            {% if ' VER_K ' in object.trained_stats %}{% trained_booble %}{% endif %}
+          </button>
+        </div>
+
+        <h2 class="h3 mt-5">Erhöhte/Erwürfelte Stats:</h2>
+        <p>
+          Du musst <b>{{ POLLS_PER_RANG }} verschiedene</b> würfeln, die sich dann je um 1 Punkt erhöhen.
+          <button id="auto-roll-btn" class="btn btn-sm btn-danger d-inline-block" style="float: right">automatisch würfeln lassen</button>
+        </p>
+
+        <form class="d-flex flex-wrap gap-2" method="post" id="stat-form">
+          {% csrf_token %}
+
+          <input type="checkbox" class="btn-check" name="INI" id="btn-Initiative" autocomplete="off">
+          <label class="btn btn-outline-dark" for="btn-Initiative">Initiative</label>
+
+          <input type="checkbox" class="btn-check" name="HP" id="btn-HP" autocomplete="off">
+          <label class="btn btn-outline-dark" for="btn-HP">HP</label>
+
+          <input type="checkbox" class="btn-check" name="N" id="btn-Nahkampf" autocomplete="off">
+          <label class="btn btn-outline-dark" for="btn-Nahkampf">Nahkampf</label>
+
+          <input type="checkbox" class="btn-check" name="F" id="btn-Fernkampf" autocomplete="off">
+          <label class="btn btn-outline-dark" for="btn-Fernkampf">Fernkampf</label>
+
+          <input type="checkbox" class="btn-check" name="MA" id="btn-Magie" autocomplete="off">
+          <label class="btn btn-outline-dark" for="btn-Magie">Magie</label>
+
+          <input type="checkbox" class="btn-check" name="VER_G" id="btn-g" autocomplete="off">
+          <label class="btn btn-outline-dark" for="btn-g">Verteidigung geistig</label>
+
+          <input type="checkbox" class="btn-check" name="VER_K" id="btn-k" autocomplete="off">
+          <label class="btn btn-outline-dark" for="btn-k">Verteidigung körperlich</label>
+        </form>
+        <button type="submit" disabled class="btn btn-lg btn-success d-block" id="stat-sub-btn" form="stat-form">Stats so speichern</button>
+      </div>
+    </div>
+  </div>
+{% endblock %}

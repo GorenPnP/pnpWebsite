@@ -17,7 +17,7 @@ def add_stats_to_spielermonster(sender, **kwargs):
             obj, _ = RangStat.objects.get_or_create(stat=stat, spielermonster=instance)
             if i in skilled_at_indices:
                 obj.skilled = True
-                obj.save()
+                obj.save(update_fields=["skilled"])
 
         # rank-up :)
         for _ in range(instance.rang):

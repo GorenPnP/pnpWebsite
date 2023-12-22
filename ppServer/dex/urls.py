@@ -17,6 +17,7 @@ urlpatterns = [
 
     path('monster/farm', views.MonsterFarmView.as_view(), name='monster_farm'),
     path('monster/farm/<int:pk>', views.MonsterFarmDetailView.as_view(), name='monster_detail_farm'),
+    path('monster/farm/<int:pk>/levelup', views.MonsterFarmLevelupView.as_view(), name='monster_farm_levelup'),
     path('monster/team', views.MonsterTeamView.as_view(), name='monster_team'),
     path('monster/team/<int:pk>', views.MonsterTeamDetailView.as_view(), name='monster_team_detail'),
     

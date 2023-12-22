@@ -26,6 +26,10 @@ class SpielerMonsterForm(forms.ModelForm):
     class Meta:
         model = SpielerMonster
         fields = ["name", "rang"]
+class SpielerMonsterNameForm(forms.ModelForm):
+    class Meta:
+        model = SpielerMonster
+        fields = ["name"]
 
 
 class CatchMonsterForm(forms.ModelForm):

@@ -175,7 +175,7 @@ class MonsterFarmView(LoginRequiredMixin, ListView):
         else:
             messages.error(request, "Etwas ist schief gelaufen. Das Monster konnte nicht gefangen werden.")
         return redirect(request.build_absolute_uri())
-    
+
 
 class MonsterFarmDetailView(LoginRequiredMixin, DetailView):
     model = SpielerMonster
@@ -190,7 +190,7 @@ class MonsterFarmDetailView(LoginRequiredMixin, DetailView):
         )
         self.object = context["object"]
         context["topic"] = self.object.name or self.object.monster.name
-        context["form"] = SpielerMonsterForm(instance=context["object"])
+        context["form"] = SpielerMonsterNameForm(instance=context["object"])
         context["other_attacks"] = Attacke.objects.exclude(spielermonster=self.object)
         context["other_teams"] = MonsterTeam.objects.filter(spieler=context["spieler"]).exclude(monster=self.object)
         context["monster"] = Monster.objects.with_rang().prefetch_related(
@@ -216,28 +216,131 @@ class MonsterFarmDetailView(LoginRequiredMixin, DetailView):
             Prefetch("attacken", queryset=Attacke.objects.load_card())
         )
         
-    def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
+    def get(self, request: HttpRequest, pk: int, *args: Any, **kwargs: Any) -> HttpResponse:
         response = super().get(request, *args, **kwargs)    # let self.get_context_data() set self.object to perform the query only once
         
+        # authorization
         spieler = get_object_or_404(Spieler, name=self.request.user.username)
+        get_object_or_404(self.model, spieler=spieler, pk=pk)
         if  not self.object.monster.visible.filter(name=spieler.name).exists():
             return redirect("dex:monster_farm")
 
         return response
     
-    def post(self, request, **kwargs):
-        form = SpielerMonsterForm(request.POST, instance=self.get_object())
+    def post(self, request, pk: int, *args, **kwargs):
+        # authorization
+        spieler = get_object_or_404(Spieler, name=self.request.user.username)
+        object = get_object_or_404(self.model, spieler=spieler, pk=pk)
+        if not object.monster.visible.filter(name=spieler.name).exists():
+            return redirect("dex:monster_farm")
+
+        # work
+        form = SpielerMonsterNameForm(request.POST, instance=self.get_object())
         form.full_clean()
         if form.is_valid():
             obj = form.save()
             if obj.name == obj.monster.name:
                 obj.name = None
-                obj.save()
+                obj.save(update_fields=["name"])
             messages.success(request, "Änderungen erfolgreich gespeichert")
         else:
             messages.error(request, "Ein Fehler ist aufgetreten, die Änderungen wurden nicht gespeichert")
         return redirect(request.build_absolute_uri())
 
+
+class MonsterFarmLevelupView(LoginRequiredMixin, DetailView):
+    """
+        display:
+          reaktionsbonus, attackbonus, schadensWI
+        calc:
+          7 stats of Monsterart
+        calc & save:
+          random polls of stats, attackenpunkte
+    """
+
+    model = SpielerMonster
+    template_name = "dex/monster_farm_levelup.html"
+
+    def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
+        context = super().get_context_data(
+            **kwargs,
+            app_index = "Farm",
+            app_index_url = reverse("dex:monster_farm"),
+            spieler = get_object_or_404(Spieler, name=self.request.user.username)
+        )
+        self.object = context["object"]
+        context["topic"] = (self.object.name or self.object.monster.name) + " - Level up"
+        context["max_stat_wert"] = max(self.object.initiative, self.object.hp, self.object.nahkampf, self.object.fernkampf, self.object.magie, self.object.verteidigung_geistig, self.object.verteidigung_körperlich)
+        context["new_rang"] = MonsterRang.objects.filter(rang=self.object.rang+1).first()
+
+        context["all_stats"] = [stat for stat, _ in RangStat.StatType]
+        context["POLLS_PER_RANG"] = RangStat.POLLS_PER_RANG
+        context["WEIGHT_BASE"] = RangStat.WEIGHT_BASE
+        context["WEIGHT_SKILLED"] = RangStat.WEIGHT_SKILLED
+        context["WEIGHT_TRAINED"] = RangStat.WEIGHT_TRAINED
+
+        return context
+
+    def get_queryset(self) -> QuerySet[Any]:
+        stat_qs = RangStat.objects.filter(spielermonster__id=OuterRef("id"))
+
+        return self.model.objects.with_rang_and_stats().annotate(
+            new_rang_faktor = 1.0 * (F("rang")+1 + SpielerMonster.ARTSPEZIFISCHER_RANGFAKTOR) / SpielerMonster.ARTSPEZIFISCHER_RANGFAKTOR,
+
+            new_initiative = Cast(F("monster__base_initiative") * F("new_rang_faktor") + Subquery(stat_qs.filter(stat="INI").values("wert")[:1]), output_field=models.IntegerField()),
+            new_hp = Cast(F("monster__base_hp") * F("new_rang_faktor") + Subquery(stat_qs.filter(stat="HP").values("wert")[:1]), output_field=models.IntegerField()),
+            new_nahkampf = Cast(F("monster__base_nahkampf") * F("new_rang_faktor") + Subquery(stat_qs.filter(stat="N").values("wert")[:1]), output_field=models.IntegerField()),
+            new_fernkampf = Cast(F("monster__base_fernkampf") * F("new_rang_faktor") + Subquery(stat_qs.filter(stat="F").values("wert")[:1]), output_field=models.IntegerField()),
+            new_magie = Cast(F("monster__base_magie") * F("new_rang_faktor") + Subquery(stat_qs.filter(stat="MA").values("wert")[:1]), output_field=models.IntegerField()),
+            new_verteidigung_geistig = Cast(F("monster__base_verteidigung_geistig") * F("new_rang_faktor") + Subquery(stat_qs.filter(stat="VER_G").values("wert")[:1]), output_field=models.IntegerField()),
+            new_verteidigung_körperlich = Cast(F("monster__base_verteidigung_körperlich") * F("new_rang_faktor") + Subquery(stat_qs.filter(stat="VER_K").values("wert")[:1]), output_field=models.IntegerField()),
+
+        )
+        
+    def get(self, request: HttpRequest, pk: int,  *args: Any, **kwargs: Any) -> HttpResponse:
+        response = super().get(request, *args, **kwargs)    # let self.get_context_data() set self.object to perform the query only once
+
+        # authorization
+        spieler = get_object_or_404(Spieler, name=self.request.user.username)
+        get_object_or_404(self.model, spieler=spieler, pk=pk)
+        if not self.object.monster.visible.filter(name=spieler.name).exists():
+            return redirect("dex:monster_farm")
+
+        return response
+    
+    def post(self, request, pk: int, *args, **kwargs):
+        # authorization
+        spieler = get_object_or_404(Spieler, name=self.request.user.username)
+        object = get_object_or_404(self.model, spieler=spieler, pk=pk)
+        if not object.monster.visible.filter(name=spieler.name).exists():
+            return redirect("dex:monster_farm")
+
+        # work
+        all_stats = [stat for stat, _ in RangStat.StatType]
+        stats = set([key for key in request.POST.keys() if key in all_stats])
+        if len(stats) != RangStat.POLLS_PER_RANG:
+            messages.error(request, f"Es sind nicht {RangStat.POLLS_PER_RANG} Stats ausgewählt worden")
+            return redirect(request.build_absolute_uri())
+        
+        # stats
+        db_stats = []
+        for stat in object.rangstat_set.filter(stat__in=stats):
+            stat.wert += 1
+            db_stats.append(stat)
+        RangStat.objects.bulk_update(db_stats, fields=["wert"])
+
+        # attackenpunkte
+        new_rang = MonsterRang.objects.filter(rang=object.rang+1).first()
+        if new_rang and new_rang.attackenpunkte:
+            object.attackenpunkte += new_rang.attackenpunkte
+            object.save(update_fields=["attackenpunkte"])
+
+        # rang
+        object.rang += 1
+        object.save(update_fields=["rang"])
+
+        messages.success(request, "Levelup erfolgreich gespeichert")
+        return redirect(reverse("dex:monster_detail_farm", args=[pk]))
 
 
 
@@ -306,7 +409,7 @@ class MonsterTeamDetailView(LoginRequiredMixin, DetailView):
             obj.name = form.cleaned_data["name"]
             obj.farbe = form.cleaned_data["farbe"]
             obj.textfarbe = form.cleaned_data["textfarbe"]
-            obj.save()
+            obj.save(update_fields=["name", "farbe", "textfarbe"])
             messages.success(request, "Änderungen erfolgreich gespeichert")
         else:
             messages.error(request, "Ein Fehler ist aufgetreten, die Änderungen wurden nicht gespeichert")

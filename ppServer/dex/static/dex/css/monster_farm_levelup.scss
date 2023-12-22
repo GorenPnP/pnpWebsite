@@ -1,0 +1,42 @@
+@import "./stats_container";
+@import "./del_btn";
+
+main.main-container {
+    max-width: 500px;
+    width: fit-content;
+    margin: auto;
+
+    --booble-size: 1.6rem;
+}
+
+.auto-increased-list li {
+    margin-block: .8em;
+}
+
+
+.stats-container {
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    justify-content: stretch;
+
+}
+.booble-container {
+    display: flex;
+
+    // no button styles
+    border: 0;
+    background-color: transparent;
+    height: var(--booble-size);
+    aspect-ratio: 6;
+}
+.booble {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: .1em;
+    font-weight: 800;
+}
+
+#stat-form {
+    margin-block: 3em;
+}

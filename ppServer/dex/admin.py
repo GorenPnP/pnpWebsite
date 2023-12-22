@@ -170,7 +170,7 @@ class StatInlineAdmin(admin.TabularInline):
 
 class SpielerMonsterAdmin(admin.ModelAdmin):
 
-    list_display = ['spieler', 'name', 'monster', 'rang']
+    list_display = ['spieler', 'name', 'monster', 'rang', "attackenpunkte"]
 
     list_filter = ["spieler", "monster"]
     search_fields = ['spieler__name", "monster__name']

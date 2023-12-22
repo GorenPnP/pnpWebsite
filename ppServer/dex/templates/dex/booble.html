@@ -3,22 +3,14 @@
     /* --booble-size: 1em; */
 
     height: var(--booble-size);
-    aspect-ratio: 1;
+    width: var(--booble-size);
     border-radius: 50%;
     box-shadow: calc(var(--booble-size) * 0.1) calc(var(--booble-size) *0.1) calc(var(--booble-size) *0.25) calc(var(--booble-size) *0.1) rgba(var(--bs-dark-rgb), .2);
     background: radial-gradient(circle at 35% 35%, var(--bg-color), #222);
 }
+.booble--base { --bg-color: hsl(0, 0%, 100%); }
 .booble--skilled { --bg-color: hsl(96, 100%, 48%); }
 .booble--trained { --bg-color: hsl(302, 100%, 48%); }
-
-/* off */
-.booble-container:not(.skilled) .booble--skilled,
-.booble-container:not(.trained):not(:hover) .booble--trained { opacity: 0; height: 0; overflow: hidden; }
-/* turn off? */
-.booble-container.trained:hover .booble--trained { opacity: 1; --bg-color: hsl(302, 100%, 18%); }
-.booble-container.trained:hover .booble--trained:after { content: "x"; color: #ddd; margin-top: -.4em; display: block; text-align: center; }
-/* turn on? */
-.booble-container:hover:not(.trained) .booble--trained { opacity: .5; }
 </style>
 
 {% with ''|center:amount as range %}
