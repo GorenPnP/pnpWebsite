@@ -106,8 +106,8 @@ class MonsterFähigkeitAdmin(admin.ModelAdmin):
 
 
 class MonsterRangAdmin(admin.ModelAdmin):
-    list_display = ["rang", "schadensWI_", "reaktionsbonus", "angriffsbonus"]
-    list_editable = ["reaktionsbonus", "angriffsbonus"]
+    list_display = ["rang", "schadensWI_", "attackenpunkte", "reaktionsbonus", "angriffsbonus"]
+    list_editable = ["attackenpunkte", "reaktionsbonus", "angriffsbonus"]
 
     def schadensWI_(self, obj):
         return " + ".join([t.__str__() for t in obj.schadensWI.all()]) or "-"

@@ -148,6 +148,7 @@ class MonsterRang(models.Model):
     schadensWI = models.ManyToManyField(Dice, blank=True)
     reaktionsbonus = models.PositiveSmallIntegerField(default=0)
     angriffsbonus = models.PositiveSmallIntegerField(default=0)
+    attackenpunkte = models.PositiveSmallIntegerField(default=0)
 
     def __str__(self):
         return f"Rang {self.rang}"
@@ -285,6 +286,13 @@ class SpielerMonster(models.Model):
 
 
     def level_up(self):
+        # TODO:
+        # display:
+        #   reaktionsbonus, attackbonus, schadensWI
+        # calc:
+        #   7 stats of Monsterart
+        # calc & save:
+        #   this, attackenpunkte
 
         # collect stat pool
         pool = []
