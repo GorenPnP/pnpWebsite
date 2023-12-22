@@ -305,6 +305,10 @@ class MonsterFarmLevelupView(LoginRequiredMixin, DetailView):
         get_object_or_404(self.model, spieler=spieler, pk=pk)
         if not self.object.monster.visible.filter(name=spieler.name).exists():
             return redirect("dex:monster_farm")
+        
+        if self.object.rangstat_set.filter(trained=True).count() != RangStat.AMOUNT_TRAINED:
+            messages.error(request, f"Du musst {RangStat.AMOUNT_TRAINED} Stats trainieren, bevor das Monster im Rang steigen kann")
+            return redirect(reverse("dex:monster_detail_farm", args=[pk]))
 
         return response
     
@@ -314,6 +318,10 @@ class MonsterFarmLevelupView(LoginRequiredMixin, DetailView):
         object = get_object_or_404(self.model, spieler=spieler, pk=pk)
         if not object.monster.visible.filter(name=spieler.name).exists():
             return redirect("dex:monster_farm")
+        
+        if object.rangstat_set.filter(trained=True).count() != RangStat.AMOUNT_TRAINED:
+            messages.error(request, f"Du musst {RangStat.AMOUNT_TRAINED} Stats trainieren, bevor das Monster im Rang steigen kann")
+            return redirect(reverse("dex:monster_detail_farm", args=[pk]))
 
         # work
         all_stats = [stat for stat, _ in RangStat.StatType]
