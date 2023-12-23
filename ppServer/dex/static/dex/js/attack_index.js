@@ -97,11 +97,19 @@ function filter_and_sort() {
     const list = document.querySelector("#attack-list");
     [...list.children]
         .sort((a, b) => {
-            const a_name = a.querySelector(".attack__name").innerHTML.toLowerCase();
-            const b_name = b.querySelector(".attack__name").innerHTML.toLowerCase();
+            let a_field, b_field;
 
-            if (!sort || sort == "name asc") { return a_name < b_name ? -1 : (a_name === b_name ? 0 : 1); }
-            if (sort == "name desc") { return a_name > b_name ? -1 : (a_name === b_name ? 0 : 1); }
+            if (sort.includes("type")) {
+                a_field = a.querySelector(".attack__types div").textContent.toLowerCase();
+                b_field = b.querySelector(".attack__types div").textContent.toLowerCase();
+            }
+            if (!sort || sort.includes("name")) {
+                a_field = a.querySelector(".attack__name").innerHTML.toLowerCase();
+                b_field = b.querySelector(".attack__name").innerHTML.toLowerCase();
+            }
+
+            if (!sort || sort.includes(" asc")) { return a_field < b_field ? -1 : (a_field === b_field ? 0 : 1); }
+            if (sort.includes(" desc")) { return a_field > b_field ? -1 : (a_field === b_field ? 0 : 1); }
         })
         .forEach(node => list.appendChild(node));
 }
