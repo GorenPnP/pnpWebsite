@@ -1,0 +1,128 @@
+.shadow {
+    box-shadow: var(--shadow-pos, .1em) var(--shadow-pos, .1em) 1em .1em rgba(var(--bs-dark-rgb), .4);
+}
+
+.attack.card {
+    --damage-size: 90px;
+
+    text-decoration: none;
+    margin-block: 1px;
+
+    display: grid;
+    grid-template-columns: auto 1fr var(--damage-size);
+    grid-template-rows: auto auto;
+    grid-template-areas: 'name cost   damage'
+                         'type vector damage';
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 0 .2em;
+
+    overflow: hidden;
+
+    background-color: rgba(104, 18, 243, .5);
+}
+.attack__name {
+    grid-area: name;
+
+    padding: 5px 10px 2px;
+    border-bottom-right-radius: 5px;
+    width: fit-content;
+
+    font-size: 1.05rem;
+    background-color: var(--bs-teal);
+    
+    --shadow-pos: .1em;
+}
+.attack__types {
+    grid-area: type;
+    
+    padding: .5em 0 0 .5em;
+    color: rgba(255, 255, 255, .8);
+
+    display: flex;
+    gap: 5px;
+    font-size: 0.67rem;
+}
+.attack__damage {
+    grid-area: damage;
+    
+    min-height: calc(var(--damage-size) *.9);
+    height: 100%;
+    /* aspect-ratio: 1.1; */
+
+    color: var(--bs-light);
+    background-color: var(--bs-indigo);
+
+    border-bottom-left-radius: 50%;
+    border-top-left-radius: 50%;
+    overflow: hidden;
+
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    padding: .5em;
+    font-size: 1.2rem;
+    text-align: right;
+    
+    --shadow-pos: -.1em;
+}
+.attack__cost {
+    grid-area: cost;
+    justify-self: flex-end;
+
+    aspect-ratio: 1;
+    height: 2.3rem;
+    
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+}
+.attack__cost span {
+    z-index: 2;
+
+    font-weight: 800;
+    font-size: .9rem;
+    color: var(--bs-dark);
+}
+.attack__cost svg {
+    z-index: 0;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+
+    color: var(--bs-warning);
+}
+
+.attack__vector {
+    grid-area: vector;
+
+    justify-self: flex-end;
+    display: flex;
+    gap: .1em;
+    padding-block: 0.15em;
+}
+.attack__vector .stat-icon {
+    background-color: rgba(var(--bs-light-rgb), 0.4);
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    height: 1.8em;
+    padding: .2em .4em;
+    border-radius: 10px;
+}
+.attack__vector .stat-icon svg {
+    height: 100%;
+    color: var(--bs-dark);
+}
+
+.attack-description .card {
+    /* background-color: var(--bs-indigo); */
+    background-color: transparent;
+    background-image: linear-gradient(rgba(104, 18, 243, .5) 50%, rgba(104, 18, 243, .6));
+    margin-block: -1px 1em;
+}

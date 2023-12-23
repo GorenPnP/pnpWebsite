@@ -1,4 +1,5 @@
 import re
+from math import floor
 from random import choice
 
 from django.core.validators import MaxValueValidator, MinValueValidator
@@ -286,6 +287,9 @@ class SpielerMonster(models.Model):
 
     def __str__(self):
         return f"{self.name or self.monster} von {self.spieler}"
+    
+    def max_cost_attack(self):
+        return floor(self.rang / 10)+1
 
 
     def level_up(self):

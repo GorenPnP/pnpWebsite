@@ -1,11 +1,10 @@
+@import "./base";
 @import "./stats_container";
 @import "./del_btn";
 
 main.main-container {
-    max-width: 500px;
+    padding: 2px;
     width: fit-content;
-    margin: auto;
-
     --booble-size: 1.6rem;
 }
 

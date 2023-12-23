@@ -36,7 +36,7 @@
         <form method="post">
           {% csrf_token %}
           {{ form.as_p }}
-          <p><button class="btn btn-light">Speichern</button></p>
+          <p><button class="btn btn-dark">Speichern</button></p>
         </form>
         <hr>
 
@@ -59,7 +59,7 @@
           <b>Rang:</b>
           <div>{{ object.rang }}</div>
           <div>
-            <a id="rang_increase_btn" class="btn btn-sm btn-success" href="{% url 'dex:monster_farm_levelup' object.id %}">+ 1 Rang</a>
+            <a id="rang_increase_btn" class="btn btn-sm btn-dark" href="{% url 'dex:monster_farm_levelup' object.id %}">+ 1 Rang</a>
           </div>
 
           <b class="stat">Initiative:</b>

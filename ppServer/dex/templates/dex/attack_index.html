@@ -7,43 +7,67 @@
 {% endblock %}
 
 {% block asides %}
-<div class="filter-container bg-dark d-flex justify-content-center pt-1 pb-2 px-3">
-    <div class="dropdown">
-        <button class="btn btn-sm rounded-pill btn-outline-light dropdown-toggle py-1" type="button" id="filter-name" data-bs-toggle="dropdown" aria-expanded="false">
-          Name
-        </button>
-        <div class="dropdown-menu">
-            <div class="mb-3 px-3">
-                <label for="name" class="form-label">Name</label>
-                <input class="form-control" id="name" placeholder="A...">
-                <div class="d-grid grid-col-2 mt-4" id="name-btn-container" style="gap: 1em;">
-                    <button type="button" id="clear-name" class="btn btn-outline-danger" disabled>Abbrechen</button>
-                </div>
-            </div>
+<div class="filter-container bg-dark d-flex flex-wrap justify-content-center pt-1 pb-2 px-3">
+  <div class="dropdown">
+    <button class="btn btn-sm rounded-pill btn-outline-light dropdown-toggle py-1" type="button" id="filter-name" data-bs-toggle="dropdown" aria-expanded="false" onclick="document.querySelector('#name').focus()">
+      Name
+    </button>
+    <div class="dropdown-menu">
+      <div class="mb-3 px-3">
+        <label for="name" class="form-label">Name</label>
+        <input class="form-control" id="name" placeholder="A...">
+        <div class="d-grid grid-col-2 mt-4" id="name-btn-container" style="gap: 1em;">
+          <button type="button" id="clear-name" class="btn btn-outline-danger" disabled>Abbrechen</button>
         </div>
-    </div>
-    <div class="dropdown" id="filter-typ">
-        <button class="btn btn-sm rounded-pill btn-outline-light dropdown-toggle py-1" type="button" id="filter-typ" data-bs-toggle="dropdown" aria-expanded="false">
-          Typ
-        </button>
-        <ul class="dropdown-menu dropdown-menu--grid grid-col-2" aria-labelledby="filter-typ">
-            <li><a class="dropdown-item text-danger active" aria-active="true" href="#">X</a></li>
-            {% for typ in types %}
-            <li><a class="dropdown-item" data-value="{{ typ.name }}" href="#">{{ typ.tag }}</a></li>
-            {% endfor %}
-          
-        </ul>
       </div>
-    <div class="dropdown"  id="sort">
-        <button class="btn btn-sm rounded-pill btn-outline-light dropdown-toggle py-1" type="button" id="filter-sort" data-bs-toggle="dropdown" aria-expanded="false">
-          Sort
-        </button>
-        <ul class="dropdown-menu" aria-labelledby="filter-sort">
-          <li><a class="dropdown-item text-danger active" aria-active="true" href="#">X</a></li>
-          <li><a class="dropdown-item" data-value="name asc" href="#">Name A-Z</a></li>
-          <li><a class="dropdown-item" data-value="name desc" href="#">Name Z-A</a></li>
-        </ul>
     </div>
+  </div>
+  <div class="dropdown" id="filter-typ">
+    <button class="btn btn-sm rounded-pill btn-outline-light dropdown-toggle py-1" type="button" id="filter-typ" data-bs-toggle="dropdown" aria-expanded="false">
+      Typ
+    </button>
+    <ul class="dropdown-menu dropdown-menu--grid grid-col-2" aria-labelledby="filter-typ">
+      <li><a class="dropdown-item text-danger active" aria-active="true" href="#">X</a></li>
+      {% for typ in types %}
+      <li><a class="dropdown-item" data-value="{{ typ.name }}" href="#">{{ typ.tag }}</a></li>
+      {% endfor %}
+    </ul>
+  </div>
+  <div class="dropdown">
+    <button class="btn btn-sm rounded-pill btn-outline-light dropdown-toggle py-1" type="button" id="filter-cost" data-bs-toggle="dropdown" aria-expanded="false" onclick="document.querySelector('#cost').focus()">
+      max Kosten
+    </button>
+    <div class="dropdown-menu">
+      <div class="mb-3 px-3">
+        <label for="cost" class="form-label">max Kosten</label>
+        <input class="form-control" id="cost" placeholder="7">
+        <div class="d-grid grid-col-2 mt-4" id="cost-btn-container" style="gap: 1em;">
+          <button type="button" id="clear-cost" class="btn btn-outline-danger" disabled>Abbrechen</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="dropdown" id="filter-stat">
+    <button class="btn btn-sm rounded-pill btn-outline-light dropdown-toggle py-1" type="button" id="filter-stat" data-bs-toggle="dropdown" aria-expanded="false">
+      Stat
+    </button>
+    <ul class="dropdown-menu dropdown-menu--grid grid-col-2" aria-labelledby="filter-stat">
+      <li><a class="dropdown-item text-danger active" aria-active="true" href="#">X</a></li>
+      {% for stat in all_stats %}
+      <li><a class="dropdown-item" data-value="{{ stat.0 }}" href="#">{{ stat.1 }}</a></li>
+      {% endfor %}
+    </ul>
+  </div>
+  <div class="dropdown"  id="sort">
+    <button class="btn btn-sm rounded-pill btn-outline-light dropdown-toggle py-1" type="button" id="filter-sort" data-bs-toggle="dropdown" aria-expanded="false">
+      Sort
+    </button>
+    <ul class="dropdown-menu" aria-labelledby="filter-sort">
+      <li><a class="dropdown-item text-danger active" aria-active="true" href="#">X</a></li>
+      <li><a class="dropdown-item" data-value="name asc" href="#">Name A-Z</a></li>
+      <li><a class="dropdown-item" data-value="name desc" href="#">Name Z-A</a></li>
+    </ul>
+  </div>
 </div>
 {% endblock %}
 

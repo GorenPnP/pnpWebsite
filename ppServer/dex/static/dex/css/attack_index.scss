@@ -1,7 +1,4 @@
-main {
-    max-width: 400px;
-    margin: auto;
-}
+@import "./base";
 
 .filter-container {
     position: sticky;
@@ -11,7 +8,7 @@ main {
     
     width: fit-content;
     max-width: 100dvw;
-    gap: min(1em, 3%);
+    gap: .5em;
 
     z-index: 100;
 }

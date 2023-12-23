@@ -1,0 +1,13 @@
+@import "./base";
+
+.accordion-header, .accordion-item {
+    color: var(--color);
+    --bs-accordion-btn-color: var(--color);
+    --bs-accordion-active-color: var(--color);
+    --bs-accordion-color: var(--color);
+    
+    background-color: var(--background-color);
+    --bs-accordion-btn-bg: var(--background-color);
+    --bs-accordion-active-bg: var(--background-color);
+    --bs-accordion-bg: var(--background-color);
+}

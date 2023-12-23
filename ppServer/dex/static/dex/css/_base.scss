@@ -1,0 +1,8 @@
+main.main-container {
+    max-width: 400px;
+    margin: auto;
+
+    @media screen and (max-width: 500px) {
+        padding-inline: 2px !important;
+    }
+}

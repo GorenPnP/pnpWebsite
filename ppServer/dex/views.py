@@ -100,7 +100,8 @@ class AttackIndexView(LoginRequiredMixin, ListView):
             app_index = "Allesdex",
             app_index_url = reverse("dex:index"),
             topic = "Attacken",
-            types = Typ.objects.all()
+            types = Typ.objects.all(),
+            all_stats = [(stat, label) for stat, label in RangStat.StatType if stat in ["N", "F", "MA", "VER_G", "VER_K"]]
         )
     
     def get_queryset(self) -> QuerySet[Any]:
@@ -189,7 +190,7 @@ class MonsterFarmDetailView(LoginRequiredMixin, DetailView):
         self.object = context["object"]
         context["topic"] = self.object.name or self.object.monster.name
         context["form"] = SpielerMonsterNameForm(instance=context["object"])
-        context["other_attacks"] = Attacke.objects.exclude(spielermonster=self.object).filter(cost__lte=self.object.attackenpunkte)
+        context["other_attacks"] = Attacke.objects.exclude(spielermonster=self.object).filter(cost__lte=self.object.attackenpunkte).filter(cost__lte=self.object.max_cost_attack())
         context["other_teams"] = MonsterTeam.objects.filter(spieler=context["spieler"]).exclude(monster=self.object)
         context["monster"] = Monster.objects.with_rang().prefetch_related(
             "types", "visible", "fähigkeiten",
@@ -506,6 +507,9 @@ def add_attack_to_spielermonster(request, pk):
 
     elif attack.cost > sp_mo.attackenpunkte:
         messages.error(request, f"{sp_mo.name or sp_mo.monster.name} hat zu wenig Attackenpunkte")
+
+    elif attack.cost > sp_mo.max_cost_attack():
+        messages.error(request, f"{sp_mo.name or sp_mo.monster.name} darf nur Attacken bis {sp_mo.max_cost_attack()} Punkten lernen")
 
     else:
         sp_mo.attacken.add(attack)

@@ -1,0 +1,39 @@
+@import "./base";
+
+main {
+    --bg-rgb: 255, 146, 67;
+    --highlight-bg-rgb: rgb(2, 65, 7);
+}
+
+.shadow {
+    box-shadow: var(--shadow-pos, .1em) var(--shadow-pos, .1em) 1em .1em rgba(var(--bs-dark-rgb), .4);
+}
+
+.fähigkeit.card {
+    text-decoration: none;
+    margin-block: 1px;
+
+    overflow: hidden;
+    background-color: rgba(var(--bg-rgb), 1);
+    color: black;
+}
+.fähigkeit__name {
+    padding: 5px 10px 2px;
+    border-bottom-right-radius: 5px;
+    width: fit-content;
+
+    font-size: 1.1rem;
+    background-color: var(--highlight-bg-rgb);
+    color: white !important;
+    
+    --shadow-pos: .1em;
+
+    float: left;
+}
+
+.fähigkeit-description .card {
+    background-color: transparent;
+    background-image: linear-gradient(rgba(var(--bg-rgb), .9) 50%, rgba(var(--bg-rgb), 1));
+    margin-block: -1px 1em;
+    color: black !important;
+}

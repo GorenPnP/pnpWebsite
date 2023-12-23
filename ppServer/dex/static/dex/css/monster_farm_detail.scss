@@ -1,12 +1,8 @@
+@import "./base";
 @import "./stats_container";
 @import "./del_btn";
 
-main.main-container {
-    max-width: 400px;
-    margin: auto;
-
-    --booble-size: 1em;
-}
+.main-container { --booble-size: 1em; }
 
 #badge {
     --size: 125px;
