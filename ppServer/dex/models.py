@@ -115,7 +115,7 @@ class Attacke(models.Model):
     name = models.CharField(max_length=128, unique=True)
     damage = models.ManyToManyField(Dice, blank=True)
     description = models.TextField(verbose_name="Beschreibung")
-    types = models.ManyToManyField(Typ)
+    types = models.ManyToManyField(Typ, verbose_name="Typen")
 
     macht_schaden = models.BooleanField(default=False)
     macht_effekt = models.BooleanField(default=False)
@@ -126,7 +126,10 @@ class Attacke(models.Model):
     verteidigung_geistig = models.BooleanField(default=False)
     verteidigung_körperlich = models.BooleanField(default=False)
 
-    cost = models.PositiveSmallIntegerField(default=0, validators=[MaxValueValidator(7)])
+    cost = models.PositiveSmallIntegerField(default=0, validators=[MaxValueValidator(7)], verbose_name="Kosten")
+
+    draft = models.BooleanField(default=False)
+    author = models.ForeignKey(Spieler, on_delete=models.SET_NULL, null=True, blank=True)
 
     def __str__(self):
         return self.name

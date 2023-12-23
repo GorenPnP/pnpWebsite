@@ -30,6 +30,7 @@ urlpatterns = [
     path('monster/team/<int:pk>/new_monster', views.add_monster_to_team, name='monster_team_add_monster'),
     path('monster/team/<int:pk>/delete_monster', views.delete_monster_from_team, name='monster_team_delete_monster'),
 
+    path('attack/proposal', views.AttackProposalView.as_view(), name='attack_proposal'),
     path('sp/visibility', views_sp.MonsterVisibilityView.as_view(), name='sp_monster_visibility'),
     
 ]

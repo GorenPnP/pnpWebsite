@@ -1,6 +1,6 @@
 {% extends 'base/main.html' %}
 {% load static %}
-{% block title %}Wiki{% endblock %}
+{% block title %}Allesdex{% endblock %}
 {% block extra-head %}
 <style>.main-container { padding: 3em 5% 100px; }</style>
 {% endblock %}
@@ -14,5 +14,7 @@
     <hr>
     <li><a class="text-light" href="{% url 'dex:monster_farm' %}">meine Monster-Farm</a></li>
     <li><a class="text-light" href="{% url 'dex:monster_team' %}">meine Monster-Teams</a></li>
+    <hr>
+    <li><a class="text-light" href="{% url 'dex:attack_proposal' %}">neue Attacke vorschlagen</a></li>
 </ul>
 {% endblock %}

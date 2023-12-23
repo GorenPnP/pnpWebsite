@@ -58,7 +58,7 @@ class MonsterDetailView(LoginRequiredMixin, DetailView):
             Prefetch("evolutionPost", Monster.objects.load_card()),
             Prefetch("alternativeForms", Monster.objects.load_card()),
             Prefetch("opposites", Monster.objects.load_card()),
-            Prefetch("attacken", Attacke.objects.load_card()),
+            Prefetch("attacken", Attacke.objects.load_card().exclude(draft=True)),
         )
         
     def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
@@ -105,7 +105,7 @@ class AttackIndexView(LoginRequiredMixin, ListView):
         )
     
     def get_queryset(self) -> QuerySet[Any]:
-        return self.model.objects.load_card()
+        return self.model.objects.load_card().exclude(draft=True)
 
 
 class TypeTableView(LoginRequiredMixin, ListView):
@@ -190,7 +190,12 @@ class MonsterFarmDetailView(LoginRequiredMixin, DetailView):
         self.object = context["object"]
         context["topic"] = self.object.name or self.object.monster.name
         context["form"] = SpielerMonsterNameForm(instance=context["object"])
-        context["other_attacks"] = Attacke.objects.exclude(spielermonster=self.object).filter(cost__lte=self.object.attackenpunkte).filter(cost__lte=self.object.max_cost_attack())
+        context["other_attacks"] = Attacke.objects\
+            .exclude(spielermonster=self.object)\
+            .filter(cost__lte=self.object.attackenpunkte)\
+            .filter(cost__lte=self.object.max_cost_attack())\
+            .exclude(draft=True)
+        
         context["other_teams"] = MonsterTeam.objects.filter(spieler=context["spieler"]).exclude(monster=self.object)
         context["monster"] = Monster.objects.with_rang().prefetch_related(
             "types", "visible", "fähigkeiten",
@@ -213,7 +218,7 @@ class MonsterFarmDetailView(LoginRequiredMixin, DetailView):
 
     def get_queryset(self) -> QuerySet[Any]:
         return self.model.objects.with_rang_and_stats().prefetch_related(
-            Prefetch("attacken", queryset=Attacke.objects.load_card())
+            Prefetch("attacken", queryset=Attacke.objects.load_card().exclude(draft=True))
         )
         
     def get(self, request: HttpRequest, pk: int, *args: Any, **kwargs: Any) -> HttpResponse:
@@ -501,7 +506,7 @@ def set_training_of_spielermonster(request, pk):
 @login_required
 def add_attack_to_spielermonster(request, pk):
     sp_mo = get_object_or_404(SpielerMonster, pk=pk, spieler__name=request.user.username)
-    attack = get_object_or_404(Attacke, pk=request.POST.get("attack_id"))
+    attack = get_object_or_404(Attacke, pk=request.POST.get("attack_id"), draft=False)
     if sp_mo.attacken.count() >= SpielerMonster.MAX_AMOUNT_ATTACKEN:
         messages.error(request, f"{sp_mo.name or sp_mo.monster.name} kennt schon zu viele Attacken. Vegesse eine Andere, um diese hier zu erlernen.")
 
@@ -526,7 +531,7 @@ def delete_attack_from_spielermonster(request, pk):
 
     # get stuff
     sp_mo = get_object_or_404(SpielerMonster, pk=pk, spieler__name=request.user.username)
-    attack = get_object_or_404(Attacke, pk=request.POST.get("attack_id"))
+    attack = get_object_or_404(Attacke, pk=request.POST.get("attack_id"), draft=False)
     
     # remove attack
     sp_mo.attacken.remove(attack)
@@ -565,3 +570,40 @@ def evolve_spielermonster(request, pk):
     
     redirect_path = request.GET.get("redirect")
     return redirect(redirect_path if redirect_path and redirect_path.startswith("/dex/") else reverse("dex:monster_detail_farm", args=[pk]))
+
+
+class AttackProposalView(LoginRequiredMixin, ListView):
+    model = Attacke
+    template_name = "dex/attack_proposal.html"
+
+    def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
+        context = super().get_context_data(
+            **kwargs,
+            app_index = "Allesdex",
+            app_index_url = reverse("dex:index"),
+            topic = "Attacken-Vorschlag",
+        )
+        context["form"] = ProposeAttackForm()
+        return context
+    
+    def get_queryset(self) -> QuerySet[Any]:
+        spieler = get_object_or_404(Spieler, name=self.request.user.username)
+        return self.model.objects.load_card().filter(author=spieler, draft=True)
+
+    def post(self, request, *args, **kwargs):
+        form = ProposeAttackForm(request.POST)
+        form.full_clean()
+        if form.is_valid():
+            spieler = get_object_or_404(Spieler, name=self.request.user.username)
+
+            obj = form.save(commit=False)
+            obj.author = spieler
+            obj.draft = True
+            obj.save()
+            obj.damage.add(*form.cleaned_data["damage"].values_list("id", flat=True))
+            obj.types.add(*form.cleaned_data["types"].values_list("id", flat=True))
+
+            messages.success(request, f"{obj.name} ist angelegt worden")
+        else:
+            messages.error(request, "Es ist ein PRoblem aufgetreten, die Attacke konnte nicht gespeichert werden")
+        return redirect("dex:attack_proposal")

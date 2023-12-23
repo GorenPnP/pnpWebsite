@@ -143,13 +143,11 @@ class AttackeAdmin(admin.ModelAdmin):
 
     list_display = [
         'name', 'types_', 'description', 'damage_', 'macht_schaden', 'macht_effekt', 'cost',
-        'angriff_nahkampf', 'angriff_fernkampf', 'angriff_magie', 'verteidigung_geistig', 'verteidigung_körperlich'
     ]
 
-    #list_filter = ["types", "macht_schaden", "macht_effekt", 'angriff_nahkampf', 'angriff_fernkampf', 'angriff_magie', 'verteidigung_geistig', 'verteidigung_körperlich']
+    list_filter = ["draft", "types", "macht_schaden", "macht_effekt", 'angriff_nahkampf', 'angriff_fernkampf', 'angriff_magie', 'verteidigung_geistig', 'verteidigung_körperlich']
     search_fields = ['name', "description"]
     list_display_links = ["name"]
-    list_editable = ['macht_schaden', "macht_effekt", "cost", 'angriff_nahkampf', 'angriff_fernkampf', 'angriff_magie', 'verteidigung_geistig', 'verteidigung_körperlich']
 
     def damage_(self, obj):
         return " + ".join([t.__str__() for t in obj.damage.all()]) or "-"

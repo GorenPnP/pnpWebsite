@@ -1,0 +1,60 @@
+{% extends 'base/headed_main.html' %}
+{% load static %}
+
+{% block extra-head %}
+<style>
+    .main-container {
+        max-width: fit-content;
+        margin: auto;
+    }
+    form {
+        border: 1px solid var(--bs-light);
+        border-radius: 20px;
+        padding: 2em;
+        width: fit-content;
+    }
+    .fieldWrapper {
+        margin-block: .7em;
+    }
+    .label-container label {
+        display: block;
+        font-weight: 800;
+    }
+
+    ul {
+        max-width: 400px;
+        list-style: none;
+    }
+</style>
+{% endblock %}
+
+{% block main %}
+<form method="post">
+    <h2 class="mb-4">Neue Attacke</h2>
+
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+    
+    {% for field in form %}
+    <div class="fieldWrapper">
+        <div class="text-danger">{{ field.errors }}</div>
+        <div class="label-container">{{ field.label_tag }}</div>
+        {{ field }}
+        {% if field.help_text %}
+        <p class="help">{{ field.help_text|safe }}</p>
+        {% endif %}
+    </div>
+    {% endfor %}
+
+    <button class="btn btn-success mt-4" type="submit">Speichern</button>
+</form>
+
+<h2 class="mt-5">Deine offenen Attackenvorschläge</h2>
+<ul>
+    {% for a in object_list %}
+    {% include 'dex/attack-listentry.html' with attack=a include_styles=forloop.first %}
+    {% empty %}
+    - keine -
+    {% endfor %}
+</ul>
+{% endblock %}

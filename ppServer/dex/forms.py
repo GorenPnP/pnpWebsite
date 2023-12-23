@@ -52,3 +52,16 @@ class CatchMonsterForm(forms.ModelForm):
             raise ValidationError("Das Monster ist dir unbekannt", code="invalid")
         
         return monster
+
+
+class ProposeAttackForm(forms.ModelForm):
+    class Meta:
+        model = Attacke
+        fields = [
+            "name", "damage", "description", "types", "macht_schaden", "macht_effekt",
+            "angriff_nahkampf", "angriff_fernkampf", "angriff_magie", "verteidigung_geistig", "verteidigung_körperlich", "cost"
+        ]
+        widgets = {
+            "damage": forms.CheckboxSelectMultiple(),
+            "types": forms.CheckboxSelectMultiple(),
+        }
