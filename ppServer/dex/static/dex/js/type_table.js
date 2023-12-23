@@ -32,16 +32,25 @@ function draw_show() {
 document.addEventListener("DOMContentLoaded", () => {
     table = document.querySelector("table");
 
-    // select 1 type
-    table.querySelectorAll(".tag").forEach(type => type.addEventListener("click", function(e) {
-        const type = parseInt(e.target.closest("td, th").dataset.typeAttack || e.target.closest("td, th").dataset.typeVictim);
+    // select 1 type of victim
+    table.querySelectorAll("th.tag").forEach(type => type.addEventListener("click", function(e) {
+        const type = parseInt(e.target.closest("th").dataset.typeVictim);
 
-        if (attacks.includes(type) && victims.includes(type)) {
-            attacks.splice(attacks.indexOf(type), 1);
+        if (victims.includes(type)) {
             victims.splice(victims.indexOf(type), 1);
         } else {
-            attacks.push(type);
             victims.push(type);
+        }
+        draw_show();
+    }));
+    // select 1 type of attack
+    table.querySelectorAll("td.tag").forEach(type => type.addEventListener("click", function(e) {
+        const type = parseInt(e.target.closest("td").dataset.typeAttack);
+
+        if (attacks.includes(type)) {
+            attacks.splice(attacks.indexOf(type), 1);
+        } else {
+            attacks.push(type);
         }
         draw_show();
     }));
