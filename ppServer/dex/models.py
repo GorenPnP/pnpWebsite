@@ -271,6 +271,7 @@ class SpielerMonster(models.Model):
         verbose_name_plural = "Spieler-Monster"
     
     ARTSPEZIFISCHER_RANGFAKTOR = 20
+    MAX_AMOUNT_ATTACKEN = 5
 
 
     spieler = models.ForeignKey(Spieler, on_delete=models.CASCADE)
@@ -302,7 +303,6 @@ class SpielerMonster(models.Model):
         for _ in range(RangStat.POLLS_PER_RANG):
             polls.append(choice(pool))
             pool = [p for p in pool if p not in polls]
-        print("polls:", polls)
 
         # increase polled stats
         for stat in self.rangstat_set.filter(stat__in=polls):

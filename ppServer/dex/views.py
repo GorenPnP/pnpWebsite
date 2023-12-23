@@ -85,8 +85,7 @@ class MonsterDetailView(LoginRequiredMixin, DetailView):
             obj.spieler = spieler
             if obj.name == monster.name: obj.name = None
             obj.save()
-            obj.attacken.add(*list(obj.monster.attacken.all().values_list("id", flat=True)))
-            messages.success(request, format_html(f"{obj.name or monster.name} ist in deiner <a class='text-light' href='{reverse('dex:monster_farm')}'>Monster-Farm</a> eingetroffen."))
+            messages.success(request, format_html(f"<b>{obj.name or monster.name}</b> ist in deiner <a class='text-light' href='{reverse('dex:monster_farm')}'>Monster-Farm</a> eingetroffen."))
         else:
             messages.error(request, "Etwas ist schief gelaufen. Das Monster konnte nicht gefangen werden.")
         return redirect(request.build_absolute_uri())
@@ -170,8 +169,7 @@ class MonsterFarmView(LoginRequiredMixin, ListView):
             obj = form.save(commit=False)
             obj.spieler = spieler
             obj.save()
-            obj.attacken.add(*list(obj.monster.attacken.all().values_list("id", flat=True)))
-            messages.success(request, f"{obj.name or obj.monster.name} ist in deiner Monster-Farm eingetroffen.")
+            messages.success(request, format_html(f"<b>{obj.name or obj.monster.name}</b> ist in deiner Monster-Farm eingetroffen."))
         else:
             messages.error(request, "Etwas ist schief gelaufen. Das Monster konnte nicht gefangen werden.")
         return redirect(request.build_absolute_uri())
@@ -191,7 +189,7 @@ class MonsterFarmDetailView(LoginRequiredMixin, DetailView):
         self.object = context["object"]
         context["topic"] = self.object.name or self.object.monster.name
         context["form"] = SpielerMonsterNameForm(instance=context["object"])
-        context["other_attacks"] = Attacke.objects.exclude(spielermonster=self.object)
+        context["other_attacks"] = Attacke.objects.exclude(spielermonster=self.object).filter(cost__lte=self.object.attackenpunkte)
         context["other_teams"] = MonsterTeam.objects.filter(spieler=context["spieler"]).exclude(monster=self.object)
         context["monster"] = Monster.objects.with_rang().prefetch_related(
             "types", "visible", "fähigkeiten",
@@ -208,6 +206,7 @@ class MonsterFarmDetailView(LoginRequiredMixin, DetailView):
         context["WEIGHT_SKILLED"] = RangStat.WEIGHT_SKILLED
         context["WEIGHT_TRAINED"] = RangStat.WEIGHT_TRAINED
         context["AMOUNT_TRAINED"] = RangStat.AMOUNT_TRAINED
+        context["MAX_AMOUNT_ATTACKEN"] = SpielerMonster.MAX_AMOUNT_ATTACKEN
 
         return context
 
@@ -490,8 +489,9 @@ def set_training_of_spielermonster(request, pk):
             db_stats.append(rang_stat)
         RangStat.objects.bulk_update(db_stats, fields=["trained"])
 
-        lables = [label for stat, label in RangStat.StatType if stat in stats]
-        messages.success(request, format_html(f"{sp_mo.name or sp_mo.monster.name} trainiert nun <b>{lables[0]}</b> und <b>{lables[1]}</b>!"))
+        lables = [f"<b>{label}</b>" for stat, label in RangStat.StatType if stat in stats]
+        lable_str = " und ".join([", ".join(lables[:-1]), lables[-1]])
+        messages.success(request, format_html(f"{sp_mo.name or sp_mo.monster.name} trainiert nun {lable_str}!"))
 
     redirect_path = request.GET.get("redirect")
     return redirect(redirect_path if redirect_path and redirect_path.startswith("/dex/") else reverse("dex:monster_detail_farm", args=[pk]))
@@ -501,8 +501,17 @@ def set_training_of_spielermonster(request, pk):
 def add_attack_to_spielermonster(request, pk):
     sp_mo = get_object_or_404(SpielerMonster, pk=pk, spieler__name=request.user.username)
     attack = get_object_or_404(Attacke, pk=request.POST.get("attack_id"))
-    sp_mo.attacken.add(attack)
-    messages.success(request, f"{sp_mo.name or sp_mo.monster.name} hat {attack.name} gelernt")
+    if sp_mo.attacken.count() >= SpielerMonster.MAX_AMOUNT_ATTACKEN:
+        messages.error(request, f"{sp_mo.name or sp_mo.monster.name} kennt schon zu viele Attacken. Vegesse eine Andere, um diese hier zu erlernen.")
+
+    elif attack.cost > sp_mo.attackenpunkte:
+        messages.error(request, f"{sp_mo.name or sp_mo.monster.name} hat zu wenig Attackenpunkte")
+
+    else:
+        sp_mo.attacken.add(attack)
+        sp_mo.attackenpunkte -= attack.cost
+        sp_mo.save(update_fields=["attackenpunkte"])
+        messages.success(request, format_html(f"{sp_mo.name or sp_mo.monster.name} hat <b>{attack.name} gelernt</b>"))
 
     redirect_path = request.GET.get("redirect")
     return redirect(redirect_path if redirect_path and redirect_path.startswith("/dex/") else reverse("dex:monster_detail_farm", args=[pk]))
@@ -510,10 +519,45 @@ def add_attack_to_spielermonster(request, pk):
 @require_POST
 @login_required
 def delete_attack_from_spielermonster(request, pk):
+
+    # get stuff
     sp_mo = get_object_or_404(SpielerMonster, pk=pk, spieler__name=request.user.username)
     attack = get_object_or_404(Attacke, pk=request.POST.get("attack_id"))
+    
+    # remove attack
     sp_mo.attacken.remove(attack)
-    messages.success(request, f"{sp_mo.name or sp_mo.monster.name} hat {attack.name} verlernt")
 
+    # add attackenpunkte
+    sp_mo.attackenpunkte += attack.cost
+    sp_mo.save(update_fields=["attackenpunkte"])
+
+    messages.success(request, format_html(f"{sp_mo.name or sp_mo.monster.name} hat <b>{attack.name} verlernt</b>"))
+    redirect_path = request.GET.get("redirect")
+    return redirect(redirect_path if redirect_path and redirect_path.startswith("/dex/") else reverse("dex:monster_detail_farm", args=[pk]))
+
+
+@require_POST
+@login_required
+def evolve_spielermonster(request, pk):
+
+    # get stuff
+    sp_mo = get_object_or_404(SpielerMonster, pk=pk, spieler__name=request.user.username)
+    monster = get_object_or_404(Monster, pk=request.POST.get("monster_id"))
+    
+    # check valid evolution?
+    if not sp_mo.monster.evolutionPre.filter(id=monster.id).exists() and not sp_mo.monster.evolutionPost.filter(id=monster.id).exists():
+        messages.error(request, f"{monster.name} ist keine Entwicklung von deinem {sp_mo.name or sp_mo.monster.name}")
+    else:
+        name = sp_mo.name or sp_mo.monster.name
+
+        # evolve
+        sp_mo.monster = monster
+        sp_mo.save(update_fields=["monster"])
+
+        # mark monster as visible (could be previously unknown to the Spieler)
+        monster.visible.add(sp_mo.spieler.id)
+
+        messages.success(request, format_html(f"{name} hat sich <b>in {monster.name} entwickelt</b>!"))
+    
     redirect_path = request.GET.get("redirect")
     return redirect(redirect_path if redirect_path and redirect_path.startswith("/dex/") else reverse("dex:monster_detail_farm", args=[pk]))

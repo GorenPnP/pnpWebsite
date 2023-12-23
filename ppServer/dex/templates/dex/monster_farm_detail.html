@@ -59,7 +59,7 @@
           <b>Rang:</b>
           <div>{{ object.rang }}</div>
           <div>
-            <a id="rang_increase_btn" class="btn btn-sm btn-success" href="{% url 'dex:monster_farm_levelup' object.id %}">+</a>
+            <a id="rang_increase_btn" class="btn btn-sm btn-success" href="{% url 'dex:monster_farm_levelup' object.id %}">+ 1 Rang</a>
           </div>
 
           <b class="stat">Initiative:</b>
@@ -132,7 +132,15 @@
   <h2 class="mt-5">Vorentwicklung</h2>
   <ul class="list-unstyled">
     {% for m in monster.evolutionPre.all %}
-      <li>{% include 'dex/monster-listentry.html' with monster=m include_styles=False %}</li>
+      <li>
+        {% include 'dex/monster-listentry.html' with monster=m include_styles=False %}
+
+        <form action="{% url 'dex:spieler_monster_evolve' object.id %}" method="post">
+          {% csrf_token %}
+          <input hidden name="monster_id" value="{{ m.id }}">
+          <button type="submit" class="btn btn-outline-light mt-2">entwickeln</button>
+        </form>
+      </li>
     {% endfor %}
   </ul>
   {% endif %}
@@ -141,7 +149,15 @@
   <h2 class="mt-5">Weiterentwicklung</h2>
   <ul class="list-unstyled">
     {% for m in monster.evolutionPost.all %}
-      <li>{% include 'dex/monster-listentry.html' with monster=m include_styles=False %}</li>
+      <li>
+        {% include 'dex/monster-listentry.html' with monster=m include_styles=False %}
+
+        <form action="{% url 'dex:spieler_monster_evolve' object.id %}" method="post">
+          {% csrf_token %}
+          <input hidden name="monster_id" value="{{ m.id }}">
+          <button type="submit" class="btn btn-outline-light mt-2">entwickeln</button>
+        </form>
+      </li>
     {% endfor %}
   </ul>
   {% endif %}
@@ -182,9 +198,12 @@
         </button>
       </li>
     {% endfor %}
+
+    {% if object.attacken.count < MAX_AMOUNT_ATTACKEN %}
     <li class="del-btn-container">
       <button class="open-modal-btn btn btn-lg btn-outline-light" type="button" data-bs-toggle="modal" data-bs-target="#attack-modal">+ Attacke</button>
     </li>
+    {% endif %}
   </ul>
 
   <!-- Teams -->

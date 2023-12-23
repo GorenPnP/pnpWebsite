@@ -26,6 +26,7 @@ urlpatterns = [
     path('monster/farm/<int:pk>/new_team', views.add_team_to_spielermonster, name='spieler_monster_add_team'),
     path('monster/farm/<int:pk>/set_training', views.set_training_of_spielermonster, name='spieler_monster_set_training'),
     path('monster/farm/<int:pk>/delete_attack', views.delete_attack_from_spielermonster, name='spieler_monster_delete_attack'),
+    path('monster/farm/<int:pk>/evolve', views.evolve_spielermonster, name='spieler_monster_evolve'),
     path('monster/team/<int:pk>/new_monster', views.add_monster_to_team, name='monster_team_add_monster'),
     path('monster/team/<int:pk>/delete_monster', views.delete_monster_from_team, name='monster_team_delete_monster'),
 
