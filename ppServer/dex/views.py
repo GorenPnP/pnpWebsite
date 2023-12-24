@@ -582,19 +582,30 @@ class AttackProposalView(LoginRequiredMixin, ListView):
             app_index = "Allesdex",
             app_index_url = reverse("dex:index"),
             topic = "Attacken-Vorschlag",
+            is_create = "pk" not in self.kwargs,
+            form = ProposeAttackForm(),
         )
-        context["form"] = ProposeAttackForm()
+        if not context["is_create"]:
+            spieler = get_object_or_404(Spieler, name=self.request.user.username)
+            obj = get_object_or_404(Attacke, pk=self.kwargs["pk"], author=spieler, draft=True)
+            context["form"] = ProposeAttackForm(instance=obj)
+
         return context
     
     def get_queryset(self) -> QuerySet[Any]:
         spieler = get_object_or_404(Spieler, name=self.request.user.username)
         return self.model.objects.load_card().filter(author=spieler, draft=True)
 
-    def post(self, request, *args, **kwargs):
-        form = ProposeAttackForm(request.POST)
+    def post(self, request, pk: int = None, *args, **kwargs):
+        spieler = get_object_or_404(Spieler, name=self.request.user.username)
+        if pk is not None:
+            obj = get_object_or_404(Attacke, pk=pk, author=spieler)
+            form = ProposeAttackForm(request.POST, instance=obj)
+        else:
+            form = ProposeAttackForm(request.POST)
+
         form.full_clean()
         if form.is_valid():
-            spieler = get_object_or_404(Spieler, name=self.request.user.username)
 
             obj = form.save(commit=False)
             obj.author = spieler
@@ -603,7 +614,11 @@ class AttackProposalView(LoginRequiredMixin, ListView):
             obj.damage.add(*form.cleaned_data["damage"].values_list("id", flat=True))
             obj.types.add(*form.cleaned_data["types"].values_list("id", flat=True))
 
-            messages.success(request, f"{obj.name} ist angelegt worden")
+            messages.success(request, f"{obj.name} ist {'bearbeitet' if pk is not None else 'angelegt'} worden")
         else:
-            messages.error(request, "Es ist ein PRoblem aufgetreten, die Attacke konnte nicht gespeichert werden")
+            print(form.errors)
+            if form.cleaned_data["types"].count():
+                messages.error(request, "Es ist ein Problem aufgetreten, die Attacke konnte nicht gespeichert werden")
+            else:
+                messages.error(request, "Kein Typ eingetragen")
         return redirect("dex:attack_proposal")
