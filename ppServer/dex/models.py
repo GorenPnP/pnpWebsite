@@ -5,6 +5,8 @@ from django.db import models
 
 from django_resized import ResizedImageField
 
+from character.models import Spieler
+
 
 ###### utils ########
 
@@ -107,6 +109,9 @@ class Fertigkeit(models.Model):
 
     name = models.CharField(max_length=64, unique=True)
 
+    def __str__(self):
+        return self.name
+
 
 class ParaTierFertigkeit(models.Model):
     class Meta:
@@ -146,7 +151,7 @@ class GeschöpfFertigkeit(models.Model):
 
 class Geschöpf(models.Model):
     class Meta:
-        ordering = ["name"]
+        ordering = ["number"]
         verbose_name = "Geschöpf"
         verbose_name_plural = "Geschöpfe"
 
@@ -172,8 +177,9 @@ class Geschöpf(models.Model):
     forschungsstand = models.TextField()
     initiative = models.ForeignKey(Dice, on_delete=models.SET_NULL, null=True, blank=True, related_name="initiative")
     hp = models.PositiveSmallIntegerField()
-    schaWI = models.ManyToManyField(Dice, related_name="schadensWI")
+    schadensWI = models.ManyToManyField(Dice, related_name="schadensWI")
     reaktion = models.PositiveSmallIntegerField(default=0)
 
 
     fertigkeiten = models.ManyToManyField(Fertigkeit, through=GeschöpfFertigkeit)
+    visible = models.ManyToManyField(Spieler, blank=True)

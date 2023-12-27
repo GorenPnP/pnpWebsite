@@ -6,6 +6,7 @@
 {% endblock %}
 {% block header %}{% include 'base/header.html' with topic='Allesdex' %}{% endblock %}
 {% block main %}
+<h2>Monsterdex</h2>
 <ul>
     <li><a class="text-light" href="{% url 'dex:monster_index' %}">Monster</a></li>
     <li><a class="text-light" href="{% url 'dex:attack_index' %}">Attacken</a></li>
@@ -17,4 +18,7 @@
     <hr>
     <li><a class="text-light" href="{% url 'dex:attack_proposal' %}">neue Attacke vorschlagen</a></li>
 </ul>
+
+<h2 class="mt-5">PIA - Geschöpfarchiv</h2>
+<a class="text-light" href="{% url 'dex:geschöpf_index' %}">Geschöpfe</a>
 {% endblock %}

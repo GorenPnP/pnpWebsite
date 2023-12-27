@@ -1,0 +1,14 @@
+{% extends 'base/headed_main.html' %}
+{% load static %}
+
+{% block extra-head %}
+<link rel="stylesheet" href="{% static 'dex/css/geschöpf_index.css' %}">
+{% endblock %}
+
+{% block main %}
+<ul>
+    {% for geschöpf in object_list %}
+    <li><a href="{% url 'dex:geschöpf_detail' geschöpf.id %}" class="geschöpf-link">#{{ geschöpf.number }} - {{ geschöpf.name }}</a></li>
+    {% endfor %}
+</ul>
+{% endblock %}

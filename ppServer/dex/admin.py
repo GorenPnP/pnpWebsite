@@ -54,7 +54,7 @@ class GeschöpfFertigkeitInLineAdmin(admin.TabularInline):
 
 class GeschöpfAdmin(admin.ModelAdmin):
 
-    list_display = ["image_", 'name', 'klassierung', 'initiative', 'hp', 'schaWI_', 'reaktion', 'status']
+    list_display = ["image_", 'name', 'klassierung', 'initiative', 'hp', 'schadensWI_', 'reaktion', 'status']
     search_fields = ["name"]
     list_display_links = ["name"]
 
@@ -64,8 +64,8 @@ class GeschöpfAdmin(admin.ModelAdmin):
         return format_html(f"<img src='{obj.image.url}' style='max-width: 32px; max-height:32px;'>") if obj.image else "-"
     def klassierung(self, obj):
         return f"{obj.gefahrenklasse}{obj.verwahrungsklasse}"
-    def schaWI_(self, obj):
-        return "+".join([f"{t.amount}{t.type}" for t in obj.schaWI.all()]) or "-"
+    def schadensWI_(self, obj):
+        return "+".join([f"{t.amount}{t.type}" for t in obj.schadensWI.all()]) or "-"
 
 
 admin.site.register(Dice)

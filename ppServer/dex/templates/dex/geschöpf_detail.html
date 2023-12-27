@@ -1,0 +1,67 @@
+{% extends 'base/headed_main.html' %}
+{% load static dice blackening %}
+
+{% block extra-head %}
+<link rel="stylesheet" href="{% static 'dex/css/geschöpf_detail.css' %}">
+{% endblock %}
+
+{% block main %}
+
+<header class="pia-header">
+    <img alt="PIA-logo">
+    <span>Status: {{ object.get_status_display }}</span>
+</header>
+
+<hr>
+<h2 class="title">#{{ object.number }} {{ object.name }}</h2>
+<hr>
+
+<div class="img-container">
+    {% if object.image %}<img src="{{ object.image.url }}">{% endif %}
+    <div class="stamp text-danger">{{ object.gefahrenklasse }}{{ object.verwahrungsklasse }}</div>
+</div>
+
+<h3>Verhalten</h3>
+<p>{{ object.verhalten }}</p>
+
+<h3>Gefahren & Fertigkeiten</h3>
+{% if visible %}{{ object.gefahren_fähigkeiten }}{% else %}{% blackening %}{% endif %}
+
+<h3>Gefahrenprävention</h3>
+{% if visible %}{{ object.gefahrenprävention }}{% else %}{% blackening %}{% endif %}
+
+<h3>Aufenthaltsort</h3>
+{% if visible %}{{ object.aufenthaltsort }}{% else %}{% blackening %}{% endif %}
+
+<h3>Forschungsstand</h3>
+{% if visible %}{{ object.forschungsstand }}{% else %}{% blackening %}{% endif %}
+
+<h3>Werte</h3>
+
+{% if visible %}
+<div class="werte-container">
+    <b>Initiative</b>
+    <span>{{ object.initiative }}</span>
+    
+    <b>HP</b>
+    <span>{{ object.hp }}</span>
+    <b>Schadens-Widerstand</b>
+    <span>{{ object.schadensWI|dice }}</span>
+
+    <b>Reaktion</b>
+    <span>{{ object.reaktion }}</span>
+</div>
+{% else %}{% blackening %}{% endif %}
+
+<h3>Fertigkeiten</h3>
+
+{% if visible %}
+<div class="werte-container">
+    {% for fert in object.geschöpffertigkeit_set.all %}
+        <b>{{ fert.fertigkeit.name }}</b>
+        <span>{{ fert.pool }}</span>
+    {% endfor %}
+</div>
+{% else %}{% blackening %}{% endif %}
+
+{% endblock %}

@@ -1,0 +1,14 @@
+@font-face {
+    font-family: Underwood;
+    src: url('/static/res/fonts/underwood_champion.ttf')  format("truetype");
+}
+
+main {
+    font-family: Underwood, monospace;
+}
+
+.geschöpf-link {
+    color: var(--bs-light) !important;
+    padding-block: .8em;
+    display: block;
+}
