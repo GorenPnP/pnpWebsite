@@ -2,7 +2,7 @@
 {% load static join_ids %}
 
 {% block extra-head %}
-<link rel="stylesheet" href="{% static 'dex/css/monster_fähigkeit_index.css' %}">
+<link rel="stylesheet" href="{% static 'dex/monster/css/monster_fähigkeit_index.css' %}">
 {% endblock %}
 
 {% block main %}
@@ -23,7 +23,7 @@
               <ul class="list-unstyled" id="monsters-{{ fähigkeit.id }}">
                 {% for monster in fähigkeit.monster_set.all %}
                   <li>
-                    {% include 'dex/monster-listentry.html' with monster=monster id=fähigkeit.id|join_ids:monster.id include_styles=forloop.first %}
+                    {% include 'dex/monster/monster-listentry.html' with monster=monster id=fähigkeit.id|join_ids:monster.id include_styles=forloop.first %}
                   </li>
                 {% endfor %}
               </ul>

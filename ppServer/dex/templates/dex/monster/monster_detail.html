@@ -2,11 +2,11 @@
 {% load static dice l10n %}
 
 {% block extra-head %}
-<link rel="stylesheet" href="{% static 'dex/css/monster_detail.css' %}">
+<link rel="stylesheet" href="{% static 'dex/monster/css/monster_detail.css' %}">
 {% endblock %}
 
 {% block main %}
-  {% include 'dex/monster-listentry.html' with monster=object include_styles=True %}
+  {% include 'dex/monster/monster-listentry.html' with monster=object include_styles=True %}
 
   <!-- Allgemeines -->
   <h2 class="mt-5">Allgemeines</h2>
@@ -83,7 +83,7 @@
   <h2 class="mt-5">Vorentwicklung</h2>
   <ul class="list-unstyled">
     {% for m in monster.evolutionPre.all %}
-      <li>{% include 'dex/monster-listentry.html' with monster=m include_styles=False %}</li>
+      <li>{% include 'dex/monster/monster-listentry.html' with monster=m include_styles=False %}</li>
     {% endfor %}
   </ul>
   {% endif %}
@@ -92,7 +92,7 @@
   <h2 class="mt-5">Weiterentwicklung</h2>
   <ul class="list-unstyled">
     {% for m in monster.evolutionPost.all %}
-      <li>{% include 'dex/monster-listentry.html' with monster=m include_styles=False %}</li>
+      <li>{% include 'dex/monster/monster-listentry.html' with monster=m include_styles=False %}</li>
     {% endfor %}
   </ul>
   {% endif %}
@@ -101,7 +101,7 @@
   <h2 class="mt-5">Andere Formen</h2>
   <ul class="list-unstyled">
     {% for m in monster.alternativeForms.all %}
-      <li>{% include 'dex/monster-listentry.html' with monster=m include_styles=False %}</li>
+      <li>{% include 'dex/monster/monster-listentry.html' with monster=m include_styles=False %}</li>
     {% endfor %}
   </ul>
   {% endif %}
@@ -110,7 +110,7 @@
   <h2 class="mt-5">Gegenmonster</h2>
   <ul class="list-unstyled">
     {% for m in monster.opposites.all %}
-      <li>{% include 'dex/monster-listentry.html' with monster=m include_styles=False %}</li>
+      <li>{% include 'dex/monster/monster-listentry.html' with monster=m include_styles=False %}</li>
     {% endfor %}
   </ul>
   {% endif %}
@@ -120,7 +120,7 @@
   <h2 class="mt-5">Attacken</h2>
   <ul class="list-unstyled">
     {% for a in monster.attacken.all %}
-      <li>{% include 'dex/attack-listentry.html' with attack=a include_styles=forloop.first %}</li>
+      <li>{% include 'dex/monster/attack-listentry.html' with attack=a include_styles=forloop.first %}</li>
     {% endfor %}
   </ul>
   {% endif %}

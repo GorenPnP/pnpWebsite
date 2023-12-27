@@ -71,7 +71,7 @@
 <ul class="draft-list">
     {% for a in object_list %}
     <li class="attack-container">
-        {% include 'dex/attack-listentry.html' with attack=a include_styles=forloop.first %}
+        {% include 'dex/monster/attack-listentry.html' with attack=a include_styles=forloop.first %}
 
         <a href="{% url 'dex:attack_proposal' a.id %}" class="edit-attack-btn btn btn-light">
             <svg xmlns="http://www.w3.org/2000/svg" height="16" width="16" viewBox="0 0 512 512">

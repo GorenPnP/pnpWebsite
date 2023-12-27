@@ -2,7 +2,7 @@
 {% load static dice boobles l10n %}
 
 {% block extra-head %}
-<link rel="stylesheet" href="{% static 'dex/css/monster_farm_levelup.css' %}">
+<link rel="stylesheet" href="{% static 'dex/monster/css/monster_farm_levelup.css' %}">
 {{ object.skilled_stats|json_script:"skilled" }}
 {{ object.trained_stats|json_script:"trained" }}
 {{ all_stats|json_script:"all_stats" }}
@@ -11,7 +11,7 @@
 {{ WEIGHT_SKILLED|json_script:"weight_skilled" }}
 {{ WEIGHT_TRAINED|json_script:"weight_trained" }}
 {{ POLLS_PER_RANG|json_script:"amount_polls" }}
-<script src="{% static 'dex/js/monster_farm_levelup.js' %}" defer></script>
+<script src="{% static 'dex/monster/js/monster_farm_levelup.js' %}" defer></script>
 {% endblock %}
 
 {% block main %}

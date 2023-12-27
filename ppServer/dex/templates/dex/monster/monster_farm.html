@@ -1,10 +1,10 @@
-{% extends 'dex/monster_index.html' %}
+{% extends 'dex/monster/monster_index.html' %}
 
 {% block main %}
 <ul class="list-unstyled" id="monster-list">
     {% for obj in object_list %}
     <li>
-        {% include 'dex/monster-farm-listentry.html' with sp_mo=obj monster=obj.monster id=obj.id include_styles=forloop.first %}
+        {% include 'dex/monster/monster-farm-listentry.html' with sp_mo=obj monster=obj.monster id=obj.id include_styles=forloop.first %}
     </li>
     {% endfor %}
 </ul>

@@ -17,7 +17,7 @@ from .models import *
 
 class MonsterIndexView(LoginRequiredMixin, ListView):
     model = Monster
-    template_name = "dex/monster_index.html"
+    template_name = "dex/monster/monster_index.html"
 
     def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
         return super().get_context_data(
@@ -35,7 +35,7 @@ class MonsterIndexView(LoginRequiredMixin, ListView):
 
 class MonsterDetailView(LoginRequiredMixin, DetailView):
     model = Monster
-    template_name = "dex/monster_detail.html"
+    template_name = "dex/monster/monster_detail.html"
 
     def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
         context = super().get_context_data(
@@ -92,7 +92,7 @@ class MonsterDetailView(LoginRequiredMixin, DetailView):
     
 class AttackIndexView(LoginRequiredMixin, ListView):
     model = Attacke
-    template_name = "dex/attack_index.html"
+    template_name = "dex/monster/attack_index.html"
 
     def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
         return super().get_context_data(
@@ -110,7 +110,7 @@ class AttackIndexView(LoginRequiredMixin, ListView):
 
 class TypeTableView(LoginRequiredMixin, ListView):
     model = Typ
-    template_name = "dex/type_table.html"
+    template_name = "dex/monster/type_table.html"
 
     def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
         return super().get_context_data(
@@ -126,7 +126,7 @@ class TypeTableView(LoginRequiredMixin, ListView):
 
 class MonsterFähigkeitView(LoginRequiredMixin, ListView):
     model = MonsterFähigkeit
-    template_name = "dex/monster_fähigkeit_index.html"
+    template_name = "dex/monster/monster_fähigkeit_index.html"
 
     def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
         return super().get_context_data(
@@ -143,7 +143,7 @@ class MonsterFähigkeitView(LoginRequiredMixin, ListView):
 
 class MonsterFarmView(LoginRequiredMixin, ListView):
     model = SpielerMonster
-    template_name = "dex/monster_farm.html"
+    template_name = "dex/monster/monster_farm.html"
 
     def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
         context = super().get_context_data(
@@ -178,7 +178,7 @@ class MonsterFarmView(LoginRequiredMixin, ListView):
 
 class MonsterFarmDetailView(LoginRequiredMixin, DetailView):
     model = SpielerMonster
-    template_name = "dex/monster_farm_detail.html"
+    template_name = "dex/monster/monster_farm_detail.html"
 
     def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
         context = super().get_context_data(
@@ -264,7 +264,7 @@ class MonsterFarmLevelupView(LoginRequiredMixin, DetailView):
     """
 
     model = SpielerMonster
-    template_name = "dex/monster_farm_levelup.html"
+    template_name = "dex/monster/monster_farm_levelup.html"
 
     def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
         context = super().get_context_data(
@@ -374,7 +374,7 @@ class MonsterFarmLevelupView(LoginRequiredMixin, DetailView):
 
 class MonsterTeamView(LoginRequiredMixin, ListView):
     model = MonsterTeam
-    template_name = "dex/monster_teams.html"
+    template_name = "dex/monster/monster_teams.html"
 
     def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
         return super().get_context_data(
@@ -406,7 +406,7 @@ class MonsterTeamView(LoginRequiredMixin, ListView):
 
 class MonsterTeamDetailView(LoginRequiredMixin, DetailView):
     model = MonsterTeam
-    template_name = "dex/monster_teams_detail.html"
+    template_name = "dex/monster/monster_teams_detail.html"
 
     def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
         context = super().get_context_data(
@@ -574,7 +574,7 @@ def evolve_spielermonster(request, pk):
 
 class AttackProposalView(LoginRequiredMixin, ListView):
     model = Attacke
-    template_name = "dex/attack_proposal.html"
+    template_name = "dex/monster/attack_proposal.html"
 
     def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
         context = super().get_context_data(

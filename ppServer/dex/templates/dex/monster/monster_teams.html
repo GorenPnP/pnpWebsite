@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block extra-head %}
-<link rel="stylesheet" href="{% static 'dex/css/monster_teams.css' %}">
+<link rel="stylesheet" href="{% static 'dex/monster/css/monster_teams.css' %}">
 {% endblock %}
 
 {% block main %}
@@ -17,7 +17,7 @@
     <div id="collapse-{{ obj.id }}" class="accordion-collapse collapse show" aria-labelledby="head-{{ obj.id }}" data-bs-parent="#team-list">
       <div class="accordion-body">
         {% for sp_mo in obj.monster.all %}
-          {% include 'dex/monster-farm-listentry.html' with sp_mo=sp_mo monster=sp_mo.monster id=obj.id include_styles=forloop.first|default:forloop.parentloop.first %}
+          {% include 'dex/monster/monster-farm-listentry.html' with sp_mo=sp_mo monster=sp_mo.monster id=obj.id include_styles=forloop.first|default:forloop.parentloop.first %}
         {% endfor %}
 
         <a class="btn btn-lg btn-light d-block mx-auto my-2 border-dark" href="{% url 'dex:monster_team_detail' obj.id %}">Team bearbeiten</a>

@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block extra-head %}
-<link rel="stylesheet" href="{% static 'dex/css/monster_teams_detail.css' %}">
+<link rel="stylesheet" href="{% static 'dex/monster/css/monster_teams_detail.css' %}">
 <style>
   body {
     color: {{ object.textfarbe }};
@@ -27,7 +27,7 @@
   <ul class="list-unstyled">
     {% for sp_mo in object.monster.all %}
       <li class="del-btn-container">
-        {% include 'dex/monster-farm-listentry.html' with sp_mo=sp_mo monster=sp_mo.monster id=obj.id include_styles=forloop.first %}
+        {% include 'dex/monster/monster-farm-listentry.html' with sp_mo=sp_mo monster=sp_mo.monster id=obj.id include_styles=forloop.first %}
 
         <form action="{% url 'dex:monster_team_delete_monster' object.id %}" method="post">
           {% csrf_token %}

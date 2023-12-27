@@ -2,8 +2,8 @@
 {% load static %}
 
 {% block extra-head %}
-<link rel="stylesheet" href="{% static 'dex/css/attack_index.css' %}">
-<script src="{% static 'dex/js/attack_index.js' %}" defer></script>
+<link rel="stylesheet" href="{% static 'dex/monster/css/attack_index.css' %}">
+<script src="{% static 'dex/monster/js/attack_index.js' %}" defer></script>
 {% endblock %}
 
 {% block asides %}
@@ -77,7 +77,7 @@
 <ul class="list-unstyled" id="attack-list">
     {% for obj in object_list %}
     <li>
-        {% include 'dex/attack-listentry.html' with attack=obj include_styles=forloop.first %}
+        {% include 'dex/monster/attack-listentry.html' with attack=obj include_styles=forloop.first %}
     </li>
     {% endfor %}
 </ul>

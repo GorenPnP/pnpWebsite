@@ -2,9 +2,9 @@
 {% load static dice boobles l10n %}
 
 {% block extra-head %}
-<link rel="stylesheet" href="{% static 'dex/css/monster_farm_detail.css' %}">
+<link rel="stylesheet" href="{% static 'dex/monster/css/monster_farm_detail.css' %}">
 {{ AMOUNT_TRAINED|json_script:"max_trained_amount" }}
-<script src="{% static 'dex/js/monster_farm_detail.js' %}" defer></script>
+<script src="{% static 'dex/monster/js/monster_farm_detail.js' %}" defer></script>
 {% endblock %}
 
 {% block main %}
@@ -14,7 +14,7 @@
   <!-- Allgemeines -->
   <h2>Allgemeines</h2>
   
-  {% include 'dex/monster-listentry.html' with monster=monster include_styles=True %}
+  {% include 'dex/monster/monster-listentry.html' with monster=monster include_styles=True %}
   <div class="card bg-dark my-2">
     <div class="card-body">
       <div class="card-text">{{ monster.description }}</div>
@@ -133,7 +133,7 @@
   <ul class="list-unstyled">
     {% for m in monster.evolutionPre.all %}
       <li>
-        {% include 'dex/monster-listentry.html' with monster=m include_styles=False %}
+        {% include 'dex/monster/monster-listentry.html' with monster=m include_styles=False %}
 
         <form action="{% url 'dex:spieler_monster_evolve' object.id %}" method="post">
           {% csrf_token %}
@@ -150,7 +150,7 @@
   <ul class="list-unstyled">
     {% for m in monster.evolutionPost.all %}
       <li>
-        {% include 'dex/monster-listentry.html' with monster=m include_styles=False %}
+        {% include 'dex/monster/monster-listentry.html' with monster=m include_styles=False %}
 
         <form action="{% url 'dex:spieler_monster_evolve' object.id %}" method="post">
           {% csrf_token %}
@@ -166,7 +166,7 @@
   <h2 class="mt-5">Andere Formen</h2>
   <ul class="list-unstyled">
     {% for m in monster.alternativeForms.all %}
-      <li>{% include 'dex/monster-listentry.html' with monster=m include_styles=False %}</li>
+      <li>{% include 'dex/monster/monster-listentry.html' with monster=m include_styles=False %}</li>
     {% endfor %}
   </ul>
   {% endif %}
@@ -175,7 +175,7 @@
   <h2 class="mt-5">Gegenmonster</h2>
   <ul class="list-unstyled">
     {% for m in monster.opposites.all %}
-      <li>{% include 'dex/monster-listentry.html' with monster=m include_styles=False %}</li>
+      <li>{% include 'dex/monster/monster-listentry.html' with monster=m include_styles=False %}</li>
     {% endfor %}
   </ul>
   {% endif %}
@@ -185,7 +185,7 @@
   <ul class="list-unstyled">
     {% for a in object.attacken.all %}
       <li class="del-btn-container">
-        {% include 'dex/attack-listentry.html' with attack=a include_styles=forloop.first %}
+        {% include 'dex/monster/attack-listentry.html' with attack=a include_styles=forloop.first %}
 
         <form action="{% url 'dex:spieler_monster_delete_attack' object.id %}" method="post" id="attack-form-{{ a.id }}">
           {% csrf_token %}

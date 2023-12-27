@@ -6,4 +6,5 @@ class DexConfig(AppConfig):
     name = 'dex'
 
     def ready(self):
-        import dex.signals
+        import dex.monster.admin
+        import dex.monster.signals
