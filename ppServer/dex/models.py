@@ -477,23 +477,30 @@ class Geschöpf(models.Model):
         verbose_name = "Geschöpf"
         verbose_name_plural = "Geschöpfe"
 
-    Gefahr = models.IntegerChoices("Gefahr", "sicher bedenklich lethal hortend")
+    Gefahr = [
+        ("S", "sicher"),
+        ("B", "bedenklich"),
+        ("L", "lethal"),
+        ("H", "hortend"),
+    ]
     Status = models.IntegerChoices("Status", "gefangen ausgebrochen noch_frei tot Existenz_noch_unsicher")
 
+    image = ResizedImageField(size=[1024, 1024], upload_to=upload_and_rename_to_id, blank=True)
     name = models.CharField(max_length=128)
     number = models.PositiveSmallIntegerField(unique=True)
-    gefahrenklasse = models.PositiveSmallIntegerField(choices=Gefahr.choices, default=1)
+    gefahrenklasse = models.CharField(choices=Gefahr, default="B")
     verwahrungsklasse = models.PositiveSmallIntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)], default=3)
     status = models.PositiveSmallIntegerField(choices=Status.choices, default=5)
+
     verhalten = models.TextField()
     gefahren_fähigkeiten = models.TextField()
     gefahrenprävention = models.TextField()
     aufenthaltsort = models.TextField()
     forschungsstand = models.TextField()
+    initiative = models.ForeignKey(Dice, on_delete=models.SET_NULL, null=True, blank=True, related_name="initiative")
     hp = models.PositiveSmallIntegerField()
-    schaWI = models.ManyToManyField(Dice)
+    schaWI = models.ManyToManyField(Dice, related_name="schadensWI")
     reaktion = models.PositiveSmallIntegerField(default=0)
 
 
-    image = ResizedImageField(size=[1024, 1024], upload_to=upload_and_rename_to_id, blank=True)
     fertigkeiten = models.ManyToManyField(Fertigkeit, through=GeschöpfFertigkeit)
