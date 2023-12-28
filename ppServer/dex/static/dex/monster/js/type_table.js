@@ -23,9 +23,14 @@ function draw_show() {
             return acc;
         }, {"x": 0, "+": 0, "-": 0});
     
-    let score = score_prep["x"] ? 0 : 1;
-    if (score_prep["+"]) { score *= 2* score_prep["+"]; }
-    if (score_prep["-"]) { score /= 2* score_prep["-"]; }
+    if (score_prep["x"]) { return document.querySelector("#efficiency").innerHTML = "0.00"; }
+        
+    
+    const factor = score_prep["+"] - score_prep["-"];
+    let score = 1;
+    if (factor < 0) { score /= Math.pow(2, Math.abs(factor)); }
+    else { score += (factor * 0.5); }
+
     document.querySelector("#efficiency").innerHTML = score.toFixed(2);
 }
 
