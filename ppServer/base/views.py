@@ -1,4 +1,5 @@
-from django.utils import timezone
+from datetime import datetime
+
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.shortcuts import render, get_object_or_404, reverse
@@ -56,7 +57,7 @@ def index(request):
 
         else:
             # all currently open polls, which haven't been answered by the player
-            now = timezone.now()
+            now = datetime.now()
             context["list_vote"] = [q
                 for q in pollsm.Question.objects.filter(deadline__gte=now, pub_date__lte=now).order_by('-pub_date')
                 if not pollsm.QuestionSpieler.objects.filter(question=q, spieler=spieler).exists()]

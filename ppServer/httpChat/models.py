@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 
 from django.db import models
 from django.utils.text import slugify
@@ -35,7 +35,7 @@ class Account(models.Model):
 
 
 def ancient_datetime():
-    return datetime(1990, 6, 1, 0, 0, 0, 0, tzinfo=datetime.timezone.utc)
+    return datetime(1990, 6, 1, 0, 0, 0, 0, tzinfo=timezone.utc)
 
 class ChatroomAccount(models.Model):
     class Meta:

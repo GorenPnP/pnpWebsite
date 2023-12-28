@@ -1,6 +1,7 @@
+from datetime import datetime
 from typing import Any, Dict
 
-from django.db.models import F, Subquery, OuterRef, Value, Q, Count
+from django.db.models import F, Subquery, OuterRef, Q, Count
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import JsonResponse
 from django.http.request import HttpRequest
@@ -120,7 +121,7 @@ class ChatroomView(LoginRequiredMixin, OwnChatMixin, TemplateView):
 
         # set accessed
         self.latest_access = objects["chatroomaccount"].latest_access
-        ChatroomAccount.objects.filter(chatroom=objects["chatroom"], account__spieler__name=request.user.username).update(latest_access=timezone.now())
+        ChatroomAccount.objects.filter(chatroom=objects["chatroom"], account__spieler__name=request.user.username).update(latest_access=datetime.now())
 
         # if opening chatroom for the first time, add welcome msg
         if self.latest_access.year == ancient_datetime().year:
