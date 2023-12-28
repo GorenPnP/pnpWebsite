@@ -1,8 +1,8 @@
+from datetime import datetime
 from typing import Optional
 
 from django.contrib.auth.mixins import UserPassesTestMixin
 from django.shortcuts import redirect
-from django.utils import timezone
 
 from character.models import Spieler
 from httpChat.models import Account, Chatroom
@@ -58,8 +58,8 @@ class PollAllowedMixin(UserPassesTestMixin):
         return Question.objects\
         .filter(
             pk=pk,
-            pub_date__lte=timezone.now(),
-            deadline__gte=timezone.now()
+            pub_date__lte=datetime.now(),
+            deadline__gte=datetime.now()
         ).exists() and not\
         QuestionSpieler.objects.filter(
             question__id=pk, spieler__name=self.request.user.username

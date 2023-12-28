@@ -7,7 +7,7 @@ from character.models import Spieler
 
 
 def default_deadline():
-    return timezone.now() + datetime.timedelta(days=14)
+    return datetime.datetime.now() + datetime.timedelta(days=14)
 
 
 class Question(models.Model):
@@ -25,7 +25,7 @@ class Question(models.Model):
     spieler_voted = models.ManyToManyField(Spieler, through="QuestionSpieler")
 
     def umfrage_läuft(self):
-        return self.pub_date <= timezone.now() <= self.deadline
+        return self.pub_date <= datetime.datetime.now(tz=datetime.timezone.utc) <= self.deadline
 
     umfrage_läuft.admin_order_field = 'pub_date'
     umfrage_läuft.boolean = True

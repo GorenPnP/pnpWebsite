@@ -9,7 +9,6 @@ from django.http.response import HttpResponse
 from django.shortcuts import redirect
 from django.views.generic.base import TemplateView, View
 from django.urls import reverse
-from django.utils import timezone
 
 from ppServer.mixins import VerifiedAccountMixin, OwnChatMixin
 
@@ -149,7 +148,7 @@ class ChatroomView(LoginRequiredMixin, OwnChatMixin, TemplateView):
             )
 
             # set message for all own characters in this group to read
-            ChatroomAccount.objects.filter(chatroom=objects["chatroom"], account__spieler=objects["account"].spieler).update(latest_access=timezone.now())
+            ChatroomAccount.objects.filter(chatroom=objects["chatroom"], account__spieler=objects["account"].spieler).update(latest_access=datetime.now())
 
         # redirect to chatroom
         return redirect(request.build_absolute_uri())
