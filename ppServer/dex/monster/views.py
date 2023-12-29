@@ -190,11 +190,7 @@ class MonsterFarmDetailView(LoginRequiredMixin, DetailView):
         self.object = context["object"]
         context["topic"] = self.object.name or self.object.monster.name
         context["form"] = SpielerMonsterNameForm(instance=context["object"])
-        context["other_attacks"] = Attacke.objects\
-            .exclude(spielermonster=self.object)\
-            .filter(cost__lte=self.object.attackenpunkte)\
-            .filter(cost__lte=self.object.max_cost_attack())\
-            .exclude(draft=True)
+        context["other_attacks"] = self.object.get_buyable_attacks()
         
         context["other_teams"] = MonsterTeam.objects.filter(spieler=context["spieler"]).exclude(monster=self.object)
         context["monster"] = Monster.objects.with_rang().prefetch_related(
@@ -218,7 +214,7 @@ class MonsterFarmDetailView(LoginRequiredMixin, DetailView):
 
     def get_queryset(self) -> QuerySet[Any]:
         return self.model.objects.with_rang_and_stats().prefetch_related(
-            Prefetch("attacken", queryset=Attacke.objects.load_card().exclude(draft=True))
+            Prefetch("spielermonsterattack_set__attacke", queryset=Attacke.objects.load_card())
         )
         
     def get(self, request: HttpRequest, pk: int, *args: Any, **kwargs: Any) -> HttpResponse:
@@ -506,20 +502,24 @@ def set_training_of_spielermonster(request, pk):
 @login_required
 def add_attack_to_spielermonster(request, pk):
     sp_mo = get_object_or_404(SpielerMonster, pk=pk, spieler__name=request.user.username)
-    attack = get_object_or_404(Attacke, pk=request.POST.get("attack_id"), draft=False)
-    if sp_mo.attacken.count() >= SpielerMonster.MAX_AMOUNT_ATTACKEN:
+
+    attack = None
+    try:
+        attack = sp_mo.get_buyable_attacks().get(pk=request.POST.get("attack_id"))
+    except: pass
+
+    if attack is None:
+        messages.error(request, f"{sp_mo.name or sp_mo.monster.name} kann diese Attacke nicht lernen.")
+
+    elif sp_mo.attacken.count() >= SpielerMonster.MAX_AMOUNT_ATTACKEN:
         messages.error(request, f"{sp_mo.name or sp_mo.monster.name} kennt schon zu viele Attacken. Vegesse eine Andere, um diese hier zu erlernen.")
 
-    elif attack.cost > sp_mo.attackenpunkte:
-        messages.error(request, f"{sp_mo.name or sp_mo.monster.name} hat zu wenig Attackenpunkte")
-
-    elif attack.cost > sp_mo.max_cost_attack():
-        messages.error(request, f"{sp_mo.name or sp_mo.monster.name} darf nur Attacken bis {sp_mo.max_cost_attack()} Punkten lernen")
-
     else:
-        sp_mo.attacken.add(attack)
-        sp_mo.attackenpunkte -= attack.cost
+        SpielerMonsterAttack.objects.create(spieler_monster=sp_mo, attacke=attack, cost=attack.modified_cost)
+
+        sp_mo.attackenpunkte -= attack.modified_cost
         sp_mo.save(update_fields=["attackenpunkte"])
+
         messages.success(request, format_html(f"{sp_mo.name or sp_mo.monster.name} hat <b>{attack.name} gelernt</b>"))
 
     redirect_path = request.GET.get("redirect")
@@ -531,16 +531,16 @@ def delete_attack_from_spielermonster(request, pk):
 
     # get stuff
     sp_mo = get_object_or_404(SpielerMonster, pk=pk, spieler__name=request.user.username)
-    attack = get_object_or_404(Attacke, pk=request.POST.get("attack_id"), draft=False)
+    sp_mo_attack = get_object_or_404(SpielerMonsterAttack, spieler_monster=sp_mo, attacke__id=request.POST.get("attack_id"))
     
     # remove attack
-    sp_mo.attacken.remove(attack)
+    SpielerMonsterAttack.objects.filter(id=sp_mo_attack.id).delete()
 
     # add attackenpunkte
-    sp_mo.attackenpunkte += attack.cost
+    sp_mo.attackenpunkte += sp_mo_attack.cost
     sp_mo.save(update_fields=["attackenpunkte"])
 
-    messages.success(request, format_html(f"{sp_mo.name or sp_mo.monster.name} hat <b>{attack.name} verlernt</b>"))
+    messages.success(request, format_html(f"{sp_mo.name or sp_mo.monster.name} hat <b>{sp_mo_attack.attacke.name} verlernt</b>"))
     redirect_path = request.GET.get("redirect")
     return redirect(redirect_path if redirect_path and redirect_path.startswith("/dex/") else reverse("dex:monster_detail_farm", args=[pk]))
 

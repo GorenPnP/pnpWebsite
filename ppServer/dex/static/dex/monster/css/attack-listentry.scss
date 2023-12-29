@@ -84,6 +84,19 @@
     font-weight: 800;
     font-size: .9rem;
     color: var(--bs-dark);
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: .3ch;
+
+    .old-cost {
+        font-style: italic;
+        font-weight: 100;
+        font-size: 0.7em;
+
+        position: relative;
+    }
 }
 .attack__cost svg {
     z-index: 0;

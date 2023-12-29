@@ -3,7 +3,7 @@ from random import choice
 
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-from django.db.models import Subquery, OuterRef, CharField, F, Value
+from django.db.models import Subquery, OuterRef, CharField, F, Value, Q, Count, Case, When
 from django.db.models.functions import Concat, Cast
 from django.db.models.query import QuerySet
 from django.utils.html import format_html
@@ -223,6 +223,19 @@ class RangStat(models.Model):
     def __str__(self):
         return f"{self.stat}: {self.wert}"
 
+class SpielerMonsterAttack(models.Model):
+
+    class Meta:
+        verbose_name = "Attacke"
+        verbose_name_plural = "Attacken"
+        unique_together = ["attacke", "spieler_monster"]
+
+    attacke = models.ForeignKey(Attacke, on_delete=models.CASCADE)
+    spieler_monster = models.ForeignKey("SpielerMonster", on_delete=models.CASCADE)
+
+    cost = models.PositiveSmallIntegerField()
+
+
 class SpielerMonster(models.Model):
 
     class Meta:
@@ -240,7 +253,7 @@ class SpielerMonster(models.Model):
 
     name = models.CharField(max_length=256, null=True, blank=True)
     rang = models.SmallIntegerField()
-    attacken = models.ManyToManyField(Attacke)
+    attacken = models.ManyToManyField(Attacke, through=SpielerMonsterAttack)
 
     attackenpunkte = models.SmallIntegerField(default=0)
 
@@ -249,6 +262,22 @@ class SpielerMonster(models.Model):
     
     def max_cost_attack(self):
         return floor(self.rang / 10)+1
+    
+    def get_buyable_attacks(self) -> QuerySet[Attacke]:
+        max_cost = min(self.attackenpunkte, self.max_cost_attack())
+
+        return Attacke.objects\
+            .prefetch_related("types")\
+            .annotate(
+                types_count = Count("types__pk", distinct=True),
+                stab_count = Count("types__pk", filter=Q(types__monster=self.monster), distinct=True),
+                discount = Case(When(cost=0, then=0), default=F("cost")-1, output_field=models.PositiveSmallIntegerField()),
+                modified_cost = Case(When(types_count=F("stab_count"), then=F("discount")), default=F("cost"), output_field=models.PositiveSmallIntegerField()),
+            )\
+            .filter(Q(modified_cost__lte=max_cost))\
+            .exclude(id__in=self.attacken.values_list("spielermonsterattack__attacke", flat=True))\
+            .exclude(draft=True)\
+            .order_by("name")
 
 
     def level_up(self):

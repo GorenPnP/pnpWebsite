@@ -147,13 +147,26 @@ class StatInlineAdmin(admin.TabularInline):
     def has_delete_permission(self, *args, **kwargs) -> bool:
         return False
 
+class SpielerMonsterAttackInlineAdmin(admin.TabularInline):
+    model = SpielerMonsterAttack
+
+    fields = ["attacke", "cost"]
+    extra = 1
+
+    def has_add_permission(self, *args, **kwargs) -> bool:
+        return False
+    def has_delete_permission(self, *args, **kwargs) -> bool:
+        return False
+
 class SpielerMonsterAdmin(admin.ModelAdmin):
 
     list_display = ['spieler', 'name', 'monster', 'rang', "attackenpunkte"]
 
     list_filter = ["spieler", "monster"]
     search_fields = ['spieler__name", "monster__name']
-    inlines = [StatInlineAdmin]
+
+    fields = ['spieler', "monster", "name", "rang", "attackenpunkte"]
+    inlines = [StatInlineAdmin, SpielerMonsterAttackInlineAdmin]
 
 
 admin.site.register(Typ, TypAdmin)
