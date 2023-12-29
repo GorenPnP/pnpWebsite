@@ -261,6 +261,7 @@
     <div class="modal-dialog modal-fullscreen-sm-down">
       <div class="modal-content">
         <div class="modal-body">
+          
           <form action="{% url 'dex:spieler_monster_add_attack' object.id %}" method="post" id="attack-form">
             {% csrf_token %}
             <p>
@@ -271,6 +272,12 @@
                 <option value="{{ attack.id }}">{{ attack.name }}</option>
                 {% endfor %}
               </select>
+
+              <p><i>
+                Du kannst Attacken wählen, die max. {{ object.max_cost_attack }} kosten.<br>
+                Wenn sie nur Typen deines Monsters haben, dann sogar bis {{ 1|add:object.max_cost_attack }}.
+              </i></p>
+              <a href="{% url 'dex:attack_index' %}">Übersicht der Attacken</a>
             </p>
           </form>
         </div>
