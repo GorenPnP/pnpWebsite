@@ -476,6 +476,17 @@ def add_team_to_spielermonster(request, pk):
 
 @require_POST
 @login_required
+def delete_spielermonster(request):
+    sp_mo = get_object_or_404(SpielerMonster, pk=request.POST.get("monster_id"), spieler__name=request.user.username)
+    SpielerMonster.objects.filter(pk=sp_mo.pk).delete()
+
+    messages.success(request, format_html(f"{sp_mo.name or sp_mo.monster.name} ist frei!"))
+
+    redirect_path = request.GET.get("redirect")
+    return redirect(redirect_path if redirect_path and redirect_path.startswith("/dex/") else reverse("dex:monster_farm"))
+
+@require_POST
+@login_required
 def set_training_of_spielermonster(request, pk):
     sp_mo = get_object_or_404(SpielerMonster, pk=pk, spieler__name=request.user.username)
     all_stats = [stat for stat, _ in RangStat.StatType]

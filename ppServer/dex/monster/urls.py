@@ -17,6 +17,7 @@ urlpatterns = [
     path('team/<int:pk>', views.MonsterTeamDetailView.as_view(), name='monster_team_detail'),
     
     # utils
+    path('farm/delete', views.delete_spielermonster, name='spieler_monster_delete'),
     path('farm/<int:pk>/new_attack', views.add_attack_to_spielermonster, name='spieler_monster_add_attack'),
     path('farm/<int:pk>/new_team', views.add_team_to_spielermonster, name='spieler_monster_add_team'),
     path('farm/<int:pk>/set_training', views.set_training_of_spielermonster, name='spieler_monster_set_training'),

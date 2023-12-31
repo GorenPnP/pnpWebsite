@@ -2,23 +2,55 @@
 {% load static %}
 {% block title %}Allesdex{% endblock %}
 {% block extra-head %}
-<style>.main-container { padding: 3em 5% 100px; }</style>
+<style>
+.main-container { padding: 3em 5% 100px;
+    width: fit-content;
+    margin-inline: auto;
+}
+</style>
 {% endblock %}
 {% block header %}{% include 'base/header.html' with topic='Allesdex' %}{% endblock %}
 {% block main %}
-<h2>Monsterdex</h2>
-<ul>
-    <li><a class="text-light" href="{% url 'dex:monster_index' %}">Monster</a></li>
-    <li><a class="text-light" href="{% url 'dex:attack_index' %}">Attacken</a></li>
-    <li><a class="text-light" href="{% url 'dex:type_table' %}">Typentabelle</a></li>
-    <li><a class="text-light" href="{% url 'dex:monster_fähigkeit_index' %}">Fähigkeiten</a></li>
-    <hr>
-    <li><a class="text-light" href="{% url 'dex:monster_farm' %}">meine Monster-Farm</a></li>
-    <li><a class="text-light" href="{% url 'dex:monster_team' %}">meine Monster-Teams</a></li>
-    <hr>
-    <li><a class="text-light" href="{% url 'dex:attack_proposal' %}">neue Attacke vorschlagen</a></li>
-</ul>
+<div class="card bg-dark mb-4">
+    <div class="card-body">
+        <h2 class="card-title">Monsterdex</h2>
+        <div class="card-text">
+            <ul>
+                <li><a class="text-light" href="{% url 'dex:monster_index' %}">Monster</a></li>
+                <li><a class="text-light" href="{% url 'dex:attack_index' %}">Attacken</a></li>
+                <li><a class="text-light" href="{% url 'dex:type_table' %}">Typentabelle</a></li>
+                <li><a class="text-light" href="{% url 'dex:monster_fähigkeit_index' %}">Fähigkeiten</a></li>
+                <hr>
+                <li><a class="text-light" href="{% url 'dex:monster_farm' %}">meine Monster-Farm</a></li>
+                <li><a class="text-light" href="{% url 'dex:monster_team' %}">meine Monster-Teams</a></li>
+                <hr>
+                <li><a class="text-light" href="{% url 'dex:attack_proposal' %}">neue Attacke vorschlagen</a></li>
+            </ul>
+        </div>
+    </div>
+</div>
 
-<h2 class="mt-5">PIA - Geschöpfarchiv</h2>
-<a class="text-light" href="{% url 'dex:geschöpf_index' %}">Geschöpfe</a>
+<div class="card bg-dark mb-4">
+    <div class="card-body">
+        <h2 class="card-title"><a class="text-light" href="{% url 'dex:geschöpf_index' %}">PIA - Geschöpfarchiv</a></h2>
+    </div>
+</div>
+
+<div class="card bg-dark mb-4">
+    <div class="card-body">
+        <h2 class="card-title">Para-Pflanzen</h2>
+        <div class="card-text">
+            Coming soon™
+        </div>
+    </div>
+</div>
+<div class="card bg-dark">
+    <div class="card-body">
+        <h2 class="card-title">Para-Tiere</h2>
+        <div class="card-text">
+            Coming soon™
+        </div>
+    </div>
+</div>
+
 {% endblock %}

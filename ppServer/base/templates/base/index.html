@@ -82,17 +82,6 @@
                 </div>
                 {% endif %}
 
-                <!-- Monsterdex -->
-                {% if page == "Monsterdex" %}
-                <div class="carousel-item carousel-item-light w-100 h-100{% if not forloop.counter0 %} active{% endif %}">
-                    <img src="{% static 'res/img/hero-monsterdex.jpg' %}">
-                    <div class="carousel-caption h-100 d-flex flex-column justify-content-center align-items-center">
-                        <h2 style="margin-block: 100px 30px">Der Monsterdex ist Online!</h2>
-                        <a href="{% url 'dex:monster_index' %}" target="_blank" class="btn btn-dark">Monster angucken</a>
-                    </div>
-                </div>
-                {% endif %}
-
                 <!-- Schmiedesystem -->
                 {% if page == "Schmiedesystem" %}
                 <div class="carousel-item w-100 h-100{% if not forloop.counter0 %} active{% endif %}">
@@ -169,6 +158,24 @@
             </p>
             <div class="btns">
                 <a href="{% url 'wiki:index' %}" class="btn btn-primary">Los gehts</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Allesdex -->
+    <div class="card" id="allesdex">
+        <a href="{% url 'dex:index' %}">
+            <div class="card__icon bg-primary">
+                <img class="card__icon__img" src="{% static 'res/img/icon-animal.png' %}">
+            </div>
+        </a>
+        <div class="card__container text-bg-dark">
+            <h2 class="card__heading">Allesdex</h2>
+            <p class="card__text">
+                Der Allesdex mit Monstern, Geschöpfen, Paratieren & -pflanzen!
+            </p>
+            <div class="btns">
+                <a href="{% url 'dex:index' %}" class="btn btn-primary">Öffnen</a>
             </div>
         </div>
     </div>
@@ -298,24 +305,6 @@
             </p>
             <div class="btns">
                 <a href="{% url 'service:random' %}" class="btn btn-primary">milchSHAKE</a>
-            </div>
-        </div>
-    </div>
-
-    <!-- monsterdex -->
-    <div class="card" id="monsterdex">
-        <a href="{% url 'dex:monster_index' %}" target="_blank">
-            <div class="card__icon bg-primary">
-                <img class="card__icon__img" src="{% static 'res/img/icon-animal.png' %}">
-            </div>
-        </a>
-        <div class="card__container text-bg-dark">
-            <h2 class="card__heading">Monsterdex</h2>
-            <p class="card__text">
-                Die überarbeitete Monsterdex-App & Website!
-            </p>
-            <div class="btns">
-                <a href="{% url 'dex:monster_index' %}"  target="_blank" class="btn btn-primary">Öffnen</a>
             </div>
         </div>
     </div>

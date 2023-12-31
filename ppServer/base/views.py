@@ -75,7 +75,6 @@ def index(request):
         context["hero_pages"] = ["Fun Fact"]
         if "list_vote" in context and len(context["list_vote"]):  context["hero_pages"].append("Umfrage")
         if "open_quiz" in context and context["open_quiz"]:  context["hero_pages"].append("Quiz")
-        context["hero_pages"].append("Monsterdex")
         context["hero_pages"].append("Schmiedesystem")
         if "shop_review" in context and len(context["shop_review"]):  context["hero_pages"].append("Shop review")
 

@@ -8,8 +8,8 @@
 {% block main %}
 
 <header class="pia-header">
-    <img alt="PIA-logo">
-    <span>Status: {{ object.get_status_display }}</span>
+    <img class="pia-logo h1 m-0" src="{% static 'res/img/pia_logo2_transparent.png' %}" alt="PIA-logo">
+    <span class="status">Status: {{ object.get_status_display }}</span>
 </header>
 
 <hr>

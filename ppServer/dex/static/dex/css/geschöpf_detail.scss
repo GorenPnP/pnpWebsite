@@ -23,6 +23,14 @@ main {
 .pia-header {
     display: flex;
     justify-content: space-between;
+    align-items: center;
+    gap: 2em;
+
+    .pia-logo {
+        display: block;
+        height: 1.2em;
+        object-fit: contain;
+    }
 }
 .title {
     text-align: center;
@@ -53,6 +61,7 @@ main {
         position: absolute;
         bottom: -.6em;
         left: -.15em;
+        rotate: 2deg;
     }
 
     &::before {
@@ -86,4 +95,21 @@ h3 {
     color: transparent;
     height: 1em;
     margin-block: .5em;
+}
+
+@media only screen and (max-width: 400px) {
+    .main-container {
+        padding-inline: 5px;
+        margin-block: 0;
+    }
+
+    .pia-header .status { font-size: small; }
+
+    .img-container {
+        margin-bottom: 1em;
+        .stamp {
+            left: 0;
+            font-size: 7rem;
+        }
+    }
 }
