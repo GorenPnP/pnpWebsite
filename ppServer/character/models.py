@@ -574,7 +574,9 @@ class Charakter(models.Model):
     # Geschreibsel
     notizen = models.TextField(blank=True, null=True)
     persönlicheZiele = models.TextField(blank=True, null=True)
-    sonstige_items = models.TextField(max_length=1000, default='', blank=True)
+    sonstige_items = models.TextField(default='', blank=True)
+    sonstiges_alchemie = models.TextField(default='', blank=True)
+    sonstiges_cyberware = models.TextField(default='', blank=True)
 
     # M2M #
 

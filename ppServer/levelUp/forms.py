@@ -30,6 +30,8 @@ class PersonalForm(forms.ModelForm):
 
             "persönlicheZiele",
             "sonstige_items",
+            "sonstiges_alchemie",
+            "sonstiges_cyberware",
             "notizen"
         ]
 

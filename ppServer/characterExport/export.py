@@ -645,7 +645,7 @@ class CharakterExporter:
             werte_ws.merge_range(f"D{ROW}:E{ROW}", "?", format_border_right)
             werte_ws.merge_range(f"F{ROW}:H{ROW}", aff[3] if aff is not None else None, format_border_right)
         # Notizen
-        notizen = [self.char.sonstige_items, self.char.persönlicheZiele, self.char.notizen]
+        notizen = [self.char.sonstige_items, self.char.sonstiges_alchemie, self.char.sonstiges_cyberware, self.char.persönlicheZiele, self.char.notizen]
         if self.char.wesenschaden_waff_kampf:
             notizen.append(f"+{self.char.wesenschaden_waff_kampf} HP im waffenlosen Kampf")
         if self.char.wesenschaden_andere_gestalt:
