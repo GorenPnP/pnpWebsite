@@ -37,6 +37,12 @@ class MonsterDetailView(LoginRequiredMixin, DetailView):
     model = Monster
     template_name = "dex/monster/monster_detail.html"
 
+    def _create_form(self, **kwargs):
+        if self.request.user.groups.filter(name__iexact="spielleiter").exists():
+            return SpSpielerMonsterForm(**kwargs)
+        else:
+            return SpielerMonsterForm(**kwargs)
+
     def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
         context = super().get_context_data(
             **kwargs,
@@ -46,7 +52,7 @@ class MonsterDetailView(LoginRequiredMixin, DetailView):
         )
         self.object = context["object"]
         context["topic"] = self.object.name
-        context["form"] = SpielerMonsterForm(initial={"name": self.object.name, "rang": self.object.wildrang})
+        context["form"] = self._create_form(initial={"name": self.object.name, "rang": self.object.wildrang})
         context["max_stat_wert"] = 10
 
         return context
@@ -77,14 +83,23 @@ class MonsterDetailView(LoginRequiredMixin, DetailView):
             messages.error(request, "Huch! Das Monster kennst du noch gar nicht.")
             return redirect(request.build_absolute_uri())
 
-        form = SpielerMonsterForm(request.POST)
+        form = self._create_form(data=request.POST)
         form.full_clean()
         if form.is_valid():
+
+            # catch monster
             obj = form.save(commit=False)
             obj.monster = monster
             obj.spieler = spieler
             if obj.name == monster.name: obj.name = None
             obj.save()
+
+            # spielleiter may keep the original attacks
+            if self.request.user.groups.filter(name__iexact="spielleiter").exists() and "keep_attacks" in form.cleaned_data and form.cleaned_data["keep_attacks"]:
+                obj.attacken.all().delete()
+                for attack in monster.attacken.all():
+                    SpielerMonsterAttack.objects.create(spieler_monster=obj, attacke=attack, cost=0)
+            
             messages.success(request, format_html(f"<b>{obj.name or monster.name}</b> ist in deiner <a class='text-light' href='{reverse('dex:monster_farm')}'>Monster-Farm</a> eingetroffen."))
         else:
             messages.error(request, "Etwas ist schief gelaufen. Das Monster konnte nicht gefangen werden.")
@@ -146,7 +161,7 @@ class MonsterFarmView(LoginRequiredMixin, ListView):
     template_name = "dex/monster/monster_farm.html"
 
     def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
-        context = super().get_context_data(
+        return super().get_context_data(
             **kwargs,
             app_index = "Allesdex",
             app_index_url = reverse("dex:index"),
@@ -154,26 +169,11 @@ class MonsterFarmView(LoginRequiredMixin, ListView):
             types = Typ.objects.all(),
             spieler = get_object_or_404(Spieler, name=self.request.user.username)
         )
-        context["form"] = CatchMonsterForm(curr_spieler=context["spieler"])
-        return context
     
     def get_queryset(self) -> QuerySet[Any]:
         return super().get_queryset()\
             .prefetch_related(Prefetch("monster", Monster.objects.load_card()))\
             .filter(spieler__name=self.request.user.username)
-    
-    def post(self, request, **kwargs):
-        spieler = get_object_or_404(Spieler, name=self.request.user.username)
-        form = CatchMonsterForm(request.POST, curr_spieler=spieler)
-        form.full_clean()
-        if form.is_valid():
-            obj = form.save(commit=False)
-            obj.spieler = spieler
-            obj.save()
-            messages.success(request, format_html(f"<b>{obj.name or obj.monster.name}</b> ist in deiner Monster-Farm eingetroffen."))
-        else:
-            messages.error(request, "Etwas ist schief gelaufen. Das Monster konnte nicht gefangen werden.")
-        return redirect(request.build_absolute_uri())
 
 
 class MonsterFarmDetailView(LoginRequiredMixin, DetailView):

@@ -1,5 +1,4 @@
 from django import forms
-from django.core.exceptions import ValidationError
 from django.forms.widgets import Input
 
 from .models import *
@@ -26,32 +25,18 @@ class SpielerMonsterForm(forms.ModelForm):
     class Meta:
         model = SpielerMonster
         fields = ["name", "rang"]
+
+class SpSpielerMonsterForm(forms.ModelForm):
+    class Meta:
+        model = SpielerMonster
+        fields = ["name", "rang"]
+
+    keep_attacks = forms.BooleanField(label="Attacken übernehmen", required=False)
+
 class SpielerMonsterNameForm(forms.ModelForm):
     class Meta:
         model = SpielerMonster
         fields = ["name"]
-
-
-class CatchMonsterForm(forms.ModelForm):
-
-    class Meta:
-        model = SpielerMonster
-        fields = ["monster", "name", "rang"]
-
-    def __init__(self, *args, curr_spieler: Spieler, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        # display only visible monsters
-        self.curr_spieler = curr_spieler
-        self.fields["monster"].queryset = Monster.objects.filter(visible=curr_spieler)
-
-
-    def clean_monster(self):
-        monster = self.cleaned_data["monster"]
-        if not monster.visible.filter(id=self.curr_spieler.id).exists():
-            raise ValidationError("Das Monster ist dir unbekannt", code="invalid")
-        
-        return monster
 
 
 class ProposeAttackForm(forms.ModelForm):
