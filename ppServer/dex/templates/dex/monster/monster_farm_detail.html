@@ -266,18 +266,19 @@
             {% csrf_token %}
             <p>
               <label for="id_attacke">Attacke: </label>
-              <select id="id_attacke" name="attack_id" required>
-                <option value="" selected>---------</option>
-                {% for attack in other_attacks %}
-                <option value="{{ attack.id }}">{{ attack.name }}</option>
-                {% endfor %}
-              </select>
-
               <p><i>
                 Du kannst Attacken wählen, die max. {{ object.max_cost_attack }} kosten.<br>
-                Wenn sie nur Typen deines Monsters haben, dann sogar bis {{ 1|add:object.max_cost_attack }}.
+                Wenn sie nur Typen deines Monsters haben, sind sie günstiger:
               </i></p>
-              <a href="{% url 'dex:attack_index' %}">Übersicht der Attacken</a>
+
+              {% for attack in other_attacks %}
+                <div class="form-check">
+                  <input class="form-check-input" type="radio" name="attack_id" id="attack-radio-{{ attack.id }}" value="{{ attack.id }}" checked="{{ foorloop.first }}">
+                  <label class="form-check-label w-100" for="attack-radio-{{ attack.id }}">
+                    {% include 'dex/monster/attack-listentry.html' with attack=attack modified_cost=attack.modified_cost include_styles=forloop.first %}
+                  </label>
+                </div>
+              {% endfor %}
             </p>
           </form>
         </div>
