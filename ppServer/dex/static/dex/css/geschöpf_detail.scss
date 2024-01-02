@@ -1,6 +1,6 @@
 @font-face {
     font-family: Army;
-    src: url('/static/res/fonts/army_stamp.ttf')  format("truetype");
+    src: url('/static/res/fonts/army_rust.ttf')  format("truetype");
 }
 @font-face {
     font-family: Underwood;
@@ -32,16 +32,36 @@ main {
         object-fit: contain;
     }
 }
-.title {
-    text-align: center;
-    margin-block: 2.5em;
+
+.geschöpftitle-container {
+    position: relative;
+
+    .title {
+        text-align: center;
+        margin-block: 2.5em;
+    }
+    .stamp {
+        z-index: 2;
+        font-family: Army, monospace;
+        font-size: 7rem;
+    
+        position: absolute;
+        top: 0;
+        right: 2%;
+        rotate: 3deg;
+
+        &.stamp--L { color: var(--bs-danger); }
+        &.stamp--B { color: var(--bs-orange); }
+        &.stamp--H { color: var(--bs-purple); }
+        &.stamp--S { color: var(--bs-green); }
+    }
 }
 
 .img-container {
     position: relative;
     border: 2px solid var(--bs-dark);
     float: left;
-    margin: 24px 1em 1.5em 0;
+    margin: 24px 1em 0 0;
 
     width: 50%;
     max-width: 300px;
@@ -52,16 +72,6 @@ main {
     img {
         width: 100%;
         height: 100%;
-    }
-
-    .stamp {
-        font-family: Army, monospace;
-        font-size: 9rem;
-
-        position: absolute;
-        bottom: -.6em;
-        left: -.15em;
-        rotate: 2deg;
     }
 
     &::before {
@@ -104,12 +114,4 @@ h3 {
     }
 
     .pia-header .status { font-size: small; }
-
-    .img-container {
-        margin-bottom: 1em;
-        .stamp {
-            left: 0;
-            font-size: 7rem;
-        }
-    }
 }

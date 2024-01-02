@@ -158,7 +158,7 @@ class Geschöpf(models.Model):
     Gefahr = [
         ("S", "sicher"),
         ("B", "bedenklich"),
-        ("L", "lethal"),
+        ("L", "letal"),
         ("H", "hortend"),
     ]
     Status = models.IntegerChoices("Status", "gefangen ausgebrochen noch_frei tot Existenz_noch_unsicher")

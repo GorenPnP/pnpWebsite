@@ -13,12 +13,14 @@
 </header>
 
 <hr>
-<h2 class="title">#{{ object.number }} {{ object.name }}</h2>
+<div class="geschöpftitle-container">
+    <h2 class="title">#{{ object.number }} {{ object.name }}</h2>
+    <div class="stamp stamp--{{ object.gefahrenklasse }}">{{ object.gefahrenklasse }}{{ object.verwahrungsklasse }}</div>
+</div>
 <hr>
 
 <div class="img-container">
     {% if object.image %}<img src="{{ object.image.url }}">{% endif %}
-    <div class="stamp text-danger">{{ object.gefahrenklasse }}{{ object.verwahrungsklasse }}</div>
 </div>
 
 <h3>Verhalten</h3>
