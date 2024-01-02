@@ -1,9 +1,13 @@
 from math import floor
 from django.core.management.base import BaseCommand
 
-from dex.models import Attacke
+from dex.monster.models import Attacke
 
 
+def cost_estimate(attack: Attacke) -> int:
+    cost = 1 if attack.macht_effekt else 0
+    cost = sum([cost, *[floor((amount * (int(type.replace("W", ""))+1)) / 8) for amount, type in attack.damage.all().values_list("amount", "type")]])
+    return min(cost, 7)
 
 class Command(BaseCommand):
     help = "calculates the cost of every attack based on avg. damage and effect"
@@ -12,9 +16,7 @@ class Command(BaseCommand):
 
         attacks = []
         for attack in Attacke.objects.prefetch_related("damage").all():
-            cost = 1 if attack.macht_effekt else 0
-            cost = sum([cost, *[floor((amount * (int(type.replace("W", ""))+1)) / 8) for amount, type in attack.damage.all().values_list("amount", "type")]])
-            attack.cost = min(cost, 7)
+            attack.cost = cost_estimate(attack)
             attacks.append(attack)
         Attacke.objects.bulk_update(attacks, fields=["cost"])
 

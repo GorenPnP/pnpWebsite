@@ -123,7 +123,7 @@ class TypAdmin(admin.ModelAdmin):
 class AttackeAdmin(admin.ModelAdmin):
 
     list_display = [
-        'name', 'types_', 'description', 'damage_', 'macht_schaden', 'macht_effekt', 'cost',
+        'name', 'types_', 'description', 'damage_', 'macht_schaden', 'macht_effekt', 'cost', 'kosten_vorschlag',
     ]
 
     list_filter = ["draft", "types", "macht_schaden", "macht_effekt", 'angriff_nahkampf', 'angriff_fernkampf', 'angriff_magie', 'verteidigung_geistig', 'verteidigung_körperlich']
@@ -134,6 +134,9 @@ class AttackeAdmin(admin.ModelAdmin):
         return " + ".join([t.__str__() for t in obj.damage.all()]) or "-"
     def types_(self, obj):
         return format_html(", ".join([t.tag() for t in obj.types.all()])) or "-"
+    def kosten_vorschlag(self, obj):
+        from dex.management.commands.calc_attack_cost import cost_estimate as estimate
+        return format_html(f"<i>{estimate(obj)}</i>")
 
 class StatInlineAdmin(admin.TabularInline):
     model = RangStat

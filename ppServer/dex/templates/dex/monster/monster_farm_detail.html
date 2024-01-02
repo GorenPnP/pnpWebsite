@@ -1,5 +1,5 @@
 {% extends 'base/headed_main.html' %}
-{% load static dice boobles l10n %}
+{% load static dice boobles calc_monster_stats l10n %}
 
 {% block extra-head %}
 <link rel="stylesheet" href="{% static 'dex/monster/css/monster_farm_detail.css' %}">
@@ -63,49 +63,49 @@
           </div>
 
           <b class="stat">Initiative:</b>
-          <div class="wert" style="--width: calc({% localize off %}{{ object.initiative }} / {{ max_stat_wert }}{% endlocalize %} *100%)"><small>{{ object.initiative }}</small></div>
+          <div class="wert" style="--width: calc({% localize off %}{{ object.initiative }} / {{ max_stat_wert }}{% endlocalize %} *100%)"><b>{{ object.initiative }}</b></div>
           <button class="booble-container{% if ' INI ' in object.skilled_stats %} skilled{% endif %}{% if ' INI ' in object.trained_stats %} trained{% endif %}" data-stat="INI">
             {% skilled_booble %}
             {% trained_booble %}
           </button>
 
           <b class="stat">HP:</b>
-          <div class="wert" style="--width: calc({% localize off %}{{ object.hp }} / {{ max_stat_wert }}{% endlocalize %} *100%)"><small>{{ object.hp }} HP</small></div>
+          <div class="wert" style="--width: calc({% localize off %}{{ object.hp }} / {{ max_stat_wert }}{% endlocalize %} *100%)"><b>{{ object.hp }} HP</b></div>
           <button class="booble-container{% if ' HP ' in object.skilled_stats %} skilled{% endif %}{% if ' HP ' in object.trained_stats %} trained{% endif %}" data-stat="HP">
             {% skilled_booble %}
             {% trained_booble %}
           </button>
 
           <b class="stat">Nahkampf:</b>
-          <div class="wert" style="--width: calc({% localize off %}{{ object.nahkampf }} / {{ max_stat_wert }}{% endlocalize %} *100%)"><small>{{ object.nahkampf }}</small></div>
+          <div class="wert" style="--width: calc({% localize off %}{{ object.nahkampf }} / {{ max_stat_wert }}{% endlocalize %} *100%)"><small>{{ object.nahkampf }}</small> <b class="stat-offset">+{{ object.nahkampf|calc_stat }}</b></div>
           <button class="booble-container{% if ' N ' in object.skilled_stats %} skilled{% endif %}{% if ' N ' in object.trained_stats %} trained{% endif %}" data-stat="N">
             {% skilled_booble %}
             {% trained_booble %}
           </button>
 
           <b class="stat">Fernkampf:</b>
-          <div class="wert" style="--width: calc({% localize off %}{{ object.fernkampf }} / {{ max_stat_wert }}{% endlocalize %} *100%)"><small>{{ object.fernkampf }}</small></div>
+          <div class="wert" style="--width: calc({% localize off %}{{ object.fernkampf }} / {{ max_stat_wert }}{% endlocalize %} *100%)"><small>{{ object.fernkampf }}</small> <b class="stat-offset">+{{ object.fernkampf|calc_stat }}</b></div>
           <button class="booble-container{% if ' F ' in object.skilled_stats %} skilled{% endif %}{% if ' F ' in object.trained_stats %} trained{% endif %}" data-stat="F">
             {% skilled_booble %}
             {% trained_booble %}
           </button>
 
           <b class="stat">Magie:</b>
-          <div class="wert" style="--width: calc({% localize off %}{{ object.magie }} / {{ max_stat_wert }}{% endlocalize %} *100%)"><small>{{ object.magie }}</small></div>
+          <div class="wert" style="--width: calc({% localize off %}{{ object.magie }} / {{ max_stat_wert }}{% endlocalize %} *100%)"><small>{{ object.magie }}</small> <b class="stat-offset">+{{ object.magie|calc_stat }}</b></div>
           <button class="booble-container{% if ' MA ' in object.skilled_stats %} skilled{% endif %}{% if ' MA ' in object.trained_stats %} trained{% endif %}" data-stat="MA">
             {% skilled_booble %}
             {% trained_booble %}
           </button>
               
           <b class="stat">Vert. geistig:</b>
-          <div class="wert" style="--width: calc({% localize off %}{{ object.verteidigung_geistig }} / {{ max_stat_wert }}{% endlocalize %} *100%)"><small>{{ object.verteidigung_geistig }}</small></div>
+          <div class="wert" style="--width: calc({% localize off %}{{ object.verteidigung_geistig }} / {{ max_stat_wert }}{% endlocalize %} *100%)"><small>{{ object.verteidigung_geistig }}</small> <b class="stat-offset">+{{ object.verteidigung_geistig|calc_stat }}</b></div>
           <button class="booble-container{% if ' VER_G ' in object.skilled_stats %} skilled{% endif %}{% if ' VER_G ' in object.trained_stats %} trained{% endif %}" data-stat="VER_G">
             {% skilled_booble %}
             {% trained_booble %}
           </button>
               
           <b class="stat">Vert. körperlich:</b>
-          <div class="wert" style="--width: calc({% localize off %}{{ object.verteidigung_körperlich }} / {{ max_stat_wert }}{% endlocalize %} *100%)"><small>{{ object.verteidigung_körperlich }}</small></div>
+          <div class="wert" style="--width: calc({% localize off %}{{ object.verteidigung_körperlich }} / {{ max_stat_wert }}{% endlocalize %} *100%)"><small>{{ object.verteidigung_körperlich }}</small> <b class="stat-offset">+{{ object.verteidigung_körperlich|calc_stat }}</b></div>
           <button class="booble-container{% if ' VER_K ' in object.skilled_stats %} skilled{% endif %}{% if ' VER_K ' in object.trained_stats %} trained{% endif %}" data-stat="VER_K">
             {% skilled_booble %}
             {% trained_booble %}

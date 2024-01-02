@@ -6,7 +6,8 @@
 }
 
 .wert {
-    display: block;
+    display: flex;
+    justify-content: space-between;
     min-width: 100px;
 
     position: relative;
@@ -16,7 +17,7 @@
 
     box-shadow: .1em .1em .1em .1em rgba(var(--bs-dark-rgb), .4);
 }
-.wert small {
+.wert * {
     z-index: 2;
     position: relative;
     padding-inline: .5em;
