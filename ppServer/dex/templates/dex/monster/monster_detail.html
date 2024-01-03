@@ -125,6 +125,37 @@
   </ul>
   {% endif %}
 
+  <!-- Effectivities -->
+  <h2 class="mt-5">Attacken gegen {{ object.name }}</h2>
+  <p>Wenn {{ object.name }} von einer Attacke mit einem der unten aufgeführten Typen angegriffen wird, wird der <b>Schaden</b> der Attacke <b>mit der Zahl</b> am Typ <b>multipliziert</b>.</p>
+
+  {% if is_strong.count %}
+  <h3>Das tut weh</h3>
+  <ul class="type-efficiency-list">
+    {% for type in is_strong %}
+      <li>{{ type.tag }}<div class="efficiency efficiency--strong">x {{ type.damage_factor }}</div></li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+
+  {% if is_weak.count %}
+  <h3>Das kann man aushalten</h3>
+  <ul class="type-efficiency-list">
+    {% for type in is_weak %}
+      <li>{{ type.tag }}<div class="efficiency efficiency--weak">x {{ type.damage_factor }}</div></li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+
+  {% if is_miss.count %}
+  <h3>Das trifft nicht</h3>
+  <ul class="type-efficiency-list">
+    {% for type in is_miss %}
+      <li>{{ type.tag }}<div class="efficiency efficiency--miss">x 0</div></li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+
 {% endblock %}
 
 {% block footer %}

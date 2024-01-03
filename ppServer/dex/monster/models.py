@@ -207,6 +207,7 @@ class RangStat(models.Model):
         ("VER_K", "Verteidigung körperlich"),
     ]
     POLLS_PER_RANG = 2
+    STAT_RANG0_MAX_WERT = 10    # for display as chart only
     WEIGHT_BASE = 1
     WEIGHT_SKILLED = 2
     WEIGHT_TRAINED = 3

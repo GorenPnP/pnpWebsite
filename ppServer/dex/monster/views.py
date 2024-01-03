@@ -3,7 +3,8 @@ from typing import Any, Dict
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.db.models import Prefetch
+from django.db.models import Prefetch, Subquery, Count
+from django.db.models.functions import Coalesce
 from django.db.models.query import QuerySet
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, reverse, redirect
@@ -42,6 +43,37 @@ class MonsterDetailView(LoginRequiredMixin, DetailView):
             return SpSpielerMonsterForm(**kwargs)
         else:
             return SpielerMonsterForm(**kwargs)
+        
+    def _get_type_efficiencies(self):
+        context = {}
+
+        own_types = self.object.types.all()
+        context["is_miss"] = Typ.objects.prefetch_related("trifft_nicht").filter(trifft_nicht__in=own_types)
+
+        # calc raw values
+        context["is_strong"] = Typ.objects.prefetch_related("stark_gegen").exclude(id__in=context["is_miss"]).annotate(
+            value = Count(F("stark_gegen"), filter=Q(stark_gegen__in=own_types), distinct=False),
+        )
+        context["is_weak"] = Typ.objects.prefetch_related("schwach_gegen").exclude(id__in=context["is_miss"]).annotate(
+            value = Count(F("schwach_gegen"), filter=Q(schwach_gegen__in=own_types), distinct=False),
+        )
+
+        # calc damage factor
+        context["is_weak"] = context["is_weak"].annotate(
+            counter = Coalesce(Subquery(context["is_strong"].filter(id=OuterRef("id")).values("value")[:1]), 0),
+            damage_factor = 1.0 / 2**(F("value") - F("counter"))
+        )
+        context["is_strong"] = context["is_strong"].annotate(
+            counter = Coalesce(Subquery(context["is_weak"].filter(id=OuterRef("id")).values("value")[:1]), 0),
+            damage_factor = 1 + (F("value") - F("counter")) * 0.5
+        )
+
+        # filter based on opposing efficiency (-> see "keep")
+        context["is_strong"] = context["is_strong"].filter(damage_factor__gt=1).order_by("name")
+        context["is_weak"] = context["is_weak"].filter(damage_factor__lt=1).order_by("name")
+
+        return context
+
 
     def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
         context = super().get_context_data(
@@ -53,7 +85,8 @@ class MonsterDetailView(LoginRequiredMixin, DetailView):
         self.object = context["object"]
         context["topic"] = self.object.name
         context["form"] = self._create_form(initial={"name": self.object.name, "rang": self.object.wildrang})
-        context["max_stat_wert"] = 10
+        context["max_stat_wert"] = RangStat.STAT_RANG0_MAX_WERT
+        context.update(self._get_type_efficiencies())
 
         return context
 
