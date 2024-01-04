@@ -1,5 +1,5 @@
 from django import forms
-from django.forms.widgets import Input
+from django.forms.widgets import Input, CheckboxSelectMultiple
 
 from .models import *
 
@@ -9,6 +9,10 @@ class MonsterVisibilityForm(forms.Form):
 
     visible = forms.BooleanField(label="Sollen Monster für die Spieler sichtbar sein?", initial=True, required=False)
 
+class AttackToMonsterForm(forms.Form):
+    class MonsterSelect(CheckboxSelectMultiple):
+        option_template_name = 'dex/sp/select_option_monster.html'
+    monster = forms.ModelMultipleChoiceField(queryset=Monster.objects.prefetch_related("types").all(), widget=MonsterSelect())
 
 class TeamForm(forms.Form):
     class ColorWidget(Input):

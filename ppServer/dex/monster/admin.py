@@ -1,7 +1,9 @@
 from typing import Any
+
 from django.contrib import admin
 from django.db.models.query import QuerySet
 from django.http.request import HttpRequest
+from django.http.response import HttpResponse
 from django.utils.html import format_html
 
 from .models import *
@@ -121,14 +123,27 @@ class TypAdmin(admin.ModelAdmin):
 
 
 class AttackeAdmin(admin.ModelAdmin):
+    change_form_template = "dex/admin/change_form_attack.html"
 
     list_display = [
-        'name', 'types_', 'description', 'damage_', 'macht_schaden', 'macht_effekt', 'cost', 'kosten_vorschlag',
+        'name', 'types_', 'description', 'damage_', 'macht_schaden', 'macht_effekt', 'cost', 'kosten_vorschlag', '_monster',
+    ]
+
+    fieldsets = [
+        ('Basic', {'fields': ['name', 'types', 'description', 'damage', 'cost']}),
+        ('Stats', {'fields': ['macht_schaden', 'macht_effekt', 'angriff_nahkampf', 'angriff_fernkampf', 'angriff_magie', 'verteidigung_geistig', 'verteidigung_körperlich' ]}),
+        ('Draft', {'fields': ['draft', 'author']}),
     ]
 
     list_filter = ["draft", "types", "macht_schaden", "macht_effekt", 'angriff_nahkampf', 'angriff_fernkampf', 'angriff_magie', 'verteidigung_geistig', 'verteidigung_körperlich']
     search_fields = ['name', "description"]
     list_display_links = ["name"]
+
+    def get_queryset(self, request: HttpRequest) -> QuerySet[Any]:
+        return super().get_queryset(request).prefetch_related("damage", "types", "monster_set")
+    
+    def change_view(self, request: HttpRequest, object_id: str, form_url: str = "", extra_context = {}) -> HttpResponse:
+        return super().change_view(request, object_id, form_url, {**extra_context, "pk": object_id})
 
     def damage_(self, obj):
         return " + ".join([t.__str__() for t in obj.damage.all()]) or "-"
@@ -137,6 +152,8 @@ class AttackeAdmin(admin.ModelAdmin):
     def kosten_vorschlag(self, obj):
         from dex.management.commands.calc_attack_cost import cost_estimate as estimate
         return format_html(f"<i>{estimate(obj)}</i>")
+    def _monster(self, obj):
+        return ", ".join(obj.monster_set.all().values_list("name", flat=True))
 
 class StatInlineAdmin(admin.TabularInline):
     model = RangStat

@@ -29,5 +29,6 @@ urlpatterns = [
     path('attack/proposal', views.AttackProposalView.as_view(), name='attack_proposal'),
     path('attack/proposal/<int:pk>', views.AttackProposalView.as_view(), name='attack_proposal'),
     path('sp/visibility', views_sp.MonsterVisibilityView.as_view(), name='sp_monster_visibility'),
+    path('sp/attack_to_monster/<int:pk>', views_sp.AttackToMonsterView.as_view(), name='sp_attack_to_monster'),
     
 ]

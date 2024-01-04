@@ -1,0 +1,98 @@
+{% extends 'base/main.html' %}
+{% load static %}
+{% block title %}"{{ object.name }}" für Monster{% endblock %}
+{% block extra-head %}
+<style>
+    .main-container { max-width: 500px; margin: auto; }
+    .fieldWrapper > label:first-of-type { font-size: 1.6rem; font-weight: 600; }
+    .select_all { margin-bottom: 1em; }
+
+    .monster-choice-label {
+        display: flex;
+        gap: 1.5em;
+        
+        margin-block: .5em;
+        padding-inline: .5em;
+        border: 1px solid var(--bs-light);
+        border-radius: 10px;
+
+        cursor: pointer;
+        transition: background-color 200ms ease-out;
+
+        &:hover {
+            background-color: rgba(255, 127, 80, 0.3);
+        }
+        &:has(input:checked) {
+            background-color: rgb(255, 127, 80);
+            color: black;
+            border-color: black;
+            box-shadow: 5px 5px 5px rgba(0, 0, 0, .3);
+        }
+    }
+
+    input[name=monster] {width: 20px; }
+
+    /* styles for dex/sp/select_option_monster.html */
+    .monster-label-container {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        grid-template-rows: auto auto;
+
+        align-items: center;
+        gap: .5em;
+
+        .monster-image {
+            grid-row: 1/-1;
+
+            height: 4em;
+            aspect-ratio: 1;
+        }
+
+        .types-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: .4em;
+            font-size: small;
+        }
+    }
+</style>
+<script defer>
+
+    document.addEventListener("DOMContentLoaded", () => {
+        document.querySelectorAll(".select_all").forEach(function(check) {
+            check.addEventListener("input", function() {
+                this.parentNode.parentNode.parentNode.querySelectorAll("input").forEach(checkbox => checkbox.checked = this.checked);
+            })
+        });
+    })
+</script>
+{% endblock %}
+{% block main %}
+<h1 class="mb-4">"{{ object.name }}" für Monster</h1>
+
+{% include 'dex/monster/attack-listentry.html' with attack=object include_styles=True %}
+
+<form class='form container mt-5' id="form" method="POST">
+    {% csrf_token %}
+    {% with field=form.monster %}
+    <div class="fieldWrapper col-sm">
+        {{ field.errors }}
+        {{ field.label_tag }}
+
+        {{ field }}
+        {% if field.help_text %}
+        <p class="help">{{ field.help_text|safe }}</p>
+        {% endif %}
+    </div>
+    {% endwith %}
+    
+</form>
+{% endblock %}
+
+{% block footer %}
+{{ block.super }}
+
+<footer class="sticky-bottom d-block bg-dark py-2">
+    <button type="submit" class="btn btn-lg btn-primary d-block mx-auto px-4" form="form">OK</button>
+</footer>
+{% endblock %}

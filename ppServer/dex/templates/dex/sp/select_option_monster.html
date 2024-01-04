@@ -1,0 +1,11 @@
+<label class="monster-choice-label" {% if widget.attrs.id %} for="{{ widget.attrs.id }}"{% endif %}>
+    {% include "django/forms/widgets/input.html" %}
+
+    <div class="monster-label-container">
+        <img class="monster-image" src="{{ widget.value.instance.image.url }}">
+        {{ widget.value.instance.name }}
+        <div class="types-container">
+            {% for type in widget.value.instance.types.all %}{{ type.tag }}{% endfor %}
+        </div>
+    </div>
+</label>
