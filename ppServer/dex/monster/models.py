@@ -158,6 +158,9 @@ class Monster(models.Model):
     def __str__(self):
         return f"#{self.number} {self.name}"
     
+    def basiswertsumme(self):
+        return self.base_initiative + self.base_hp + self.base_nahkampf + self.base_fernkampf + self.base_magie + self.base_verteidigung_geistig + self.base_verteidigung_körperlich
+    
     class RangManager(models.Manager):
 
         def get_queryset(self) -> QuerySet:

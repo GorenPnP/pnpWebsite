@@ -82,6 +82,13 @@ function filter_and_sort() {
                 if (sort == "rang asc") { return a_rank - b_rank; }
                 if (sort == "rang desc") { return b_rank - a_rank; }
             }
+            if (sort.startsWith("base")) {
+                const a_base = parseInt(a.querySelector(".monster").dataset.base) || null;
+                const b_base = parseInt(b.querySelector(".monster").dataset.base) || null;
+                
+                if (sort == "base asc") { return a_base - b_base; }
+                if (sort == "base desc") { return b_base - a_base; }
+            }
         })
         .forEach(node => list.appendChild(node));
 }

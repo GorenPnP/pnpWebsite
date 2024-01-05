@@ -8,7 +8,7 @@
 {% endif %}
 
 
-<a class="monster card bg-primary text-light {% block extra_class %}{% endblock %} {% if spieler not in monster.visible.all %} monster--dummy{% else %}" data-rank="{% block rang %}{{ monster.wildrang }}{% endblock %}" href="{% block url %}{% url 'dex:monster_detail' monster.id %}{% endblock %}{% endif %}" id="monster-{{ id|default:monster.id }}">
+<a class="monster card bg-primary text-light {% block extra_class %}{% endblock %} {% if spieler not in monster.visible.all %} monster--dummy{% else %}" data-base="{{ monster.basiswertsumme }}" data-rank="{% block rang %}{{ monster.wildrang }}{% endblock %}" href="{% block url %}{% url 'dex:monster_detail' monster.id %}{% endblock %}{% endif %}" id="monster-{{ id|default:monster.id }}">
     <span class="monster__number shadow bg-warning text-dark">#{{ monster.number }}</span>
     <b class="monster__name fs-5">{% if spieler in monster.visible.all %}{% block name %}{{ monster.name }}{% endblock %}{% else %}???{% endif %}</b>
     <span class="monster__img shadow h-100">
