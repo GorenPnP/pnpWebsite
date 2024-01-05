@@ -19,96 +19,98 @@
         <h3 class="h5">Monster</h3>
         {% for sp_mo in obj.monster.all %}
           {% include 'dex/monster/monster-farm-listentry.html' with sp_mo=sp_mo monster=sp_mo.monster id=obj.id include_styles=forloop.first|default:forloop.parentloop.first %}
+        {% empty %}-
         {% endfor %}
 
+        {% if obj.monster.count %}
+          <h3 class="h5 mt-5">Stats</h3>
+          <p>Im Durchschnitt sind die Stats der Monster in diesem Team:</p>
 
-        <h3 class="h5 mt-5">Stats</h3>
-        <p>Im Durchschnitt sind die Stats der Monster in diesem Team:</p>
+          <div class="stats-container mt-3">
+            <b>Rang:</b><span>{{ obj.rang }}</span>
 
-        <div class="stats-container mt-3">
-          <b>Rang:</b><span>{{ obj.rang }}</span>
-
-          <b>Initiative:</b>
-          <span class="wert" style="--width: calc({% localize off %}{{ obj.stat_initiative }} / {{ max_stat_wert }}{% endlocalize %} *100%)">
-            <b>{{ obj.stat_initiative }}</b>
-          </span>
+            <b>Initiative:</b>
+            <span class="wert" style="--width: calc({% localize off %}{{ obj.stat_initiative }} / {{ max_stat_wert }}{% endlocalize %} *100%)">
+              <b>{{ obj.stat_initiative }}</b>
+            </span>
+            
+            <b>HP:</b>
+            <span class="wert" style="--width: calc({% localize off %}{{ obj.stat_hp }} / {{ max_stat_wert }}{% endlocalize %} *100%)">
+              <b>{{ obj.stat_hp }} HP</b>
+            </span>
+            
+            <b>Nahkampf:</b>
+            <span class="wert" style="--width: calc({% localize off %}{{ obj.stat_nahkampf }} / {{ max_stat_wert }}{% endlocalize %} *100%)">
+              <small>{{ obj.stat_nahkampf }}</small> <b class="stat-offset">+{{ obj.stat_nahkampf|calc_stat }}</b>
+            </span>
+            
+            <b>Fernkampf: </b>
+            <span class="wert" style="--width: calc({% localize off %}{{ obj.stat_fernkampf }} / {{ max_stat_wert }}{% endlocalize %} *100%)">
+              <small>{{ obj.stat_fernkampf }}</small> <b class="stat-offset">+{{ obj.stat_fernkampf|calc_stat }}</b>
+            </span>
+            
+            <b>Magie:</b>
+            <span class="wert" style="--width: calc({% localize off %}{{ obj.stat_magie }} / {{ max_stat_wert }}{% endlocalize %} *100%)">
+              <small>{{ obj.stat_magie }}</small> <b class="stat-offset">+{{ obj.stat_magie|calc_stat }}</b>
+            </span>
+            
+            <b>Vert. geistig:</b>
+            <span class="wert" style="--width: calc({% localize off %}{{ obj.stat_verteidigung_geistig }} / {{ max_stat_wert }}{% endlocalize %} *100%)">
+              <small>{{ obj.stat_verteidigung_geistig }}</small> <b class="stat-offset">+{{ obj.stat_verteidigung_geistig|calc_stat }}</b>
+            </span>
+            
+            <b>Vert. körperlich:</b>
+            <span class="wert" style="--width: calc({% localize off %}{{ obj.stat_verteidigung_körperlich }} / {{ max_stat_wert }}{% endlocalize %} *100%)">
+              <small>{{ obj.stat_verteidigung_körperlich }}</small> <b class="stat-offset">+{{ obj.stat_verteidigung_körperlich|calc_stat }}</b>
+            </span>
+          </div>
           
-          <b>HP:</b>
-          <span class="wert" style="--width: calc({% localize off %}{{ obj.stat_hp }} / {{ max_stat_wert }}{% endlocalize %} *100%)">
-            <b>{{ obj.stat_hp }} HP</b>
-          </span>
-          
-          <b>Nahkampf:</b>
-          <span class="wert" style="--width: calc({% localize off %}{{ obj.stat_nahkampf }} / {{ max_stat_wert }}{% endlocalize %} *100%)">
-            <small>{{ obj.stat_nahkampf }}</small> <b class="stat-offset">+{{ obj.stat_nahkampf|calc_stat }}</b>
-          </span>
-          
-          <b>Fernkampf: </b>
-          <span class="wert" style="--width: calc({% localize off %}{{ obj.stat_fernkampf }} / {{ max_stat_wert }}{% endlocalize %} *100%)">
-            <small>{{ obj.stat_fernkampf }}</small> <b class="stat-offset">+{{ obj.stat_fernkampf|calc_stat }}</b>
-          </span>
-          
-          <b>Magie:</b>
-          <span class="wert" style="--width: calc({% localize off %}{{ obj.stat_magie }} / {{ max_stat_wert }}{% endlocalize %} *100%)">
-            <small>{{ obj.stat_magie }}</small> <b class="stat-offset">+{{ obj.stat_magie|calc_stat }}</b>
-          </span>
-          
-          <b>Vert. geistig:</b>
-          <span class="wert" style="--width: calc({% localize off %}{{ obj.stat_verteidigung_geistig }} / {{ max_stat_wert }}{% endlocalize %} *100%)">
-            <small>{{ obj.stat_verteidigung_geistig }}</small> <b class="stat-offset">+{{ obj.stat_verteidigung_geistig|calc_stat }}</b>
-          </span>
-          
-          <b>Vert. körperlich:</b>
-          <span class="wert" style="--width: calc({% localize off %}{{ obj.stat_verteidigung_körperlich }} / {{ max_stat_wert }}{% endlocalize %} *100%)">
-            <small>{{ obj.stat_verteidigung_körperlich }}</small> <b class="stat-offset">+{{ obj.stat_verteidigung_körperlich|calc_stat }}</b>
-          </span>
-        </div>
-        
-        <h3 class="h5 mt-5">Wechselwirkung</h3>
-        <p>Basierend auf den Typen der Monster dieses Teams sind deine Monster gegen Attacken folgender Typen resistenter/anfälliger (Zahl ist Anz. Monster):</p>
+          <h3 class="h5 mt-5">Wechselwirkung</h3>
+          <p>Basierend auf den Typen der Monster dieses Teams sind deine Monster gegen Attacken folgender Typen resistenter/anfälliger (Zahl ist Anz. Monster):</p>
 
-        {% with eff=obj.get_type_efficiencies %}
+          {% with eff=obj.get_type_efficiencies %}
 
-          {% if eff.is_strong|length %}
-          <h4 class="h6 mt-3">Das tut weh</h4>
-          <ul class="type-efficiency-list">
-            {% for t in eff.is_strong %}
-              <li>{{ t.type.tag }} <div class="efficiency efficiency--strong">{{ t.count }}</div></li>
-            {% endfor %}
-          </ul>
-          {% endif %}
+            {% if eff.is_strong|length %}
+            <h4 class="h6 mt-3">Das tut weh</h4>
+            <ul class="type-efficiency-list">
+              {% for t in eff.is_strong %}
+                <li>{{ t.type.tag }} <div class="efficiency efficiency--strong">{{ t.count }}</div></li>
+              {% endfor %}
+            </ul>
+            {% endif %}
 
-          {% if eff.is_weak_or_miss|length %}
-          <h4 class="h6 mt-3">Das kann man aushalten</h4>
-          <ul class="type-efficiency-list">
-            {% for t in eff.is_weak_or_miss %}
-              <li>{{ t.type.tag }} <div class="efficiency efficiency--weak">{{ t.count }}</div></li>
-            {% endfor %}
-          </ul>
-          {% endif %}
+            {% if eff.is_weak_or_miss|length %}
+            <h4 class="h6 mt-3">Das kann man aushalten</h4>
+            <ul class="type-efficiency-list">
+              {% for t in eff.is_weak_or_miss %}
+                <li>{{ t.type.tag }} <div class="efficiency efficiency--weak">{{ t.count }}</div></li>
+              {% endfor %}
+            </ul>
+            {% endif %}
 
-        {% endwith %}
-        
-        <h3 class="h5 mt-5">Attacken Typ Abdeckung</h3>
-        <p>Die Monster dieses Teams haben sehr effektive Attacken (> Schaden x1) gegen die Typen (Zahl ist Anz. effektiver Attacken):</p>
+          {% endwith %}
+          
+          <h3 class="h5 mt-5">Attacken Typ Abdeckung</h3>
+          <p>Die Monster dieses Teams haben sehr effektive Attacken (> Schaden x1) gegen die Typen (Zahl ist Anz. effektiver Attacken):</p>
 
 
-        {% with coverage=obj.get_attack_coverage %}
-          <ul class="type-efficiency-list">
-            {% for t in coverage.attack_coverage %}
-              <li>{{ t.type.tag }} <div class="efficiency">{{ t.count }}</div></li>
-            {% endfor %}
-          </ul>
-          
-          <h4 class="h6 mt-3">keine Abdeckung</h4>
-          <p>Du hast keinen sehr effektiven Angriff gegen die folgenden Typen:</p>
-          
-          <ul class="type-efficiency-list">
-            {% for type in coverage.no_attack_coverage %}
-              <li>{{ type.tag }}</li>
-            {% endfor %}
-          </ul>
-        {% endwith %}
+          {% with coverage=obj.get_attack_coverage %}
+            <ul class="type-efficiency-list">
+              {% for t in coverage.attack_coverage %}
+                <li>{{ t.type.tag }} <div class="efficiency">{{ t.count }}</div></li>
+              {% endfor %}
+            </ul>
+            
+            <h4 class="h6 mt-3">keine Abdeckung</h4>
+            <p>Du hast keinen sehr effektiven Angriff gegen die folgenden Typen:</p>
+            
+            <ul class="type-efficiency-list">
+              {% for type in coverage.no_attack_coverage %}
+                <li>{{ type.tag }}</li>
+              {% endfor %}
+            </ul>
+          {% endwith %}
+        {% endif %}
 
         <a class="btn btn-lg btn-light d-block mx-auto mb-2 mt-5 border-dark" href="{% url 'dex:monster_team_detail' obj.id %}">Team bearbeiten</a>
       </div>

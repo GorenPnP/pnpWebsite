@@ -387,7 +387,7 @@ class MonsterTeamView(LoginRequiredMixin, ListView):
         )
 
         # max for stat display
-        context["max_stat_wert"] = max(context["object_list"].aggregate(
+        context["max_stat_wert"] = max(1, *context["object_list"].aggregate(
             Max("stat_initiative"),
             Max("stat_hp"),
             Max("stat_nahkampf"),
@@ -395,7 +395,7 @@ class MonsterTeamView(LoginRequiredMixin, ListView):
             Max("stat_magie"),
             Max("stat_verteidigung_geistig"),
             Max("stat_verteidigung_körperlich"),
-        ).values())
+        ).values()) if context["object_list"].count() else 1
 
         return context
 
@@ -411,14 +411,14 @@ class MonsterTeamView(LoginRequiredMixin, ListView):
             .annotate(
 
                 # stats
-                rang = AvgSubquery(monster_stat_qs, "rang_rang"),
-                stat_initiative = AvgSubquery(monster_stat_qs, "initiative"),
-                stat_hp = AvgSubquery(monster_stat_qs, "hp"),
-                stat_nahkampf = AvgSubquery(monster_stat_qs, "nahkampf"),
-                stat_fernkampf = AvgSubquery(monster_stat_qs, "fernkampf"),
-                stat_magie = AvgSubquery(monster_stat_qs, "magie"),
-                stat_verteidigung_geistig = AvgSubquery(monster_stat_qs, "verteidigung_geistig"),
-                stat_verteidigung_körperlich = AvgSubquery(monster_stat_qs, "verteidigung_körperlich"),
+                rang = Coalesce(AvgSubquery(monster_stat_qs, "rang_rang"), 0),
+                stat_initiative = Coalesce(AvgSubquery(monster_stat_qs, "initiative"), 0),
+                stat_hp = Coalesce(AvgSubquery(monster_stat_qs, "hp"), 0),
+                stat_nahkampf = Coalesce(AvgSubquery(monster_stat_qs, "nahkampf"), 0),
+                stat_fernkampf = Coalesce(AvgSubquery(monster_stat_qs, "fernkampf"), 0),
+                stat_magie = Coalesce(AvgSubquery(monster_stat_qs, "magie"), 0),
+                stat_verteidigung_geistig = Coalesce(AvgSubquery(monster_stat_qs, "verteidigung_geistig"), 0),
+                stat_verteidigung_körperlich = Coalesce(AvgSubquery(monster_stat_qs, "verteidigung_körperlich"), 0),
             )
     
     def post(self, request, **kwargs):
