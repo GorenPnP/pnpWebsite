@@ -13,6 +13,7 @@ class AttackToMonsterForm(forms.Form):
     class MonsterSelect(CheckboxSelectMultiple):
         option_template_name = 'dex/sp/select_option_monster.html'
     monster = forms.ModelMultipleChoiceField(queryset=Monster.objects.prefetch_related("types").all(), widget=MonsterSelect())
+    monster_feddich = forms.BooleanField(required=False)
 
 class TeamForm(forms.Form):
     class ColorWidget(Input):

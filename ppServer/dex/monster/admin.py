@@ -135,7 +135,7 @@ class AttackeAdmin(admin.ModelAdmin):
         ('Draft', {'fields': ['draft', 'author']}),
     ]
 
-    list_filter = ["draft", "types", "macht_schaden", "macht_effekt", 'angriff_nahkampf', 'angriff_fernkampf', 'angriff_magie', 'verteidigung_geistig', 'verteidigung_körperlich']
+    list_filter = ["draft", "monster_feddich", "types", "macht_schaden", "macht_effekt", 'angriff_nahkampf', 'angriff_fernkampf', 'angriff_magie', 'verteidigung_geistig', 'verteidigung_körperlich']
     search_fields = ['name', "description"]
     list_display_links = ["name"]
 

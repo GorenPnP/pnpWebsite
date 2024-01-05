@@ -40,7 +40,7 @@ class AttackToMonsterView(LoginRequiredMixin, SpielleiterOnlyMixin, TemplateView
 
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         attack = Attacke.objects.load_card().get(pk=self.kwargs["pk"])
-        return super().get_context_data(**kwargs, object=attack, form=AttackToMonsterForm(initial={"monster": attack.monster_set.all().values_list("pk", flat=True)}))
+        return super().get_context_data(**kwargs, object=attack, form=AttackToMonsterForm(initial={"monster": attack.monster_set.all().values_list("pk", flat=True), "monster_feddich": attack.monster_feddich}))
     
     def post(self, request, pk: int, **kwargs):
         attack = get_object_or_404(Attacke, pk=pk)
@@ -48,9 +48,11 @@ class AttackToMonsterView(LoginRequiredMixin, SpielleiterOnlyMixin, TemplateView
 
         form.full_clean()
         if form.is_valid():
-            monsters = form.cleaned_data["monster"]
+            attack.monster_feddich = form.cleaned_data["monster_feddich"]
+            attack.save(update_fields=["monster_feddich"])
+
             attack.monster_set.clear()
-            attack.monster_set.add(*monsters.values_list("pk", flat=True))
+            attack.monster_set.add(*form.cleaned_data["monster"].values_list("pk", flat=True))
             
             messages.success(request, "Änderungen wurden gespeichert")
         else:

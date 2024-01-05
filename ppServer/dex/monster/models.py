@@ -86,6 +86,7 @@ class Attacke(models.Model):
 
     draft = models.BooleanField(default=False)
     author = models.ForeignKey(Spieler, on_delete=models.SET_NULL, null=True, blank=True)
+    monster_feddich = models.BooleanField(default=False)
 
     def __str__(self):
         return self.name
