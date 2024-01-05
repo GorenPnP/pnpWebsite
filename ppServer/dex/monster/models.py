@@ -1,10 +1,11 @@
 from math import floor
 from random import choice
+from typing import Iterable
 
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models import Subquery, OuterRef, CharField, F, Value, Q, Count, Case, When
-from django.db.models.functions import Concat, Cast
+from django.db.models.functions import Coalesce, Concat, Cast
 from django.db.models.query import QuerySet
 from django.utils.html import format_html
 
@@ -60,6 +61,68 @@ class Typ(models.Model):
 
         else:
             return format_html(f"<div style='{styles}'>{self.name}</div>")
+        
+    @classmethod
+    def get_type_efficiencies(cls, own_types: Iterable["Typ"]) -> {"is_miss": QuerySet["Typ"], "is_strong": QuerySet["Typ"], "is_weak": QuerySet["Typ"]}:
+        context = {}
+
+        # own_types = self.types.all()
+        context["is_miss"] = Typ.objects.prefetch_related("trifft_nicht").filter(trifft_nicht__in=own_types)
+
+        # calc raw values
+        context["is_strong"] = Typ.objects.prefetch_related("stark_gegen").exclude(id__in=context["is_miss"]).annotate(
+            value = Count(F("stark_gegen"), filter=Q(stark_gegen__in=own_types), distinct=False),
+        )
+        context["is_weak"] = Typ.objects.prefetch_related("schwach_gegen").exclude(id__in=context["is_miss"]).annotate(
+            value = Count(F("schwach_gegen"), filter=Q(schwach_gegen__in=own_types), distinct=False),
+        )
+
+        # calc damage factor
+        context["is_weak"] = context["is_weak"].annotate(
+            counter = Coalesce(Subquery(context["is_strong"].filter(id=OuterRef("id")).values("value")[:1]), 0),
+            damage_factor = 1.0 / 2**(F("value") - F("counter"))
+        )
+        context["is_strong"] = context["is_strong"].annotate(
+            counter = Coalesce(Subquery(context["is_weak"].filter(id=OuterRef("id")).values("value")[:1]), 0),
+            damage_factor = 1 + (F("value") - F("counter")) * 0.5
+        )
+
+        # filter based on opposing efficiency (-> see "keep")
+        context["is_strong"] = context["is_strong"].filter(damage_factor__gt=1).order_by("name")
+        context["is_weak"] = context["is_weak"].filter(damage_factor__lt=1).order_by("name")
+
+        return context
+
+    @classmethod
+    def get_type_efficiencies_reverse(cls, own_types: Iterable["Typ"]) -> {"is_miss": QuerySet["Typ"], "is_strong": QuerySet["Typ"], "is_weak": QuerySet["Typ"]}:
+        context = {}
+
+        # own_types = self.types.all()
+        context["is_miss"] = Typ.objects.prefetch_related("miss").filter(miss__in=own_types)
+
+        # calc raw values
+        context["is_strong"] = Typ.objects.prefetch_related("stark").exclude(id__in=context["is_miss"]).annotate(
+            value = Count(F("stark"), filter=Q(stark__in=own_types), distinct=False),
+        )
+        context["is_weak"] = Typ.objects.prefetch_related("schwach").exclude(id__in=context["is_miss"]).annotate(
+            value = Count(F("schwach"), filter=Q(schwach__in=own_types), distinct=False),
+        )
+
+        # calc damage factor
+        context["is_weak"] = context["is_weak"].annotate(
+            counter = Coalesce(Subquery(context["is_strong"].filter(id=OuterRef("id")).values("value")[:1]), 0),
+            damage_factor = 1.0 / 2**(F("value") - F("counter"))
+        )
+        context["is_strong"] = context["is_strong"].annotate(
+            counter = Coalesce(Subquery(context["is_weak"].filter(id=OuterRef("id")).values("value")[:1]), 0),
+            damage_factor = 1 + (F("value") - F("counter")) * 0.5
+        )
+
+        # filter based on opposing efficiency (-> see "keep")
+        context["is_strong"] = context["is_strong"].filter(damage_factor__gt=1).order_by("name")
+        context["is_weak"] = context["is_weak"].filter(damage_factor__lt=1).order_by("name")
+
+        return context
 
 
 class Attacke(models.Model):
@@ -162,6 +225,10 @@ class Monster(models.Model):
     def basiswertsumme(self):
         return self.base_initiative + self.base_hp + self.base_nahkampf + self.base_fernkampf + self.base_magie + self.base_verteidigung_geistig + self.base_verteidigung_körperlich
     
+    def get_type_efficiencies(self) -> {"is_miss": QuerySet[Typ], "is_strong": QuerySet[Typ], "is_weak": QuerySet[Typ]}:
+        """ please prefetch monster.types """
+        return Typ.get_type_efficiencies(self.types.all())
+
     class RangManager(models.Manager):
 
         def get_queryset(self) -> QuerySet:
@@ -365,3 +432,36 @@ class MonsterTeam(models.Model):
 
     def __str__(self):
         return f"Team {self.name} von {self.spieler}"
+
+    def get_type_efficiencies(self) -> {"is_strong": list[dict["type": Typ, "count": int]], "is_weak_or_miss": list[dict["type": Typ, "count": int]]}:
+        """ please prefetch self.monster.monster.types """
+
+        is_strong = []
+        is_weak_or_miss = []
+
+        for sp_mo in self.monster.all():
+            eff = Typ.get_type_efficiencies(sp_mo.monster.types.all())
+
+            is_strong.extend(list(eff["is_strong"]))
+            is_weak_or_miss.extend(list(eff["is_weak"]))
+            is_weak_or_miss.extend(list(eff["is_miss"]))
+
+        return {
+            "is_strong": [{"type": type, "count": is_strong.count(type)} for type in sorted(set(is_strong), key=lambda o: o.name)],
+            "is_weak_or_miss": [{"type": type, "count": is_weak_or_miss.count(type)} for type in sorted(set(is_weak_or_miss), key=lambda o: o.name)],
+        }
+    
+    def get_attack_coverage(self):
+        """ please prefetch self.monster.monster.attacken.types """
+
+        hit_types = []
+        for monster in self.monster.all():
+            for attack in monster.attacken.all():
+                hit_types.extend(Typ.get_type_efficiencies_reverse(attack.types.all())["is_strong"])
+
+        coverage = [{"type": t, "count": hit_types.count(t)} for t in sorted(set(hit_types), key=lambda o: o.name)]
+
+        return {
+            "attack_coverage": coverage,
+            "no_attack_coverage": Typ.objects.exclude(id__in=[t["type"].id for t in coverage])
+        }

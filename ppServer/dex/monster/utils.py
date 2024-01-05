@@ -1,4 +1,4 @@
-from django.db.models import fields, Subquery
+from django.db.models import fields, Subquery, Window, Avg
 
 
 class ConcatSubquery(Subquery):
@@ -29,3 +29,16 @@ class ConcatSubquery(Subquery):
         extra_context['separator'] = '%s'
         sql, sql_params = super().as_sql(compiler, connection, template, **extra_context)
         return sql, sql_params + (self.separator, )
+
+
+class AvgSubquery(Subquery):
+
+    def __init__(self, queryset, field, **kwargs):
+        queryset = queryset.annotate(
+            total=Window(
+                expression=Avg(field),
+            )
+        ).values('total')[:1]
+
+        super().__init__(queryset, fields.IntegerField(), **kwargs)
+

@@ -3,8 +3,7 @@ from typing import Any, Dict
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.db.models import Prefetch, Subquery, Count
-from django.db.models.functions import Coalesce
+from django.db.models import Prefetch, Subquery, Max
 from django.db.models.query import QuerySet
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, reverse, redirect
@@ -15,6 +14,8 @@ from django.urls import reverse
 
 from .forms import *
 from .models import *
+from .utils import AvgSubquery
+
 
 class MonsterIndexView(LoginRequiredMixin, ListView):
     model = Monster
@@ -43,36 +44,6 @@ class MonsterDetailView(LoginRequiredMixin, DetailView):
             return SpSpielerMonsterForm(**kwargs)
         else:
             return SpielerMonsterForm(**kwargs)
-        
-    def _get_type_efficiencies(self):
-        context = {}
-
-        own_types = self.object.types.all()
-        context["is_miss"] = Typ.objects.prefetch_related("trifft_nicht").filter(trifft_nicht__in=own_types)
-
-        # calc raw values
-        context["is_strong"] = Typ.objects.prefetch_related("stark_gegen").exclude(id__in=context["is_miss"]).annotate(
-            value = Count(F("stark_gegen"), filter=Q(stark_gegen__in=own_types), distinct=False),
-        )
-        context["is_weak"] = Typ.objects.prefetch_related("schwach_gegen").exclude(id__in=context["is_miss"]).annotate(
-            value = Count(F("schwach_gegen"), filter=Q(schwach_gegen__in=own_types), distinct=False),
-        )
-
-        # calc damage factor
-        context["is_weak"] = context["is_weak"].annotate(
-            counter = Coalesce(Subquery(context["is_strong"].filter(id=OuterRef("id")).values("value")[:1]), 0),
-            damage_factor = 1.0 / 2**(F("value") - F("counter"))
-        )
-        context["is_strong"] = context["is_strong"].annotate(
-            counter = Coalesce(Subquery(context["is_weak"].filter(id=OuterRef("id")).values("value")[:1]), 0),
-            damage_factor = 1 + (F("value") - F("counter")) * 0.5
-        )
-
-        # filter based on opposing efficiency (-> see "keep")
-        context["is_strong"] = context["is_strong"].filter(damage_factor__gt=1).order_by("name")
-        context["is_weak"] = context["is_weak"].filter(damage_factor__lt=1).order_by("name")
-
-        return context
 
 
     def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
@@ -86,7 +57,7 @@ class MonsterDetailView(LoginRequiredMixin, DetailView):
         context["topic"] = self.object.name
         context["form"] = self._create_form(initial={"name": self.object.name, "rang": self.object.wildrang})
         context["max_stat_wert"] = RangStat.STAT_RANG0_MAX_WERT
-        context.update(self._get_type_efficiencies())
+        context.update(self.object.get_type_efficiencies())
 
         return context
 
@@ -223,7 +194,7 @@ class MonsterFarmDetailView(LoginRequiredMixin, DetailView):
         self.object = context["object"]
         context["topic"] = self.object.name or self.object.monster.name
         context["form"] = SpielerMonsterNameForm(instance=context["object"])
-        context["other_attacks"] = self.object.get_buyable_attacks()
+        context["other_attacks"] = self.object.get_buyable_attacks().prefetch_related("damage")
         
         context["other_teams"] = MonsterTeam.objects.filter(spieler=context["spieler"]).exclude(monster=self.object)
         context["monster"] = Monster.objects.with_rang().prefetch_related(
@@ -406,7 +377,7 @@ class MonsterTeamView(LoginRequiredMixin, ListView):
     template_name = "dex/monster/monster_teams.html"
 
     def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
-        return super().get_context_data(
+        context = super().get_context_data(
             **kwargs,
             app_index = "Allesdex",
             app_index_url = reverse("dex:index"),
@@ -415,10 +386,40 @@ class MonsterTeamView(LoginRequiredMixin, ListView):
             form = TeamForm()
         )
 
+        # max for stat display
+        context["max_stat_wert"] = max(context["object_list"].aggregate(
+            Max("stat_initiative"),
+            Max("stat_hp"),
+            Max("stat_nahkampf"),
+            Max("stat_fernkampf"),
+            Max("stat_magie"),
+            Max("stat_verteidigung_geistig"),
+            Max("stat_verteidigung_körperlich"),
+        ).values())
+
+        return context
+
     def get_queryset(self) -> QuerySet[Any]:
+        monster_stat_qs = SpielerMonster.objects.with_rang_and_stats().filter(monsterteam=OuterRef("pk"))
+
         return super().get_queryset()\
-            .prefetch_related(Prefetch("monster__monster", Monster.objects.load_card()))\
-            .filter(spieler__name=self.request.user.username)
+            .prefetch_related(
+                Prefetch("monster__monster", Monster.objects.load_card()),
+                "monster__monster__attacken__types"
+            )\
+            .filter(spieler__name=self.request.user.username)\
+            .annotate(
+
+                # stats
+                rang = AvgSubquery(monster_stat_qs, "rang_rang"),
+                stat_initiative = AvgSubquery(monster_stat_qs, "initiative"),
+                stat_hp = AvgSubquery(monster_stat_qs, "hp"),
+                stat_nahkampf = AvgSubquery(monster_stat_qs, "nahkampf"),
+                stat_fernkampf = AvgSubquery(monster_stat_qs, "fernkampf"),
+                stat_magie = AvgSubquery(monster_stat_qs, "magie"),
+                stat_verteidigung_geistig = AvgSubquery(monster_stat_qs, "verteidigung_geistig"),
+                stat_verteidigung_körperlich = AvgSubquery(monster_stat_qs, "verteidigung_körperlich"),
+            )
     
     def post(self, request, **kwargs):
         spieler = get_object_or_404(Spieler, name=request.user.username)

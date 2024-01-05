@@ -1,4 +1,6 @@
 @import "./base";
+@import "./stats_container";
+@import "./type_efficiency";
 
 .accordion-header, .accordion-item {
     color: var(--color);
@@ -10,4 +12,13 @@
     --bs-accordion-btn-bg: var(--background-color);
     --bs-accordion-active-bg: var(--background-color);
     --bs-accordion-bg: var(--background-color);
+}
+.accordion-collapse :where(h1, h2, h3, h4) { font-weight: bold; }
+
+.efficiency {
+    min-height: 1lh;
+    min-width: 1lh;
+    width: fit-content;
+    text-align: center;
+    padding: 0;
 }
