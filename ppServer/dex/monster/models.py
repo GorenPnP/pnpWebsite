@@ -67,7 +67,7 @@ class Typ(models.Model):
         context = {}
 
         # own_types = self.types.all()
-        context["is_miss"] = Typ.objects.prefetch_related("trifft_nicht").filter(trifft_nicht__in=own_types)
+        context["is_miss"] = Typ.objects.prefetch_related("trifft_nicht").filter(trifft_nicht__in=own_types).distinct()
 
         # calc raw values
         context["is_strong"] = Typ.objects.prefetch_related("stark_gegen").exclude(id__in=context["is_miss"]).annotate(
@@ -98,7 +98,7 @@ class Typ(models.Model):
         context = {}
 
         # own_types = self.types.all()
-        context["is_miss"] = Typ.objects.prefetch_related("miss").filter(miss__in=own_types)
+        context["is_miss"] = Typ.objects.prefetch_related("miss").filter(miss__in=own_types).distinct()
 
         # calc raw values
         context["is_strong"] = Typ.objects.prefetch_related("stark").exclude(id__in=context["is_miss"]).annotate(
