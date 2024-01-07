@@ -1,0 +1,81 @@
+{% extends 'base/headed_main.html' %}
+
+{% block extra-head %}
+<style>
+  p { max-width: 60ch; }
+  td:first-of-type { font-weight: bold; }
+</style>
+{% endblock %}
+
+{% block main %}
+
+<p>Besitzt ein Monster einen Statuseffekt, kann er den gleichen nicht erneut erhalten oder verlängert bekommen. Monster können maximal zwei Statuseffekte gleichzeitig haben.</p>
+
+<div class="table-container table-responsive">
+  <table class="table table-dark table-striped table-hover">
+    <thead><tr><th>Status</th><th>Probe dagegen (W100)</th><th>Beschreibung</th></tr></thead>
+
+    <tbody>
+      <tr>
+        <td>Besessen</td>
+        <td>vgl. W100-Probe mit -30 gegen das Ziel</td><td>Das Ziel ist besessen und opfert jede dritte Runde eine Aktion durch für den Besetzer.</td>
+      </tr>
+      <tr>
+        <td>Blutend</td>
+        <td>Mindestens 65</td>
+        <td>Das Ziel erleidet jede Runde 10% seiner max. HP an Schaden</td>
+      </tr>
+      <tr>
+        <td>Brennend</td>
+        <td>-</td>
+        <td>Das Ziel erleidet jede Runde seinen halben Schadenswiderstand Schaden</td>
+      </tr>
+      <tr>
+        <td>Gefroren</td>
+        <td>Mindestens 67</td>
+        <td>Das Ziel kann nicht angreifen und sich nicht verteidigen, hält maximal drei Runden</td>
+      </tr>
+      <tr>
+        <td>Gelähmt</td>
+        <td>Mindestens 67</td>
+        <td>Das Ziel kann sich nicht von der Stelle bewegen</td>
+      </tr>
+      <tr>
+        <td>Geschwächt</td>
+        <td>Mindestens 67</td>
+        <td>Das Ziel verursacht stets nur die Hälfte an Nettoschaden im Nah- und Fernkampf</td>
+      </tr>
+      <tr>
+        <td>Krankheit</td>
+        <td>Mindestens 60</td>
+        <td>Ziel leidet an einer Krankheit und erhält pro Runde seinen Schadenswiderstand an Schaden</td>
+      </tr>
+      <tr>
+        <td>Paralysiert</td>
+        <td>Mindestens 67</td>
+        <td>Das Ziel kann zu 33% nicht angreifen, sich aber verteidigen</td>
+      </tr>
+      <tr>
+        <td>Schlafend</td>
+        <td>benötigt mit 1W6 einen Erfolg zum Aufwachen</td>
+        <td>Das Ziel kann nicht angreifen und sich nicht verteidigen</td>
+      </tr>
+      <tr>
+        <td>Verflucht</td>
+        <td>Mindestens 80</td>
+        <td>Abhängig vom Fluch</td>
+      </tr>
+      <tr>
+        <td>Vergiftet</td>
+        <td>Mindestens 80</td>
+        <td>Das Ziel erleidet jede Runde 5% seiner max. HP Schaden. Ab der Hälfte sogar 10%.</td>
+      </tr>
+      <tr>
+        <td>Verwirrt</td>
+        <td>Mindestens 90</td>
+        <td>Das Monster hat jeden Angriff ein 20%iges Risiko  sich selbst mit der Attacke zu treffen (ohne Typenwechselwirkungen und ohne Schadenswiderstand).</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+{% endblock %}

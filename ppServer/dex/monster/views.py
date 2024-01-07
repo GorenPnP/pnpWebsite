@@ -9,6 +9,7 @@ from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, reverse, redirect
 from django.views.generic import DetailView
 from django.views.decorators.http import require_POST
+from django.views.generic.base import TemplateView
 from django.views.generic.list import ListView
 from django.urls import reverse
 
@@ -158,6 +159,18 @@ class MonsterFähigkeitView(LoginRequiredMixin, ListView):
 
     def get_queryset(self) -> QuerySet[Any]:
         return super().get_queryset().prefetch_related(Prefetch("monster_set", queryset=Monster.objects.load_card()))
+
+
+class StatusEffektView(LoginRequiredMixin, TemplateView):
+    template_name = "dex/monster/monster_statuseffekt.html"
+
+    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
+        return super().get_context_data(
+            **kwargs,
+            app_index = "Allesdex",
+            app_index_url = reverse("dex:index"),
+            topic="Status-Effekte"
+        )
 
 
 class MonsterFarmView(LoginRequiredMixin, ListView):

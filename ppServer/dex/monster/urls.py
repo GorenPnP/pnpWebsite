@@ -9,6 +9,7 @@ urlpatterns = [
     path('attack', views.AttackIndexView.as_view(), name='attack_index'),
     path('type', views.TypeTableView.as_view(), name='type_table'),
     path('fähigkeit', views.MonsterFähigkeitView.as_view(), name='monster_fähigkeit_index'),
+    path('status-effekt', views.StatusEffektView.as_view(), name='monster_statuseffekt_index'),
 
     path('farm', views.MonsterFarmView.as_view(), name='monster_farm'),
     path('farm/<int:pk>', views.MonsterFarmDetailView.as_view(), name='monster_detail_farm'),

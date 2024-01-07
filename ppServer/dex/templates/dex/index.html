@@ -7,6 +7,7 @@
     width: fit-content;
     margin-inline: auto;
 }
+li { margin-block: .5em; }
 </style>
 {% endblock %}
 {% block header %}{% include 'base/header.html' with topic='Allesdex' %}{% endblock %}
@@ -20,6 +21,7 @@
                 <li><a class="text-light" href="{% url 'dex:attack_index' %}">Attacken</a></li>
                 <li><a class="text-light" href="{% url 'dex:type_table' %}">Typentabelle</a></li>
                 <li><a class="text-light" href="{% url 'dex:monster_fähigkeit_index' %}">Fähigkeiten</a></li>
+                <li><a class="text-light" href="{% url 'dex:monster_statuseffekt_index' %}">Status-Effekte</a></li>
                 <hr>
                 <li><a class="text-light" href="{% url 'dex:monster_farm' %}">meine Monster-Farm</a></li>
                 <li><a class="text-light" href="{% url 'dex:monster_team' %}">meine Monster-Teams</a></li>
