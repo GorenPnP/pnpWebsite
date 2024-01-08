@@ -12,4 +12,7 @@ urlpatterns = [
 
     path('geschöpf/', views.GeschöpfIndexView.as_view(), name='geschöpf_index'),
     path('geschöpf/<int:pk>', views.GeschöpfDetailView.as_view(), name='geschöpf_detail'),
+
+    path('para_pflanze/', views.ParaPflanzeIndexView.as_view(), name='para_pflanze_index'),
+    path('para_pflanze/<int:pk>', views.ParaPflanzeDetailView.as_view(), name='para_pflanze_detail'),
 ]

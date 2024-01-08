@@ -1,0 +1,117 @@
+{% extends 'base/headed_main.html' %}
+{% load static dice blackening %}
+
+{% block extra-head %}
+<link rel="stylesheet" href="{% static 'dex/css/para_pflanze_detail.css' %}">
+
+{{ object.ecology|json_script:"ecology" }}
+<script src="{% static 'base/js/chart-3.8.2.min.js' %}"></script>
+<script src="{% static 'dex/js/para_pflanze_detail.js' %}" defer></script>
+{% endblock %}
+
+{% block main %}
+<div class="main-information">
+
+    {% if object.parapflanzenimage_set.count %}
+    <div id="img-carousel" class="carousel slide" data-bs-ride="carousel">
+        <div class="carousel-inner">
+            {% for image in object.parapflanzenimage_set.all %}
+            <div class="carousel-item{% if forloop.first %} active {% endif %}">
+                <img src="{{ image.image.url }}">
+                <div class="carousel-caption">
+                    <b class="h5">Phase {{ image.phase }}</b>
+                    <p>{{ image.aussehen }}</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Nächstes</span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Vorheriges</span>
+        </button>
+    </div>
+    {% endif %}
+
+    <div>
+
+        <h2>Steckbrief</h2>
+        <div class="overview">
+    
+            <b>Generation & Nr:</b>
+            <span>Generation {{ object.generation }} #{{ object.number }}</span>
+    
+            <b>Phasen:</b>
+            <span>{{ object.phasen }}</span>
+    
+            <b>Erholungsphase:</b>
+            <span>{{ object.erholungsphase }}</span>
+    
+            <b>Vermehrung:</b>
+            <span>{{ object.vermehrung }}</span>
+    
+            <b>Nahrung:</b>
+            <span>{{ object.nahrung }}</span>
+    
+            <b>Standort:</b>
+            <span>{{ object.standort }}</span>
+    
+            <b>Größe:</b>
+            <span>{{ object.größe }} m</span>
+    
+            <b>Besonderheiten:</b>
+            <span>{{ object.besonderheiten }}</span>
+    
+            <b>Boden:</b>
+            <span>{{ object.get_boden_display }}</span>
+    
+            <b>Soziale Bedürfnisse:</b>
+            <span>{{ object.soziale_bedürfnisse }}</span>
+    
+            <b>Krankheitsanfälligkeit:</b>
+            <span>{{ object.get_krankheitsanfälligkeit_display }}</span>
+        </div>
+    </div>
+
+    <div class="ecology">
+        <h2>Ökologie</h2>
+
+        <div class="ecology-container">
+
+            <div class="ecology-section">
+                <h3>pH-Wert</h3>
+                <div class="chart-container">
+                    <canvas id="chart--ph"></canvas>
+                </div>
+            </div>
+            
+            <div class="ecology-section">
+                <h3>Temperatur in °C</h3>
+                <div class="chart-container">
+                    <canvas id="chart--temperatur"></canvas>
+                </div>
+            </div>
+            
+            <div class="ecology-section">
+                <h3>Licht</h3>
+                <div class="chart-container">
+                    <canvas id="chart--licht"></canvas>
+                </div>
+            </div>
+            
+            <div class="ecology-section">
+                <h3>Wasser</h3>
+                <div class="chart-container">
+                    <canvas id="chart--wasser"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}

@@ -66,6 +66,26 @@ class ParaPflanzenImage(models.Model):
 
     is_vorschau = models.BooleanField(default=False)
 
+class ParaPflanzeÖkologie(models.Model):
+    class Meta:
+        ordering = ["plant", "factor"]
+        verbose_name = "Para-Pflanzenbild"
+        verbose_name_plural = "Para-Pflanzenbilder"
+        unique_together = ("plant", "factor", "x")
+
+    factor_enum = [
+        ("p", "pH"),
+        ("t", "Temperatur"),
+        ("l", "Licht"),
+        ("w", "Wasser"),
+    ]
+
+    plant = models.ForeignKey("ParaPflanze", on_delete=models.CASCADE)
+    factor = models.CharField(max_length=1, choices=factor_enum)
+
+    x = models.FloatField(null=False, blank=False)
+    y = models.FloatField(null=False, blank=False)
+
 class ParaPflanze(models.Model):
     class Meta:
         ordering = ["id"]
@@ -73,11 +93,9 @@ class ParaPflanze(models.Model):
         verbose_name_plural = "Para-Pflanzen"
         unique_together = ("generation", "number")
 
-    Licht = models.IntegerChoices("Licht", "0/4 1/4 2/4 3/4 4/4")
     Boden = models.IntegerChoices("Boden", "weich mittel hart")
-    Wasser = models.IntegerChoices("Wasser", "wenig mittel viel")
     Krankheit = models.IntegerChoices("Krankheit", "sehr_gering gering mäßig hoch sehr_hoch extrem_hoch")
-    
+
     name = models.CharField(max_length=128)
     generation = models.PositiveSmallIntegerField(validators=[MinValueValidator(1), MaxValueValidator(4)], default=1)
     number = models.PositiveSmallIntegerField(validators=[MinValueValidator(1)], default=1)
@@ -88,17 +106,19 @@ class ParaPflanze(models.Model):
     nahrung = models.TextField()
     standort = models.TextField()
     besonderheiten = models.TextField()
-    pH = models.FloatField(validators=[MinValueValidator(-4), MaxValueValidator(20)], default=7)
-    temperature = models.FloatField(validators=[MinValueValidator(-30), MaxValueValidator(50)], default=10, help_text="in °C")
-    licht = models.PositiveSmallIntegerField(choices=Licht.choices, default=3)
     boden = models.PositiveSmallIntegerField(choices=Boden.choices, default=2)
-    wasser = models.PositiveSmallIntegerField(choices=Wasser.choices, default=2)
     soziale_bedürfnisse = models.SmallIntegerField(validators=[MinValueValidator(-3), MaxValueValidator(3)], default=0, help_text="von -3 bis 3")
     krankheitsanfälligkeit = models.SmallIntegerField(choices=Krankheit.choices, default=3)
     größe = models.FloatField(validators=[MinValueValidator(0.001)], default=1, help_text="in Metern")
 
+    visible = models.ManyToManyField(Spieler, blank=True)
+
     def __str__(self):
         return self.name
+    
+    def ecology(self) -> dict[ParaPflanzeÖkologie.factor_enum, list[ParaPflanzeÖkologie]]:
+        qs = self.parapflanzeökologie_set
+        return {label: list(qs.filter(factor=char).values("x", "y")) for char, label in ParaPflanzeÖkologie.factor_enum }
 
 
 class Fertigkeit(models.Model):

@@ -1,0 +1,40 @@
+{% extends 'base/headed_main.html' %}
+{% load static %}
+
+{% block extra-head %}
+<style>
+    .main-container {
+        width: fit-content;
+        margin: auto;
+    }
+</style>
+{% endblock %}
+
+{% block main %}
+
+{% with ''|center:4 as range %}
+{% for _ in range %}
+    {% with gen=forloop.counter %}
+
+    <div class="card bg-dark p-3 mb-3">
+        <h2>{{ gen }}. Generation</h2>
+
+        <ul class="mt-2">
+            {% for pflanze in object_list %}
+            {% if pflanze.generation == gen %}
+            <li class="my-2">
+                {% if spieler in pflanze.visible.all %}
+                <a href="{% url 'dex:para_pflanze_detail' pflanze.id %}" class="pflanze-link">
+                {% endif %}
+                    #{{ pflanze.number }} - {{ pflanze.name }}
+                {% if spieler in pflanze.visible.all %}</a>{% endif %}
+            </li>
+            {% endif %}
+            {% endfor %}
+        </ul>
+    </div>
+    {% endwith %}
+{% endfor %}
+{% endwith %}
+
+{% endblock %}

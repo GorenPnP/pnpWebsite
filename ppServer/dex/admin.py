@@ -10,6 +10,9 @@ class PflanzenImageInLineAdmin(admin.TabularInline):
 
     model = ParaPflanzenImage
     extra = 1
+class PflanzenÖkologieInLineAdmin(admin.TabularInline):
+    model = ParaPflanzeÖkologie
+    extra = 1
 
 class PflanzenAdmin(admin.ModelAdmin):
 
@@ -19,7 +22,7 @@ class PflanzenAdmin(admin.ModelAdmin):
     list_display_links = ["name"]
     
     exclude = ["images"]
-    inlines = [PflanzenImageInLineAdmin]
+    inlines = [PflanzenImageInLineAdmin, PflanzenÖkologieInLineAdmin]
 
     def images_(self, obj):
         pf_imgs = ParaPflanzenImage.objects.filter(plant=obj, is_vorschau=True)
