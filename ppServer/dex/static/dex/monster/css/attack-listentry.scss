@@ -11,8 +11,8 @@
     display: grid;
     grid-template-columns: auto 1fr var(--damage-size);
     grid-template-rows: auto auto;
-    grid-template-areas: 'name cost   damage'
-                         'type vector damage';
+    grid-template-areas: 'name      cost      damage'
+                         'lower_row lower_row damage';
     justify-content: space-between;
     align-items: flex-start;
     gap: 0 .2em;
@@ -30,12 +30,17 @@
 
     font-size: 1.05rem;
     background-color: var(--bs-teal);
+    hyphens: auto;
     
     --shadow-pos: .1em;
 }
+.lower-row {
+    grid-area: lower_row;
+
+    display: flex;
+    justify-content: space-between;
+}
 .attack__types {
-    grid-area: type;
-    
     padding: .5em 0 0 .5em;
     color: rgba(255, 255, 255, .8);
 
@@ -110,8 +115,6 @@
 }
 
 .attack__vector {
-    grid-area: vector;
-
     justify-self: flex-end;
     display: flex;
     gap: .1em;
@@ -137,5 +140,6 @@
     /* background-color: var(--bs-indigo); */
     background-color: transparent;
     background-image: linear-gradient(rgba(104, 18, 243, .5) 50%, rgba(104, 18, 243, .6));
+    color: var(--bs-light);
     margin-block: -1px 1em;
 }

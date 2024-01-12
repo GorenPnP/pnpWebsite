@@ -151,10 +151,10 @@ class ShowView(LoginRequiredMixin, VerifiedAccountMixin, DetailView):
                 ["Manaoverflow", num((attrs["WK"] + MA_raw)*3 + char.manaoverflow_bonus)],
 
                 ["Astral-Widerstand", num(attrs["MA"] + attrs["WK"] + char.astralwiderstand_bonus)],
-                ["Astrale Schadensverhinderung", f'{1+ num(math.ceil(min(attrs["WK"], MA_raw) / 6))}HP / Erfolg'],
+                ["Astrale Schadensverhinderung", f'{1+ num(math.floor(min(attrs["WK"], MA_raw) / 6))}HP / Erfolg'],
                 ["Reaktion", num((attrs["SCH"] + attrs["GES"] + attrs["WK"])/2 + char.reaktion_bonus)],
                 ["nat. Schadenswiderstand", num(attrs["ST"] + attrs["VER"] + char.natürlicher_schadenswiderstand_bonus)],
-                ["nat. Schadensverhinderung", f'{num(math.ceil(min(attrs["ST"], attrs["VER"]) / 6))}HP / Erfolg'],
+                ["nat. Schadensverhinderung", f'{1+ num(math.floor(min(attrs["ST"], attrs["VER"]) / 6))}HP / Erfolg'],
                 ["Intuition", num((attrs["IN"] + 2*attrs["SCH"]) / 2)],
                 ["Geh-/ Lauf-/ Sprintrate", f'{num(attrs["SCH"]*2)} | {num(attrs["SCH"]*4)} | {num(attrs["SCH"]*4 + ferts["Laufen"])} m / 6sek'],
                 ["Bewegung Astral", f'{num(2*attrs["MA"]*(attrs["WK"] + attrs["SCH"]))}m / 6sek'],

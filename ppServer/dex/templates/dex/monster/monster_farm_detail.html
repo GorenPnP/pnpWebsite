@@ -5,6 +5,7 @@
 <link rel="stylesheet" href="{% static 'dex/monster/css/monster_farm_detail.css' %}">
 {{ AMOUNT_TRAINED|json_script:"max_trained_amount" }}
 <script src="{% static 'dex/monster/js/monster_farm_detail.js' %}" defer></script>
+<script src="{% static 'dex/monster/js/attack-filter.js' %}" defer></script>
 {% endblock %}
 
 {% block main %}
@@ -182,6 +183,10 @@
 
   <!-- Attacken -->
   <h2 class="mt-5">Attacken</h2>
+
+  <h3 class="h5 mt-4">Bekannte Attacken</h3>
+
+  {% if object.spielermonsterattack_set.count %}
   <ul class="list-unstyled">
     {% for sp_mo_a in object.spielermonsterattack_set.all %}
       <li class="del-btn-container">
@@ -198,13 +203,45 @@
         </button>
       </li>
     {% endfor %}
-
-    {% if object.spielermonsterattack_set.count < MAX_AMOUNT_ATTACKEN %}
-    <li class="del-btn-container">
-      <button class="open-modal-btn btn btn-lg btn-outline-light" type="button" data-bs-toggle="modal" data-bs-target="#attack-modal">+ Attacke</button>
-    </li>
-    {% endif %}
   </ul>
+  {% endif %}
+
+  {% if object.spielermonsterattack_set.exists and object.spielermonsterattack_set.count < MAX_AMOUNT_ATTACKEN %}
+
+  <div class="accordion" id="accordion--new-attack">
+    <div class="accordion-item" style="background-color: var(--background-color--main);">
+      <h3 class="accordion-header" id="accordion-heading--new-attack">
+        <button class="accordion-button collapsed text-light" style="background-color: var(--background-color--main);" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-one" aria-expanded="false" aria-controls="collapse-one">
+          Neue Attacke lernen
+        </button>
+      </h3>
+      <div id="collapse-one" class="accordion-collapse collapse" aria-labelledby="accordion-heading--new-attack" data-bs-parent="#accordion--new-attack">
+        <div class="accordion-body pt-0">
+
+          {% include 'dex/monster/attack-filter.html' with types=types all_stats=all_stats %}
+
+          <form action="{% url 'dex:spieler_monster_add_attack' object.id %}" method="post" id="new-attack-form">
+            {% csrf_token %}
+        
+            <div class="form-check" id="attack-list">
+              {% for attack in other_attacks %}
+                <div class="attack-container">
+                  <input class="form-check-input" type="radio" name="attack_id" id="attack-radio-{{ attack.id }}" value="{{ attack.id }}" {% if forloop.first %}checked="true"{% endif %}>
+                  <label class="form-check-label w-100" for="attack-radio-{{ attack.id }}">
+                    {% include 'dex/monster/attack-listentry.html' with attack=attack modified_cost=attack.modified_cost include_styles=forloop.first %}
+                  </label>
+                </div>
+              {% endfor %}
+            </div>
+        
+            <button type="submit" class="btn btn-lg btn-outline-light mt-3">Attacke lernen</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% endif %}
 
   <!-- Teams -->
   <h2 class="mt-5">Teams</h2>
@@ -255,45 +292,4 @@
       </div>
     </div>
   </div>
-
-  <!-- Attacken Modal -->
-  <div class="modal fade" id="attack-modal" tabindex="-1" aria-label="Attacke hinzufügen">
-    <div class="modal-dialog modal-fullscreen-sm-down">
-      <div class="modal-content">
-        <div class="modal-body">
-          
-          <form action="{% url 'dex:spieler_monster_add_attack' object.id %}" method="post" id="attack-form">
-            {% csrf_token %}
-            <p>
-              <label for="id_attacke">Attacke: </label>
-              <p><i>
-                Du kannst Attacken wählen, die max. {{ object.max_cost_attack }} kosten.<br>
-                Wenn sie nur Typen deines Monsters haben, sind sie günstiger:
-              </i></p>
-
-              {% for attack in other_attacks %}
-                <div class="form-check">
-                  <input class="form-check-input" type="radio" name="attack_id" id="attack-radio-{{ attack.id }}" value="{{ attack.id }}" checked="{{ foorloop.first }}">
-                  <label class="form-check-label w-100" for="attack-radio-{{ attack.id }}">
-                    {% include 'dex/monster/attack-listentry.html' with attack=attack modified_cost=attack.modified_cost include_styles=forloop.first %}
-                  </label>
-                </div>
-              {% endfor %}
-            </p>
-          </form>
-        </div>
-        <div class="modal-footer">
-          <button type="submit" class="btn btn-primary" form="attack-form">Attacke hinzufügen</button>
-          <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Schließen</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- popover stuff -->
-  <script>
-    const popoverTriggerList = document.querySelectorAll('[data-bs-toggle="popover"]')
-    const popoverList = [...popoverTriggerList].map(popoverTriggerEl => new bootstrap.Popover(popoverTriggerEl))
-  </script>
-  <style>.popover-header { color: black; }</style>
 {% endblock %}

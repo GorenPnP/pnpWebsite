@@ -83,15 +83,15 @@ function filter_and_sort() {
 
 
     // apply filter for visibility of attacks
-    Array.from(document.querySelectorAll(".attack.card"))
-        .map(attack => { attack.parentNode.classList.remove("hidden"); return attack; })
+    Array.from(document.querySelectorAll("#attack-list .attack.card"))
+        .map(attack => { attack.closest(".attack-container").classList.remove("hidden"); return attack; })
         .filter(attack =>
             (filter.name && !attack.querySelector(".attack__name").innerHTML.toLowerCase().includes(filter.name)) ||
             (filter.cost !== null && parseInt(attack.querySelector(".attack__cost span").innerHTML) > filter.cost) ||
             (filter.typ && ![...attack.querySelectorAll(".attack__types div")].some(type_tag => type_tag.textContent.toLowerCase() === filter.typ)) ||
             (filter.stat && ![...attack.querySelectorAll(".attack__vector .stat-icon")].some(stat_tag => stat_tag.dataset.stat === filter.stat))
         )
-        .forEach(attack => attack.parentNode.classList.add("hidden"));
+        .forEach(attack => attack.closest(".attack-container").classList.add("hidden"));
 
     // apply sort for sorting of attacks
     const list = document.querySelector("#attack-list");
@@ -99,7 +99,7 @@ function filter_and_sort() {
         .sort((a, b) => {
             let a_field, b_field;
 
-            if (sort.includes("type")) {
+            if (sort?.includes("type")) {
                 a_field = a.querySelector(".attack__types div").textContent.toLowerCase();
                 b_field = b.querySelector(".attack__types div").textContent.toLowerCase();
             }

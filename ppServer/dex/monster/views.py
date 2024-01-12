@@ -202,7 +202,9 @@ class MonsterFarmDetailView(LoginRequiredMixin, DetailView):
             **kwargs,
             app_index = "Farm",
             app_index_url = reverse("dex:monster_farm"),
-            spieler = get_object_or_404(Spieler, name=self.request.user.username)
+            spieler = get_object_or_404(Spieler, name=self.request.user.username),
+            types = Typ.objects.all(),
+            all_stats = [(stat, label) for stat, label in RangStat.StatType if stat in ["N", "F", "MA", "VER_G", "VER_K"]],
         )
         self.object = context["object"]
         context["topic"] = self.object.name or self.object.monster.name
