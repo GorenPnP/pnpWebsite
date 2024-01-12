@@ -300,7 +300,7 @@ class SpielerMonsterAttack(models.Model):
     class Meta:
         verbose_name = "Attacke"
         verbose_name_plural = "Attacken"
-        unique_together = ["attacke", "spieler_monster"]
+        unique_together = [("attacke", "spieler_monster")]
 
     attacke = models.ForeignKey(Attacke, on_delete=models.CASCADE)
     spieler_monster = models.ForeignKey("SpielerMonster", on_delete=models.CASCADE)

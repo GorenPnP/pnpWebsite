@@ -184,9 +184,10 @@
   <!-- Attacken -->
   <h2 class="mt-5">Attacken</h2>
 
-  <h3 class="h5 mt-4">Bekannte Attacken</h3>
-
   {% if object.spielermonsterattack_set.count %}
+  {% if object.spielermonsterattack_set.count < MAX_AMOUNT_ATTACKEN %}
+  <h3 class="h5 mt-4">Bekannte Attacken</h3>
+  {% endif %}
   <ul class="list-unstyled">
     {% for sp_mo_a in object.spielermonsterattack_set.all %}
       <li class="del-btn-container">
@@ -206,7 +207,7 @@
   </ul>
   {% endif %}
 
-  {% if object.spielermonsterattack_set.exists and object.spielermonsterattack_set.count < MAX_AMOUNT_ATTACKEN %}
+  {% if not object.spielermonsterattack_set.exists or object.spielermonsterattack_set.count < MAX_AMOUNT_ATTACKEN %}
 
   <div class="accordion" id="accordion--new-attack">
     <div class="accordion-item" style="background-color: var(--background-color--main);">
