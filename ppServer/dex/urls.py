@@ -15,4 +15,7 @@ urlpatterns = [
 
     path('para_pflanze/', views.ParaPflanzeIndexView.as_view(), name='para_pflanze_index'),
     path('para_pflanze/<int:pk>', views.ParaPflanzeDetailView.as_view(), name='para_pflanze_detail'),
+
+    path('para_tier/', views.ParaTierIndexView.as_view(), name='para_tier_index'),
+    path('para_tier/<int:pk>', views.ParaTierDetailView.as_view(), name='para_tier_detail'),
 ]

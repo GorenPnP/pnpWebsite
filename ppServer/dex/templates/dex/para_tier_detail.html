@@ -1,0 +1,35 @@
+{% extends 'base/headed_main.html' %}
+{% load static dice blackening %}
+
+{% block extra-head %}
+<link rel="stylesheet" href="{% static 'dex/css/para_tier_detail.css' %}">
+{% endblock %}
+
+{% block main %}
+<div class="main-information">
+
+    {% if object.image %}<img class="image" src="{{ object.image.url }}">{% endif %}
+
+    <div>
+        <div class="h2">{{ object.name }}</div>
+        <div class="overview">
+    
+            <b>Beschreibung:</b>
+            <span>{{ object.description }}</span>
+
+            <b>Habitat:</b>
+            <span>{{ object.habitat }}</span>
+        </div>
+    </div>
+
+    <div>
+        <h2>Fertigkeiten</h2>
+        <div class="werte-container">
+            {% for fert in object.paratierfertigkeit_set.all %}
+            <b>{{ fert.fertigkeit.name }}</b>
+            <span>{{ fert.pool }}</span>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

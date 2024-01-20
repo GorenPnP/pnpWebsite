@@ -150,12 +150,13 @@ class ParaTier(models.Model):
         verbose_name = "Para-Tier"
         verbose_name_plural = "Para-Tiere"
 
-    name = models.CharField(max_length=128)
+    name = models.CharField(max_length=128, unique=True)
     image = ResizedImageField(size=[1024, 1024], upload_to=upload_and_rename_to_id, blank=True)
     description = models.TextField(verbose_name="Beschreibung")
     habitat = models.TextField()
 
     fertigkeiten = models.ManyToManyField(Fertigkeit, through=ParaTierFertigkeit)
+    visible = models.ManyToManyField(Spieler, blank=True)
 
 
 class GeschöpfFertigkeit(models.Model):

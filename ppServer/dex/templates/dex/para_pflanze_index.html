@@ -24,7 +24,7 @@
             {% if pflanze.generation == gen %}
             <li class="my-2">
                 {% if spieler in pflanze.visible.all %}
-                <a href="{% url 'dex:para_pflanze_detail' pflanze.id %}" class="pflanze-link">
+                <a href="{% url 'dex:para_pflanze_detail' pflanze.id %}" class="text-light">
                 {% endif %}
                     #{{ pflanze.number }} - {{ pflanze.name }}
                 {% if spieler in pflanze.visible.all %}</a>{% endif %}
