@@ -253,11 +253,7 @@ class CharakterExporter:
 
         ROW += 1
         werte_ws.write(f"I{ROW}", "Initiative", format_ini_titel)
-        werte_ws.write(f"J{ROW}", f"={self._position('WK')}+{self._position('ST')}"+(f"+{self.char.initiative_bonus}" if self.char.initiative_bonus else ""), format_ini)
-        
-        ROW += 1
-        werte_ws.write(f"I{ROW}", "W4", format_ini_titel)
-        werte_ws.write(f"J{ROW}", f"={self._position('SCH')}", format_ini)
+        werte_ws.write(f"J{ROW}", f"=2*{self._position('SCH')}+{self._position('WK')}+{self._position('GES')}"+(f"+{self.char.initiative_bonus}" if self.char.initiative_bonus else ""), format_ini)
 
         ROW += 1
         werte_ws.write(f"I{ROW}", "Astral-WI", format_asWi_topic)
@@ -267,7 +263,7 @@ class CharakterExporter:
         werte_ws.write(f"I{ROW}", "HP / Erfolg", format_asWi_topic)
         werte_ws.write(f"J{ROW}", f"=FLOOR(MIN({self._position('WK')},{self._position('MA')})/6,1)+1", format_asWi)
         
-        ROW += 1
+        ROW += 2
         werte_ws.write(f"I{ROW}", "Limits", format_limit_topic__first)
         werte_ws.write(f"J{ROW}", None, format_limit_topic__last)
         
@@ -377,8 +373,8 @@ class CharakterExporter:
 
         # colorful dice
         werte_ws.merge_range(f"M{ROW}:O{ROW}", "Reaktion", format_colorful_titel_emph)
-        werte_ws.merge_range(f"P{ROW}:R{ROW}", f"=({self._position('SCH')}+{self._position('GES')}+{self._position('WK')})/2"+(f"+{self.char.reaktion_bonus}" if self.char.reaktion_bonus else ""), format_colorful)
-        werte_ws.write(f"S{ROW}", "(SCH+GES+WK)/2")
+        werte_ws.merge_range(f"P{ROW}:R{ROW}", f"={self._position('SCH')}+{self._position('GES')}"+(f"+{self.char.reaktion_bonus}" if self.char.reaktion_bonus else ""), format_colorful)
+        werte_ws.write(f"S{ROW}", "SCH+GES")
         
         ROW += 1
         werte_ws.merge_range(f"M{ROW}:O{ROW}", "nat. Schadenswiderstand", format_colorful_titel_emph)

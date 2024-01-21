@@ -13,11 +13,6 @@ from quiz.views import get_grade_score
 @login_required
 def random(request):
     dice = [
-        {"art": "grün", "faces": [0, 0, 0, 1, 1, 2], "color": "green"},
-        {"art": "gelb", "faces": [0, 1, 1, 1, 2, 2], "color": "yellow"},
-        {"art": "rot", "faces": [0, 1, 1, 2, 3, 3], "color": "red"},
-        {"art": "schwarz", "faces": [0, 2, 2, 3, 3, 4], "color": "black"},
-
         {"art": "W4", "faces": [i for i in range(1, 5)]},
         {"art": "W6", "faces": [i for i in range(1, 7)]},
         {"art": "W8", "faces": [i for i in range(1, 9)]},
