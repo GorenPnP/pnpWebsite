@@ -434,14 +434,9 @@ class ShowView(LoginRequiredMixin, VerifiedAccountMixin, DetailView):
             char.relbegleiter_set.all().values("anz", "item__name", "item__beschreibung", "notizen"),
         )
 
-        sonstige = [
-            re.sub("\n", "<br>", char.sonstige_items, 0, re.MULTILINE),
-            re.sub("\n", "<br>", char.sonstiges_alchemie, 0, re.MULTILINE),
-            re.sub("\n", "<br>", char.sonstiges_cyberware, 0, re.MULTILINE),
-        ]
         return {
             "inventory__table": InventoryTable(qs),
-            "inventory__random_items": format_html("<br>".join([s for s in sonstige if s]))
+            "inventory__random_items": format_html(re.sub("\n", "<br>", char.sonstige_items, 0, re.MULTILINE))
         }
 
     def get_zauber(self, char):

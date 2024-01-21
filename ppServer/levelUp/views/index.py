@@ -110,7 +110,7 @@ class IndexView(LevelUpMixin, DetailView):
             rows.append({"done": is_zauber_done(char), "link": self._get_url("zauber", char), "text": "<b>Zauber</b>", "werte": zauber_werte})
         # Spezis & Wissis
         if char.spF_wF or char.wp or char.spezialfertigkeiten.exists() or char.wissensfertigkeiten.exists() or char.sp:
-            rows.append({"done": is_spF_wF_done(char), "link": self._get_url("spF_wF", char), "text": "<b>Spezial- und Wissensfertigkeiten</b>", "werte": f"{char.spF_wF} offen<br>{char.wp} WP<br>{char.sp} SP"})
+            rows.append({"done": is_spF_wF_done(char), "link": self._get_url("spF_wF", char), "text": "<b>Spezial- und Wissensfertigkeiten</b>", "werte": f"{char.spF_wF or 0} offen<br>{char.wp or 0} WP<br>{char.sp or 0} SP"})
         # Talente
         if char.tp or char.talente.exists():
             rows.append({"done": True if char.tp == 0 else None, "link": self._get_url("talent", char), "text": "<b>Talente</b>", "werte": f"{char.tp} TP"})

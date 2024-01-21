@@ -299,7 +299,7 @@ class CharakterAdmin(admin.ModelAdmin):
 
         ('Kampagne', {'fields': ["ep", 'ep_stufe', 'ep_stufe_in_progress', "skilltree_stufe", "processing_notes"]}),
         ('Währungen', {'fields': ['ap', 'fp', 'fg', 'sp', 'ip', 'tp', 'spF_wF', 'wp', 'zauberplätze', "geld", 'konzentration', "prestige", "verzehr"]}),
-        ('Geschreibsel', {'fields': ['notizen', 'persönlicheZiele', 'sonstige_items', 'sonstiges_alchemie', 'sonstiges_cyberware']}),
+        ('Geschreibsel', {'fields': ['notizen', 'persönlicheZiele', 'sonstige_items']}),
     ]
 
     inlines = [
