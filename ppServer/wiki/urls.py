@@ -25,4 +25,5 @@ urlpatterns = [
     path('religionen/', views.ReligionTableView.as_view(), name='religionen'),
 
     path('geburtstage/', views.GeburtstageView.as_view(), name='geburtstage'),
+    path('regeln/', views.RuleListView.as_view(), name='rules'),
 ]

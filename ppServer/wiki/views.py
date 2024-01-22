@@ -1,5 +1,5 @@
 from datetime import date
-from typing import Any
+from typing import Any, Dict
 
 from django.db.models import F, Subquery, OuterRef, Min, ExpressionWrapper, Q
 from django.db.models.fields import BooleanField
@@ -19,6 +19,8 @@ from base.abstract_views import DynamicTableView, GenericTable
 from character.models import *
 from ppServer.mixins import VerifiedAccountMixin
 from ppServer.decorators import verified_account
+
+from .models import Rule
 
 
 @login_required
@@ -438,3 +440,16 @@ class GfsSpecialAbilities(LoginRequiredMixin, DynamicTableView):
     }
 
     export_formats = ["csv", "json", "latex", "tsv"]
+
+
+class RuleListView(LoginRequiredMixin, ListView):
+
+    model = Rule
+    template_name = "wiki/rules.html"
+
+    def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
+        return super().get_context_data(**kwargs,
+            topic = "Regeln",
+            app_index = "Wiki",
+            app_index_url = reverse("wiki:index"),
+        )
