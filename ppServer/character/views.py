@@ -1,6 +1,8 @@
 from typing import Any, Dict
 
+from django.contrib import messages
 from django.db.models import Value, F
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
 from django.shortcuts import redirect
@@ -417,21 +419,32 @@ class ShowView(LoginRequiredMixin, VerifiedAccountMixin, DetailView):
         class InventoryTable(tables.Table):
             class Meta:
                 model = RelShop
-                fields = ("anz", "item__name", "item__beschreibung", "notizen")
+                fields = ("anz", "item__name", "item__beschreibung", "notizen", "use")
                 orderable = False
                 attrs = {"class": "table table-dark table-striped table-hover"}
 
-        qs = char.relitem_set.all().values("anz", "item__name", "item__beschreibung", "notizen").union(
-            char.relmagazin_set.all().values("anz", "item__name", "item__beschreibung", "notizen"),
-            char.relpfeil_bolzen_set.all().values("anz", "item__name", "item__beschreibung", "notizen"),
-            char.relmagische_ausrüstung_set.all().values("anz", "item__name", "item__beschreibung", "notizen"),
-            char.relrüstung_set.all().values("anz", "item__name", "item__beschreibung", "notizen"),
-            char.relausrüstung_technik_set.all().values("anz", "item__name", "item__beschreibung", "notizen"),
-            char.relfahrzeug_set.all().values("anz", "item__name", "item__beschreibung", "notizen"),
-            char.releinbauten_set.all().values("anz", "item__name", "item__beschreibung", "notizen"),
-            char.relalchemie_set.all().values("anz", "item__name", "item__beschreibung", "notizen"),
-            char.reltinker_set.all().values("anz", "item__name", "item__beschreibung", "notizen"),
-            char.relbegleiter_set.all().values("anz", "item__name", "item__beschreibung", "notizen"),
+            use = tables.Column(verbose_name="")
+
+            def render_use(self, value, record):
+                href = reverse("character:use_item", args=[record["model"], record["pk"]])
+                return format_html(f"<a class='btn btn-sm btn-danger' href='{href}'>1 verbrauchen</a>")
+
+        # helper function to format all relshop items the same way
+        to_dict = lambda qs, model: qs.all()\
+            .annotate(use=Value("-"), model=Value(model))\
+            .values("anz", "item__name", "item__beschreibung", "notizen", "use", "model", "pk")
+
+        qs = to_dict(char.relitem_set, "relitem").union(
+            to_dict(char.relmagazin_set.all(), "relmagazin"),
+            to_dict(char.relpfeil_bolzen_set.all(), "relpfeil_bolzen"),
+            to_dict(char.relmagische_ausrüstung_set.all(), "relmagische_ausrüstung"),
+            to_dict(char.relrüstung_set.all(), "relrüstung"),
+            to_dict(char.relausrüstung_technik_set.all(), "relausrüstung_technik"),
+            to_dict(char.relfahrzeug_set.all(), "relfahrzeug"),
+            to_dict(char.releinbauten_set.all(), "releinbauten"),
+            to_dict(char.relalchemie_set.all(), "relalchemie"),
+            to_dict(char.reltinker_set.all(), "reltinker"),
+            to_dict(char.relbegleiter_set.all(), "relbegleiter"),
         )
 
         return {
@@ -517,7 +530,7 @@ class HistoryView(LoginRequiredMixin, VerifiedAccountMixin, tables.SingleTableMi
     
     def get_table_data(self):
         char = get_object_or_404(Charakter, pk=self.kwargs["pk"])
-        return Log.objects.filter(char=char, art__in=("s", "u", "i"))
+        return Log.objects.filter(char=char, art__in=("s", "u", "i", "j"))
     
 
     def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
@@ -530,3 +543,49 @@ class HistoryView(LoginRequiredMixin, VerifiedAccountMixin, tables.SingleTableMi
             app_index_url=reverse("character:show", args=[char.id]),
             priotable=char.processing_notes["priotable"] if "priotable" in char.processing_notes else None,
         )
+
+
+@login_required
+def use_relshop(request, relshop_model, pk):
+    from django.apps import apps
+
+    try:
+        Model = apps.get_model('character', relshop_model)
+        # assert model
+        if not issubclass(Model, RelShop): raise LookupError()
+    except LookupError:
+        messages.error(request, "Anfrage fehlerhaft")
+        return redirect("character:index")
+
+    # assert user requesting to use an item
+    if not request.user.groups.filter(name__iexact="spielleiter").exists() and not Model.objects.filter(pk=pk, char__eigentümer__name=request.user.username).exists():
+        messages.error(request, "Es ist nicht dein Charakter, von dem du Items benutzen willst.")
+        return redirect("character:index")
+
+    # assert item existance
+    rel_shop = Model.objects.prefetch_related("char__eigentümer", "item").filter(pk=pk).first()
+    if not rel_shop:
+        messages.error(request, "Item konnte nicht im Inventar gefunden werden.")
+        return redirect("character:index")
+
+    char = rel_shop.char
+    item_name = rel_shop.item.name
+
+    # use item
+    if rel_shop.anz == 1:
+        rel_shop.delete()
+    else:
+        rel_shop.anz -= 1
+        rel_shop.save(update_fields=["anz"])
+
+    # log usage
+    Log.objects.create(
+        spieler=get_object_or_404(Spieler, name=request.user.username),
+        char=char,
+        art="j", # Inventar-Item verbraucht
+        kosten="",
+        notizen=f"1x {item_name}",
+    )
+
+    messages.success(request, f'Du hast von "{item_name}" 1 verbraucht')
+    return redirect(reverse("character:show", args=[char.id]))

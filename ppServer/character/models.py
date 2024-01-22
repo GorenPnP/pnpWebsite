@@ -1164,7 +1164,7 @@ class RelRituale_Runen(RelShop):
 
 
 # verf_shop_firma
-############ RelShop ###########
+############ RelFirmaShop ###########
 class RelFirmaShop(models.Model):
     class Meta:
         abstract = True

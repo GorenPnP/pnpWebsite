@@ -29,6 +29,7 @@ kind_enum = [
     ("v", "Magie verloren"),
 
     ("d", "Quiz-Punkte für SP"),
+    ("j", "Inventar-Item verbraucht"),
 ]
 
 
