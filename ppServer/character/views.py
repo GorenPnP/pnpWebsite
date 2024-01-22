@@ -147,12 +147,12 @@ class ShowView(LoginRequiredMixin, VerifiedAccountMixin, DetailView):
         return {
             "calculated__fields": [
                 ["Limits (k | g | m)", f'{num((attrs["SCH"] + attrs["ST"] + attrs["VER"] + attrs["GES"]) / 2)} | {num((attrs["IN"] + attrs["WK"] + attrs["UM"]) / 2)} | {num((attrs["MA"] + attrs["WK"]) / 2)}'],
-                ["Initiative", f'{num(attrs["WK"] + attrs["ST"] + char.initiative_bonus)} + {attrs["SCH"]}W4'],
+                ["Initiative", num(attrs["SCH"]*2 + attrs["WK"] + attrs["GES"] + char.initiative_bonus)],
                 ["Manaoverflow", num((attrs["WK"] + MA_raw)*3 + char.manaoverflow_bonus)],
 
                 ["Astral-Widerstand", num(attrs["MA"] + attrs["WK"] + char.astralwiderstand_bonus)],
                 ["Astrale Schadensverhinderung", f'{1+ num(math.floor(min(attrs["WK"], MA_raw) / 6))}HP / Erfolg'],
-                ["Reaktion", num((attrs["SCH"] + attrs["GES"] + attrs["WK"])/2 + char.reaktion_bonus)],
+                ["Reaktion", num(attrs["SCH"] + attrs["GES"] + char.reaktion_bonus)],
                 ["nat. Schadenswiderstand", num(attrs["ST"] + attrs["VER"] + char.natürlicher_schadenswiderstand_bonus)],
                 ["nat. Schadensverhinderung", f'{1+ num(math.floor(min(attrs["ST"], attrs["VER"]) / 6))}HP / Erfolg'],
                 ["Intuition", num((attrs["IN"] + 2*attrs["SCH"]) / 2)],
