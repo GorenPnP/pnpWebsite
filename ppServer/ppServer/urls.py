@@ -40,6 +40,7 @@ urlpatterns = [
     path('dex/', include('dex.urls')),
     path('file/', include('fileserver.urls')),
     path('chat2.0/', include('httpChat.urls')),
+    path('lerneinheiten/', include('lerneinheiten.urls')),
     path('levelUp/', include('levelUp.urls')),
     path('log/', include('log.urls')),
     path('mining/', include('mining.urls')),

@@ -1,0 +1,75 @@
+{% extends 'base/headed_main.html' %}
+{% load static %}
+
+{% block extra-head %}
+    <!-- jsDelivr :: Sortable :: Latest (https://www.jsdelivr.com/package/npm/sortablejs) -->
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+    <style>
+        .sortable-item .head {
+            display: flex;
+            gap: 1em;
+            align-items: center;
+            
+            .handle {
+                width: 1em;
+                cursor: move;
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block main %}
+<!-- Simple List -->
+<ul class="sortable-list list-group">
+    {% with ''|center:5 as count %}
+    {% for _ in count %}
+	<li class="sortable-item list-group-item einheit-0">
+
+        <div class="head">
+            <svg class="handle" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
+                <!--!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.-->
+                <path d="M128 136c0-22.1-17.9-40-40-40L40 96C17.9 96 0 113.9 0 136l0 48c0 22.1 17.9 40 40 40H88c22.1 0 40-17.9 40-40l0-48zm0 192c0-22.1-17.9-40-40-40H40c-22.1 0-40 17.9-40 40l0 48c0 22.1 17.9 40 40 40H88c22.1 0 40-17.9 40-40V328zm32-192v48c0 22.1 17.9 40 40 40h48c22.1 0 40-17.9 40-40V136c0-22.1-17.9-40-40-40l-48 0c-22.1 0-40 17.9-40 40zM288 328c0-22.1-17.9-40-40-40H200c-22.1 0-40 17.9-40 40l0 48c0 22.1 17.9 40 40 40h48c22.1 0 40-17.9 40-40V328zm32-192v48c0 22.1 17.9 40 40 40h48c22.1 0 40-17.9 40-40V136c0-22.1-17.9-40-40-40l-48 0c-22.1 0-40 17.9-40 40zM448 328c0-22.1-17.9-40-40-40H360c-22.1 0-40 17.9-40 40v48c0 22.1 17.9 40 40 40h48c22.1 0 40-17.9 40-40V328z"/>
+            </svg>
+            <span>This is <a href="http://SortableJS.github.io/Sortable/">Sortable</a> {{ forloop.counter }}</span>
+        </div>
+
+        <ul class="sortable-list list-group mt-3">
+            
+            {% for _ in count %}
+            <li class="sortable-item list-group-item einheit-{{ forloop.parentloop.counter }}">
+
+                <div class="head">
+                    <svg class="handle" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
+                        <!--!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.-->
+                        <path d="M128 136c0-22.1-17.9-40-40-40L40 96C17.9 96 0 113.9 0 136l0 48c0 22.1 17.9 40 40 40H88c22.1 0 40-17.9 40-40l0-48zm0 192c0-22.1-17.9-40-40-40H40c-22.1 0-40 17.9-40 40l0 48c0 22.1 17.9 40 40 40H88c22.1 0 40-17.9 40-40V328zm32-192v48c0 22.1 17.9 40 40 40h48c22.1 0 40-17.9 40-40V136c0-22.1-17.9-40-40-40l-48 0c-22.1 0-40 17.9-40 40zM288 328c0-22.1-17.9-40-40-40H200c-22.1 0-40 17.9-40 40l0 48c0 22.1 17.9 40 40 40h48c22.1 0 40-17.9 40-40V328zm32-192v48c0 22.1 17.9 40 40 40h48c22.1 0 40-17.9 40-40V136c0-22.1-17.9-40-40-40l-48 0c-22.1 0-40 17.9-40 40zM448 328c0-22.1-17.9-40-40-40H360c-22.1 0-40 17.9-40 40v48c0 22.1 17.9 40 40 40h48c22.1 0 40-17.9 40-40V328z"/>
+                    </svg>
+                    <span>{{ forloop.parentloop.counter }}.{{ forloop.counter }} Seite</span>
+                </div>
+            </li>
+            {% endfor %}
+            <li><button class="btn btn-primary">+ Seite</button></li>
+        </ul>
+    </li>
+    {% endfor %}
+    {% endwith %}
+    <li><button class="btn btn-primary">+ Einheit</button></li>
+</ul>
+
+<script>
+// Loop through each nested sortable element
+
+for (const list of document.querySelectorAll(".sortable-list")) {
+    new Sortable(list, {
+        handle: '.handle', // handle's class
+		group: 'einheit',
+		animation: 150,
+		fallbackOnBody: true,
+		swapThreshold: 0.65,
+
+        // pull: false,
+        // put: false,
+	});
+}
+
+</script>
+{% endblock %}

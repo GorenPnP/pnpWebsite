@@ -55,6 +55,7 @@ INSTALLED_APPS = [
     'dex',
     'fileserver',
     'httpChat',
+    'lerneinheiten',
     'levelUp',
     'log',
     'logRequest',
