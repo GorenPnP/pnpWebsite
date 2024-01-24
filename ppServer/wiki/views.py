@@ -20,7 +20,7 @@ from character.models import *
 from ppServer.mixins import VerifiedAccountMixin
 from ppServer.decorators import verified_account
 
-from .models import Rule
+from .models import *
 
 
 @login_required
@@ -447,9 +447,29 @@ class RuleListView(LoginRequiredMixin, ListView):
     model = Rule
     template_name = "wiki/rules.html"
 
+    class GhostTable(tables.Table):
+        class Meta:
+            model = Ghost
+            fields = ("titel", "sch", "angriff", "ma", "wk", "st", "schaWI", "reaktion", "schaden_pro_erfolg", "initiative", "astralschaden")
+            orderable = False
+            attrs = {"class": "table table-dark table-striped table-hover"}
+
+    class GhostEigenschaftTable(tables.Table):
+        class Meta:
+            model = Ghost
+            fields = ("titel", "eigenschaft")
+            orderable = False
+            attrs = {"class": "table table-dark table-striped table-hover"}
+
+        def render_eigenschaft(self, value):
+            return format_html(value.replace("\n", "<br>"))
+
     def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
         return super().get_context_data(**kwargs,
             topic = "Regeln",
             app_index = "Wiki",
             app_index_url = reverse("wiki:index"),
+            ghost_table = RuleListView.GhostTable(Ghost.objects.all()),
+            ghost_eigenschaft_table = RuleListView.GhostEigenschaftTable(Ghost.objects.all()),
+            rule_tables = {t.topic: t.csv_data for t in RuleTable.objects.all()},
         )
