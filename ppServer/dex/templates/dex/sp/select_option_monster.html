@@ -3,7 +3,10 @@
 
     <div class="monster-label-container">
         <img class="monster-image" src="{{ widget.value.instance.image.url }}">
-        {{ widget.value.instance.name }}
+        <div class="name-row">
+            <span>{{ widget.value.instance.name }}</span>
+            <small><i>({{ widget.value.instance.num_attacken|default:"0" }} Attacken)</i></small>
+        </div>
         <div class="types-container">
             {% for type in widget.value.instance.types.all %}{{ type.tag }}{% endfor %}
         </div>
