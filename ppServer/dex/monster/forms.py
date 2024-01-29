@@ -13,7 +13,7 @@ class MonsterVisibilityForm(forms.Form):
 class AttackToMonsterForm(forms.Form):
     class MonsterSelect(CheckboxSelectMultiple):
         option_template_name = 'dex/sp/select_option_monster.html'
-    monster = forms.ModelMultipleChoiceField(queryset=Monster.objects.prefetch_related("types", "attacken").annotate(num_attacken=Count("attacken")).all(), widget=MonsterSelect())
+    monster = forms.ModelMultipleChoiceField(queryset=Monster.objects.prefetch_related("types", "attacken").annotate(num_attacken=Count("attacken")).all().order_by("number"), widget=MonsterSelect())
     monster_feddich = forms.BooleanField(required=False)
 
 class TeamForm(forms.Form):
