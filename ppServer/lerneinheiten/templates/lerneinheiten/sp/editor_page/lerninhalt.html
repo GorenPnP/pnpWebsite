@@ -1,0 +1,166 @@
+{% extends 'base/headed_main.html' %}
+{% load static %}
+{% block extra-head %}
+    <link rel="stylesheet" href="{% static 'lerneinheiten/css/sp_editor_lerninhalt.css' %}">
+{% endblock %}
+
+{% block main %}
+<form id="settings" method="post">
+    <h2>Settings</h2>
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-primary">Speichern</button>
+</form>
+
+
+<h2>Content</h2>
+<div id="content-grid">
+    <div class="grid-column">
+        <button class="grid-row box--new btn" data-bs-toggle="modal" data-bs-target="#new-block-modal">+</button>
+
+        <div class="grid-row">
+            <button class="grid-column box--new btn" data-bs-toggle="modal" data-bs-target="#new-block-modal">+</button>
+            <div class="grid-column box--video">
+                <iframe width="880" height="495" src="https://www.youtube.com/embed/Y4fOc_YyKNE" title="Zauberarten - Goren Pen and Paper/ LARP" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+            </div>
+            <button class="grid-column box--new btn" data-bs-toggle="modal" data-bs-target="#new-block-modal">+</button>
+        </div>
+        <button class="grid-row box--new btn" data-bs-toggle="modal" data-bs-target="#new-block-modal">+</button>
+
+
+        <div class="grid-row">
+            <button class="grid-column box--new btn" data-bs-toggle="modal" data-bs-target="#new-block-modal">+</button>
+            <div class="grid-column box--image">
+                <img src="https://safesearch.lol/image_proxy?url=https%3A%2F%2Fcdn.photographylife.com%2Fwp-content%2Fuploads%2F2014%2F06%2FNikon-D810-Image-Sample-6.jpg&h=888637128c8c682c22a88c3d3a7d9a6077a940c5406a8b52a20836f91781804b">
+            </div>
+            <button class="grid-column box--new btn" data-bs-toggle="modal" data-bs-target="#new-block-modal">+</button>
+        </div>
+        <button class="grid-row box--new btn" data-bs-toggle="modal" data-bs-target="#new-block-modal">+</button>
+
+
+        <div class="grid-row">
+            <button class="grid-column box--new btn" data-bs-toggle="modal" data-bs-target="#new-block-modal">+</button>
+            <div class="grid-column box--text">
+                <p>{% lorem %}</p>
+            </div>
+            <button class="grid-column box--new btn" data-bs-toggle="modal" data-bs-target="#new-block-modal">+</button>
+        </div>
+        <button class="grid-row box--new btn" data-bs-toggle="modal" data-bs-target="#new-block-modal">+</button>
+
+
+        <div class="grid-row">
+            <button class="grid-column box--new btn" data-bs-toggle="modal" data-bs-target="#new-block-modal">+</button>
+            <div class="grid-column">
+                <button class="grid-row box--new btn" data-bs-toggle="modal" data-bs-target="#new-block-modal">+</button>
+                <div class="grid-row box--image">
+                    <img src="https://safesearch.lol/image_proxy?url=https%3A%2F%2Fcdn.photographylife.com%2Fwp-content%2Fuploads%2F2014%2F06%2FNikon-D810-Image-Sample-6.jpg&h=888637128c8c682c22a88c3d3a7d9a6077a940c5406a8b52a20836f91781804b">
+                </div>
+                <button class="grid-row box--new btn" data-bs-toggle="modal" data-bs-target="#new-block-modal">+</button>
+            </div>
+            <button class="grid-column box--new btn" data-bs-toggle="modal" data-bs-target="#new-block-modal">+</button>
+            <div class="grid-column">
+                <button class="grid-row box--new btn" data-bs-toggle="modal" data-bs-target="#new-block-modal">+</button>
+                <div class="grid-row box--text">
+                    <p>{% lorem %}</p>
+                </div>
+                <button class="grid-row box--new btn" data-bs-toggle="modal" data-bs-target="#new-block-modal">+</button>
+            </div>
+            <button class="grid-column box--new btn" data-bs-toggle="modal" data-bs-target="#new-block-modal">+</button>
+            <div class="grid-column">
+                <button class="grid-row box--new btn" data-bs-toggle="modal" data-bs-target="#new-block-modal">+</button>
+                <div class="grid-row box--text">
+                    <p>{% lorem %}</p>
+                </div>
+                <button class="grid-row box--new btn" data-bs-toggle="modal" data-bs-target="#new-block-modal">+</button>
+            </div>
+            <button class="grid-column box--new btn" data-bs-toggle="modal" data-bs-target="#new-block-modal">+</button>
+        </div>
+        <button class="grid-row box--new btn" data-bs-toggle="modal" data-bs-target="#new-block-modal">+</button>
+
+
+        <div class="grid-row">
+            <button class="grid-column box--new btn" data-bs-toggle="modal" data-bs-target="#new-block-modal">+</button>
+            <div class="grid-column">
+                <button class="grid-row box--new btn" data-bs-toggle="modal" data-bs-target="#new-block-modal">+</button>
+                <div class="grid-row box--image">
+                    <img src="https://safesearch.lol/image_proxy?url=https%3A%2F%2Fcdn.photographylife.com%2Fwp-content%2Fuploads%2F2014%2F06%2FNikon-D810-Image-Sample-6.jpg&h=888637128c8c682c22a88c3d3a7d9a6077a940c5406a8b52a20836f91781804b">
+                </div>
+                <button class="grid-row box--new btn" data-bs-toggle="modal" data-bs-target="#new-block-modal">+</button>
+                <div class="grid-row box--video">
+                    <iframe width="880" height="495" src="https://www.youtube.com/embed/Y4fOc_YyKNE" title="Zauberarten - Goren Pen and Paper/ LARP" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+                </div>
+                <button class="grid-row box--new btn" data-bs-toggle="modal" data-bs-target="#new-block-modal">+</button>
+            </div>
+            <button class="grid-column box--new btn" data-bs-toggle="modal" data-bs-target="#new-block-modal">+</button>
+            <div class="grid-column">
+                <button class="grid-row box--new btn" data-bs-toggle="modal" data-bs-target="#new-block-modal">+</button>
+                <div class="grid-row box--text">
+                    <p>{% lorem %}</p>
+                </div>
+                <button class="grid-row box--new btn" data-bs-toggle="modal" data-bs-target="#new-block-modal">+</button>
+            </div>
+            <button class="grid-column box--new btn" data-bs-toggle="modal" data-bs-target="#new-block-modal">+</button>
+            <div class="grid-column">
+                <button class="grid-row box--new btn" data-bs-toggle="modal" data-bs-target="#new-block-modal">+</button>
+                <div class="grid-row box--video">
+                    <iframe width="880" height="495" src="https://www.youtube.com/embed/Y4fOc_YyKNE" title="Zauberarten - Goren Pen and Paper/ LARP" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+                </div>
+                <button class="grid-row box--new btn" data-bs-toggle="modal" data-bs-target="#new-block-modal">+</button>
+            </div>
+            <button class="grid-column box--new btn" data-bs-toggle="modal" data-bs-target="#new-block-modal">+</button>
+        </div>
+        <button class="grid-row box--new btn" data-bs-toggle="modal" data-bs-target="#new-block-modal">+</button>
+
+
+        <div class="grid-row">
+            <button class="grid-column box--new btn" data-bs-toggle="modal" data-bs-target="#new-block-modal">+</button>
+            <div class="grid-column">
+                <button class="grid-row box--new btn" data-bs-toggle="modal" data-bs-target="#new-block-modal">+</button>
+                <div class="grid-row box--image">
+                    <img src="https://safesearch.lol/image_proxy?url=https%3A%2F%2Fcdn.photographylife.com%2Fwp-content%2Fuploads%2F2014%2F06%2FNikon-D810-Image-Sample-6.jpg&h=888637128c8c682c22a88c3d3a7d9a6077a940c5406a8b52a20836f91781804b">
+                </div>
+                <button class="grid-row box--new btn" data-bs-toggle="modal" data-bs-target="#new-block-modal">+</button>
+            </div>
+            <button class="grid-column box--new btn" data-bs-toggle="modal" data-bs-target="#new-block-modal">+</button>
+            <div class="grid-column">
+                <button class="grid-row box--new btn" data-bs-toggle="modal" data-bs-target="#new-block-modal">+</button>
+                <div class="grid-row box--text">
+                    <p>{% lorem %}</p>
+                </div>
+                <button class="grid-row box--new btn" data-bs-toggle="modal" data-bs-target="#new-block-modal">+</button>
+            </div>
+            <button class="grid-column box--new btn" data-bs-toggle="modal" data-bs-target="#new-block-modal">+</button>
+        </div>
+
+
+
+        <button class="grid-row box--new btn" data-bs-toggle="modal" data-bs-target="#new-block-modal">+</button>
+    </div>
+</div>
+<button class="btn btn-lg btn-primary mt-3">Speichern</button>
+
+
+<div class="modal" tabindex="-1" id="new-block-modal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Block erstellen</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Abbrechen"></button>
+            </div>
+            <div class="modal-body">
+                <select>
+                    <option>Text</option>
+                    <option>Bild</option>
+                    <option>Video</option>
+                </select>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                <button type="button" class="btn btn-primary">Erstellen</button>
+            </div>
+        </div>
+    </div>
+</div>
+  
+
+{% endblock %}

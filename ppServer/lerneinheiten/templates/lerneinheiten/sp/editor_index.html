@@ -4,9 +4,11 @@
 {% block extra-head %}
     <style>
         main {
+            max-width: 70ch;
+            margin: auto;
 
             svg { width: 1em; fill: currentColor; }
-            li { max-width: 60ch; }
+            small { color: var(--bs-gray-600); }
             .list-group { margin: 0; }
             .content { margin: 2em 5% 1em; }
             ul * { hyphens: auto; }
@@ -21,6 +23,13 @@
                     flex: 0 0 1em;
                     cursor: move;
                 }
+            }
+
+            .color {
+                background-color: var(--color);
+                height: 1em;
+                aspect-ratio: 1;
+                border-radius: 1000px;
             }
         }
     </style>
@@ -63,12 +72,18 @@
                 {% for seite in einheit.page_set.all %}
                 <li class="sortable-item list-group-item einheit-{{ einheit.id }}" data-id="{{ seite.id }}">
     
-                    <div class="head">
-                        <svg class="handle" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
-                            <!--!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.-->
-                            <path d="M128 136c0-22.1-17.9-40-40-40L40 96C17.9 96 0 113.9 0 136l0 48c0 22.1 17.9 40 40 40H88c22.1 0 40-17.9 40-40l0-48zm0 192c0-22.1-17.9-40-40-40H40c-22.1 0-40 17.9-40 40l0 48c0 22.1 17.9 40 40 40H88c22.1 0 40-17.9 40-40V328zm32-192v48c0 22.1 17.9 40 40 40h48c22.1 0 40-17.9 40-40V136c0-22.1-17.9-40-40-40l-48 0c-22.1 0-40 17.9-40 40zM288 328c0-22.1-17.9-40-40-40H200c-22.1 0-40 17.9-40 40l0 48c0 22.1 17.9 40 40 40h48c22.1 0 40-17.9 40-40V328zm32-192v48c0 22.1 17.9 40 40 40h48c22.1 0 40-17.9 40-40V136c0-22.1-17.9-40-40-40l-48 0c-22.1 0-40 17.9-40 40zM448 328c0-22.1-17.9-40-40-40H360c-22.1 0-40 17.9-40 40v48c0 22.1 17.9 40 40 40h48c22.1 0 40-17.9 40-40V328z"/>
-                        </svg>
-                        <a href="{% url 'lerneinheiten:editor_page' seite.id %}">{{ einheit.number }}.{{ seite.number }}: {{ seite.titel }}</a>
+                    <div class="head d-flex gap-3 align-items-center justify-content-between">
+                        <div class="d-flex gap-3 align-items-center">
+                            <svg class="handle" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
+                                <!--!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.-->
+                                <path d="M128 136c0-22.1-17.9-40-40-40L40 96C17.9 96 0 113.9 0 136l0 48c0 22.1 17.9 40 40 40H88c22.1 0 40-17.9 40-40l0-48zm0 192c0-22.1-17.9-40-40-40H40c-22.1 0-40 17.9-40 40l0 48c0 22.1 17.9 40 40 40H88c22.1 0 40-17.9 40-40V328zm32-192v48c0 22.1 17.9 40 40 40h48c22.1 0 40-17.9 40-40V136c0-22.1-17.9-40-40-40l-48 0c-22.1 0-40 17.9-40 40zM288 328c0-22.1-17.9-40-40-40H200c-22.1 0-40 17.9-40 40l0 48c0 22.1 17.9 40 40 40h48c22.1 0 40-17.9 40-40V328zm32-192v48c0 22.1 17.9 40 40 40h48c22.1 0 40-17.9 40-40V136c0-22.1-17.9-40-40-40l-48 0c-22.1 0-40 17.9-40 40zM448 328c0-22.1-17.9-40-40-40H360c-22.1 0-40 17.9-40 40v48c0 22.1 17.9 40 40 40h48c22.1 0 40-17.9 40-40V328z"/>
+                            </svg>
+                            <a href="{% url 'lerneinheiten:editor_page' seite.id %}">{{ einheit.number }}.{{ seite.number }}: {{ seite.titel }}</a>
+                        </div>
+                        <div  class="d-flex gap-1 align-items-center">
+                            <small>{{ seite.get_type_display }}</small>
+                            <div class="color" style="--color: {{ seite.color }}"></div>
+                        </div>
                     </div>
                 </li>
                 {% endfor %}
@@ -157,7 +172,7 @@
 {% block footer %}
     {{ block.super }}
     <footer class="sticky-footer bg-dark p-2">
-        <form method="post">
+        <form style="width: fit-content; margin: auto;" method="post">
             {% csrf_token %}
             <input hidden id="input-sortable" name="id_order">
             <button class="btn btn-primary" type="submit">Reihenfolge speichern</button>

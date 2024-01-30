@@ -5,7 +5,6 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models.query import QuerySet
-from django.http import HttpRequest, HttpResponse
 from django.shortcuts import redirect
 from django.views.decorators.http import require_POST
 from django.views.generic import DetailView
@@ -66,9 +65,35 @@ class EditorIndexView(LoginRequiredMixin, SpielleiterOnlyMixin, ListView):
         return redirect("lerneinheiten:editor_index")
 
 
-class EditorPageView(LoginRequiredMixin, SpielleiterOnlyMixin, ListView):
+class EditorPageView(LoginRequiredMixin, SpielleiterOnlyMixin, DetailView):
     model = Page
-    template_name = "lerneinheiten/sp/editor_page.html"
+    template_name = "lerneinheiten/sp/editor_page/_default.html"
+
+    def get_template_names(self) -> list[str]:
+        return [f"lerneinheiten/sp/editor_page/{self.object.get_type_display().lower()}.html"] + super().get_template_names()
+
+    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
+        context = super().get_context_data(
+            **kwargs,
+            app_index = "Editor",
+            app_index_url = reverse("lerneinheiten:editor_index"),
+        )
+        context["topic"] = context["object"].__str__()
+        context["form"] = PageUpdateForm(instance=context["object"])
+
+        return context
+    
+    def post(self, request, pk: int, **kwargs):
+        object = get_object_or_404(self.model, pk=pk)
+        form = PageUpdateForm(request.POST, instance=object)
+        form.full_clean()
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Settings wurden erfolgreich gespeichert")
+        else:
+            messages.success(request, "Settings konnten nicht gespeichert werden")
+
+        return redirect(request.build_absolute_uri())
 
 
 @require_POST

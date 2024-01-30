@@ -75,7 +75,7 @@ class Page(models.Model):
     titel = models.CharField(max_length=256, unique=True)
     color = ColorField(default='#000000')
 
-    type = models.CharField(max_length=2, choices=type_enum)
+    type = models.CharField(max_length=2, choices=type_enum, null=False)
     content = models.JSONField(default=dict)
     solution = models.JSONField(default=dict)
 
