@@ -68,8 +68,8 @@ class GenericAttributView(LevelUpMixin, DynamicTableView):
             attr = relattr.attribut
 
             # get & sanitize
-            aktuell = int(request.POST.get(f"{self.BASE_AKTUELL}-{attr.id}"))
-            max = int(request.POST.get(f"{self.BASE_MAX}-{attr.id}"))
+            aktuell = int(request.POST.get(f"{self.BASE_AKTUELL}-{attr.id}") or "0")
+            max = int(request.POST.get(f"{self.BASE_MAX}-{attr.id}") or "0")
             if relattr.aktuellerWert + aktuell > relattr.maxWert + max:
                 messages.error(request, f"Bei {attr} ist der Wert höher als das Maximum")
 
