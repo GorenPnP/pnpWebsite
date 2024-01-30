@@ -24,16 +24,16 @@ class Fach(models.Model):
         return self.name
 
 
+def next_einheit_number():
+    return Einheit.objects.aggregate(nr = Max("number", default=0))["nr"] + 1
 class Einheit(models.Model):
     class Meta:
         ordering = ["number"]
         verbose_name = "Lerneinheit"
         verbose_name_plural = "Lerneinheiten"
 
-    next_number = lambda: Einheit.objects.aggregate(Max("nr", default=1))["max_nr"] + 1
 
-
-    number = models.PositiveIntegerField(default=next_number, unique=True)
+    number = models.PositiveIntegerField(default=next_einheit_number)   # is basically unique, but not enforced on db-level due to sorting in editor
     titel = models.CharField(max_length=256, unique=True)
 
     fach = models.ForeignKey(Fach, on_delete=models.SET_NULL, null=True, blank=True)
@@ -48,7 +48,7 @@ class Page(models.Model):
         ordering = ["einheit__number", "number"]
         verbose_name = "Seite"
         verbose_name_plural = "Seiten"
-        unique_together = [("number", "einheit")]
+        #unique_together = [("number", "einheit")]   # is basically unique, but not enforced on db-level due to sorting in editor
 
     type_enum = [
         ("i", "Lerninhalt"),

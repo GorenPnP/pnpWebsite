@@ -2,74 +2,165 @@
 {% load static %}
 
 {% block extra-head %}
-    <!-- jsDelivr :: Sortable :: Latest (https://www.jsdelivr.com/package/npm/sortablejs) -->
-    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
     <style>
-        .sortable-item .head {
-            display: flex;
-            gap: 1em;
-            align-items: center;
-            
-            .handle {
-                width: 1em;
-                cursor: move;
+        main {
+
+            svg { width: 1em; fill: currentColor; }
+            li { max-width: 60ch; }
+            .list-group { margin: 0; }
+            .content { margin: 2em 5% 1em; }
+            ul * { hyphens: auto; }
+    
+            .sortable-item .head {
+                display: flex;
+                gap: 1em;
+                align-items: center;
+                
+                .handle {
+                    width: 1em;
+                    flex: 0 0 1em;
+                    cursor: move;
+                }
             }
         }
     </style>
+    <script src="{% static 'res/js/sortable@1.15.2.min.js' %}"></script>
+    <script src="{% static 'lerneinheiten/js/editor_index.js' %}" defer></script>
 {% endblock %}
 
 {% block main %}
 <!-- Simple List -->
-<ul class="sortable-list list-group">
-    {% with ''|center:5 as count %}
-    {% for _ in count %}
-	<li class="sortable-item list-group-item einheit-0">
+<ul class="sortable-list list-group" data-einheit="0">
+
+    {% for einheit in object_list %}
+	<li class="sortable-item list-group-item einheit-0" data-id="{{ einheit.id }}">
 
         <div class="head">
+            <!-- handle -->
             <svg class="handle" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
                 <!--!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.-->
                 <path d="M128 136c0-22.1-17.9-40-40-40L40 96C17.9 96 0 113.9 0 136l0 48c0 22.1 17.9 40 40 40H88c22.1 0 40-17.9 40-40l0-48zm0 192c0-22.1-17.9-40-40-40H40c-22.1 0-40 17.9-40 40l0 48c0 22.1 17.9 40 40 40H88c22.1 0 40-17.9 40-40V328zm32-192v48c0 22.1 17.9 40 40 40h48c22.1 0 40-17.9 40-40V136c0-22.1-17.9-40-40-40l-48 0c-22.1 0-40 17.9-40 40zM288 328c0-22.1-17.9-40-40-40H200c-22.1 0-40 17.9-40 40l0 48c0 22.1 17.9 40 40 40h48c22.1 0 40-17.9 40-40V328zm32-192v48c0 22.1 17.9 40 40 40h48c22.1 0 40-17.9 40-40V136c0-22.1-17.9-40-40-40l-48 0c-22.1 0-40 17.9-40 40zM448 328c0-22.1-17.9-40-40-40H360c-22.1 0-40 17.9-40 40v48c0 22.1 17.9 40 40 40h48c22.1 0 40-17.9 40-40V328z"/>
             </svg>
-            <span>This is <a href="http://SortableJS.github.io/Sortable/">Sortable</a> {{ forloop.counter }}</span>
+
+            <span class="head--content d-flex align-items-center gap-3 justify-content-between flex-wrap w-100">
+                <div class="d-flex align-items-center gap-2">
+                    <span>{{ einheit.number }}: {{ einheit.titel }}</span>
+                    <button class="btn btn-sm btn-outline-primary" type="button" data-bs-toggle="modal" data-bs-target="#edit-einheit-{{ einheit.id }}">
+                        <!-- edit -->
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+                            <!--!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.-->
+                            <path d="M362.7 19.3L314.3 67.7 444.3 197.7l48.4-48.4c25-25 25-65.5 0-90.5L453.3 19.3c-25-25-65.5-25-90.5 0zm-71 71L58.6 323.5c-10.4 10.4-18 23.3-22.2 37.4L1 481.2C-1.5 489.7 .8 498.8 7 505s15.3 8.5 23.7 6.1l120.3-35.4c14.1-4.2 27-11.8 37.4-22.2L421.7 220.3 291.7 90.3z"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <small>{{ einheit.fach.name }}, Klasse {{ einheit.klasse }}</small>
+            </span>
+        </div>
+        <div class="content">
+
+            <ul class="sortable-list list-group" data-einheit="{{ einheit.id }}">
+                {% for seite in einheit.page_set.all %}
+                <li class="sortable-item list-group-item einheit-{{ einheit.id }}" data-id="{{ seite.id }}">
+    
+                    <div class="head">
+                        <svg class="handle" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
+                            <!--!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.-->
+                            <path d="M128 136c0-22.1-17.9-40-40-40L40 96C17.9 96 0 113.9 0 136l0 48c0 22.1 17.9 40 40 40H88c22.1 0 40-17.9 40-40l0-48zm0 192c0-22.1-17.9-40-40-40H40c-22.1 0-40 17.9-40 40l0 48c0 22.1 17.9 40 40 40H88c22.1 0 40-17.9 40-40V328zm32-192v48c0 22.1 17.9 40 40 40h48c22.1 0 40-17.9 40-40V136c0-22.1-17.9-40-40-40l-48 0c-22.1 0-40 17.9-40 40zM288 328c0-22.1-17.9-40-40-40H200c-22.1 0-40 17.9-40 40l0 48c0 22.1 17.9 40 40 40h48c22.1 0 40-17.9 40-40V328zm32-192v48c0 22.1 17.9 40 40 40h48c22.1 0 40-17.9 40-40V136c0-22.1-17.9-40-40-40l-48 0c-22.1 0-40 17.9-40 40zM448 328c0-22.1-17.9-40-40-40H360c-22.1 0-40 17.9-40 40v48c0 22.1 17.9 40 40 40h48c22.1 0 40-17.9 40-40V328z"/>
+                        </svg>
+                        <a href="{% url 'lerneinheiten:editor_page' seite.id %}">{{ einheit.number }}.{{ seite.number }}: {{ seite.titel }}</a>
+                    </div>
+                </li>
+                {% endfor %}
+            </ul>
+
+            <button class="btn btn-primary mt-2" type="button" data-bs-toggle="modal" data-bs-target="#new-page-{{ einheit.id }}">+ Seite</button>
         </div>
 
-        <ul class="sortable-list list-group mt-3">
-            
-            {% for _ in count %}
-            <li class="sortable-item list-group-item einheit-{{ forloop.parentloop.counter }}">
-
-                <div class="head">
-                    <svg class="handle" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
-                        <!--!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.-->
-                        <path d="M128 136c0-22.1-17.9-40-40-40L40 96C17.9 96 0 113.9 0 136l0 48c0 22.1 17.9 40 40 40H88c22.1 0 40-17.9 40-40l0-48zm0 192c0-22.1-17.9-40-40-40H40c-22.1 0-40 17.9-40 40l0 48c0 22.1 17.9 40 40 40H88c22.1 0 40-17.9 40-40V328zm32-192v48c0 22.1 17.9 40 40 40h48c22.1 0 40-17.9 40-40V136c0-22.1-17.9-40-40-40l-48 0c-22.1 0-40 17.9-40 40zM288 328c0-22.1-17.9-40-40-40H200c-22.1 0-40 17.9-40 40l0 48c0 22.1 17.9 40 40 40h48c22.1 0 40-17.9 40-40V328zm32-192v48c0 22.1 17.9 40 40 40h48c22.1 0 40-17.9 40-40V136c0-22.1-17.9-40-40-40l-48 0c-22.1 0-40 17.9-40 40zM448 328c0-22.1-17.9-40-40-40H360c-22.1 0-40 17.9-40 40v48c0 22.1 17.9 40 40 40h48c22.1 0 40-17.9 40-40V328z"/>
-                    </svg>
-                    <span>{{ forloop.parentloop.counter }}.{{ forloop.counter }} Seite</span>
-                </div>
-            </li>
-            {% endfor %}
-            <li><button class="btn btn-primary">+ Seite</button></li>
-        </ul>
     </li>
     {% endfor %}
-    {% endwith %}
-    <li><button class="btn btn-primary">+ Einheit</button></li>
 </ul>
+<button class="btn btn-primary mt-2" type="button" data-bs-toggle="modal" data-bs-target="#new-einheit">+ Einheit</button>
 
-<script>
-// Loop through each nested sortable element
+{% for form_obj in edit_einheit_forms %}
+<!-- edit einheit Modal -->
+<div class="modal fade" id="edit-einheit-{{ form_obj.id }}" tabindex="-1" aria-labelledby="edit-einheit-{{ form_obj.id }}-header" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="edit-einheit-{{ form_obj.id }}-header">Einheit bearbeiten</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Abbrechen"></button>
+            </div>
+            <div class="modal-body">
+                <form action="{% url 'lerneinheiten:edit_einheit' form_obj.id %}" method="post" id="edit-einheit-{{ form_obj.id }}-form">
+                    {% csrf_token %}
+                    {{ form_obj.form.as_p }}
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                <button type="submit" class="btn btn-primary" form="edit-einheit-{{ form_obj.id }}-form">Speichern</button>
+            </div>
+        </div>
+    </div>
+</div>
 
-for (const list of document.querySelectorAll(".sortable-list")) {
-    new Sortable(list, {
-        handle: '.handle', // handle's class
-		group: 'einheit',
-		animation: 150,
-		fallbackOnBody: true,
-		swapThreshold: 0.65,
+{% endfor %}
 
-        // pull: false,
-        // put: false,
-	});
-}
+<!-- add Einheit Modal -->
+<div class="modal fade" id="new-einheit" tabindex="-1" aria-labelledby="new-einheit-header" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="new-einheit-header">Einheit erstellen</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Abbrechen"></button>
+            </div>
+            <div class="modal-body">
+                <form action="{% url 'lerneinheiten:new_einheit' %}" method="post" id="new-einheit-form">
+                    {% csrf_token %}
+                    {{ new_einheit_form.as_p }}
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                <button type="submit" class="btn btn-primary" form="new-einheit-form">Speichern</button>
+            </div>
+        </div>
+    </div>
+</div>
 
-</script>
+{% for form_obj in new_page_forms %}
+<!-- add Page Modal -->
+<div class="modal fade" id="new-page-{{ form_obj.id }}" tabindex="-1" aria-labelledby="new_page-{{ form_obj.id }}-header" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="new-page-{{ form_obj.id }}-header">Seite anlegen</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Abbrechen"></button>
+            </div>
+            <div class="modal-body">
+                <form action="{% url 'lerneinheiten:new_page' %}" method="post" id="new-page-{{ form_obj.id }}-form">
+                    {% csrf_token %}
+                    {{ form_obj.form.as_p }}
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                <button type="submit" class="btn btn-primary" form="new-page-{{ form_obj.id }}-form">Speichern</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+{% endblock %}
+
+{% block footer %}
+    {{ block.super }}
+    <footer class="sticky-footer bg-dark p-2">
+        <form method="post">
+            {% csrf_token %}
+            <input hidden id="input-sortable" name="id_order">
+            <button class="btn btn-primary" type="submit">Reihenfolge speichern</button>
+        </form>
+    </footer>
 {% endblock %}

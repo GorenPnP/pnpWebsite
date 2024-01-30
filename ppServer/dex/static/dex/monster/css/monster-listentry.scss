@@ -30,7 +30,7 @@
 .monster__name {
     grid-area: name;
     margin-left: 1em;
-    word-wrap: anywhere;
+    hyphens: auto;
 }
 .monster__types {
     grid-area: type;
