@@ -23,12 +23,12 @@ tablib==3.3.*               # export table
 django-filter==22.*         # filter queryset-data (for tables)
 django-tables2==2.5.*       # add table-templates
 
-django-markdownfield==0.10.*
+django-markdownfield==0.10.* # markdown-modelfield with EasyMD-Richtexteditor & render to html
 
 XlsxWriter==3.1.*           # Export (characters) to xlsx
 
-# complete view + template for a .md file
-django-markdown-view==0.0.*
+
+django-markdown-view==0.0.* # complete view + template for a .md file
 
 # django model color field
 django-colorfield==0.11.*

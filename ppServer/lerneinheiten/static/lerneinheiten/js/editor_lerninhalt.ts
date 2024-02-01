@@ -50,6 +50,7 @@ abstract class Box {
     public render(): string {
         return this.html_string;
     }
+    public abstract init_editor(): void;
     public reverse_direction() {
         this.direction = Direction.reverse(this.direction);
     }
@@ -73,16 +74,47 @@ abstract class Box {
 }
 
 class TextBox extends Box {
+    private md_editor: EasyMDE | null = null;
+    private text: string;
 
     constructor(parent_id: number | null, direction: Direction, config: TextBoxConfig) {
         super(parent_id, direction);
-        this.html_string = `<div id="box-${this.id}" class="${this.direction} box--text">${config.text}</div>`;
+        this.text = config.text || "";
+        this.html_string = `<div id="box-${this.id}" class="${this.direction} box--text"><textarea id="md-editor-${this.id}"></textarea></div>`;
     }
 
+    public init_editor(): void {
+        if (this.md_editor) {
+            this.md_editor.toTextArea();
+        }
+
+        this.md_editor = new EasyMDE({
+            element: document.querySelector(`#md-editor-${this.id}`) as HTMLElement,
+            spellChecker: false,
+            toolbar: [
+                "undo", "redo", "|",
+                "bold", "italic", "heading-1", "heading-2", "heading-3", "|",
+                "unordered-list", "ordered-list", {
+                    name: 'tables', // need to be verbose on "table"-option, because its class "table" gets all the styles from bootstrap -> use "tables" instead
+                    action: EasyMDE.drawTable,
+                    className: 'fa fa-table',
+                    title: 'Insert Table',
+                } as EasyMDE.ToolbarIcon, "|",
+                "link", "quote", "|",
+                "preview", "side-by-side", "fullscreen", "|",
+                "guide"
+            ],
+            forceSync: true,
+        });
+        this.md_editor.value(this.text);
+        this.md_editor.codemirror.on("change", () => {
+            this.text = this.md_editor!.value();
+        });
+    }
     public as_json(): TextBoxConfig {
         return {
             type: "text",
-            text: Box.get_DOM_element(this.id)!.innerHTML
+            text: this.text
         };
     }
 }
@@ -95,6 +127,7 @@ class NewBox extends Box {
         this.html_string = `<button id="box-${this.id}" class="${this.direction} box--new btn" data-bs-toggle="modal" data-bs-target="#new-block-modal" onclick="NewBox.add(${this.id})">+</button>`;
     }
 
+    public init_editor(): void { }
     public as_json(): BoxConfig | null {
         return null;
     }
@@ -136,30 +169,45 @@ class NewBox extends Box {
     }
 }
 class ImageBox extends Box {
+    static default_src = "https://www.maketecheasier.com/assets/uploads/2020/02/Lorem-Ipsum-Featured-800x400.jpg"
 
     constructor(parent_id: number | null, direction: Direction, config: ImageBoxConfig) {
         super(parent_id, direction);
-        this.html_string = `<div id="box-${this.id}" class="${this.direction} box--image"><img src="${config.src}"></div>`
+        this.html_string = `<div id="box-${this.id}" class="${this.direction} box--image"><img src="${config.src || ImageBox.default_src}"></div>`
+    }
+
+    public init_editor(): void {
+        // TODO
     }
 
     public as_json(): ImageBoxConfig {
+        const src = Box.get_DOM_element(this.id)?.querySelector("img")?.src || "";
         return {
             type: "image",
-            src: Box.get_DOM_element(this.id)?.querySelector("img")?.src || ""
+            src: src === ImageBox.default_src ? "" : src
         }
     }
 }
 class VideoBox extends Box {
+    private static default_iframe = '<iframe width="880" height="495" src="https://www.youtube.com/embed/D0UnqGm_miA" title="Dummy Video For Website" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>';
+
+    // TODO change this on setting new iframe in editor
+    private iframe: string;
 
     constructor(parent_id: number | null, direction: Direction, config: VideoBoxConfig) {
         super(parent_id, direction);
-        this.html_string = `<div id="box-${this.id}" class="${this.direction} box--video">${config.iframe}</div>`;
+        this.iframe = config.iframe || "";
+        this.html_string = `<div id="box-${this.id}" class="${this.direction} box--video">${this.iframe || VideoBox.default_iframe}</div>`;
+    }
+
+    public init_editor(): void {
+        // TODO
     }
 
     public as_json(): VideoBoxConfig {
         return {
             type: "video",
-            iframe: Box.get_DOM_element(this.id)?.innerHTML || ""
+            iframe: this.iframe === VideoBox.default_iframe ? "" : this.iframe
         }
     }
 }
@@ -194,6 +242,10 @@ class ContainerBox extends Box {
         this.child_boxes.forEach(box => box instanceof ContainerBox && box.format_children());
     }
 
+    public init_editor(): void {
+        this.child_boxes.forEach(box => box.init_editor());
+    }
+
     public render(): string {
         return `<div id="box-${this.id}" class="${this.direction} box--container">${this.child_boxes.map(box => box.render()).join("")}</div>`;
     }
@@ -209,21 +261,21 @@ class ContainerBox extends Box {
         }
     }
 
-    public add_child(new_child: Box) {
-        this.child_boxes.push(new_child);
+    private rerender_with_children() {
         this.format_children();
 
         const parent = document.createElement("div");
         parent.innerHTML = this.render();
         Box.get_DOM_element(this.id)?.replaceWith(parent.firstChild!);
+        this.init_editor();
+    }
+    public add_child(new_child: Box) {
+        this.child_boxes.push(new_child);
+        this.rerender_with_children();
     }
     public replace_child(former_child_id: number, new_child: Box) {
         this.child_boxes = this.child_boxes.map(box => box.id === former_child_id ? new_child : box);
-        this.format_children();
-
-        const parent = document.createElement("div");
-        parent.innerHTML = this.render();
-        Box.get_DOM_element(this.id)?.replaceWith(parent.firstChild!);
+        this.rerender_with_children();
     }
 }
 
@@ -242,17 +294,18 @@ if (!root) {
             type: "container",
             children: [{
                 type: "text",
-                text: "- Sample -"
+                text: "# " + (document.querySelector(".topic")?.innerHTML.trim() || "Beispielüberschrift")
             }]
         }]
     };
     root = Box.create(null, Direction.COL, config);
 }
 root_element.innerHTML = root.render();
+root.init_editor();
 
 // send content data to BE to save
-document.querySelector("#save-content-form")?.addEventListener("submit", function() {
-    (document.querySelector("#content-input") as any).value = JSON.stringify(root.as_json());
+document.querySelector("#settings")?.addEventListener("submit", function() {
+    (document.querySelector("#id_content") as any).value = JSON.stringify(root.as_json());
 });
 
 // sample_configs:

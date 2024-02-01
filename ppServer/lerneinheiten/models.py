@@ -76,8 +76,8 @@ class Page(models.Model):
     color = ColorField(default='#000000')
 
     type = models.CharField(max_length=2, choices=type_enum, null=False)
-    content = models.JSONField(default=dict)
-    solution = models.JSONField(default=dict)
+    content = models.JSONField(default=dict, blank=True)
+    solution = models.JSONField(default=dict, blank=True)
 
     def __str__(self):
         return f"#{self.einheit.number}.{self.number} {self.titel}"

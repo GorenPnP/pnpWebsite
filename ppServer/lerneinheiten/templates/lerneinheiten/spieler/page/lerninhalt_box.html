@@ -10,9 +10,11 @@
 </div>
 {% endif %}
 
-{% if config.type == "text" %}<div class="{{ direction }} box--text">{{ config.text|safe }}</div>{% endif %}
+{% if config.type == "text" %}
+    <div class="{{ direction }} box--text"><p class="text">{{ config.text|escape }}</p></div>
+{% endif %}
 
-{% if config.type == "image" %}<div class="{{ direction }} box--image"><img src="{{ config.src }}"></div>{% endif %}
+{% if config.type == "image" %}<div class="{{ direction }} box--image"><img src="{{ config.src|escape }}"></div>{% endif %}
 
 {% if config.type == "video" %}<div class="{{ direction }} box--video">{{ config.iframe|safe }}</div>{% endif %}
 

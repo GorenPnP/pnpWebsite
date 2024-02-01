@@ -4,13 +4,7 @@ main {
 }
 h2 { margin-block: 0 1em; }
 
-#settings {
-    margin-bottom: 4em;
-    border: 1px solid var(--bs-light);
-    border-radius: 10px;
-    padding: 1.5em;
-
-}
+#settings { margin-bottom: 4em; }
 
 #content-grid {
     --add-button-size-shrunk: 10px;
@@ -87,7 +81,7 @@ h2 { margin-block: 0 1em; }
         background-color: var(--bs-light);
         color: var(--bs-dark);
 
-        & > * { max-width: 60ch; }
+        & > *:not(.EasyMDEContainer) { max-width: 60ch; }
     }
     // image
     .box--image {

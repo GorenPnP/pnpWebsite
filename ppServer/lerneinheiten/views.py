@@ -48,3 +48,6 @@ class PageView(LoginRequiredMixin, VerifiedAccountMixin, DetailView):
         context["topic"] = context["object"].__str__()
 
         return context
+    
+    def get_queryset(self) -> QuerySet[Any]:
+        return super().get_queryset().prefetch_related("einheit")

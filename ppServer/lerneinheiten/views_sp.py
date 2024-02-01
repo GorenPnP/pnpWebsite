@@ -86,19 +86,13 @@ class EditorPageView(LoginRequiredMixin, SpielleiterOnlyMixin, DetailView):
     def post(self, request, pk: int, **kwargs):
         object = get_object_or_404(self.model, pk=pk)
 
-        if "content" in request.POST:
-            object.content = json.loads(request.POST.get("content"))
-            object.save(update_fields=["content"])
-            messages.success(request, "Content wurde erfolgreich gespeichert")
-            return redirect(request.build_absolute_uri())
-
         form = PageUpdateForm(request.POST, instance=object)
         form.full_clean()
         if form.is_valid():
             form.save()
-            messages.success(request, "Settings wurden erfolgreich gespeichert")
+            messages.success(request, "Änderungen wurden erfolgreich gespeichert")
         else:
-            messages.error(request, "Settings konnten nicht gespeichert werden")
+            messages.error(request, "Änderungen konnten nicht gespeichert werden")
 
         return redirect(request.build_absolute_uri())
 
