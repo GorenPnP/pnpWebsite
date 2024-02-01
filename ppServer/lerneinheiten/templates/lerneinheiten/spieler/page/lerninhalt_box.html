@@ -1,0 +1,19 @@
+{% if config.type == "container" %}
+<div class="{{ direction }} box--container">
+    {% for box in config.children %}
+        {% if direction == "grid-row" %}
+            {% include 'lerneinheiten/spieler/page/lerninhalt_box.html' with direction="grid-column" config=box %}
+        {% else %}
+            {% include 'lerneinheiten/spieler/page/lerninhalt_box.html' with direction="grid-row" config=box %}
+        {% endif %}
+    {% endfor %}
+</div>
+{% endif %}
+
+{% if config.type == "text" %}<div class="{{ direction }} box--text">{{ config.text|safe }}</div>{% endif %}
+
+{% if config.type == "image" %}<div class="{{ direction }} box--image"><img src="{{ config.src }}"></div>{% endif %}
+
+{% if config.type == "video" %}<div class="{{ direction }} box--video">{{ config.iframe|safe }}</div>{% endif %}
+
+{% comment %} TODO think about usage of |safe here {% endcomment %}

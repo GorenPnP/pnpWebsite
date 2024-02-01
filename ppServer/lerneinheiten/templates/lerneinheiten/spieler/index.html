@@ -1,0 +1,63 @@
+{% extends 'base/headed_main.html' %}
+{% load static %}
+
+{% block extra-head %}
+    <style>
+        main {
+            max-width: 70ch;
+            margin: auto;
+
+            svg { width: 1em; fill: currentColor; }
+            small { color: var(--bs-gray-600); }
+            .list-group { margin: 0; }
+            .content { margin: 2em 5% 1em; }
+            ul * { hyphens: auto; }
+
+            .color {
+                background-color: var(--color);
+                height: 1em;
+                aspect-ratio: 1;
+                border-radius: 1000px;
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block main %}
+<!-- Simple List -->
+<ul class="list-group" data-einheit="0">
+
+    {% for einheit in object_list %}
+	<li class="list-group-item">
+
+        <div class="head">
+            <span class="head--content d-flex align-items-center gap-3 justify-content-between flex-wrap w-100">
+                <div class="d-flex align-items-center gap-2">
+                    <span>{{ einheit.number }}: {{ einheit.titel }}</span>
+                </div>
+
+                <small>{{ einheit.fach.name }}, Klasse {{ einheit.klasse }}</small>
+            </span>
+        </div>
+        <div class="content">
+
+            <ul class="list-group">
+                {% for seite in einheit.page_set.all %}
+                <li class="list-group-item">
+    
+                    <div class="head d-flex gap-3 align-items-center justify-content-between">
+                        <a href="{% url 'lerneinheiten:page' seite.id %}">{{ einheit.number }}.{{ seite.number }}: {{ seite.titel }}</a>
+                        <div  class="d-flex gap-1 align-items-center">
+                            <small>{{ seite.get_type_display }}</small>
+                            <div class="color" style="--color: {{ seite.color }}"></div>
+                        </div>
+                    </div>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+
+    </li>
+    {% endfor %}
+</ul>
+{% endblock %}

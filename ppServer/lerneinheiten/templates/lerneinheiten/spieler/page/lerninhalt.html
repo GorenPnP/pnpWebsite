@@ -1,0 +1,25 @@
+{% extends 'base/headed_main.html' %}
+{% load static %}
+{% block extra-head %}
+    <link rel="stylesheet" href="{% static 'lerneinheiten/css/sp_editor_lerninhalt.css' %}">
+    <style>
+    .color {
+        background-color: var(--color);
+        height: 1em;
+        aspect-ratio: 1;
+        border-radius: 1000px;
+    }
+    </style>
+{% endblock %}
+
+{% block main %}
+    <h2 class="d-flex justify-content-between">{{ object }} <span class="d-block color" style="--color: {{ object.color }}"></span></h2>
+
+    <div id="content-grid">
+        {% if object.content.type %}
+            {% include 'lerneinheiten/spieler/page/lerninhalt_box.html' with direction="grid-column" config=object.content %}
+        {% else %}
+            <div class="h4">- Kein Inhalt vorhanden -</div>
+        {% endif %}
+    </div>
+{% endblock %}
