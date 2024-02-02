@@ -15,6 +15,7 @@ __pycache__/
 *.scss.map
 !ppServer/base/static/res/css/*.css
 ppserver/time_space/static/time_space/**/*.js
+ppServer/lerneinheiten/static/lerneinheiten/**/*.js
 
 # IDEs
 .idea
