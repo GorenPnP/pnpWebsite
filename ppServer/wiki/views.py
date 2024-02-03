@@ -20,7 +20,7 @@ from character.models import *
 from ppServer.mixins import VerifiedAccountMixin
 from ppServer.decorators import verified_account
 
-from .models import Rule
+from .models import *
 
 
 @login_required
@@ -446,6 +446,7 @@ class RuleListView(LoginRequiredMixin, ListView):
 
     model = Rule
     template_name = "wiki/rules.html"
+
 
     def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
         return super().get_context_data(**kwargs,
