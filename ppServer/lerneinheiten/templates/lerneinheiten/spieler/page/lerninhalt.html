@@ -3,48 +3,10 @@
 
 {% block extra-head %}
     <script src="{% static 'res/js/easymde@2.18.0.min.js' %}"></script>
-    <link href="{% static 'res/css/easymde@2.18.0.min.css' %}" rel="stylesheet">
+    <script src="{% static 'res/js/markdown.js' %}" defer></script>
 
     <link rel="stylesheet" href="{% static 'lerneinheiten/css/sp_editor_lerninhalt.css' %}">
-    <style>
-    .color {
-        background-color: var(--color);
-        height: 1em;
-        aspect-ratio: 1;
-        border-radius: 1000px;
-    }
-
-    /* white background */
-    main.main-container {
-        background-color: var(--bs-light);
-        color: var(--bs-dark);
-        padding: 1em 1em 2em;
-        margin-block: 2em 300px;
-    }
-    @media only screen and (max-width: 800px) {
-        main.main-container {
-            margin-block: 0;
-            padding: 1em .1em 300px;
-        }
-    }
-
-    /* remove outer whitespace */
-    .box--text {
-        padding: 0 !important;
-
-        & > * { margin-inline: 0; }
-        & > :first-child { margin-top: 0; }
-        & > :last-child { margin-bottom: 0; }
-    }
-
-    /* allow container content to wrap */
-    .box--container {
-        flex: unset;
-        flex-wrap: wrap;
-    }
-    .grid-row { gap: .5em; min-width: 300px; flex: none !important; }
-    .grid-column { gap: .5em; }
-    </style>
+    <link rel="stylesheet" href="{% static 'lerneinheiten/css/lerninhalt.css' %}">
 {% endblock %}
 
 {% block main %}
@@ -55,23 +17,4 @@
             <div class="h4">- Kein Inhalt vorhanden -</div>
         {% endif %}
     </div>
-
-    <script defer>
-        // init required resources
-        const textarea = document.createElement("textarea");
-        textarea.hidden = true;
-        document.querySelector("body").appendChild(textarea);
-
-        const editor = new EasyMDE({ element: textarea });
-        document.querySelector(".EasyMDEContainer").setAttribute("hidden", true);
-
-        // render md to html for text
-        document.querySelectorAll(".box--text .text").forEach(element =>
-            element.innerHTML = editor.markdown(element.innerHTML)
-        );
-
-        // cleanup
-        editor.toTextArea();
-        textarea.remove();
-    </script>
 {% endblock %}

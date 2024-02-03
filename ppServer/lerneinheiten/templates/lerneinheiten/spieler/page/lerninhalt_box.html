@@ -11,7 +11,7 @@
 {% endif %}
 
 {% if config.type == "text" %}
-    <div class="{{ direction }} box--text"><p class="text">{{ config.text|escape }}</p></div>
+    <div class="{{ direction }} box--text"><p class="text markdown" data-text="{{ config.text|escape }}"></p></div>
 {% endif %}
 
 {% if config.type == "image" %}<div class="{{ direction }} box--image"><img src="{{ config.src|escape }}"></div>{% endif %}

@@ -17,7 +17,7 @@
         {% for o in object_list %}
         <li class="mb-5 text-bg-light p-3 rounded">
             <h2>{{ o.nr }}: {{ o.titel }}</h2>
-            <div class="markdown" data-text="{{ o.text }}"></div>
+            <div class="markdown" data-text="{{ o.text|escape }}"></div>
         </li>
         {% endfor %}
 {% endblock %}
