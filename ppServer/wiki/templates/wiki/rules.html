@@ -1,42 +1,23 @@
 {% extends 'base/headed_main.html' %}
-{% load django_tables2 csv_to_table %}
+{% load static django_tables2 csv_to_table %}
 
 {% block extra-head %}
 <style>
     p, th, td { max-width: 60ch; }
+
+    #rule-list li {--bs-body-color: var(--bs-dark); }
 </style>
+<script src="{% static 'res/js/easymde@2.18.0.min.js' %}"></script>
+<script src="{% static 'res/js/markdown.js' %}" defer></script>
 {% endblock %}
 
 {% block main %}
-        <ul class="list-group">
-    
-            {% for o in object_list %}
-                <li class="mb-5 text-bg-light p-3 rounded">
-                    <h2>{{ o.nr }}: {{ o.titel }}</h2>
-                    <div>{{ o.text_rendered|safe }}</div>
-                </li>
-                {% endfor %}
+    <ul id="rule-list" class="list-group">
 
-                <li class="mb-5 text-bg-light p-3 rounded">
-                    <h2>{{ object_list|length|add:1 }}: Geister beschwören</h2>
-
-                    {% render_table ghost_table %}
-
-                    <p><b><u>X = Stufe</u></b></p>
-                    <p>Nach dem Beschwören und dem Widerstehen des Astralschaden erfüllt der Geist so viele Aufträge, wie die Anzahl der Erfolge des Beschwörens plus einen ist. Ein Geist hat ST*5 HP und erhält jeglichen Schaden als diese HP an Schaden.</p>
-                    <p>Alle Fertigkeiten entsprechen dem Attribut + die Stufe des Geistes. Bedeutet, dass wenn ein Kampfgeist im waffenlosen Kampf angreift dazu sein Angriffs-Attribut braucht.</p>
-
-                    {% render_table ghost_eigenschaft_table %}
-
-                    <p>Unzufriedene Geister neigen dazu sich gegen den Beschwörer aufzulehnen. Gefährlich wird dies, wenn das MA-Attribut des Geistes größer ist als jenes des Beschwörers. Gebundene Geister sollten gut behandelt werden, da diese sonst ein lebensbedrohliches Problem darstellen können. Sie könnten den Bindenden über die Bindung mit in den Tod reißen.</p>
-                    <p>Alle Geister beherrschen Telepathie zum Beschwörer. Nur gebundene Geister können mit jedem telepathisch kommunizieren. Gebundene Geister erhalten einen Bonus auf einen der oben in der Tabelle gelisteten Tabellenwerte. Pro Stufe der Bindung darf ein Wert erhöht werden (bis zu einem Maximum von 10 Erhöhungen).</p>
-                    <p>Dies erfolgt folgendermaßen (pro Stufe je einer der Werte):</p>
-
-<b>{% csv_to_table rule_tables.bound_ghost_modifier %}</b>
-                    <p>Gebundene Geister verschwinden erst, wenn ihre Bindung gelöst wird, sie verbannt werden oder sie besiegt werden. Normal beschworene Geister verschwinden sonst spätestens nach X Stunden (Ausnahme: Menschliche Geister und Watcher (s.o.)).</p>
-                        
-                    <p>Alle Geister benutzen zum Zaubern das Mana des Beschwörers, benötigen aber nur die Hälfte an Mana (aufgerundet). Die maximalen Tier des Zaubers bestimmen sich nach der Stufe des Geistes:</p>
-<b>{% csv_to_table rule_tables.ghost_zauber_maxtier %}</b>
-                </li>
-            </ul>
+        {% for o in object_list %}
+        <li class="mb-5 text-bg-light p-3 rounded">
+            <h2>{{ o.nr }}: {{ o.titel }}</h2>
+            <div class="markdown" data-text="{{ o.text }}"></div>
+        </li>
+        {% endfor %}
 {% endblock %}
