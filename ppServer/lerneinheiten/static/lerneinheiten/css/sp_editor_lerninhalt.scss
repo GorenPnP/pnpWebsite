@@ -135,6 +135,12 @@ h2 { margin-block: 0 1em; }
         }
     }
 
+    .del-btn {
+        position: absolute;
+        top: min(5%, 10px);
+        right: min(5%, 10px);
+    }
+
     // dropzone fixes & don't display dropzone preview
     .dropzone { min-height: unset; }
     .dropzone-previews { display: none; }

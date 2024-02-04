@@ -57,6 +57,12 @@ abstract class Box {
         this.direction = Direction.reverse(this.direction);
     }
 
+    public remove(): void {
+        Box.get_DOM_element(this.id)?.remove();
+        delete Box.boxes[this.id];
+        (this.parent as ContainerBox).remove_child(this.id);
+    }
+
     public abstract as_json(): BoxConfig | null;
 
     static get_Box(id: number): Box | null {
@@ -72,6 +78,9 @@ abstract class Box {
             case "image": return new ImageBox(parent_id, direction, config);
             case "video": return new VideoBox(parent_id, direction, config);
         }
+    }
+    static remove(id: number): void {
+        Box.get_Box(id)?.remove();
     }
 }
 
@@ -104,7 +113,13 @@ class TextBox extends Box {
                 } as EasyMDE.ToolbarIcon, "|",
                 "link", "quote", "|",
                 "preview", "side-by-side", "fullscreen", "|",
-                "guide"
+                "guide", "|", "|",
+                {
+                    name: 'remove', // remove text-box
+                    action: () => this.remove(),
+                    className: 'fa fa-times',
+                    title: 'remove whole textblock',
+                } as EasyMDE.ToolbarIcon
             ],
             forceSync: true,
         });
@@ -192,7 +207,7 @@ class ImageBox extends Box {
         const csrf_token = document.querySelector("#csrf_token")?.innerHTML || "";
         const img_upload_url = document.querySelector("#image-upload-url")?.innerHTML || "";
         const form_id = `image-form-${this.id}`;
-        parent.innerHTML = `<form id="${form_id}" class="editor-form image-form dropzone" action="${img_upload_url}">${csrf_token}</form>`;
+        parent.innerHTML = `<form id="${form_id}" class="editor-form image-form dropzone" action="${img_upload_url}"><button class="btn btn-outline-light del-btn" onclick=Box.remove(${this.id})>X</button>${csrf_token}</form>`;
 
         const form = parent.querySelector("form")!;
 
@@ -211,7 +226,7 @@ class ImageBox extends Box {
         });
 
         dropzone.on("success", (file) => {
-            const src = JSON.parse(file.xhr?.response).uri || this.src;
+            const src = JSON.parse(file.xhr?.response || "{}").uri || this.src;
             this.update_internal_state(src);
 
             // render (with changed iframe)
@@ -247,6 +262,7 @@ class VideoBox extends Box {
         const iframe_form = document.createElement("form");
         iframe_form.classList.add("editor-form", "iframe-form");
         iframe_form.innerHTML = `
+        <button class="btn btn-outline-light del-btn" onclick=Box.remove(${this.id})>X</button>
             <label for="iframe-input-${this.id}">Youtube-Einbettungscode</label>
             <input id="iframe-input-${this.id}" pattern='<iframe .*src=\x22https://www.youtube.com/embed/.+\x22.*></iframe>' required>
             <button type="submit" class="btn btn-primary">Speichern</button>`;
@@ -330,6 +346,11 @@ class ContainerBox extends Box {
         return `<div id="box-${this.id}" class="${this.direction} box--container">${this.child_boxes.map(box => box.render()).join("")}</div>`;
     }
 
+    public remove(): void {
+        this.child_boxes.forEach(box => box.remove());
+        super.remove();
+    }
+
     public reverse_direction() {
         super.reverse_direction();
         this.child_boxes.forEach(box => box.reverse_direction());
@@ -356,6 +377,16 @@ class ContainerBox extends Box {
     public replace_child(former_child_id: number, new_child: Box) {
         this.child_boxes = this.child_boxes.map(box => box.id === former_child_id ? new_child : box);
         this.rerender_with_children();
+    }
+    public remove_child(child_id: number) {
+        this.child_boxes = this.child_boxes.filter(box => box.id !== child_id);
+        if (this.child_boxes.some(box => !(box instanceof NewBox))) {
+            this.rerender_with_children();
+        } else {
+            (this.parent as ContainerBox).remove_child(this.id);
+            this.remove();
+        }
+
     }
 }
 
@@ -387,6 +418,7 @@ root.init_editor();
 document.querySelector("#settings")?.addEventListener("submit", function() {
     (document.querySelector("#id_content") as any).value = JSON.stringify(root.as_json());
 });
+
 
 // sample_configs:
 //     {"type":"container","children":[]},
