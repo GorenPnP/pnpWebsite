@@ -15,4 +15,5 @@ urlpatterns = [
     path('editor/new_einheit', views_sp.new_einheit, name='new_einheit'),
     path('editor/edit_einheit/<int:pk>', views_sp.edit_einheit, name='edit_einheit'),
     path('editor/new_page', views_sp.new_page, name='new_page'),
+    path('editor/image_upload/<int:page_id>', views_sp.image_upload, name='image_upload'),
 ]

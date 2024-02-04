@@ -1,3 +1,5 @@
+Dropzone.autoDiscover = false;
+
 const root_element = document.querySelector("#content-grid")!;
 
 enum Direction {
@@ -169,45 +171,123 @@ class NewBox extends Box {
     }
 }
 class ImageBox extends Box {
-    static default_src = "https://www.maketecheasier.com/assets/uploads/2020/02/Lorem-Ipsum-Featured-800x400.jpg"
+    static default_src = "https://www.maketecheasier.com/assets/uploads/2020/02/Lorem-Ipsum-Featured-800x400.jpg";
+
+    private src: string = "";
 
     constructor(parent_id: number | null, direction: Direction, config: ImageBoxConfig) {
         super(parent_id, direction);
-        this.html_string = `<div id="box-${this.id}" class="${this.direction} box--image"><img src="${config.src || ImageBox.default_src}"></div>`
+        this.update_internal_state(config.src);
+    }
+    private update_internal_state(src: string = "") {
+        this.src = src;
+        this.html_string = `<div id="box-${this.id}" class="${this.direction} box--image"><img src="${this.src || ImageBox.default_src}"></div>`;
     }
 
     public init_editor(): void {
-        // TODO
+
+        // construct form for image
+        const parent = document.createElement("div");
+        parent.classList.add("editor-form", "image-form");
+        const csrf_token = document.querySelector("#csrf_token")?.innerHTML || "";
+        const img_upload_url = document.querySelector("#image-upload-url")?.innerHTML || "";
+        const form_id = `image-form-${this.id}`;
+        parent.innerHTML = `<form id="${form_id}" class="editor-form image-form dropzone" action="${img_upload_url}">${csrf_token}</form>`;
+
+        const form = parent.querySelector("form")!;
+
+        // display form
+        const box_element = Box.get_DOM_element(this.id)!;
+        box_element.querySelectorAll(".editor-form").forEach(form => form.remove());
+        box_element.appendChild(form);
+
+        // add dropzone
+        const dropzone = new Dropzone("#"+form_id, {
+            maxFiles: 1,
+            acceptedFiles: "image/*",
+            resizeWidth: 1000,
+            resizeHeight: 1000,
+            dictDefaultMessage: "Bild auswählen"
+        });
+
+        dropzone.on("success", (file) => {
+            const src = JSON.parse(file.xhr?.response).uri || this.src;
+            this.update_internal_state(src);
+
+            // render (with changed iframe)
+            (this.parent as ContainerBox).replace_child(this.id, this);
+        });
     }
 
     public as_json(): ImageBoxConfig {
-        const src = Box.get_DOM_element(this.id)?.querySelector("img")?.src || "";
         return {
             type: "image",
-            src: src === ImageBox.default_src ? "" : src
+            src: this.src,
         }
     }
 }
 class VideoBox extends Box {
     private static default_iframe = '<iframe width="880" height="495" src="https://www.youtube.com/embed/D0UnqGm_miA" title="Dummy Video For Website" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>';
 
-    // TODO change this on setting new iframe in editor
-    private iframe: string;
+    // changed on setting new iframe in editor
+    private iframe: string = "";
 
     constructor(parent_id: number | null, direction: Direction, config: VideoBoxConfig) {
         super(parent_id, direction);
-        this.iframe = config.iframe || "";
+        this.update_internal_state(config.iframe);
+    }
+    private update_internal_state(iframe: string = "") {
+        this.iframe = iframe;
         this.html_string = `<div id="box-${this.id}" class="${this.direction} box--video">${this.iframe || VideoBox.default_iframe}</div>`;
     }
 
     public init_editor(): void {
-        // TODO
+        
+        // add form for iframe
+        const iframe_form = document.createElement("form");
+        iframe_form.classList.add("editor-form", "iframe-form");
+        iframe_form.innerHTML = `
+            <label for="iframe-input-${this.id}">Youtube-Einbettungscode</label>
+            <input id="iframe-input-${this.id}" pattern='<iframe .*src=\x22https://www.youtube.com/embed/.+\x22.*></iframe>' required>
+            <button type="submit" class="btn btn-primary">Speichern</button>`;
+        iframe_form.addEventListener("submit", VideoBox.replace(this.id))
+
+        // display form
+        const box = Box.get_DOM_element(this.id);
+        box?.querySelectorAll(".iframe-form").forEach(form => form.remove());
+        box?.appendChild(iframe_form);
     }
 
     public as_json(): VideoBoxConfig {
         return {
             type: "video",
-            iframe: this.iframe === VideoBox.default_iframe ? "" : this.iframe
+            iframe: this.iframe
+        }
+    }
+
+
+    public static replace(id: number): (event: SubmitEvent) => void {
+        return (event: SubmitEvent) => {
+            event?.preventDefault();
+
+            const element = Box.get_DOM_element(id);
+            if (!element) {
+                console.error(`No Element with id ${id} available`);
+                return;
+            }
+            
+            const box = Box.get_Box(id) as VideoBox;
+            if (!box) {
+                console.error(`No VideoBox with id ${id} available`);
+                return;
+            }
+            
+            // adapt internal state
+            const new_iframe = (element.querySelector(`.iframe-form #iframe-input-${id}`) as any).value;
+            box.update_internal_state(new_iframe);
+
+            // render (with changed iframe)
+            (box.parent as ContainerBox).replace_child(id, box);
         }
     }
 }

@@ -2,12 +2,21 @@
 {% load static %}
 
 {% block extra-head %}
-    <script src="{% static 'res/js/easymde@2.18.0.min.js' %}"></script>
-    <link href="{% static 'res/css/easymde@2.18.0.min.css' %}" rel="stylesheet">
+<!-- Easy MDE for text editor -->
+<script src="{% static 'res/js/easymde@2.18.0.min.js' %}"></script>
+<link href="{% static 'res/css/easymde@2.18.0.min.css' %}" rel="stylesheet">
 
-    <link rel="stylesheet" href="{% static 'lerneinheiten/css/sp_editor_lerninhalt.css' %}">
-    {{ object.content|json_script:"content" }}
-    <script src="{% static 'lerneinheiten/js/editor_lerninhalt.js' %}" defer></script>
+<!-- Dropzone for Image Editor -->
+<link rel="stylesheet" href="{% static 'res/css/dropzone@5.min.css' %}" type="text/css">
+<script src="{% static 'res/js/dropzone@5.min.js' %}"></script>
+
+<!-- custom style & logic -->
+<link rel="stylesheet" href="{% static 'lerneinheiten/css/sp_editor_lerninhalt.css' %}">
+
+{{ object.content|json_script:"content" }}
+<script id="csrf_token" type="application/json">{% csrf_token %}</script>
+<script id="image-upload-url" type="application/json">{% url 'lerneinheiten:image_upload' object.id %}</script>
+<script src="{% static 'lerneinheiten/js/editor_lerninhalt.js' %}" defer></script>
 {% endblock %}
 
 {% block main %}

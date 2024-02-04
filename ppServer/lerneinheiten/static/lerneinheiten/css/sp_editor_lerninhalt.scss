@@ -106,4 +106,36 @@ h2 { margin-block: 0 1em; }
             height: min(100%, 80vh);
         }
     }
+
+
+    // video editor
+    .box--image, .box--video {
+        position: relative;
+        &:hover .iframe-form, .image-form.dropzone {
+            scale: 1;
+            opacity: 1;
+        }
+        .editor-form {
+            position: absolute;
+            opacity: 0;
+            
+            width: 100%;
+            height: 100%;
+            background-color: rgba(var(--bs-dark-rgb), .8);
+            
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: .5em;
+
+            scale: 0;
+            transform-origin: center center;
+            transition: all 400ms ease-in-out;
+        }
+    }
+
+    // dropzone fixes & don't display dropzone preview
+    .dropzone { min-height: unset; }
+    .dropzone-previews { display: none; }
 }

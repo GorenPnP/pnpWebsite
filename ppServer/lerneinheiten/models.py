@@ -43,6 +43,21 @@ class Einheit(models.Model):
         return f"#{self.number} {self.titel}"
     
 
+
+def pageimage_path(instance, filename): 
+    # file will be uploaded to path: 
+    return f'lerneinheiten/page_image/{instance.page.id}/{filename}' 
+
+class PageImage(models.Model):
+    class Meta:
+        ordering = ["page"]
+
+    image = models.ImageField(upload_to=pageimage_path)
+    page = models.ForeignKey("Page", on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.image.url
+
 class Page(models.Model):
     class Meta:
         ordering = ["einheit__number", "number"]

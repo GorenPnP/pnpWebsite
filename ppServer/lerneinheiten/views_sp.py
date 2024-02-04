@@ -5,11 +5,11 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models.query import QuerySet
-from django.shortcuts import redirect
+from django.http.response import JsonResponse
+from django.shortcuts import get_object_or_404, redirect, reverse
 from django.views.decorators.http import require_POST
 from django.views.generic import DetailView
 from django.views.generic.list import ListView
-from django.shortcuts import reverse, get_object_or_404
 
 from ppServer.decorators import spielleiter_only
 from ppServer.mixins import SpielleiterOnlyMixin
@@ -140,6 +140,26 @@ def new_page(request):
         messages.error(request, "Seite konnte nicht angelegt werden")
 
     return redirect("lerneinheiten:editor_index")
+
+@require_POST
+@login_required
+@spielleiter_only()
+def image_upload(request, page_id):
+    try:
+        page = Page.objects.get(pk=page_id)
+    except Page.DoesNotExist:
+        error_dict = {'message': 'Page not found.'}
+        return JsonResponse(error_dict, status=404)
+
+    uploaded_file = request.FILES['file']
+    image = PageImage.objects.create(image=uploaded_file, page=page)
+
+    response_dict = {
+        'message': 'File uploaded successfully!',
+        'uri': image.image.url
+    }
+
+    return JsonResponse(response_dict, status=200)
     
 
 # TODO: save ordering if changed and something else is POSTed
