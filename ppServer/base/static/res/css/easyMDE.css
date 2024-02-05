@@ -1,0 +1,10 @@
+.EasyMDEContainer {
+  background-color: var(--bs-light);
+  color: var(--bs-dark);
+  --bs-body-color: var(--bs-dark);
+  --bs-body-color-rgb: var(--bs-dark-rgb);
+}
+
+.EasyMDEContainer .CodeMirror-code {
+  font-family: monospace;
+}

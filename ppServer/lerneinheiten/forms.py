@@ -24,10 +24,13 @@ class PageForm(forms.ModelForm):
 class PageUpdateForm(forms.ModelForm):
     class Meta:
         model = Page
-        fields = ["titel", "color", "content"]
+        fields = ["titel", "color", "content", "solution"]
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
 
         self.fields['color'].widget = monster_forms.ColorWidget()
-        self.fields['content'].widget = HiddenInput()
+        # lerninhalt
+        if self.instance.type == "i":
+            self.fields['content'].widget = HiddenInput()
+            self.fields['solution'].widget = HiddenInput()

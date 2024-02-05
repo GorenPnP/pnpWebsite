@@ -1,0 +1,28 @@
+{% extends 'base/headed_main.html' %}
+{% load static %}
+
+{% block extra-head %}
+<!-- Easy MDE for text editor -->
+<link href="{% static 'res/css/easymde@2.18.0.min.css' %}" rel="stylesheet">
+<link href="{% static 'res/css/easyMDE.css' %}" rel="stylesheet">
+<script src="{% static 'res/js/easymde@2.18.0.min.js' %}"></script>
+<script src="{% static 'res/js/markdown_editorconfig.js' %}"></script>
+
+<!-- custom -->
+<script src="{% static 'lerneinheiten/js/freitext.js' %}" defer></script>
+{% endblock %}
+
+{% block main %}
+<form id="form" method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+</form>
+
+{% endblock %}
+
+{% block footer %}
+    {{ block.super }}
+    <footer class="sticky-footer bg-dark p-2 d-flex justify-content-center">
+        <button class="btn btn-primary" type="submit" form="form">Speichern</button>
+    </footer>
+{% endblock %}

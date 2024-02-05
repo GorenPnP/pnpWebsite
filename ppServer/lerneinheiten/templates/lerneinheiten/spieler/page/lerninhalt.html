@@ -2,9 +2,11 @@
 {% load static %}
 
 {% block extra-head %}
+    <!-- render md to html -->
     <script src="{% static 'res/js/easymde@2.18.0.min.js' %}"></script>
     <script src="{% static 'res/js/markdown.js' %}" defer></script>
 
+    <!-- custom -->
     <link rel="stylesheet" href="{% static 'lerneinheiten/css/sp_editor_lerninhalt.css' %}">
     <link rel="stylesheet" href="{% static 'lerneinheiten/css/lerninhalt.css' %}">
 {% endblock %}

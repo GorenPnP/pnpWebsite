@@ -100,28 +100,17 @@ class TextBox extends Box {
         }
 
         this.md_editor = new EasyMDE({
+            ...MDEditorConfig,
             element: document.querySelector(`#md-editor-${this.id}`) as HTMLElement,
-            spellChecker: false,
             toolbar: [
-                "undo", "redo", "|",
-                "bold", "italic", "heading-1", "heading-2", "heading-3", "|",
-                "unordered-list", "ordered-list", {
-                    name: 'tables', // need to be verbose on "table"-option, because its class "table" gets all the styles from bootstrap -> use "tables" instead
-                    action: EasyMDE.drawTable,
-                    className: 'fa fa-table',
-                    title: 'Insert Table',
-                } as EasyMDE.ToolbarIcon, "|",
-                "link", "quote", "|",
-                "preview", "side-by-side", "fullscreen", "|",
-                "guide", "|", "|",
+                ...(MDEditorConfig.toolbar as []), "|", "|",
                 {
                     name: 'remove', // remove text-box
                     action: () => this.remove(),
                     className: 'fa fa-times',
                     title: 'remove whole textblock',
                 } as EasyMDE.ToolbarIcon
-            ],
-            forceSync: true,
+            ]
         });
         this.md_editor.value(this.text);
         this.md_editor.codemirror.on("change", () => {

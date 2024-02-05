@@ -4,13 +4,6 @@ from django.db.models import Max
 from colorfield.fields import ColorField
 
 
-inhalt_object_enum = [
-    ("t", "Text"),
-    ("i", "Bild"),
-    ("v", "Video"),
-    ("a", "Tabelle"),
-]
-
 class Fach(models.Model):
 
     class Meta:
@@ -88,11 +81,11 @@ class Page(models.Model):
     number = models.PositiveSmallIntegerField(default=1)
 
     titel = models.CharField(max_length=256, unique=True)
-    color = ColorField(default='#000000')
+    color = ColorField(default='#000000', verbose_name="Farbe")
 
     type = models.CharField(max_length=2, choices=type_enum, null=False)
-    content = models.JSONField(default=dict, blank=True)
-    solution = models.JSONField(default=dict, blank=True)
+    content = models.JSONField(default=dict, blank=True, verbose_name="Inhalt")
+    solution = models.JSONField(default=dict, blank=True, verbose_name="Musterlösung")
 
     def __str__(self):
         return f"#{self.einheit.number}.{self.number} {self.titel}"

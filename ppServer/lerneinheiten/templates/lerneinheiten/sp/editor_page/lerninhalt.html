@@ -3,8 +3,10 @@
 
 {% block extra-head %}
 <!-- Easy MDE for text editor -->
-<script src="{% static 'res/js/easymde@2.18.0.min.js' %}"></script>
 <link href="{% static 'res/css/easymde@2.18.0.min.css' %}" rel="stylesheet">
+<link href="{% static 'res/css/easyMDE.css' %}" rel="stylesheet">
+<script src="{% static 'res/js/easymde@2.18.0.min.js' %}"></script>
+<script src="{% static 'res/js/markdown_editorconfig.js' %}"></script>
 
 <!-- Dropzone for Image Editor -->
 <link rel="stylesheet" href="{% static 'res/css/dropzone@5.min.css' %}" type="text/css">

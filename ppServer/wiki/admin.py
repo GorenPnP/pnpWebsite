@@ -8,7 +8,7 @@ from .models import *
 class RuleAdmin(admin.ModelAdmin):
     class Media:
         css = {
-            "all": ["wiki/css/md_editor.css"],
+            "all": ["res/css/easyMDE.css"],
         }
 
     list_display = ["nr", "titel"]

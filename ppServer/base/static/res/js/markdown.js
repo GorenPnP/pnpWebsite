@@ -1,10 +1,14 @@
 /**
  * Replaces Markdown-text in innerHTML of tags with class .markdown to html
  * Needs to import <script src="{% static 'res/js/easymde@2.18.0.min.js' %}"></script> first.
+ * 
  * Import/use like this:
  * 
  * <script src="{% static 'res/js/easymde@2.18.0.min.js' %}"></script>
  * <script src="{% static 'res/js/markdown.js' %}" defer></script>
+ * 
+ * Use like this:
+ * <div class="markdown" data-text="..."></div>
  */
 
 // init required resources
