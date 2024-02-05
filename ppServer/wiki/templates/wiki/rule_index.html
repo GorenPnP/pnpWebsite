@@ -1,0 +1,21 @@
+{% extends 'base/headed_main.html' %}
+{% load static django_tables2 csv_to_table %}
+
+{% block extra-head %}
+<style>
+    #page-list {
+        width: fit-content;
+        margin: auto;
+        min-width: 40ch;
+        max-width: 70ch;
+    }
+</style>
+{% endblock %}
+
+{% block main %}
+    <div id="page-list" class="list-group list-group-numbered list-group-flush">
+        {% for o in object_list %}
+        <a class="list-group-item" href="{% url 'wiki:rule_detail' o.id %}">{{ o.titel }}</a>
+        {% endfor %}
+    </div>
+{% endblock %}
