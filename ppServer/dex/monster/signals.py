@@ -27,7 +27,7 @@ def add_stats_to_spielermonster(sender, **kwargs):
         instance.save(update_fields=["attackenpunkte"])
 
         # assign random attacks
-        attacks = Attacke.objects.exclude(draft=True).filter(cost=0, types__in=[Typ.objects.get(name="Normal").id, *instance.monster.types.all().values_list("id", flat=True)])
+        attacks = instance.monster.attacken.exclude(draft=True).filter(cost=0)
         chosen_attacks = sample(list(attacks), 2) if attacks.count() > 2 else list(attacks)
         for att in chosen_attacks:
             SpielerMonsterAttack.objects.create(spieler_monster=instance, attacke=att, cost=0)

@@ -71,16 +71,16 @@ class MonsterDetailView(LoginRequiredMixin, DetailView):
             Prefetch("opposites", Monster.objects.load_card()),
             Prefetch("attacken", Attacke.objects.load_card().exclude(draft=True)),
         )
-        
+
     def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
         response = super().get(request, *args, **kwargs)    # let self.get_context_data() set self.object to perform the query only once
-        
+
         spieler = get_object_or_404(Spieler, name=self.request.user.username)
         if  not self.object.visible.filter(name=spieler.name).exists():
             return redirect("dex:monster_index")
 
         return response
-    
+
     def post(self, request, **kwargs):
         spieler = get_object_or_404(Spieler, name=self.request.user.username)
         monster = self.get_object()
@@ -103,8 +103,8 @@ class MonsterDetailView(LoginRequiredMixin, DetailView):
             if self.request.user.groups.filter(name__iexact="spielleiter").exists() and "keep_attacks" in form.cleaned_data and form.cleaned_data["keep_attacks"]:
                 obj.attacken.all().delete()
                 for attack in monster.attacken.all():
-                    SpielerMonsterAttack.objects.create(spieler_monster=obj, attacke=attack, cost=0)
-            
+                    SpielerMonsterAttack.objects.get_or_create(spieler_monster=obj, attacke=attack, defaults={"cost": 0})
+
             messages.success(request, format_html(f"<b>{obj.name or monster.name}</b> ist in deiner <a class='text-light' href='{reverse('dex:monster_farm')}'>Monster-Farm</a> eingetroffen."))
         else:
             messages.error(request, "Etwas ist schief gelaufen. Das Monster konnte nicht gefangen werden.")
