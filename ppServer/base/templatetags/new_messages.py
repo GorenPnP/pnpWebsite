@@ -1,21 +1,21 @@
 from django import template
-from django.contrib.auth.models import User
 from django.db.models import F, Subquery, OuterRef, Q, Count, Sum
 
+from character.middleware import RequestSpieler
 from httpChat.models import Account, ChatroomAccount
 
 register = template.Library()
 
 
 @register.filter
-def newMessages(user: User) -> int:
+def newMessages(spieler: RequestSpieler) -> int:
 
     # should never happen
-    if not user.is_authenticated: return "-"
+    if not spieler or not spieler.instance: return "-"
 
     return Account.objects\
             .prefetch_related("spieler", "chatroom_set", "chatroom_set__message_set")\
-            .filter(spieler__name=user.username)\
+            .filter(spieler=spieler.instance)\
             .annotate(
                 new_messages = Count("chatroom__message", distinct=True, filter=
                     ~Q(chatroom__message__author__id=F("id")) &         # .exclude(author=account)

@@ -4,14 +4,13 @@ from typing import Optional
 from django.contrib.auth.mixins import UserPassesTestMixin
 from django.shortcuts import redirect
 
-from character.models import Spieler
 from httpChat.models import Account, Chatroom
 from polls.models import Question, QuestionSpieler
 
 
 class VerifiedAccountMixin(UserPassesTestMixin):
     def test_func(self) -> Optional[bool]:
-        return self.request.user.groups.all().exists()
+        return self.request.spieler.is_verified
     
     def handle_no_permission(self):
         return redirect("base:index")
@@ -27,7 +26,7 @@ class SpielleiterOnlyMixin(UserPassesTestMixin):
     redirect_to="base:index"
 
     def test_func(self) -> Optional[bool]:
-        return self.request.user.groups.filter(name="spielleiter").exists()
+        return self.request.spieler.is_spielleiter
     
     def handle_no_permission(self):
         return redirect(self.redirect_to)
@@ -38,7 +37,7 @@ class OwnChatMixin(UserPassesTestMixin):
     def test_func(self) -> Optional[bool]:
         account_slug = self.request.resolver_match.kwargs.get("account_name")
         chatroom_id = self.request.resolver_match.kwargs.get("room_id")
-        spieler = Spieler.objects.get(name=self.request.user.username)
+        spieler = self.request.spieler.instance
         account =  Account.objects.filter(slug=account_slug, spieler=spieler)
 
         if not account.exists(): return False
@@ -62,7 +61,7 @@ class PollAllowedMixin(UserPassesTestMixin):
             deadline__gte=datetime.now()
         ).exists() and not\
         QuestionSpieler.objects.filter(
-            question__id=pk, spieler__name=self.request.user.username
+            question__id=pk, spieler=self.request.spieler.instance
         ).exists()
 
     def handle_no_permission(self):

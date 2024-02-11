@@ -3,12 +3,21 @@
 
 {% block extra-head %}
 <style>
-    #page-list {
-        width: fit-content;
-        margin: auto;
-        min-width: 40ch;
-        max-width: 70ch;
+#page-list {
+    width: fit-content;
+    margin: auto;
+    min-width: min(100%, 40ch);
+    max-width: min(100%, 70ch);
+
+    hyphens: auto;
+}
+
+@media only screen and (max-width: 400px) {
+    main.main-container {
+        margin: 0;
+        padding-inline: .1em;
     }
+}
 </style>
 {% endblock %}
 

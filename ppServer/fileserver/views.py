@@ -22,4 +22,4 @@ class TopicListView(LoginRequiredMixin, VerifiedAccountMixin, ListView):
         )
     
     def get_queryset(self):
-        return self.model.objects.prefetch_related("files").filter(Q(sichtbarkeit_eingeschränkt=False) | Q(sichtbar_für__name=self.request.user.username)).distinct()
+        return self.model.objects.prefetch_related("files").filter(Q(sichtbarkeit_eingeschränkt=False) | Q(sichtbar_für=self.request.spieler.instance)).distinct()

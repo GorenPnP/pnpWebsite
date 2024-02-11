@@ -92,6 +92,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 
     # own middleware
+    "character.middleware.SpielerMiddleware",
     "logRequest.middleware.RequestMiddleware",
 ]
 

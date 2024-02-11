@@ -31,7 +31,7 @@ class RuleAdmin(admin.ModelAdmin):
 
     
     def has_module_permission(self, request: HttpRequest) -> bool:
-        return request.user.groups.filter(name__iexact="spielleiter").exists()
+        return request.spieler.is_spielleiter
 
 
 admin.site.register(Rule, RuleAdmin)

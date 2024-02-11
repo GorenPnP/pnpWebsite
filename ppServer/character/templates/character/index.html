@@ -21,7 +21,7 @@
 			</div>
 			
 			<a href="{% url 'character:show' c.id %}" class="col-12 col-md char-name text-dark text-center text-md-start">
-				<p><span class="h4">{{ c.name|default:"&#60;no name&#62;" }}{% if c.larp %} (LARP){% endif %}</span> {% if is_spielleiter %}<small> von {{ c.eigentümer.name|default:"?" }}</small>{% endif %}</p>
+				<p><span class="h4">{{ c.name|default:"&#60;no name&#62;" }}{% if c.larp %} (LARP){% endif %}</span> {% if request.spieler.is_spielleiter %}<small> von {{ c.eigentümer.name|default:"?" }}</small>{% endif %}</p>
 				<p>{{ c.persönlicheZiele|default:""|linebreaks }}</p>
 			</a>
 	
@@ -48,7 +48,7 @@
 	{% endfor %}
 </ul>
 
-{% if is_spielleiter %}
+{% if request.spieler.is_spielleiter %}
 <footer class="sticky-footer d-flex justify-content-center p-2 mt-5">
 	<a class="btn btn-lg btn-primary mx-2" href="{% url 'campaign:auswertung_hub' %}">Auswertung</a>
 	<a class="btn btn-lg btn-primary mx-2" href="{% url 'character_export:export_all' %}">Export (alle)</a>

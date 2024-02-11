@@ -26,15 +26,12 @@ class CharacterListView(LoginRequiredMixin, VerifiedAccountMixin, TemplateView):
 
     def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
 
-        is_spielleiter = User.objects.filter(username=self.request.user.username, groups__name='spielleiter').exists()
         char_qs = Charakter.objects.prefetch_related("eigentümer").filter(in_erstellung=False).order_by('name')
-
-        if not is_spielleiter:
-            char_qs = char_qs.filter(eigentümer__name=self.request.user.username)
+        if not self.request.spieler.is_spielleiter:
+            char_qs = char_qs.filter(eigentümer=self.request.spieler.instance)
 
         return {
             'charaktere': char_qs,
-            'is_spielleiter': is_spielleiter,
             'topic': "Charaktere",
             "plus": "+ Charakter",
             "plus_url": reverse('create:gfs')
@@ -46,7 +43,7 @@ class ShowView(LoginRequiredMixin, VerifiedAccountMixin, DetailView):
     model = Charakter
 
     def get(self, request, *args, **kwargs):
-        if not self.request.user.groups.filter(name="spielleiter").exists() and not Charakter.objects.filter(pk=kwargs["pk"], eigentümer__name=request.user.username).exists():
+        if not self.request.spieler.is_spielleiter and not Charakter.objects.filter(pk=kwargs["pk"], eigentümer=self.request.spieler.instance).exists():
             return redirect("character:index")
         
         return super().get(request, *args, **kwargs)
@@ -558,7 +555,7 @@ def use_relshop(request, relshop_model, pk):
         return redirect("character:index")
 
     # assert user requesting to use an item
-    if not request.user.groups.filter(name__iexact="spielleiter").exists() and not Model.objects.filter(pk=pk, char__eigentümer__name=request.user.username).exists():
+    if not request.spieler.is_spielleiter and not Model.objects.filter(pk=pk, char__eigentümer=request.spieler.instance).exists():
         messages.error(request, "Es ist nicht dein Charakter, von dem du Items benutzen willst.")
         return redirect("character:index")
 
@@ -580,7 +577,7 @@ def use_relshop(request, relshop_model, pk):
 
     # log usage
     Log.objects.create(
-        spieler=get_object_or_404(Spieler, name=request.user.username),
+        spieler=request.spieler.instance,
         char=char,
         art="j", # Inventar-Item verbraucht
         kosten="",

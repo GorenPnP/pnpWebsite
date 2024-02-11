@@ -22,7 +22,7 @@ class CharacterExportView(LoginRequiredMixin, VerifiedAccountMixin, UserPassesTe
     model = Charakter
 
     def test_func(self):
-        return not self.request.user.groups.filter(name__iexact="spieler") or self.get_object().eigentümer.name == self.request.user.username
+        return self.request.spieler.is_spielleiter or Charakter.objects.filter(pk=self.kwargs["pk"], eigentümer=self.request.spieler.instance).exists()
 
     def handle_no_permission(self):
         return redirect("character:index")

@@ -1,8 +1,8 @@
 {% load static new_messages %}
 
-
+{% with unread_messages=request.spieler|newMessages %}
 <header>
-	<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+	<nav id="top-navbar" class="navbar navbar-expand-lg navbar-dark bg-dark">
 		<div class="container-fluid">
 		
 			<!-- brand -->
@@ -29,11 +29,11 @@
 			<button class="navbar-toggler position-relative" type="button" data-bs-toggle="collapse" data-bs-target="#top-nav-toggler" aria-controls="top-nav-toggler" aria-expanded="false" aria-label="Toggle navigation">
 				<span class="navbar-toggler-icon"></span>
 
-				{% with m=request.user|newMessages %}{% if m %}
+				{% if unread_messages %}
 				<span class="position-absolute top-0 start-100 translate-middle p-2 bg-warning border border-dark rounded-circle">
 					<span class="visually-hidden">New alerts</span>
 				</span>
-				{% endif %}{% endwith %}
+				{% endif %}
 			</button>
 			<div class="collapse navbar-collapse" id="top-nav-toggler">
 				<ul class="navbar-nav me-auto mb-2 mb-lg-0" style="gap: 5px">
@@ -58,12 +58,12 @@
 					<li class="nav-item">
 						<a class="nav-link" href="{% url 'httpchat:index' %}">
 							Chat
-							{% with m=request.user|newMessages %}{% if m %}
+							{% if unread_messages %}
 							<span class="badge rounded-pill bg-warning text-dark">
-								{{ m }}
+								{{ unread_messages }}
 								<span class="visually-hidden">ungelesene Nachrichten</span>
 							</span>
-							{% endif %}{% endwith %}
+							{% endif %}
 						</a>
 					</li>
 					
@@ -82,3 +82,4 @@
 		</div>
 	</nav>
 </header>
+{% endwith %}

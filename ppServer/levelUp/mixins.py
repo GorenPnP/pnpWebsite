@@ -11,11 +11,11 @@ class LevelUpMixin(LoginRequiredMixin, UserPassesTestMixin):
     def test_func(self) -> bool:
         char = self.get_character()
 
-        if self.request.user.groups.filter(name="spielleiter").exists(): return True
+        if self.request.spieler.is_spielleiter: return True
         if not hasattr(char, "eigentümer"): return False
 
-        spieler = get_object_or_404(Spieler, name=self.request.user.username)
-        return char.eigentümer == spieler
+        spieler = self.request.spieler.instance
+        return spieler and char.eigentümer == spieler
     
 
     def get_character(self) -> Charakter:
@@ -37,7 +37,7 @@ class LevelUpMixin(LoginRequiredMixin, UserPassesTestMixin):
     
     def get(self, request, *args, **kwargs):
         char = self.get_character()
-        is_eigentümer = char.eigentümer is not None and self.request.user.username == char.eigentümer.name
+        is_eigentümer = self.request.spieler.instance == char.eigentümer
         if not is_eigentümer:
             messages.warning(self.request, "Dir gehört der Charakter nicht, als Spielleiter kannst du ihn aber bearbeiten")
 

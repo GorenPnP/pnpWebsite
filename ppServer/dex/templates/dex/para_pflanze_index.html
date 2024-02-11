@@ -23,11 +23,11 @@
             {% for pflanze in object_list %}
             {% if pflanze.generation == gen %}
             <li class="my-2">
-                {% if spieler in pflanze.visible.all %}
+                {% if pflanze.display %}
                 <a href="{% url 'dex:para_pflanze_detail' pflanze.id %}" class="text-light">
                 {% endif %}
                     #{{ pflanze.number }} - {{ pflanze.name }}
-                {% if spieler in pflanze.visible.all %}</a>{% endif %}
+                {% if pflanze.display %}</a>{% endif %}
             </li>
             {% endif %}
             {% endfor %}

@@ -22,7 +22,7 @@ class RequestMiddleware:
             request.scope["path"].startswith(self.path_blacklist) or\
             self.favicon_filename in request.scope["path"] or\
             ip in self.ip_blacklist or\
-            request.user.groups.filter(name__iexact="spielleiter").exists():
+            request.spieler.is_spielleiter:
 
             return self.get_response(request)
 

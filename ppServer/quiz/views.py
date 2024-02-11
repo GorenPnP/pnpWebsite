@@ -3,7 +3,7 @@ import random, json
 from math import floor
 
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import User
+from django.http import HttpResponseNotFound
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse
 
@@ -71,16 +71,11 @@ def mw_from_grade_list(grade_list):
 @verified_account
 def index(request, spieler_id=None):
 
-    spielleiter_service = False
-
     # for Phillip's wish to see everyone's timetable
-    if spieler_id is not None and\
-        User.objects.filter(username=request.user.username, groups__name='spielleiter').exists():
-
-        spielleiter_service = True
+    spielleiter_service = spieler_id is not None and request.spieler.is_spielleiter
 
     # usual case if not spielleiter_service (as in: BB). Or not.
-    spieler = get_object_or_404(Spieler, name=request.user.username) if not spielleiter_service else get_object_or_404(Spieler, id=spieler_id)
+    spieler = get_object_or_404(Spieler, id=spieler_id) if spielleiter_service else request.spieler.instance
 
     if request.method == "GET":
 
@@ -88,17 +83,23 @@ def index(request, spieler_id=None):
         for sp_m in models.SpielerModule.objects.filter(spieler=spieler).prefetch_related("module__questions", "module__icon", "module__prerequisite_modules"):
 
             score, score_class = get_grade_score(sp_m.achieved_points, sp_m.module.max_points) if sp_m.achieved_points is not None else ("", "")
-            timetable.append({"titel": sp_m.module.title, "id": sp_m.id, "questions": sp_m.module.questions.count(),
-                    "points": sp_m.achieved_points, "max_points": sp_m.module.max_points,
-                    "score": score, "score_tag_class": score_class,
-                    "optional": sp_m.optional,
-                    "description": sp_m.module.description, "icon": sp_m.module.icon.img.url if sp_m.module.icon else None,
-                    "reward": sp_m.module.reward, "spent_reward": sp_m.spent_reward, "spent_reward_larp": sp_m.spent_reward_larp,
-                    "state": sp_m.get_state_display(),
-                    "prerequisites": ", ".join([m.title for m in sp_m.module.prerequisite_modules.all()])})
+            timetable.append({
+                "titel": sp_m.module.title, "id": sp_m.id, "questions": sp_m.module.questions.count(),
+                "points": sp_m.achieved_points, "max_points": sp_m.module.max_points,
+                "score": score, "score_tag_class": score_class,
+                "optional": sp_m.optional,
+                "description": sp_m.module.description, "icon": sp_m.module.icon.img.url if sp_m.module.icon else None,
+                "reward": sp_m.module.reward, "spent_reward": sp_m.spent_reward, "spent_reward_larp": sp_m.spent_reward_larp,
+                "state": sp_m.get_state_display(),
+                "prerequisites": ", ".join([m.title for m in sp_m.module.prerequisite_modules.all()])
+            })
 
-        context = {"timetable": timetable, "topic": "{}'s Quiz".format(spieler.get_real_name()) if spielleiter_service else "Quiz",
-                   "akt_punktzahl": get_object_or_404(models.RelQuiz, spieler=spieler).quiz_points_achieved, "button_states": ["opened", "corrected"]}
+        context = {
+            "timetable": timetable,
+            "topic": "{}'s Quiz".format(spieler.get_real_name()) if spielleiter_service else "Quiz",
+            "akt_punktzahl": get_object_or_404(models.RelQuiz, spieler=spieler).quiz_points_achieved,
+            "button_states": ["opened", "corrected"]
+        }
 
         return render(request, "quiz/index.html", context)
 
@@ -128,7 +129,7 @@ def index(request, spieler_id=None):
 @login_required
 @verified_account
 def question(request):
-    spieler = get_object_or_404(Spieler, name=request.user.username)
+    spieler = request.spieler.instance
     rel = get_object_or_404(models.RelQuiz, spieler=spieler)
 
     if request.method == "GET":
@@ -204,7 +205,7 @@ def question(request):
 @verified_account
 def session_done(request):
 
-    spieler = get_object_or_404(Spieler, name=request.user.username)
+    spieler = request.spieler.instance
     rel = get_object_or_404(models.RelQuiz, spieler=spieler)
     if not rel.current_session: return redirect("quiz:index")
 
@@ -249,7 +250,7 @@ def score_board(request):
 @login_required
 @verified_account
 def review(request, id):
-    spieler = get_object_or_404(Spieler, name=request.user.username)
+    spieler = request.spieler.instance
     sp_mo = get_object_or_404(models.SpielerModule, id=id, spieler=spieler)
 
     # no module for player selected
@@ -307,8 +308,7 @@ def review(request, id):
 @login_required
 @verified_account
 def review_done(request):
-
-    spieler = get_object_or_404(Spieler, name=request.user.username)
+    spieler = request.spieler.instance
     rel = get_object_or_404(models.RelQuiz, spieler=spieler)
     if not rel.current_session:
         return redirect("quiz:index")

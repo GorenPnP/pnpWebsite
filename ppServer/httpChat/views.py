@@ -19,7 +19,7 @@ class AccountListView(LoginRequiredMixin, VerifiedAccountMixin, TemplateView):
     template_name = "httpChat/account_list.html"
 
     def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
-        spieler = Spieler.objects.get(name=self.request.user.username)
+        spieler = self.request.spieler.instance
 
         return super().get_context_data(**kwargs, form=AccountForm(), accounts=Account.objects
             .filter(spieler=spieler)
@@ -38,7 +38,7 @@ class AccountListView(LoginRequiredMixin, VerifiedAccountMixin, TemplateView):
         )
 
     def post(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
-        spieler = Spieler.objects.get(name=request.user.username)
+        spieler = request.spieler.instance
 
         account = Account(spieler=spieler)
         form = AccountForm(request.POST, request.FILES, instance=account)
@@ -120,7 +120,7 @@ class ChatroomView(LoginRequiredMixin, OwnChatMixin, TemplateView):
 
         # set accessed
         self.latest_access = objects["chatroomaccount"].latest_access
-        ChatroomAccount.objects.filter(chatroom=objects["chatroom"], account__spieler__name=request.user.username).update(latest_access=datetime.now())
+        ChatroomAccount.objects.filter(chatroom=objects["chatroom"], account__spieler=request.spieler.instance).update(latest_access=datetime.now())
 
         # if opening chatroom for the first time, add welcome msg
         if self.latest_access.year == ancient_datetime().year:

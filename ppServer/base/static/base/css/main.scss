@@ -22,6 +22,21 @@ body {
 	--bs-modal-color: var(--bs-dark);
 }
 
+#top-navbar {
+	flex-wrap: nowrap;
+
+	.container-fluid {
+		gap: var(--bs-navbar-brand-margin-end);
+	}
+
+	.navbar-brand {
+		flex: 1 0 30px;
+		max-width: fit-content;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+}
+
 
 /* styles for messages */
 .messages { list-style: none; }

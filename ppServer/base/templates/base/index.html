@@ -255,7 +255,7 @@
     </div>
 
     <!-- Logs -->
-    <div class="card" {% if not spielleiter %}hidden{% endif %} id="logs">
+    <div class="card" {% if not request.spieler.is_spielleiter %}hidden{% endif %} id="logs">
         <div class="card__icon bg-primary">
             <img class="card__icon__img" src="{% static 'res/img/icon-logs.png' %}">
         </div>
@@ -273,7 +273,7 @@
     </div>
 
     <!-- Quizkontrolle -->
-    <div class="card" {% if not spielleiter %}hidden{% endif %} id="quizkontrolle">
+    <div class="card" {% if not request.spieler.is_spielleiter %}hidden{% endif %} id="quizkontrolle">
         <a href="{% url 'quiz:sp_index' %}">
             <div class="card__icon bg-primary">
                 <img class="card__icon__img" src="{% static 'res/img/icon-trophy.png' %}">

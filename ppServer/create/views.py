@@ -1,5 +1,6 @@
 import json
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.http import HttpResponseNotFound
 from django.http.request import HttpRequest
 from django.http.response import HttpResponse, JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
@@ -39,7 +40,7 @@ class GfsFormView(LoginRequiredMixin, VerifiedAccountMixin, TemplateView):
     def get(self, request: HttpRequest) -> HttpResponse:
         context = {
             "gfs": Gfs.objects.all(),
-            "old_scetches": Charakter.objects.filter(eigentümer__name=request.user.username, in_erstellung=True),
+            "old_scetches": Charakter.objects.filter(eigentümer=request.spieler.instance, in_erstellung=True),
             "topic": "Charakter erstellen",
             "app_index": "Erstellung",
             "app_index_url": reverse("create:gfs"),
@@ -55,7 +56,8 @@ class GfsFormView(LoginRequiredMixin, VerifiedAccountMixin, TemplateView):
         except:
             return JsonResponse({"message": "Keine Gfs angekommen"}, status=418)
 
-        spieler = get_object_or_404(Spieler, name=request.user.username)
+        spieler = request.spieler.instance
+        if not spieler: return HttpResponseNotFound()
         gfs = get_object_or_404(Gfs, id=gfs_id)
 
         # alle Charaktere in_erstellung löschen

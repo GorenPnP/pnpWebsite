@@ -16,11 +16,11 @@
 <ul class="mt-2">
     {% for tier in object_list %}
     <li class="my-2">
-        {% if spieler in tier.visible.all %}
+        {% if tier.display %}
         <a href="{% url 'dex:para_tier_detail' tier.id %}" class="text-light">
         {% endif %}
             {{ tier.name }}
-        {% if spieler in tier.visible.all %}</a>{% endif %}
+        {% if tier.display %}</a>{% endif %}
     </li>
     {% endfor %}
 </ul>

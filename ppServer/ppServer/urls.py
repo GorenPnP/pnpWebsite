@@ -23,8 +23,6 @@ from . import views
 
 
 urlpatterns = [
-    path("404/", views.error_404, name="test404"),
-
     path('admin/', admin.site.urls),
     path('auth/', include('auth_custom.urls')),
     path('accounts/', include('auth_custom.urls')),

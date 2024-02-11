@@ -243,11 +243,8 @@ def sp_correct(request, id, question_index=0):
 
 
 @verified_account
-@spielleiter_only()
+@spielleiter_only("quiz:index")
 def old_answer(request, sp_mo_id, question_id, question_index):    # id of currently answered SpielerQuestion
-
-    if not request.user.groups.filter(name="spielleiter").exists():
-        return redirect("quiz:index")
 
     sp_mo = get_object_or_404(SpielerModule, id=sp_mo_id)
     old_session = sp_mo.getFinishedSession()

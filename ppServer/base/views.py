@@ -1,12 +1,12 @@
 from datetime import datetime
 
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import User
-from django.shortcuts import render, get_object_or_404, reverse
+from django.http import HttpResponseNotFound
+from django.shortcuts import render, reverse
 
 from changelog.models import Changelog
-from shop.models import Ausrüstung_Technik, Einbauten, Fahrzeug, Item, Magazin, Magische_Ausrüstung, Pfeil_Bolzen,\
-                        Rituale_Runen, Rüstungen, Schusswaffen, Waffen_Werkzeuge, Zauber
+from shop.models import Alchemie, Ausrüstung_Technik, Begleiter, Einbauten, Engelsroboter, Fahrzeug, Item, Magazin, Magische_Ausrüstung, Pfeil_Bolzen,\
+                        Rituale_Runen, Rüstungen, Schusswaffen, Tinker, VergessenerZauber, Waffen_Werkzeuge, Zauber
 from character.models import Spieler
 from news.models import News
 from todays_fact.models import History
@@ -18,8 +18,11 @@ from quiz.models import SpielerModule
 
 def reviewable_shop():
     models = [
+        Alchemie,
         Ausrüstung_Technik,
+        Begleiter,
         Einbauten,
+        Engelsroboter,
         Fahrzeug,
         Item,
         Magazin,
@@ -28,6 +31,8 @@ def reviewable_shop():
         Rituale_Runen,
         Rüstungen,
         Schusswaffen,
+        Tinker,
+        VergessenerZauber,
         Waffen_Werkzeuge,
         Zauber,
     ]
@@ -44,20 +49,22 @@ def reviewable_shop():
 def index(request):
 
     if request.method == "GET":
-        spieler = get_object_or_404(Spieler, name=request.user.username)
+        spieler = request.spieler.instance
+        if not spieler: return HttpResponseNotFound()
+
         context = {
-            "spielleiter": User.objects.filter(username=spieler.name, groups__name='spielleiter').exists(),
             "topic": "Goren PnP",
             "latest_update": Changelog.objects.first()
         }
 
 
-        if context["spielleiter"]:
+        if request.spieler.is_spielleiter:
             context["shop_review"] = reviewable_shop()
 
         else:
-            # all currently open polls, which haven't been answered by the player
             now = datetime.now()
+
+            # all currently open polls, which haven't been answered by the player
             context["list_vote"] = [q
                 for q in pollsm.Question.objects.filter(deadline__gte=now, pub_date__lte=now).order_by('-pub_date')
                 if not pollsm.QuestionSpieler.objects.filter(question=q, spieler=spieler).exists()]
