@@ -67,6 +67,7 @@ INSTALLED_APPS = [
     'shop',
     'time_space',
     'todays_fact',
+    'webPush',
     'wiki',
 
     # libs/plugins
@@ -78,6 +79,7 @@ INSTALLED_APPS = [
     'django_tables2',
     'markdownfield',
     'markdown_view',
+    'push_notifications',
 ]
 
 MIDDLEWARE = [
@@ -267,3 +269,13 @@ if not DEBUG:
 
 # AttributeError: 'Settings' object has no attribute 'SITE_URL' of markdown-field
 SITE_URL = ''
+
+
+PUSH_NOTIFICATIONS_SETTINGS = {
+    "WP_PRIVATE_KEY": os.path.join(BASE_DIR, "webPush", "certs", "private_key.pem"),
+    "WP_CLAIMS": {'sub': os.environ.get('PUSH_NOTIFICATION_CONTACT') },
+    "UNIQUE_REG_ID": True,
+}
+
+
+PUSH_NOTIFICATION_KEY = os.environ.get('PUSH_NOTIFICATION_KEY')

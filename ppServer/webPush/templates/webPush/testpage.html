@@ -1,0 +1,53 @@
+{% extends 'base/main.html' %}
+{% load static %}
+
+{% block extra-head %}
+{{ app_server_key|json_script:'app_server_key' }}
+<script type="application/json" id="endpoint">{% url 'web_push:subscribe_user' %}</script>
+<script src="{% static 'webPush/js/subscribe_user.js' %}" defer></script>
+
+<script>
+async function registerServiceWorker() {
+    if (!("serviceWorker" in navigator)) { return; }
+
+    try {
+        const registration = await navigator.serviceWorker.register("{% url 'sw.js' %}", {
+            scope: "/",
+        });
+        if (registration.installing) {
+            console.log("Service worker installing");
+        } else if (registration.waiting) {
+            console.log("Service worker installed");
+        } else if (registration.active) {
+            console.log("Service worker active");
+        }
+    } catch (error) {
+        console.error(`Registration failed with ${error}`);
+    }
+}
+
+registerServiceWorker();
+
+</script>
+{% endblock %}
+
+{% block main %}
+<div class="container">
+    <div class="row">
+        <div class="col d-flex flex-column">
+            <button class="btn btn-primary" onclick="subscribeUser()">dieses Gerät registrieren</button>
+            <result></result>
+        </div>
+
+        <form class="col d-flex flex-column" method="post">
+            <h2>neue Nachricht</h2>
+
+            {% csrf_token %}
+            <input name="message" required>
+            <button type="submit" class="btn btn-primary">an alle senden</button>
+        </form>
+    </div>
+</div>
+
+
+{% endblock %}
