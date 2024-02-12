@@ -6,29 +6,13 @@
 <script type="application/json" id="endpoint">{% url 'web_push:subscribe_user' %}</script>
 <script src="{% static 'webPush/js/subscribe_user.js' %}" defer></script>
 
-<script>
-async function registerServiceWorker() {
-    if (!("serviceWorker" in navigator)) { return; }
-
-    try {
-        const registration = await navigator.serviceWorker.register("{% url 'sw.js' %}", {
-            scope: "/",
-        });
-        if (registration.installing) {
-            console.log("Service worker installing");
-        } else if (registration.waiting) {
-            console.log("Service worker installed");
-        } else if (registration.active) {
-            console.log("Service worker active");
-        }
-    } catch (error) {
-        console.error(`Registration failed with ${error}`);
+<style>
+    .helptext {
+        display: block;
+        opacity: .7;
+        font-size: small;
     }
-}
-
-registerServiceWorker();
-
-</script>
+</style>
 {% endblock %}
 
 {% block main %}
@@ -43,7 +27,7 @@ registerServiceWorker();
             <h2>neue Nachricht</h2>
 
             {% csrf_token %}
-            <input name="message" required>
+            {{ form.as_p }}
             <button type="submit" class="btn btn-primary">an alle senden</button>
         </form>
     </div>

@@ -20,18 +20,33 @@ class TestView(SpielleiterOnlyMixin, TemplateView):
 	template_name = "webPush/testpage.html"
 
 	def get(self, request: HttpRequest) -> HttpResponse:
-		return render(request, self.template_name, {"app_server_key": PUSH_NOTIFICATION_KEY})
+		return render(request, self.template_name, {"app_server_key": PUSH_NOTIFICATION_KEY, "form": SendMessageForm()})
 
 	def post(self, request):
-		message = request.POST.get("message") or "<default message>"
-		print(message)
+		form = SendMessageForm(request.POST)
+		form.full_clean()
+		if not form.is_valid():
+			# error
+			messages.error(request, "neue Nachricht hatte ein seltsames Format oder war nicht vollständig")
+			messages.error(request, f"{form.errors}")
+		else:
+			# success
 
-		results = WebPushDevice.objects.all().send_message(message)
-		success = [r for r in results if "success" in r]
-		error = [r for r in results if "failure" in r]
-		print("Errors on send:", error)
+			# prepare data
+			users = form.cleaned_data["recipients"]
+			devices = WebPushDevice.objects.filter(user__in=users, active=True)
 
-		messages.success(request, f"Send pushies to {len(success)} / {WebPushDevice.objects.filter(active=True).count()} devices")
+			# send messages
+			del form.cleaned_data["recipients"]
+			results = devices.send_message(json.dumps(form.cleaned_data))
+
+			# logging
+			success = [r for r in results if "success" in r]
+			error = [r for r in results if "failure" in r]
+
+			print("Errors on send:", error)
+			messages.success(request, f"Send pushies to {len(success)} / {devices.count()} active devices")
+
 		return redirect("web_push:test")
 
 
@@ -39,7 +54,6 @@ class TestView(SpielleiterOnlyMixin, TemplateView):
 @login_required
 def register_webpush(request):
     data = json.loads(request.body)
-    print(data)
 
     instance = WebPushDevice.objects.filter(registration_id=data["registration_id"]).first()
     form = RegisterWebPushDeviceForm(data, instance=instance)

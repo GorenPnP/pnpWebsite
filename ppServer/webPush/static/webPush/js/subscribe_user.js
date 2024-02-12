@@ -1,9 +1,10 @@
 const endpoint_url = document.querySelector("#endpoint").innerHTML;
 const applicationServerKey = JSON.parse(document.querySelector("#app_server_key").innerHTML);
 
-// Utils functions:
+/********* Utils functions *****************/
 
-function urlBase64ToUint8Array (base64String) {
+/** transform base64 into Uint8Array */
+function urlBase64ToUint8Array(base64String) {
     var padding = '='.repeat((4 - base64String.length % 4) % 4)
     var base64 = (base64String + padding)
         .replace(/\-/g, '+')
@@ -18,43 +19,8 @@ function urlBase64ToUint8Array (base64String) {
     return outputArray;
 }
 
-function subscribeUser() {
-    console.log("will register")
-    if (!('Notification' in window) ||  !('serviceWorker' in navigator)) { return; }
-    console.log("here")
-
-    navigator.serviceWorker.ready.then(function (reg) {
-console.log("service worker registration", reg, applicationServerKey, endpoint_url)
-        reg.pushManager.subscribe({
-            userVisibleOnly: true,
-            applicationServerKey: urlBase64ToUint8Array(applicationServerKey),
-        })
-        .then(function (sub) {
-            var data = {
-                p256dh: btoa(
-                    String.fromCharCode.apply(null, new Uint8Array(sub.getKey('p256dh')))
-                ),
-                auth: btoa(
-                    String.fromCharCode.apply(null, new Uint8Array(sub.getKey('auth')))
-                ),
-                registration_id: sub.endpoint,
-            };
-
-console.log("send", data)
-            requestPOSTToServer(data)
-        })
-        .catch(function (e) {
-            if (Notification.permission === 'denied') {
-                console.warn('Permission for notifications was denied')
-            } else {
-                console.error('Unable to subscribe to push', e)
-            }
-        })
-    })
-}
-  
-// Send the subscription data to your server
-function requestPOSTToServer (data) {
+/** Send the subscription data to your server */
+function requestPOSTToServer(data) {
     const headers = new Headers();
     headers.set('X-CSRFToken', document.querySelector("[name=csrfmiddlewaretoken]").value);
     headers.set('Content-Type', 'application/json');
@@ -67,5 +33,58 @@ function requestPOSTToServer (data) {
   
     return fetch(endpoint_url, requestOptions)
         .then((response) => response.json())
-        .then((res) => document.querySelector("result").innerHTML = res?.message || "");
+        .then((res) => document.querySelector("result").textContent = res?.message || "");
 }
+
+
+/** register a user's device for web pushies */
+function subscribeUser() {
+    if (!('Notification' in window) ||  !('serviceWorker' in navigator)) { return; }
+
+    const string_transform = key => btoa(String.fromCharCode.apply(null, new Uint8Array(sub.getKey(key))));
+
+    /** subscribe to push service to get connection credentials via PushSubscription*/
+    navigator.serviceWorker.ready.then(function (reg) {
+        reg.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: urlBase64ToUint8Array(applicationServerKey),
+        })
+        .then(sub =>
+
+            // create (or update) PushDevice @ backend
+            requestPOSTToServer({
+                p256dh: string_transform('p256dh'),
+                auth: string_transform('auth'),
+                registration_id: sub.endpoint,
+            })
+        )
+        .catch(function (e) {
+            if (Notification.permission === 'denied') {
+                console.warn('Permission for notifications was denied')
+            } else {
+                console.error('Unable to subscribe to push', e)
+            }
+        })
+    })
+}
+
+
+/** register WebPush-ServiceWorker */
+async function registerServiceWorker() {
+    if (!("serviceWorker" in navigator)) { return; }
+
+    try {
+        const registration = await navigator.serviceWorker.register("/sw.js", { scope: "/" });
+        if (registration.installing) {
+            console.log("Service worker installing");
+        } else if (registration.waiting) {
+            console.log("Service worker installed");
+        } else if (registration.active) {
+            console.log("Service worker active");
+        }
+    } catch (error) {
+        console.error(`Registration failed with ${error}`);
+    }
+}
+
+registerServiceWorker();
