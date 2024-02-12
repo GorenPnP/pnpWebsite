@@ -14,6 +14,7 @@ from ppServer.mixins import SpielleiterOnlyMixin
 from ppServer.settings import PUSH_NOTIFICATION_KEY
 
 from .forms import *
+from .models import *
 
 
 class TestView(SpielleiterOnlyMixin, TemplateView):
@@ -32,20 +33,17 @@ class TestView(SpielleiterOnlyMixin, TemplateView):
 		else:
 			# success
 
-			# prepare data
-			users = form.cleaned_data["recipients"]
-			devices = WebPushDevice.objects.filter(user__in=users, active=True)
-
 			# send messages
+			users = form.cleaned_data["recipients"]
 			del form.cleaned_data["recipients"]
-			results = devices.send_message(json.dumps(form.cleaned_data))
+			results = PushSettings.send_message(users, **form.cleaned_data)
 
 			# logging
 			success = [r for r in results if "success" in r]
 			error = [r for r in results if "failure" in r]
 
 			print("Errors on send:", error)
-			messages.success(request, f"Send pushies to {len(success)} / {devices.count()} active devices")
+			messages.success(request, f"Send pushies to {len(success)} / {len(results)} devices")
 
 		return redirect("web_push:test")
 

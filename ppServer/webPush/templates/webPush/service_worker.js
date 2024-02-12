@@ -50,7 +50,7 @@ self.addEventListener('notificationclick', (event) => {
         clients.matchAll({type: 'window', includeUncontrolled: true})
             .then(windowClients => {
                 const client = windowClients.find(c => 'focus' in c);
-                return client.focus();
+                return client?.focus();
             })
     );
 });
