@@ -31,7 +31,9 @@ self.addEventListener('push', function (event) {
         var message_tag = "";
     }
 console.log(getTitle(title), getNotificationOptions(message, message_tag))
+console.log("registration:", self, self.registration)
     self.registration.showNotification(getTitle(title), getNotificationOptions(message, message_tag)).catch(e => console.error(e));
+console.log("after show notification")
 
     // Optional: Communicating with our js application. Send a signal
     self.clients.matchAll({includeUncontrolled: true, type: 'window'}).then(function (clients) {

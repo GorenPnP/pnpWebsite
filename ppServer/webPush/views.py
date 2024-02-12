@@ -17,18 +17,22 @@ from .forms import *
 
 
 class TestView(SpielleiterOnlyMixin, TemplateView):
-    template_name = "webPush/testpage.html"
+	template_name = "webPush/testpage.html"
 
-    def get(self, request: HttpRequest) -> HttpResponse:
-        return render(request, self.template_name, {"app_server_key": PUSH_NOTIFICATION_KEY})
+	def get(self, request: HttpRequest) -> HttpResponse:
+		return render(request, self.template_name, {"app_server_key": PUSH_NOTIFICATION_KEY})
 
-    def post(self, request):
-        message = request.POST.get("message") or "<default message>"
-        print(message)
-        WebPushDevice.objects.all().send_message(message)
+	def post(self, request):
+		message = request.POST.get("message") or "<default message>"
+		print(message)
 
-        messages.success(request, f"Send pushies to all {WebPushDevice.objects.count()} devices")
-        return redirect("web_push:test")
+		results = WebPushDevice.objects.all().send_message(message)
+		success = [r for r in results if "success" in r]
+		error = [r for r in results if "failure" in r]
+		print("Errors on send:", error)
+
+		messages.success(request, f"Send pushies to {len(success)} / {WebPushDevice.objects.filter(active=True).count()} devices")
+		return redirect("web_push:test")
 
 
 @require_POST
