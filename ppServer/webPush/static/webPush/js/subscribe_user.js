@@ -41,23 +41,24 @@ function requestPOSTToServer(data) {
 function subscribeUser() {
     if (!('Notification' in window) ||  !('serviceWorker' in navigator)) { return; }
 
-    const string_transform = key => btoa(String.fromCharCode.apply(null, new Uint8Array(sub.getKey(key))));
-
+    
     /** subscribe to push service to get connection credentials via PushSubscription*/
     navigator.serviceWorker.ready.then(function (reg) {
         reg.pushManager.subscribe({
             userVisibleOnly: true,
             applicationServerKey: urlBase64ToUint8Array(applicationServerKey),
         })
-        .then(sub =>
+        .then(sub => {
+            const string_transform = key => btoa(String.fromCharCode.apply(null, new Uint8Array(sub.getKey(key))));
 
             // create (or update) PushDevice @ backend
-            requestPOSTToServer({
+            return requestPOSTToServer({
                 p256dh: string_transform('p256dh'),
                 auth: string_transform('auth'),
                 registration_id: sub.endpoint,
             })
-        )
+
+        })
         .catch(function (e) {
             if (Notification.permission === 'denied') {
                 console.warn('Permission for notifications was denied')
