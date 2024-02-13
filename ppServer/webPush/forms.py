@@ -4,13 +4,20 @@ from django.db.models import Exists, OuterRef
 
 from push_notifications.models import WebPushDevice
 
-from .models import PushTag
+from .models import *
 
 
 class RegisterWebPushDeviceForm(forms.ModelForm):
     class Meta:
         model = WebPushDevice
         fields = ["registration_id", "p256dh", "auth", ] # "browser", "application_id", "name", "user", "active",
+
+
+class PushSettingsForm(forms.ModelForm):
+    class Meta:
+        model = PushSettings
+        fields = ["chat", "news", "polls", "quiz", "changelog"]
+
 
 class SendMessageForm(forms.Form):
 

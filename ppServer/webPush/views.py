@@ -2,9 +2,10 @@ import json
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http.request import HttpRequest as HttpRequest
 from django.http.response import HttpResponse as HttpResponse, JsonResponse
-from django.shortcuts import redirect, render
+from django.shortcuts import redirect, render, get_object_or_404
 from django.views.decorators.http import require_POST
 from django.views.generic.base import TemplateView
 
@@ -15,6 +16,32 @@ from ppServer.settings import PUSH_NOTIFICATION_KEY
 
 from .forms import *
 from .models import *
+
+
+class SettingView(LoginRequiredMixin, TemplateView):
+	template_name = "webPush/settings.html"
+
+	def get_object(self):
+		return get_object_or_404(PushSettings, user=self.request.user)
+
+	def get(self, request):
+		context = {
+			"topic": "Einstellungen",
+			"form": PushSettingsForm(instance=self.get_object()),
+		}
+		return render(request, self.template_name, context)
+	
+	def post(self, request):
+		form = PushSettingsForm(request.POST, instance=self.get_object())
+
+		form.full_clean()
+		if form.is_valid():
+			form.save()
+			messages.success(request, "Einstellungen erfolgreich gespeichert")
+		else:
+			messages.error(request, "Einstellungen konnten nicht gespeichert werden")
+
+		return redirect("web_push:settings")
 
 
 class TestView(SpielleiterOnlyMixin, TemplateView):
@@ -64,3 +91,9 @@ def register_webpush(request):
         return JsonResponse({"message": "success"})
     return JsonResponse({"message": "error"}, status=400)
 
+
+@require_POST
+@login_required
+def send_testmessage(request):
+	PushSettings.send_message([request.user], "Test", "dies ist eine Test-Benachrichtiging, die du dir selbst geschickt hast.", PushTag.other)
+	return JsonResponse({"message": "sent"})

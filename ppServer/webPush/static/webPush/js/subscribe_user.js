@@ -1,5 +1,13 @@
-const endpoint_url = document.querySelector("#endpoint").innerHTML;
-const applicationServerKey = JSON.parse(document.querySelector("#app_server_key").innerHTML);
+/**
+ * Need to register a user-device pair for web-pushies by calling registerForWebPush() somewhere on the site.
+ *
+ * registers a service worker to handle web-pushies automatically
+ */
+
+/********* Constants **************/
+const applicationServerKey = JSON.parse(document.querySelector("#PUSH_NOTIFICATION_KEY").innerHTML);
+const endpoint_url = JSON.parse(document.querySelector("#PUSH_SUBSCRIBE_USER_ENDPOINT").innerHTML);
+const csrf_token = document.querySelector("[name=csrfmiddlewaretoken]").value;
 
 /********* Utils functions *****************/
 
@@ -21,33 +29,35 @@ function urlBase64ToUint8Array(base64String) {
 
 /** Send the subscription data to your server */
 function requestPOSTToServer(data) {
-    const headers = new Headers();
-    headers.set('X-CSRFToken', document.querySelector("[name=csrfmiddlewaretoken]").value);
-    headers.set('Content-Type', 'application/json');
-
     const requestOptions = {
         method: 'POST',
-        headers,
+        headers: new Headers({
+            'X-CSRFToken': csrf_token,
+            'Content-Type': 'application/json',
+        }),
         body: JSON.stringify(data),
     };
   
     return fetch(endpoint_url, requestOptions)
         .then((response) => response.json())
-        .then((res) => document.querySelector("result").textContent = res?.message || "");
+        .then((res) => res?.message === "success");
 }
 
 
 /** register a user's device for web pushies */
-function subscribeUser() {
+async function registerForWebPush(show_alerts=true) {
     if (!('Notification' in window) ||  !('serviceWorker' in navigator)) { return; }
 
     
-    /** subscribe to push service to get connection credentials via PushSubscription*/
-    navigator.serviceWorker.ready.then(function (reg) {
-        reg.pushManager.subscribe({
-            userVisibleOnly: true,
-            applicationServerKey: urlBase64ToUint8Array(applicationServerKey),
-        })
+    // subscribe to push service
+    navigator.serviceWorker.ready
+        .then(reg =>
+            reg.pushManager.subscribe({
+                userVisibleOnly: true,
+                applicationServerKey: urlBase64ToUint8Array(applicationServerKey),
+            })
+        )
+        // get connection credentials via PushSubscription
         .then(sub => {
             const string_transform = key => btoa(String.fromCharCode.apply(null, new Uint8Array(sub.getKey(key))));
 
@@ -57,16 +67,28 @@ function subscribeUser() {
                 auth: string_transform('auth'),
                 registration_id: sub.endpoint,
             })
-
         })
-        .catch(function (e) {
-            if (Notification.permission === 'denied') {
-                console.warn('Permission for notifications was denied')
-            } else {
-                console.error('Unable to subscribe to push', e)
+        // notify user (probably success)
+        .then(success => {
+            if (success) {
+                show_alerts && alert(`Erfolgreich registriert`);
+                console.log("webpush-registration was successful");
+            }
+            else {
+                console.error('Unable to subscribe to push', "Registrierungsdaten falsch oder unvollständig")
+                show_alerts && alert(`Ein Fehler ist aufgetreten: Registrierungsdaten sind falsch oder unvollständig`);
             }
         })
-    })
+        // notify user (error)
+        .catch(function (e) {
+            if (Notification.permission === 'denied') {
+                console.warn('Permission for notifications was denied');
+                alert('Berechtigung für Nachrichten wurde nicht erteilt');
+            } else {
+                console.error('Unable to subscribe to push', e)
+                show_alerts && alert(`Ein Fehler ist aufgetreten: ${e}`);
+            }
+        });
 }
 
 

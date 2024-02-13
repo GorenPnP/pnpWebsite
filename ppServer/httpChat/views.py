@@ -14,6 +14,7 @@ from ppServer.mixins import VerifiedAccountMixin, OwnChatMixin
 
 from .forms import AccountForm, ChatroomForm
 from .models import *
+from .signals import send_webpush
 
 class AccountListView(LoginRequiredMixin, VerifiedAccountMixin, TemplateView):
     template_name = "httpChat/account_list.html"
@@ -121,6 +122,7 @@ class ChatroomView(LoginRequiredMixin, OwnChatMixin, TemplateView):
         # set accessed
         self.latest_access = objects["chatroomaccount"].latest_access
         ChatroomAccount.objects.filter(chatroom=objects["chatroom"], account__spieler=request.spieler.instance).update(latest_access=datetime.now())
+        send_webpush(ChatroomAccount, instance=ChatroomAccount.objects.filter(chatroom=objects["chatroom"], account__spieler=request.spieler.instance).first())
 
         # if opening chatroom for the first time, add welcome msg
         if self.latest_access.year == ancient_datetime().year:

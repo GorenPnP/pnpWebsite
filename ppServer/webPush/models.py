@@ -3,6 +3,7 @@ from typing import Iterable
 
 from django.contrib.auth.models import User
 from django.db import models
+from django.urls import reverse
 
 from push_notifications.models import WebPushDevice
 
@@ -25,11 +26,11 @@ class PushSettings(models.Model):
 
     user = models.OneToOneField(User, on_delete=models.CASCADE, unique=True)
 
-    chat = models.BooleanField(default=True)
-    news = models.BooleanField(default=True)
-    quiz = models.BooleanField(default=True)
-    changelog = models.BooleanField(default=True)
-    polls = models.BooleanField(default=True)
+    chat = models.BooleanField(default=True, verbose_name="neue Chat-Nachrichten")
+    news = models.BooleanField(default=True, verbose_name="neue Goren-Newsartikel")
+    quiz = models.BooleanField(default=True, verbose_name="Änderungen im Quiz")
+    changelog = models.BooleanField(default=True, verbose_name="Updates der Website")
+    polls = models.BooleanField(default=True, verbose_name="neue Umfragen")
 
     def __str__(self):
         return f"PushSettings von {self.user}"
@@ -37,6 +38,19 @@ class PushSettings(models.Model):
 
     @classmethod
     def send_message(cls, recipients: Iterable[User], title: str, message: str, tag: PushTag):
+        # get url to link to when the push message is clicked
+        url_map = {
+            PushTag.chat: reverse("httpchat:index"),
+            PushTag.news: reverse("news:index"),
+            PushTag.quiz: reverse("quiz:index"),
+            PushTag.changelog: reverse("changelog:index"),
+            PushTag.polls: reverse("base:index"),
+
+            PushTag.other: None
+        }
+        url = url_map[tag]
+
+        # transform tag to string
         tag = tag.value if type(tag) == PushTag else tag
 
         # get filtered recipients
@@ -48,6 +62,7 @@ class PushSettings(models.Model):
         msg = {
             "title": title or "",
             "message": message,
-            "tag": tag
+            "tag": tag,
+            "url": url,
         }
         return WebPushDevice.objects.filter(user__in=users).send_message(json.dumps(msg))

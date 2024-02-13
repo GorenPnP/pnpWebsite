@@ -8,10 +8,11 @@ self.addEventListener('push', function (event) {
     let title = "";
     let message = event.data.text();
     let tag = "";
+    let url = "/";
 
     try {
         // Push as JSON
-        ({title, message, tag} = event.data.json());
+        ({title, message, tag, url} = event.data.json());
     } catch (err) {
         // Push really is simple text :o
     }
@@ -20,7 +21,8 @@ self.addEventListener('push', function (event) {
         body: message,
         icon: "{% static 'res/img/goren_logo.png' %}",
         tag,
-        vibrate: [200, 100, 200, 100, 200, 100, 200]
+        vibrate: [200, 100, 200, 100, 200, 100, 200],
+        data: { url }
     }
     self.registration.showNotification(title || "Hallo", options)
         .catch(e => console.error(e));
@@ -49,8 +51,27 @@ self.addEventListener('notificationclick', (event) => {
     event.waitUntil(
         clients.matchAll({type: 'window', includeUncontrolled: true})
             .then(windowClients => {
-                const client = windowClients.find(c => 'focus' in c);
-                return client?.focus();
+
+                // no url specified. Don't open browser tab
+                if (!event.notification.data.url) { return; }
+
+                // get url
+                const url = [
+                    event.target.registration.scope.replace(/\/*$/, ""),
+                    (event.notification.data.url || "").replace(/^\/*/, ""),
+                ].join("/");
+
+                // Check if there is already a window/tab open with the target URL
+                const client = windowClients.find(c => c.url === url && 'focus' in c);
+                if (client) { return client.focus(); }
+
+                // If not, then open the target URL in a new window/tab.
+                if (clients.openWindow) { return clients.openWindow(url); }
+
+
+                // // open any tab of this scope (which is the full domain in this case)
+                // const client = windowClients.find(c => 'focus' in c);
+                // return client?.focus();
             })
     );
 });

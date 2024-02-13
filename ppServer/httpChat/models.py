@@ -95,8 +95,6 @@ class Message(models.Model):
 
     type = models.CharField(choices=choices, default="m", max_length=1)
     text = models.CharField(max_length=2000)
-    # text = MarkdownField(rendered_field='text_rendered', validator=VALIDATOR_STANDARD)
-    # text_rendered = RenderedMarkdownField(null=True)
     author = models.ForeignKey(Account, on_delete=models.SET_NULL, null=True, related_name="author")
 
     chatroom = models.ForeignKey(Chatroom, on_delete=models.CASCADE)

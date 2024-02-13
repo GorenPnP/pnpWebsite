@@ -23,7 +23,6 @@ body {
 }
 
 #top-navbar {
-	flex-wrap: nowrap;
 
 	.container-fluid {
 		gap: var(--bs-navbar-brand-margin-end);
@@ -71,6 +70,11 @@ body {
 
 	// apply general bg
 	background-color: var(--background-color--main);
+
+	// break text with syllable-respecting hyphens into the next line
+	hyphens: auto;
+
+	& > * { max-width: 100%; }
 }
 
 

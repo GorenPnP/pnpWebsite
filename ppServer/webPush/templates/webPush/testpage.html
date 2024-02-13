@@ -2,10 +2,6 @@
 {% load static %}
 
 {% block extra-head %}
-{{ app_server_key|json_script:'app_server_key' }}
-<script type="application/json" id="endpoint">{% url 'web_push:subscribe_user' %}</script>
-<script src="{% static 'webPush/js/subscribe_user.js' %}" defer></script>
-
 <style>
     .helptext {
         display: block;
@@ -19,8 +15,7 @@
 <div class="container">
     <div class="row">
         <div class="col d-flex flex-column">
-            <button class="btn btn-primary" onclick="subscribeUser()">dieses Gerät registrieren</button>
-            <result></result>
+            <button class="btn btn-primary" onclick="registerForWebPush(true)">dieses Gerät registrieren</button>
         </div>
 
         <form class="col d-flex flex-column" method="post">
