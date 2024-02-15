@@ -40,6 +40,17 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.staticfiles',
 
+    # libs/plugins
+    'colorfield',
+    'dbbackup',
+    'debug_toolbar',
+    'django_bootstrap5',
+    'django_filters',
+    'django_tables2',
+    'markdownfield',
+    'markdown_view',
+    'push_notifications',
+
     # own apps
     'admin',   # replacement for 'django.contrib.admin'
     'auth_custom',
@@ -67,17 +78,8 @@ INSTALLED_APPS = [
     'shop',
     'time_space',
     'todays_fact',
+    'webPush',
     'wiki',
-
-    # libs/plugins
-    'colorfield',
-    'dbbackup',
-    'debug_toolbar',
-    'django_bootstrap5',
-    'django_filters',
-    'django_tables2',
-    'markdownfield',
-    'markdown_view',
 ]
 
 MIDDLEWARE = [
@@ -109,6 +111,9 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+
+                # custom
+                "webPush.context_processors.push_settings",
             ],
         },
     },
@@ -267,3 +272,13 @@ if not DEBUG:
 
 # AttributeError: 'Settings' object has no attribute 'SITE_URL' of markdown-field
 SITE_URL = ''
+
+
+PUSH_NOTIFICATIONS_SETTINGS = {
+    "WP_PRIVATE_KEY": os.path.join(BASE_DIR, "webPush", "certs", "private_key.pem"),
+    "WP_CLAIMS": {'sub': os.environ.get('PUSH_NOTIFICATION_CONTACT') },
+    "UNIQUE_REG_ID": True,
+}
+
+
+PUSH_NOTIFICATION_KEY = os.environ.get('PUSH_NOTIFICATION_KEY')

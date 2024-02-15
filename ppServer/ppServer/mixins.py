@@ -38,7 +38,7 @@ class OwnChatMixin(UserPassesTestMixin):
         account_slug = self.request.resolver_match.kwargs.get("account_name")
         chatroom_id = self.request.resolver_match.kwargs.get("room_id")
         spieler = self.request.spieler.instance
-        account =  Account.objects.filter(slug=account_slug, spieler=spieler)
+        account = Account.objects.filter(slug=account_slug, spieler=spieler)
 
         if not account.exists(): return False
         if not chatroom_id: return True

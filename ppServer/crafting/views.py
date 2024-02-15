@@ -11,7 +11,7 @@ from shop.models import Tinker
 
 from .forms import AddToInventoryForm
 from .models import *
-from .templatetags.duration import duration
+from .templatetags.crafting.duration import duration
 
 
 @login_required

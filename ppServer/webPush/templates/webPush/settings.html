@@ -1,0 +1,65 @@
+{% extends 'base/headed_main.html' %}
+{% load static %}
+
+{% block extra-head %}
+<style>
+    .main-container {
+        max-width: 65ch;
+        width: min(fit-content, 100%);
+        margin: auto;
+    }
+    form { width: fit-content; }
+    p {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: .5em;
+    }
+</style>
+
+<script id="send_test_endpoint" type="application/json">{% url 'web_push:send_testmessage' %}</script>
+<script defer>
+    const endpoint = document.querySelector("#send_test_endpoint").innerHTML;
+
+    function test_push() {
+        const csrf_token = document.querySelector("[name=csrfmiddlewaretoken]").value;
+
+        const requestOptions = {
+            method: 'POST',
+            headers: new Headers({
+                'X-CSRFToken': csrf_token,
+                'Content-Type': 'application/json',
+            }),
+            body: "",
+        };
+    
+        return fetch(endpoint, requestOptions)
+            .then((response) => response.json());
+    }
+</script>
+{% endblock %}
+
+{% block main %}
+<h2>Benachrichtigungen</h2>
+
+<div class="mt-5">
+    <h3>Gerät registrieren</h3>
+    <p>Möchtest du dieses Gerät für Benachrichtigungen registrieren?</p>
+    <button class="btn btn-primary" onclick="registerForWebPush(true)">Gerät registrieren</button>
+</div>
+
+<div class="mt-5">
+    <h3>Themen</h3>
+    <p>Welche Themen möchtest du mit deinen Geräten abonnieren?</p>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-primary">Themen speichern</button>
+    </form>
+</div>
+
+<div class="mt-5">
+    <h3>Benachrichtigungen testen</h3>
+    <p>Sende Test-Benachrichtigungen an alle deine Geräte</p>
+    <button class="btn btn-primary" onclick="test_push()">Testnachricht senden</button>
+</div>
+{% endblock %}

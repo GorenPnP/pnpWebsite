@@ -15,7 +15,7 @@ function refresh_page(msg = 'Die nicht versendete Nachricht wird beim Refreshen 
 function poll_new_messages() {
 	const url = `${location.href.replace(/\/$/, "")}/poll`;
 	axios.get(url)
-		.then(({data}) => data.new_messages && refresh_page('Es gibt neue Nachrichten. Deine nicht versendete Nachricht wird beim Laden allerdings gelöscht. Trotzdem Laden?'));
+		.then(({data}) => data.unread_messages && refresh_page('Es gibt neue Nachrichten. Deine nicht versendete Nachricht wird beim Laden allerdings gelöscht. Trotzdem Laden?'));
 }
 
 /*
@@ -27,7 +27,6 @@ document.addEventListener("DOMContentLoaded", _ => {
 	document.querySelector("#prompt").addEventListener("keydown", function({ keyCode }) {
 		
 		// on enter
-		console.log(this)
 		if (keyCode === 13 && this.value?.length) this.form.submit();
 	})
 

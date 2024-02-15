@@ -120,7 +120,7 @@ https://cloud.google.com/sdk/docs/install?hl=de#deb
 1. install docker
 1. clone [git-repo](https://github.com/GorenPnP/pnpWebsite) to /home/debian
 1. add previously saved .env files
-1. protect against ssh bruteforce attacks with fail2ban `sudo apt install fail2ban` + configure for sshd [see this](https://www.golinuxcloud.com/fail2ban-ssh), see jail status: `sudo fail2ban-client status sshd`
+1. protect against ssh bruteforce attacks with [fail2ban](https://wiki.ubuntuusers.de/fail2ban/#Status-der-Jails) `sudo apt install fail2ban` + configure for sshd [see this](https://www.golinuxcloud.com/fail2ban-ssh), see jail status: `sudo fail2ban-client status sshd`
 1. `sudo pip3 install gsutil && sudo gsutil config` (on host) for google cloud connection & auth
 1. add cronjob for backups `sudo crontab -e`
 1. restore db & media
@@ -140,6 +140,18 @@ https://cloud.google.com/sdk/docs/install?hl=de#deb
 
 ## update os on OVH
 [Guide](https://docs.ovh.com/de/public-cloud/upgrade-os/)
+
+## rescue mode on OVH
+* reboot into rescue mode via OVH-web-dashboard
+* wait for email with credentials
+* ssh onto rescue-machine
+* `mount /dev/sdb1 /mnt`
+* `chroot /mnt /bin/bash`
+* fix issue (logs are at `cd /var/logs/`), see [here](https://askubuntu.com/questions/311558/ssh-permission-denied-publickey) for ssh permission denied
+* reboot normally via OVH-web-dashboard
+
+## login as someone else
+`sudo -u user2 bash`
 
 # Update postgres version
 
@@ -164,3 +176,6 @@ https://cloud.google.com/sdk/docs/install?hl=de#deb
 5. enter db password when prompted
 6. change port settings back. Replace `ports: -5432:5430` to `expose: -5432` in docker-compose.prod.yml 
 7. restart everything `docker-compose -f docker-compose.prod.yml up -d`
+
+## generate self-signed certs (for local testing)
+* https://tecadmin.net/step-by-step-guide-to-creating-self-signed-ssl-certificates/

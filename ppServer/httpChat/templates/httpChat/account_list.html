@@ -24,8 +24,8 @@
             {{ account.name }}
         </a>
 
-        {% if account.new_messages %}
-        <span class="badge bg-primary rounded-pill fs-6">{{ account.new_messages }}</span>
+        {% if account.unread_messages %}
+        <span class="badge bg-primary rounded-pill fs-6">{{ account.unread_messages }}</span>
         {% endif %}
     </li>
 {% endfor %}
