@@ -7,7 +7,7 @@
 		<meta content="text/html;charset=utf-8" http-equiv="Content-Type">
 		<meta content="utf-8" http-equiv="encoding">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
-		<title>{{ chatroom|titel:account }}</title>
+		<title>{{ chatroom.final_title }}</title>
 		<link rel="shortcut icon" href="{% static 'res/img/goren_logo.png' %}" type="image/x-icon">
 
 		{% bootstrap_css %}
@@ -24,7 +24,7 @@
 				<a href="{% url 'httpchat:account_chats' account.slug %}" class="btn btn-outline-dark" style="margin-right: 1em;">< Zurück</a>
 
 				<div class="navbar-brand d-flex align-items-center gap-2 chat-navbar-content">
-					{{ chatroom|titel:account }}
+					{{ chatroom.final_title }}
 
 					<div class="avatar-container">
 						{% for url in chatroom|get_avatar_urls:account %}
