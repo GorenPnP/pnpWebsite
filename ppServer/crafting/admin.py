@@ -3,7 +3,7 @@ from django.utils.html import format_html
 
 
 from .models import *
-from .templatetags.duration import duration
+from .templatetags.crafting.duration import duration
 
 
 class ProfileAdmin(admin.ModelAdmin):

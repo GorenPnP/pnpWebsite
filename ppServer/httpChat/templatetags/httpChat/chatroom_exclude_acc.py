@@ -1,6 +1,6 @@
 from django import template
 
-from ..models import Account, Chatroom
+from httpChat.models import Account, Chatroom
 
 register = template.Library()
 

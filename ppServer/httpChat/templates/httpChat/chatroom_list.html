@@ -1,5 +1,5 @@
 {% extends 'base/main.html' %}
-{% load static chatroom_exclude_acc %}
+{% load static httpChat.chatroom_exclude_acc %}
 
 {% block title %}{{ account.name }}{% endblock %}
 {% block extra-head %}
@@ -35,14 +35,16 @@
             <a href="{% url 'httpchat:chatroom' account.slug chat.id %}" class="ms-2 me-auto text-dark">
                 <div class="fw-bold">{{ chat|titel:account }}</div>
                 {% if  chat.message_set.count %}
+                {% with msg=chat.message_set.last %}
                 <i>
-                    {% if  chat.message_set.last.author == account %}Du{% else %}{{ chat.message_set.last.author }}{% endif %}:
-                    {{ chat.message_set.last.text|truncatechars:30 }}
+                    {% if  msg.author == account %}Du{% else %}{{ msg.author }}{% endif %}:
+                    {{ msg.text|truncatechars:30 }}
                 </i>
+                {% endwith %}
                 {% endif %}
             </a>
-            {% if chat.new_messages %}
-            <span class="badge bg-primary rounded-pill fs-6">{{ chat.new_messages }}</span>
+            {% if chat.unread_messages %}
+            <span class="badge bg-primary rounded-pill fs-6">{{ chat.unread_messages }}</span>
             {% endif %}
         </li>
     {% endfor %}

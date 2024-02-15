@@ -26,16 +26,6 @@ self.addEventListener('push', function (event) {
     }
     self.registration.showNotification(title || "Hallo", options)
         .catch(e => console.error(e));
-
-    // Optional: Communicating with our js application. Send a signal
-    self.clients.matchAll({includeUncontrolled: true, type: 'window'})
-        .then(clients => clients.forEach(client =>
-            client.postMessage({
-                data: tag,
-                data_title: title,
-                data_body: message
-            })
-        ));
 });
   
 // Optional: Added to that the browser opens when you click on the notification push web.

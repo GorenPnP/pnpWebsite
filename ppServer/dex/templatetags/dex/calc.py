@@ -1,6 +1,6 @@
 from django import template
 
-from ..monster.models import Typ
+from dex.monster.models import Typ
 
 register = template.Library()
 
