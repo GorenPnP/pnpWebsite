@@ -26,33 +26,42 @@
 			{{ PUSH_SUBSCRIBE_USER_ENDPOINT|json_script:'PUSH_SUBSCRIBE_USER_ENDPOINT' }}
 			<script src="{% static 'webPush/js/subscribe_user.js' %}" defer></script>
 		{% endif %}
+
+		<!-- scrolling header -->
+		<link rel="stylesheet" href="{% static 'base/css/scrolling_header.css' %}" type="text/css">
+		<script src="{% static 'base/js/scrolling_header.js' %}" defer></script>
+
+
 		{% block extra-head %}{% endblock %}
 	</head>
 
 	<body>{% csrf_token %}
 
-		{% block header %}{% endblock %}
+		<div id="scrolling-header">{% block header %}{% endblock %}</div>
 
-		{% if messages %}
-		<ul class="messages p-0 m-0">
-			{% for message in messages %}
-			<li class="message w-100 p-2{% if message.tags %} {{ message.tags }}"{% endif %}>{{ message }}</li>
-			{% endfor %}
-		</ul>
-		{% endif %}
+		<div id="after-header">
 
-		{% block asides %}{% endblock %}
-
-		<main class="main-container">
-			{% block main %}{% endblock %}
-		</main>
-
-	
-		{% block footer %}
-			{% if request.user.is_authenticated and not request.user.email %}
-				<footer class="email-footer text-dark">Magst du eine <a href="{% url 'auth:change_email' %}">Email angeben</a>? Falls du das Passwort vergisst kannst du es über die Email zurücksetzen.</footer>
+			{% if messages %}
+			<ul class="messages p-0 m-0">
+				{% for message in messages %}
+				<li class="message w-100 p-2{% if message.tags %} {{ message.tags }}"{% endif %}>{{ message }}</li>
+				{% endfor %}
+			</ul>
 			{% endif %}
-		{% endblock %}
+
+			{% block asides %}{% endblock %}
+
+			<main class="main-container">
+				{% block main %}{% endblock %}
+			</main>
+
+		
+			{% block footer %}
+				{% if request.user.is_authenticated and not request.user.email %}
+					<footer class="email-footer text-dark">Magst du eine <a href="{% url 'auth:change_email' %}">Email angeben</a>? Falls du das Passwort vergisst kannst du es über die Email zurücksetzen.</footer>
+				{% endif %}
+			{% endblock %}
+		</div>
 	</body>
 </html>
 {% endspaceless %}

@@ -10,32 +10,47 @@
 		<title>{{ chatroom.final_title }}</title>
 		<link rel="shortcut icon" href="{% static 'res/img/goren_logo.png' %}" type="image/x-icon">
 
+		<!-- bootstrap -->
 		{% bootstrap_css %}
 		{% bootstrap_javascript %}
+
+		<!-- scrolling header -->
+		<link rel="stylesheet" href="{% static 'base/css/scrolling_header.css' %}" type="text/css">
+		<script src="{% static 'httpChat/js/scrolling_header.js' %}" defer></script>
+
+		<!-- auto-resizing textarea  -->
+		<link rel="stylesheet" type="text/css" href="{% static 'base/css/textarea.css' %}" />
+		<script src="{% static 'base/js/textarea.js' %}" type="text/javascript"></script>
+
+		<!-- custom -->
 		<link rel="stylesheet" type="text/css" href="{% static 'httpChat/css/avatars.css' %}" />
 		<link rel="stylesheet" type="text/css" href="{% static 'httpChat/css/chatroom.css' %}" />
+
 		<script src="{% static 'res/js/axios.min.js' %}" type='text/javascript'></script>
 		<script src="{% static 'httpChat/js/chatroom.js' %}"></script>
 	</head>
 
 	<body>
-		<nav class="navbar navbar-expand-lg bg-light">
-			<div class="container-fluid">
-				<a href="{% url 'httpchat:account_chats' account.slug %}" class="btn btn-outline-dark" style="margin-right: 1em;">< Zurück</a>
+		<header id="scrolling-header">
+			<nav class="navbar navbar-expand-lg bg-light">
+				<div class="container-fluid">
+					<a href="{% url 'httpchat:account_chats' account.slug %}" class="btn btn-outline-dark" style="margin-right: 1em;">< Zurück</a>
 
-				<div class="navbar-brand d-flex align-items-center gap-2 chat-navbar-content">
-					{{ chatroom.final_title }}
+					<div class="navbar-brand d-flex align-items-center gap-2 chat-navbar-content">
+						{{ chatroom.final_title }}
 
-					<div class="avatar-container">
-						{% for url in chatroom|get_avatar_urls:account %}
-							<img src="{{ url }}" alt="Logo" class="rounded-circle border border-primary d-inline-block align-text-top" style="height: 47px; aspect-ratio: 1">
-						{% endfor %}
+						<div class="avatar-container">
+							{% for url in chatroom|get_avatar_urls:account %}
+								<img src="{{ url }}" alt="Logo" class="rounded-circle border border-primary d-inline-block align-text-top" style="height: 47px; aspect-ratio: 1">
+							{% endfor %}
+						</div>
 					</div>
 				</div>
-			</div>
-		</nav>
+			</nav>
+		</header>
 
 		<main id="message-container">
+			<div id="scroll-indicator"></div>
 			{% for message in chatroom.message_set.all %}
 
 				<!-- add date info -->
@@ -61,9 +76,9 @@
 		</main>
 
 		<footer class="sticky-bottom">
-			<form method="post" class="footer w-100" id="prompt-form">
+			<form method="post" class="footer">
 				{% csrf_token %}
-				<input type="text" id="prompt" name="message-text" placeholder="Nachricht">
+				<textarea id="prompt" name="message-text" placeholder="Nachricht"></textarea>
 				<input type="submit" id="submit-prompt-btn" value=">">
 				<button id="refresh-btn" type="button" onclick="refresh_page()" aria-label="Refresh page">⟳</button>
 			</form>

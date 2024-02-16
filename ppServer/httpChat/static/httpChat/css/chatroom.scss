@@ -1,7 +1,8 @@
 body {
 	margin: 0;
 	overflow-y: hidden;
-	--footer-height: 3em;
+	--min-footer-height: 3em;
+	--max-footer-height: 40vh;
 	--footer-padding: 10px;
 	--header-height: calc(57px + 2*8px);
 
@@ -13,8 +14,8 @@ body {
 .shadow { box-shadow: 0 0 10px darken(#dac7c7, 10%); }
 
 #message-container {
-	height: calc(100vh - var(--footer-height) - 2*var(--footer-padding) - var(--header-height));
-	padding: 1em;
+	height: calc(100vh - min(var(--max-footer-height), var(--footer-height, var(--min-footer-height))) - 2*var(--footer-padding));
+	padding: 1em 1em calc(var(--min-footer-height) + 2*var(--footer-padding));
 
 	display: grid;
 	grid-template-columns: 1fr;
@@ -77,41 +78,60 @@ body {
 }
 
 .footer {
-	height: calc(var(--footer-height) + 2*var(--footer-padding));
-	width: 100vw;
+	min-height: calc(var(--min-footer-height) + 2*var(--footer-padding));
+	width: 100%;
 	padding: var(--footer-padding);
-	gap: 5px;
 
 	display: flex;
+	justify-content: center;
+	gap: 5px;
 
 	& > * {
 		@extend .shadow;
-	
-		border-radius: 100px;
 		border: none;
-
-		&:hover, &:focus, &:focus-visible { opacity: .8; }
 	}
 
 	#prompt {
-		flex: 1; padding: 0 1em;
-		outline: none !important;
+		flex: 1;
+		padding: .4em 1em;
+		margin: 0;
+		border-radius: 10px;
+		opacity: 1;
+
+		max-height: var(--max-footer-height);
+		overflow-y: auto;
+	}
+
+	& > :where(button, [type=submit]) {
+		height: calc(var(--min-footer-height) - 2*var(--footer-padding));
+		border-radius: 100px;
+
+		line-height: 1em;
+		font-size: x-large;
+
+		&:hover, &:focus, &:focus-visible { opacity: .8; }
 	}
 	#submit-prompt-btn {
-		height: calc(var(--footer-height) - 2*var(--footer-padding));
 		aspect-ratio: 1;
 		background-color: hsl(163, 100%, 31%);
 		color: #fff;
 		padding: 0;
-		line-height: 1em;
-
-		font-size: x-large;
 	}
 	#refresh-btn {
 		flex: 0 0 10px;
 		background-color: lighten(#dac7c7, 10%);
 		color: hsl(163, 100%, 31%);
-
-		font-size: x-large;
 	}
+}
+
+
+// additional rules for scrolling header in reverse
+#scroll-indicator {
+	height: 0;
+	display: block;
+
+	transition: margin-bottom .25s .1s ease-in-out;
+}
+body:not(.hidden-header) #scroll-indicator {
+	margin-bottom: var(--visible-header-height);
 }
