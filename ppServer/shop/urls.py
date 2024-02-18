@@ -1,6 +1,6 @@
 from django.urls import path
 
-from .views.index import index, review_items
+from .views.index import index, review_items, transfer_items
 from .views import buy as buyViews
 from .views import list as listViews
 
@@ -9,6 +9,7 @@ app_name = 'shop'
 urlpatterns = [
     path('', index, name='index'),
     path('review/', review_items, name='review_items'),
+    path('transfer-items/', transfer_items, name='transfer_items'),
 
     path('all/', listViews.FullShopTableView.as_view(), name='all'),
 
