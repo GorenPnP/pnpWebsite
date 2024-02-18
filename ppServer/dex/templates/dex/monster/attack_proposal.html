@@ -2,48 +2,9 @@
 {% load static %}
 
 {% block extra-head %}
-<style>
-    .main-container {
-        max-width: fit-content;
-        margin: auto;
-    }
-    form {
-        border: 1px solid var(--bs-light);
-        border-radius: 20px;
-        padding: 2em;
-        width: fit-content;
-    }
-    .fieldWrapper {
-        margin-block: .7em;
-    }
-    .label-container label {
-        display: block;
-        font-weight: 800;
-    }
+<link rel="stylesheet" href="{% static 'dex/monster/css/attack_proposal.css' %}">
 
-    .draft-list {
-        max-width: 400px;
-        list-style: none;
-    }
-    .attack-container {
-        position: relative;
-
-        --btn-offset: .8em;
-        margin-top: calc(var(--btn-offset) * 1.5);
-    }
-    .edit-attack-btn {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        border-radius: 50%;
-        aspect-ratio: 1;
-        width: fit-content;
-
-        position: absolute;
-        top: calc(-1* var(--btn-offset));
-        right: calc(-1* var(--btn-offset));
-    }
-</style>
+<script src="{% static 'dex/monster/js/attack-filter.js' %}" defer></script>
 {% endblock %}
 
 {% block main %}
@@ -68,7 +29,12 @@
 </form>
 
 <h2 class="mt-5">Deine offenen Attackenvorschläge</h2>
-<ul class="draft-list">
+
+{% if object_list|length %}
+    {% include 'dex/monster/attack-filter.html' with types=types all_stats=all_stats %}
+{% endif %}
+
+<ul id="attack-list" class="list-unstyled">
     {% for a in object_list %}
     <li class="attack-container">
         {% include 'dex/monster/attack-listentry.html' with attack=a include_styles=forloop.first %}

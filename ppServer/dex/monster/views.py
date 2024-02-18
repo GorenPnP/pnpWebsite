@@ -644,6 +644,9 @@ class AttackProposalView(LoginRequiredMixin, ListView):
             topic = "Attacken-Vorschlag",
             is_create = "pk" not in self.kwargs,
             form = ProposeAttackForm(),
+
+            types=Typ.objects.all(),
+            all_stats=[(stat, label) for stat, label in RangStat.StatType if stat in ["N", "F", "MA", "VER_G", "VER_K"]],
         )
         if not context["is_create"]:
             spieler = self.request.spieler.instance

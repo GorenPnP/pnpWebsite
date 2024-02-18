@@ -1,0 +1,38 @@
+@import "./attack-filter";
+
+.main-container {
+    max-width: fit-content;
+    margin: auto;
+}
+form {
+    border: 1px solid var(--bs-light);
+    border-radius: 20px;
+    padding: 2em;
+    width: fit-content;
+}
+.fieldWrapper {
+    margin-block: .7em;
+}
+.label-container label {
+    display: block;
+    font-weight: 800;
+}
+
+.attack-container {
+    position: relative;
+
+    --btn-offset: .8em;
+    margin-top: calc(var(--btn-offset) * 1.5);
+}
+.edit-attack-btn {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 50%;
+    aspect-ratio: 1;
+    width: fit-content;
+
+    position: absolute;
+    top: calc(-1* var(--btn-offset));
+    right: calc(-1* var(--btn-offset));
+}
