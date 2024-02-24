@@ -36,3 +36,7 @@ django-colorfield==0.11.*
 # py-vapid==1.9.*   # only needed to generate a keypair for web-pushies
 pywebpush==1.14.*                       # dependency of django-push-notifications[WP]
 django-push-notifications[WP]==3.0.*    # send web-pushies
+
+
+django_redis==5.4.*
+django-prometheus==2.3.*

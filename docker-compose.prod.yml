@@ -11,6 +11,10 @@ services:
     volumes:
       - static_volume:/home/ppServer/web/static
       - media_volume:/home/ppServer/web/media
+    networks:
+      - frontend
+      - goren
+      - prometheus
     expose:
       - 8000
     env_file:
@@ -24,6 +28,8 @@ services:
     restart: unless-stopped
     volumes:
       - postgres_data:/var/lib/postgresql/data/
+    networks:
+      - goren
     expose:
       - 5432
     env_file:
@@ -54,12 +60,40 @@ services:
   #     - 3306
 
 
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    expose:
+      - 9090
+    command: "--config.file=/etc/prometheus/prometheus.yaml"
+    volumes:
+      - ./prometheus/config/prometheus.yaml:/etc/prometheus/prometheus.yaml:ro
+      - ./prometheus/data:/prometheus
+    networks:
+      - monitoring
+      - prometheus
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana-oss:latest
+    container_name: grafana
+    networks:
+      - monitoring
+      - frontend
+    expose:
+      - 3000
+    volumes:
+      - ./grafana/data:/var/lib/grafana
+    restart: unless-stopped
+
 
 
   nginx:
     container_name: pnp-webserver
     image: nginx:latest
     restart: unless-stopped
+    networks:
+      - frontend
     ports:
       - 80:80
       - 443:443
@@ -78,3 +112,10 @@ volumes:
   static_volume:
   media_volume:
   wordpressdb_data:
+
+
+networks:
+  frontend:
+  goren:
+  monitoring:
+  prometheus:

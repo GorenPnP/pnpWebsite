@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'debug_toolbar',
     'django_bootstrap5',
     'django_filters',
+    'django_prometheus',
     'django_tables2',
     'markdownfield',
     'markdown_view',
@@ -83,6 +84,8 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    "django_prometheus.middleware.PrometheusBeforeMiddleware",
+
     # django
     "debug_toolbar.middleware.DebugToolbarMiddleware",
     'django.middleware.security.SecurityMiddleware',
@@ -96,6 +99,8 @@ MIDDLEWARE = [
     # own middleware
     "character.middleware.SpielerMiddleware",
     "logRequest.middleware.RequestMiddleware",
+
+    "django_prometheus.middleware.PrometheusAfterMiddleware",
 ]
 
 ROOT_URLCONF = 'ppServer.urls'
@@ -132,7 +137,7 @@ DATABASES = {
     #     'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
     # }
     'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'ENGINE': 'django_prometheus.db.backends.postgresql',
         'NAME': os.environ.get('DATABASE_NAME'),
         'USER': os.environ.get('DATABASE_USER'),
         'PASSWORD': os.environ.get('DATABASE_PASSWORD'),
@@ -141,7 +146,9 @@ DATABASES = {
     }
 }
 
-# backup config
+
+###################################################
+# dbbackup config
 DBBACKUP_STORAGE = 'django.core.files.storage.FileSystemStorage'
 DBBACKUP_STORAGE_OPTIONS = {
     'location': os.path.join(BASE_DIR, 'backups')
@@ -149,9 +156,11 @@ DBBACKUP_STORAGE_OPTIONS = {
 DBBACKUP_FILENAME_TEMPLATE = 'postgres_{datetime}.{extension}'
 DBBACKUP_MEDIA_FILENAME_TEMPLATE = 'media_{datetime}.{extension}'
 
-# Password validation
-# https://docs.djangoproject.com/en/2.0/ref/settings/#auth-password-validators
 
+###################################################
+# PASSWORD VALIDATION
+
+# https://docs.djangoproject.com/en/2.0/ref/settings/#auth-password-validators
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -167,18 +176,23 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-# Internationalization
+
+###################################################
+# INTERNATIONALIZATION
 # https://docs.djangoproject.com/en/2.0/topics/i18n/
 
 LANGUAGE_CODE = 'de-de'
-
-TIME_ZONE = 'Europe/Berlin'
-
 USE_I18N = True
 
+TIME_ZONE = 'Europe/Berlin'
 USE_TZ = True
 
+USE_THOUSAND_SEPARATOR = True
+THOUSAND_SEPARATOR = "."
+APPEND_SLASH = True
 
+
+###################################################
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.0/howto/static-files/
 
@@ -194,6 +208,9 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 2048 # higher than the count of fields
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'   # use int as model-ids
 
+###################################################
+# DJANGO CHANNELS
+
 # TODO use redis or similar?
 CHANNEL_LAYERS = {
     "default": {
@@ -201,11 +218,9 @@ CHANNEL_LAYERS = {
     }
 }
 
-USE_THOUSAND_SEPARATOR = True
-THOUSAND_SEPARATOR = "."
-APPEND_SLASH = True
 
-#SMTP Configuration
+###################################################
+# SMTP Configuration
 EMAIL_BACKEND = os.environ.get('EMAIL_BACKEND')
 EMAIL_HOST = os.environ.get('EMAIL_HOST')
 EMAIL_PORT = os.environ.get('EMAIL_PORT')
@@ -217,10 +232,31 @@ DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL')
 # show debug-toolbar if matches
 INTERNAL_IPS = ["localhost", "127.0.0.1"] if DEBUG else []
 
+
+###################################################
+# django-tables2
+
 # default template for tables generated with django-tables2
 DJANGO_TABLES2_TEMPLATE = "django_tables2/bootstrap5-responsive.html"
 
-# Logging Configuration
+
+###################################################
+# BOOTSTRAP
+# TODO?
+# BOOTSTRAP5 = {
+#     "theme_url": os.path.join(BASE_DIR, 'static', "base", "css", "theme") # Or I could override the theme here
+# }
+
+
+###################################################
+# markdown-field
+
+# AttributeError: 'Settings' object has no attribute 'SITE_URL' of markdown-field
+SITE_URL = ''
+
+
+###################################################
+# LOGGING
 import logging.config
 
 # Clear prev config
@@ -252,8 +288,8 @@ logging.config.dictConfig({
 })
 
 
-
-# sentry
+###################################################
+# SENTRY
 if not DEBUG:
     sentry_sdk.init(
         dsn=os.environ.get('SENTRY_DSN'),
@@ -270,15 +306,24 @@ if not DEBUG:
     )
 
 
-# AttributeError: 'Settings' object has no attribute 'SITE_URL' of markdown-field
-SITE_URL = ''
-
-
+###################################################
+# PUSHIES
 PUSH_NOTIFICATIONS_SETTINGS = {
     "WP_PRIVATE_KEY": os.path.join(BASE_DIR, "webPush", "certs", "private_key.pem"),
     "WP_CLAIMS": {'sub': os.environ.get('PUSH_NOTIFICATION_CONTACT') },
     "UNIQUE_REG_ID": True,
 }
 
-
 PUSH_NOTIFICATION_KEY = os.environ.get('PUSH_NOTIFICATION_KEY')
+
+
+###################################################
+# PROMETHEUS
+PROMETHEUS_EXPORT_MIGRATIONS = os.environ.get("PROMETHEUS_EXPORT_MIGRATIONS", True)
+# PROMETHEUS_METRIC_NAMESPACE='local'
+
+CACHES = {
+    "default": {
+        "BACKEND": "django_prometheus.cache.backends.redis.RedisCache",
+    }
+}
