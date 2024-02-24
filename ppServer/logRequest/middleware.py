@@ -8,7 +8,7 @@ from .models import Request
 class RequestMiddleware:
     def __init__(self, get_response):
         self.get_response = get_response
-        self.path_blacklist = ("/static", "/media", "/admin", "/api")
+        self.path_blacklist = ("/static", "/media", "/admin", "/api", "/prometheus")
         self.favicon_filename = "favicon.ico"
         self.ip_blacklist = ("139.162.134.44",)    # my Uptime_Kuma-monitoring
         # One-time configuration and initialization.
