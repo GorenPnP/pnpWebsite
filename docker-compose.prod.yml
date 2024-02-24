@@ -1,6 +1,9 @@
 version: '3.7'
 
 services:
+
+  # CORE
+
   web:
     container_name: pnp-web
     restart: unless-stopped
@@ -40,34 +43,58 @@ services:
       - no-new-privileges:true
 
 
+  # MONITORING
 
-  # wordpress:
-  #   container_name: wordpress
-  #   image: wordpress:6
-  #   restart: unless-stopped
-  #   env_file:
-  #     - ./.env.prod
-  #   expose:
-  #     - 80
-  #   depends_on:
-  #     - wordpress-db
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: node-exporter
+    volumes:
+      - /proc:/host:proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.rootfs=/rootfs'
+      - '--path-sysfs=/host/sys'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc) ($$|/)'
+    ports:
+      - 9100:9100
+    networks:
+      - prometheus
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
 
-  # wordpress-db:
-  #   container_name: wordpress-db
-  #   image: mysql:8.0-debian
-  #   restart: unless-stopped
-  #   env_file:
-  #     - ./.env.prod.db
-  #   volumes:
-  #     - wordpressdb_data:/var/lib/mysql/
-  #   expose:
-  #     - 3306
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    container_name: cadvisor
+    ports:
+      - 8080:8080
+    networks:
+      - prometheus
+      - cadvisor
+    volumes: 
+      - /:/rootfs:ro 
+      - /var/run:/var/run:rw 
+      - /sys:/sys:ro 
+      - /var/lib/docker/:/var/lib/docker:ro 
+    depends_on: 
+      - cadvisor-redis
+
+  cadvisor-redis: 
+    image: redis:latest 
+    container_name: cadvisor-redis 
+    ports: 
+      - 6379:6379 
+    networks: 
+      - cadvisor
 
 
   prometheus:
     image: prom/prometheus:latest
     container_name: prometheus
-    user: 300:root
+    user: 300:300
     expose:
       - 9090
     command: "--config.file=/etc/prometheus/prometheus.yaml"
@@ -97,6 +124,7 @@ services:
       - no-new-privileges:true
 
 
+  # WEBSERVER
 
   nginx:
     container_name: pnp-webserver
@@ -128,6 +156,7 @@ volumes:
 
 
 networks:
+  cadvisor:
   goren_fe:
   goren_be:
   monitoring_fe:

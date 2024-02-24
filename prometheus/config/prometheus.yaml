@@ -32,12 +32,12 @@ scrape_configs:
     static_configs:
       - targets: ['pnp-web:8000']
 
-  # Example job for node_exporter
-  # - job_name: 'node_exporter'
-  #   static_configs:
-  #     - targets: ['node_exporter:9100']
+  # job for node_exporter (host metrics)
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['node-exporter:9100']
 
-  # Example job for cadvisor
-  # - job_name: 'cadvisor'
-  #   static_configs:
-  #     - targets: ['cadvisor:8080']
+  # Example job for cadvisor (docker container metrics)
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets: ['cadvisor:8080']

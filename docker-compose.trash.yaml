@@ -15,21 +15,27 @@ services:
     ports:
       - "8080:8080"
 
-  prometheus:
-    container_name: pnp-prometheus
-    image: prom/prometheus:latest
-    volumes:
-      - ./prometheus/:/etc/prometheus/
-    ports:
-      - "9090:9090"
+  wordpress:
+    container_name: wordpress
+    image: wordpress:6
+    restart: unless-stopped
+    env_file:
+      - ./.env.prod
+    expose:
+      - 80
+    depends_on:
+      - wordpress-db
 
-  grafana:
-    container_name: pnp-grafana
-    image: grafana/grafana:latest
-    ports:
-      - "3000:3000"
+  wordpress-db:
+    container_name: wordpress-db
+    image: mysql:8.0-debian
+    restart: unless-stopped
+    env_file:
+      - ./.env.prod.db
     volumes:
-      - grafana-data:/var/lib/grafana
+      - wordpressdb_data:/var/lib/mysql/
+    expose:
+      - 3306
 
 
   monsterdex-backend:
