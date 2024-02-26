@@ -14,7 +14,7 @@ services:
     command:
       - '--path.procfs=/host/proc'
       - '--path.rootfs=/rootfs'
-      - '--path-sysfs=/host/sys'
+      - '--path.sysfs=/host/sys'
       - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc) ($$|/)'
     ports:
       - 9100:9100
@@ -75,7 +75,8 @@ services:
     container_name: promtail
     volumes:
       - /var/log:/var/log:ro
-      - .promtail/config.yaml:/etcpromtail/config.yaml:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - ./promtail/config.yaml:/etc/promtail/config.yaml:ro
     command: -config.file=/etc/promtail/config.yaml
     networks:
       - logging
@@ -103,10 +104,11 @@ services:
   grafana:
     image: grafana/grafana-oss:latest
     container_name: grafana
+    user: 1000:1000
     networks:
       - logging
       - monitoring
-      - nginx
+      - pnpwebsite_nginx
     expose:
       - 3000
     volumes:
@@ -119,5 +121,5 @@ services:
 networks:
   logging:
   monitoring:
-  nginx:
+  pnpwebsite_nginx:
     external: true

@@ -179,3 +179,20 @@ https://cloud.google.com/sdk/docs/install?hl=de#deb
 
 ## generate self-signed certs (for local testing)
 * https://tecadmin.net/step-by-step-guide-to-creating-self-signed-ssl-certificates/
+
+
+# add Loki-Logging of all docker containers
+
+- run `docker plugin install grafana/loki-docker-driver:latest --alias loki --grant-all-permissions`
+- add option to docker deamon (/etc/docker/daemon.json) on the host machine:
+  ```json
+  {
+    "log-driver": "loki",
+    "log-opts": {
+      "loki-url": "http://localhost:3100/loki/api/v1/push",
+      "loki-batch-size": "400"
+    }
+  }
+  ```
+- restart docker systemprocess `sudo systemctl restart docker`
+- restart all containers `docker-compose ... up --force-recreate`
