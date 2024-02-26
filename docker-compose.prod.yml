@@ -15,9 +15,8 @@ services:
       - static_volume:/home/ppServer/web/static
       - media_volume:/home/ppServer/web/media
     networks:
-      - goren_fe
-      - goren_be
-      - prometheus
+      - goren
+      - nginx
     expose:
       - 8000
     env_file:
@@ -34,92 +33,11 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data/
     networks:
-      - goren_be
+      - goren
     expose:
       - 5432
     env_file:
       - ./.env.prod.db
-    security_opt:
-      - no-new-privileges:true
-
-
-  # MONITORING
-
-  node-exporter:
-    image: prom/node-exporter:latest
-    container_name: node-exporter
-    volumes:
-      - /proc:/host:proc:ro
-      - /sys:/host/sys:ro
-      - /:/rootfs:ro
-    command:
-      - '--path.procfs=/host/proc'
-      - '--path.rootfs=/rootfs'
-      - '--path-sysfs=/host/sys'
-      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc) ($$|/)'
-    ports:
-      - 9100:9100
-    networks:
-      - prometheus
-    restart: unless-stopped
-    security_opt:
-      - no-new-privileges:true
-
-
-  cadvisor:
-    image: gcr.io/cadvisor/cadvisor:latest
-    container_name: cadvisor
-    ports:
-      - 8080:8080
-    networks:
-      - prometheus
-      - cadvisor
-    volumes: 
-      - /:/rootfs:ro 
-      - /var/run:/var/run:rw 
-      - /sys:/sys:ro 
-      - /var/lib/docker/:/var/lib/docker:ro 
-    depends_on: 
-      - cadvisor-redis
-
-  cadvisor-redis: 
-    image: redis:latest 
-    container_name: cadvisor-redis 
-    ports: 
-      - 6379:6379 
-    networks: 
-      - cadvisor
-
-
-  prometheus:
-    image: prom/prometheus:latest
-    container_name: prometheus
-    user: 300:300
-    expose:
-      - 9090
-    command: "--config.file=/etc/prometheus/prometheus.yaml"
-    volumes:
-      - ./prometheus/config/prometheus.yaml:/etc/prometheus/prometheus.yaml:ro
-      - ./prometheus/config/django.rules:/etc/prometheus/django.rules:ro
-      - ./prometheus/data:/prometheus
-    networks:
-      - monitoring_be
-      - prometheus
-    restart: unless-stopped
-    security_opt:
-      - no-new-privileges:true
-
-  grafana:
-    image: grafana/grafana-oss:latest
-    container_name: grafana
-    networks:
-      - monitoring_be
-      - monitoring_fe
-    expose:
-      - 3000
-    volumes:
-      - ./grafana/data:/var/lib/grafana
-    restart: unless-stopped
     security_opt:
       - no-new-privileges:true
 
@@ -131,8 +49,7 @@ services:
     image: nginx:latest
     restart: unless-stopped
     networks:
-      - goren_fe
-      - monitoring_fe
+      - nginx
     ports:
       - 80:80
       - 443:443
@@ -152,13 +69,8 @@ volumes:
   postgres_data:
   static_volume:
   media_volume:
-  wordpressdb_data:
 
 
 networks:
-  cadvisor:
-  goren_fe:
-  goren_be:
-  monitoring_fe:
-  monitoring_be:
-  prometheus:
+  nginx:
+  goren:
