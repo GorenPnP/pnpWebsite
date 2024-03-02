@@ -1,11 +1,11 @@
-import json
 from typing import Any, Dict
 
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.http import HttpResponseNotFound
 from django.http.request import HttpRequest
 from django.http.response import HttpResponse
-from django.shortcuts import get_object_or_404, redirect
+from django.shortcuts import redirect
 from django.urls import reverse
 from django.views.generic.detail import DetailView
 
@@ -45,7 +45,9 @@ class PollView(LoginRequiredMixin, PollAllowedMixin, DetailView):
 
 
         # save to db
-        spieler = get_object_or_404(Spieler, name=request.user.username)
+        spieler = request.spieler.instance
+        if not spieler: return HttpResponseNotFound
+
         question.spieler_voted.add(spieler)
         
         choices_array = []

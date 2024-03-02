@@ -35,7 +35,7 @@
 		<a href="{% url 'crafting:inventory' %}" class="btn btn-outline-light">Inventar</a>
 		<a href="{% url 'crafting:index' %}" class="">Profil wechseln</a>
 
-		{% if spielleiter %}
+		{% if request.spieler.is_spielleiter %}
 			<div></div>
 			<a href="{% url 'crafting:sp_give_items' %}" class="">Profilen Items geben</a>
 		{% endif %}

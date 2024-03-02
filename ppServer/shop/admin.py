@@ -1,10 +1,10 @@
-from typing import Any, List, Optional, Tuple, Union
 from django.contrib import admin
 from django.http.request import HttpRequest
 from django.utils.html import format_html
 
-from .models import *
 from mining.models import Item as MiningItem
+
+from .models import *
 
 
 class SchussMagazineInLine(admin.TabularInline):
@@ -116,7 +116,7 @@ class BaseAdmin(admin.ModelAdmin):
 
     def get_readonly_fields(self, request: HttpRequest, obj = ...):
         # spielleiter
-        if request.user.groups.filter(name__iexact="spielleiter").exists():
+        if request.spieler.is_spielleiter:
             return super().get_readonly_fields(request, obj)
         
         # spieler (create OR frei_editierbar)
@@ -130,6 +130,7 @@ class BaseAdmin(admin.ModelAdmin):
 ########### ShopAdmin ###############
 
 class ItemAdmin(BaseAdmin):
+    change_list_template = "shop/admin/change_list_itemtransfer.html"
 
     shop_model = Item
     firma_shop_model = FirmaItem
@@ -229,7 +230,7 @@ class Rituale_RunenAdmin(admin.ModelAdmin):
 
     def get_readonly_fields(self, request: HttpRequest, obj = ...):
         # spielleiter
-        if request.user.groups.filter(name__iexact="spielleiter").exists():
+        if request.spieler.is_spielleiter:
             return super().get_readonly_fields(request, obj)
         
         # spieler (create OR frei_editierbar)

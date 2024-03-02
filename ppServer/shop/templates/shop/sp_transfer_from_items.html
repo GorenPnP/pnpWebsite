@@ -1,0 +1,10 @@
+{% extends 'base/headed_main.html' %}
+{% load static %}
+
+{% block main %}
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-primary">Speichern</button>
+</form>
+{% endblock %}

@@ -1,11 +1,11 @@
 import json
 
 from django.contrib.auth.decorators import login_required
+from django.http import HttpResponseNotFound
 from django.http.response import JsonResponse
-from django.shortcuts import get_object_or_404, redirect, render
+from django.shortcuts import render
 from django.urls import reverse
 
-from character.models import Spieler
 from ppServer.decorators import verified_account, spielleiter_only
 
 from .models import Message
@@ -17,16 +17,14 @@ def index(request):
 
     if request.method == "GET":
 
-        # if request.user.groups.filter(name__iexact="spielleiter").exists():
-        #     return sp_index_get(request)
-
         context = {"topic": "Chat"}
         return render(request, 'chat/index.html', context)
 
     if request.method == "POST":
 
         json_dict = json.loads(request.body.decode("utf-8"))
-        spieler = get_object_or_404(Spieler, name=request.user.username)
+        spieler = request.spieler.instance
+        if not spieler: return HttpResponseNotFound()
 
         # typed a new message, need to save it
         if "new_msg" in json_dict.keys():
@@ -47,7 +45,7 @@ def index(request):
                     "messages":
                         [{"author": m.author.get_real_name(), "text": m.text, "created_at": m.created_at.isoformat()} for m in messages],
                     "own_name": spieler.get_real_name(),
-                    "spielleiter": request.user.groups.filter(name__iexact="spielleiter").exists()
+                    "spielleiter": request.spieler.is_spielleiter
                 }
             )
 
@@ -60,7 +58,7 @@ def sp_index_get(request):
     context = {
         "topic": "Spielleiter-Chat",
         "messages": Message.objects.all(),
-        "own_name": get_object_or_404(Spieler, name=request.user.username).get_real_name(),
+        "own_name": request.spieler.instance.get_real_name(),
         "app_index": "Chats",
         "app_index_url": reverse("chat:index")
     }

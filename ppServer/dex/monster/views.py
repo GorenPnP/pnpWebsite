@@ -5,7 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Prefetch, Subquery, Max
 from django.db.models.query import QuerySet
-from django.http import HttpRequest, HttpResponse
+from django.http import HttpRequest, HttpResponse, HttpResponseNotFound
 from django.shortcuts import get_object_or_404, reverse, redirect
 from django.views.generic import DetailView
 from django.views.decorators.http import require_POST
@@ -41,7 +41,7 @@ class MonsterDetailView(LoginRequiredMixin, DetailView):
     template_name = "dex/monster/monster_detail.html"
 
     def _create_form(self, **kwargs):
-        if self.request.user.groups.filter(name__iexact="spielleiter").exists():
+        if self.request.spieler.is_spielleiter:
             return SpSpielerMonsterForm(**kwargs)
         else:
             return SpielerMonsterForm(**kwargs)
@@ -71,16 +71,16 @@ class MonsterDetailView(LoginRequiredMixin, DetailView):
             Prefetch("opposites", Monster.objects.load_card()),
             Prefetch("attacken", Attacke.objects.load_card().exclude(draft=True)),
         )
-        
+
     def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
         response = super().get(request, *args, **kwargs)    # let self.get_context_data() set self.object to perform the query only once
-        
+
         spieler = get_object_or_404(Spieler, name=self.request.user.username)
         if  not self.object.visible.filter(name=spieler.name).exists():
             return redirect("dex:monster_index")
 
         return response
-    
+
     def post(self, request, **kwargs):
         spieler = get_object_or_404(Spieler, name=self.request.user.username)
         monster = self.get_object()
@@ -100,11 +100,11 @@ class MonsterDetailView(LoginRequiredMixin, DetailView):
             obj.save()
 
             # spielleiter may keep the original attacks
-            if self.request.user.groups.filter(name__iexact="spielleiter").exists() and "keep_attacks" in form.cleaned_data and form.cleaned_data["keep_attacks"]:
+            if self.request.spieler.is_spielleiter and "keep_attacks" in form.cleaned_data and form.cleaned_data["keep_attacks"]:
                 obj.attacken.all().delete()
                 for attack in monster.attacken.all():
-                    SpielerMonsterAttack.objects.create(spieler_monster=obj, attacke=attack, cost=0)
-            
+                    SpielerMonsterAttack.objects.get_or_create(spieler_monster=obj, attacke=attack, defaults={"cost": 0})
+
             messages.success(request, format_html(f"<b>{obj.name or monster.name}</b> ist in deiner <a class='text-light' href='{reverse('dex:monster_farm')}'>Monster-Farm</a> eingetroffen."))
         else:
             messages.error(request, "Etwas ist schief gelaufen. Das Monster konnte nicht gefangen werden.")
@@ -644,9 +644,14 @@ class AttackProposalView(LoginRequiredMixin, ListView):
             topic = "Attacken-Vorschlag",
             is_create = "pk" not in self.kwargs,
             form = ProposeAttackForm(),
+
+            types=Typ.objects.all(),
+            all_stats=[(stat, label) for stat, label in RangStat.StatType if stat in ["N", "F", "MA", "VER_G", "VER_K"]],
         )
         if not context["is_create"]:
-            spieler = get_object_or_404(Spieler, name=self.request.user.username)
+            spieler = self.request.spieler.instance
+            if not spieler: HttpResponseNotFound()
+
             obj = get_object_or_404(Attacke, pk=self.kwargs["pk"], author=spieler, draft=True)
             context["form"] = ProposeAttackForm(instance=obj)
 
@@ -677,7 +682,7 @@ class AttackProposalView(LoginRequiredMixin, ListView):
             messages.success(request, f"{obj.name} ist {'bearbeitet' if pk is not None else 'angelegt'} worden")
         else:
             print(form.errors)
-            if form.cleaned_data["types"].count():
+            if "types" in form.cleaned_data and form.cleaned_data["types"].count():
                 messages.error(request, "Es ist ein Problem aufgetreten, die Attacke konnte nicht gespeichert werden")
             else:
                 messages.error(request, "Kein Typ eingetragen")

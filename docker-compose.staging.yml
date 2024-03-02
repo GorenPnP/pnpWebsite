@@ -1,49 +1,38 @@
 version: '3.7'
 
 services:
-  web-staging:
-    container_name: pnp-web-staging
-    build:
-      context: ./ppServer
-      dockerfile: Dockerfile.prod
-    command: daphne -b 0.0.0.0 -p 8000 ppServer.asgi:application # gunicorn ppServer.wsgi:application --bind 0.0.0.0:8001 --workers=3
-    volumes:
-      - static_volume:/home/ppServer/web/static
-      - media_volume:/home/ppServer/web/media
-    expose:
-      - 8001
-    env_file:
-      - ./.env.staging
-    depends_on:
-      - db-staging
-
-  db-staging:
-    container_name: pnp-db-staging
-    image: postgres:12.0-alpine
+  db:
+    container_name: pnp-db
+    image: postgres:15-alpine
+    restart: unless-stopped
     volumes:
       - postgres_data:/var/lib/postgresql/data/
+    networks:
+      - goren
     expose:
-      - 5431
+      - 5432
+    ports:
+      - 5432:5432
     env_file:
       - ./.env.staging.db
 
-  nginx-staging:
-    container_name: pnp-webserver-staging
+  nginx:
+    container_name: pnp-webserver
     image: nginx:latest
     restart: unless-stopped
+    networks:
+      - nginx
     ports:
-      - 81:80
-      - 444:443
+      - 80:80
+      - 443:443
     volumes:
-      - /home/debian/pnpWebsite/nginx/nginx.conf:/etc/nginx/nginx.conf
-      - /home/debian/pnpWebsite/nginx/certs:/etc/ssl/certs
-      - /home/debian/pnpWebsite/nginx/logs:/var/log/nginx/
-      - static_volume:/home/ppServer/web/static
-      - media_volume:/home/ppServer/web/media
-    depends_on:
-      - web
+      - ./nginx_staging:/etc/nginx:ro
+      - ./log/nginx:/var/log/nginx/
 
 volumes:
   postgres_data:
-  static_volume:
-  media_volume:
+
+
+networks:
+  goren:
+  nginx:

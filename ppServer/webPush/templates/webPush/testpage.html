@@ -1,0 +1,32 @@
+{% extends 'base/main.html' %}
+{% load static %}
+
+{% block extra-head %}
+<style>
+    .helptext {
+        display: block;
+        opacity: .7;
+        font-size: small;
+    }
+</style>
+{% endblock %}
+
+{% block main %}
+<div class="container">
+    <div class="row">
+        <div class="col d-flex flex-column">
+            <button class="btn btn-primary" onclick="registerForWebPush(true)">dieses Gerät registrieren</button>
+        </div>
+
+        <form class="col d-flex flex-column" method="post">
+            <h2>neue Nachricht</h2>
+
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit" class="btn btn-primary">Nachricht senden</button>
+        </form>
+    </div>
+</div>
+
+
+{% endblock %}

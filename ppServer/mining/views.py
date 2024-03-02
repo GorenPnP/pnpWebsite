@@ -164,7 +164,7 @@ def game(request, pk):
 
 	if request.method == "GET":
 
-		spieler = Spieler.objects.get(name=request.user.username)
+		spieler = request.spieler.instance
 		profile = RelCrafting.objects.get(spieler=spieler).profil
 		ProfileEntity.update(region, profile)
 

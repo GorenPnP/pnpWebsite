@@ -58,12 +58,14 @@ magische_Ausrüstung_enum = [
 
 rituale_enum = [
     ('i', 'Grundrituale'),
-    ('u', 'Grundrunen')
+    ('u', 'Grundrunen'),
+    ('g', "'o Grome"),
 ]
 
 
 ausrüstung_enum = [
     ('c', 'Computerzubehör'),
+    ('p', 'Programme'),
     ('a', 'Akkumulatoren'),
     ('v', 'Verschiedenes')
 ]
@@ -101,6 +103,7 @@ zauberverteidigung_enum = [
 
 alchemie_enum = [
     ('t', 'Tränke'),
+    ('d', 'Drogen'),
     ('r', 'Rezepte'),
     ('z', 'Zutaten'),
     ('b', 'Zubehör')

@@ -10,6 +10,7 @@ from django.db.models.query import QuerySet
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse
 from django.utils.html import format_html
+from django.views.generic import DetailView
 from django.views.generic.base import TemplateView
 from django.views.generic.list import ListView
 
@@ -392,7 +393,7 @@ class GeburtstageView(LoginRequiredMixin, VerifiedAccountMixin, TemplateView):
             "app_index_url": reverse("wiki:index"),
         }
 
-        if not Spieler.objects.get(name=request.user.username).geburtstag:
+        if not request.spieler.instance.geburtstag:
             messages.error(request, "Dein Geburtstag fehlt noch. Teile ihn uns mit, damit du die Liste aller Geburtstage sehen kannst!")
             return render(request, self.template_name, context)
         
@@ -445,7 +446,7 @@ class GfsSpecialAbilities(LoginRequiredMixin, DynamicTableView):
 class RuleListView(LoginRequiredMixin, ListView):
 
     model = Rule
-    template_name = "wiki/rules.html"
+    template_name = "wiki/rule_index.html"
 
 
     def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
@@ -454,3 +455,17 @@ class RuleListView(LoginRequiredMixin, ListView):
             app_index = "Wiki",
             app_index_url = reverse("wiki:index"),
         )
+
+class RuleDetailView(LoginRequiredMixin, DetailView):
+
+    model = Rule
+    template_name = "wiki/rule_detail.html"
+
+    def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
+        context = super().get_context_data(**kwargs,
+            app_index = "Regeln",
+            app_index_url = reverse("wiki:rule_index"),
+        )
+        context["topic"] = f'{context["object"].nr}: {context["object"].titel}'
+        return context
+

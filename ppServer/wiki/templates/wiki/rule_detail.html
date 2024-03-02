@@ -1,0 +1,40 @@
+{% extends 'base/headed_main.html' %}
+{% load static django_tables2 wiki.csv_to_table %}
+
+{% block extra-head %}
+<!-- render md as html -->
+<script src="{% static 'res/js/easymde@2.18.0.min.js' %}"></script>
+<script src="{% static 'res/js/markdown.js' %}" defer></script>
+
+<!-- custom -->
+<style>
+    p, th, td { max-width: 60ch; }
+    
+    main.main-container {
+    /* colors */
+    background-color: var(--bs-light);
+    --bs-table-color: var(--bs-dark);
+    --bs-body-color: var(--bs-dark);
+    color: var(--bs-dark);
+
+    /* whitespace */
+    padding: 1em 1em 2em;
+    margin-block: 2em 300px;
+    margin-inline: auto;
+    width: 100%;
+    min-width: min(100%, 50ch);
+    max-width: min(100%, 800px);
+}
+@media only screen and (max-width: 800px) {
+    main.main-container {
+        margin: 0;
+        padding: 1em .1em 300px;
+    }
+}
+</style>
+{% endblock %}
+
+{% block main %}
+    <h2>{{ topic }}</h2>
+    <div class="markdown" data-text="{{ object.text }}"></div>
+{% endblock %}

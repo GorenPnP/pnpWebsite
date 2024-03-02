@@ -13,18 +13,14 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-from django.contrib import admin
-from django.urls import include, path
-
 from django.conf import settings
 from django.conf.urls.static import static
-
-from . import views
+from django.contrib import admin
+from django.views.generic.base import TemplateView
+from django.urls import include, path
 
 
 urlpatterns = [
-    path("404/", views.error_404, name="test404"),
-
     path('admin/', admin.site.urls),
     path('auth/', include('auth_custom.urls')),
     path('accounts/', include('auth_custom.urls')),
@@ -51,14 +47,17 @@ urlpatterns = [
     path('service/', include('service.urls')),
     path('shop/', include('shop.urls')),
     path('time_space/', include('time_space.urls')),
+    path('web_push/', include('webPush.urls')),
     path('wiki/', include('wiki.urls')),
 
+    path('sw.js', TemplateView.as_view(template_name="webPush/service_worker.js", content_type='application/javascript'), name='sw.js'),
     path('__debug__/', include('debug_toolbar.urls')),
+    path("prometheus/", include("django_prometheus.urls")),
 
     path('', include("base.urls")),
 ]
 
-handler404 = views.error_404
+handler404 = TemplateView.as_view(template_name='base/error_404.html')
 
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

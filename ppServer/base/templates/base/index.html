@@ -29,6 +29,10 @@
         }
     });
 </script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", () => registerForWebPush(false));
+</script>
 {% endblock %}
 
 {% block main %}
@@ -125,7 +129,7 @@
 <section class="cards">
 
     <!-- changelog -->
-    <div class="card" id="wiki">
+    <div class="card" id="changelog" onclick="registerForWebPush(false)">
         <a href="{% url 'changelog:index' %}">
             <div class="card__icon bg-info">
                 <img class="card__icon__img" style="filter: none" src="{% static 'res/img/icon-logs.png' %}" alt="logs">
@@ -219,7 +223,7 @@
     </div>
 
     <!-- quiz -->
-    <div class="card" id="quiz">
+    <div class="card" id="quiz" onclick="registerForWebPush(false)">
         <a href="{% url 'quiz:index' %}">
             <div class="card__icon bg-primary">
                 <img class="card__icon__img" src="{% static 'res/img/icon-quiz.svg' %}">
@@ -255,7 +259,7 @@
     </div>
 
     <!-- Logs -->
-    <div class="card" {% if not spielleiter %}hidden{% endif %} id="logs">
+    <div class="card" {% if not request.spieler.is_spielleiter %}hidden{% endif %} id="logs">
         <div class="card__icon bg-primary">
             <img class="card__icon__img" src="{% static 'res/img/icon-logs.png' %}">
         </div>
@@ -273,7 +277,7 @@
     </div>
 
     <!-- Quizkontrolle -->
-    <div class="card" {% if not spielleiter %}hidden{% endif %} id="quizkontrolle">
+    <div class="card" {% if not request.spieler.is_spielleiter %}hidden{% endif %} id="quizkontrolle">
         <a href="{% url 'quiz:sp_index' %}">
             <div class="card__icon bg-primary">
                 <img class="card__icon__img" src="{% static 'res/img/icon-trophy.png' %}">

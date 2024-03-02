@@ -1,6 +1,9 @@
 version: '3.7'
 
 services:
+
+  # CORE
+
   web:
     container_name: pnp-web
     restart: unless-stopped
@@ -11,10 +14,15 @@ services:
     volumes:
       - static_volume:/home/ppServer/web/static
       - media_volume:/home/ppServer/web/media
+    networks:
+      - goren
+      - nginx
     expose:
       - 8000
     env_file:
       - ./.env.prod
+    security_opt:
+      - no-new-privileges:true
     depends_on:
       - db
 
@@ -24,42 +32,24 @@ services:
     restart: unless-stopped
     volumes:
       - postgres_data:/var/lib/postgresql/data/
+    networks:
+      - goren
     expose:
       - 5432
     env_file:
       - ./.env.prod.db
+    security_opt:
+      - no-new-privileges:true
 
 
-
-  wordpress:
-    container_name: wordpress
-    image: wordpress:6
-    restart: unless-stopped
-    env_file:
-      - ./.env.prod
-    expose:
-      - 80
-    depends_on:
-      - wordpress-db
-
-  wordpress-db:
-    container_name: wordpress-db
-    image: mysql:8.0-debian
-    restart: unless-stopped
-    env_file:
-      - ./.env.prod.db
-    volumes:
-      - wordpressdb_data:/var/lib/mysql/
-    expose:
-      - 3306
-
-
-
+  # WEBSERVER
 
   nginx:
     container_name: pnp-webserver
     image: nginx:latest
     restart: unless-stopped
+    networks:
+      - nginx
     ports:
       - 80:80
       - 443:443
@@ -71,10 +61,16 @@ services:
       - media_volume:/home/ppServer/web/media:ro
 
       - /etc/letsencrypt:/etc/letsencrypt:ro
+    security_opt:
+      - no-new-privileges:true
 
 
 volumes:
   postgres_data:
   static_volume:
   media_volume:
-  wordpressdb_data:
+
+
+networks:
+  nginx:
+  goren:

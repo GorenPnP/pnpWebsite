@@ -27,3 +27,7 @@ certbot/cloudflare.ini
 /log/
 node_modules/
 ppServer/venv/
+ppServer/webPush/certs/
+
+grafana/data/
+prometheus/data/

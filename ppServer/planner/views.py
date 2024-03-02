@@ -3,8 +3,6 @@ from django.shortcuts import render, redirect
 
 from datetime import date, timedelta
 
-from character.models import Spieler
-
 from .models import *
 from .forms import ProposalForm
 
@@ -46,10 +44,10 @@ def index(request):
             proposal = form.save(commit=False)
             
             proposal.player = request.user
-            
+
             chosen_date, created = Day.objects.get_or_create(date=request.POST["date"])
             proposal.day = chosen_date
-            
+
             prev_player = chosen_date.proposal_set.order_by("-order").first()
             proposal.order = prev_player.order+1 if prev_player else 1
             proposal.save()

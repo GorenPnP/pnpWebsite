@@ -3,7 +3,7 @@ from datetime import date
 
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.contrib.auth.models import User
+from django.http import HttpResponseNotFound
 from django.shortcuts import render, get_object_or_404, redirect
 from django.views.generic import DetailView
 from django.urls import reverse
@@ -31,16 +31,16 @@ class BuyView(LoginRequiredMixin, VerifiedAccountMixin, DetailView):
         firma_shop_entries = self.firmashop_model.objects.filter(item=id)
         item = get_object_or_404(self.shop_model, id=id)
 
-        extra_preis_field = User.objects.filter(username=request.user.username, groups__name='spielleiter').exists()
-        if extra_preis_field:
+        # character to buy stuff for
+        if request.spieler.is_spielleiter:
             charaktere = Charakter.objects.all().order_by('name')
         else:
-            charaktere = Charakter.objects.filter(eigentümer__name=request.user.username).order_by('name')
+            charaktere = Charakter.objects.filter(eigentümer=request.spieler.instance).order_by('name')
 
         context = {
             "charaktere": charaktere,
             "entries": firma_shop_entries,
-            "extra_preis_field": extra_preis_field,
+            "extra_preis_field": request.spieler.is_spielleiter,
             "st": item.stufenabhängig,
             "topic": item.name,
             "app_index": "Shop",
@@ -51,7 +51,7 @@ class BuyView(LoginRequiredMixin, VerifiedAccountMixin, DetailView):
         context["text"] = "Für dieses Item gibt es keinen Verkäufer."
         return render(request, self.template_name, context)
     
-    def post(self, request, id=int):
+    def post(self, request, id: int):
         # def buy_item_post(rit_run=False):
         item = self.shop_model.objects.get(id=id)
 
@@ -72,9 +72,9 @@ class BuyView(LoginRequiredMixin, VerifiedAccountMixin, DetailView):
             return redirect(request.build_absolute_uri())
 
         # check if spieler may modify char
-        spieler = get_object_or_404(Spieler, name=request.user.username)
+        spieler = request.spieler.instance
         char = get_object_or_404(Charakter, id=char_id)
-        if char.eigentümer != spieler and not User.objects.filter(username=request.user.username, groups__name='spielleiter').exists():
+        if char.eigentümer != spieler and not request.spieler.is_spielleiter:
             messages.error(request, "Keine Erlaubnis einzukaufen")
             return redirect(request.build_absolute_uri())
 

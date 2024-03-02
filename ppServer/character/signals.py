@@ -6,14 +6,14 @@ from .models import *
 
 
 @receiver(post_save, sender=User)
-def create_spieler(sender, **qwargs):
-    if qwargs['created']:
-        Spieler.objects.get_or_create(name=qwargs['instance'].username)
+def create_spieler(sender, **kwargs):
+    if kwargs['created']:
+        Spieler.objects.get_or_create(name=kwargs['instance'].username)
 
 
 @receiver(post_delete, sender=User)
-def delete_spieler(sender, **qwargs):
-    spieler = Spieler.objects.filter(name=qwargs['instance'].username)
+def delete_spieler(sender, **kwargs):
+    spieler = Spieler.objects.filter(name=kwargs['instance'].username)
     for s in spieler:
         s.delete()
 

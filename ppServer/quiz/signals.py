@@ -1,7 +1,9 @@
+from django.contrib.auth.models import User
 from django.db.models.signals import post_delete, pre_delete, pre_save, post_save
 from django.dispatch import receiver
 
 from character.models import Spieler
+from webPush.models import *
 from .models import Image, File, ModuleQuestion, RelQuiz, SpielerQuestion, SpielerSession, Module, module_state, Question, SpielerModule
 
 
@@ -77,9 +79,9 @@ def update_max_points(sender, instance, **kwargs):
 def add_session(sender, instance, **kwargs):
 
     old_instance = SpielerModule.objects.filter(id=instance.id)
-    if old_instance.count() == 0: return
+    if not old_instance.exists(): return
 
-    if old_instance[0].state in [5, 6] and instance.state <= 2: # old: [seen, passed], new: [locked, unlocked, opened]
+    if old_instance.first().state in [5, 6] and instance.state <= 2: # old: [seen, passed], new: [locked, unlocked, opened]
         SpielerSession.objects.create(spielerModule=instance)
 
 
@@ -244,3 +246,33 @@ def delete_its_filesystem_img(sender, instance, **kwargs):
 @receiver(pre_delete, sender=File)
 def delete_its_filesystem_file(sender, instance, **kwargs):
     if instance.file is not None: instance.file.delete()
+
+
+
+
+#       Pushies        #
+
+
+@receiver(pre_save, sender=SpielerModule)
+def send_pushies_on_update_of_spielermodule_state(sender, instance, **kwargs):
+    old_instance = SpielerModule.objects.filter(pk=instance.pk)
+    
+    new_state = instance.state
+    old_state = old_instance.first().state if old_instance.exists() else 0
+    if old_state == new_state: return
+
+    message = instance.module.title
+
+    # message to spieler [opened, corrected]
+    if new_state in [2, 4]:
+        users = User.objects.filter(username=instance.spieler.name)
+        title = "Quiz: neues Modul freigegeben!" if new_state == 2 else "Quiz: Modul korrigiert"
+
+        return PushSettings.send_message(users, title, message, PushTag.quiz)
+    
+    # message to spielleiter [answered, seen]
+    if new_state in [3, 5]:
+        title = "Quiz: Modul beantwortet" if new_state == 3 else "Quiz: Modul angesehen"
+        message = f"{instance.spieler} hat {message} " + ("beantwortet" if new_state == 3 else "angesehen")
+
+        return PushSettings.send_message(User.objects.all(), title, message, PushTag.quiz_control)

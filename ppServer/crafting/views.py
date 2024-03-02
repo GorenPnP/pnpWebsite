@@ -2,16 +2,16 @@ import json
 from random import randrange, random
 
 from django.contrib.auth.decorators import login_required
+from django.http import HttpResponseNotFound
 from django.http.response import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404, reverse
 
-from character.models import Spieler
 from ppServer.decorators import spielleiter_only, verified_account
 from shop.models import Tinker
 
 from .forms import AddToInventoryForm
 from .models import *
-from .templatetags.duration import duration
+from .templatetags.crafting.duration import duration
 
 
 @login_required
@@ -29,7 +29,8 @@ def index(request):
 
 	if request.method == "POST":
 		name = request.POST.get("name")
-		spieler = get_object_or_404(Spieler, name=request.user.username)
+		spieler = request.spieler.instance
+		if not spieler: return HttpResponseNotFound()
 
 		# get or create profile with name
 		profile, created = Profile.objects.get_or_create(name=name)
@@ -50,7 +51,8 @@ def index(request):
 @verified_account
 def inventory(request):
 
-	spieler = get_object_or_404(Spieler, name=request.user.username)
+	spieler = request.spieler.instance
+	if not spieler: return HttpResponseNotFound()
 	rel, _ = RelCrafting.objects.get_or_create(spieler=spieler)
 
 	# no profile active? change that!
@@ -61,7 +63,6 @@ def inventory(request):
 
 		context = {
 			"topic": "Inventar von {}".format(rel.profil.name),
-			"spielleiter": request.user.groups.filter(name__iexact="spielleiter").exists(),
 			"add_form": AddToInventoryForm(),
 			"restricted_profile": rel.profil.restricted,
 			"duration": rel.profil.craftingTime,
@@ -152,7 +153,8 @@ def inventory(request):
 @verified_account
 def craft(request):
 
-	spieler = get_object_or_404(Spieler, name=request.user.username)
+	spieler = request.spieler.instance
+	if not spieler: return HttpResponseNotFound()
 	rel, _ = RelCrafting.objects.prefetch_related("profil").get_or_create(spieler=spieler)
 
 	# no profile active? change that!
@@ -176,7 +178,6 @@ def craft(request):
 			"topic": table_list[0]["name"],
 			"tables": table_list,
 			"recipes": get_recipes_of_table(inventory, rel.profil.restricted, table_list[0]["id"] if len(table_list) else 0),
-            "spielleiter": request.user.groups.filter(name__iexact="spielleiter").exists(),
 		}
 		return render(request, "crafting/craft.html", context)
 
