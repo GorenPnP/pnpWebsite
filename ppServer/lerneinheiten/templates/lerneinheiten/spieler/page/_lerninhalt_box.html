@@ -2,9 +2,9 @@
 <div class="{{ direction }} box--container">
     {% for box in config.children %}
         {% if direction == "grid-row" %}
-            {% include 'lerneinheiten/spieler/page/lerninhalt_box.html' with direction="grid-column" config=box %}
+            {% include 'lerneinheiten/spieler/page/_lerninhalt_box.html' with direction="grid-column" config=box %}
         {% else %}
-            {% include 'lerneinheiten/spieler/page/lerninhalt_box.html' with direction="grid-row" config=box %}
+            {% include 'lerneinheiten/spieler/page/_lerninhalt_box.html' with direction="grid-row" config=box %}
         {% endif %}
     {% endfor %}
 </div>

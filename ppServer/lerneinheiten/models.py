@@ -3,6 +3,7 @@ from django.db.models import Max
 
 from colorfield.fields import ColorField
 
+from character.models import Spieler
 
 class Fach(models.Model):
 
@@ -89,3 +90,36 @@ class Page(models.Model):
 
     def __str__(self):
         return f"#{self.einheit.number}.{self.number} {self.titel}"
+
+
+class SpielerPage(models.Model):
+    class Meta:
+        ordering = ["spieler", "page"]
+        verbose_name = "Antwort"
+        verbose_name_plural = "Antworten"
+        unique_together = [("spieler", "page")]
+
+    page = models.ForeignKey(Page, on_delete=models.CASCADE)
+    spieler = models.ForeignKey(Spieler, on_delete=models.CASCADE)
+
+    answer = models.JSONField(default=dict, null=False, blank=False)
+
+    def __str__(self):
+        return f"Antwort von {self.spieler} zu {self.question}"
+
+
+class Inquiry(models.Model):
+    class Meta:
+        ordering = ["spieler", "page"]
+        verbose_name = "Nachfrage"
+        verbose_name_plural = "Nachfragen"
+        unique_together = [("spieler", "page")]
+
+    page = models.ForeignKey(Page, on_delete=models.CASCADE)
+    spieler = models.ForeignKey(Spieler, on_delete=models.CASCADE)
+
+    question = models.TextField(null=False, blank=True, verbose_name="Feedback, Nachfrage oder allgemeine Verwirrtheit")
+    response = models.TextField(null=True, blank=True, verbose_name="Spielleiter-Antwort")
+
+    def __str__(self):
+        return f"Nachfrage von {self.spieler} zu {self.question}"

@@ -25,8 +25,8 @@ class EditorIndexView(LoginRequiredMixin, SpielleiterOnlyMixin, ListView):
         return super().get_context_data(
             **kwargs,
             topic = "Editor",
-            # app_index = "Charaktere",
-            # app_index_url = reverse("character:index"),
+            app_index = "LARP",
+            app_index_url = reverse("lerneinheiten:index"),
 
             new_einheit_form = EinheitForm(),
             edit_einheit_forms = [{"id": einheit["pk"], "form": EinheitForm(initial=einheit)} for einheit in Einheit.objects.values("pk", *EinheitForm._meta.fields)],

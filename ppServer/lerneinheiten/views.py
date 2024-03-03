@@ -12,6 +12,7 @@ from django.shortcuts import reverse, get_object_or_404
 
 from ppServer.mixins import VerifiedAccountMixin
 
+from .forms import InquiryForm
 from .models import *
 
 
@@ -23,8 +24,6 @@ class IndexView(LoginRequiredMixin, VerifiedAccountMixin, ListView):
         return super().get_context_data(
             **kwargs,
             topic = "LARP",
-            # app_index = "Charaktere",
-            # app_index_url = reverse("character:index"),
         )
 
     def get_queryset(self) -> QuerySet[Any]:
@@ -47,7 +46,33 @@ class PageView(LoginRequiredMixin, VerifiedAccountMixin, DetailView):
         )
         context["topic"] = context["object"].__str__()
 
+        # add inquiry form
+        inquiry = context["object"].inquiry_set.filter(spieler=self.request.spieler.instance).first()
+        context["inquiry"] = inquiry
+        if inquiry is not None:
+            context["inquiry_form"] = InquiryForm(instance=inquiry)
+        else:
+            context["inquiry_form"] = InquiryForm(initial = {
+                "page": context["object"],
+                "spieler": self.request.spieler.instance,
+            })
+
         return context
     
     def get_queryset(self) -> QuerySet[Any]:
         return super().get_queryset().prefetch_related("einheit")
+
+
+@require_POST
+@login_required
+def inquiry_form(request, page_id: int):
+    form = InquiryForm(request.POST, instance=Inquiry.objects.filter(page__id=page_id, spieler=request.spieler.instance).first())
+
+    form.full_clean()
+    if form.is_valid():
+        form.save()
+        messages.success(request, "Seite wurde angelegt")
+    else:
+        messages.error(request, "Seite konnte nicht angelegt werden")
+
+    return redirect(reverse("lerneinheiten:page", args=[page_id]))

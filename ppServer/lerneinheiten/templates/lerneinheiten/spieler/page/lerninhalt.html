@@ -1,20 +1,18 @@
-{% extends 'base/headed_main.html' %}
+{% extends './page_template.html' %}
 {% load static %}
 
 {% block extra-head %}
-    <!-- render md to html -->
-    <script src="{% static 'res/js/easymde@2.18.0.min.js' %}"></script>
-    <script src="{% static 'res/js/markdown.js' %}" defer></script>
+    {{ block.super }}
 
     <!-- custom -->
     <link rel="stylesheet" href="{% static 'lerneinheiten/css/sp_editor_lerninhalt.css' %}">
     <link rel="stylesheet" href="{% static 'lerneinheiten/css/lerninhalt.css' %}">
 {% endblock %}
 
-{% block main %}
+{% block content %}
     <div id="content-grid">
         {% if object.content.type %}
-            {% include 'lerneinheiten/spieler/page/lerninhalt_box.html' with direction="grid-column" config=object.content %}
+            {% include 'lerneinheiten/spieler/page/_lerninhalt_box.html' with direction="grid-column" config=object.content %}
         {% else %}
             <div class="h4">- Kein Inhalt vorhanden -</div>
         {% endif %}

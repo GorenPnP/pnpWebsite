@@ -6,21 +6,21 @@
 }
 
 /* white background */
-main.main-container {
+#content-grid {
     background-color: var(--bs-light);
     color: var(--bs-dark);
     padding: 1em 1em 2em;
-    margin-block: 2em 300px;
+    margin-block: 2em .1em;
+
+    --bs-body-color: var(--bs-dark); /* set bs-textcolor (e.g. for table text) */
 }
 @media only screen and (max-width: 800px) {
-    main.main-container {
+    #content-grid {
         margin-block: 0;
-        padding: 1em .1em 300px;
+        padding: 1em .1em .1em;
     }
 }
 
-/* set bs-textcolor (e.g. for table text) */
-#content-grid { --bs-body-color: var(--bs-dark); }
 
 /* remove outer whitespace */
 .box--text {

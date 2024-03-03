@@ -1,31 +1,30 @@
-{% extends 'base/headed_main.html' %}
+{% extends './page_template.html' %}
 {% load static %}
 
 {% block extra-head %}
-    <!-- EasyMDE for md-editors and dependency to render md to html -->
-    <link href="{% static 'res/css/easymde@2.18.0.min.css' %}" rel="stylesheet">
-    <link href="{% static 'res/css/easyMDE.css' %}" rel="stylesheet">
-    <script src="{% static 'res/js/easymde@2.18.0.min.js' %}"></script>
-    <script src="{% static 'res/js/markdown_editorconfig.js' %}"></script>
+    {{ block.super }}
 
-    <!-- render md to html -->
-    <script src="{% static 'res/js/markdown.js' %}" defer></script>
-    
     <!-- custom -->
     <script src="{% static 'lerneinheiten/js/freitext.js' %}" defer></script>
 {% endblock %}
 
-{% block main %}
-    <div class="markdown mb-5" data-text="{{ object.content.text|default:'' }}"></div>
+{% block content %}
+    <h2 class="markdown" data-text="{{ object.content.text|default:'' }}"></h2>
 
     <form id="form" method="post">
         {% csrf_token %}
         <textarea name="answer"></textarea>
+
         <button type="submit" class="btn btn-primary mt-3">Speichern</button>
+        <button type="button" class="btn btn-outline-light mt-3 mx-3"
+            onclick="document.querySelector('#musterlösung').classList.toggle('hidden')"
+        >
+            Musterlösung
+        </button>
     </form>
 
-    <aside>
+    <aside id="musterlösung" class="hidden my-5">
         <h2>Musterlösung</h2>
-        <div class="markdown mb-5" data-text="{{ object.solution.text|default:'' }}"></div>
+        <div class="markdown" data-text="{{ object.solution.text|default:'' }}"></div>
     </aside>
 {% endblock %}

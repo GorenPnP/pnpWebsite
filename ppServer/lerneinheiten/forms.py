@@ -34,3 +34,15 @@ class PageUpdateForm(forms.ModelForm):
         if self.instance.type == "i":
             self.fields['content'].widget = HiddenInput()
             self.fields['solution'].widget = HiddenInput()
+
+
+class InquiryForm(forms.ModelForm):
+    class Meta:
+        model = Inquiry
+        fields = ["question", "spieler", "page"]
+
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+
+        self.fields['spieler'].widget = HiddenInput()
+        self.fields['page'].widget = HiddenInput()

@@ -1,12 +1,17 @@
 // init MD-Editors
-[...(document.querySelectorAll("main textarea") as any)].map((element: any) =>
+[...(document.querySelectorAll("#form textarea") as any)].forEach((element: any) => {
+
+    let initialValue = element.value?.trim() || "";
+    try {
+        initialValue = JSON.parse(initialValue)["text"];
+    } catch {};
 
     new EasyMDE({
         ...MDEditorConfig,
         element: element as any as HTMLElement,
-        initialValue: JSON.parse(element.value || "{}")["text"] || ""
+        initialValue
     })
-);
+});
 
 /************** SUBMIT *******************/
 

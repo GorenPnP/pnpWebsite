@@ -16,4 +16,6 @@ urlpatterns = [
     path('editor/edit_einheit/<int:pk>', views_sp.edit_einheit, name='edit_einheit'),
     path('editor/new_page', views_sp.new_page, name='new_page'),
     path('editor/image_upload/<int:page_id>', views_sp.image_upload, name='image_upload'),
+
+    path('inquiry_form/<int:page_id>', views.inquiry_form, name='inquiry_form'),
 ]
