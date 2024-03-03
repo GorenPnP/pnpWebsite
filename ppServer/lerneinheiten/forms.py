@@ -36,6 +36,12 @@ class PageUpdateForm(forms.ModelForm):
             self.fields['solution'].widget = HiddenInput()
 
 
+class SpielerPageForm(forms.ModelForm):
+    class Meta:
+        model = SpielerPage
+        fields = ["answer"]
+
+
 class InquiryForm(forms.ModelForm):
     class Meta:
         model = Inquiry

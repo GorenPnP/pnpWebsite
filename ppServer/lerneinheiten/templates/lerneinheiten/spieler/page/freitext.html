@@ -13,7 +13,7 @@
 
     <form id="form" method="post">
         {% csrf_token %}
-        <textarea name="answer"></textarea>
+        {{ form.as_p }}
 
         <button type="submit" class="btn btn-primary mt-3">Speichern</button>
         <button type="button" class="btn btn-outline-light mt-3 mx-3"

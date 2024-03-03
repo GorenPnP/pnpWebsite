@@ -105,7 +105,7 @@ class SpielerPage(models.Model):
     answer = models.JSONField(default=dict, null=False, blank=False)
 
     def __str__(self):
-        return f"Antwort von {self.spieler} zu {self.question}"
+        return f"Antwort von {self.spieler} zu {self.page}"
 
 
 class Inquiry(models.Model):

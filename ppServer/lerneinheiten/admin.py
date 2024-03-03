@@ -2,11 +2,6 @@ from django.contrib import admin
 
 from .models import *
 
-class InquiryAdmin(admin.ModelAdmin):
-    list_display = ["question", "response", "spieler", "page"]
-    list_filter = ["spieler", "page"]
-
-
 
 class SpielerPageInlineAdmin(admin.TabularInline):
     model = SpielerPage
@@ -36,4 +31,3 @@ class PageAdmin(admin.ModelAdmin):
 admin.site.register(Fach)
 admin.site.register(Einheit)
 admin.site.register(Page, PageAdmin)
-admin.site.register(Inquiry, InquiryAdmin)

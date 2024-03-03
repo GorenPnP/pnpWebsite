@@ -12,7 +12,7 @@ from django.shortcuts import reverse, get_object_or_404
 
 from ppServer.mixins import VerifiedAccountMixin
 
-from .forms import InquiryForm
+from .forms import InquiryForm, SpielerPageForm
 from .models import *
 
 
@@ -46,6 +46,10 @@ class PageView(LoginRequiredMixin, VerifiedAccountMixin, DetailView):
         )
         context["topic"] = context["object"].__str__()
 
+        # add spieler's answer
+        sp_page = SpielerPage.objects.filter(spieler=self.request.spieler.instance, page=context["object"]).first()
+        context["form"] = SpielerPageForm(instance=sp_page)
+
         # add inquiry form
         inquiry = context["object"].inquiry_set.filter(spieler=self.request.spieler.instance).first()
         context["inquiry"] = inquiry
@@ -61,6 +65,26 @@ class PageView(LoginRequiredMixin, VerifiedAccountMixin, DetailView):
     
     def get_queryset(self) -> QuerySet[Any]:
         return super().get_queryset().prefetch_related("einheit")
+    
+    def post(self, request, *args, **kwargs):
+        page = self.get_object()
+        sp_page = SpielerPage.objects.filter(spieler=request.spieler.instance, page=page).first()
+        print(request.POST)
+
+        form = SpielerPageForm(request.POST, instance=sp_page)
+        form.full_clean()
+        if form.is_valid():
+            object = form.save(commit=False)
+            object.spieler = request.spieler.instance
+            object.page = page
+            object.save()
+            messages.success(request, "Antwort erfolgreich gespeichert")
+        else:
+            print(form.errors)
+            messages.error(request, "Antwort konnte nicht gespeichert werden")
+
+        return redirect(request.build_absolute_uri())
+
 
 
 @require_POST
@@ -71,8 +95,8 @@ def inquiry_form(request, page_id: int):
     form.full_clean()
     if form.is_valid():
         form.save()
-        messages.success(request, "Seite wurde angelegt")
+        messages.success(request, "Feedback wurde angelegt")
     else:
-        messages.error(request, "Seite konnte nicht angelegt werden")
+        messages.error(request, "Feedback konnte nicht angelegt werden")
 
     return redirect(reverse("lerneinheiten:page", args=[page_id]))

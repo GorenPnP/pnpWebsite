@@ -17,5 +17,5 @@
 
 // send content data to BE to save
 document.querySelector<HTMLFormElement>("#form")!.addEventListener("submit", function() {
-    this.querySelectorAll("textarea").forEach((textarea: any) => textarea.value = `{"text":"${textarea.value}"}`);
+    this.querySelectorAll("textarea").forEach((textarea: any) => textarea.value = JSON.stringify({text: textarea.value}));
 });
