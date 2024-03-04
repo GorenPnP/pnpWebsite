@@ -1,0 +1,9 @@
+{% extends './page_template.html' %}
+{% load static %}
+
+{% block extra-head %}
+    {{ block.super }}
+
+    <!-- custom -->
+    <script src="{% static 'lerneinheiten/js/editor/freitext.js' %}" defer></script>
+{% endblock %}

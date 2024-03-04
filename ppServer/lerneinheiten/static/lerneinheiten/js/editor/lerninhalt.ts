@@ -404,7 +404,7 @@ root_element.innerHTML = root.render();
 root.init_editor();
 
 // send content data to BE to save
-document.querySelector("#settings")?.addEventListener("submit", function() {
+document.querySelector("#form")!.addEventListener("submit", function() {
     (document.querySelector("#id_content") as any).value = JSON.stringify(root.as_json());
 });
 

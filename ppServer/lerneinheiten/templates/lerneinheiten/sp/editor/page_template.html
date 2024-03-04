@@ -7,9 +7,6 @@
 <link href="{% static 'res/css/easyMDE.css' %}" rel="stylesheet">
 <script src="{% static 'res/js/easymde@2.18.0.min.js' %}"></script>
 <script src="{% static 'res/js/markdown_editorconfig.js' %}"></script>
-
-<!-- custom -->
-<script src="{% static 'lerneinheiten/js/freitext.js' %}" defer></script>
 {% endblock %}
 
 {% block main %}
@@ -18,6 +15,7 @@
     {{ form.as_p }}
 </form>
 
+{% block content %}{% endblock %}
 {% endblock %}
 
 {% block footer %}

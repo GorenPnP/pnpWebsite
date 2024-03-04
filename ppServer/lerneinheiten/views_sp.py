@@ -19,7 +19,7 @@ from .models import *
 
 class EditorIndexView(LoginRequiredMixin, SpielleiterOnlyMixin, ListView):
     model = Einheit
-    template_name = "lerneinheiten/sp/editor_index.html"
+    template_name = "lerneinheiten/sp/editor/index.html"
 
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         return super().get_context_data(
@@ -67,10 +67,10 @@ class EditorIndexView(LoginRequiredMixin, SpielleiterOnlyMixin, ListView):
 
 class EditorPageView(LoginRequiredMixin, SpielleiterOnlyMixin, DetailView):
     model = Page
-    template_name = "lerneinheiten/sp/editor_page/_default.html"
+    template_name = "lerneinheiten/sp/editor/_default.html"
 
     def get_template_names(self) -> list[str]:
-        return [f"lerneinheiten/sp/editor_page/{self.object.get_type_display().lower()}.html"] + super().get_template_names()
+        return [f"lerneinheiten/sp/editor/{self.object.get_type_display().lower()}.html"] + super().get_template_names()
 
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         context = super().get_context_data(
