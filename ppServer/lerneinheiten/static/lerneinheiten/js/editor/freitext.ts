@@ -1,5 +1,5 @@
 // init MD-Editors
-[...(document.querySelectorAll("#form textarea") as any)].forEach((element: any) => {
+document.querySelectorAll<HTMLTextAreaElement>("#form textarea").forEach(element => {
 
     let initialValue = element.value?.trim() || "";
     try {
@@ -8,7 +8,7 @@
 
     new EasyMDE({
         ...MDEditorConfig,
-        element: element as any as HTMLElement,
+        element,
         initialValue
     })
 });
@@ -17,5 +17,5 @@
 
 // send content data to BE to save
 document.querySelector<HTMLFormElement>("#form")!.addEventListener("submit", function() {
-    this.querySelectorAll("textarea").forEach((textarea: any) => textarea.value = JSON.stringify({text: textarea.value}));
+    this.querySelectorAll<HTMLTextAreaElement>("textarea").forEach(textarea => textarea.value = JSON.stringify({text: textarea.value}));
 });

@@ -30,10 +30,6 @@ class PageUpdateForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
 
         self.fields['color'].widget = monster_forms.ColorWidget()
-        # lerninhalt
-        if self.instance.type == "i":
-            self.fields['content'].widget = HiddenInput()
-            self.fields['solution'].widget = HiddenInput()
 
 
 class SpielerPageForm(forms.ModelForm):

@@ -149,7 +149,7 @@ class NewBox extends Box {
         NewBox.clicked = new_box;
     }
     public static replace() {
-        const type: "text" | "image" | "video" = (document.querySelector("#new-box-type")! as any).value;
+        const type: "text" | "image" | "video" = document.querySelector<HTMLSelectElement>("#new-box-type")!.value as "text" | "image" | "video";
 
         const new_box = NewBox.clicked;
         NewBox.clicked = null;
@@ -288,7 +288,7 @@ class VideoBox extends Box {
             }
             
             // adapt internal state
-            const new_iframe = (element.querySelector(`.iframe-form #iframe-input-${id}`) as any).value;
+            const new_iframe = element.querySelector<HTMLInputElement>(`.iframe-form #iframe-input-${id}`)!.value;
             box.update_internal_state(new_iframe);
 
             // render (with changed iframe)
@@ -403,9 +403,14 @@ if (!root) {
 root_element.innerHTML = root.render();
 root.init_editor();
 
+// hide textareas content & musterlösung
+document.querySelectorAll<HTMLTextAreaElement>("#form textarea").forEach(element =>
+    element.parentElement!.classList.add("hidden")
+);
+
 // send content data to BE to save
 document.querySelector("#form")!.addEventListener("submit", function() {
-    (document.querySelector("#id_content") as any).value = JSON.stringify(root.as_json());
+    document.querySelector<HTMLTextAreaElement>("#id_content")!.value = JSON.stringify(root.as_json());
 });
 
 

@@ -10,6 +10,8 @@
 {% endblock %}
 
 {% block content %}
+    <h2>{{ object.titel|default:'' }}</h2>
+
     <div id="content-grid">
         {% if object.content.type %}
             {% include 'lerneinheiten/spieler/page/_lerninhalt_box.html' with direction="grid-column" config=object.content %}

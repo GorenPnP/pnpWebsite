@@ -1,11 +1,19 @@
 {% extends './page_template.html' %}
-{% load static %}
+{% load static l10n %}
 
 {% block extra-head %}
     {{ block.super }}
 
     <!-- custom -->
-    <script src="{% static 'lerneinheiten/js/freitext.js' %}" defer></script>
+    {{ object.solution.choice_id|json_script:"solution" }}
+    <script src="{% static 'lerneinheiten/js/single choice.js' %}" defer></script>
+    <style>
+        .radio {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: .5em;
+        }
+    </style>
 {% endblock %}
 
 {% block content %}
@@ -15,6 +23,15 @@
     <form id="form" method="post">
         {% csrf_token %}
         {{ form.as_p }}
+
+        <fieldset class="radio">
+            {% for choice in object.content.choices %}
+                {% localize off %}
+                <input type="radio" id="choice-{{ choice.id }}" name="choices" value="{{ choice.id }}" form="form" required>
+                <label for="choice-{{ choice.id }}">{{ choice.label }}</label>
+                {% endlocalize %}
+            {% endfor %}
+        </fieldset>
 
         <button type="submit" class="btn btn-primary mt-3">Speichern</button>
         <button type="button" class="btn btn-outline-light mt-3 mx-3"
@@ -26,6 +43,6 @@
 
     <aside id="musterlösung" class="hidden my-5">
         <h2>Musterlösung</h2>
-        <div class="markdown" data-text="{{ object.solution.text|default:'' }}"></div>
+        <result></result>
     </aside>
 {% endblock %}

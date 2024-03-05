@@ -1,14 +1,14 @@
 // init MD-Editors
-document.querySelectorAll("#inquiry-form textarea").forEach((textarea: any) => {
+document.querySelectorAll<HTMLTextAreaElement>("#inquiry-form textarea").forEach(element => {
 
-    let initialValue = textarea.value?.trim() || "";
+    let initialValue = element.value?.trim() || "";
     try {
         initialValue = JSON.parse(initialValue)["text"];
     } catch {};
 
     new EasyMDE({
         ...MDEditorConfig,
-        element: textarea as HTMLElement,
+        element,
         initialValue
     });
 });

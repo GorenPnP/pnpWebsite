@@ -1,5 +1,5 @@
 // Loop through each nested sortable element
-const sortables = [...(document.querySelectorAll(".sortable-list") as any)].map(list =>
+const sortables = [...document.querySelectorAll<HTMLUListElement>(".sortable-list")].map(list =>
     new Sortable(list, {
         handle: '.handle', // handle's class
         group: { name: "einheit", pull: false, put: false },
@@ -16,7 +16,7 @@ function set_order() {
         acc[sortable.el.dataset.einheit!] = sortable.toArray().map((id: string) => parseInt(id));
         return acc;
     }, {} as {[einheit_id: string]: number[]});
-    (document.querySelector("#input-sortable")! as any).value = JSON.stringify(content);
+    document.querySelector<HTMLInputElement>("#input-sortable")!.value = JSON.stringify(content);
 }
 
 set_order();
