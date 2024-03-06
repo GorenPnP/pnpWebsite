@@ -1,0 +1,26 @@
+{% extends './page_template.html' %}
+{% load static %}
+
+{% block extra-head %}
+    {{ block.super }}
+    <script src="{% static 'res/js/sortable@1.15.2.min.js' %}"></script>
+
+    <!-- custom -->
+    <link rel="stylesheet" href="{% static 'lerneinheiten/css/sortable_list.css' %}">
+    {{ object.solution|json_script:"solution" }}
+    {{ object.content.choices|json_script:"choices" }}
+    <script src="{% static 'lerneinheiten/js/editor/sortieren.js' %}" defer></script>
+{% endblock %}
+
+{% block main %}
+    <h2>Settings</h2>
+    {{ block.super }}
+{% endblock %}
+
+{% block content %}
+<h2>Sortierbares</h2>
+<!-- Simple List -->
+<ul class="sortable-list list-group"></ul>
+
+<button class="btn btn-primary" onclick="add_item()">+ Option</button>
+{% endblock %}
