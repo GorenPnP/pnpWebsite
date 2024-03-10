@@ -6,9 +6,8 @@ document.querySelectorAll<HTMLTextAreaElement>("#form textarea").forEach(element
 
 // check spieler-selected check
 try {
-    const answer = JSON.parse(document.querySelector<HTMLTextAreaElement>("#form #id_answer")!.value)["choice_id"];
-    const check = document.querySelector<HTMLInputElement>(`#choice-${answer}`);
-    if (check) check.checked = true;
+    const answers: number[] = JSON.parse(document.querySelector<HTMLTextAreaElement>("#form #id_answer")!.value)["choice_ids"];
+    answers.forEach(choice_id => document.querySelector<HTMLInputElement>(`#choice-${choice_id}`)!.checked = true);
 } catch { }
 
 
@@ -23,5 +22,7 @@ document.querySelector("#musterlösung result")!.innerHTML = "<ul><li>" + soluti
 
 // send content data to BE to save
 document.querySelector<HTMLFormElement>("#form")!.addEventListener("submit", function() {
-    this.answer.value = JSON.stringify({choice_id: parseInt(this.choices.value)});
+    const answers = [...this.querySelectorAll<HTMLInputElement>(`[type=checkbox]:checked`)]
+        .map(checkbox => parseInt(checkbox.name));
+    this.answer.value = JSON.stringify({choice_ids: answers});
 });
