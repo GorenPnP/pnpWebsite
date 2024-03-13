@@ -1,0 +1,42 @@
+#pair-container {
+    display: flex;
+    align-items: stretch;
+    max-width: 700px;
+
+    & > * {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        margin: 0 !important;
+    }
+    #line-container { flex: 1px 1 0; }
+}
+
+
+#line-container {
+    max-width: 200px;
+    
+    & > .pair-line {
+        flex: 1px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+
+        position: relative;
+
+        &:before {
+            content: "";
+            --pairline-height: 3px;
+
+            position: absolute;
+            top: calc(50% - var(--pairline-height)/2);
+            left: 0;
+            width: 100%;
+            height: var(--pairline-height);
+
+            background-color: currentColor;
+            z-index: 0;
+        }
+    }
+    button { z-index: 1; }
+}
