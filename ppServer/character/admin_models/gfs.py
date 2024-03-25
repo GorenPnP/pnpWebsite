@@ -1,5 +1,11 @@
+from typing import Any
 from django.contrib import admin
+from django.db.models import OuterRef
+from django.db.models.query import QuerySet
+from django.http import HttpRequest
 from django.utils.html import format_html
+
+from ppServer.utils import get_filter, ConcatSubquery
 
 from ..models import *
 
@@ -56,6 +62,11 @@ class GfsZauberInLine(admin.TabularInline):
     extra = 1
 
 
+class GfsSkilltreeInLine(admin.TabularInline):
+    model = GfsSkilltreeEntry
+    extra = 1
+
+
 class GfsStufenplanInLine(admin.TabularInline):
     model = GfsStufenplan
     fields = ["basis", "vorteile", "zauber", "wesenkräfte", "ability"]
@@ -72,31 +83,39 @@ class GfsAdmin(admin.ModelAdmin):
     list_filter = ["wesen", 'ap', 'startmanifest', "wesenschaden_waff_kampf"]
     search_fields = ('titel', 'ap')
 
-    list_editable = ["wesen", 'wesenschaden_waff_kampf', 'wesenschaden_andere_gestalt', 'difficulty']
     list_display_links = ["icon_", "titel"]
 
     inlines = [GfsImageInLine, GfsAttributInLine, GfsFertigkeitInLine,
                GfsVorteilInLine, GfsNachteilInLine,
                GfsWesenkraftInLine, GfsZauberInLine,
-               GfsStufenplanInLine]
+               GfsSkilltreeInLine, GfsStufenplanInLine]
     
     def get_queryset(self, request):
-        return super().get_queryset(request).prefetch_related('nachteile', 'vorteile', 'wesenkraft', 'gfszauber_set__item')
-    
+        return super().get_queryset(request).prefetch_related("wesen").annotate(
+            vorteilnames = ConcatSubquery(Vorteil.objects.filter(gfs=OuterRef("id")).values("titel"), ", "),
+            nachteilnames = ConcatSubquery(Nachteil.objects.filter(gfs=OuterRef("id")).values("titel"), ", "),
+            zaubernames = ConcatSubquery(GfsZauber.objects.prefetch_related("item").filter(gfs=OuterRef("id")).values("item__name"), ", "),
+            wesenkraftnames = ConcatSubquery(Wesenkraft.objects.filter(gfs=OuterRef("id")).values("titel"), ", "),
+        )
+
     def icon_(self, obj):
-        return format_html(f'<img src="{obj.icon.url}" style="max-width: 32px; max-height:32px;" />' if obj.icon else "-")
+        return format_html(f'<img src="{obj.icon.url}" style="max-width: 32px; max-height:32px;" />' if obj.icon else self.get_empty_value_display())
 
+    @admin.display(ordering="vorteilnames")
     def vorteil_(self, obj):
-        return ', '.join([a.titel for a in obj.vorteile.all()]) or None
+        return obj.vorteilnames or self.get_empty_value_display()
 
+    @admin.display(ordering="nachteilnames")
     def nachteil_(self, obj):
-        return ', '.join([a.titel for a in obj.nachteile.all()]) or None
+        return obj.nachteilnames or self.get_empty_value_display()
 
+    @admin.display(ordering="zaubernames")
     def zauber_(self, obj):
-        return ', '.join([a.item.name for a in obj.gfszauber_set.all()]) or None
+        return obj.zaubernames or self.get_empty_value_display()
 
+    @admin.display(ordering="wesenkraftnames")
     def wesenkraft_(self, obj):
-        return ', '.join([a.titel for a in obj.wesenkraft.all()]) or None
+        return obj.nachteilnames or self.get_empty_value_display()
 
 
 
@@ -109,10 +128,22 @@ class GfsStufenplanBaseAdmin(admin.ModelAdmin):
 
 
 class GfsAbilityAdmin(admin.ModelAdmin):
-    list_display = ("name", "beschreibung", "needs_implementation", "has_choice")
+    list_display = ("name", "beschreibung", "_gfs", "_stufe", "needs_implementation", "has_choice")
     list_editable = ["needs_implementation", "has_choice"]
 
+    list_filter = [get_filter(Gfs, "titel", ["gfsstufenplan__gfs__titel"]), "needs_implementation", "has_choice"]
     search_fields = ("name", "beschreibung")
+
+    @admin.display(ordering="gfsstufenplan__gfs__titel")
+    def _gfs(self, obj):
+        return obj.gfsstufenplan.gfs.titel
+
+    @admin.display(ordering="gfsstufenplan__basis__stufe")
+    def _stufe(self, obj):
+        return obj.gfsstufenplan.basis.stufe
+    
+    def get_queryset(self, request: HttpRequest) -> QuerySet[Any]:
+        return super().get_queryset(request).prefetch_related("gfsstufenplan__gfs", "gfsstufenplan__basis")
 
     
 class GfsSkilltreeEntryAdmin(admin.ModelAdmin):
@@ -140,7 +171,7 @@ class GfsSkilltreeEntryAdmin(admin.ModelAdmin):
     list_display = ["context_", "entry", "operation", "correctly_formatted"]
 
     search_fields = ["gfs__titel", "base__stufe", "text", "vorteil__titel", "nachteil__titel", "spezialfertigkeit__titel", "wissensfertigkeit__titel", "amount", "stufe", "wesenkraft__titel"]
-    list_filter = ["gfs", "base__stufe", "operation", IsCorrectlyFormattedFilter]
+    list_filter = [get_filter(Gfs, "titel", ["gfs__titel"]), "base__stufe", "operation", IsCorrectlyFormattedFilter]
 
     def context_(self, obj):
         return f"{obj.gfs.titel} St. {obj.base.stufe}"

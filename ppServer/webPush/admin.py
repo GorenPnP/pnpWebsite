@@ -1,5 +1,8 @@
+from typing import Any
 from django.contrib import admin
 
+from django.db.models.query import QuerySet
+from django.http import HttpRequest
 from push_notifications.models import APNSDevice, GCMDevice, WNSDevice
 
 from .models import *
@@ -21,5 +24,8 @@ class PushSettingsAdmin(admin.ModelAdmin):
         (None, {'fields': ['user']}),
         ('Themen', {'fields': ["chat", "news", "quiz", "changelog", "polls"]})
     ]
+
+    def get_queryset(self, request: HttpRequest) -> QuerySet[Any]:
+        return super().get_queryset(request).prefetch_related("user")
 
 admin.site.register(PushSettings, PushSettingsAdmin)

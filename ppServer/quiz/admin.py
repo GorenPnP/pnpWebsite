@@ -1,7 +1,11 @@
 from typing import Any, Optional
 from django.contrib import admin
+from django.db.models import OuterRef
+from django.db.models.query import QuerySet
 from django.http.request import HttpRequest
 from django.utils.html import format_html
+
+from ppServer.utils import ConcatSubquery, get_filter
 
 from .models import *
 
@@ -92,11 +96,18 @@ class TopicAdmin(admin.ModelAdmin):
 
     def subject_(self, obj):
         return obj.subject.titel
+    
+    def get_queryset(self, request: HttpRequest) -> QuerySet[Any]:
+        return super().get_queryset(request).prefetch_related("subject")
 
 
 class QuestionAdmin(admin.ModelAdmin):
     list_display = ["text", "module_", "topic", "grade", "points", "answer_note", "images_included"]
-    list_filter = ["topic__subject", "topic", "grade"]
+    list_filter = [
+        get_filter(Subject, "titel", ["topic__subject__titel"]),
+        get_filter(Topic, "titel", ["topic__titel"]),
+        "grade"
+    ]
     search_fields = ["text", "topic__titel", "topic__subject__titel"]
 
     fieldsets = [
@@ -120,8 +131,12 @@ class QuestionAdmin(admin.ModelAdmin):
 
 
     def module_(self, obj):
-        mqs = ModuleQuestion.objects.filter(question=obj)
-        return ", ".join([mq.module.__str__() for mq in mqs]) if mqs.count() else "-"
+        return obj.modulenames or self.get_empty_value_display()
+    
+    def get_queryset(self, request: HttpRequest) -> QuerySet[Any]:
+        return super().get_queryset(request).prefetch_related("topic__subject", "images", "multiplechoicefield_set").annotate(
+            modulenames = ConcatSubquery(ModuleQuestion.objects.prefetch_related("module").filter(question=OuterRef("id")).values("module__title"), ", ")
+        )
 
 class ModuleAdmin(admin.ModelAdmin):
     list_display = ["icon_", "title", "num", "max_points", "reward", "prerequisites_"]
@@ -132,10 +147,15 @@ class ModuleAdmin(admin.ModelAdmin):
     inlines = [QuestionsInLine]
 
     def prerequisites_(self, obj):
-        return ", ".join([p.title for p in obj.prerequisite_modules.all()]) if obj.prerequisite_modules.exists() else "-"
+        return obj.prerequesitenames or self.get_empty_value_display()
 
     def icon_(self, obj):
         return format_html('<img src="{0}" style="max-width: 32px; max-height:32px;" />'.format(obj.icon.img.url)) if obj.icon else "-"
+    
+    def get_queryset(self, request: HttpRequest) -> QuerySet[Any]:
+        return super().get_queryset(request).prefetch_related("icon").annotate(
+            prerequesitenames = ConcatSubquery(Module.objects.filter(module=OuterRef("id")).values("title"), ", "),
+        )
     icon_.allow_tags = True
 
     actions = [save_selected]
@@ -151,6 +171,9 @@ class SpielerModuleAdmin(admin.ModelAdmin):
 
     def _reward(self, obj):
         return obj.module.reward
+    
+    def get_queryset(self, request: HttpRequest) -> QuerySet[Any]:
+        return super().get_queryset(request).prefetch_related("spieler", "module")
 
 
 class SpielerSessionAdmin(admin.ModelAdmin):
@@ -161,6 +184,9 @@ class SpielerSessionAdmin(admin.ModelAdmin):
     exclude = ["questions"]
     readonly_fields = ["spielerModule"]
     inlines = [SessionQuestionsInLine]
+
+    def get_queryset(self, request: HttpRequest) -> QuerySet[Any]:
+        return super().get_queryset(request).prefetch_related("spielerModule__spieler", "spielerModule__module")
 
 
 class SpielerQuestionAdmin(admin.ModelAdmin):
@@ -181,6 +207,9 @@ class SpielerQuestionAdmin(admin.ModelAdmin):
 
 class RelQuizAdmin(admin.ModelAdmin):
     list_display = ("spieler", "quiz_points_achieved", "current_session")
+
+    def get_queryset(self, request: HttpRequest) -> QuerySet[Any]:
+        return super().get_queryset(request).prefetch_related("spieler", "current_session__spielerModule__spieler", "current_session__spielerModule__module")
 
 
 class DataAdmin(admin.ModelAdmin):

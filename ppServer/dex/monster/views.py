@@ -13,9 +13,10 @@ from django.views.generic.base import TemplateView
 from django.views.generic.list import ListView
 from django.urls import reverse
 
+from ppServer.utils import AvgSubquery
+
 from .forms import *
 from .models import *
-from .utils import AvgSubquery
 
 
 class MonsterIndexView(LoginRequiredMixin, ListView):

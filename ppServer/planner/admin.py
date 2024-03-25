@@ -1,4 +1,7 @@
+from typing import Any
 from django.contrib import admin
+from django.db.models.query import QuerySet
+from django.http import HttpRequest
 
 from .models import *
 
@@ -22,6 +25,9 @@ class BlockedTimeInLineAdmin(admin.TabularInline):
 class DayAdmin(admin.ModelAdmin):
     exclude = ["proposals", "appointment"]
     inlines = [BlockedTimeInLineAdmin, ProposalInLineAdmin, AppointmentInLineAdmin]
+
+    def get_queryset(self, request: HttpRequest) -> QuerySet[Any]:
+        return super().get_queryset(request).prefetch_related("blockedtime", "proposals")
 
 
 admin.site.register(Tag)
