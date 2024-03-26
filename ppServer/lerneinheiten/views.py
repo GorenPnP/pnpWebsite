@@ -8,7 +8,7 @@ from django.shortcuts import redirect
 from django.views.decorators.http import require_POST
 from django.views.generic import DetailView
 from django.views.generic.list import ListView
-from django.shortcuts import reverse, get_object_or_404
+from django.shortcuts import reverse
 
 from ppServer.mixins import VerifiedAccountMixin
 
