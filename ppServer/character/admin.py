@@ -1,10 +1,14 @@
+from typing import Any
 from django.contrib import admin
+from django.db.models import OuterRef
+from django.db.models.query import QuerySet
+from django.http.request import HttpRequest
 
+from ppServer.utils import ConcatSubquery, get_filter
 
 from .admin_models.character import CharakterAdmin
 from .admin_models.gfs import *
 from .models import *
-
 
 
 class WesenkraftZusatzWesenspInLine(admin.TabularInline):
@@ -64,13 +68,18 @@ class WesenkraftAdmin(admin.ModelAdmin):
 
     list_display = ['titel', 'probe', 'manaverbrauch', 'wirkung', 'skilled_gfs_']
     search_fields = ['titel', 'skilled_gfs']
-    list_filter = ['skilled_gfs']
+    list_filter = ['skilled_gfs__titel']
 
+    @admin.display(ordering="skilled_gfsnames")
     def skilled_gfs_(self, obj):
-        return ", ".join([gfs.titel for gfs in obj.skilled_gfs.all()])
+        return obj.skilled_gfsnames or self.get_empty_value_display()
 
     def get_queryset(self, request):
-        return super().get_queryset(request).prefetch_related('skilled_gfs')
+        qs = Gfs.objects.filter(wesenkraft__id=OuterRef("id")).values("titel")
+
+        return super().get_queryset(request).annotate(
+            skilled_gfsnames = ConcatSubquery(qs, separator=", ")
+        )
 
 
 class SpezialfertigkeitAdmin(admin.ModelAdmin):
@@ -81,15 +90,23 @@ class SpezialfertigkeitAdmin(admin.ModelAdmin):
 
     inlines = [SpezialAusgleichInLine]
 
-    list_display = ('titel', 'attr1', 'attr2', 'ausgleich_', 'beschreibung')
-    list_filter = ['attr1', 'attr2', 'ausgleich']
-    search_fields = ['titel', 'attr1__titel', 'attr2__titel']
+    list_display = ('titel', 'attr1', 'attr2', 'fertigkeit_', 'beschreibung')
+    list_filter = [
+        get_filter(Attribut, "titel", ['attr1__titel', 'attr2__titel']),
+        get_filter(Fertigkeit, "titel", ['ausgleich__titel']),
+    ]
+    search_fields = ['titel', 'attr1__titel', 'attr2__titel', "ausgleich__titel"]
 
-    def ausgleich_(self, obj):
-        return ', '.join([a.titel for a in obj.ausgleich.all()])
+    @admin.display(ordering="ausgleichnames")
+    def fertigkeit_(self, obj):
+        return obj.ausgleichnames
 
     def get_queryset(self, request):
-        return super().get_queryset(request).prefetch_related('attr1', 'attr2', 'ausgleich')
+        qs = Fertigkeit.objects.filter(spezialfertigkeit__id=OuterRef("id")).values("titel")
+
+        return super().get_queryset(request).prefetch_related('attr1', 'attr2', "ausgleich").annotate(
+            ausgleichnames = ConcatSubquery(qs, separator=", ")
+        )
 
 
 class WissensfertigkeitAdmin(admin.ModelAdmin):
@@ -101,14 +118,22 @@ class WissensfertigkeitAdmin(admin.ModelAdmin):
     inlines = [WissenFertInLine]
 
     list_display = ('titel', 'attr1', 'attr2', 'attr3', 'fertigkeit_', 'beschreibung')
-    list_filter = ['attr1', 'attr2', 'attr3', 'fertigkeit']
-    search_fields = ['titel', 'attr1__titel', 'attr2__titel', 'attr3__titel']
+    list_filter = [
+        get_filter(Attribut, "titel", ["attr1__titel", "attr2__titel", "attr3__titel"]),
+        get_filter(Fertigkeit, "titel", ["fertigkeit__titel"]),
+    ]
+    search_fields = ['titel', 'attr1__titel', 'attr2__titel', 'attr3__titel', 'fertigkeit__titel']
 
+    @admin.display(ordering="fertigkeitnames")
     def fertigkeit_(self, obj):
-        return ', '.join([a.titel for a in obj.fertigkeit.all()])
+        return obj.fertigkeitnames
 
     def get_queryset(self, request):
-        return super().get_queryset(request).prefetch_related('attr1', 'attr2', 'attr3', 'fertigkeit')
+        qs = Fertigkeit.objects.filter(wissensfertigkeit__id=OuterRef("id")).values("titel")
+
+        return super().get_queryset(request).prefetch_related('attr1', 'attr2', 'attr3').annotate(
+            fertigkeitnames = ConcatSubquery(qs, separator=", ")
+        )
 
 
 class VorNachteilAdmin(admin.ModelAdmin):
@@ -137,8 +162,14 @@ class ReligionAdmin(admin.ModelAdmin):
 class TalentAdmin(admin.ModelAdmin):
     list_display = ["titel", "tp", "beschreibung", "kategorie", "bedingung_"]
 
+    @admin.display(ordering="bedingungnames")
     def bedingung_(self, obj):
-        return ", ".join([t.titel for t in obj.bedingung.all()])
+        return obj.bedingungnames or self.get_empty_value_display()
+    
+    def get_queryset(self, request: HttpRequest) -> QuerySet[Any]:
+        return super().get_queryset(request).annotate(
+            bedingungnames = ConcatSubquery(Talent.objects.filter(id__in=OuterRef("bedingung")).values("titel"), ", ")
+        )
 
 
 admin.site.register(Spieler, SpielerAdmin)

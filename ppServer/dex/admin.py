@@ -1,4 +1,7 @@
+from typing import Any
 from django.contrib import admin
+from django.db.models.query import QuerySet
+from django.http import HttpRequest
 from django.utils.html import format_html
 
 from .models import *
@@ -20,13 +23,15 @@ class PflanzenAdmin(admin.ModelAdmin):
     list_filter = ["generation"]
     search_fields = ["name", "besonderheiten"]
     list_display_links = ["name"]
-    
-    exclude = ["images"]
+
     inlines = [PflanzenImageInLineAdmin, PflanzenÖkologieInLineAdmin]
 
     def images_(self, obj):
-        pf_imgs = ParaPflanzenImage.objects.filter(plant=obj, is_vorschau=True)
-        return format_html("".join([f"<img src='{pf_img.image.url}' style='max-width: 32px; max-height:32px;'>" for pf_img in pf_imgs]) or "-")
+        pf_imgs = obj.parapflanzenimage_set.filter(is_vorschau=True)
+        return format_html("".join([f"<img src='{pf_img.image.url}' style='max-width: 32px; max-height:32px;'>" for pf_img in pf_imgs]) or self.get_empty_value_display())
+    
+    def get_queryset(self, request: HttpRequest) -> QuerySet[Any]:
+        return super().get_queryset(request).prefetch_related("parapflanzenimage_set")
 
 
 class TierFertigkeitInLineAdmin(admin.TabularInline):
@@ -45,7 +50,7 @@ class TierAdmin(admin.ModelAdmin):
     inlines = [TierFertigkeitInLineAdmin]
 
     def image_(self, obj):
-        return format_html(f"<img src='{obj.image.url}' style='max-width: 32px; max-height:32px;'>") if obj.image else "-"
+        return format_html(f"<img src='{obj.image.url}' style='max-width: 32px; max-height:32px;'>") if obj.image else self.get_empty_value_display()
 
 
 class GeschöpfFertigkeitInLineAdmin(admin.TabularInline):
@@ -64,11 +69,14 @@ class GeschöpfAdmin(admin.ModelAdmin):
     inlines = [GeschöpfFertigkeitInLineAdmin]
 
     def image_(self, obj):
-        return format_html(f"<img src='{obj.image.url}' style='max-width: 32px; max-height:32px;'>") if obj.image else "-"
+        return format_html(f"<img src='{obj.image.url}' style='max-width: 32px; max-height:32px;'>") if obj.image else self.get_empty_value_display()
     def klassierung(self, obj):
         return f"{obj.gefahrenklasse}{obj.verwahrungsklasse}"
     def schadensWI_(self, obj):
-        return "+".join([f"{t.amount}{t.type}" for t in obj.schadensWI.all()]) or "-"
+        return "+".join([f"{t.amount}{t.type}" for t in obj.schadensWI.all()]) or self.get_empty_value_display()
+    
+    def get_queryset(self, request: HttpRequest) -> QuerySet[Any]:
+        return super().get_queryset(request).prefetch_related("initiative", "schadensWI")
 
 
 admin.site.register(Dice)

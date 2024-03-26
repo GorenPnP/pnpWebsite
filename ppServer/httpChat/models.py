@@ -8,7 +8,7 @@ from django.utils.text import slugify
 from django_resized import ResizedImageField
 
 from character.models import Spieler
-from dex.monster.utils import ConcatSubquery
+from ppServer.utils import ConcatSubquery
 
 
 class SumSubquery(Subquery):

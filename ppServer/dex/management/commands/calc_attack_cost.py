@@ -6,7 +6,7 @@ from dex.monster.models import Attacke
 
 def cost_estimate(attack: Attacke) -> int:
     cost = 1 if attack.macht_effekt else 0
-    cost = sum([cost, *[floor((amount * (int(type.replace("W", ""))+1)) / 8) for amount, type in attack.damage.all().values_list("amount", "type")]])
+    cost = sum([cost, *[floor((d.amount * (int(d.type.replace("W", ""))+1)) / 8) for d in attack.damage.all()]])
     return min(cost, 7)
 
 class Command(BaseCommand):

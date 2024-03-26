@@ -45,7 +45,7 @@ class Log(models.Model):
     art = models.CharField(max_length=1, choices=kind_enum)
     kosten = models.TextField()
     notizen = models.TextField()
-    timestamp = models.DateTimeField(auto_now_add=True, blank=True)
+    timestamp = models.DateTimeField(auto_now_add=True, blank=True, null=True)
 
     def __str__(self):
         return "In Kategorie {} für {} von {} geändert".format(self.get_art_display(), self.char.name, self.spieler.name)

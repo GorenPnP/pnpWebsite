@@ -6,6 +6,8 @@ from django.forms.widgets import Widget as Widget
 from django.http.request import HttpRequest
 from django.utils.html import format_html
 
+from ppServer.utils import get_filter
+
 from ..models import *
 
 
@@ -16,7 +18,7 @@ class RelInlineAdmin(admin.TabularInline):
     show_change_link = False
 
     def _is_visible(self, request, obj = ...) -> bool:
-        return request.spieler.is_spielleiter or not obj or ("trägt seine chars ein" in request.spieler.groups and obj.eigentümer == request.spieler.instance)
+        return request.spieler.is_spielleiter or not obj or ("trägt seine chars ein" in request.spieler.groups and getattr(obj, "eigentümer") == request.spieler.instance)
 
     def has_add_permission(self, request: HttpRequest, obj: Charakter = None) -> bool:
         return self._is_visible(request, obj)
@@ -289,7 +291,7 @@ class CharakterAdmin(admin.ModelAdmin):
 
     list_display = ['image_', 'name', 'eigentümer', "gfs", "larp", "in_erstellung"]
 
-    list_filter = ['in_erstellung', 'larp', 'eigentümer']
+    list_filter = ['in_erstellung', 'larp', get_filter(Spieler, "name", ['eigentümer__name'])]
     search_fields = ['name', 'eigentümer__name']
     list_display_links = ["name"]
 
@@ -303,7 +305,7 @@ class CharakterAdmin(admin.ModelAdmin):
     # utils for groups
 
     def _is_spielleiter_or_adds_chars(self, request, obj):
-        return request.spieler.is_spielleiter or not obj or ("trägt seine chars ein" in request.spieler.groups and obj.eigentümer == request.spieler.instance)
+        return request.spieler.is_spielleiter or not obj or ("trägt seine chars ein" in request.spieler.groups and getattr(obj, "eigentümer") == request.spieler.instance)
 
     def _only_adds_chars(self, request):
         return not request.spieler.is_spielleiter and "trägt seine chars ein" in request.spieler.groups

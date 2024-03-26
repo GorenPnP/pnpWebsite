@@ -26,7 +26,10 @@ class AccountAdmin(admin.ModelAdmin):
     exclude = ["slug"]
 
     def _avatar(self, obj):
-        return format_html('<img src="{0}" style="max-width: 32px; max-height:32px; border-radius:50%" />'.format(obj.avatar.url)) if obj.avatar else "-"
+        return format_html('<img src="{0}" style="max-width: 32px; max-height:32px; border-radius:50%" />'.format(obj.avatar.url)) if obj.avatar else self.get_empty_value_display()
+
+    def get_queryset(self, request: HttpRequest) -> QuerySet[Any]:
+        return super().get_queryset(request).prefetch_related("spieler")
 
 
 class ChatroomAdmin(admin.ModelAdmin):
@@ -37,7 +40,12 @@ class ChatroomAdmin(admin.ModelAdmin):
     inlines = [AccountInLineAdmin, MessageInLineAdmin]
 
     def _accounts(self, obj):
-        return ", ".join([a.__str__() for a in obj.accounts.all()]) or "-"
+        return obj.accountsnames or self.get_empty_value_display()
+    
+    def get_queryset(self, request: HttpRequest) -> QuerySet[Any]:
+        return super().get_queryset(request).annotate(
+            accountsnames = ConcatSubquery(Account.objects.filter(chatroom=OuterRef("id")).values("name"), ", ")
+        )
 
 
 admin.site.register(Account, AccountAdmin)

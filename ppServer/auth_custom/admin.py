@@ -1,14 +1,26 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group
+
+from django.db.models import OuterRef
+
+from ppServer.utils import ConcatSubquery
 
 
 # Define a new User admin
 class CustomUserAdmin(UserAdmin):
-    list_display = UserAdmin.list_display + ("is_active", "is_superuser", "groups_",)
+    list_display = UserAdmin.list_display + ("is_active", "is_superuser", "groupnames",)
 
-    def groups_(self, obj):
-        return ", ".join([g.name for g in obj.groups.all()])
+    def get_queryset(self, request):
+        qs = Group.objects.filter(user__id=OuterRef("id")).values("name")
+
+        return super().get_queryset(request).annotate(
+            groupnames = ConcatSubquery(qs, separator=", ")
+        )
+    
+    @admin.display(ordering="groupnames")
+    def groupnames(self, obj):
+        return obj.groupnames
     admin.boolean = True
 
 # Re-register UserAdmin

@@ -1,8 +1,12 @@
+from typing import Any
 from django.contrib import admin
+from django.db.models import OuterRef
+from django.db.models.query import QuerySet
 from django.http.request import HttpRequest
 from django.utils.html import format_html
 
 from mining.models import Item as MiningItem
+from ppServer.utils import get_filter, ConcatSubquery
 
 from .models import *
 
@@ -92,27 +96,25 @@ class FirmaEngelsroboterInLine(FirmaShopInLine):
 class BaseAdmin(admin.ModelAdmin):
     search_fields = ['name']
 
-    def illegal_(self, obj):
-        if self.shop_model.objects.get(pk=obj.pk).illegal:
-            return "illegal"
-        return None
+    def _firmashop_modelset(self) -> str:
+        return f"{self.firma_shop_model._meta.model_name}_set"
 
-    def frei_editierbar_(self, obj):
-        if self.shop_model.objects.get(pk=obj.pk).frei_editierbar:
-            return "frei_editierbar"
-        return None
-
-    def lizenz_benötigt_(self, obj):
-        if self.shop_model.objects.get(pk=obj.pk).lizenz_benötigt:
-            return "Lizenz benötigt"
-        return None
+    def info(self, obj):
+        res = []
+        if obj.illegal: res.append("illegal")
+        if obj.lizenz_benötigt: res.append("Lizenz benötigt")
+        if obj.frei_editierbar: res.append("frei editierbar")
+        return ", ".join(res) or self.get_empty_value_display()
 
     def billigste(self, obj):
-        offers = self.firma_shop_model.objects.filter(item=obj)
+        offers = getattr(obj, self._firmashop_modelset()).all()
         if not offers: return None
 
         return sorted([o.getPrice() for o in offers])[0]
 
+
+    def get_queryset(self, request: HttpRequest) -> QuerySet[Any]:
+        return super().get_queryset(request).prefetch_related(f"{self._firmashop_modelset()}__firma")
 
     def get_readonly_fields(self, request: HttpRequest, obj = ...):
         # spielleiter
@@ -135,7 +137,7 @@ class ItemAdmin(BaseAdmin):
     shop_model = Item
     firma_shop_model = FirmaItem
 
-    list_display = ('name', 'beschreibung', "ab_stufe", 'billigste', 'kategorie', 'illegal_', 'lizenz_benötigt_', "frei_editierbar_")
+    list_display = ('name', 'beschreibung', "ab_stufe", 'billigste', 'kategorie', 'info')
     list_filter = ['kategorie', 'illegal', 'lizenz_benötigt', "frei_editierbar"
                    ]
 
@@ -148,7 +150,7 @@ class Waffen_WerkzeugeAdmin(BaseAdmin):
     firma_shop_model = FirmaWaffen_Werkzeuge
 
     list_display = ('name', 'beschreibung', "ab_stufe", 'erfolge', 'bs', 'zs', 'dk', 'billigste',
-                    'kategorie', 'illegal_', 'lizenz_benötigt_', "frei_editierbar_")
+                    'kategorie', 'info')
     list_filter = ['kategorie', 'erfolge', 'bs', 'zs', 'dk', 'illegal', 'lizenz_benötigt', "frei_editierbar"]
 
     inlines = [FirmaWaffen_WerkzeugeInLine]
@@ -159,7 +161,7 @@ class MagazinAdmin(BaseAdmin):
     shop_model = Magazin
     firma_shop_model = FirmaMagazin
 
-    list_display = ('name', 'beschreibung', "ab_stufe", 'schuss', 'billigste', 'illegal_', 'lizenz_benötigt_', "frei_editierbar_")
+    list_display = ('name', 'beschreibung', "ab_stufe", 'schuss', 'billigste', 'info')
     list_filter = ['schuss', 'illegal', 'lizenz_benötigt', "frei_editierbar"]
 
     inlines = [FirmaMagazinInLine]
@@ -170,7 +172,7 @@ class Pfeil_BolzenAdmin(BaseAdmin):
     shop_model = Pfeil_Bolzen
     firma_shop_model = FirmaPfeil_Bolzen
 
-    list_display = ('name', 'beschreibung', "ab_stufe", 'bs', 'zs', 'billigste', 'illegal_', 'lizenz_benötigt_', "frei_editierbar_")
+    list_display = ('name', 'beschreibung', "ab_stufe", 'bs', 'zs', 'billigste', 'info')
     list_filter = ['bs', 'zs', 'illegal', 'lizenz_benötigt', "frei_editierbar"]
 
     inlines = [FirmaPfeil_BolzenInLine]
@@ -183,7 +185,7 @@ class SchusswaffenAdmin(BaseAdmin):
 
     exclude = ['magazine', 'st_magazine', 'pfeile_bolzen', 'st_pfeile_bolzen']
     list_display = ('name', 'beschreibung', "ab_stufe", 'erfolge', 'bs', 'zs', 'dk', 'präzision', 'billigste',
-                    'kategorie', 'illegal_', 'lizenz_benötigt_', "frei_editierbar_")
+                    'kategorie', 'info')
     list_filter = ['kategorie', 'erfolge', 'bs', 'zs', 'dk', 'präzision', 'illegal', 'lizenz_benötigt', "frei_editierbar"]
 
     inlines = [SchussMagazineInLine, SchussPfeileBolzenInLine,
@@ -195,7 +197,7 @@ class Magische_AusrüstungAdmin(BaseAdmin):
     shop_model = Magische_Ausrüstung
     firma_shop_model = FirmaMagische_Ausrüstung
 
-    list_display = ('name', 'beschreibung', "ab_stufe", 'billigste', 'kategorie', 'illegal_', 'lizenz_benötigt_', "frei_editierbar_")
+    list_display = ('name', 'beschreibung', "ab_stufe", 'billigste', 'kategorie', 'info')
     list_filter = ['kategorie', 'illegal', 'lizenz_benötigt', "frei_editierbar"]
 
     inlines = [FirmaMagische_AusrüstungInLine]
@@ -207,25 +209,17 @@ class Rituale_RunenAdmin(admin.ModelAdmin):
     firma_shop_model = FirmaRituale_Runen
 
     list_display = ('name', 'beschreibung', "ab_stufe", # 'billigste',
-                     'kategorie', 'illegal_', 'lizenz_benötigt_', "frei_editierbar_")
+                     'kategorie', 'info')
     list_filter = ['kategorie', 'illegal', 'lizenz_benötigt', "frei_editierbar"]
 
     inlines = [FirmaRituale_RunenInLine]
 
-    def illegal_(self, obj):
-        if self.shop_model.objects.get(pk=obj.pk).illegal:
-            return "illegal"
-        return None
-
-    def lizenz_benötigt_(self, obj):
-        if self.shop_model.objects.get(pk=obj.pk).lizenz_benötigt:
-            return "Lizenz benötigt"
-        return None
-
-    def frei_editierbar_(self, obj):
-        if self.shop_model.objects.get(pk=obj.pk).frei_editierbar:
-            return "frei_editierbar"
-        return None
+    def info(self, obj):
+        res = []
+        if obj.illegal: res.append("illegal")
+        if obj.lizenz_benötigt: res.append("Lizenz benötigt")
+        if obj.frei_editierbar: res.append("frei editierbar")
+        return ", ".join(res) or self.get_empty_value_display()
     
 
     def get_readonly_fields(self, request: HttpRequest, obj = ...):
@@ -247,7 +241,7 @@ class RüstungenAdmin(BaseAdmin):
     firma_shop_model = FirmaRüstungen
 
     list_display = ('name', 'beschreibung', "ab_stufe", 'schutz', 'stärke', 'haltbarkeit', 'billigste',
-                    'illegal_', 'lizenz_benötigt_', "frei_editierbar_")
+                    'info')
     list_filter = ['schutz', 'stärke', 'haltbarkeit', 'illegal', 'lizenz_benötigt', "frei_editierbar"]
 
     inlines = [FirmaRüstungenInLine]
@@ -259,7 +253,7 @@ class Ausrüstung_TechnikAdmin(BaseAdmin):
     firma_shop_model = FirmaAusrüstung_Technik
 
     list_display = ('name', 'beschreibung', "ab_stufe", 'manifestverlust', 'kategorie', 'billigste',
-                    'illegal_', 'lizenz_benötigt_', "frei_editierbar_")
+                    'info')
     list_filter = ['kategorie', 'manifestverlust', 'illegal', 'lizenz_benötigt', "frei_editierbar"]
 
     inlines = [FirmaAusrüstung_TechnikInLine]
@@ -271,7 +265,7 @@ class FahrzeugAdmin(BaseAdmin):
     firma_shop_model = FirmaFahrzeug
 
     list_display = ('name', 'beschreibung', "ab_stufe", 'schnelligkeit', 'rüstung', 'erfolge',
-                    'billigste', 'kategorie', 'illegal_', 'lizenz_benötigt_', "frei_editierbar_")
+                    'billigste', 'kategorie', 'info')
     list_filter = ['kategorie', 'schnelligkeit', 'rüstung', 'erfolge', 'illegal', 'lizenz_benötigt', "frei_editierbar"]
 
     inlines = [FirmaFahrzeugInLine]
@@ -284,7 +278,7 @@ class EinbautenAdmin(BaseAdmin):
 
     list_display = ('name', 'beschreibung', "ab_stufe", #'manifestverlust',
      'billigste',
-                    'kategorie', 'illegal_', 'lizenz_benötigt_', "frei_editierbar_")
+                    'kategorie', 'info')
     list_filter = ['kategorie', #'manifestverlust',
     'illegal', 'lizenz_benötigt', "frei_editierbar"]
 
@@ -297,7 +291,7 @@ class ZauberAdmin(BaseAdmin):
     firma_shop_model = FirmaZauber
 
     list_display = ('name', 'beschreibung', "ab_stufe", 'schaden', 'astralschaden', "astralsch_is_direct", 'manaverbrauch', "verteidigung", 'billigste',
-                    'kategorie', 'illegal_', 'lizenz_benötigt_', "frei_editierbar_")
+                    'kategorie', 'info')
     list_filter = ['kategorie', 'schaden', 'astralschaden', "astralsch_is_direct", 'manaverbrauch', "verteidigung", 'illegal', 'lizenz_benötigt', "frei_editierbar"]
 
     list_editable = ["verteidigung", "astralsch_is_direct"]
@@ -311,7 +305,7 @@ class VergessenerZauberAdmin(BaseAdmin):
     firma_shop_model = FirmaVergessenerZauber
 
     list_display = ('name', 'beschreibung', "ab_stufe", 'schaden', 'astralschaden', 'manaverbrauch', 'billigste',
-                    'illegal_', 'lizenz_benötigt_', "frei_editierbar_")
+                    'info')
     list_filter = ['schaden', 'astralschaden', 'manaverbrauch', 'illegal', 'lizenz_benötigt', "frei_editierbar"]
 
     inlines = [FirmaVergessenerZauberInLine]
@@ -322,7 +316,7 @@ class AlchemieAdmin(BaseAdmin):
     shop_model = Alchemie
     firma_shop_model = FirmaAlchemie
 
-    list_display = ('name', 'beschreibung', "ab_stufe", 'billigste', 'kategorie', 'illegal_', 'lizenz_benötigt_', "frei_editierbar_")
+    list_display = ('name', 'beschreibung', "ab_stufe", 'billigste', 'kategorie', 'info')
     list_filter = ['kategorie', 'illegal', 'lizenz_benötigt', "frei_editierbar"]
 
     inlines = [FirmaAlchemieInLine]
@@ -333,7 +327,7 @@ class TinkerAdmin(BaseAdmin):
     shop_model = Tinker
     firma_shop_model = FirmaTinker
 
-    list_display = ('icon_', 'name', 'beschreibung', "minecraft_mod_id", "werte", "ab_stufe", 'billigste', 'kategorie', 'illegal_', 'lizenz_benötigt_', "frei_editierbar_")
+    list_display = ('icon_', 'name', 'beschreibung', "minecraft_mod_id", "werte", "ab_stufe", 'billigste', 'kategorie', 'info')
     list_display_links = ('icon_', 'name')
     list_filter = ['kategorie', 'illegal', 'lizenz_benötigt', "frei_editierbar"]
 
@@ -352,7 +346,7 @@ class BegleiterAdmin(BaseAdmin):
     shop_model = Begleiter
     firma_shop_model = FirmaBegleiter
 
-    list_display = ('name', 'beschreibung', "ab_stufe", 'billigste', 'illegal_', 'lizenz_benötigt_', "frei_editierbar_")
+    list_display = ('name', 'beschreibung', "ab_stufe", 'billigste', 'info')
     list_filter = ['illegal', 'lizenz_benötigt', "frei_editierbar"]
 
     inlines = [FirmaBegleiterInLine]
@@ -363,7 +357,7 @@ class EngelsroboterAdmin(BaseAdmin):
     shop_model = Engelsroboter
     firma_shop_model = FirmaEngelsroboter
 
-    list_display = ('name', 'beschreibung', "ab_stufe", 'ST', 'UM', 'MA', 'IN', 'billigste', 'illegal_', 'lizenz_benötigt_', "frei_editierbar_")
+    list_display = ('name', 'beschreibung', "ab_stufe", 'ST', 'UM', 'MA', 'IN', 'billigste', 'info')
     list_filter = ['illegal', 'lizenz_benötigt', "frei_editierbar"]
 
     inlines = [FirmaEngelsroboterInLine]
@@ -396,12 +390,15 @@ class ModifierAdmin(admin.ModelAdmin):
         return '{} {}'.format('*' if obj.is_factor_not_addition else '+', obj.price_modifier)
     
     def _firmen(self, obj):
-        if not obj.firmen.count(): return '-'
-        return ", ".join([e.name for e in obj.firmen.all()])
+        return obj.firmennames or self.get_empty_value_display()
 
     def _kategorien(self, obj):
-        if not obj.kategorien.count(): return '-'
-        return ", ".join([e.__str__() for e in obj.kategorien.all()])
+        return ", ".join([e.__str__() for e in obj.kategorien.all()]) or self.get_empty_value_display()
+    
+    def get_queryset(self, request: HttpRequest) -> QuerySet[Any]:
+        return super().get_queryset(request).prefetch_related("kategorien").annotate(
+            firmennames = ConcatSubquery(Firma.objects.filter(modifier=OuterRef("id")).values("name"), ", "),
+        )
 
 admin.site.register(Item, ItemAdmin)
 admin.site.register(Waffen_Werkzeuge, Waffen_WerkzeugeAdmin)

@@ -6,6 +6,9 @@ from django.http.request import HttpRequest
 from django.http.response import HttpResponse
 from django.utils.html import format_html
 
+from dex.management.commands.calc_attack_cost import cost_estimate
+from ppServer.utils import get_filter
+
 from .models import *
 
 
@@ -93,7 +96,10 @@ class MonsterRangAdmin(admin.ModelAdmin):
     list_editable = ["attackenpunkte", "reaktionsbonus", "angriffsbonus"]
 
     def schadensWI_(self, obj):
-        return " + ".join([t.__str__() for t in obj.schadensWI.all()]) or "-"
+        return " + ".join([t.__str__() for t in obj.schadensWI.all()]) or self.get_empty_value_display()
+    
+    def get_queryset(self, request: HttpRequest) -> QuerySet[Any]:
+        return super().get_queryset(request).prefetch_related("schadensWI")
 
 
 class MonsterTeamAdmin(admin.ModelAdmin):
@@ -102,8 +108,12 @@ class MonsterTeamAdmin(admin.ModelAdmin):
 
     def name_(self, obj):
         return format_html(f"<div style='color: {obj.textfarbe}; background-color: {obj.farbe}; padding: .1em .3em'>{obj.name}</div>")
+
     def monster_(self, obj):
-        return ", ".join([t.__str__() for t in obj.monster.all()]) or "-"
+        return ", ".join([t.__str__() for t in obj.monster.all()]) or self.get_empty_value_display()
+    
+    def get_queryset(self, request: HttpRequest) -> QuerySet[Any]:
+        return super().get_queryset(request).prefetch_related("monster__spieler", "monster__monster")
 
 class TypAdmin(admin.ModelAdmin):
 
@@ -113,13 +123,16 @@ class TypAdmin(admin.ModelAdmin):
     search_fields = ['name']
 
     def stark_gegen_(self, obj):
-        return format_html("".join([t.tag() for t in obj.stark_gegen.all()])) or "-"
+        return format_html("".join([t.tag() for t in obj.stark_gegen.all()])) or self.get_empty_value_display()
     def schwach_gegen_(self, obj):
-        return format_html("".join([t.tag() for t in obj.schwach_gegen.all()])) or "-"
+        return format_html("".join([t.tag() for t in obj.schwach_gegen.all()])) or self.get_empty_value_display()
     def trifft_nicht_(self, obj):
-        return format_html("".join([t.tag() for t in obj.trifft_nicht.all()])) or "-"
+        return format_html("".join([t.tag() for t in obj.trifft_nicht.all()])) or self.get_empty_value_display()
     def Aussehen_(self, obj):
         return obj.tag()
+    
+    def get_queryset(self, request: HttpRequest) -> QuerySet[Any]:
+        return super().get_queryset(request).prefetch_related("stark_gegen", "schwach_gegen", "trifft_nicht")
 
 
 class AttackeAdmin(admin.ModelAdmin):
@@ -138,22 +151,23 @@ class AttackeAdmin(admin.ModelAdmin):
     list_filter = ["draft", "monster_feddich", "types", "macht_schaden", "macht_effekt", 'angriff_nahkampf', 'angriff_fernkampf', 'angriff_magie', 'verteidigung_geistig', 'verteidigung_körperlich']
     search_fields = ['name', "description"]
     list_display_links = ["name"]
-
-    def get_queryset(self, request: HttpRequest) -> QuerySet[Any]:
-        return super().get_queryset(request).prefetch_related("damage", "types", "monster_set")
     
     def change_view(self, request: HttpRequest, object_id: str, form_url: str = "", extra_context = {}) -> HttpResponse:
         return super().change_view(request, object_id, form_url, {**extra_context, "pk": object_id})
 
     def damage_(self, obj):
-        return " + ".join([t.__str__() for t in obj.damage.all()]) or "-"
+        return " + ".join([t.__str__() for t in obj.damage.all()]) or self.get_empty_value_display()
     def types_(self, obj):
-        return format_html(", ".join([t.tag() for t in obj.types.all()])) or "-"
+        return format_html(", ".join([t.tag() for t in obj.types.all()])) or self.get_empty_value_display()
     def kosten_vorschlag(self, obj):
-        from dex.management.commands.calc_attack_cost import cost_estimate as estimate
-        return format_html(f"<i>{estimate(obj)}</i>")
+        return format_html(f"<i>{cost_estimate(obj)}</i>")
     def _monster(self, obj):
-        return ", ".join(obj.monster_set.all().values_list("name", flat=True))
+        return obj.monsternames or self.get_empty_value_display()
+    
+    def get_queryset(self, request: HttpRequest) -> QuerySet[Any]:
+        return super().get_queryset(request).prefetch_related("damage", "types").annotate(
+            monsternames = ConcatSubquery(Monster.objects.filter(attacken=OuterRef("id")).values("name"), ", "),
+        )
 
 class StatInlineAdmin(admin.TabularInline):
     model = RangStat
@@ -182,7 +196,7 @@ class SpielerMonsterAdmin(admin.ModelAdmin):
 
     list_display = ['spieler', 'name', 'monster', 'rang', "attackenpunkte"]
 
-    list_filter = ["spieler", "monster"]
+    list_filter = [get_filter(Spieler, "name", ["spieler__name"]), "monster"]
     search_fields = ['spieler__name", "monster__name']
 
     fields = ['spieler', "monster", "name", "rang", "attackenpunkte"]
