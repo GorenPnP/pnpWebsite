@@ -1,0 +1,12 @@
+{% extends './page_template.html' %}
+{% load static %}
+
+{% block extra-head %}
+    {{ block.super }}
+
+    <!-- custom -->
+    {{ object.solution|json_script:"solution" }}
+    <script src="{% static 'lerneinheiten/js/editor/_preview_lückentext_gap.js' %}"></script>
+    <script src="{% static 'lerneinheiten/js/editor/lückentext_mit_freitext.js' %}" defer></script>
+    <link rel="stylesheet" href="{% static 'lerneinheiten/css/lückentext_gap.css' %}">
+{% endblock %}

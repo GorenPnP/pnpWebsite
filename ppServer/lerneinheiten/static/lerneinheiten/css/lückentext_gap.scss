@@ -1,0 +1,12 @@
+.md-gap {
+    padding: .2em;
+    border: 2px dotted currentColor;
+    border-radius: 5px;
+
+    code {
+        display: inline-block;
+        margin-inline: .15em;
+        padding-inline: .5em;
+        background-color: rgba(0, 0, 0, .2);
+    }
+}

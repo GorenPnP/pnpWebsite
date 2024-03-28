@@ -15,7 +15,17 @@ const class_name = "hidden-header";
 const header = document.querySelector("#scrolling-header");
 
 function set_afterheader_margin() {
-    document.querySelector("#after-header").style.setProperty("margin-top", header.getBoundingClientRect().height + "px");
+    const header_height = header.getBoundingClientRect().height + "px";
+    document.querySelector("#after-header").style.setProperty("margin-top", header_height);
+
+    // FULLSCREEN MD-EDITOR: stay under header
+
+    document.querySelectorAll(".EasyMDEContainer:has(.editor-toolbar.fullscreen) > *").forEach(element =>
+        element.style.setProperty("margin-top", header_height)
+    );
+    document.querySelectorAll(".EasyMDEContainer:has(.editor-toolbar:not(.fullscreen)) > *").forEach(element =>
+        element.style.setProperty("margin-top", "unset")
+    );
 }
 
 function scroll_header() {
