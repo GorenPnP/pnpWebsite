@@ -52,3 +52,37 @@
 }
 .grid-row { gap: .5em; min-width: 300px; flex: none !important; }
 .grid-column { gap: .5em; }
+
+
+/************ PDF print styles *******************/
+
+.print-only { display: none; }
+
+@media print {
+    header, footer, .main-container > :not(#content-grid) {
+        display: none;
+    }
+    .print-only { display: block; }
+    
+    #content-grid, .main-container, #after-header {
+        margin-top: 0 !important;
+        padding-top: 0 !important;
+    }
+    h1, h2, h3, h4, h5, table, figure { break-inside: avoid; }
+    p { orphans: 3; }
+
+    a[href]::after {
+        content: " <"attr(href)">";
+        color: #888;
+        background-color: inherit;
+        font-style: italic;
+        size: 80%;
+    }
+
+    img, iframe {
+        break-before: auto; /* 'always,' 'avoid,' 'left,' 'inherit,' or 'right' */
+        break-after: avoid; /* 'always,' 'avoid,' 'left,' 'inherit,' or 'right' */
+        break-inside: avoid; /* or 'auto' */
+    }
+    .link { break-before: avoid; }
+}

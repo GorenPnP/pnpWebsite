@@ -10,7 +10,10 @@
 {% endblock %}
 
 {% block content %}
-    <h2>{{ object.titel|default:'' }}</h2>
+    <h2>
+        {{ object.titel|default:'' }}
+        <button class="btn btn-primary" onclick="print()">Export</button>
+    </h2>
 
     <div id="content-grid">
         {% if object.content.type %}

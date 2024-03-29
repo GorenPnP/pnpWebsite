@@ -1,3 +1,5 @@
+{% load lerneinheiten.iframe_get_src %}
+
 {% if config.type == "container" %}
 <div class="{{ direction }} box--container">
     {% for box in config.children %}
@@ -14,8 +16,18 @@
     <div class="{{ direction }} box--text"><p class="text markdown" data-text="{{ config.text|escape }}"></p></div>
 {% endif %}
 
-{% if config.type == "image" %}<div class="{{ direction }} box--image"><img src="{{ config.src|escape }}"></div>{% endif %}
+{% if config.type == "image" %}
+<div class="{{ direction }} box--image">
+    <img src="{{ config.src|escape }}">
+</div>
+<div class="link print-only"><a href="https://{{ request.META.HTTP_HOST }}{{ config.src }}">Bild hier</a></div>
+{% endif %}
 
-{% if config.type == "video" %}<div class="{{ direction }} box--video">{{ config.iframe|safe }}</div>{% endif %}
+{% if config.type == "video" %}
+<div class="{{ direction }} box--video">
+    {{ config.iframe|safe }}
+</div>
+<div class="link print-only"><a href="{{ config.iframe|iframe_get_src }}">Video hier</a></div>
+{% endif %}
 
 {% comment %} TODO think about usage of |safe here {% endcomment %}
