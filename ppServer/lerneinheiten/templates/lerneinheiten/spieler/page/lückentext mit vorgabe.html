@@ -1,0 +1,46 @@
+{% extends './page_template.html' %}
+{% load static %}
+
+{% block extra-head %}
+    {{ block.super }}
+    <script src="{% static 'res/js/sortable@1.15.2.min.js' %}"></script>
+    <link rel="stylesheet" href="{% static 'lerneinheiten/css/sortable_list.css' %}">
+    <link rel="stylesheet" href="{% static 'lerneinheiten/css/themen_zuordnen.css' %}">
+
+    <!-- custom -->
+    <link rel="stylesheet" href="{% static 'lerneinheiten/css/lückentext_gap.css' %}">
+    <link rel="stylesheet" href="{% static 'lerneinheiten/css/lückentext_mit_vorgabe.css' %}">
+    <!-- {{ object.solution|json_script:"solution" }} -->
+    <script src="{% static 'lerneinheiten/js/lückentext_mit_vorgabe.js' %}" defer></script>
+
+    <!-- musterlösung -->
+    {{ object.content|json_script:"content" }}
+    {{ object.solution|json_script:"solution" }}
+    <script src="{% static 'lerneinheiten/js/lückentext_musterlösung.js' %}" defer></script>
+{% endblock %}
+
+{% block content %}
+    <h2>{{ object.titel|default:'' }}</h2>
+    <p class="markdown--lücken" data-text="{{ object.content.text|default:'' }}"></p>
+
+    <label for="remaining-items">übrige Items</label>
+    <ul id="remaining-items" class="sortable-list list-group" data-category=""></ul>
+
+    <form id="form" method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+
+        <button type="submit" class="btn btn-primary mt-3">Speichern</button>
+        <button type="button" class="btn btn-outline-light mt-3 mx-3"
+            onclick="document.querySelector('#musterlösung').classList.toggle('hidden')"
+        >
+            Musterlösung
+        </button>
+    </form>
+
+    <aside id="musterlösung" class="hidden my-5">
+        <h2>Musterlösung</h2>
+        <div class="markdown--lückentext"></div>
+    </aside>
+{% endblock %}
+
