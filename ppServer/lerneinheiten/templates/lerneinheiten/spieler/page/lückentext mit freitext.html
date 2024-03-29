@@ -5,9 +5,9 @@
     {{ block.super }}
 
     <!-- custom -->
-    {{ object.solution|json_script:"solution" }}
-    <script src="{% static 'lerneinheiten/js/lückentext_mit_freitext.js' %}" defer></script>
     <link rel="stylesheet" href="{% static 'lerneinheiten/css/lückentext_gap.css' %}">
+    <!-- {{ object.solution|json_script:"solution" }} -->
+    <script src="{% static 'lerneinheiten/js/lückentext_mit_freitext.js' %}" defer></script>
 
     <!-- musterlösung -->
     {{ object.content|json_script:"content" }}

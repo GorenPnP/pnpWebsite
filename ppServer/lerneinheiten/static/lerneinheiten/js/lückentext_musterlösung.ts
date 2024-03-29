@@ -16,12 +16,6 @@
  * <div class="markdown--lückentext"></div>
  */
 
-// init required resources
-const textarea_lückentext = document.createElement("textarea");
-textarea_lückentext.hidden = true;
-document.querySelector("body")!.appendChild(textarea_lückentext);
-
-const editor_lückentext = new EasyMDE({ element: textarea_lückentext });
 
 // render md to html for text
 let solution_text: string = JSON.parse(document.querySelector("#content")!.innerHTML)["text"];
@@ -31,27 +25,4 @@ const gaps: {[gap_id: number]: string[]} = JSON.parse(document.querySelector("#s
 solution_text = solution_text.replace(/<id:(\d+)>/gi, (full_match, gap_id: string) =>
     `<span class="md-gap"><code>${gaps[parseInt(gap_id.trim())].join("</code><code>")}</code></span>`
 );
-document.querySelector(".markdown--lückentext")!.innerHTML = (editor_lückentext as any).markdown(solution_text);
-
-
-// add bootstrap table styling
-document.querySelectorAll(".markdown table").forEach(table => {
-    
-    // create container for responsive table
-    const container = document.createElement("div");
-    container.classList.add("table-responsive");
-    table.replaceWith(container);
-    
-    // recreate table
-    const new_table: any = table.cloneNode();
-    new_table.classList.add("table");
-    new_table.innerHTML = table.innerHTML;
-
-    // add new table & delete old one
-    container.appendChild(new_table);
-    table.remove();
-});
-
-// cleanup
-editor_lückentext.toTextArea();
-textarea_lückentext.remove();
+document.querySelector(".markdown--lückentext")!.innerHTML = md_to_html(solution_text);

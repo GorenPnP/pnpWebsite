@@ -5,61 +5,27 @@ answer_textarea.closest("p")!.classList.add("hidden");
 
 
 /**
- * Replaces Markdown-text in innerHTML of tags with class .markdown to html
+ * Renders Markdown-text in data-text of tags as innerHTML of tags with class .markdown--lücken
  * 
  * !!! REPLACES GAPS WITH INPUT TAGS
  * 
- * Needs to import <script src="{% static 'res/js/easymde@2.18.0.min.js' %}"></script> first.
- * 
- * Import/use like this:
- * 
- * <script src="{% static 'res/js/easymde@2.18.0.min.js' %}"></script>
+ * needs to include as deps:
  * <script src="{% static 'res/js/markdown.js' %}" defer></script>
  * 
  * Use like this:
- * <div class="markdown" data-text="..."></div>
+ * <div class="markdown--lücken" data-text="..."></div>
  */
-
-// init required resources
-const textarea_lücken = document.createElement("textarea");
-textarea_lücken.hidden = true;
-document.querySelector("body")!.appendChild(textarea_lücken);
-
-const editor_lücken = new EasyMDE({ element: textarea_lücken });
 
 // render md to html for text
 const element = document.querySelector<HTMLDivElement>(".markdown--lücken")!;
 let text = (element as any).dataset.text.replace(/<id:(\d+)>/gi, (full_match: string, gap_id: string) => {
     const value = JSON.parse(answer_textarea.innerHTML).gaps?.[gap_id] || "";
     return `<input class="input-gap" data-gap_id="${gap_id}" value="${value}" form="form" required>`;
-})
-text = (editor_lücken as any).markdown(text);
-
-// display gap properly
-element.innerHTML = text;
-
-
-// add bootstrap table styling
-document.querySelectorAll(".markdown table").forEach(table => {
-    
-    // create container for responsive table
-    const container = document.createElement("div");
-    container.classList.add("table-responsive");
-    table.replaceWith(container);
-    
-    // recreate table
-    const new_table: any = table.cloneNode();
-    new_table.classList.add("table");
-    new_table.innerHTML = table.innerHTML;
-
-    // add new table & delete old one
-    container.appendChild(new_table);
-    table.remove();
 });
 
-// cleanup
-editor_lücken.toTextArea();
-textarea_lücken.remove();
+// display gap properly
+element.innerHTML = md_to_html(text);
+
 
 
 

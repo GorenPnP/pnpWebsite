@@ -32,7 +32,7 @@ function _replaceSelection(cm: any, active: boolean, startEnd: any[], url: strin
 }
 function drawGap(editor: any) {
     const ids: number[] = [...editor.value().matchAll(/\<id:(\d+)\>/gi)].map((match: string[]) => parseInt(match[1]));
-    const next_id = (Math.max(...ids) || 0) +1;
+    const next_id = Math.max(...ids, 0) +1;
 
 	var cm = editor.codemirror;
 	var options = [`¿¿<id:${next_id}> .`, ".. | ... ??"];
