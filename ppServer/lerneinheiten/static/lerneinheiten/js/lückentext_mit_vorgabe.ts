@@ -81,9 +81,9 @@ const free_gaps = Object.keys(JSON.parse(document.querySelector("#solution")!.in
 const remaining_items = document.querySelector("#remaining-items")!;
 Object.entries(JSON.parse(document.querySelector<HTMLTextAreaElement>("#solution")!.innerHTML).gaps as {[gap_id: number]: string[]})
     .filter(([gap_id, items]) => free_gaps.includes(parseInt(gap_id)))
-    .forEach(([gap_id, items]) =>
-        items.forEach(item => render_item(remaining_items, item))
-    );
+    .reduce((acc, [gap_id, items]) => [...acc, ...items], [] as string[])
+    .sort((a, b) => a === b ? 0 : (a < b ? -1 : 1))
+    .forEach(item => render_item(remaining_items, item));
 
 
 
