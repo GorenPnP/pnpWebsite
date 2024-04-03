@@ -83,7 +83,7 @@ async function registerForWebPush(show_alerts=true) {
         .catch(function (e) {
             if (Notification.permission === 'denied') {
                 console.warn('Permission for notifications was denied');
-                alert('Berechtigung für Nachrichten wurde nicht erteilt');
+                // alert('Berechtigung für Nachrichten wurde nicht erteilt');
             } else {
                 console.error('Unable to subscribe to push', e)
                 show_alerts && alert(`Ein Fehler ist aufgetreten: ${e}`);
