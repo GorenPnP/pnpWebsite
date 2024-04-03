@@ -1,0 +1,16 @@
+{% extends './page_template.html' %}
+{% load static %}
+
+{% block extra-head %}
+    {{ block.super }}
+
+    <!-- custom -->
+    <link rel="stylesheet" href="{% static 'lerneinheiten/css/lückentext_gap.css' %}">
+    <style>
+        code.correct { color: var(--bs-success); }
+        code.incorrect { color: var(--bs-danger); }
+    </style>
+    {{ object.solution|json_script:"solution" }}
+    <script src="{% static 'lerneinheiten/js/editor/_preview_lückentext_select.js' %}"></script>
+    <script src="{% static 'lerneinheiten/js/editor/lückentext_mit_auswahl.js' %}" defer></script>
+{% endblock %}
