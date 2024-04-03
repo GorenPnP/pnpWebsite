@@ -1,9 +1,10 @@
-from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
+
+from ppServer.decorators import verified_account
 
 from .models import *
 
-@login_required
+@verified_account
 def index(request):
     context = {
         "topic": "Goren News",

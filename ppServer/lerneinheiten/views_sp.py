@@ -2,8 +2,6 @@ import json
 from typing import Any
 
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models.query import QuerySet
 from django.http.response import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, reverse
@@ -11,13 +9,13 @@ from django.views.decorators.http import require_POST
 from django.views.generic import DetailView
 from django.views.generic.list import ListView
 
-from ppServer.decorators import spielleiter_only
-from ppServer.mixins import SpielleiterOnlyMixin
+from ppServer.decorators import spielleiter_only, verified_account
+from ppServer.mixins import SpielleiterOnlyMixin, VerifiedAccountMixin
 
 from .forms import *
 from .models import *
 
-class EditorIndexView(LoginRequiredMixin, SpielleiterOnlyMixin, ListView):
+class EditorIndexView(VerifiedAccountMixin, SpielleiterOnlyMixin, ListView):
     model = Einheit
     template_name = "lerneinheiten/sp/editor/index.html"
 
@@ -65,7 +63,7 @@ class EditorIndexView(LoginRequiredMixin, SpielleiterOnlyMixin, ListView):
         return redirect("lerneinheiten:editor_index")
 
 
-class EditorPageView(LoginRequiredMixin, SpielleiterOnlyMixin, DetailView):
+class EditorPageView(VerifiedAccountMixin, SpielleiterOnlyMixin, DetailView):
     model = Page
     template_name = "lerneinheiten/sp/editor/_default.html"
 
@@ -98,7 +96,7 @@ class EditorPageView(LoginRequiredMixin, SpielleiterOnlyMixin, DetailView):
 
 
 @require_POST
-@login_required
+@verified_account
 @spielleiter_only()
 def edit_einheit(request, pk: int):
     einheit = get_object_or_404(Einheit, pk=pk)
@@ -114,7 +112,7 @@ def edit_einheit(request, pk: int):
     return redirect("lerneinheiten:editor_index")
 
 @require_POST
-@login_required
+@verified_account
 @spielleiter_only()
 def new_einheit(request):
     form = EinheitForm(request.POST)
@@ -128,7 +126,7 @@ def new_einheit(request):
     return redirect("lerneinheiten:editor_index")
 
 @require_POST
-@login_required
+@verified_account
 @spielleiter_only()
 def new_page(request):
     form = PageForm(request.POST)
@@ -142,7 +140,7 @@ def new_page(request):
     return redirect("lerneinheiten:editor_index")
 
 @require_POST
-@login_required
+@verified_account
 @spielleiter_only()
 def image_upload(request, page_id):
     try:

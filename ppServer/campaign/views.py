@@ -1,6 +1,5 @@
 from typing import Any, Dict
 
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models.query import QuerySet
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import redirect
@@ -10,12 +9,12 @@ from django.urls import reverse
 
 from character.models import Charakter
 from log.create_log import logAuswertung
-from ppServer.mixins import SpielleiterOnlyMixin
+from ppServer.mixins import SpielleiterOnlyMixin, VerifiedAccountMixin
 
 from .forms import AuswertungForm, LarpAuswertungForm
 
 
-class AuswertungListView(LoginRequiredMixin, SpielleiterOnlyMixin, ListView):
+class AuswertungListView(VerifiedAccountMixin, SpielleiterOnlyMixin, ListView):
     model = Charakter
     template_name = "campaign/auswertung_hub.html"
 
@@ -35,7 +34,7 @@ class AuswertungListView(LoginRequiredMixin, SpielleiterOnlyMixin, ListView):
         )
 
 
-class AuswertungView(LoginRequiredMixin, SpielleiterOnlyMixin, DetailView):
+class AuswertungView(VerifiedAccountMixin, SpielleiterOnlyMixin, DetailView):
     model = Charakter
     template_name = "campaign/auswertung.html"
 

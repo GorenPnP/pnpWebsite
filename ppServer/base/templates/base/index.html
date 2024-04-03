@@ -67,7 +67,7 @@
                     <div class="carousel-caption h-100 d-flex flex-column justify-content-center align-items-center text-light">
                         <h2>Umfrage</h2>
                         <p>Nach deiner Meinung ist gefragt! Mach jetzt mit! Es dauert auch nur wenige Minuten.</p>
-                        <a href="{% url 'polls:detail' list_vote.0.id %}" class="btn btn-light">Jetzt abstimmen</a>
+                        <a href="{% url 'polls:detail' poll_question.id %}" class="btn btn-light">Jetzt abstimmen</a>
                     </div>
                 </div>
                 {% endif %}

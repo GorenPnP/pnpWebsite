@@ -1,13 +1,13 @@
 from datetime import datetime
+from typing import Any
 
-from django.contrib.auth.decorators import login_required
-from django.http import HttpResponseNotFound
-from django.shortcuts import render, reverse
+from django.shortcuts import reverse
+from django.views.generic.base import TemplateView
 
 from changelog.models import Changelog
+from ppServer.mixins import VerifiedAccountMixin
 from shop.models import Alchemie, Ausrüstung_Technik, Begleiter, Einbauten, Engelsroboter, Fahrzeug, Item, Magazin, Magische_Ausrüstung, Pfeil_Bolzen,\
                         Rituale_Runen, Rüstungen, Schusswaffen, Tinker, VergessenerZauber, Waffen_Werkzeuge, Zauber
-from character.models import Spieler
 from news.models import News
 from todays_fact.models import History
 
@@ -45,44 +45,57 @@ def reviewable_shop():
     return spielleiter_notes
 
 
-@login_required
-def index(request):
+class IndexView(VerifiedAccountMixin, TemplateView):
+    template_name = "base/index.html"
 
-    if request.method == "GET":
-        spieler = request.spieler.instance
-        if not spieler: return HttpResponseNotFound()
+    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
+        context = super().get_context_data(
+            **kwargs,
+            topic = "Goren PnP",
+            latest_update = Changelog.objects.first(),
+            news = News.objects.filter(published=True)[:10],
+            todays_fact = History.get_fact(),
+        )
 
-        context = {
-            "topic": "Goren PnP",
-            "latest_update": Changelog.objects.first()
+        return {
+            **context,
+            **self.get_heros(),
+            "news_character_count": sum([len(n.titel) for n in context["news"]])
         }
+    
+    def get_heros(self):
+        #### collect topics for hero ####
 
+        spieler = self.request.spieler.instance
 
-        if request.spieler.is_spielleiter:
-            context["shop_review"] = reviewable_shop()
+        context = { "hero_pages": ["Fun Fact"], }
 
-        else:
+        ## polls
+        if not self.request.spieler.is_spielleiter:
             now = datetime.now()
 
             # all currently open polls, which haven't been answered by the player
-            context["list_vote"] = [q
-                for q in pollsm.Question.objects.filter(deadline__gte=now, pub_date__lte=now).order_by('-pub_date')
-                if not pollsm.QuestionSpieler.objects.filter(question=q, spieler=spieler).exists()]
+            question = pollsm.Question.objects\
+                .filter(deadline__gte=now, pub_date__lte=now)\
+                .exclude(questionspieler__spieler=spieler)\
+                .order_by('-pub_date')\
+                .first()
+            if question:
+                context["poll_question"] = question
+                context["hero_pages"].append("Umfrage")
+        
+        ## quiz
+        # got open questions in quiz? (state = opened or corrected)
+        if SpielerModule.objects.filter(spieler=spieler, state__in=[2, 4]).exists():
+            context["hero_pages"].append("Quiz")
 
-
-
-        # got open questions in quiz? (state = open)
-        context["open_quiz"] = SpielerModule.objects.filter(spieler=spieler, state__in=[2, 4]).exists() # opened or corrected
-
-        context["news"] = News.objects.filter(published=True)[:10]
-        context["news_character_count"] = sum([len(n.titel) for n in context["news"]])
-        context["todays_fact"] = History.get_fact()
-
-        # collect topics for hero
-        context["hero_pages"] = ["Fun Fact"]
-        if "list_vote" in context and len(context["list_vote"]):  context["hero_pages"].append("Umfrage")
-        if "open_quiz" in context and context["open_quiz"]:  context["hero_pages"].append("Quiz")
+        ## schmiedesystem
         context["hero_pages"].append("Schmiedesystem")
-        if "shop_review" in context and len(context["shop_review"]):  context["hero_pages"].append("Shop review")
 
-        return render(request, 'base/index.html', context)
+        ## shop review
+        if self.request.spieler.is_spielleiter:
+            shop = reviewable_shop()
+            if len(shop): context["hero_pages"].append("Shop review")
+
+        return context
+

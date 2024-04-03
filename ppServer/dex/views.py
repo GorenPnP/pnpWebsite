@@ -1,7 +1,6 @@
 from typing import Any
 
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.db.models import Exists, OuterRef, Subquery
+from django.db.models import Exists, OuterRef
 from django.db.models.query import QuerySet
 from django.http import HttpRequest, HttpResponse, HttpResponseNotFound
 from django.shortcuts import reverse, redirect
@@ -9,10 +8,12 @@ from django.views.generic import DetailView
 from django.views.generic.list import ListView
 from django.urls import reverse
 
+from ppServer.mixins import VerifiedAccountMixin
+
 from .models import *
 
 
-class GeschöpfIndexView(LoginRequiredMixin, ListView):
+class GeschöpfIndexView(VerifiedAccountMixin, ListView):
     model = Geschöpf
     template_name = "dex/geschöpf_index.html"
 
@@ -25,7 +26,7 @@ class GeschöpfIndexView(LoginRequiredMixin, ListView):
         )
 
 
-class GeschöpfDetailView(LoginRequiredMixin, DetailView):
+class GeschöpfDetailView(VerifiedAccountMixin, DetailView):
     model = Geschöpf
     template_name = "dex/geschöpf_detail.html"
 
@@ -47,7 +48,7 @@ class GeschöpfDetailView(LoginRequiredMixin, DetailView):
         return super().get_queryset().prefetch_related("initiative", "schadensWI", "geschöpffertigkeit_set__fertigkeit", "visible")
 
 
-class ParaPflanzeIndexView(LoginRequiredMixin, ListView):
+class ParaPflanzeIndexView(VerifiedAccountMixin, ListView):
     model = ParaPflanze
     template_name = "dex/para_pflanze_index.html"
 
@@ -63,7 +64,7 @@ class ParaPflanzeIndexView(LoginRequiredMixin, ListView):
         spieler = self.request.spieler.instance
         return super().get_queryset().prefetch_related("visible").annotate(display=Exists(ParaPflanze.objects.filter(pk=OuterRef("pk"), visible=spieler)))
 
-class ParaPflanzeDetailView(LoginRequiredMixin, DetailView):
+class ParaPflanzeDetailView(VerifiedAccountMixin, DetailView):
     model = ParaPflanze
     template_name = "dex/para_pflanze_detail.html"
 
@@ -89,7 +90,7 @@ class ParaPflanzeDetailView(LoginRequiredMixin, DetailView):
         return response
     
 
-class ParaTierIndexView(LoginRequiredMixin, ListView):
+class ParaTierIndexView(VerifiedAccountMixin, ListView):
     model = ParaTier
     template_name = "dex/para_tier_index.html"
 
@@ -106,7 +107,7 @@ class ParaTierIndexView(LoginRequiredMixin, ListView):
         return super().get_queryset().prefetch_related("visible").annotate(display=Exists(ParaTier.objects.filter(pk=OuterRef("pk"), visible=spieler)))
 
 
-class ParaTierDetailView(LoginRequiredMixin, DetailView):
+class ParaTierDetailView(VerifiedAccountMixin, DetailView):
     model = ParaTier
     template_name = "dex/para_tier_detail.html"
 

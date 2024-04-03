@@ -1,53 +1,46 @@
 from typing import Any, Dict
-from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import UserPassesTestMixin
 from django.http import HttpResponseNotFound
 from django.shortcuts import render, redirect, reverse, get_object_or_404
 from django.views.generic import DetailView
+from django.views.generic.base import TemplateView
 from django.views.generic.list import ListView
 
-from ppServer.decorators import spielleiter_only
+from ppServer.decorators import spielleiter_only, verified_account
+from ppServer.mixins import VerifiedAccountMixin
 
 from .forms import *
 
-class CardListView(ListView):
+class CardListView(VerifiedAccountMixin, ListView):
 
     model = Card
     template_name = "cards/index.html"
     # paginate_by = 100  # if pagination is desired
 
     def get_queryset(self):
-        spieler = self.request.spieler.instance
-        if not spieler: return HttpResponseNotFound()
-
-        return self.model.objects.filter(spieler=spieler, active=True)
+        return self.model.objects.filter(spieler=self.request.spieler.instance, active=True)
     
     def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
         return super().get_context_data(**kwargs, topic="Meine Karten")
 
 
-class CardDetailView(UserPassesTestMixin, DetailView):
+class CardDetailView(VerifiedAccountMixin, UserPassesTestMixin, DetailView):
 
     model = Card
     template_name = "cards/show.html"
 
     def test_func(self):
-        spieler = self.request.spieler.instance
-        if not spieler: return HttpResponseNotFound()
-
-        return self.get_object().spieler == spieler and self.get_object().active
+        object = self.get_object()
+        return (
+            object.spieler == self.request.spieler.instance and
+            object.active
+        )
 
     def handle_no_permission(self):
         return HttpResponseNotFound()
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-
-        spieler = self.request.spieler.instance
-        if not spieler: return HttpResponseNotFound()
-
-        if context["object"].spieler.id != spieler.id:
-            return {}
 
         context["transactions"] = context["object"].get_transactions()
         context["topic"] = context["object"].name
@@ -57,6 +50,7 @@ class CardDetailView(UserPassesTestMixin, DetailView):
         return context
 
 
+@verified_account
 @spielleiter_only(redirect_to="cards:index")
 def sp_transaction(request):
     errors = []
@@ -95,32 +89,46 @@ def sp_transaction(request):
     return render(request, 'cards/transaction.html', {'form': form, "errors": errors, "topic": "Neue Transaktion"})
 
 
-@login_required
-def transaction_card_id(request, card_id):
-    card = get_object_or_404(Card, card_id=card_id, active=True)
-    return redirect(reverse("cards:transaction", args=[card.id]))
+class TransactionView(VerifiedAccountMixin, UserPassesTestMixin, TemplateView):
+    template_name = 'cards/transaction.html'
 
+    def get_sender(self):
+        return get_object_or_404(Card, id=self.kwargs["uuid"])
 
-@login_required
-def transaction(request, uuid):
-    errors = []
-    spieler = request.spieler.instance
-    if not spieler: return HttpResponseNotFound()
+    def test_func(self):
+        sender = self.get_sender()
 
-    sender = get_object_or_404(Card, id=uuid)
+        return sender.active and (
+            self.request.spieler.is_spielleiter or
+            sender.spieler == self.request.spieler.instance
+        )
 
-    if not sender.active or (
-        not request.spieler.is_spielleiter and not sender.spieler == spieler
-    ):
+    def handle_no_permission(self):
         return HttpResponseNotFound()
+    
 
-    # if this is a POST request we need to process the form data
-    if request.method == 'POST':
+    def get_context_data(self, *args, **kwargs):
+        return super().get_context_data(
+            *args, **kwargs,
+            errors = [],
+            sender = self.get_sender(),
+            topic = "Neue Transaktion",
+            app_index = "Konten",
+            app_index_url = reverse("cards:index"),
+        )
+
+    def get(self, *args, **kwargs):
+        return super().get(*args, **kwargs, form=SpielerTransactionForm(uuid=self.kwargs["uuid"]))
+
+    def post(self, *args, **kwargs):
+        errors = []
+
         # create a form instance and populate it with data from the request:
-        form = SpielerTransactionForm(request.POST, uuid=uuid)
+        form = SpielerTransactionForm(self.request.POST, uuid=self.kwargs["uuid"])
         # check whether it's valid:
         if form.is_valid():
-            
+            sender = self.get_sender()
+
             if sender.money < form.cleaned_data["amount"]:
                 errors.append("Der Sender hat nur {} Dr., nicht {} Dr.".format(
                     sender.money,
@@ -141,17 +149,12 @@ def transaction(request, uuid):
                 transaction.save(update_fields=["sender"])
 
                 # redirect to a new URL:
-                return redirect(reverse('cards:show', args=[uuid]))
+                return redirect(reverse('cards:show', args=[self.kwargs["uuid"]]))
 
-    # if a GET (or any other method) we'll create a blank form
-    else:
-        form = SpielerTransactionForm(uuid=uuid)
-
-    return render(request, 'cards/transaction.html', {
-        'form': form,
-        "errors": errors,
-        "sender": sender,
-        "topic": "Neue Transaktion",
-        "app_index": "Konten",
-        "app_index_url": reverse("cards:index"),
-    })
+        if len(errors):
+            return render(self.request, self.template_name, {
+                **self.get_context_data(),
+                'form': form,
+                "errors": errors,
+            })
+        return redirect(self.request.build_absolute_uri())

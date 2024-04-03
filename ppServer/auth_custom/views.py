@@ -1,5 +1,4 @@
 from django.contrib.auth import login
-from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import Group, User
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.contrib.sites.shortcuts import get_current_site
@@ -10,6 +9,8 @@ from django.template.loader import render_to_string
 import six
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
+
+from ppServer.decorators import verified_account
 
 from .forms import ChangeEmailForm, SignupForm
 
@@ -64,7 +65,7 @@ def signup(request):
 
 
 
-@login_required
+@verified_account
 def change_email(request):
     old_email = request.user.email
     

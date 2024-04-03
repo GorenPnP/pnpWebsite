@@ -1,7 +1,6 @@
 import json
 from random import randrange, random
 
-from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseNotFound
 from django.http.response import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404, reverse
@@ -14,7 +13,6 @@ from .models import *
 from .templatetags.crafting.duration import duration
 
 
-@login_required
 @verified_account
 def index(request):
 
@@ -47,7 +45,6 @@ def index(request):
 		return redirect("crafting:inventory")
 
 
-@login_required
 @verified_account
 def inventory(request):
 
@@ -149,7 +146,6 @@ def inventory(request):
 			return JsonResponse(data)
 
 
-@login_required
 @verified_account
 def craft(request):
 
@@ -331,7 +327,6 @@ def get_recipes_of_table(inventory, restricted, id):
 	return recipes
 
 
-@login_required
 @verified_account
 def details(request, id):
 	recipe = get_object_or_404(Recipe, id=id)
@@ -353,7 +348,6 @@ def details(request, id):
 	return render(request, "crafting/details.html", context)
 
 
-@login_required
 @spielleiter_only(redirect_to="crafting:craft")
 def sp_give_items(request):
 

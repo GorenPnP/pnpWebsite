@@ -1,18 +1,18 @@
 import json
 from typing import Any, Dict
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.shortcuts import get_object_or_404, redirect, render, reverse
+
+from django.shortcuts import redirect, reverse
 from django.views.generic import DetailView
 from django.views.generic.base import TemplateView
 from django.views.generic.list import ListView
 
 from markdown_view.views import MarkdownView
 
-from ppServer.mixins import SpielleiterOnlyMixin
+from ppServer.mixins import SpielleiterOnlyMixin, VerifiedAccountMixin
 
 from .models import *
 
-class IndexView(LoginRequiredMixin, SpielleiterOnlyMixin, ListView):
+class IndexView(VerifiedAccountMixin, SpielleiterOnlyMixin, ListView):
 	model = Level
 	template_name = "time_space/index.html"
 
@@ -24,7 +24,7 @@ class IndexView(LoginRequiredMixin, SpielleiterOnlyMixin, ListView):
 		)
 
 
-class PlayNetView(LoginRequiredMixin, SpielleiterOnlyMixin, DetailView):
+class PlayNetView(VerifiedAccountMixin, SpielleiterOnlyMixin, DetailView):
 	model = Level
 	template_name = "time_space/net.html"
 
@@ -37,7 +37,7 @@ class PlayNetView(LoginRequiredMixin, SpielleiterOnlyMixin, DetailView):
 		return context
 
 
-class EditNetView(LoginRequiredMixin, SpielleiterOnlyMixin, TemplateView):
+class EditNetView(VerifiedAccountMixin, SpielleiterOnlyMixin, TemplateView):
 	template_name = "time_space/editor.html"
 	
 	def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
@@ -66,7 +66,7 @@ class EditNetView(LoginRequiredMixin, SpielleiterOnlyMixin, TemplateView):
 		return redirect(reverse("time_space:editNet", args=[level.id]))
 
 
-class ManualView(LoginRequiredMixin, SpielleiterOnlyMixin, MarkdownView):
+class ManualView(VerifiedAccountMixin, SpielleiterOnlyMixin, MarkdownView):
 	template_name = "time_space/manual.html"
 	file_name='/static/time_space/manual.md'
 

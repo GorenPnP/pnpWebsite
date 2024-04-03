@@ -1,8 +1,6 @@
 from typing import Any
 
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models.query import QuerySet
 from django.shortcuts import redirect
 from django.views.decorators.http import require_POST
@@ -10,13 +8,14 @@ from django.views.generic import DetailView
 from django.views.generic.list import ListView
 from django.shortcuts import reverse
 
+from ppServer.decorators import verified_account
 from ppServer.mixins import VerifiedAccountMixin
 
 from .forms import InquiryForm, SpielerPageForm
 from .models import *
 
 
-class IndexView(LoginRequiredMixin, VerifiedAccountMixin, ListView):
+class IndexView(VerifiedAccountMixin, ListView):
     model = Einheit
     template_name = "lerneinheiten/spieler/index.html"
 
@@ -31,7 +30,7 @@ class IndexView(LoginRequiredMixin, VerifiedAccountMixin, ListView):
             .prefetch_related("page_set", "fach")
 
 
-class PageView(LoginRequiredMixin, VerifiedAccountMixin, DetailView):
+class PageView(VerifiedAccountMixin, DetailView):
     model = Page
     template_name = "lerneinheiten/spieler/page/_default.html"
 
@@ -88,7 +87,7 @@ class PageView(LoginRequiredMixin, VerifiedAccountMixin, DetailView):
 
 
 @require_POST
-@login_required
+@verified_account
 def inquiry_form(request, page_id: int):
     form = InquiryForm(request.POST, instance=Inquiry.objects.filter(page__id=page_id, spieler=request.spieler.instance).first())
 

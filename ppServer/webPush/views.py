@@ -1,8 +1,6 @@
 import json
 
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http.request import HttpRequest as HttpRequest
 from django.http.response import HttpResponse as HttpResponse, JsonResponse
 from django.shortcuts import redirect, render, get_object_or_404
@@ -11,14 +9,15 @@ from django.views.generic.base import TemplateView
 
 from push_notifications.models import WebPushDevice
 
-from ppServer.mixins import SpielleiterOnlyMixin
+from ppServer.decorators import verified_account
+from ppServer.mixins import SpielleiterOnlyMixin, VerifiedAccountMixin
 from ppServer.settings import PUSH_NOTIFICATION_KEY
 
 from .forms import *
 from .models import *
 
 
-class SettingView(LoginRequiredMixin, TemplateView):
+class SettingView(VerifiedAccountMixin, TemplateView):
 	template_name = "webPush/settings.html"
 
 	def get_object(self):
@@ -76,7 +75,7 @@ class TestView(SpielleiterOnlyMixin, TemplateView):
 
 
 @require_POST
-@login_required
+@verified_account
 def register_webpush(request):
     data = json.loads(request.body)
 
@@ -93,7 +92,7 @@ def register_webpush(request):
 
 
 @require_POST
-@login_required
+@verified_account
 def send_testmessage(request):
 	PushSettings.send_message([request.user], "Test", "dies ist eine Test-Benachrichtiging, die du dir selbst geschickt hast.", PushTag.other)
 	return JsonResponse({"message": "sent"})

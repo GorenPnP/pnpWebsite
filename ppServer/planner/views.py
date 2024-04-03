@@ -1,7 +1,8 @@
-from django.contrib.auth.decorators import login_required
+from datetime import date, timedelta
+
 from django.shortcuts import render, redirect
 
-from datetime import date, timedelta
+from ppServer.decorators import verified_account
 
 from .models import *
 from .forms import ProposalForm
@@ -35,7 +36,7 @@ def get_month(date_in_month: date):
     }
 
 
-@login_required
+@verified_account
 def index(request):
 
     if request.method == "POST":

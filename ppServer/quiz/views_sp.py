@@ -1,9 +1,6 @@
 import json
-from functools import cmp_to_key
 
-from django.db.models import F, Subquery, OuterRef, Value
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.db.models import Subquery, OuterRef
 from django.http.response import JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse
@@ -13,13 +10,13 @@ from django_tables2.columns import TemplateColumn
 
 from base.abstract_views import DynamicTableView, GenericTable
 from ppServer.decorators import spielleiter_only, verified_account
-from ppServer.mixins import SpielleiterOnlyMixin
+from ppServer.mixins import SpielleiterOnlyMixin, VerifiedAccountMixin
 
 from .models import *
 from .views import get_grade_score
 
 
-@login_required
+@verified_account
 @spielleiter_only(redirect_to="quiz:index")
 def sp_index(request):
 
@@ -33,7 +30,7 @@ def sp_index(request):
 
 
 # map existing questions to modules
-@login_required
+@verified_account
 @spielleiter_only(redirect_to="quiz:index")
 def sp_questions(request):
 
@@ -62,7 +59,7 @@ def sp_questions(request):
         return JsonResponse({})
 
 
-class SpModulesView(LoginRequiredMixin, SpielleiterOnlyMixin, DynamicTableView):
+class SpModulesView(VerifiedAccountMixin, SpielleiterOnlyMixin, DynamicTableView):
     class Table(GenericTable):
         class Meta:
             model = SpielerModule
@@ -123,7 +120,7 @@ class SpModulesView(LoginRequiredMixin, SpielleiterOnlyMixin, DynamicTableView):
         return redirect(request.build_absolute_uri())
 
 
-@login_required
+@verified_account
 @spielleiter_only(redirect_to="quiz:index")
 def sp_correct(request, id, question_index=0):
 

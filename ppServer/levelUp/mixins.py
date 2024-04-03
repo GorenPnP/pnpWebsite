@@ -1,12 +1,14 @@
 from django.contrib import messages
-from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.contrib.auth.mixins import UserPassesTestMixin
 from django.shortcuts import get_object_or_404
 from django.urls import reverse
 
-from character.models import Charakter, Spieler
+from ppServer.mixins import VerifiedAccountMixin
+
+from character.models import Charakter
 
 
-class LevelUpMixin(LoginRequiredMixin, UserPassesTestMixin):
+class LevelUpMixin(VerifiedAccountMixin, UserPassesTestMixin):
     # let only owner and spielleiter access
     def test_func(self) -> bool:
         char = self.get_character()
@@ -31,7 +33,7 @@ class LevelUpMixin(LoginRequiredMixin, UserPassesTestMixin):
             back_url = reverse("levelUp:index", args=[char.id]),
 
             char = char,
-            app_index = (char.name if char.name else "<no name>") + " - Hub",
+            app_index = (getattr(char, "name") or "<no name>") + " - Hub",
             app_index_url = reverse("levelUp:index", args=[char.id])
         )
     

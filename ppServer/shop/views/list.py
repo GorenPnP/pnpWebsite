@@ -1,7 +1,6 @@
 from typing import Any, Dict
 
 from django.apps import apps
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import ImproperlyConfigured
 from django.db.models import Max, Min, Value
 from django.db.models.query import QuerySet
@@ -46,7 +45,7 @@ model_list = [
 ]
     
 
-class FullShopTableView(LoginRequiredMixin, VerifiedAccountMixin, ExportMixin, SingleTableMixin, TemplateView):
+class FullShopTableView(VerifiedAccountMixin, ExportMixin, SingleTableMixin, TemplateView):
 
     class Table(GenericTable):
         class Meta:
@@ -216,7 +215,7 @@ class ShopFilter(FilterSet):
         ).filter(preis__lte=value)
 
 
-class ShopTableView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTableView):
+class ShopTableView(VerifiedAccountMixin, DynamicTableView):
 
     model = None
     filterset_class = None

@@ -1,6 +1,5 @@
 import json
 
-from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseNotFound
 from django.http.response import JsonResponse
 from django.shortcuts import render
@@ -11,7 +10,6 @@ from ppServer.decorators import verified_account, spielleiter_only
 from .models import Message
 
 
-@login_required
 @verified_account
 def index(request):
 
@@ -51,7 +49,7 @@ def index(request):
 
 
 
-@login_required
+@verified_account
 @spielleiter_only("chat:index")
 def sp_index_get(request):
 
@@ -65,7 +63,7 @@ def sp_index_get(request):
     return render(request, 'chat/sp_index.html', context)
 
 
-@login_required
+@verified_account
 def room(request, room_name):
     context = {
         "topic": room_name,
