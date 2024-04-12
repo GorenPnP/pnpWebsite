@@ -33,8 +33,10 @@ class RelInlineAdmin(admin.TabularInline):
         return self._is_visible(request, obj)
     
     def get_queryset(self, request: HttpRequest) -> QuerySet[Any]:
-        related_char_id = request.resolver_match.kwargs['object_id']
-        return super().get_queryset(request).prefetch_related("char__eigentümer").filter(char__id=related_char_id)
+        related_char_id = getattr(request.resolver_match.kwargs, 'object_id', None)
+        
+        qs = super().get_queryset(request).prefetch_related("char__eigentümer")
+        return qs.filter(char__id=related_char_id) if related_char_id else qs
 
 class ReadonlyRelInlineAdmin(RelInlineAdmin):
     extra = 0
