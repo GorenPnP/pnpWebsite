@@ -3,7 +3,7 @@ document.querySelectorAll<HTMLTextAreaElement>("#inquiry-form textarea").forEach
 
     let initialValue = element.value?.trim() || "";
     try {
-        initialValue = JSON.parse(initialValue)["text"];
+        initialValue = JSON.parse(initialValue)["text"] || " ";
     } catch {};
 
     new EasyMDE({
