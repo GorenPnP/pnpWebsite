@@ -1,3 +1,4 @@
+import json
 from typing import Any
 
 from django.contrib import messages
@@ -68,18 +69,45 @@ class PageView(VerifiedAccountMixin, DetailView):
     def post(self, request, *args, **kwargs):
         page = self.get_object()
         sp_page = SpielerPage.objects.filter(spieler=request.spieler.instance, page=page).first()
-        print(request.POST)
 
-        form = SpielerPageForm(request.POST, instance=sp_page)
+        # zeichnen
+        requestPOST = request.POST
+        if page.type == "uc":
+
+            # delete obsolete images
+            if sp_page:
+                PageImage.objects.filter(page=page, spielerPage=sp_page).delete()
+
+            # create new images
+            drawn_image = PageImage.objects.create(image=request.FILES['answer_drawn'], page=page)
+            bg_image = PageImage.objects.create(image=request.FILES['answer_bg'], page=page)
+            
+            # construct/update Page fields
+            answer = {
+                "drawn": drawn_image.image.url,
+                "bg": bg_image.image.url,
+            }
+            requestPOST = request.POST.__copy__()
+            requestPOST.__setitem__("answer", json.dumps(answer))
+
+
+        form = SpielerPageForm(requestPOST, instance=sp_page)
         form.full_clean()
         if form.is_valid():
             object = form.save(commit=False)
             object.spieler = request.spieler.instance
             object.page = page
             object.save()
+
+            # zeichnen (Rückrichtung imgs -> object)
+            if page.type == "uc":
+                drawn_image.spielerPage = object
+                bg_image.spielerPage = object
+                drawn_image.save(update_fields=["spielerPage"])
+                bg_image.save(update_fields=["spielerPage"])
+
             messages.success(request, "Antwort erfolgreich gespeichert")
         else:
-            print(form.errors)
             messages.error(request, "Antwort konnte nicht gespeichert werden")
 
         return redirect(request.build_absolute_uri())

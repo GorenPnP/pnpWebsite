@@ -4,6 +4,7 @@ const colors_container = container.querySelector(".colors")!;
 const eraser = colors_container.querySelector(".eraser")!;
 ms_colors.forEach(color => {
     const tag = document.createElement("button");
+    tag.type = "button";
     tag.style.setProperty("--brush-color", color);
     colors_container.insertBefore(tag, eraser);
 });
@@ -13,6 +14,7 @@ ms_colors.forEach(color => {
 const brushes_container = container.querySelector(".brushes")!;
 brushes.forEach(brush => {
     const tag = document.createElement("button");
+    tag.type = "button";
     tag.style.setProperty("--brush-size", `${brush}px`);
     brushes_container.appendChild(tag);
 });

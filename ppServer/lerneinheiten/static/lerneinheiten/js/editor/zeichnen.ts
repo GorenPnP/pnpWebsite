@@ -13,6 +13,10 @@ const mdeditors: EasyMDE[] = [...document.querySelectorAll<HTMLTextAreaElement>(
     });
 });
 
+
+/************** SUBMIT *******************/
+document.querySelector<HTMLButtonElement>('[type="submit"][form="form"]')?.setAttribute("form", "dummy-form");
+
 function canvasToFileList(canvas: HTMLCanvasElement, img_name: string): Promise<FileList> {
     return new Promise(function(resolve, reject) {
         canvas.toBlob((blob) => {
@@ -24,9 +28,6 @@ function canvasToFileList(canvas: HTMLCanvasElement, img_name: string): Promise<
         }, 'image/png');
     });
 }
-
-/************** SUBMIT *******************/
-document.querySelector<HTMLButtonElement>('[type="submit"][form="form"]')?.setAttribute("form", "dummy-form");
 
 // send content data to BE to save
 document.querySelector<HTMLFormElement>("#dummy-form")!.addEventListener("submit", function (e) {

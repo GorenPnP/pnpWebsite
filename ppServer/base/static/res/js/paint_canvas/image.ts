@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////
-const img_src = JSON.parse(document.querySelector("#canvas-image-src")?.innerHTML || "") || null;
+const img_src: {bg: string, drawn: string} | null = JSON.parse(document.querySelector("#canvas-image-src")?.innerHTML || "") || null;
 
 // init bg image
 reset_bgImage(img_src?.bg || undefined).then(() => {
