@@ -1,0 +1,47 @@
+{% load static %}
+
+<!-- paintable canvas -->
+<link rel="stylesheet" href="{% static 'res/css/paint_canvas.css' %}" type="text/css">
+{{ image_src|json_script:"canvas-image-src" }}
+<script src="{% static 'res/js/paint_canvas/declarations.js' %}" defer></script>
+<script src="{% static 'res/js/paint_canvas/options.js' %}" defer></script>
+<script src="{% static 'res/js/paint_canvas/image.js' %}" defer></script>
+<script src="{% static 'res/js/paint_canvas/draw.js' %}" defer></script>
+
+
+<div class="paint-canvas-container" id="{{ id }}">
+    <div class="left-block">
+        <div>
+            <div class="colors">
+                <button class="eraser"></button>
+            </div>
+            <div class="brushes"></div>
+        </div>
+        <div class="buttons">
+
+            <!-- clear stuff -->
+            <button class="clear" type="button">Alles löschen</button>
+
+            <!-- upload image -->
+            <!--default html file upload button-->
+            <input type="file" accept="image/*" capture="environment" id="bg-image-btn" hidden/>
+            <!--our custom file upload button-->
+            <label class="button" for="bg-image-btn">Bild importieren</label>
+        </div>
+            
+        <!-- scale canvas -->
+        <div class="buttons scale">
+            <button class="scale-down" type="button">-</button>
+            <span class="scale-display">100%</span>
+            <button class="scale-up" type="button">+</button>
+        </div>
+    </div>
+
+    <!-- canvas on the right -->
+    <div class="right-block">
+        <div class="canvas-container">
+            <canvas class="bg-canvas" width="640" height="400"></canvas>
+            <canvas class="paint-canvas" width="640" height="400"></canvas>
+        </div>
+    </div>
+</div>
