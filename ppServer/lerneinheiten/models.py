@@ -49,6 +49,9 @@ class PageImage(models.Model):
     image = models.ImageField(upload_to=pageimage_path)
     page = models.ForeignKey("Page", on_delete=models.CASCADE)
 
+    # will be set for a spieler-saved image, None for editor-images
+    spielerPage = models.ForeignKey("SpielerPage", on_delete=models.CASCADE, null=True, blank=True)
+
     def __str__(self):
         return self.image.url
 

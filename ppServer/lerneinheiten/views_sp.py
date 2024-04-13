@@ -84,7 +84,31 @@ class EditorPageView(VerifiedAccountMixin, SpielleiterOnlyMixin, DetailView):
     def post(self, request, pk: int, **kwargs):
         object = get_object_or_404(self.model, pk=pk)
 
-        form = PageUpdateForm(request.POST, instance=object)
+        # zeichnen
+        requestPOST = request.POST
+        if object.type == "uc":
+
+            # delete obsolete images
+            PageImage.objects.filter(page=object, spielerPage=None).delete()
+
+            # create new images
+            drawn_image = PageImage.objects.create(image=request.FILES['solution_drawn'], page=object)
+            bg_image = PageImage.objects.create(image=request.FILES['solution_bg'], page=object)
+            
+            # construct/update Page fields
+            # (content & solution fields are incoming as plain strings in case of "type"=="zeichnen".
+            # all other type-cases use json directly. Reason: submit in .ts was tricky with file types)
+            solution = {
+                "text": request.POST["solution"],
+                "drawn": drawn_image.image.url,
+                "bg": bg_image.image.url,
+            }
+            requestPOST = request.POST.__copy__()
+            requestPOST.__setitem__("solution", json.dumps(solution))
+            requestPOST.__setitem__("content", json.dumps({ "text": request.POST["content"] }))
+
+        # construct & validate form
+        form = PageUpdateForm(requestPOST, instance=object)
         form.full_clean()
         if form.is_valid():
             form.save()
