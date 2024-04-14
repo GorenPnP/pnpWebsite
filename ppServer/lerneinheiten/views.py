@@ -116,7 +116,7 @@ class PageView(VerifiedAccountMixin, LARPlerOnlyMixin, DetailView):
 
 @require_POST
 @verified_account
-@LARPler_only
+@LARPler_only()
 def inquiry_form(request, page_id: int):
     form = InquiryForm(request.POST, instance=Inquiry.objects.filter(page__id=page_id, spieler=request.spieler.instance).first())
 
