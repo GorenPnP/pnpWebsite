@@ -9,14 +9,14 @@ from django.views.generic import DetailView
 from django.views.generic.list import ListView
 from django.shortcuts import reverse
 
-from ppServer.decorators import verified_account
-from ppServer.mixins import VerifiedAccountMixin
+from ppServer.decorators import LARPler_only, verified_account
+from ppServer.mixins import LARPlerOnlyMixin, VerifiedAccountMixin
 
 from .forms import InquiryForm, SpielerPageForm
 from .models import *
 
 
-class IndexView(VerifiedAccountMixin, ListView):
+class IndexView(VerifiedAccountMixin, LARPlerOnlyMixin, ListView):
     model = Einheit
     template_name = "lerneinheiten/spieler/index.html"
 
@@ -31,7 +31,7 @@ class IndexView(VerifiedAccountMixin, ListView):
             .prefetch_related("page_set", "fach")
 
 
-class PageView(VerifiedAccountMixin, DetailView):
+class PageView(VerifiedAccountMixin, LARPlerOnlyMixin, DetailView):
     model = Page
     template_name = "lerneinheiten/spieler/page/_default.html"
 
@@ -116,6 +116,7 @@ class PageView(VerifiedAccountMixin, DetailView):
 
 @require_POST
 @verified_account
+@LARPler_only
 def inquiry_form(request, page_id: int):
     form = InquiryForm(request.POST, instance=Inquiry.objects.filter(page__id=page_id, spieler=request.spieler.instance).first())
 

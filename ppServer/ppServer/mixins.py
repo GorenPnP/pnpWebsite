@@ -24,7 +24,18 @@ class SpielleiterOnlyMixin(UserPassesTestMixin):
     
     def handle_no_permission(self):
         return redirect(self.redirect_to)
+
+
+class LARPlerOnlyMixin(UserPassesTestMixin):
+    redirect_to="base:index"
+
+    def test_func(self) -> Optional[bool]:
+        return "LARP-ler" in self.request.spieler.groups
     
+    def handle_no_permission(self):
+        return redirect(self.redirect_to)
+
+
 class OwnChatMixin(UserPassesTestMixin):
     redirect_to="httpchat:index"
 
