@@ -1,0 +1,52 @@
+{% extends './page_template.html' %}
+{% load static %}
+
+{% block extra-head %}
+{{ block.super }}
+
+<!-- Dropzone for Image Editor -->
+<link rel="stylesheet" href="{% static 'res/css/dropzone@5.min.css' %}" type="text/css">
+<script src="{% static 'res/js/dropzone@5.min.js' %}"></script>
+
+<!-- custom style & logic -->
+<link rel="stylesheet" href="{% static 'lerneinheiten/css/sp_editor_lerninhalt.css' %}">
+
+{{ object.content|json_script:"content" }}
+<script id="csrf_token" type="application/json">{% csrf_token %}</script>
+<script id="image-upload-url" type="application/json">{% url 'lerneinheiten:image_upload' object.id %}</script>
+<script src="{% static 'lerneinheiten/js/editor/lerninhalt.js' %}" defer></script>
+{% endblock %}
+
+{% block main %}
+    <h2>Settings</h2>
+    {{ block.super }}
+{% endblock %}
+
+{% block content %}
+<h2>Content</h2>
+<div id="content-grid"></div>
+
+
+<!-- Modal -->
+<div class="modal fade" id="new-block-modal" tabindex="-1" aria-label="Neuen Block erstellen">
+    <div class="modal-dialog modal-fullscreen-sm-down">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Neuen Block erstellen</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>        
+            <div class="modal-body">
+                <select id="new-box-type" required>
+                    <option value="text">Text</option>
+                    <option value="image">Bild</option>
+                    <option value="video">Video</option>
+                </select>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-danger" data-bs-dismiss="modal">Abbrechen</button>
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal" onclick="NewBox.replace()">Erstellen</button>
+            </div>
+        </div>
+    </div>
+  </div>
+{% endblock %}

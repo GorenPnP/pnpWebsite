@@ -4,8 +4,6 @@ from typing import Any, Dict
 from django.db.models import F, Subquery, OuterRef, Min, ExpressionWrapper, Q
 from django.db.models.fields import BooleanField
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models.query import QuerySet
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse
@@ -24,13 +22,12 @@ from ppServer.decorators import verified_account
 from .models import *
 
 
-@login_required
 @verified_account
 def index(request):
     return render(request, 'wiki/index.html', { "topic": "Home" })
 
 
-class VorteilView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTableView):
+class VorteilView(VerifiedAccountMixin, DynamicTableView):
     model = Vorteil
     table_fields = ["titel", "ip", "beschreibung", "wann_wählbar", "is_sellable", "needs_implementation", "has_implementation"]
     filterset_fields = {
@@ -45,7 +42,7 @@ class VorteilView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTableView):
     app_index_url = "wiki:index"
 
 
-class NachteilView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTableView):
+class NachteilView(VerifiedAccountMixin, DynamicTableView):
     model = Nachteil
     table_fields = ["titel", "ip", "beschreibung", "wann_wählbar", "is_sellable", "needs_implementation", "has_implementation"]
     filterset_fields = {
@@ -59,7 +56,7 @@ class NachteilView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTableView):
     app_index = "Wiki"
     app_index_url = "wiki:index"
 
-class TalentView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTableView):
+class TalentView(VerifiedAccountMixin, DynamicTableView):
     model = Talent
     table_fields = ["titel", "tp", "beschreibung"]
     filterset_fields = {
@@ -72,7 +69,7 @@ class TalentView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTableView):
     app_index_url = "wiki:index"
 
 
-class WesenView(LoginRequiredMixin, VerifiedAccountMixin, ListView):
+class WesenView(VerifiedAccountMixin, ListView):
     model = Wesen
     template_name = "wiki/wesen.html"
 
@@ -96,7 +93,7 @@ class WesenView(LoginRequiredMixin, VerifiedAccountMixin, ListView):
         return redirect(reverse("wiki:stufenplan", args=[gfs.first().id]))
 
 
-class GfsView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTableView):
+class GfsView(VerifiedAccountMixin, DynamicTableView):
     class Table(GenericTable):
 
         class AttrColumn(tables.Column):
@@ -207,7 +204,6 @@ class GfsView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTableView):
             )
 
 
-@login_required
 @verified_account
 def stufenplan(request, gfs_id):
     gfs = get_object_or_404(Gfs, id=gfs_id)
@@ -285,7 +281,7 @@ def stufenplan(request, gfs_id):
     return render(request, "wiki/stufenplan.html", context=context)
 
 
-class PersönlichkeitTableView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTableView):
+class PersönlichkeitTableView(VerifiedAccountMixin, DynamicTableView):
     model = Persönlichkeit
     table_fields = ["titel", "positiv", "negativ"]
     filterset_fields = {
@@ -298,7 +294,7 @@ class PersönlichkeitTableView(LoginRequiredMixin, VerifiedAccountMixin, Dynamic
     app_index_url = "wiki:index"
 
 
-class SpezialfertigkeitTableView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTableView):
+class SpezialfertigkeitTableView(VerifiedAccountMixin, DynamicTableView):
     model = Spezialfertigkeit
     table_fields = ["titel", "attr1", "attr2", "ausgleich", "beschreibung"]
     filterset_fields = {
@@ -313,7 +309,7 @@ class SpezialfertigkeitTableView(LoginRequiredMixin, VerifiedAccountMixin, Dynam
     app_index_url = "wiki:index"
 
 
-class WissensfertigkeitTableView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTableView):
+class WissensfertigkeitTableView(VerifiedAccountMixin, DynamicTableView):
     model = Wissensfertigkeit
     table_fields = ["titel", "attr1", "attr2", "attr3", "fertigkeit", "beschreibung"]
     filterset_fields = {
@@ -329,7 +325,7 @@ class WissensfertigkeitTableView(LoginRequiredMixin, VerifiedAccountMixin, Dynam
     app_index_url = "wiki:index"
 
 
-class WesenkraftTableView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTableView):
+class WesenkraftTableView(VerifiedAccountMixin, DynamicTableView):
     class Table(GenericTable):
         class Meta:
             model = Wesenkraft
@@ -355,7 +351,7 @@ class WesenkraftTableView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTable
     app_index_url = "wiki:index"
 
 
-class ReligionTableView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTableView):
+class ReligionTableView(VerifiedAccountMixin, DynamicTableView):
     model = Religion
     table_fields = ["titel", "beschreibung"]
     filterset_fields = {
@@ -369,7 +365,7 @@ class ReligionTableView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTableVi
     plus_url = "admin:character_religion_add"
 
 
-class BerufTableView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTableView):
+class BerufTableView(VerifiedAccountMixin, DynamicTableView):
     model = Beruf
     table_fields = ["titel", "beschreibung"]
     filterset_fields = {
@@ -383,7 +379,7 @@ class BerufTableView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTableView)
     plus_url = "admin:character_beruf_add"
 
 
-class GeburtstageView(LoginRequiredMixin, VerifiedAccountMixin, TemplateView):
+class GeburtstageView(VerifiedAccountMixin, TemplateView):
     template_name = "wiki/geburtstage.html"
 
     def get(self, request):
@@ -426,7 +422,7 @@ class GeburtstageView(LoginRequiredMixin, VerifiedAccountMixin, TemplateView):
         return render(request, self.template_name, context)
 
 
-class GfsSpecialAbilities(LoginRequiredMixin, DynamicTableView):
+class GfsSpecialAbilities(VerifiedAccountMixin, DynamicTableView):
     model = GfsAbility
     queryset = GfsAbility.objects.select_related('gfsstufenplan__gfs', 'gfsstufenplan__basis').order_by("name")
 
@@ -443,7 +439,7 @@ class GfsSpecialAbilities(LoginRequiredMixin, DynamicTableView):
     export_formats = ["csv", "json", "latex", "tsv"]
 
 
-class RuleListView(LoginRequiredMixin, ListView):
+class RuleListView(VerifiedAccountMixin, ListView):
 
     model = Rule
     template_name = "wiki/rule_index.html"
@@ -456,7 +452,7 @@ class RuleListView(LoginRequiredMixin, ListView):
             app_index_url = reverse("wiki:index"),
         )
 
-class RuleDetailView(LoginRequiredMixin, DetailView):
+class RuleDetailView(VerifiedAccountMixin, DetailView):
 
     model = Rule
     template_name = "wiki/rule_detail.html"

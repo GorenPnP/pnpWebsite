@@ -1,8 +1,6 @@
 from typing import Any, Dict
 
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Prefetch, Subquery, Max
 from django.db.models.query import QuerySet
 from django.http import HttpRequest, HttpResponse, HttpResponseNotFound
@@ -13,13 +11,15 @@ from django.views.generic.base import TemplateView
 from django.views.generic.list import ListView
 from django.urls import reverse
 
+from ppServer.decorators import verified_account
+from ppServer.mixins import VerifiedAccountMixin
 from ppServer.utils import AvgSubquery
 
 from .forms import *
 from .models import *
 
 
-class MonsterIndexView(LoginRequiredMixin, ListView):
+class MonsterIndexView(VerifiedAccountMixin, ListView):
     model = Monster
     template_name = "dex/monster/monster_index.html"
 
@@ -37,7 +37,7 @@ class MonsterIndexView(LoginRequiredMixin, ListView):
         return self.model.objects.load_card()
 
 
-class MonsterDetailView(LoginRequiredMixin, DetailView):
+class MonsterDetailView(VerifiedAccountMixin, DetailView):
     model = Monster
     template_name = "dex/monster/monster_detail.html"
 
@@ -111,7 +111,7 @@ class MonsterDetailView(LoginRequiredMixin, DetailView):
             messages.error(request, "Etwas ist schief gelaufen. Das Monster konnte nicht gefangen werden.")
         return redirect(request.build_absolute_uri())
     
-class AttackIndexView(LoginRequiredMixin, ListView):
+class AttackIndexView(VerifiedAccountMixin, ListView):
     model = Attacke
     template_name = "dex/monster/attack_index.html"
 
@@ -129,7 +129,7 @@ class AttackIndexView(LoginRequiredMixin, ListView):
         return self.model.objects.load_card().exclude(draft=True)
 
 
-class TypeTableView(LoginRequiredMixin, ListView):
+class TypeTableView(VerifiedAccountMixin, ListView):
     model = Typ
     template_name = "dex/monster/type_table.html"
 
@@ -145,7 +145,7 @@ class TypeTableView(LoginRequiredMixin, ListView):
         return super().get_queryset().prefetch_related("stark_gegen", "schwach_gegen", "trifft_nicht", "stark", "schwach", "miss")
 
 
-class MonsterFähigkeitView(LoginRequiredMixin, ListView):
+class MonsterFähigkeitView(VerifiedAccountMixin, ListView):
     model = MonsterFähigkeit
     template_name = "dex/monster/monster_fähigkeit_index.html"
 
@@ -162,7 +162,7 @@ class MonsterFähigkeitView(LoginRequiredMixin, ListView):
         return super().get_queryset().prefetch_related(Prefetch("monster_set", queryset=Monster.objects.load_card()))
 
 
-class StatusEffektView(LoginRequiredMixin, TemplateView):
+class StatusEffektView(VerifiedAccountMixin, TemplateView):
     template_name = "dex/monster/monster_statuseffekt.html"
 
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
@@ -174,7 +174,7 @@ class StatusEffektView(LoginRequiredMixin, TemplateView):
         )
 
 
-class MonsterFarmView(LoginRequiredMixin, ListView):
+class MonsterFarmView(VerifiedAccountMixin, ListView):
     model = SpielerMonster
     template_name = "dex/monster/monster_farm.html"
 
@@ -194,7 +194,7 @@ class MonsterFarmView(LoginRequiredMixin, ListView):
             .filter(spieler__name=self.request.user.username)
 
 
-class MonsterFarmDetailView(LoginRequiredMixin, DetailView):
+class MonsterFarmDetailView(VerifiedAccountMixin, DetailView):
     model = SpielerMonster
     template_name = "dex/monster/monster_farm_detail.html"
 
@@ -269,7 +269,7 @@ class MonsterFarmDetailView(LoginRequiredMixin, DetailView):
         return redirect(request.build_absolute_uri())
 
 
-class MonsterFarmLevelupView(LoginRequiredMixin, DetailView):
+class MonsterFarmLevelupView(VerifiedAccountMixin, DetailView):
     """
         display:
           reaktionsbonus, attackbonus, schadensWI
@@ -388,7 +388,7 @@ class MonsterFarmLevelupView(LoginRequiredMixin, DetailView):
 
 
 
-class MonsterTeamView(LoginRequiredMixin, ListView):
+class MonsterTeamView(VerifiedAccountMixin, ListView):
     model = MonsterTeam
     template_name = "dex/monster/monster_teams.html"
 
@@ -450,7 +450,7 @@ class MonsterTeamView(LoginRequiredMixin, ListView):
         return redirect(request.build_absolute_uri())
 
 
-class MonsterTeamDetailView(LoginRequiredMixin, DetailView):
+class MonsterTeamDetailView(VerifiedAccountMixin, DetailView):
     model = MonsterTeam
     template_name = "dex/monster/monster_teams_detail.html"
 
@@ -492,7 +492,7 @@ class MonsterTeamDetailView(LoginRequiredMixin, DetailView):
 
 
 @require_POST
-@login_required
+@verified_account
 def add_monster_to_team(request, pk):
     team = get_object_or_404(MonsterTeam, pk=pk, spieler__name=request.user.username)
     monster = get_object_or_404(SpielerMonster, pk=request.POST.get("monster_id"), spieler__name=request.user.username)
@@ -503,7 +503,7 @@ def add_monster_to_team(request, pk):
     return redirect(redirect_path if redirect_path and redirect_path.startswith("/dex/") else reverse("dex:monster_team_detail", args=[pk]))
 
 @require_POST
-@login_required
+@verified_account
 def delete_monster_from_team(request, pk):
     team = get_object_or_404(MonsterTeam, pk=pk, spieler__name=request.user.username)
     monster = get_object_or_404(SpielerMonster, pk=request.POST.get("monster_id"))
@@ -514,7 +514,7 @@ def delete_monster_from_team(request, pk):
     return redirect(redirect_path if redirect_path and redirect_path.startswith("/dex/") else reverse("dex:monster_team_detail", args=[pk]))
 
 @require_POST
-@login_required
+@verified_account
 def add_team_to_spielermonster(request, pk):
     sp_mo = get_object_or_404(SpielerMonster, pk=pk, spieler__name=request.user.username)
     team = get_object_or_404(MonsterTeam, pk=request.POST.get("team_id"))
@@ -525,7 +525,7 @@ def add_team_to_spielermonster(request, pk):
     return redirect(redirect_path if redirect_path and redirect_path.startswith("/dex/") else reverse("dex:monster_detail_farm", args=[pk]))
 
 @require_POST
-@login_required
+@verified_account
 def delete_spielermonster(request):
     sp_mo = get_object_or_404(SpielerMonster, pk=request.POST.get("monster_id"), spieler__name=request.user.username)
     SpielerMonster.objects.filter(pk=sp_mo.pk).delete()
@@ -536,7 +536,7 @@ def delete_spielermonster(request):
     return redirect(redirect_path if redirect_path and redirect_path.startswith("/dex/") else reverse("dex:monster_farm"))
 
 @require_POST
-@login_required
+@verified_account
 def set_training_of_spielermonster(request, pk):
     sp_mo = get_object_or_404(SpielerMonster, pk=pk, spieler__name=request.user.username)
     all_stats = [stat for stat, _ in RangStat.StatType]
@@ -560,7 +560,7 @@ def set_training_of_spielermonster(request, pk):
     return redirect(redirect_path if redirect_path and redirect_path.startswith("/dex/") else reverse("dex:monster_detail_farm", args=[pk]))
 
 @require_POST
-@login_required
+@verified_account
 def add_attack_to_spielermonster(request, pk):
     sp_mo = get_object_or_404(SpielerMonster, pk=pk, spieler__name=request.user.username)
 
@@ -587,7 +587,7 @@ def add_attack_to_spielermonster(request, pk):
     return redirect(redirect_path if redirect_path and redirect_path.startswith("/dex/") else reverse("dex:monster_detail_farm", args=[pk]))
 
 @require_POST
-@login_required
+@verified_account
 def delete_attack_from_spielermonster(request, pk):
 
     # get stuff
@@ -607,7 +607,7 @@ def delete_attack_from_spielermonster(request, pk):
 
 
 @require_POST
-@login_required
+@verified_account
 def evolve_spielermonster(request, pk):
 
     # get stuff
@@ -633,7 +633,7 @@ def evolve_spielermonster(request, pk):
     return redirect(redirect_path if redirect_path and redirect_path.startswith("/dex/") else reverse("dex:monster_detail_farm", args=[pk]))
 
 
-class AttackProposalView(LoginRequiredMixin, ListView):
+class AttackProposalView(VerifiedAccountMixin, ListView):
     model = Attacke
     template_name = "dex/monster/attack_proposal.html"
 

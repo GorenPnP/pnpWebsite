@@ -1,0 +1,25 @@
+{% extends './page_template.html' %}
+{% load static %}
+
+{% block extra-head %}
+    {{ block.super }}
+
+    <!-- custom -->
+    <link rel="stylesheet" href="{% static 'lerneinheiten/css/sp_editor_lerninhalt.css' %}">
+    <link rel="stylesheet" href="{% static 'lerneinheiten/css/lerninhalt.css' %}">
+{% endblock %}
+
+{% block content %}
+    <h2>
+        {{ object.titel|default:'' }}
+        <button class="btn btn-primary" onclick="print()">Export</button>
+    </h2>
+
+    <div id="content-grid">
+        {% if object.content.type %}
+            {% include 'lerneinheiten/spieler/page/_lerninhalt_box.html' with direction="grid-column" config=object.content %}
+        {% else %}
+            <div class="h4">- Kein Inhalt vorhanden -</div>
+        {% endif %}
+    </div>
+{% endblock %}

@@ -1,0 +1,43 @@
+{% extends './page_template.html' %}
+{% load static l10n %}
+
+{% block extra-head %}
+    {{ block.super }}
+    <script src="{% static 'res/js/sortable@1.15.2.min.js' %}"></script>
+
+    <!-- custom -->
+    <link rel="stylesheet" href="{% static 'lerneinheiten/css/sortable_list.css' %}">
+    <link rel="stylesheet" href="{% static 'lerneinheiten/css/verbinden.css' %}">
+    {{ object.content|json_script:"content" }}
+    {{ object.solution.order|json_script:"solution" }}
+    <script src="{% static 'lerneinheiten/js/verbinden.js' %}" defer></script>
+{% endblock %}
+
+{% block content %}
+    <h2>{{ object.titel|default:'' }}</h2>
+    <p class="markdown" data-text="{{ object.content.text|default:'' }}"></p>
+
+    <form id="form" method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+
+
+        <div id="pair-container">
+            <ul class="list-group list--left"></ul>
+            <div id="line-container"></div>
+            <ul class="sortable-list list-group list--right"></ul>
+        </div>
+
+        <button type="submit" class="btn btn-primary mt-3">Speichern</button>
+        <button type="button" class="btn btn-outline-light mt-3 mx-3"
+            onclick="document.querySelector('#musterlösung').classList.toggle('hidden')"
+        >
+            Musterlösung
+        </button>
+    </form>
+
+    <aside id="musterlösung" class="hidden my-5">
+        <h2>Musterlösung</h2>
+        <result></result>
+    </aside>
+{% endblock %}

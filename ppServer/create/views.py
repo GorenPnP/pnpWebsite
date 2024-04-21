@@ -1,5 +1,4 @@
 import json
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponseNotFound
 from django.http.request import HttpRequest
 from django.http.response import HttpResponse, JsonResponse
@@ -22,7 +21,7 @@ from .decorators import *
 from .models import *
 
 
-class GfsWahlfilterView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTableView):
+class GfsWahlfilterView(VerifiedAccountMixin, DynamicTableView):
 
     model = GfsCharacterization
     topic = "Gfs Wahlfilter"
@@ -35,7 +34,7 @@ class GfsWahlfilterView(LoginRequiredMixin, VerifiedAccountMixin, DynamicTableVi
     app_index_url = "create:gfs"
 
 
-class GfsFormView(LoginRequiredMixin, VerifiedAccountMixin, TemplateView):
+class GfsFormView(VerifiedAccountMixin, TemplateView):
 
     def get(self, request: HttpRequest) -> HttpResponse:
         context = {

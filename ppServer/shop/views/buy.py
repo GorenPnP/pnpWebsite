@@ -2,8 +2,6 @@ import random
 from datetime import date
 
 from django.contrib import messages
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.http import HttpResponseNotFound
 from django.shortcuts import render, get_object_or_404, redirect
 from django.views.generic import DetailView
 from django.urls import reverse
@@ -15,7 +13,7 @@ from ppServer.mixins import VerifiedAccountMixin
 from ..models import *
 
 
-class BuyView(LoginRequiredMixin, VerifiedAccountMixin, DetailView):
+class BuyView(VerifiedAccountMixin, DetailView):
     class Meta:
         abstract = True
 

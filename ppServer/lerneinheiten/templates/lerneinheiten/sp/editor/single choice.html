@@ -1,0 +1,47 @@
+{% extends './page_template.html' %}
+{% load static %}
+
+{% block extra-head %}
+    {{ block.super }}
+
+    <!-- custom -->
+    {{ object.solution|json_script:"solution" }}
+    {{ object.content.choices|json_script:"choices" }}
+    <script src="{% static 'lerneinheiten/js/editor/single_choice.js' %}" defer></script>
+    <style>
+        .radio {
+            width: fit-content;
+
+            button {
+                padding: 4px 8px;
+                height: 100%;
+                aspect-ratio: 1;
+            }
+            svg {
+                fill: currentColor;
+            }
+            .radio-row {
+                display: grid;
+                grid-template-columns: auto 1fr auto;
+                align-items: center;
+                justify-content: space-between;
+                gap: 1em;
+
+                margin: .5em 0;
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block main %}
+    <h2>Settings</h2>
+    {{ block.super }}
+{% endblock %}
+
+{% block content %}
+<fieldset class="radio">
+    <legend class="h2">Single Choice</legend>
+
+</fieldset>
+<button class="btn btn-primary" onclick="add_radio()">+ Choice</button>
+{% endblock %}

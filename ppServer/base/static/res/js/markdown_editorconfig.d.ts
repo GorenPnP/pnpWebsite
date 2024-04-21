@@ -1,0 +1,1 @@
+const MDEditorConfig: EasyMDE.Options;

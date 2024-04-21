@@ -1,0 +1,30 @@
+.markdown--lücken {
+    .sortable-list {
+        min-height: 2em;
+
+        display: inline-block;
+        width: fit-content;
+        margin-inline: .3em;
+        
+        &:before {
+            font-size: small;
+            padding-inline: .3em;
+        }
+        &.error--required::before {
+            color: var(--bs-danger);
+            font-size: large;
+        }
+        
+        &:not(:has(> *))::before {
+            content: "ziehe 1 Item hier hin" !important;
+            color: var(--bs-gray-500);
+        }
+        &:has(> *:nth-child(2))::before {
+            content: "nur 1 Item!";
+        }
+        &.error--required:not(:has(> *))::before {
+            content: "muss ausgefüllt werden" !important;
+        }
+    }
+
+}

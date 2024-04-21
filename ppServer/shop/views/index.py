@@ -1,7 +1,6 @@
 from django import forms
 
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
 
 from base.views import reviewable_shop
@@ -9,7 +8,7 @@ from ppServer.decorators import spielleiter_only, verified_account
 from ..models import *
 
 
-@login_required
+@verified_account
 @spielleiter_only()
 def review_items(request):
 
@@ -21,7 +20,7 @@ def review_items(request):
     return render(request, "shop/review_items.html", context)
 
 
-@login_required
+@verified_account
 @spielleiter_only()
 def transfer_items(request):
 
@@ -89,7 +88,6 @@ def transfer_items(request):
     return render(request, "shop/sp_transfer_from_items.html", context)
 
 
-@login_required
 @verified_account
 def index(request):
     return render(request, "shop/index.html", {"topic": "Shop"})

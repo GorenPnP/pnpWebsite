@@ -13,8 +13,10 @@ __pycache__/
 *.css**
 *.sass.map
 *.scss.map
-!ppServer/base/static/ag-grid/css/*.css
+!ppServer/base/static/res/css/*.css
 ppserver/time_space/static/time_space/**/*.js
+ppServer/lerneinheiten/static/lerneinheiten/**/*.js
+ppServer/base/static/res/js/paint_canvas/*.js
 
 # IDEs
 .idea

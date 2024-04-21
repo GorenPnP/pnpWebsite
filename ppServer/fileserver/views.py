@@ -1,7 +1,6 @@
 from typing import Any, Dict
 
 from django.db.models import Q
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse
 from django.views.generic.list import ListView
 
@@ -9,7 +8,7 @@ from ppServer.mixins import VerifiedAccountMixin
 
 from .models import Topic
 
-class TopicListView(LoginRequiredMixin, VerifiedAccountMixin, ListView):
+class TopicListView(VerifiedAccountMixin, ListView):
     model = Topic
     template_name = 'fileserver/index.html'
 

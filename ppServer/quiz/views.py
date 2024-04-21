@@ -1,13 +1,12 @@
-from ppServer.decorators import verified_account
 import random, json
 from math import floor
 
-from django.contrib.auth.decorators import login_required
-from django.http import HttpResponseNotFound
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse
 
 from character.models import Spieler
+from ppServer.decorators import verified_account
+
 from . import models
 
 
@@ -67,7 +66,6 @@ def mw_from_grade_list(grade_list):
     return grades[floor(sum_grades / num_grades + 0.5)]
 
 
-@login_required
 @verified_account
 def index(request, spieler_id=None):
 
@@ -126,7 +124,6 @@ def index(request, spieler_id=None):
         return redirect("quiz:index")
 
 
-@login_required
 @verified_account
 def question(request):
     spieler = request.spieler.instance
@@ -201,7 +198,6 @@ def question(request):
         return redirect("quiz:question")
 
 
-@login_required
 @verified_account
 def session_done(request):
 
@@ -224,7 +220,6 @@ def session_done(request):
         return redirect("quiz:index")
 
 
-@login_required
 @verified_account
 def score_board(request):
 
@@ -247,7 +242,6 @@ def score_board(request):
     return render(request, "quiz/score_board.html", context)
 
 
-@login_required
 @verified_account
 def review(request, id):
     spieler = request.spieler.instance
@@ -305,7 +299,6 @@ def review(request, id):
         return redirect(reverse("quiz:review", args=[id]))
 
 
-@login_required
 @verified_account
 def review_done(request):
     spieler = request.spieler.instance

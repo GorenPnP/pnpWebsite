@@ -1,17 +1,16 @@
 import json
 
 from django.shortcuts import render, get_object_or_404, reverse, redirect
-from django.contrib.auth.decorators import login_required
 from django.http.response import JsonResponse
 from django.db.utils import IntegrityError
 
-from ppServer.decorators import spielleiter_only
+from ppServer.decorators import spielleiter_only, verified_account
 from crafting.models import RelCrafting
 
 from .models import *
 
 
-@login_required
+@verified_account
 @spielleiter_only(redirect_to="base:index")
 def region_select(request):
 	context = {
@@ -53,7 +52,7 @@ def get_modified_fields(fields):
 	return modified_fields
 
 
-@login_required
+@verified_account
 @spielleiter_only(redirect_to="mining:region_select")
 def region_editor(request, region_id=None):
 
@@ -157,7 +156,7 @@ def region_editor(request, region_id=None):
 		return JsonResponse({"message": "ok"})
 
 
-@login_required
+@verified_account
 # @spielleiter_only(redirect_to="mining:region_select")
 def game(request, pk):
 	region = get_object_or_404(Region, pk=pk)

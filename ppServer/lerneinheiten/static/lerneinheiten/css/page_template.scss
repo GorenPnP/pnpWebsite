@@ -1,0 +1,20 @@
+.main-container {
+    max-width: 70ch;
+    margin-inline: auto;
+    padding-inline: 0;
+}
+.hidden { display: none; }
+
+#inquiry-form {
+    border: 1px solid var(--bs-light);
+    max-width: 70ch;
+    padding: 1em;
+    margin: 100px auto 0;
+    border-radius: 10px;
+
+    label, .title {
+        font-weight: bold;
+        font-size: 1.2rem;
+        margin-bottom: .5em;
+    }
+}

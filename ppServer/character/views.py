@@ -1,10 +1,8 @@
 from typing import Any, Dict
 
+from django.apps import apps
 from django.contrib import messages
 from django.db.models import Value, F
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.contrib.auth.models import User
 from django.shortcuts import redirect
 from django.urls import reverse
 from django.utils.html import format_html
@@ -16,12 +14,13 @@ import django_tables2 as tables
 from base.abstract_views import GenericTable
 from log.create_log import render_number
 from log.models import Log
+from ppServer.decorators import verified_account
 from ppServer.mixins import VerifiedAccountMixin
 
 from .models import *
 
 
-class CharacterListView(LoginRequiredMixin, VerifiedAccountMixin, TemplateView):
+class CharacterListView(VerifiedAccountMixin, TemplateView):
     template_name = "character/index.html"
 
     def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
@@ -38,7 +37,7 @@ class CharacterListView(LoginRequiredMixin, VerifiedAccountMixin, TemplateView):
         }
 
 
-class ShowView(LoginRequiredMixin, VerifiedAccountMixin, DetailView):
+class ShowView(VerifiedAccountMixin, DetailView):
     template_name = "character/show.html"
     model = Charakter
 
@@ -513,7 +512,7 @@ class ShowView(LoginRequiredMixin, VerifiedAccountMixin, DetailView):
         }
 
 
-class HistoryView(LoginRequiredMixin, VerifiedAccountMixin, tables.SingleTableMixin, TemplateView):
+class HistoryView(VerifiedAccountMixin, tables.SingleTableMixin, TemplateView):
 
     class Table(GenericTable):
         class Meta:
@@ -542,9 +541,8 @@ class HistoryView(LoginRequiredMixin, VerifiedAccountMixin, tables.SingleTableMi
         )
 
 
-@login_required
+@verified_account
 def use_relshop(request, relshop_model, pk):
-    from django.apps import apps
 
     try:
         Model = apps.get_model('character', relshop_model)

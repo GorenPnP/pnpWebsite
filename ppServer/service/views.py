@@ -1,16 +1,16 @@
 from ppServer.decorators import spielleiter_only
 
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import redirect, render
+from django.shortcuts import render
 from django.urls import reverse
 
+from ppServer.decorators import verified_account
 from quiz.models import SpielerModule, RelQuiz, Subject
 from quiz.views import get_grade_score
 
 # TODO try-except around request.POST in this file
 
 # dice roll
-@login_required
+@verified_account
 def random(request):
     dice = [
         {"art": "W4", "faces": [i for i in range(1, 5)]},
@@ -26,7 +26,7 @@ def random(request):
 
 
 # quiz big brother
-@login_required
+@verified_account
 @spielleiter_only("quiz:index")
 def quiz_BB(request):
 

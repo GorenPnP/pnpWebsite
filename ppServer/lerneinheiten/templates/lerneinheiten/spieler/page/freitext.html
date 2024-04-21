@@ -1,0 +1,31 @@
+{% extends './page_template.html' %}
+{% load static %}
+
+{% block extra-head %}
+    {{ block.super }}
+
+    <!-- custom -->
+    <script src="{% static 'lerneinheiten/js/freitext.js' %}" defer></script>
+{% endblock %}
+
+{% block content %}
+    <h2>{{ object.titel|default:'' }}</h2>
+    <p class="markdown" data-text="{{ object.content.text|default:'' }}"></p>
+
+    <form id="form" method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+
+        <button type="submit" class="btn btn-primary mt-3">Speichern</button>
+        <button type="button" class="btn btn-outline-light mt-3 mx-3"
+            onclick="document.querySelector('#musterlösung').classList.toggle('hidden')"
+        >
+            Musterlösung
+        </button>
+    </form>
+
+    <aside id="musterlösung" class="hidden my-5">
+        <h2>Musterlösung</h2>
+        <div class="markdown" data-text="{{ object.solution.text|default:'' }}"></div>
+    </aside>
+{% endblock %}

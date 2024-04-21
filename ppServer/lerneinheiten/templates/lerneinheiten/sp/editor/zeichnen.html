@@ -1,0 +1,23 @@
+{% extends './page_template.html' %}
+{% load static %}
+
+{% block extra-head %}
+    {{ block.super }}
+
+    <style>
+      .sticky-footer { z-index: 5; }
+    </style>
+
+    <!-- custom -->
+    <script src="{% static 'lerneinheiten/js/editor/zeichnen.js' %}" defer></script>
+{% endblock %}
+
+{% block content %}
+  <label for="paint-canvas--0">Musterlösung als Bild:</label>
+  {% include 'base/paint_canvas.html' with image_src=object.solution id="paint-canvas--0" %}
+
+  <input type="file" accept="image/png" name="solution_drawn" form="form" hidden>
+  <input type="file" accept="image/png" name="solution_bg" form="form" hidden>
+
+  <form id="dummy-form" hidden></form>
+{% endblock %}

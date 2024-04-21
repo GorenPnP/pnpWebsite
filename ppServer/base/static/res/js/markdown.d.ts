@@ -1,0 +1,1 @@
+function md_to_html(md_text: string): string;

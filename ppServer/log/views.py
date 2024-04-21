@@ -1,12 +1,11 @@
 from django.contrib.admin.models import LogEntry
-from django.contrib.auth.mixins import LoginRequiredMixin
 
 from base.abstract_views import DynamicTableView, GenericTable
-from ppServer.mixins import SpielleiterOnlyMixin
+from ppServer.mixins import SpielleiterOnlyMixin, VerifiedAccountMixin
 
 from .models import Log
 
-class UserLogView(LoginRequiredMixin, SpielleiterOnlyMixin, DynamicTableView):
+class UserLogView(VerifiedAccountMixin, SpielleiterOnlyMixin, DynamicTableView):
     model = Log
     filterset_fields = {
         "char": ["exact"],
@@ -22,7 +21,7 @@ class UserLogView(LoginRequiredMixin, SpielleiterOnlyMixin, DynamicTableView):
     def get_app_index_url(self): return None
 
 
-class AdminLogView(LoginRequiredMixin, SpielleiterOnlyMixin, DynamicTableView):
+class AdminLogView(VerifiedAccountMixin, SpielleiterOnlyMixin, DynamicTableView):
     class Table(GenericTable):
         class Meta:
             model = LogEntry

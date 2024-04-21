@@ -1,23 +1,17 @@
 from datetime import datetime
 from typing import Optional
 
-from django.contrib.auth.mixins import UserPassesTestMixin
+from django.contrib.auth.mixins import UserPassesTestMixin, LoginRequiredMixin
 from django.shortcuts import redirect
 
 from httpChat.models import Account, Chatroom
 from polls.models import Question, QuestionSpieler
 
 
-class VerifiedAccountMixin(UserPassesTestMixin):
-    def test_func(self) -> Optional[bool]:
-        return self.request.spieler.is_verified
-    
-    def handle_no_permission(self):
-        return redirect("base:index")
-    
+class VerifiedAccountMixin(LoginRequiredMixin):
+
     def dispatch(self, request, *args, **kwargs):
-        user_test_result = self.get_test_func()()
-        if not request.user.is_authenticated or not user_test_result:
+        if not request.user.is_authenticated or not self.request.spieler.is_verified:
             return self.handle_no_permission()
         return super().dispatch(request, *args, **kwargs)
 
@@ -30,7 +24,18 @@ class SpielleiterOnlyMixin(UserPassesTestMixin):
     
     def handle_no_permission(self):
         return redirect(self.redirect_to)
+
+
+class LARPlerOnlyMixin(UserPassesTestMixin):
+    redirect_to="base:index"
+
+    def test_func(self) -> Optional[bool]:
+        return "LARP-ler" in self.request.spieler.groups
     
+    def handle_no_permission(self):
+        return redirect(self.redirect_to)
+
+
 class OwnChatMixin(UserPassesTestMixin):
     redirect_to="httpchat:index"
 

@@ -3,3 +3,5 @@ npm-debug.log
 ppServer/media/
 ppServer/node_modules/
 ppServer/venv/
+
+ppServer/base/static/res/js/paint_canvas/*.js

@@ -1,0 +1,38 @@
+{% extends 'base/headed_main.html' %}
+{% load static %}
+
+{% block extra-head %}
+    {{ block.super }}
+
+    <!-- EasyMDE for md-editors and dependency to render md to html -->
+    <link href="{% static 'res/css/easymde@2.18.0.min.css' %}" rel="stylesheet">
+    <link href="{% static 'res/css/easyMDE.css' %}" rel="stylesheet">
+    <script src="{% static 'res/js/easymde@2.18.0.min.js' %}"></script>
+    <script src="{% static 'res/js/markdown_editorconfig.js' %}"></script>
+    
+    <!-- render md to html -->
+    <script src="{% static 'res/js/markdown.js' %}" defer></script>
+    
+    <!-- custom -->
+    <link href="{% static 'lerneinheiten/css/page_template.css' %}" rel="stylesheet">
+    <script src="{% static 'lerneinheiten/js/page_template.js' %}" defer></script>
+{% endblock %}
+
+{% block main %}
+    {% block content %}{% endblock %}
+
+    <div id="inquiry-form">
+
+        <form action="{% url 'lerneinheiten:inquiry_form' object.id %}" method="post">
+            {% csrf_token %}
+            {{ inquiry_form.as_p }}
+    
+            <button class="btn btn-primary">Speichern</button>
+        </form>
+        
+        {% if inquiry is not None %}
+            <p class="title mt-5">Antwort:</p>
+            <p class="markdown" data-text="{{ inquiry.response|default_if_none:'\- noch keine Antwort \-' }}"></p>
+        {% endif %}
+    </div>
+{% endblock %}

@@ -2,7 +2,6 @@ from datetime import datetime
 from typing import Any, Dict
 
 from django.db.models import Subquery, OuterRef, Q
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import JsonResponse
 from django.http.request import HttpRequest
 from django.http.response import HttpResponse
@@ -16,7 +15,7 @@ from .forms import AccountForm, ChatroomForm
 from .models import *
 from .signals import send_webpush
 
-class AccountListView(LoginRequiredMixin, VerifiedAccountMixin, TemplateView):
+class AccountListView(VerifiedAccountMixin, TemplateView):
     template_name = "httpChat/account_list.html"
 
     def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
@@ -44,7 +43,7 @@ class AccountListView(LoginRequiredMixin, VerifiedAccountMixin, TemplateView):
         return redirect(request.build_absolute_uri())
 
 
-class ChatroomListView(LoginRequiredMixin, OwnChatMixin, TemplateView):
+class ChatroomListView(VerifiedAccountMixin, OwnChatMixin, TemplateView):
     template_name = "httpChat/chatroom_list.html"
 
     def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
@@ -87,7 +86,7 @@ class ChatroomListView(LoginRequiredMixin, OwnChatMixin, TemplateView):
         return redirect(request.build_absolute_uri())
 
 
-class ChatroomView(LoginRequiredMixin, OwnChatMixin, TemplateView):
+class ChatroomView(VerifiedAccountMixin, OwnChatMixin, TemplateView):
     template_name = "httpChat/chatroom.html"
 
     def get_objects(self):
@@ -156,7 +155,7 @@ class ChatroomView(LoginRequiredMixin, OwnChatMixin, TemplateView):
         return redirect(request.build_absolute_uri())
 
 
-class PollNewMessagesRestView(LoginRequiredMixin, OwnChatMixin, View):
+class PollNewMessagesRestView(VerifiedAccountMixin, OwnChatMixin, View):
 
     def get(self, request: HttpRequest, *args: Any, **kwargs: Any):
         res = Chatroom.objects.get(id=self.kwargs["room_id"]).message_set.filter(Q(created_at__gte=Subquery(

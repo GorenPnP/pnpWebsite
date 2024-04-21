@@ -1,0 +1,62 @@
+{% extends './page_template.html' %}
+{% load static %}
+
+{% block extra-head %}
+    {{ block.super }}
+
+    <!-- custom -->
+    {{ object.solution|json_script:"solution" }}
+    {{ object.content|json_script:"content" }}
+    <script src="{% static 'lerneinheiten/js/editor/themen_zuordnen.js' %}" defer></script>
+
+    <style>
+        #category-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, 270px);
+            justify-content: flex-start;
+            align-items: center;
+
+            gap: 2em;
+        }
+
+        .category {
+            align-self: flex-start;
+
+            border: 1px solid var(--bs-light);
+            border-radius: 10px;
+        }
+        .category > * {
+            padding: 1em;
+        }
+        .head {
+            border-bottom: 1px solid var(--bs-light);
+            margin: 0 !important;
+        }
+        .content__list {
+            list-style: none;
+            padding: 0;
+            margin-top: -5px;
+        }
+        .item {
+            display: flex;
+            justify-content: space-between;
+            align-items: stretch;
+            gap: 5px;
+            margin-block: 5px;
+        }
+    </style>
+{% endblock %}
+
+{% block main %}
+    <h2>Settings</h2>
+    {{ block.super }}
+{% endblock %}
+
+{% block content %}
+<h2>Kategorien</h2>
+<div id="category-container">
+
+    <button id="add-cat-btn" class="btn btn-primary" onclick="add_category()">+ Kategorie</button>
+</div>
+
+{% endblock %}

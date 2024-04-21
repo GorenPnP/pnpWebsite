@@ -1,7 +1,6 @@
 from typing import Any, Dict
 
 from django.contrib import messages
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponseNotFound
 from django.http.request import HttpRequest
 from django.http.response import HttpResponse
@@ -9,12 +8,11 @@ from django.shortcuts import redirect
 from django.urls import reverse
 from django.views.generic.detail import DetailView
 
-from character.models import Spieler
 from ppServer.mixins import VerifiedAccountMixin, PollAllowedMixin
 
 from .models import Choice, Question
 
-class PollView(LoginRequiredMixin, PollAllowedMixin, DetailView):
+class PollView(VerifiedAccountMixin, PollAllowedMixin, DetailView):
     model = Question
     template_name = "polls/detail.html"
 
@@ -63,7 +61,7 @@ class PollView(LoginRequiredMixin, PollAllowedMixin, DetailView):
         return redirect("base:index")
 
 
-class ResultView(LoginRequiredMixin, VerifiedAccountMixin, DetailView):
+class ResultView(VerifiedAccountMixin, DetailView):
     model = Question
     template_name = "polls/result.html"
 

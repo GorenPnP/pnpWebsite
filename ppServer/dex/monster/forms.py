@@ -4,6 +4,11 @@ from django.forms.widgets import Input, CheckboxSelectMultiple
 
 from .models import *
 
+class ColorWidget(Input):
+    def __init__(self, attrs=dict()) -> None:
+        attrs["type"] = "color"
+        super().__init__(attrs)
+
 class MonsterVisibilityForm(forms.Form):
     monster = forms.ModelMultipleChoiceField(queryset=Monster.objects.all(), widget=forms.CheckboxSelectMultiple(), required=True)
     spieler = forms.ModelMultipleChoiceField(queryset=Spieler.objects.all(), widget=forms.CheckboxSelectMultiple(), required=True)
@@ -17,11 +22,6 @@ class AttackToMonsterForm(forms.Form):
     monster_feddich = forms.BooleanField(required=False)
 
 class TeamForm(forms.Form):
-    class ColorWidget(Input):
-        def __init__(self, attrs=dict()) -> None:
-            attrs["type"] = "color"
-            super().__init__(attrs)
-
     name = forms.CharField(max_length=256, required=True)
     farbe = forms.CharField(widget=ColorWidget(), required=True)
     textfarbe = forms.CharField(widget=ColorWidget(), required=True)
