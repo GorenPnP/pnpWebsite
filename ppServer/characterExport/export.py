@@ -730,11 +730,11 @@ class CharakterExporter:
                         attr=Concat(F("attr1__titel"), Value(' + '), F("attr2__titel"), output_field=CharField()))
 
         for i, spezial in enumerate(spezial_qs):
-            attr_wert = "+".join([self._position(attr) for attr in spezial.attr.split(" + ")])
+            attr_wert = "+".join([self._position(attr) for attr in spezial.attr.split(" + ")]) + "-5"
             ausgleich = " + ".join([fert["titel"] for fert in spezial.ausgleich.values("titel")])
             fert_wert = "+".join([self._position(fert) for fert in ausgleich.split(" + ")]) if len(ausgleich) else "0"
             wp_query = spezial.relspezialfertigkeit_set.filter(char=self.char).values("stufe")
-            wp = wp_query.first()["stufe"] -5 if wp_query.exists() else None
+            wp = wp_query.first()["stufe"] if wp_query.exists() else None
 
             spF_wF_ws.write(f"G{i+2}", spezial.titel, format_align_center_center)
             spF_wF_ws.write(f"H{i+2}", spezial.attr, format_wissen_attr)

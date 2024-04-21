@@ -53,19 +53,16 @@ class GenericSpF_wFView(LevelUpMixin, tables.SingleTableMixin, TemplateView):
             value_exists = record["stufe"] is not None
             id = record["id"]
 
-            offset = -5 if record["art"] == "Spezial" else 0
-
-
-            args = f"min='{0+offset}' max='{15+offset}'"
+            args = ""
             if record["art"] == "Spezial":
-                args += f" name='spezial-{id}' class='spezial-input'"
+                args += f"name='spezial-{id}' class='spezial-input'"
             else:
-                args += f" name='wissen-{id}' class='wissen-input'"
+                args += f"name='wissen-{id}' class='wissen-input'"
 
             if value_exists:
-                args += f" value='{record['stufe']+offset}' required"
+                args += f" value='{record['stufe']}' required"
 
-            return format_html(f"<input type='number' form='form' {args}>")
+            return format_html(f"<input type='number' min='0' max='15' form='form' {args}>")
 
 
 
@@ -130,7 +127,7 @@ class GenericSpF_wFView(LevelUpMixin, tables.SingleTableMixin, TemplateView):
 
         # collect values
         payment_method = request.POST.get("payment_method")
-        spezial_ids = {int(key.replace("spezial-", "")): int(stufe)+5 for key, stufe in request.POST.items() if "spezial-" in key and len(stufe)}
+        spezial_ids = {int(key.replace("spezial-", "")): int(stufe) for key, stufe in request.POST.items() if "spezial-" in key and len(stufe)}
         wissen_ids = {int(key.replace("wissen-", "")): int(stufe) for key, stufe in request.POST.items() if "wissen-" in key and len(stufe)}
 
         # test them

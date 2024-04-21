@@ -285,13 +285,13 @@ class ShowView(VerifiedAccountMixin, DetailView):
             spezialfertigkeit__attr2__titel = tables.Column(verbose_name="Attribut 2")
 
             def render_gesamt(self, value, record):
-                return attr[record.spezialfertigkeit.attr1.titel] + attr[record.spezialfertigkeit.attr2.titel]
+                return attr[record.spezialfertigkeit.attr1.titel] + attr[record.spezialfertigkeit.attr2.titel] -5
 
             def render_korrektur(self, value, record):
                 return math.floor(sum([fert[f.titel] for f in record.spezialfertigkeit.ausgleich.all()]) / 2 + 0.5)
             
             def render_w20_probe(self, value, record):
-                return attr[record.spezialfertigkeit.attr1.titel] + attr[record.spezialfertigkeit.attr2.titel] + record.wp
+                return attr[record.spezialfertigkeit.attr1.titel] + attr[record.spezialfertigkeit.attr2.titel] -5 + record.wp
 
 
         class WissenTable(tables.Table):
@@ -328,7 +328,7 @@ class ShowView(VerifiedAccountMixin, DetailView):
             gesamt=Value(1),
             korrektur=Value(1),
             w20_probe=Value(1),
-            wp=F("stufe") - 5
+            wp=F("stufe")
         )
 
         wissen_qs = char.relwissensfertigkeit_set.all().annotate(

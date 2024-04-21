@@ -13,17 +13,10 @@ function fert_chosen() {
     return spezial + wissen;
 }
 function wp_spent() {
-    const spezial = [...document.querySelectorAll(`.spezial-input`)]
-        .filter(tag => tag.value.length)
-        .map(tag => parseInt(tag.value))
-        .reduce((sum, wp) => sum + wp + 5, 0);
-
-    const wissen = [...document.querySelectorAll(`.wissen-input`)]
+    return [...document.querySelectorAll(".spezial-input, .wissen-input")]
         .filter(tag => tag.value.length)
         .map(tag => parseInt(tag.value))
         .reduce((sum, wp) => sum + wp, 0);
-
-    return wissen + spezial;
 }
 
 function calc_pools() {
@@ -77,19 +70,21 @@ function calc_pools() {
     }
     
     // disable submit button?
-    document.querySelector("[type=submit").disabled = fert > initial || wp > initial_wp || (wp === 0 && fert === 0);
+    document.querySelector("[type=submit]").disabled = fert > initial || wp > initial_wp || (wp === 0 && fert === 0);
 }
 
 function highlight_rows() {
     const highlight_class = "highlight";
 
     [...document.querySelectorAll(".main-container tbody tr")].forEach(tr_tag => {
+        let is_selected = false;
         const spezial = tr_tag.querySelector(`.spezial-input`);
         if (spezial) {
-            return parseInt(spezial.value) >= -5 ? tr_tag.classList.add(highlight_class) : tr_tag.classList.remove(highlight_class);
+            is_selected = parseInt(spezial.value) >= 0;
+        } else {
+            is_selected = parseInt(tr_tag.querySelector(`.wissen-input`)?.value) >= 0;
         }
         
-        const is_selected = parseInt(tr_tag.querySelector(`.wissen-input`)?.value) >= 0;
         is_selected ? tr_tag.classList.add(highlight_class) : tr_tag.classList.remove(highlight_class);
     });
 }
