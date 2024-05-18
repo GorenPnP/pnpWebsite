@@ -38,6 +38,8 @@ class Spieler(models.Model):
     name = models.CharField(max_length=200, default='default')
     geburtstag = models.DateField(null=True, blank=True)
 
+    language_daemonisch = models.BooleanField(default=False, blank=False, null=False)
+
     def __str__(self):
         """ shown e.g. in dropdown as foreign key """
         return self.name

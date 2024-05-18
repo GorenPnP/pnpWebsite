@@ -26,6 +26,7 @@ class SettingView(VerifiedAccountMixin, TemplateView):
 	def get(self, request):
 		context = {
 			"topic": "Einstellungen",
+			"general_form": GeneralSettingsForm(instance=self.request.spieler.instance),
 			"form": PushSettingsForm(instance=self.get_object()),
 		}
 		return render(request, self.template_name, context)
@@ -72,6 +73,18 @@ class TestView(SpielleiterOnlyMixin, TemplateView):
 			messages.success(request, f"Send pushies to {len(success)} / {len(results)} devices")
 
 		return redirect("web_push:test")
+
+
+@require_POST
+@verified_account
+def general_settings(request):
+    form = GeneralSettingsForm(request.POST, instance=request.spieler.instance)
+    form.full_clean()
+    if form.is_valid():
+        form.save()
+    else:
+        messages.error(request, "Fehler beim speichern allgemeiner Settings")
+    return redirect("web_push:settings")
 
 
 @require_POST

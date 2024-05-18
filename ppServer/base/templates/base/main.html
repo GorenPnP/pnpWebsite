@@ -31,6 +31,17 @@
 		<link rel="stylesheet" href="{% static 'base/css/scrolling_header.css' %}" type="text/css">
 		<script src="{% static 'base/js/scrolling_header.js' %}" defer></script>
 
+		<!-- language dämonisch -->
+		{% if request.spieler.instance.language_daemonisch %}
+		<style>
+			@font-face {
+				font-family: Daemonisch;
+				src: url('/static/res/fonts/daemonisch-bold.otf')  format("opentype");
+			}
+			:root { --bs-font-sans-serif: 'Daemonisch', 'Montserrat', sans-serif; }
+		</style>
+		{% endif %}
+
 
 		{% block extra-head %}{% endblock %}
 	</head>

@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from django.db.models import Exists, OuterRef
 
 from push_notifications.models import WebPushDevice
+from character.models import Spieler
 
 from .models import *
 
@@ -31,3 +32,16 @@ class SendMessageForm(forms.Form):
         label="Nachricht senden an",
         required=True,
     )
+
+
+
+class GeneralSettingsForm(forms.ModelForm):
+    class Meta:
+        model = Spieler
+        fields = ["language_daemonisch"]
+        widgets = {
+            "language_daemonisch": forms.Select(choices=((False, "Gemeinsprache"), (True, "Dämonisch"))),
+        }
+        labels = {
+            "language_daemonisch": "Sprache",
+        }
