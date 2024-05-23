@@ -65,6 +65,7 @@ INSTALLED_APPS = [
     'crafting',
     'create',
     'dex',
+    'effect',
     'fileserver',
     'httpChat',
     'lerneinheiten',

@@ -7,6 +7,7 @@ from django.http.request import HttpRequest
 from django.utils.html import format_html
 
 from ppServer.utils import get_filter
+from effect.models import RelEffect
 
 from ..models import *
 
@@ -63,7 +64,7 @@ class RelPersönlichkeitInline(RelInlineAdmin):
         return super().get_queryset(request).prefetch_related("persönlichkeit")
 
 class RelAttributInline(ReadonlyRelInlineAdmin):
-    fields = ['attribut', 'aktuellerWert', 'aktuellerWert_temp', 'aktuellerWert_bonus', 'maxWert', 'maxWert_temp']
+    fields = ['attribut', 'aktuellerWert', "aktuellerWert_fix", 'aktuellerWert_temp', 'aktuellerWert_bonus', 'maxWert', "maxWert_fix", 'maxWert_temp']
     readonly_fields = ['attribut']
     model = RelAttribut
 
@@ -144,6 +145,25 @@ class RelTalentInLine(RelInlineAdmin):
 
     def get_queryset(self, request):
         return super().get_queryset(request).prefetch_related('talent')
+
+
+class RelEffectInLine(RelInlineAdmin):
+    model = RelEffect
+    fields = ["wertaenderung", "target_fieldname", "target_attribut", "target_fertigkeit", "source_vorteil", "source_nachteil", "is_active"]
+    extra = 0
+
+    def get_queryset(self, request):
+        related_char_id = getattr(request.resolver_match.kwargs, 'object_id', None)
+
+        qs = self.model.objects.prefetch_related("target_char__eigentümer", 'target_attribut', 'target_fertigkeit', 'source_vorteil', 'source_nachteil')
+        return qs.filter(target_char__id=related_char_id) if related_char_id else qs
+
+    def get_readonly_fields(self, request: HttpRequest, obj):
+        if request.spieler.is_spielleiter:
+            return [] # filter(lambda item: item != 'is_active', self.fields)
+        else:
+            return self.fields
+
 
 ########## generic (st)shop ##############
 
@@ -288,7 +308,9 @@ class CharakterAdmin(admin.ModelAdmin):
         RelAlchemieInLine,
         RelTinkerInLine,
         RelBegleiterInLine,
-        RelEngelsroboterInLine
+        RelEngelsroboterInLine,
+
+        RelEffectInLine
     ]
 
     list_display = ['image_', 'name', 'eigentümer', "gfs", "larp", "in_erstellung"]
