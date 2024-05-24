@@ -1,7 +1,7 @@
 from django.db.models.signals import pre_save, post_save, pre_delete
 from django.dispatch import receiver
 
-from character.models import RelAttribut, RelFertigkeit, RelVorteil, RelNachteil
+from character.models import RelAttribut, RelFertigkeit, RelVorteil, RelNachteil, RelTalent
 
 from .models import *
 
@@ -26,14 +26,15 @@ def deactivate_effect_on_delete(sender, instance, **kwargs):
 
 @receiver(post_save, sender=RelVorteil)
 @receiver(post_save, sender=RelNachteil)
-def apply_effect_on_rel_reation(sender, instance, created, **kwargs):
+@receiver(post_save, sender=RelTalent)
+def apply_effect_on_rel_relation(sender, instance, created, **kwargs):
     if not created: return
 
     effect_qs = []
     if sender in [RelVorteil, RelNachteil]:
         effect_qs = instance.teil.effect_set.all()
-    else:
-        pass
+    elif sender == RelTalent:
+        effect_qs = instance.talent.effect_set.all()
 
     for effect in effect_qs:
         instance.releffect_set.create(

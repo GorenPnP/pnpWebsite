@@ -41,7 +41,7 @@ class AbstractEffect(models.Model):
         ("character.Charakter.crit_defense", "Charakter: Crit-Verteidigung"),
 
         ("character.Charakter.initiative_bonus", "Charakter: Initiative-Bonus"),
-        ("character.Charakter.reaktion_bonus", "Charakter: Reaktinsbonus"),
+        ("character.Charakter.reaktion_bonus", "Charakter: Reaktionsbonus"),
         ("character.Charakter.natürlicher_schadenswiderstand_bonus", "Charakter: nat. SchaWi-Bonus"),
         ("character.Charakter.astralwiderstand_bonus", "Charakter: AsWi-Bonus"),
         ("character.Charakter.manaoverflow_bonus", "Charakter: Manaoverflow-Bonus"),
@@ -102,6 +102,7 @@ class Effect(AbstractEffect):
 
     source_vorteil = models.ForeignKey("character.Vorteil", on_delete=models.CASCADE, null=True, blank=True)
     source_nachteil = models.ForeignKey("character.Nachteil", on_delete=models.CASCADE, null=True, blank=True)
+    source_talent = models.ForeignKey("character.Talent", on_delete=models.CASCADE, null=True, blank=True)
 
 
 
@@ -116,6 +117,7 @@ class RelEffect(AbstractEffect):
 
     source_vorteil = models.ForeignKey("character.RelVorteil", on_delete=models.CASCADE, null=True, blank=True)
     source_nachteil = models.ForeignKey("character.RelNachteil", on_delete=models.CASCADE, null=True, blank=True)
+    source_talent = models.ForeignKey("character.RelTalent", on_delete=models.CASCADE, null=True, blank=True)
 
     is_active = models.BooleanField(default=True, null=False, blank=False)
 

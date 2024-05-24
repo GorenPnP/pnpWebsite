@@ -149,7 +149,7 @@ class RelTalentInLine(RelInlineAdmin):
 
 class RelEffectInLine(RelInlineAdmin):
     model = RelEffect
-    fields = ["wertaenderung", "target_fieldname", "target_attribut", "target_fertigkeit", "source_vorteil", "source_nachteil", "is_active"]
+    fields = ["wertaenderung", "target_fieldname", "target_attribut", "target_fertigkeit", "source_vorteil", "source_nachteil", "source_talent", "is_active"]
     extra = 0
 
     def get_queryset(self, request):
@@ -160,9 +160,12 @@ class RelEffectInLine(RelInlineAdmin):
 
     def get_readonly_fields(self, request: HttpRequest, obj):
         if request.spieler.is_spielleiter:
-            return [] # filter(lambda item: item != 'is_active', self.fields)
+            return filter(lambda item: item != 'is_active', self.fields)
         else:
             return self.fields
+        
+    def has_add_permission(self, request: HttpRequest, obj) -> bool:
+        return False
 
 
 ########## generic (st)shop ##############
