@@ -29,7 +29,7 @@ def index(request):
 
 class VorteilView(VerifiedAccountMixin, DynamicTableView):
     model = Vorteil
-    table_fields = ["titel", "ip", "beschreibung", "wann_wählbar", "is_sellable", "needs_implementation", "has_implementation"]
+    table_fields = ["titel", "ip", "beschreibung", "wann_wählbar", "is_sellable", "has_implementation"]
     filterset_fields = {
         "titel": ["icontains"],
         "ip": ["lte"],
@@ -44,7 +44,7 @@ class VorteilView(VerifiedAccountMixin, DynamicTableView):
 
 class NachteilView(VerifiedAccountMixin, DynamicTableView):
     model = Nachteil
-    table_fields = ["titel", "ip", "beschreibung", "wann_wählbar", "is_sellable", "needs_implementation", "has_implementation"]
+    table_fields = ["titel", "ip", "beschreibung", "wann_wählbar", "is_sellable", "has_implementation"]
     filterset_fields = {
         "titel": ["icontains"],
         "ip": ["gte"],
@@ -58,7 +58,7 @@ class NachteilView(VerifiedAccountMixin, DynamicTableView):
 
 class TalentView(VerifiedAccountMixin, DynamicTableView):
     model = Talent
-    table_fields = ["titel", "tp", "beschreibung"]
+    table_fields = ["titel", "tp", "beschreibung", "has_implementation"]
     filterset_fields = {
         "titel": ["icontains"],
         "tp": ["lte"],

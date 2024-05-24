@@ -138,8 +138,8 @@ class WissensfertigkeitAdmin(admin.ModelAdmin):
 
 class VorNachteilAdmin(admin.ModelAdmin):
 
-    list_display = ('titel', 'ip', 'beschreibung', "needs_implementation", "has_implementation", "wann_wählbar", "is_sellable", "_max_amount", "needs_ip", "needs_attribut", "needs_fertigkeit", "needs_engelsroboter", "needs_notiz")
-    list_editable = ("needs_implementation", "has_implementation")
+    list_display = ('titel', 'ip', 'beschreibung', "has_implementation", "wann_wählbar", "is_sellable", "_max_amount", "needs_ip", "needs_attribut", "needs_fertigkeit", "needs_engelsroboter", "needs_notiz")
+    list_editable = ("has_implementation",)
     list_filter = ['ip', "wann_wählbar"]
     search_fields = ['titel', 'ip', "wann_wählbar"]
 
@@ -160,12 +160,13 @@ class ReligionAdmin(admin.ModelAdmin):
 
 
 class TalentAdmin(admin.ModelAdmin):
-    list_display = ["titel", "tp", "beschreibung", "kategorie", "bedingung_"]
+    list_display = ["titel", "tp", "beschreibung", "kategorie", "bedingung_", "has_implementation"]
+    list_editable = ("has_implementation",)
 
     @admin.display(ordering="bedingungnames")
     def bedingung_(self, obj):
         return obj.bedingungnames or self.get_empty_value_display()
-    
+
     def get_queryset(self, request: HttpRequest) -> QuerySet[Any]:
         return super().get_queryset(request).annotate(
             bedingungnames = ConcatSubquery(Talent.objects.filter(id__in=OuterRef("bedingung")).values("titel"), ", ")

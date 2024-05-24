@@ -337,6 +337,7 @@ class Talent(models.Model):
     kategorie = models.CharField(max_length=1, choices=enums.talent_enum, default=enums.talent_enum[0][0])
 
     bedingung = models.ManyToManyField("Talent", blank=True)
+    has_implementation = models.BooleanField(default=False, verbose_name="ist implementiert")
 
     def __str__(self):
         return self.titel
@@ -377,7 +378,6 @@ class Teil(models.Model):
     needs_notiz = models.BooleanField(default=False)
     needs_ip = models.BooleanField(default=False)
 
-    needs_implementation = models.BooleanField(default=False, verbose_name="muss implementiert werden")
     has_implementation = models.BooleanField(default=False, verbose_name="ist implementiert")
 
 
