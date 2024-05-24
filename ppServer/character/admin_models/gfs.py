@@ -128,8 +128,8 @@ class GfsStufenplanBaseAdmin(admin.ModelAdmin):
 
 
 class GfsAbilityAdmin(admin.ModelAdmin):
-    list_display = ("name", "beschreibung", "_gfs", "_stufe", "needs_implementation", "has_choice")
-    list_editable = ["needs_implementation", "has_choice"]
+    list_display = ("name", "beschreibung", "_gfs", "_stufe", "needs_implementation", "has_implementation", "has_choice")
+    list_editable = ["needs_implementation", "has_implementation", "has_choice"]
 
     list_filter = [get_filter(Gfs, "titel", ["gfsstufenplan__gfs__titel"]), "needs_implementation", "has_choice"]
     search_fields = ("name", "beschreibung")

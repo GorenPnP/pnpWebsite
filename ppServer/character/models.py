@@ -300,6 +300,7 @@ class GfsAbility(models.Model):
     beschreibung = models.TextField(max_length=2000, null=False, verbose_name="Beschreibung")
 
     needs_implementation = models.BooleanField(default=False)
+    has_implementation = models.BooleanField(default=False, verbose_name="ist implementiert")
     has_choice = models.BooleanField(default=False)
 
     notizen = models.TextField(null=True, blank=True)

@@ -103,6 +103,7 @@ class Effect(AbstractEffect):
     source_vorteil = models.ForeignKey("character.Vorteil", on_delete=models.CASCADE, null=True, blank=True)
     source_nachteil = models.ForeignKey("character.Nachteil", on_delete=models.CASCADE, null=True, blank=True)
     source_talent = models.ForeignKey("character.Talent", on_delete=models.CASCADE, null=True, blank=True)
+    source_gfsAbility = models.ForeignKey("character.GfsAbility", on_delete=models.CASCADE, null=True, blank=True)
 
 
 
@@ -118,6 +119,7 @@ class RelEffect(AbstractEffect):
     source_vorteil = models.ForeignKey("character.RelVorteil", on_delete=models.CASCADE, null=True, blank=True)
     source_nachteil = models.ForeignKey("character.RelNachteil", on_delete=models.CASCADE, null=True, blank=True)
     source_talent = models.ForeignKey("character.RelTalent", on_delete=models.CASCADE, null=True, blank=True)
+    source_gfsAbility = models.ForeignKey("character.RelGfsAbility", on_delete=models.CASCADE, null=True, blank=True)
 
     is_active = models.BooleanField(default=True, null=False, blank=False)
 

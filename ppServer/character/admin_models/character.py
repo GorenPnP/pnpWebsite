@@ -149,7 +149,7 @@ class RelTalentInLine(RelInlineAdmin):
 
 class RelEffectInLine(RelInlineAdmin):
     model = RelEffect
-    fields = ["wertaenderung", "target_fieldname", "target_attribut", "target_fertigkeit", "source_vorteil", "source_nachteil", "source_talent", "is_active"]
+    fields = ["wertaenderung", "target_fieldname", "target_attribut", "target_fertigkeit", "source_vorteil", "source_nachteil", "source_talent", "source_gfsAbility", "is_active"]
     extra = 0
 
     def get_queryset(self, request):
