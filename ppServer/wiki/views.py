@@ -428,7 +428,7 @@ class GfsSpecialAbilities(VerifiedAccountMixin, DynamicTableView):
 
     topic = "Gfs-spezifische Fähigkeiten"
 
-    table_fields = ("name", "beschreibung", "gfsstufenplan__gfs", "gfsstufenplan__basis__stufe")
+    table_fields = ("name", "beschreibung", "gfsstufenplan__gfs", "gfsstufenplan__basis__stufe", "has_implementation")
     filterset_fields = {
         "name": ["icontains"],
         "beschreibung": ["icontains"],

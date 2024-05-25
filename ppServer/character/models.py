@@ -1429,7 +1429,7 @@ class GfsSkilltreeEntry(models.Model):
             char.save(update_fields=["fg"])
             return
         # SP
-        if self.operation == "s":
+        if self.operation == "p":
             char.sp += self.amount
             char.save(update_fields=["sp"])
             return
@@ -1479,7 +1479,7 @@ class GfsSkilltreeEntry(models.Model):
         # Reaktion
         if self.operation == "r":
             char.reaktion_bonus += self.amount
-            char.save(update_fields=["areaktion_bonusp"])
+            char.save(update_fields=["reaktion_bonus"])
             return
         # natürlicher Schadenswiderstand
         if self.operation == "N":
@@ -1519,7 +1519,6 @@ class GfsSkilltreeEntry(models.Model):
         if self.operation == "B":
             relfert = RelFertigkeit.objects.get(char=char, fertigkeit=self.fertigkeit)
             relfert.fp_bonus += self.amount
-            char.save(update_fields=["sp"])
             relfert.save(update_fields=["fp_bonus"])
             return
 
