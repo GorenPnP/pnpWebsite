@@ -125,8 +125,8 @@ class ShowView(VerifiedAccountMixin, DetailView):
             ["EP (Stufe)", f"{render_number(char.ep)} ({char.ep_stufe})"],
             ["Prestige", render_number(char.prestige)],
             ["Verzehr", render_number(char.verzehr)],
-            ["Manifest", char.manifest - char.sonstiger_manifestverlust],
-            ["Konzentration", char.konzentration],
+            ["Manifest", char.manifest - char.sonstiger_manifestverlust if char.manifest_fix is None else char.manifest_fix],
+            ["Konzentration", char.konzentration if char.konzentration_fix is None else char.konzentration_fix],
             ["Krit-Angriff", char.crit_attack],
             ["Krit-Verteidigung", char.crit_defense],
         ]
@@ -135,7 +135,8 @@ class ShowView(VerifiedAccountMixin, DetailView):
         }
     
     def get_calculated(self, char):
-        MA_raw = char.relattribut_set.get(attribut__titel="MA").aktuellerWert
+        MA_relattr = char.relattribut_set.get(attribut__titel="MA")
+        MA_raw = MA_relattr.aktuellerWert if MA_relattr.aktuellerWert_fix is None else MA_relattr.aktuellerWert_fix
         attrs = { rel.attribut.titel: rel.aktuell() for rel in char.relattribut_set.all() }
         fg = { rel.gruppe: rel.fg for rel in RelGruppe.objects.filter(char=char) }
         ferts = { rel.fertigkeit.titel: rel.fp + rel.fp_bonus + attrs[rel.fertigkeit.attribut.titel] + fg[rel.fertigkeit.gruppe] for rel in char.relfertigkeit_set.all() }
@@ -144,7 +145,7 @@ class ShowView(VerifiedAccountMixin, DetailView):
 
         return {
             "calculated__fields": [
-                ["Limits (k | g | m)", f'{num((attrs["SCH"] + attrs["ST"] + attrs["VER"] + attrs["GES"]) / 2)} | {num((attrs["IN"] + attrs["WK"] + attrs["UM"]) / 2)} | {num((attrs["MA"] + attrs["WK"]) / 2)}'],
+                ["Limits (k | g | m)", f'{num((attrs["SCH"] + attrs["ST"] + attrs["VER"] + attrs["GES"]) / 2) if char.limit_k_fix is None else char.limit_k_fix} | {num((attrs["IN"] + attrs["WK"] + attrs["UM"]) / 2) if char.limit_g_fix is None else char.limit_g_fix} | {num((attrs["MA"] + attrs["WK"]) / 2) if char.limit_m_fix is None else char.limit_m_fix}'],
                 ["Initiative", num(attrs["SCH"]*2 + attrs["WK"] + attrs["GES"] + char.initiative_bonus)],
                 ["Manaoverflow", num((attrs["WK"] + MA_raw)*3 + char.manaoverflow_bonus)],
 
@@ -152,7 +153,7 @@ class ShowView(VerifiedAccountMixin, DetailView):
                 ["Astrale Schadensverhinderung", f'{1+ num(math.floor(min(attrs["WK"], MA_raw) / 6))}HP / Erfolg'],
                 ["Reaktion", num(attrs["SCH"] + attrs["GES"] + char.reaktion_bonus)],
                 ["nat. Schadenswiderstand", num(attrs["ST"] + attrs["VER"] + char.natürlicher_schadenswiderstand_bonus)],
-                ["nat. Schadensverhinderung", f'{1+ num(math.floor(min(attrs["ST"], attrs["VER"]) / 6))}HP / Erfolg'],
+                ["nat. Schadensverhinderung", f'{1+ num(math.floor(min(attrs["ST"], attrs["VER"]) / 6) + char.natSchaWi_pro_erfolg_bonus)}HP / Erfolg'],
                 ["Intuition", num((attrs["IN"] + 2*attrs["SCH"]) / 2)],
                 ["Geh-/ Lauf-/ Sprintrate", f'{num(attrs["SCH"]*2)} | {num(attrs["SCH"]*4)} | {num(attrs["SCH"]*4 + ferts["Laufen"])} m / 6sek'],
                 ["Bewegung Astral", f'{num(2*attrs["MA"]*(attrs["WK"] + attrs["SCH"]))}m / 6sek'],
@@ -161,10 +162,10 @@ class ShowView(VerifiedAccountMixin, DetailView):
                 ["Tragfähigkeit", f'{num(attrs["ST"]*3 + attrs["GES"])}kg'],
                 ["Heben", f'{num(attrs["ST"]*4 + attrs["N"])}kg / Erfolg'],
                 ["Ersticken", f'nach {num(attrs["ST"]*3 + attrs["VER"]*3)} sek'],
-                ["Immunsystem (W100)", num(attrs["ST"]*4 + attrs["VER"]*3 + attrs["WK"]*2)],
-                ["Glück", num(100)],
-                ["Sanität", num(100)],
-                ["Regeneration", f'{num(attrs["ST"] + attrs["WK"])}HP / Tag'],
+                ["Immunsystem (W100)", num(attrs["ST"]*4 + attrs["VER"]*3 + attrs["WK"]*2 + char.immunsystem_bonus)],
+                ["Glück", char.glück],
+                ["Sanität", char.sanität],
+                ["Regeneration", f'{num(attrs["ST"] + attrs["WK"] + char.nat_regeneration_bonus)}HP / Tag'],
             ]
         }
 
@@ -181,7 +182,12 @@ class ShowView(VerifiedAccountMixin, DetailView):
                 return f"{record.attribut.beschreibung} ({value})"
 
             def render_aktuellerWert(self, value, record):
+                if record.aktuellerWert_fix is not None:
+                    return record.aktuellerWert_fix
                 return str(value) + (f"+{record.aktuellerWert_bonus}" if record.aktuellerWert_bonus else "")
+
+            def render_maxWert(self, value, record):
+                return value if record.maxWert_fix is None else record.maxWert_fix
 
         return {
             "attr__table": AttrTable(char.relattribut_set.all()),
@@ -226,7 +232,7 @@ class ShowView(VerifiedAccountMixin, DetailView):
             fert["fg"] = gruppen[fert["fertigkeit__gruppe"]]
 
             relattr = char.relattribut_set.get(attribut__titel=fert["fertigkeit__attribut__titel"])
-            aktuell = relattr.aktuellerWert + relattr.aktuellerWert_bonus
+            aktuell = relattr.aktuell()
             fert["pool"] = sum([aktuell, fert["fp"], fert["fp_bonus"], fert["fg"]])
 
         return {

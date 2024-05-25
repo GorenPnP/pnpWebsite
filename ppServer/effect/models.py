@@ -24,13 +24,20 @@ class AbstractEffect(models.Model):
         ("character.Charakter.fg", "Charakter: FG"),
         ("character.Charakter.tp", "Charakter: TP"),
         ("character.Charakter.sp", "Charakter: SP"),
+        ("character.Charakter.sp_fix", "Charakter: SP fix"),
 
         ("character.Charakter.geld", "Charakter: Geld"),
+        ("character.Charakter. Konto", "Charakter: neuer Kontostand (-> Geld)"),
         ("character.Charakter.prestige", "Charakter: Prestige"),
         ("character.Charakter.verzehr", "Charakter: Verzehr"),
         ("character.Charakter.sanität", "Charakter: Sanität"),
         ("character.Charakter.glück", "Charakter: Glück"),
         ("character.Charakter.sonstiger_manifestverlust", "Charakter: Manifest"),
+        ("character.Charakter.manifest_fix", "Charakter: Manifest fix"),
+
+        ("character.Charakter.limit_k_fix", "Charakter: Limit k fix"),
+        ("character.Charakter.limit_g_fix", "Charakter: Limit g fix"),
+        ("character.Charakter.limit_m_fix", "Charakter: Limit m fix"),
 
         ("character.Charakter.HPplus", "Charakter: kHP plus"),
         ("character.Charakter.HPplus_fix", "Charakter: kHP plus fix"),
@@ -39,12 +46,19 @@ class AbstractEffect(models.Model):
 
         ("character.Charakter.crit_attack", "Charakter: Crit-Angriff"),
         ("character.Charakter.crit_defense", "Charakter: Crit-Verteidigung"),
+        ("character.Charakter.wesenschaden_waff_kampf", "Charakter: Schaden waffenloser Kampf"),
+        ("character.Charakter.wesenschaden_andere_gestalt", "Charakter: Schaden waffenloser Kampf (andere Form)"),
 
+        ("character.Charakter.konzentration", "Charakter: Konzentration"),
+        ("character.Charakter.konzentration_fix", "Charakter: Konzentration fix"),
         ("character.Charakter.initiative_bonus", "Charakter: Initiative-Bonus"),
         ("character.Charakter.reaktion_bonus", "Charakter: Reaktionsbonus"),
         ("character.Charakter.natürlicher_schadenswiderstand_bonus", "Charakter: nat. SchaWi-Bonus"),
+        ("character.Charakter.natSchaWi_pro_erfolg_bonus", "Charakter: nat. SchaWi/Erfolg -Bonus"),
         ("character.Charakter.astralwiderstand_bonus", "Charakter: AsWi-Bonus"),
         ("character.Charakter.manaoverflow_bonus", "Charakter: Manaoverflow-Bonus"),
+        ("character.Charakter.nat_regeneration_bonus", "Charakter: nat. Regeneration-Bonus"),
+        ("character.Charakter.immunsystem_bonus", "Charakter: Immunsystem-Bonus"),
     ]
 
     wertaenderung = models.IntegerField(null=False, blank=False)
@@ -158,7 +172,10 @@ class RelEffect(AbstractEffect):
             target = getattr(self, "target_char")
 
         # set change
-        if self.target_fieldname.rsplit("_", 1)[-1] == "fix":
+        if self.target_fieldname == "character.Charakter. Konto":
+            setattr(target, "geld", self.wertaenderung)
+            target.save(update_fields=["geld"])
+        elif self.target_fieldname.rsplit("_", 1)[-1] == "fix":
             setattr(target, field, self.wertaenderung)
             target.save(update_fields=[field])
         else:
@@ -183,7 +200,10 @@ class RelEffect(AbstractEffect):
             target = getattr(self, "target_char")
 
         # set change
-        if self.target_fieldname.rsplit("_", 1)[-1] == "fix":
+        if self.target_fieldname == "character.Charakter. Konto":
+            setattr(target, "geld", 0)
+            target.save(update_fields=["geld"])
+        elif self.target_fieldname.rsplit("_", 1)[-1] == "fix":
             setattr(target, field, None)
             target.save(update_fields=[field])
         else:

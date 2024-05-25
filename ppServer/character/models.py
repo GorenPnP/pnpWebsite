@@ -519,6 +519,7 @@ class Charakter(models.Model):
     sonstiger_manifestverlust = models.DecimalField("sonstiger Manifestverlust", max_digits=4, decimal_places=2, default=0.0,
                                                     validators=[MaxValueValidator(10), MinValueValidator(0)])
     notizen_sonstiger_manifestverlust = models.CharField(max_length=200, default="", blank=True)
+    manifest_fix = models.DecimalField(max_digits=4, decimal_places=2, default=None, null=True, blank=True)
 
     # roleplay
     name = models.CharField(max_length=200, null=True)
@@ -539,6 +540,7 @@ class Charakter(models.Model):
     fp = models.PositiveIntegerField(null=True, blank=True)
     fg = models.PositiveIntegerField(null=True, blank=True)
     sp = models.PositiveIntegerField(null=True, blank=True)
+    sp_fix = models.PositiveIntegerField(default=None, null=True, blank=True)
     ip = models.IntegerField(null=True, blank=True)
     tp = models.PositiveSmallIntegerField(default=0)
     spF_wF = models.IntegerField(null=True, blank=True)
@@ -548,6 +550,8 @@ class Charakter(models.Model):
     konzentration = models.PositiveSmallIntegerField(null=True, blank=True)
     prestige = models.PositiveIntegerField(default=0)
     verzehr = models.PositiveIntegerField(default=0)
+    glück = models.PositiveIntegerField(default=100)
+    sanität = models.PositiveIntegerField(default=100)
 
     # Kampagne
     ep = models.PositiveIntegerField(default=0)
@@ -569,10 +573,18 @@ class Charakter(models.Model):
     crit_attack = models.PositiveSmallIntegerField(default=0)
     crit_defense = models.PositiveSmallIntegerField(default=0)
     initiative_bonus = models.SmallIntegerField(default=0)
+    konzentration_fix = models.SmallIntegerField(default=None, null=True, blank=True)
     reaktion_bonus = models.SmallIntegerField(default=0)
     natürlicher_schadenswiderstand_bonus = models.SmallIntegerField(default=0)
+    natSchaWi_pro_erfolg_bonus = models.SmallIntegerField(default=0)
     astralwiderstand_bonus = models.SmallIntegerField(default=0)
     manaoverflow_bonus = models.SmallIntegerField(default=0)
+    nat_regeneration_bonus = models.SmallIntegerField(default=0)
+    immunsystem_bonus = models.SmallIntegerField(default=0)
+
+    limit_k_fix = models.DecimalField(max_digits=5, decimal_places=2, default=None, null=True, blank=True)
+    limit_g_fix = models.DecimalField(max_digits=5, decimal_places=2, default=None, null=True, blank=True)
+    limit_m_fix = models.DecimalField(max_digits=5, decimal_places=2, default=None, null=True, blank=True)
 
     # Geschreibsel
     notizen = models.TextField(blank=True, null=True)
@@ -611,9 +623,6 @@ class Charakter(models.Model):
 
     def __str__(self):
         return "{} ({})".format(self.name, self.eigentümer)
-
-    def get_konzentration(self):
-        return self.konzentration if self.konzentration is not None else RelAttribut.objects.get(char=self, attribut__titel="IN").aktuell() * 5
 
     def get_max_stufe(self) -> int:
         return GfsStufenplanBase.objects.filter(ep__lte=self.ep).aggregate(Max("stufe"))["stufe__max"] or 0
@@ -911,8 +920,8 @@ class RelAttribut(models.Model):
     def __str__(self):
         return "'{}' von '{}'".format(self.attribut.__str__(), self.char.__str__())
 
-    def aktuell(self): return self.aktuellerWert + self.aktuellerWert_temp + self.aktuellerWert_bonus
-    def max(self): return self.maxWert + self.maxWert_temp
+    def aktuell(self): return self.aktuellerWert + self.aktuellerWert_temp + self.aktuellerWert_bonus if self.aktuellerWert_fix is None else self.aktuellerWert_fix
+    def max(self): return self.maxWert + self.maxWert_temp if self.maxWert_fix is None else self.maxWert_fix
 
 class RelGruppe(models.Model):
     

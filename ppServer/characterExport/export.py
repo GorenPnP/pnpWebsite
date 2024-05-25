@@ -129,7 +129,7 @@ class CharakterExporter:
         format_attr_max =   wb.add_format({'align': 'center', "valign": "vcenter", "bg_color": self.COLOR["blue-pastel"], 'bold': True, "font_size": 12, "right": 1})
         
         # Attrs
-        attr_qs = self.char.relattribut_set.values(titel=F("attribut__titel"), basis=F("aktuellerWert"), bonus=F("aktuellerWert_bonus"), max=F("maxWert"))
+        attr_qs = self.char.relattribut_set.values(titel=F("attribut__titel"), basis=F("aktuellerWert"), bonus=F("aktuellerWert_bonus"), basis_fix=F("aktuellerWert_fix"), max=F("maxWert"), max_fix=F("maxWert_fix"))
         ROW = max(1, 3 - len(attr_qs) +10)
         ROW_INITIAL = ROW
         
@@ -140,10 +140,10 @@ class CharakterExporter:
             self._POSITION[attr["titel"]] = f"Werte!N{ROW}"
 
             werte_ws.write(f"K{ROW}", attr["titel"], format_attr)
-            werte_ws.write(f"L{ROW}", attr["basis"], format_attr_basis)
-            werte_ws.write(f"M{ROW}", attr["bonus"], format_attr_bonus)
+            werte_ws.write(f"L{ROW}", attr["basis"] if attr["basis_fix"] is None else attr["basis_fix"], format_attr_basis)
+            werte_ws.write(f"M{ROW}", attr["bonus"] if attr["basis_fix"] is None else 0, format_attr_bonus)
             werte_ws.write(f"N{ROW}", f'=$L{ROW} + $M{ROW}', format_attr_sum)
-            werte_ws.write(f"O{ROW}", attr["max"], format_attr_max)
+            werte_ws.write(f"O{ROW}", attr["max"] if attr["max_fix"] is None else attr["max_fix"], format_attr_max)
 
         self._POSITION["attr_labels"] =  f"Werte!$K${ROW_INITIAL+1}:$K${ROW}"
         self._POSITION["attr_werte"] =   f"Werte!$N${ROW_INITIAL+1}:$N${ROW}"
@@ -241,11 +241,11 @@ class CharakterExporter:
         ROW = 3
         werte_ws.write_row(f"I{ROW-1}", [None, None], format_border_bottom)
         werte_ws.write(f"I{ROW}", "Glück", format_gsh_titel)
-        werte_ws.write(f"J{ROW}", 100, format_gsh)
+        werte_ws.write(f"J{ROW}", self.char.glück, format_gsh)
 
         ROW += 1
         werte_ws.write(f"I{ROW}", "Sanität", format_gsh_titel)
-        werte_ws.write(f"J{ROW}", 100, format_gsh)
+        werte_ws.write(f"J{ROW}", self.char.sanität, format_gsh)
 
         ROW += 1
         werte_ws.write(f"I{ROW}", "Humor", format_gsh_titel)
@@ -269,13 +269,13 @@ class CharakterExporter:
         
         ROW += 1
         werte_ws.write(f"I{ROW}", "Körperlich", format_limit_titel)
-        werte_ws.write(f"J{ROW}", f"=({self._position('SCH')}+{self._position('ST')}+{self._position('VER')}+{self._position('GES')})/2", format_limit)
+        werte_ws.write(f"J{ROW}", f"=({self._position('SCH')}+{self._position('ST')}+{self._position('VER')}+{self._position('GES')})/2" if self.char.limit_k_fix is None else self.char.limit_k_fix, format_limit)
         ROW += 1
         werte_ws.write(f"I{ROW}", "Geistig", format_limit_titel)
-        werte_ws.write(f"J{ROW}", f"=({self._position('UM')}+{self._position('WK')}+{self._position('IN')})/2", format_limit)
+        werte_ws.write(f"J{ROW}", f"=({self._position('UM')}+{self._position('WK')}+{self._position('IN')})/2" if self.char.limit_g_fix is None else self.char.limit_g_fix, format_limit)
         ROW += 1
         werte_ws.write(f"I{ROW}", "Magisch", format_limit_titel)
-        werte_ws.write(f"J{ROW}", f"=({self._position('MA')}+{self._position('WK')})/2", format_limit)
+        werte_ws.write(f"J{ROW}", f"=({self._position('MA')}+{self._position('WK')})/2" if self.char.limit_m_fix is None else self.char.limit_m_fix, format_limit)
 
         ROW = max(ROW+1, int(re.search("\d+$", self._position("attr_labels")).group(0)))
 
@@ -303,7 +303,7 @@ class CharakterExporter:
         werte_ws.write(f"I{ROW}", "Stufe", format_align_center_center)
         werte_ws.write(f"J{ROW}", self.char.ep_stufe, format_ep)
         werte_ws.merge_range(f"K{ROW-1}:L{ROW-1}", "Manifest", format_manifest)
-        werte_ws.merge_range(f"K{ROW}:L{ROW}", self.char.manifest - self.char.sonstiger_manifestverlust, format_manifest)
+        werte_ws.merge_range(f"K{ROW}:L{ROW}", self.char.manifest - self.char.sonstiger_manifestverlust if self.char.manifest_fix is None else self.char.manifest_fix, format_manifest)
 
 
         # lower half of middle
@@ -379,7 +379,7 @@ class CharakterExporter:
         ROW += 1
         werte_ws.merge_range(f"M{ROW}:O{ROW}", "nat. Schadenswiderstand", format_colorful_titel_emph)
         werte_ws.write(f"P{ROW}", f"={self._position('ST')}+{self._position('VER')}"+(f"+{self.char.natürlicher_schadenswiderstand_bonus}" if self.char.natürlicher_schadenswiderstand_bonus else ""), format_colorful)
-        werte_ws.write(f"Q{ROW}", f"=FLOOR(MIN({self._position('ST')},{self._position('VER')})/6,1)+1")
+        werte_ws.write(f"Q{ROW}", f"=FLOOR(MIN({self._position('ST')},{self._position('VER')})/6,1)+1+{self.char.natSchaWi_pro_erfolg_bonus}")
         werte_ws.write(f"R{ROW}", "HP", format_colorful)
         werte_ws.write(f"S{ROW}", f"ST+VER (xHP pro Erfolg, normal 1)")
         ROW += 1
@@ -442,7 +442,7 @@ class CharakterExporter:
         
         ROW += 1
         werte_ws.merge_range(f"M{ROW}:O{ROW}", "Immunsystem (W100)", format_colorful_titel)
-        werte_ws.merge_range(f"P{ROW}:R{ROW}", f"={self._position('ST')}*4+{self._position('VER')}*3+{self._position('WK')}*2", format_colorful)
+        werte_ws.merge_range(f"P{ROW}:R{ROW}", f"={self._position('ST')}*4+{self._position('VER')}*3+{self._position('WK')}*2+{self.char.immunsystem_bonus}", format_colorful)
         werte_ws.write(f"S{ROW}", "ST*4+VER*3+WK*2")
         
         ROW += 1
@@ -454,7 +454,7 @@ class CharakterExporter:
 
         ROW += 1
         werte_ws.merge_range(f"M{ROW}:O{ROW}", "Regeneration in HP pro Tag", format_colorful_titel)
-        werte_ws.merge_range(f"P{ROW}:R{ROW}", f"={self._position('ST')}+{self._position('WK')}", format_colorful)
+        werte_ws.merge_range(f"P{ROW}:R{ROW}", f"={self._position('ST')}+{self._position('WK')}+{self.char.nat_regeneration_bonus}", format_colorful)
         werte_ws.write(f"S{ROW}", "ST+WK")
         
         ROW += 1
@@ -510,7 +510,7 @@ class CharakterExporter:
 
         ROW += 1
         werte_ws.merge_range(f"I{ROW}:I{ROW+1}", "Konzentration (Max.)", format_konz_titel)
-        werte_ws.merge_range(f"J{ROW}:J{ROW+1}", self.char.konzentration or 0, format_konz)
+        werte_ws.merge_range(f"J{ROW}:J{ROW+1}", (self.char.konzentration if self.char.konzentration_fix is None else self.char.konzentration_fix) or 0, format_konz)
         werte_ws.merge_range(f"K{ROW}:L{ROW+1}", "1 SP = 2 Konz.")
 
         werte_ws.merge_range(f"M{ROW-1}:M{ROW}", "TP", format_konz_titel)

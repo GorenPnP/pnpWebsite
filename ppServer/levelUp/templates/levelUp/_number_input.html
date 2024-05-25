@@ -17,6 +17,7 @@
         value="{{ record|getattribute:input_field|default:0 }}"
 
         style="max-width:100px"
+        {% if record|getattribute:disabled %}disabled{% endif %}
     >
 
     <!-- + fixwert -->

@@ -32,7 +32,7 @@ class IndexView(LevelUpMixin, DetailView):
     def build_table(self, char: Charakter):
         # PREPARATIONS
         rel_ma = RelAttribut.objects.get(char=char, attribut__titel='MA')
-        MA_aktuell = rel_ma.aktuellerWert + rel_ma.aktuellerWert_temp + rel_ma.aktuellerWert_bonus - get_required_aktuellerWert(char, 'MA')
+        MA_aktuell = rel_ma.aktuell() - get_required_aktuellerWert(char, 'MA') if rel_ma.aktuellerWert_fix is None else 0
         wesenkr_werte = "<br>".join([
             f"{char.sp} SP",
             f"{char.ap} AP / {MA_aktuell} MA"

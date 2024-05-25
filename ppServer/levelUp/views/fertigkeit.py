@@ -104,7 +104,7 @@ class GenericFertigkeitView(LevelUpMixin, DynamicTableView):
 
             rel_fg = int(temp_fg[0]) if len(temp_fg) else 0  # getting array of (max. 3) identical because html contains 3 with similar "name" attrs
             # TODO
-            # if rel_fg > relattr.aktuellerWert + relattr.aktuellerWert_bonus + relattr.aktuellerWert_temp - relattr.fg:
+            # if rel_fg > relattr.aktuell() - relattr.fg:
             #     messages.error(request, f"Bei {attr} sind die FG höher als erlaubt")
 
             # save in temporal datastructure

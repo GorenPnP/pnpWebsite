@@ -1,4 +1,7 @@
-from django.db.models import F, Sum, Value
+import sys
+
+from django.db import models
+from django.db.models import F, Sum, Value, Case, When
 from django.contrib import messages
 from django.http.request import HttpRequest
 from django.http.response import HttpResponse
@@ -29,16 +32,14 @@ class GenericAttributView(LevelUpMixin, DynamicTableView):
             fields = ["attribut__titel", "aktuell_ap", "max_ap", "result"]
             attrs = GenericTable.Meta.attrs
 
-        aktuell_ap = TemplateColumn(template_name="levelUp/_number_input.html", extra_context={"add_field": "aktuellerWert", "bonus_field": "aktuellerWert_bonus", "input_field": "aktuellerWert_temp", "max_field": "aktuell_limit", "base_name": BASE_AKTUELL, "base_class": BASE_AKTUELL, "dataset_id": "dataset_id", "text": None})
-        max_ap = TemplateColumn(template_name="levelUp/_number_input.html", extra_context={"add_field": "maxWert", "bonus_field": None, "input_field": "maxWert_temp", "max_field": None, "base_name": BASE_MAX, "base_class": BASE_MAX, "dataset_id": "dataset_id", "text": None})
+        aktuell_ap = TemplateColumn(template_name="levelUp/_number_input.html", extra_context={"add_field": "aktuell_base", "bonus_field": "aktuell_bonus", "input_field": "aktuell_temp", "max_field": "aktuell_limit", "base_name": BASE_AKTUELL, "base_class": BASE_AKTUELL, "dataset_id": "dataset_id", "text": None, "disabled": "is_aktuell_fix"})
+        max_ap = TemplateColumn(template_name="levelUp/_number_input.html", extra_context={"add_field": "max_base", "bonus_field": None, "input_field": "max_temp", "max_field": "max_limit", "base_name": BASE_MAX, "base_class": BASE_MAX, "dataset_id": "dataset_id", "text": None, "disabled": "is_max_fix"})
 
         def render_attribut__titel(self, value, record):
             return f"{value} ({record.attribut.beschreibung})"
 
         def render_result(self, value, record):
-            curr = (record.aktuellerWert or 0) + (record.aktuellerWert_temp or 0) + (record.aktuellerWert_bonus or 0)
-            max = (record.maxWert or 0) + (record.maxWert_temp or 0)
-            return f"{curr} / {max}"
+            return f"{record.aktuell()} / {record.max()}"
 
 
     topic = "Attribute"
@@ -52,9 +53,22 @@ class GenericAttributView(LevelUpMixin, DynamicTableView):
         char = self.get_character()
 
         return RelAttribut.objects.prefetch_related("char").filter(char=char).annotate(
-            aktuell_limit = F("maxWert") + F("maxWert_temp") - F("aktuellerWert"),
+            is_aktuell_fix=Case(When(aktuellerWert_fix=None, then=False), default=True, output_field=models.BooleanField()),
+            is_max_fix=Case(When(maxWert_fix=None, then=False), default=True, output_field=models.BooleanField()),
+
+            aktuell_base = Case(When(is_aktuell_fix=False, then=F("aktuellerWert")), default=F("aktuellerWert_fix"), output_field=models.IntegerField()),
+            max_base = Case(When(is_max_fix=False, then=F("maxWert")), default=F("maxWert_fix"), output_field=models.IntegerField()),
+
+            aktuell_bonus = Case(When(is_aktuell_fix=False, then=F("aktuellerWert_bonus")), default=None, output_field=models.IntegerField()),
+
+            aktuell_temp = Case(When(is_aktuell_fix=False, then=F("aktuellerWert_temp")), default=0, output_field=models.IntegerField()),
+            max_temp = Case(When(is_max_fix=False, then=F("maxWert_temp")), default=0, output_field=models.IntegerField()),
+
+            aktuell_limit = Case(When(is_aktuell_fix=False, then=F("maxWert") + F("maxWert_temp") - F("aktuellerWert")), default=0, output_field=models.IntegerField()),
+            max_limit = Case(When(is_max_fix=False, then=sys.maxsize), default=0, output_field=models.IntegerField()),
+
             result=Value(1), # override later
-            dataset_id=F("attribut__id")
+            dataset_id=F("attribut__id"),
         )
 
 
