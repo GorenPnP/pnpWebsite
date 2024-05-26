@@ -40,10 +40,30 @@ def apply_effect_on_rel_relation(sender, instance, created, **kwargs):
         effect_qs = instance.ability.effect_set.all()
 
     for effect in effect_qs:
-        instance.releffect_set.create(
-            target_fieldname=effect.target_fieldname,
-            wertaenderung=effect.wertaenderung,
-            target_char=instance.char,
-            target_attribut=RelAttribut.objects.get(char=instance.char, attribut=effect.target_attribut) if getattr(effect, "target_attribut", None) else None,
-            target_fertigkeit=RelFertigkeit.objects.get(char=instance.char, fertigkeit=effect.target_fertigkeit) if getattr(effect, "target_fertigkeit", None) else None,
-        )
+
+        if not effect.has_custom_implementation:
+            instance.releffect_set.create(
+                target_fieldname=effect.target_fieldname,
+                wertaenderung=effect.wertaenderung,
+                target_char=instance.char,
+                target_attribut=RelAttribut.objects.get(char=instance.char, attribut=effect.target_attribut) if getattr(effect, "target_attribut", None) else None,
+                target_fertigkeit=RelFertigkeit.objects.get(char=instance.char, fertigkeit=effect.target_fertigkeit) if getattr(effect, "target_fertigkeit", None) else None,
+            )
+        else:
+            if sender == RelNachteil and effect.source_nachteil.titel.startswith("Defizit"):
+                instance.releffect_set.create(
+                    target_fieldname=effect.target_fieldname,
+                    wertaenderung=effect.wertaenderung,
+                    target_char=instance.char,
+                    target_attribut=RelAttribut.objects.get(char=instance.char, attribut=instance.attribut) if getattr(instance, "attribut", None) else None,
+                    target_fertigkeit=RelFertigkeit.objects.get(char=instance.char, fertigkeit=effect.target_fertigkeit) if getattr(effect, "target_fertigkeit", None) else None,
+                )
+
+            if sender == RelVorteil and effect.source_vorteil.titel == "Inselbegabung":
+                instance.releffect_set.create(
+                    target_fieldname=effect.target_fieldname,
+                    wertaenderung=effect.wertaenderung,
+                    target_char=instance.char,
+                    target_attribut=RelAttribut.objects.get(char=instance.char, attribut=instance.attribut) if getattr(instance, "attribut", None) else None,
+                    target_fertigkeit=RelFertigkeit.objects.get(char=instance.char, fertigkeit=effect.target_fertigkeit) if getattr(effect, "target_fertigkeit", None) else None,
+                )

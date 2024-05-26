@@ -4,7 +4,7 @@ from .models import *
 
 
 class EffectAdmin(admin.ModelAdmin):
-    list_display = ["target_fieldname", "wertaenderung", "target", "source"]
+    list_display = ["target_fieldname", "wertaenderung", "has_custom_implementation", "target", "source"]
 
     def target(self, obj):
         targets = [getattr(obj, "target_attribut", None), getattr(obj, "target_fertigkeit", None)]

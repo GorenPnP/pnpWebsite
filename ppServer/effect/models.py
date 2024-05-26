@@ -4,7 +4,6 @@ from django.forms import ValidationError
 
 class AbstractEffect(models.Model):
     class Meta:
-        ordering = ['target_fieldname']
         abstract = True
 
   
@@ -66,7 +65,7 @@ class AbstractEffect(models.Model):
 
 
     def __str__(self):
-        
+
         addition = ""
         if "character.RelAttribut" in self.target_fieldname and getattr(self, "target_attribut", None):
             addition = self.target_attribut.__str__()
@@ -110,6 +109,7 @@ class Effect(AbstractEffect):
     class Meta:
         verbose_name = "Effekt"
         verbose_name_plural = "Effekte"
+        ordering = ['target_fieldname']
 
     target_attribut = models.ForeignKey("character.Attribut", on_delete=models.SET_DEFAULT, default=None, null=True, blank=True)
     target_fertigkeit = models.ForeignKey("character.Fertigkeit", on_delete=models.SET_DEFAULT, default=None, null=True, blank=True)
@@ -119,12 +119,14 @@ class Effect(AbstractEffect):
     source_talent = models.ForeignKey("character.Talent", on_delete=models.CASCADE, null=True, blank=True)
     source_gfsAbility = models.ForeignKey("character.GfsAbility", on_delete=models.CASCADE, null=True, blank=True)
 
+    has_custom_implementation = models.BooleanField(default=False, null=False, blank=False)
 
 
 class RelEffect(AbstractEffect):
     class Meta:
         verbose_name = "Charakter-Effekt"
         verbose_name_plural = "Charakter-Effekte"
+        ordering = ['target_fieldname']
 
     target_char = models.ForeignKey("character.Charakter", on_delete=models.CASCADE, null=False, blank=False)
     target_attribut = models.ForeignKey("character.RelAttribut", on_delete=models.SET_DEFAULT, default=None, null=True, blank=True)
