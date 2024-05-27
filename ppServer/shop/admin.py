@@ -95,6 +95,7 @@ class FirmaEngelsroboterInLine(FirmaShopInLine):
 ######### BaseAdmin ##################
 class BaseAdmin(admin.ModelAdmin):
     search_fields = ['name']
+    list_editable = ["has_implementation"]
 
     def _firmashop_modelset(self) -> str:
         return f"{self.firma_shop_model._meta.model_name}_set"
@@ -294,7 +295,7 @@ class ZauberAdmin(BaseAdmin):
                     'kategorie', 'info', "has_implementation")
     list_filter = ['kategorie', 'schaden', 'astralschaden', "astralsch_is_direct", 'manaverbrauch', "verteidigung", 'illegal', 'lizenz_benötigt', "frei_editierbar"]
 
-    list_editable = ["verteidigung", "astralsch_is_direct"]
+    list_editable = ["verteidigung", "astralsch_is_direct", "has_implementation"]
 
     inlines = [FirmaZauberInLine]
 
