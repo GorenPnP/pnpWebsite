@@ -212,6 +212,7 @@ class Rituale_RunenAdmin(admin.ModelAdmin):
     list_display = ('name', 'beschreibung', "ab_stufe", # 'billigste',
                      'kategorie', 'info', "has_implementation")
     list_filter = ['kategorie', 'illegal', 'lizenz_benötigt', "frei_editierbar"]
+    list_editable = ("has_implementation",)
 
     inlines = [FirmaRituale_RunenInLine]
 

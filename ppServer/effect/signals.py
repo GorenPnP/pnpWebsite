@@ -1,7 +1,9 @@
-from django.db.models.signals import pre_save, post_save, pre_delete
+import math
+
+from django.db.models.signals import pre_save, post_save, pre_delete, post_delete
 from django.dispatch import receiver
 
-from character.models import RelAttribut, RelFertigkeit, RelVorteil, RelNachteil, RelTalent, RelGfsAbility, RelBegleiter, RelMagische_Ausrüstung, RelRüstung, RelAusrüstung_Technik, RelEinbauten
+from character.models import RelAttribut, RelFertigkeit, RelVorteil, RelNachteil, RelTalent, RelGfsAbility, RelBegleiter, RelMagische_Ausrüstung, RelRüstung, RelAusrüstung_Technik, RelEinbauten, Charakter
 
 from .models import *
 
@@ -74,3 +76,59 @@ def apply_effect_on_rel_relation(sender, instance, created, **kwargs):
                     target_attribut=RelAttribut.objects.get(char=instance.char, attribut=instance.attribut) if getattr(instance, "attribut", None) else None,
                     target_fertigkeit=RelFertigkeit.objects.get(char=instance.char, fertigkeit=effect.target_fertigkeit) if getattr(effect, "target_fertigkeit", None) else None,
                 )
+
+            # HP durch Haustier-Fels
+            if sender == RelBegleiter and effect.source_shopBegleiter.name == "Haustier-Fels":
+                instance.releffect_set.create(
+                    target_fieldname=effect.target_fieldname,
+                    wertaenderung=effect.wertaenderung,
+                    target_char=instance.char,
+                    target_attribut=RelAttribut.objects.get(char=instance.char, attribut=effect.target_attribut) if getattr(effect, "target_attribut", None) else None,
+                    target_fertigkeit=RelFertigkeit.objects.get(char=instance.char, fertigkeit=effect.target_fertigkeit) if getattr(effect, "target_fertigkeit", None) else None,
+                )
+
+                apply_hp_effect_of_haustierfels(Charakter, instance.char)
+                instance.char.save(update_fields=["HPplus_fix"])
+
+
+            # wertaenderung = item-Stufe
+            if sender == RelMagische_Ausrüstung and effect.source_shopMagischeAusrüstung.name in ["Astralblocker", "Magiefokus", "Spruchzaubereifokus", "Dunkelmagiefokus", "Ritualfokus", "Antimagiefokus", "Alchemiefokus"]:
+                instance.releffect_set.create(
+                    target_fieldname=effect.target_fieldname,
+                    wertaenderung=effect.source_shopMagischeAusrüstung.stufe,
+                    target_char=instance.char,
+                    target_attribut=RelAttribut.objects.get(char=instance.char, attribut=effect.target_attribut) if getattr(effect, "target_attribut", None) else None,
+                    target_fertigkeit=RelFertigkeit.objects.get(char=instance.char, fertigkeit=effect.target_fertigkeit) if getattr(effect, "target_fertigkeit", None) else None,
+                )
+
+
+########################## following: custom for Haustier-Fels #########################
+
+
+@receiver(pre_save, sender=Charakter)
+def apply_hp_effect_of_haustierfels(sender, instance, **kwargs):
+    kHpPlus_fix_effects = instance.releffect_set.filter(is_active=True, target_fieldname="character.Charakter.HPplus_fix")
+
+    # Haustierfels is the only one affecting the character's kHp plus fix?
+    if kHpPlus_fix_effects.count() != 1 or not getattr(kHpPlus_fix_effects.first(), "source_shopBegleiter", None) or getattr(kHpPlus_fix_effects.first(), "source_shopBegleiter", None).item.name != "Haustier-Fels":
+        return
+    
+    #  für alle 1.000 EP oder 10 LARP-Ränge des Charakters +1% HP K (max. 100%).
+    factor = min(math.floor(instance.ep / 1000) / 100, 1) + min(math.floor(instance.larp_rang / 10) / 100, 1)
+
+    kHp_without_fels = sum([
+        instance.relattribut_set.get(attribut__titel="ST").aktuell() * 5,
+        instance.ep_stufe * 2,
+        math.floor(instance.larp_rang / 20),
+        math.floor(instance.rang / 10),
+        instance.HPplus,
+    ])
+
+    # keep HPplus and add the benefit by factor
+    instance.HPplus_fix = instance.HPplus + kHp_without_fels * factor
+
+@receiver(post_delete, sender=RelEffect)
+def deactivate_hp_effect_of_haustierfels_on_delete(sender, instance, **kwargs):
+    if instance.target_fieldname == "character.Charakter.HPplus_fix" and not instance.target_char.releffect_set.filter(target_fieldname="character.Charakter.HPplus_fix").exists():
+        instance.target_char.HPplus_fix = None
+        instance.target_char.save(update_fields=["HPplus_fix"])
