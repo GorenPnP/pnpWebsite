@@ -119,6 +119,12 @@ class Effect(AbstractEffect):
     source_talent = models.ForeignKey("character.Talent", on_delete=models.CASCADE, null=True, blank=True)
     source_gfsAbility = models.ForeignKey("character.GfsAbility", on_delete=models.CASCADE, null=True, blank=True)
 
+    source_shopBegleiter = models.ForeignKey("shop.Begleiter", on_delete=models.CASCADE, null=True, blank=True)
+    source_shopMagischeAusrüstung = models.ForeignKey("shop.Magische_Ausrüstung", on_delete=models.CASCADE, null=True, blank=True)
+    source_shopRüstung = models.ForeignKey("shop.Rüstungen", on_delete=models.CASCADE, null=True, blank=True)
+    source_shopAusrüstungTechnik = models.ForeignKey("shop.Ausrüstung_Technik", on_delete=models.CASCADE, null=True, blank=True)
+    source_shopEinbauten = models.ForeignKey("shop.Einbauten", on_delete=models.CASCADE, null=True, blank=True)
+
     has_custom_implementation = models.BooleanField(default=False, null=False, blank=False)
 
 
@@ -136,6 +142,12 @@ class RelEffect(AbstractEffect):
     source_nachteil = models.ForeignKey("character.RelNachteil", on_delete=models.CASCADE, null=True, blank=True)
     source_talent = models.ForeignKey("character.RelTalent", on_delete=models.CASCADE, null=True, blank=True)
     source_gfsAbility = models.ForeignKey("character.RelGfsAbility", on_delete=models.CASCADE, null=True, blank=True)
+
+    source_shopBegleiter = models.ForeignKey("character.RelBegleiter", on_delete=models.CASCADE, null=True, blank=True)
+    source_shopMagischeAusrüstung = models.ForeignKey("character.RelMagische_Ausrüstung", on_delete=models.CASCADE, null=True, blank=True)
+    source_shopRüstung = models.ForeignKey("character.RelRüstung", on_delete=models.CASCADE, null=True, blank=True)
+    source_shopAusrüstungTechnik = models.ForeignKey("character.RelAusrüstung_Technik", on_delete=models.CASCADE, null=True, blank=True)
+    source_shopEinbauten = models.ForeignKey("character.RelEinbauten", on_delete=models.CASCADE, null=True, blank=True)
 
     is_active = models.BooleanField(default=True, null=False, blank=False)
 

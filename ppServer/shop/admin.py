@@ -137,7 +137,7 @@ class ItemAdmin(BaseAdmin):
     shop_model = Item
     firma_shop_model = FirmaItem
 
-    list_display = ('name', 'beschreibung', "ab_stufe", 'billigste', 'kategorie', 'info')
+    list_display = ('name', 'beschreibung', "ab_stufe", 'billigste', 'kategorie', 'info', "has_implementation")
     list_filter = ['kategorie', 'illegal', 'lizenz_benötigt', "frei_editierbar"
                    ]
 
@@ -150,7 +150,7 @@ class Waffen_WerkzeugeAdmin(BaseAdmin):
     firma_shop_model = FirmaWaffen_Werkzeuge
 
     list_display = ('name', 'beschreibung', "ab_stufe", 'erfolge', 'bs', 'zs', 'dk', 'billigste',
-                    'kategorie', 'info')
+                    'kategorie', 'info', "has_implementation")
     list_filter = ['kategorie', 'erfolge', 'bs', 'zs', 'dk', 'illegal', 'lizenz_benötigt', "frei_editierbar"]
 
     inlines = [FirmaWaffen_WerkzeugeInLine]
@@ -161,7 +161,7 @@ class MagazinAdmin(BaseAdmin):
     shop_model = Magazin
     firma_shop_model = FirmaMagazin
 
-    list_display = ('name', 'beschreibung', "ab_stufe", 'schuss', 'billigste', 'info')
+    list_display = ('name', 'beschreibung', "ab_stufe", 'schuss', 'billigste', 'info', "has_implementation")
     list_filter = ['schuss', 'illegal', 'lizenz_benötigt', "frei_editierbar"]
 
     inlines = [FirmaMagazinInLine]
@@ -172,7 +172,7 @@ class Pfeil_BolzenAdmin(BaseAdmin):
     shop_model = Pfeil_Bolzen
     firma_shop_model = FirmaPfeil_Bolzen
 
-    list_display = ('name', 'beschreibung', "ab_stufe", 'bs', 'zs', 'billigste', 'info')
+    list_display = ('name', 'beschreibung', "ab_stufe", 'bs', 'zs', 'billigste', 'info', "has_implementation")
     list_filter = ['bs', 'zs', 'illegal', 'lizenz_benötigt', "frei_editierbar"]
 
     inlines = [FirmaPfeil_BolzenInLine]
@@ -185,7 +185,7 @@ class SchusswaffenAdmin(BaseAdmin):
 
     exclude = ['magazine', 'st_magazine', 'pfeile_bolzen', 'st_pfeile_bolzen']
     list_display = ('name', 'beschreibung', "ab_stufe", 'erfolge', 'bs', 'zs', 'dk', 'präzision', 'billigste',
-                    'kategorie', 'info')
+                    'kategorie', 'info', "has_implementation")
     list_filter = ['kategorie', 'erfolge', 'bs', 'zs', 'dk', 'präzision', 'illegal', 'lizenz_benötigt', "frei_editierbar"]
 
     inlines = [SchussMagazineInLine, SchussPfeileBolzenInLine,
@@ -197,7 +197,7 @@ class Magische_AusrüstungAdmin(BaseAdmin):
     shop_model = Magische_Ausrüstung
     firma_shop_model = FirmaMagische_Ausrüstung
 
-    list_display = ('name', 'beschreibung', "ab_stufe", 'billigste', 'kategorie', 'info')
+    list_display = ('name', 'beschreibung', "ab_stufe", 'billigste', 'kategorie', 'info', "has_implementation")
     list_filter = ['kategorie', 'illegal', 'lizenz_benötigt', "frei_editierbar"]
 
     inlines = [FirmaMagische_AusrüstungInLine]
@@ -209,7 +209,7 @@ class Rituale_RunenAdmin(admin.ModelAdmin):
     firma_shop_model = FirmaRituale_Runen
 
     list_display = ('name', 'beschreibung', "ab_stufe", # 'billigste',
-                     'kategorie', 'info')
+                     'kategorie', 'info', "has_implementation")
     list_filter = ['kategorie', 'illegal', 'lizenz_benötigt', "frei_editierbar"]
 
     inlines = [FirmaRituale_RunenInLine]
@@ -241,7 +241,7 @@ class RüstungenAdmin(BaseAdmin):
     firma_shop_model = FirmaRüstungen
 
     list_display = ('name', 'beschreibung', "ab_stufe", 'schutz', 'stärke', 'haltbarkeit', 'billigste',
-                    'info')
+                    'info', "has_implementation")
     list_filter = ['schutz', 'stärke', 'haltbarkeit', 'illegal', 'lizenz_benötigt', "frei_editierbar"]
 
     inlines = [FirmaRüstungenInLine]
@@ -253,7 +253,7 @@ class Ausrüstung_TechnikAdmin(BaseAdmin):
     firma_shop_model = FirmaAusrüstung_Technik
 
     list_display = ('name', 'beschreibung', "ab_stufe", 'manifestverlust', 'kategorie', 'billigste',
-                    'info')
+                    'info', "has_implementation")
     list_filter = ['kategorie', 'manifestverlust', 'illegal', 'lizenz_benötigt', "frei_editierbar"]
 
     inlines = [FirmaAusrüstung_TechnikInLine]
@@ -265,7 +265,7 @@ class FahrzeugAdmin(BaseAdmin):
     firma_shop_model = FirmaFahrzeug
 
     list_display = ('name', 'beschreibung', "ab_stufe", 'schnelligkeit', 'rüstung', 'erfolge',
-                    'billigste', 'kategorie', 'info')
+                    'billigste', 'kategorie', 'info', "has_implementation")
     list_filter = ['kategorie', 'schnelligkeit', 'rüstung', 'erfolge', 'illegal', 'lizenz_benötigt', "frei_editierbar"]
 
     inlines = [FirmaFahrzeugInLine]
@@ -278,7 +278,7 @@ class EinbautenAdmin(BaseAdmin):
 
     list_display = ('name', 'beschreibung', "ab_stufe", #'manifestverlust',
      'billigste',
-                    'kategorie', 'info')
+                    'kategorie', 'info', "has_implementation")
     list_filter = ['kategorie', #'manifestverlust',
     'illegal', 'lizenz_benötigt', "frei_editierbar"]
 
@@ -291,7 +291,7 @@ class ZauberAdmin(BaseAdmin):
     firma_shop_model = FirmaZauber
 
     list_display = ('name', 'beschreibung', "ab_stufe", 'schaden', 'astralschaden', "astralsch_is_direct", 'manaverbrauch', "verteidigung", 'billigste',
-                    'kategorie', 'info')
+                    'kategorie', 'info', "has_implementation")
     list_filter = ['kategorie', 'schaden', 'astralschaden', "astralsch_is_direct", 'manaverbrauch', "verteidigung", 'illegal', 'lizenz_benötigt', "frei_editierbar"]
 
     list_editable = ["verteidigung", "astralsch_is_direct"]
@@ -305,7 +305,7 @@ class VergessenerZauberAdmin(BaseAdmin):
     firma_shop_model = FirmaVergessenerZauber
 
     list_display = ('name', 'beschreibung', "ab_stufe", 'schaden', 'astralschaden', 'manaverbrauch', 'billigste',
-                    'info')
+                    'info', "has_implementation")
     list_filter = ['schaden', 'astralschaden', 'manaverbrauch', 'illegal', 'lizenz_benötigt', "frei_editierbar"]
 
     inlines = [FirmaVergessenerZauberInLine]
@@ -316,7 +316,7 @@ class AlchemieAdmin(BaseAdmin):
     shop_model = Alchemie
     firma_shop_model = FirmaAlchemie
 
-    list_display = ('name', 'beschreibung', "ab_stufe", 'billigste', 'kategorie', 'info')
+    list_display = ('name', 'beschreibung', "ab_stufe", 'billigste', 'kategorie', 'info', "has_implementation")
     list_filter = ['kategorie', 'illegal', 'lizenz_benötigt', "frei_editierbar"]
 
     inlines = [FirmaAlchemieInLine]
@@ -327,7 +327,7 @@ class TinkerAdmin(BaseAdmin):
     shop_model = Tinker
     firma_shop_model = FirmaTinker
 
-    list_display = ('icon_', 'name', 'beschreibung', "minecraft_mod_id", "werte", "ab_stufe", 'billigste', 'kategorie', 'info')
+    list_display = ('icon_', 'name', 'beschreibung', "minecraft_mod_id", "werte", "ab_stufe", 'billigste', 'kategorie', 'info', "has_implementation", "has_implementation")
     list_display_links = ('icon_', 'name')
     list_filter = ['kategorie', 'illegal', 'lizenz_benötigt', "frei_editierbar"]
 
@@ -346,7 +346,7 @@ class BegleiterAdmin(BaseAdmin):
     shop_model = Begleiter
     firma_shop_model = FirmaBegleiter
 
-    list_display = ('name', 'beschreibung', "ab_stufe", 'billigste', 'info')
+    list_display = ('name', 'beschreibung', "ab_stufe", 'billigste', 'info', "has_implementation")
     list_filter = ['illegal', 'lizenz_benötigt', "frei_editierbar"]
 
     inlines = [FirmaBegleiterInLine]
@@ -357,7 +357,7 @@ class EngelsroboterAdmin(BaseAdmin):
     shop_model = Engelsroboter
     firma_shop_model = FirmaEngelsroboter
 
-    list_display = ('name', 'beschreibung', "ab_stufe", 'ST', 'UM', 'MA', 'IN', 'billigste', 'info')
+    list_display = ('name', 'beschreibung', "ab_stufe", 'ST', 'UM', 'MA', 'IN', 'billigste', 'info', "has_implementation")
     list_filter = ['illegal', 'lizenz_benötigt', "frei_editierbar"]
 
     inlines = [FirmaEngelsroboterInLine]

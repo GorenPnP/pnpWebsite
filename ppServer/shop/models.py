@@ -216,6 +216,7 @@ class BaseShop(models.Model):
 
     frei_editierbar = models.BooleanField(default=True)
     stufenabhängig = models.BooleanField(default=False)
+    has_implementation = models.BooleanField(default=False, verbose_name="ist implementiert")
 
 
     def __str__(self):
