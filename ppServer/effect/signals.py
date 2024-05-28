@@ -101,6 +101,46 @@ def apply_effect_on_rel_relation(sender, instance, created, **kwargs):
                     target_fertigkeit=RelFertigkeit.objects.get(char=instance.char, fertigkeit=effect.target_fertigkeit) if getattr(effect, "target_fertigkeit", None) else None,
                 )
 
+            # wertaenderung = 2* min(item-Stufe, 5)
+            if sender == RelEinbauten and effect.source_shopEinbauten.name == "Panzerimplantate":
+                instance.releffect_set.create(
+                    target_fieldname=effect.target_fieldname,
+                    wertaenderung=2* min(effect.source_shopEinbauten.stufe, 5),
+                    target_char=instance.char,
+                    target_attribut=RelAttribut.objects.get(char=instance.char, attribut=effect.target_attribut) if getattr(effect, "target_attribut", None) else None,
+                    target_fertigkeit=RelFertigkeit.objects.get(char=instance.char, fertigkeit=effect.target_fertigkeit) if getattr(effect, "target_fertigkeit", None) else None,
+                )
+
+            # wertaenderung = min(item-Stufe, 10)
+            if sender == RelEinbauten and effect.source_shopEinbauten.name == "Sense-KIT":
+                instance.releffect_set.create(
+                    target_fieldname=effect.target_fieldname,
+                    wertaenderung=min(effect.source_shopEinbauten.stufe, 10),
+                    target_char=instance.char,
+                    target_attribut=RelAttribut.objects.get(char=instance.char, attribut=effect.target_attribut) if getattr(effect, "target_attribut", None) else None,
+                    target_fertigkeit=RelFertigkeit.objects.get(char=instance.char, fertigkeit=effect.target_fertigkeit) if getattr(effect, "target_fertigkeit", None) else None,
+                )
+
+            # wertaenderung = min(item-Stufe, 3)
+            if sender == RelEinbauten and effect.source_shopEinbauten.name in ["Motivationsbooster", "Hirnbooster", "Hormonpumpe", "Reflexbeschleuniger"]:
+                instance.releffect_set.create(
+                    target_fieldname=effect.target_fieldname,
+                    wertaenderung=min(effect.source_shopEinbauten.stufe, 3),
+                    target_char=instance.char,
+                    target_attribut=RelAttribut.objects.get(char=instance.char, attribut=effect.target_attribut) if getattr(effect, "target_attribut", None) else None,
+                    target_fertigkeit=RelFertigkeit.objects.get(char=instance.char, fertigkeit=effect.target_fertigkeit) if getattr(effect, "target_fertigkeit", None) else None,
+                )
+
+            # wertaenderung = 10 * min(item-Stufe, 3)
+            if sender == RelEinbauten and effect.source_shopEinbauten.name == "Manareservator":
+                instance.releffect_set.create(
+                    target_fieldname=effect.target_fieldname,
+                    wertaenderung=10 * min(effect.source_shopEinbauten.stufe, 3),
+                    target_char=instance.char,
+                    target_attribut=RelAttribut.objects.get(char=instance.char, attribut=effect.target_attribut) if getattr(effect, "target_attribut", None) else None,
+                    target_fertigkeit=RelFertigkeit.objects.get(char=instance.char, fertigkeit=effect.target_fertigkeit) if getattr(effect, "target_fertigkeit", None) else None,
+                )
+
 
 ########################## following: custom for Haustier-Fels #########################
 
