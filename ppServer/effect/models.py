@@ -31,7 +31,7 @@ class AbstractEffect(models.Model):
         ("character.Charakter.verzehr", "Charakter: Verzehr"),
         ("character.Charakter.sanität", "Charakter: Sanität"),
         ("character.Charakter.glück", "Charakter: Glück"),
-        ("character.Charakter.sonstiger_manifestverlust", "Charakter: Manifest"),
+        ("character.Charakter.sonstiger_manifestverlust", "Charakter: Manifestverlust"),
         ("character.Charakter.manifest_fix", "Charakter: Manifest fix"),
 
         ("character.Charakter.limit_k_fix", "Charakter: Limit k fix"),
@@ -53,14 +53,18 @@ class AbstractEffect(models.Model):
         ("character.Charakter.initiative_bonus", "Charakter: Initiative-Bonus"),
         ("character.Charakter.reaktion_bonus", "Charakter: Reaktionsbonus"),
         ("character.Charakter.natürlicher_schadenswiderstand_bonus", "Charakter: nat. SchaWi-Bonus"),
+        ("character.Charakter.natürlicher_schadenswiderstand_rüstung", "Charakter: nat. SchaWi Rüstung"),
         ("character.Charakter.natSchaWi_pro_erfolg_bonus", "Charakter: nat. SchaWi/Erfolg -Bonus"),
+        ("character.Charakter.natSchaWi_pro_erfolg_rüstung", "Charakter: nat. SchaWi/Erfolg -Rüstung"),
+        ("character.Charakter.rüstung_haltbarkeit", "Charakter: Rüstung Haltbarkeit"),
         ("character.Charakter.astralwiderstand_bonus", "Charakter: AsWi-Bonus"),
+        ("character.Charakter.astralwiderstand_pro_erfolg_bonus", "Charakter: AsWi/Erfolg -Bonus"),
         ("character.Charakter.manaoverflow_bonus", "Charakter: Manaoverflow-Bonus"),
         ("character.Charakter.nat_regeneration_bonus", "Charakter: nat. Regeneration-Bonus"),
         ("character.Charakter.immunsystem_bonus", "Charakter: Immunsystem-Bonus"),
     ]
 
-    wertaenderung = models.IntegerField(null=False, blank=False)
+    wertaenderung = models.DecimalField(decimal_places=2, max_digits=5, null=False, blank=False)
     target_fieldname = models.CharField(choices=target_fieldname_enum)
 
 
@@ -194,7 +198,14 @@ class RelEffect(AbstractEffect):
             target.save(update_fields=[field])
         else:
             setattr(target, field, getattr(target, field, 0) + self.wertaenderung)
-            target.save(update_fields=[field])
+
+            # add notiz to "sonstiger_manifestverlust"
+            if self.target_fieldname == "character.Charakter.sonstiger_manifestverlust":
+                source = [getattr(self, field.replace("_id", "")).__str__() for field, val in self.__dict__.items() if "source_" in field and val][0]
+                setattr(target, "notizen_sonstiger_manifestverlust", ", ".join([s for s in [getattr(target, "notizen_sonstiger_manifestverlust", ""), source] if s]))
+                target.save(update_fields=[field, "notizen_sonstiger_manifestverlust"])
+            else:
+                target.save(update_fields=[field])
 
         # set is_active (& save)
         self.is_active = True
@@ -222,7 +233,14 @@ class RelEffect(AbstractEffect):
             target.save(update_fields=[field])
         else:
             setattr(target, field, getattr(target, field, 0) - self.wertaenderung)
-            target.save(update_fields=[field])
+
+            # rm notiz of "sonstiger_manifestverlust"
+            if self.target_fieldname == "character.Charakter.sonstiger_manifestverlust":
+                source = [getattr(self, field.replace("_id", "")).__str__() for field, val in self.__dict__.items() if "source_" in field and val][0]
+                setattr(target, "notizen_sonstiger_manifestverlust", ", ".join([s for s in getattr(target, "notizen_sonstiger_manifestverlust", "").split(", ") if s and s != source]))
+                target.save(update_fields=[field, "notizen_sonstiger_manifestverlust"])
+            else:
+                target.save(update_fields=[field])
 
         # set is_active (& save)
         self.is_active = False

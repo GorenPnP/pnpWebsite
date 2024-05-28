@@ -275,10 +275,12 @@ class CharakterAdmin(admin.ModelAdmin):
         ("Manifest", {"fields": ["manifest", "sonstiger_manifestverlust", "notizen_sonstiger_manifestverlust", "manifest_fix"]}),
         ('HP', {'fields': ['rang', 'larp_rang', 'HPplus', 'HPplus_fix', 'HPplus_geistig']}),
         ('Kampf', {'fields': ['wesenschaden_waff_kampf', 'wesenschaden_andere_gestalt', 'crit_attack', 'crit_defense',
-                              'initiative_bonus', 'reaktion_bonus', 'natürlicher_schadenswiderstand_bonus', 'astralwiderstand_bonus', "manaoverflow_bonus"]}),
-
+                              'initiative_bonus', 'reaktion_bonus', 'natürlicher_schadenswiderstand_bonus',
+                              'natSchaWi_pro_erfolg_bonus', 'astralwiderstand_bonus', 'astralwiderstand_pro_erfolg_bonus',
+                              "manaoverflow_bonus", "nat_regeneration_bonus", "immunsystem_bonus"]}),
+        ('Rüstung', {'fields': ['natürlicher_schadenswiderstand_rüstung', 'natSchaWi_pro_erfolg_rüstung', 'rüstung_haltbarkeit']}),
         ('Kampagne', {'fields': ["ep", 'ep_stufe', 'ep_stufe_in_progress', "skilltree_stufe", "processing_notes"]}),
-        ('Währungen', {'fields': ['ap', 'fp', 'fg', 'sp', "sp_fix", 'ip', 'tp', 'spF_wF', 'wp', 'zauberplätze', "geld", 'konzentration', "konzentration_fix", "prestige", "verzehr", "glück", "sanität"]}),
+        ('Währungen', {'fields': ['ap', 'fp', 'fg', 'sp', "sp_fix", 'ip', 'tp', 'spF_wF', 'wp', 'zauberplätze', "geld", 'konzentration', "konzentration_fix", "prestige", "verzehr", "glück", "sanität", "limit_k_fix", "limit_g_fix", "limit_m_fix"]}),
         ('Geschreibsel', {'fields': ['notizen', 'persönlicheZiele', 'sonstige_items']}),
     ]
 

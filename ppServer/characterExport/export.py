@@ -261,7 +261,7 @@ class CharakterExporter:
         
         ROW += 1
         werte_ws.write(f"I{ROW}", "HP / Erfolg", format_asWi_topic)
-        werte_ws.write(f"J{ROW}", f"=FLOOR(MIN({self._position('WK')},{self._position('MA')})/6,1)+1", format_asWi)
+        werte_ws.write(f"J{ROW}", f"=FLOOR(MIN({self._position('WK')},{self._position('MA')})/6,1)+1+{self.char.astralwiderstand_pro_erfolg_bonus}", format_asWi)
         
         ROW += 2
         werte_ws.write(f"I{ROW}", "Limits", format_limit_topic__first)
@@ -384,8 +384,8 @@ class CharakterExporter:
         werte_ws.write(f"S{ROW}", f"ST+VER (xHP pro Erfolg, normal 1)")
         ROW += 1
         werte_ws.merge_range(f"M{ROW}:O{ROW}", "Rüstung Schutz | Stärke", format_colorful_titel)
-        werte_ws.write(f"P{ROW}", None, format_colorful)
-        werte_ws.write(f"Q{ROW}", None)
+        werte_ws.write(f"P{ROW}", self.char.natürlicher_schadenswiderstand_rüstung, format_colorful)
+        werte_ws.write(f"Q{ROW}", self.char.natSchaWi_pro_erfolg_rüstung)
         werte_ws.write(f"R{ROW}", "HP", format_colorful)
         werte_ws.write(f"S{ROW}", "s. Rüstung")
         ROW += 1
@@ -397,7 +397,7 @@ class CharakterExporter:
         
         ROW += 1
         werte_ws.merge_range(f"M{ROW}:O{ROW}", "Haltbarkeit der Rüstung", format_colorful_titel)
-        werte_ws.merge_range(f"P{ROW}:R{ROW}", None, format_colorful)
+        werte_ws.merge_range(f"P{ROW}:R{ROW}", self.char.rüstung_haltbarkeit, format_colorful)
         werte_ws.write(f"S{ROW}", "s. Rüstung")
 
         ROW += 1
@@ -447,10 +447,10 @@ class CharakterExporter:
         
         ROW += 1
         werte_ws.merge_range(f"M{ROW}:O{ROW}", "Glück", format_colorful_titel)
-        werte_ws.merge_range(f"P{ROW}:R{ROW}", "100", format_colorful)
+        werte_ws.merge_range(f"P{ROW}:R{ROW}", self.char.glück, format_colorful)
         ROW += 1
         werte_ws.merge_range(f"M{ROW}:O{ROW}", "Sanität", format_colorful_titel)
-        werte_ws.merge_range(f"P{ROW}:R{ROW}", "100", format_colorful)
+        werte_ws.merge_range(f"P{ROW}:R{ROW}", self.char.sanität, format_colorful)
 
         ROW += 1
         werte_ws.merge_range(f"M{ROW}:O{ROW}", "Regeneration in HP pro Tag", format_colorful_titel)
