@@ -1,12 +1,14 @@
 from django.urls import include, path
 from django.views.generic.base import TemplateView
 
+from ppServer.decorators import verified_account
+
 from . import views
 
 app_name = 'dex'
 
 urlpatterns = [
-    path('', TemplateView.as_view(template_name="dex/index.html"), name='index'),
+    path('', verified_account(TemplateView.as_view(template_name="dex/index.html")), name='index'),
 
     path('monster/', include('dex.monster.urls')),
 
