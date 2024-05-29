@@ -173,5 +173,7 @@ def apply_hp_effect_of_haustierfels(sender, instance, **kwargs):
 @receiver(post_delete, sender=RelEffect)
 def deactivate_hp_effect_of_haustierfels_on_delete(sender, instance, **kwargs):
     if instance.target_fieldname == "character.Charakter.HPplus_fix" and not instance.target_char.releffect_set.filter(target_fieldname="character.Charakter.HPplus_fix").exists():
-        instance.target_char.HPplus_fix = None
-        instance.target_char.save(update_fields=["HPplus_fix"])
+
+        # don't use char.save(update_fields=["HPplus_fix"]); char.save() here, because on char deletion the char/other char-relations are gone by now.
+        # this query can execute even without an object selected by .filter()
+        Charakter.objects.filter(pk=instance.target_char_id).update(HPplus_fix=None)
