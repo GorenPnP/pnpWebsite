@@ -147,6 +147,9 @@ def apply_effect_on_rel_relation(sender, instance, created, **kwargs):
 
 @receiver(pre_save, sender=Charakter)
 def apply_hp_effect_of_haustierfels(sender, instance, **kwargs):
+    # not on create
+    if instance.pk is None: return
+
     kHpPlus_fix_effects = instance.releffect_set.filter(is_active=True, target_fieldname="character.Charakter.HPplus_fix")
 
     # Haustierfels is the only one affecting the character's kHp plus fix?

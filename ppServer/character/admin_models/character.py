@@ -160,7 +160,7 @@ class RelEffectInLine(RelInlineAdmin):
 
     def get_readonly_fields(self, request: HttpRequest, obj):
         if request.spieler.is_spielleiter:
-            return filter(lambda item: item != 'is_active', self.fields)
+            return filter(lambda item: item not in ['wertaenderung', 'is_active'], self.fields)
         else:
             return self.fields
         
