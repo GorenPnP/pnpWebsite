@@ -8,33 +8,33 @@ from character.models import RelAttribut, RelFertigkeit, RelVorteil, RelNachteil
 from .models import *
 
 
-# @receiver(pre_save, sender=RelEffect)
-# def de_activate_effect_on_save(sender, instance, **kwargs):
-#     old_instance = sender.objects.filter(id=instance.id).first()
+@receiver(pre_save, sender=RelEffect)
+def de_activate_effect_on_save(sender, instance, **kwargs):
+    old_instance = sender.objects.filter(id=instance.id).first()
     
-#     if (not old_instance and instance.is_active) or\
-#        (old_instance and not old_instance.is_active and instance.is_active):
-#         instance.activate(False)
+    if (not old_instance and instance.is_active) or\
+       (old_instance and not old_instance.is_active and instance.is_active):
+        instance.activate(False)
 
-#     if old_instance and old_instance.is_active and not instance.is_active:
-#         instance.deactivate(False)
-
-
-# @receiver(pre_delete, sender=RelEffect)
-# def deactivate_effect_on_delete(sender, instance, **kwargs):
-#     if instance.is_active:
-#         instance.deactivate(False)
+    if old_instance and old_instance.is_active and not instance.is_active:
+        instance.deactivate(False)
 
 
-# @receiver(post_save, sender=RelVorteil)
-# @receiver(post_save, sender=RelNachteil)
-# @receiver(post_save, sender=RelTalent)
-# @receiver(post_save, sender=RelGfsAbility)
-# @receiver(post_save, sender=RelBegleiter)
-# @receiver(post_save, sender=RelMagische_Ausrüstung)
-# @receiver(post_save, sender=RelRüstung)
-# @receiver(post_save, sender=RelAusrüstung_Technik)
-# @receiver(post_save, sender=RelEinbauten)
+@receiver(pre_delete, sender=RelEffect)
+def deactivate_effect_on_delete(sender, instance, **kwargs):
+    if instance.is_active:
+        instance.deactivate(False)
+
+
+@receiver(post_save, sender=RelVorteil)
+@receiver(post_save, sender=RelNachteil)
+@receiver(post_save, sender=RelTalent)
+@receiver(post_save, sender=RelGfsAbility)
+@receiver(post_save, sender=RelBegleiter)
+@receiver(post_save, sender=RelMagische_Ausrüstung)
+@receiver(post_save, sender=RelRüstung)
+@receiver(post_save, sender=RelAusrüstung_Technik)
+@receiver(post_save, sender=RelEinbauten)
 def apply_effect_on_rel_relation(sender, instance, created, **kwargs):
     if not created: return
 
@@ -88,7 +88,7 @@ def apply_effect_on_rel_relation(sender, instance, created, **kwargs):
                 )
 
                 # apply_hp_effect_of_haustierfels(Charakter, instance.char)
-                # instance.char.save(update_fields=["HPplus_fix"])
+                instance.char.save(update_fields=["HPplus_fix"])
 
 
             # wertaenderung = item-Stufe
@@ -142,38 +142,38 @@ def apply_effect_on_rel_relation(sender, instance, created, **kwargs):
                 )
 
 
-# ########################## following: custom for Haustier-Fels #########################
+########################## following: custom for Haustier-Fels #########################
 
 
-# @receiver(pre_save, sender=Charakter)
-# def apply_hp_effect_of_haustierfels(sender, instance, **kwargs):
-#     # not on create
-#     if instance.pk is None: return
+@receiver(pre_save, sender=Charakter)
+def apply_hp_effect_of_haustierfels(sender, instance, **kwargs):
+    # not on create
+    if instance.pk is None: return
 
-#     kHpPlus_fix_effects = instance.releffect_set.filter(is_active=True, target_fieldname="character.Charakter.HPplus_fix")
+    kHpPlus_fix_effects = instance.releffect_set.filter(is_active=True, target_fieldname="character.Charakter.HPplus_fix")
 
-#     # Haustierfels is the only one affecting the character's kHp plus fix?
-#     if kHpPlus_fix_effects.count() != 1 or not getattr(kHpPlus_fix_effects.first(), "source_shopBegleiter", None) or getattr(kHpPlus_fix_effects.first(), "source_shopBegleiter", None).item.name != "Haustier-Fels":
-#         return
+    # Haustierfels is the only one affecting the character's kHp plus fix?
+    if kHpPlus_fix_effects.count() != 1 or not getattr(kHpPlus_fix_effects.first(), "source_shopBegleiter", None) or getattr(kHpPlus_fix_effects.first(), "source_shopBegleiter", None).item.name != "Haustier-Fels":
+        return
     
-#     #  für alle 1.000 EP oder 10 LARP-Ränge des Charakters +1% HP K (max. 100%).
-#     factor = min(math.floor(instance.ep / 1000) / 100, 1) + min(math.floor(instance.larp_rang / 10) / 100, 1)
+    #  für alle 1.000 EP oder 10 LARP-Ränge des Charakters +1% HP K (max. 100%).
+    factor = min(math.floor(instance.ep / 1000) / 100, 1) + min(math.floor(instance.larp_rang / 10) / 100, 1)
 
-#     kHp_without_fels = sum([
-#         instance.relattribut_set.get(attribut__titel="ST").aktuell() * 5,
-#         instance.ep_stufe * 2,
-#         math.floor(instance.larp_rang / 20),
-#         math.floor(instance.rang / 10),
-#         instance.HPplus,
-#     ])
+    kHp_without_fels = sum([
+        instance.relattribut_set.get(attribut__titel="ST").aktuell() * 5,
+        instance.ep_stufe * 2,
+        math.floor(instance.larp_rang / 20),
+        math.floor(instance.rang / 10),
+        instance.HPplus,
+    ])
 
-#     # keep HPplus and add the benefit by factor
-#     instance.HPplus_fix = instance.HPplus + kHp_without_fels * factor
+    # keep HPplus and add the benefit by factor
+    instance.HPplus_fix = instance.HPplus + kHp_without_fels * factor
 
-# @receiver(post_delete, sender=RelEffect)
-# def deactivate_hp_effect_of_haustierfels_on_delete(sender, instance, **kwargs):
-#     if instance.target_fieldname == "character.Charakter.HPplus_fix" and not instance.target_char.releffect_set.filter(target_fieldname="character.Charakter.HPplus_fix").exists():
+@receiver(post_delete, sender=RelEffect)
+def deactivate_hp_effect_of_haustierfels_on_delete(sender, instance, **kwargs):
+    if instance.target_fieldname == "character.Charakter.HPplus_fix" and not instance.target_char.releffect_set.filter(target_fieldname="character.Charakter.HPplus_fix").exists():
 
-#         # don't use char.save(update_fields=["HPplus_fix"]); char.save() here, because on char deletion the char/other char-relations are gone by now.
-#         # this query can execute even without an object selected by .filter()
-#         Charakter.objects.filter(pk=instance.target_char_id).update(HPplus_fix=None)
+        # don't use char.save(update_fields=["HPplus_fix"]); char.save() here, because on char deletion the char/other char-relations are gone by now.
+        # this query can execute even without an object selected by .filter()
+        Charakter.objects.filter(pk=instance.target_char_id).update(HPplus_fix=None)
