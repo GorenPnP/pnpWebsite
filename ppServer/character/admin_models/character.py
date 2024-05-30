@@ -201,6 +201,7 @@ class RelSchusswaffenInLine(RelShopInLine):
 
 class RelMagische_AusrüstungInLine(RelShopInLine):
     model = RelMagische_Ausrüstung
+    fields = ["anz", "stufe", "item", "notizen"]
 
 
 class RelRituale_RunenInLine(RelShopInLine):
@@ -217,7 +218,7 @@ class RelRüstungInLine(RelShopInLine):
 
 class RelAusrüstung_TechnikInLine(RelShopInLine):
     model = RelAusrüstung_Technik
-    fields = ["anz", "item", "notizen", "selbst_eingebaut"]
+    fields = ["anz", "stufe", "item", "notizen", "selbst_eingebaut"]
 
     def get_queryset(self, request):
         return super().get_queryset(request).prefetch_related('item')
@@ -229,6 +230,7 @@ class RelFahrzeugInLine(RelShopInLine):
 
 class RelEinbautenInLine(RelShopInLine):
     model = RelEinbauten
+    fields = ["anz", "stufe", "item", "notizen"]
 
 
 class RelZauberInLine(RelShopInLine):

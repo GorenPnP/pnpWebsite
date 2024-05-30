@@ -1028,7 +1028,7 @@ class RelShop(models.Model):
 
     char = models.ForeignKey(Charakter, on_delete=models.CASCADE)
     anz = models.PositiveIntegerField(default=1)
-    stufe = models.PositiveIntegerField(default=None, null=True)
+    stufe = models.PositiveIntegerField(default=None, null=True, blank=True)
     notizen = models.CharField(max_length=50, blank=True, default='')
 
     def __str__(self):

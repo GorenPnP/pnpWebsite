@@ -95,7 +95,7 @@ def apply_effect_on_rel_relation(sender, instance, created, **kwargs):
             if sender == RelMagische_Ausrüstung and effect.source_shopMagischeAusrüstung.name in ["Astralblocker", "Magiefokus", "Spruchzaubereifokus", "Dunkelmagiefokus", "Ritualfokus", "Antimagiefokus", "Alchemiefokus"]:
                 instance.releffect_set.create(
                     target_fieldname=effect.target_fieldname,
-                    wertaenderung=effect.source_shopMagischeAusrüstung.stufe,
+                    wertaenderung=instance.stufe,
                     target_char=instance.char,
                     target_attribut=RelAttribut.objects.get(char=instance.char, attribut=effect.target_attribut) if getattr(effect, "target_attribut", None) else None,
                     target_fertigkeit=RelFertigkeit.objects.get(char=instance.char, fertigkeit=effect.target_fertigkeit) if getattr(effect, "target_fertigkeit", None) else None,
@@ -105,7 +105,7 @@ def apply_effect_on_rel_relation(sender, instance, created, **kwargs):
             if sender == RelEinbauten and effect.source_shopEinbauten.name == "Panzerimplantate":
                 instance.releffect_set.create(
                     target_fieldname=effect.target_fieldname,
-                    wertaenderung=2* min(effect.source_shopEinbauten.stufe, 5),
+                    wertaenderung=2* min(instance.stufe, 5),
                     target_char=instance.char,
                     target_attribut=RelAttribut.objects.get(char=instance.char, attribut=effect.target_attribut) if getattr(effect, "target_attribut", None) else None,
                     target_fertigkeit=RelFertigkeit.objects.get(char=instance.char, fertigkeit=effect.target_fertigkeit) if getattr(effect, "target_fertigkeit", None) else None,
@@ -115,7 +115,7 @@ def apply_effect_on_rel_relation(sender, instance, created, **kwargs):
             if sender == RelEinbauten and effect.source_shopEinbauten.name == "Sense-KIT":
                 instance.releffect_set.create(
                     target_fieldname=effect.target_fieldname,
-                    wertaenderung=min(effect.source_shopEinbauten.stufe, 10),
+                    wertaenderung=min(instance.stufe, 10),
                     target_char=instance.char,
                     target_attribut=RelAttribut.objects.get(char=instance.char, attribut=effect.target_attribut) if getattr(effect, "target_attribut", None) else None,
                     target_fertigkeit=RelFertigkeit.objects.get(char=instance.char, fertigkeit=effect.target_fertigkeit) if getattr(effect, "target_fertigkeit", None) else None,
@@ -125,7 +125,7 @@ def apply_effect_on_rel_relation(sender, instance, created, **kwargs):
             if sender == RelEinbauten and effect.source_shopEinbauten.name in ["Motivationsbooster", "Hirnbooster", "Hormonpumpe", "Reflexbeschleuniger"]:
                 instance.releffect_set.create(
                     target_fieldname=effect.target_fieldname,
-                    wertaenderung=min(effect.source_shopEinbauten.stufe, 3),
+                    wertaenderung=min(instance.stufe, 3),
                     target_char=instance.char,
                     target_attribut=RelAttribut.objects.get(char=instance.char, attribut=effect.target_attribut) if getattr(effect, "target_attribut", None) else None,
                     target_fertigkeit=RelFertigkeit.objects.get(char=instance.char, fertigkeit=effect.target_fertigkeit) if getattr(effect, "target_fertigkeit", None) else None,
@@ -135,7 +135,7 @@ def apply_effect_on_rel_relation(sender, instance, created, **kwargs):
             if sender == RelEinbauten and effect.source_shopEinbauten.name == "Manareservator":
                 instance.releffect_set.create(
                     target_fieldname=effect.target_fieldname,
-                    wertaenderung=10 * min(effect.source_shopEinbauten.stufe, 3),
+                    wertaenderung=10 * min(instance.stufe, 3),
                     target_char=instance.char,
                     target_attribut=RelAttribut.objects.get(char=instance.char, attribut=effect.target_attribut) if getattr(effect, "target_attribut", None) else None,
                     target_fertigkeit=RelFertigkeit.objects.get(char=instance.char, fertigkeit=effect.target_fertigkeit) if getattr(effect, "target_fertigkeit", None) else None,
