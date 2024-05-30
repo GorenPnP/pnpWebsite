@@ -64,7 +64,7 @@ class AbstractEffect(models.Model):
         ("character.Charakter.immunsystem_bonus", "Charakter: Immunsystem-Bonus"),
     ]
 
-    wertaenderung = models.DecimalField(decimal_places=2, max_digits=5, null=False, blank=False)
+    wertaenderung = models.DecimalField(decimal_places=2, max_digits=15, null=False, blank=False)
     target_fieldname = models.CharField(choices=target_fieldname_enum)
 
 
