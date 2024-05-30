@@ -5,6 +5,12 @@ from .models import *
 
 class EffectAdmin(admin.ModelAdmin):
     list_display = ["target_fieldname", "wertaenderung", "has_custom_implementation", "target", "source"]
+    list_filter = ["has_custom_implementation", "target_fieldname", "target_attribut", "target_fertigkeit",
+    ]
+    search_fields = [
+        "target_fieldname", "target_attribut", "target_fertigkeit",
+        "source_vorteil", "source_nachteil", "source_talent", "source_gfsAbility", "source_shopBegleiter", "source_shopMagischeAusrüstung", "source_shopRüstung", "source_shopAusrüstungTechnik", "source_shopEinbauten",
+    ]
 
     def target(self, obj):
         targets = [getattr(obj, "target_attribut", None), getattr(obj, "target_fertigkeit", None)]

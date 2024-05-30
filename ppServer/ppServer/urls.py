@@ -34,6 +34,7 @@ urlpatterns = [
     path('crafting/', include('crafting.urls')),
     path('create/', include('create.urls')),
     path('dex/', include('dex.urls')),
+    path('effect/', include('effect.urls')),
     path('file/', include('fileserver.urls')),
     path('chat2.0/', include('httpChat.urls')),
     path('lerneinheiten/', include('lerneinheiten.urls')),

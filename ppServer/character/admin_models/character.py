@@ -318,7 +318,7 @@ class CharakterAdmin(admin.ModelAdmin):
         RelEffectInLine
     ]
 
-    list_display = ['image_', 'name', 'eigentümer', "gfs", "larp", "in_erstellung"]
+    list_display = ['image_', 'name', 'eigentümer', "gfs", "larp", "in_erstellung", "effekte"]
 
     list_filter = ['in_erstellung', 'larp', get_filter(Spieler, "name", ['eigentümer__name'])]
     search_fields = ['name', 'eigentümer__name']
@@ -329,6 +329,23 @@ class CharakterAdmin(admin.ModelAdmin):
 
     def image_(self, obj):
         return format_html(f"<img src='{obj.image.url}' style='max-width: 32px; max-height:32px;'>") if obj.image else "-"
+
+    def effekte(self, obj):
+        from django.db.models import Q
+        from effect.models import Effect
+        curr = obj.releffect_set.count()
+        max = Effect.objects.filter(
+                Q(source_vorteil__in=obj.vorteile.all()) |
+                Q(source_nachteil__in=obj.nachteile.all()) |
+                Q(source_talent__in=obj.talente.all()) |
+                Q(source_gfsAbility__in=obj.gfs_fähigkeiten.all()) |
+                Q(source_shopBegleiter__in=obj.begleiter.all()) |
+                Q(source_shopMagischeAusrüstung__in=obj.magischeAusrüstung.all()) |
+                Q(source_shopRüstung__in=obj.rüstungen.all()) |
+                Q(source_shopAusrüstungTechnik__in=obj.ausrüstungTechnik.all()) |
+                Q(source_shopEinbauten__in=obj.einbauten.all())
+            ).count()
+        return format_html(f'<a href="/effect/{obj.pk}">Effekte setzen</a>') if curr != max else "-"
 
 
     # utils for groups
