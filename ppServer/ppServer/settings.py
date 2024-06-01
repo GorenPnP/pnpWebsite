@@ -193,7 +193,7 @@ USE_THOUSAND_SEPARATOR = True
 THOUSAND_SEPARATOR = "."
 APPEND_SLASH = True
 
-LOGIN_URL = "/auth/login"
+LOGIN_URL = "/auth/login/"
 
 
 ###################################################
