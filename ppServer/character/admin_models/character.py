@@ -377,6 +377,6 @@ class CharakterAdmin(admin.ModelAdmin):
         char = super().save_form(request, form, change)
 
         if self._only_adds_chars(request):
-            char.eigentümer = self.request.spieler.instance
+            char.eigentümer = request.spieler.instance
             char.save()
         return char
