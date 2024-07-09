@@ -8,8 +8,19 @@ class EffectAdmin(admin.ModelAdmin):
     list_filter = ["has_custom_implementation", "target_fieldname", "target_attribut", "target_fertigkeit",
     ]
     search_fields = [
-        "target_fieldname", "target_attribut", "target_fertigkeit",
-        "source_vorteil", "source_nachteil", "source_talent", "source_gfsAbility", "source_shopBegleiter", "source_shopMagischeAusrüstung", "source_shopRüstung", "source_shopAusrüstungTechnik", "source_shopEinbauten",
+        "target_fieldname",
+        "target_attribut__titel",
+        "target_fertigkeit__titel",
+        
+        "source_vorteil__titel",
+        "source_nachteil__titel",
+        "source_talent__titel",
+        "source_gfsAbility__name",
+        "source_shopBegleiter__name",
+        "source_shopMagischeAusrüstung__name",
+        "source_shopRüstung__name",
+        "source_shopAusrüstungTechnik__name",
+        "source_shopEinbauten__name",
     ]
 
     def target(self, obj):
