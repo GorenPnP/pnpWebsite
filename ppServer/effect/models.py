@@ -197,7 +197,7 @@ class RelEffect(AbstractEffect):
             setattr(target, field, self.wertaenderung)
             target.save(update_fields=[field])
         else:
-            setattr(target, field, getattr(target, field, 0) + self.wertaenderung)
+            setattr(target, field, (getattr(target, field, 0) or 0) + self.wertaenderung)
 
             # add notiz to "sonstiger_manifestverlust"
             if self.target_fieldname == "character.Charakter.sonstiger_manifestverlust":
@@ -232,7 +232,7 @@ class RelEffect(AbstractEffect):
             setattr(target, field, None)
             target.save(update_fields=[field])
         else:
-            setattr(target, field, getattr(target, field, 0) - self.wertaenderung)
+            setattr(target, field, (getattr(target, field, 0) or 0) - self.wertaenderung)
 
             # rm notiz of "sonstiger_manifestverlust"
             if self.target_fieldname == "character.Charakter.sonstiger_manifestverlust":
