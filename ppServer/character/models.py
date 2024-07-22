@@ -518,7 +518,7 @@ class Charakter(models.Model):
                                    validators=[MaxValueValidator(10), MinValueValidator(0)])
     sonstiger_manifestverlust = models.DecimalField("sonstiger Manifestverlust", max_digits=4, decimal_places=2, default=0.0,
                                                     validators=[MaxValueValidator(10), MinValueValidator(0)])
-    notizen_sonstiger_manifestverlust = models.CharField(max_length=200, default="", blank=True)
+    notizen_sonstiger_manifestverlust = models.TextField(default="", blank=True)
     manifest_fix = models.DecimalField(max_digits=4, decimal_places=2, default=None, null=True, blank=True)
 
     # roleplay
