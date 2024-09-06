@@ -27,10 +27,10 @@ class PollView(VerifiedAccountMixin, PollAllowedMixin, DetailView):
 
 
         # check validity
-        if choices.count() != len(set(choice_ids)):
+        if Choice.objects.filter(id__in=choice_ids).exclude(question=question).exists():
             messages.error(request, "Bitte nochmal versuchen. Die Antworten sind nicht ganz richtig angekommen.")
 
-        elif not question.allow_multiple_selection and len(set(choice_ids)) != question.anz_stimmen:
+        elif not question.allow_multiple_selection and (len(set(choice_ids)) != question.anz_stimmen or choices.count() != question.anz_stimmen):
             messages.error(request, "Mehrfachwahl ist nicht erlaubt")
 
         elif question.allow_multiple_selection and len(choice_ids) != question.anz_stimmen:
