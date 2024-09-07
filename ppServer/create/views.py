@@ -14,7 +14,7 @@ from ppServer.mixins import VerifiedAccountMixin
 from base.abstract_views import DynamicTableView
 from character.models import Spieler, Beruf, RelAttribut, RelFertigkeit, RelVorteil,\
     RelNachteil, RelWesenkraft, GfsAttribut, GfsFertigkeit, GfsWesenkraft, GfsVorteil,\
-    GfsNachteil, GfsZauber, GfsStufenplanBase
+    GfsNachteil, GfsZauber, GfsStufenplanBase, RelZauber
 from levelUp.mixins import LevelUpMixin
 
 from .decorators import *
@@ -145,7 +145,7 @@ class GfsFormView(VerifiedAccountMixin, TemplateView):
 
             # Zauber
             for gfs_zauber in GfsZauber.objects.filter(gfs=char.gfs):
-                RelWesenkraft.objects.create(char=char, item=gfs_zauber.item, tier=gfs_zauber.tier)
+                RelZauber.objects.create(char=char, item=gfs_zauber.item, tier=gfs_zauber.tier)
 
 
         return redirect(reverse("create:prio", args=[char.id]))
