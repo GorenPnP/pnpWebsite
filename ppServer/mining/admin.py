@@ -32,11 +32,11 @@ class MaterialAdmin(admin.ModelAdmin):
 
     def _icon(self, obj):
         html = format_html('<img src="{0}" style="max-width: 32px; max-height:32px;" />'.format(obj.icon.url))
-        return html if html else "-"
+        return html if html else self.get_empty_value_display()
 
     def _drops(self, obj):
         html = ", ".join([drop.item.name for drop in MaterialDrop.objects.filter(material=obj)])
-        return html if html else "-"
+        return html if html else self.get_empty_value_display()
 
 
 class RegionAdmin(admin.ModelAdmin):

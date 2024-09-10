@@ -42,6 +42,7 @@ urlpatterns = [
     path('mining/', include('mining.urls')),
     path('news/', include('news.urls')),
     path('planner/', include('planner.urls')),
+    path('politics/', include('politics.urls')),
     path('polls/', include('polls.urls')),
     path('quiz/', include('quiz.urls')),
     path('service/', include('service.urls')),

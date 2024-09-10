@@ -75,6 +75,7 @@ INSTALLED_APPS = [
     'mining',
     'news',
     'planner',
+    'politics',
     'polls',
     'quiz',
     'service',

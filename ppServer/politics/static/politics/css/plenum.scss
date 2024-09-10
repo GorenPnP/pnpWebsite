@@ -1,0 +1,47 @@
+.plenum {
+    width: 100vw;
+
+    background-color: beige;
+    position: relative;
+    overflow: auto;
+
+    .speakers-desk {
+        position: absolute;
+        top: 0;
+        left: calc((100% - var(--politician-size)) / 2);
+        height: calc(var(--politician-size) / 2);
+        width: var(--politician-size);
+
+        background-color: black;
+    }
+
+    .politician {
+        position: absolute;
+        background-color: transparent;
+        
+        width: var(--politician-size);
+        aspect-ratio: 1;
+        transform-origin: center;
+        
+        border-radius: 100%;
+        border-style: none;
+
+        &:where(:hover, :focus, :focus-visible) { opacity: 0.6; }
+
+        &:after {
+            position: absolute;
+            content: '';
+            width: var(--politician-inner-size);
+            aspect-ratio: 1;
+            top: calc((100% - var(--politician-inner-size)) / 2);
+            left: calc((100% - var(--politician-inner-size)) / 2);
+            
+            border-radius: inherit;
+            background-color: var(--color);
+        }
+        
+        &.politician--lead {
+            background-color: black;
+        }
+    }
+}

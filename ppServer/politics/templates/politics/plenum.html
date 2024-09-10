@@ -1,0 +1,33 @@
+{% extends 'base/headed_main.html' %}
+{% load static %}
+
+{% block extra-head %}
+<link rel="stylesheet" href="{% static 'politics/css/plenum.css' %}">
+<style>
+    .main-container :where(h2, h3, h4, h5, h5, span, p) { max-width: 65ch; }
+
+    h2 { margin-bottom: .5em; }
+    * + h2 { margin-top: 1.5em; }
+</style>
+{{ parties|json_script:"parties" }}
+<script src="{% static 'politics/js/plenum.js' %}" defer></script>
+{% endblock %}
+
+{% block main %}
+<h2>Allgemeine Sitzordnung</h2>
+
+<div class="plenum"></div>
+
+<ol>
+    {% for party in parties %}
+    <li style="display: flex; align-items: center; gap: .5em; margin-block: 1em;">
+        <div style="width: 32px; aspect-ratio:1; border-radius: 100%; background-color:{{party.color}}"></div>
+        <span>{{ party.name }} - {{ party.politicians|length }} Sitze</span>
+    </li>
+    {% endfor %}
+</ol>
+
+<h2>1. Gesetz §1</h2>
+{% lorem 5 p %}
+<div class="plenum"></div>
+{% endblock %}
