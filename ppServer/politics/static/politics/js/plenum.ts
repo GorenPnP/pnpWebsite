@@ -16,6 +16,7 @@ interface Party {
     description: string,
     politicians: Politician[],
     color: string,
+    textColor: string,
     rightwing_tendency: number,
 };
 

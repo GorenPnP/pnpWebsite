@@ -1,16 +1,31 @@
-{% extends 'base/main.html' %}
-{% load static %}
-{% block title %}Politiker dublizieren{% endblock %}
-{% block extra-head %}
-<link rel="stylesheet" href="{% static 'auth/css/centered_form.css' %}">{% endblock %}
-{% block main %}
+{% extends "admin/base_site.html" %}
+{% load admin_urls static i18n %}
+
+{% block extrahead %}
+	{{ block.super }}
+	<link rel="stylesheet" href="{% static 'auth/css/centered_form.css' %}">
+{% endblock %}
+
+{% block bodyclass %}{{ block.super }} app-{{ opts.app_label }} model-{{ opts.model_name }} duplicate{% endblock %}
+
+{% if not is_popup %}
+	{% block breadcrumbs %}
+		<div class="breadcrumbs">
+		<a href="{% url 'admin:index' %}">{% translate 'Home' %}</a>
+		&rsaquo; <a href="{% url 'admin:app_list' app_label=opts.app_label %}">{{ opts.app_config.verbose_name }}</a>
+		&rsaquo; {% if has_view_permission %}<a href="{% url opts|admin_urlname:'changelist' %}">{{ opts.verbose_name_plural|capfirst }}</a>{% else %}{{ opts.verbose_name_plural|capfirst }}{% endif %}
+		&rsaquo; {% translate 'Duplicate' %}
+		</div>
+	{% endblock %}
+{% endif %}
+
+{% block content %}
 <div class="text-container">
-	<h1>Politiker dublizieren</h1>
 	<form class='form' method="POST">
 		{% csrf_token %}
 		{{ form.as_p }}
 
-		<button type="submit" class="btn btn-primary">OKAY</button>
+		<input type="submit" value="OKAY">
 	</form>
 </div>
 {% endblock %}

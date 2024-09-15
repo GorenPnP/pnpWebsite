@@ -12,6 +12,7 @@ class Party(models.Model):
 
     rightwing_tendency = models.FloatField(default=0, unique=True)
     color = ColorField(default='#ffffff')
+    textColor = ColorField(default='#000000')
 
     name = models.TextField()
     abbreviation = models.CharField(max_length=10)
@@ -23,6 +24,7 @@ class Party(models.Model):
     def serialize(self):
         fields = [
             "color",
+            "textColor",
             "name",
             "abbreviation",
             "description",

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpRequest
 from django.urls import reverse
 from django.utils.html import format_html
 
@@ -13,16 +13,18 @@ class PoliticianInlineAdmin(admin.TabularInline):
     verbose_name_plural = Politician._meta.verbose_name_plural
 
 class PartyAdmin(admin.ModelAdmin):
-    fields = ["color", "name", "abbreviation", "description", "rightwing_tendency"]
+    fields = ["color", "textColor", "name", "abbreviation", "description", "rightwing_tendency"]
 
-    list_display = ["_color", "name", "abbreviation", "rightwing_tendency"]
-    list_display_links = ["name"]
+    list_display = ["_logo", "name", "rightwing_tendency"]
+    list_display_links = ["_logo", "name"]
 
     inlines = [PoliticianInlineAdmin]
 
-    def _color(self, obj):
-        if not obj.color: return self.get_empty_value_display()
-        return format_html(f'<div style="width: 32px; aspect-ratio:1; border-radius: 100%; background-color:{obj.color}" />')
+    def _logo(self, obj):
+        if not obj.color: return obj.name or self.get_empty_value_display()
+        
+        style = f"background-color:{obj.color}; color:{obj.textColor}; padding: .3em .5em; line-height: 1em; font-size: 1.2rem;"
+        return format_html(f'<div style="{style}"><b>{obj.abbreviation}</b></div>')
 
 
 class PoliticianAdmin(admin.ModelAdmin):
