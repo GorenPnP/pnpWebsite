@@ -186,7 +186,7 @@ class Plenum {
                 </svg>`; break;
         }
 
-        return `<button title="${politician_with_party.party.name} (${politician_with_party.party.abbreviation})"
+        return `<button title="${politician_with_party.name || 'Name fehlt'} (${politician_with_party.genere || 'Genere fehlt'}) - ${politician_with_party.birthyear || 'Geburtsjahr fehlt'}"
             style="--color: ${ politician_with_party.party.textColor }; --bg-color: ${ politician_with_party.party.color }; left: calc(${this.horiz_center}px - var(--politician-size) / 2); top: calc(var(--politician-size) / -2); translate: ${x}px ${y}px; "
             class="politician ${ politician_with_party.is_party_lead ? 'politician--lead' : ''}"
             data-politician='${JSON.stringify(abbr_politician)}'>${svg}

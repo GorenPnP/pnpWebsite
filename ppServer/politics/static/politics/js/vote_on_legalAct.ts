@@ -63,7 +63,7 @@ function construct_politicians(party: Party): void {
           .filter(vote => vote.politician.party === party.id)
           .map(vote => `<li class="list-group-item">
                <div class="party__politician">
-                    ${vote.politician.name}
+                    <span>${vote.politician.name || "<i>Name</i>"} (${vote.politician.genere || "<i>Genere</i>"}) - ${vote.politician.birthyear || "<i>Geburtsjahr</i>"}</span>
                     <div class="party__select-utils">
                          <div class="form-check">
                               <input class="form-check-input" type="radio" ${vote.vote === 'y' ? 'checked' : ''} name="politician-${vote.politician.id}" id="vote-${vote.politician.id}-y" value="y">
