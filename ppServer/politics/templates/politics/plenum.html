@@ -1,33 +1,111 @@
 {% extends 'base/headed_main.html' %}
-{% load static %}
+{% load static politics.votes %}
 
 {% block extra-head %}
 <link rel="stylesheet" href="{% static 'politics/css/plenum.css' %}">
 <style>
-    .main-container :where(h2, h3, h4, h5, h5, span, p) { max-width: 65ch; }
+    .main-container :where(h2, h3, h4, h5, h5, span, p, table) { max-width: 65ch; }
 
     h2 { margin-bottom: .5em; }
     * + h2 { margin-top: 1.5em; }
 </style>
 {{ parties|json_script:"parties" }}
+{{ plenum|json_script:"plenum" }}
+{% for act in legalActs %}
+    {{ act.votes|json_script:act.label }}
+{% endfor %}
 <script src="{% static 'politics/js/plenum.js' %}" defer></script>
 {% endblock %}
 
 {% block main %}
-<h2>Allgemeine Sitzordnung</h2>
+<h2>Allgemeine Sitzverteilung</h2>
+<p>Innerhalb einer Parteibesteht freie Platzwahl für die Abgeordneten. Lediglich die Parteispitzen haben feste Sitzplätze.</p>
 
-<div class="plenum"></div>
+<div class="plenum" data-source="plenum"></div>
 
-<ol>
-    {% for party in parties %}
-    <li style="display: flex; align-items: center; gap: .5em; margin-block: 1em;">
-        <div style="width: 32px; aspect-ratio:1; border-radius: 100%; background-color:{{party.color}}"></div>
-        <span>{{ party.name }} - {{ party.politicians|length }} Sitze</span>
-    </li>
-    {% endfor %}
-</ol>
+<table class="table">
+    <thead>
+        <tr>
+            <th></th>
+            <th>Partei</th>
+            <th>Sitze</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for party in parties %}
+        <tr>
+            <td>
+                <div style="background-color:{{ party.color}}; color:{{ party.textColor}}; padding: .3em .5em; line-height: 1em; font-size: 1.2rem;">
+                    <b>{{ party.abbreviation }}</b>
+                </div>
+            </td>
+            <td>{{ party.name }}</td>
+            <td>{{ party.politicians|length }}</td>
+        </tr>
+        {% endfor %}
+        <tr>
+            <td></td>
+            <td><small><i>gesamt</i></small></td>
+            <td><small><i>{{ plenum|length }}</i></small></td>
+        </tr>
+    </tbody>
+</table>
 
-<h2>1. Gesetz §1</h2>
-{% lorem 5 p %}
-<div class="plenum"></div>
+{% for act in legalActs %}
+    <hr>
+
+    <h2>{{ act.code }} §{{ act.paragraph }}</h2>
+    <p>{{ act.text_rendered|safe }}</p>
+
+    <h3>Abstimmung</h3>
+    {% if not act.voting_done %}<p>Die finale Abstimmung steht noch aus.</p>
+    {% else %}
+        <div class="plenum" data-source="{{ act.label }}"></div>
+
+        <table class="table table--vote-result">
+            <thead>
+                <tr>
+                    <th>Ergebnis</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+                            <!--!Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.-->
+                            <path fill="currentColor" d="M313.4 32.9c26 5.2 42.9 30.5 37.7 56.5l-2.3 11.4c-5.3 26.7-15.1 52.1-28.8 75.2l144 0c26.5 0 48 21.5 48 48c0 18.5-10.5 34.6-25.9 42.6C497 275.4 504 288.9 504 304c0 23.4-16.8 42.9-38.9 47.1c4.4 7.3 6.9 15.8 6.9 24.9c0 21.3-13.9 39.4-33.1 45.6c.7 3.3 1.1 6.8 1.1 10.4c0 26.5-21.5 48-48 48l-97.5 0c-19 0-37.5-5.6-53.3-16.1l-38.5-25.7C176 420.4 160 390.4 160 358.3l0-38.3 0-48 0-24.9c0-29.2 13.3-56.7 36-75l7.4-5.9c26.5-21.2 44.6-51 51.2-84.2l2.3-11.4c5.2-26 30.5-42.9 56.5-37.7zM32 192l64 0c17.7 0 32 14.3 32 32l0 224c0 17.7-14.3 32-32 32l-64 0c-17.7 0-32-14.3-32-32L0 224c0-17.7 14.3-32 32-32z"/>
+                        </svg> Ja
+                    </td>
+                    <td>{{ act.votes|vote:"y" }}%</td>
+                </tr>
+                <tr>
+                    <td>
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+                            <!--!Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.-->
+                            <path fill="currentColor" d="M313.4 479.1c26-5.2 42.9-30.5 37.7-56.5l-2.3-11.4c-5.3-26.7-15.1-52.1-28.8-75.2l144 0c26.5 0 48-21.5 48-48c0-18.5-10.5-34.6-25.9-42.6C497 236.6 504 223.1 504 208c0-23.4-16.8-42.9-38.9-47.1c4.4-7.3 6.9-15.8 6.9-24.9c0-21.3-13.9-39.4-33.1-45.6c.7-3.3 1.1-6.8 1.1-10.4c0-26.5-21.5-48-48-48l-97.5 0c-19 0-37.5 5.6-53.3 16.1L202.7 73.8C176 91.6 160 121.6 160 153.7l0 38.3 0 48 0 24.9c0 29.2 13.3 56.7 36 75l7.4 5.9c26.5 21.2 44.6 51 51.2 84.2l2.3 11.4c5.2 26 30.5 42.9 56.5 37.7zM32 384l64 0c17.7 0 32-14.3 32-32l0-224c0-17.7-14.3-32-32-32L32 96C14.3 96 0 110.3 0 128L0 352c0 17.7 14.3 32 32 32z"/>
+                        </svg> Nein
+                    </td>
+                    <td>{{ act.votes|vote:"n" }}%</td>
+                </tr>
+                <tr>
+                    <td>
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512">
+                            <!--!Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.-->
+                            <path fill="currentColor" d="M342.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192 210.7 86.6 105.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L146.7 256 41.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192 301.3 297.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.3 256 342.6 150.6z"/>
+                        </svg> Enthalten
+                    </td>
+                    <td>{{ act.votes|vote:"e" }}%</td>
+                </tr>
+                <tr>
+                    <td>
+                        Abwesend
+                    </td>
+                    <td>{{ act.votes|vote:"a" }}%</td>
+                </tr>
+            </tbody>
+        </table>
+    {% endif %}
+{% endfor %}
+
 {% endblock %}

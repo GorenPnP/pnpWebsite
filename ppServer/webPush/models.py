@@ -14,6 +14,7 @@ class PushTag(enum.Enum):
     quiz_control = "quiz-control"
     changelog = "changelog"
     polls = "polls"
+    politics = "politics"
 
     other = None
 
@@ -32,6 +33,7 @@ class PushSettings(models.Model):
     quiz = models.BooleanField(default=True, verbose_name="Änderungen im Quiz")
     changelog = models.BooleanField(default=True, verbose_name="Updates der Website")
     polls = models.BooleanField(default=True, verbose_name="neue Umfragen")
+    politics = models.BooleanField(default=True, verbose_name="politische Entscheidungen")
 
     def __str__(self):
         return f"PushSettings von {self.user}"
@@ -47,6 +49,7 @@ class PushSettings(models.Model):
             PushTag.quiz_control: reverse("quiz:sp_modules"),
             PushTag.changelog: reverse("changelog:index"),
             PushTag.polls: reverse("base:index"),
+            PushTag.politics: reverse("politics:plenum"),
 
             PushTag.other: None
         }

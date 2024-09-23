@@ -17,7 +17,7 @@ class RegisterWebPushDeviceForm(forms.ModelForm):
 class PushSettingsForm(forms.ModelForm):
     class Meta:
         model = PushSettings
-        fields = ["chat", "news", "polls", "quiz", "changelog"]
+        fields = ["chat", "news", "polls", "quiz", "changelog", "politics"]
 
 
 class SendMessageForm(forms.Form):

@@ -1,0 +1,96 @@
+{% extends "admin/change_form.html" %}
+{% load admin_urls static i18n django_bootstrap5 %}
+
+{% block extrahead %}
+	{{ block.super }}
+
+	<!-- Easy MDE for text editor -->
+    <link href="{% static 'res/css/easymde@2.18.0.min.css' %}" rel="stylesheet">
+    <link href="{% static 'res/css/easyMDE.css' %}" rel="stylesheet">
+    <script src="{% static 'res/js/easymde@2.18.0.min.js' %}"></script>
+    <script src="{% static 'res/js/markdown_editorconfig.js' %}"></script>
+    
+    <!-- bootstrap -->
+    {% bootstrap_css %}
+    {% bootstrap_javascript %}
+    
+    <link href="{% static 'politics/css/vote_on_legalAct.css' %}" rel="stylesheet">
+    {{ parties|json_script:"parties" }}
+    {{ votes|json_script:"votes" }}
+    <script src="{% static 'politics/js/vote_on_legalAct.js' %}" defer></script>
+{% endblock %}
+
+{% block field_sets %}
+{{ form.as_p }}
+{% endblock %}
+
+{% block after_related_objects %}{{ block.super }}
+<label for="party-votes">Abstimmung:</label>
+<div class="accordion accordion-flush" id="party-votes">
+    {% for party in parties %}
+    <div class="accordion-item">
+        <div class="accordion-header">
+            <button id="header-party-{{ party.id }}" class="accordion-button collapsed party" style="--bs-accordion-btn-bg: {{ party.color }}; --bs-accordion-btn-color: {{ party.textColor }}" type="button" data-bs-toggle="collapse" data-bs-target="#party-{{ party.id }}" aria-expanded="false" aria-controls="party-{{ party.id }}">
+                <div>
+                    <b class="party__abbr">{{ party.abbreviation }}</b>
+                    <small><b class="members"></b> {% translate 'seats' %}</small>
+                </div>
+
+                <div class="party__select-utils">
+                    <div class="form-check">
+                        <input type="checkbox" id="party-{{ party.abbreviation }}-y" class="form-check-input">
+                        <label for="party-{{ party.abbreviation }}-y" class="form-check-label">Ja</label>
+                    </div>
+                    <div class="form-check">
+                        <input type="checkbox" id="party-{{ party.abbreviation }}-n" class="form-check-input">
+                        <label for="party-{{ party.abbreviation }}-n" class="form-check-label">Nein</label>
+                    </div>
+                    <div class="form-check">
+                        <input type="checkbox" id="party-{{ party.abbreviation }}-e" class="form-check-input">
+                        <label for="party-{{ party.abbreviation }}-e" class="form-check-label">Enthalten</label>
+                    </div>
+                    <div class="form-check">
+                        <input type="checkbox" id="party-{{ party.abbreviation }}-a" class="form-check-input">
+                        <label for="party-{{ party.abbreviation }}-a" class="form-check-label">Abwesend</label>
+                    </div>
+                </div>
+            </button>
+        </div>
+        <div id="party-{{ party.id }}" class="accordion-collapse collapse" data-bs-parent="#party-votes">
+            <div class="accordion-body"></div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
+
+{% block submit_buttons_bottom %}{{ block.super}}
+<p>
+    <table class="table table--vote-result">
+        <thead>
+            <tr>
+                <th>Ergebnis</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Ja</td>
+                <td class="vote-result" id="result-y"></td>
+            </tr>
+            <tr>
+                <td>Nein</td>
+                <td class="vote-result" id="result-n"></td>
+            </tr>
+            <tr>
+                <td>Enthalten</td>
+                <td class="vote-result" id="result-e"></td>
+            </tr>
+            <tr>
+                <td>Abwesend</td>
+                <td class="vote-result" id="result-a"></td>
+            </tr>
+        </tbody>
+    </table>
+</p>
+{% endblock %}

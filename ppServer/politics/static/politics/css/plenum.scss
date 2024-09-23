@@ -26,9 +26,13 @@
         border-radius: 100%;
         border-style: none;
 
+        display: flex;
+        justify-content: center;
+        align-items: center;
+
         &:where(:hover, :focus, :focus-visible) { opacity: 0.6; }
 
-        &:after {
+        &:before {
             position: absolute;
             content: '';
             width: var(--politician-inner-size);
@@ -37,11 +41,43 @@
             left: calc((100% - var(--politician-inner-size)) / 2);
             
             border-radius: inherit;
-            background-color: var(--color);
+            background-color: var(--bg-color);
+
+            color: var(--color);
         }
         
         &.politician--lead {
             background-color: black;
         }
+
+        svg {
+            position: absolute;
+            height: 55%;
+            aspect-ratio: 1;
+            z-index: 2;
+        }
     }
+
+}
+
+
+.table--vote-result {
+    svg { height: 1.5em; aspect-ratio: 1; }
+}
+
+/* paper-like background */
+.main-container {
+    background-color: #ddd;
+    font-family: 'EB Garamond', serif;
+    --bs-body-color: black;
+    color: var(--bs-body-color);
+
+    max-width: 700px;
+    border-radius: 3px;
+    padding: .1em 2em;
+    margin: auto;
+
+    p, span, b, i, em { max-width: 70ch; }
+    tr { border-bottom: 1px solid rgba(0, 0, 0, .15); }
+    hr { height: 2px; }
 }

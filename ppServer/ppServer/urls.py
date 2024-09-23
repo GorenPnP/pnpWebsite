@@ -16,11 +16,23 @@ Including another URLconf
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
-from django.views.generic.base import TemplateView
+from django.views.generic.base import TemplateView, RedirectView
 from django.urls import include, path
 
+class LegalActUpdateRedirectView(RedirectView):
+    permanent = True
+    query_string = True
+    pattern_name = "politics:admin-vote-on-legalAct"
+
+    def get_redirect_url(self, *args, **kwargs):
+        url = super().get_redirect_url(kwargs["pk"])
+        print(url)
+        return url
 
 urlpatterns = [
+    # custom admin-update view
+    path('admin/politics/legalact/<int:pk>/change/', LegalActUpdateRedirectView.as_view()),
+
     path('admin/', admin.site.urls),
     path('auth/', include('auth_custom.urls')),
     path('accounts/', include('auth_custom.urls')),

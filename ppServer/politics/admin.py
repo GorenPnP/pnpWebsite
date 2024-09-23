@@ -3,6 +3,8 @@ from django.http import HttpResponseRedirect, HttpRequest
 from django.urls import reverse
 from django.utils.html import format_html
 
+from markdownfield.widgets import MDEAdminWidget
+
 from .models import *
 
 class PoliticianInlineAdmin(admin.TabularInline):
@@ -28,9 +30,9 @@ class PartyAdmin(admin.ModelAdmin):
 
 
 class PoliticianAdmin(admin.ModelAdmin):
-    fields = ["portrait", "name", "is_party_lead", "party", "genere", "birthyear"]
+    fields = ["portrait", "name", "is_party_lead", "party", "member_of_parliament", "genere", "birthyear"]
 
-    list_display = ["_portrait", "name", "is_party_lead", "party", "genere", "birthyear"]
+    list_display = ["_portrait", "name", "is_party_lead", "party", "member_of_parliament", "genere", "birthyear"]
     list_display_links = ["name"]
     actions = ["duplicate_selected"]
     list_filter = ["party", "is_party_lead"]
@@ -45,5 +47,39 @@ class PoliticianAdmin(admin.ModelAdmin):
         return HttpResponseRedirect(reverse("politics:admin-duplicate-politicians") + f"?ids={','.join(str(pk) for pk in selected)}")
 
 
+class LegalActAdmin(admin.ModelAdmin):
+    """ uses 'politics:admin-vote-on-legalAct' as detail/update view, see ppServer/urls.py """
+    class Media:
+        css = {
+            "all": ["res/css/easyMDE.css"],
+        }
+
+    fields = ["code", "paragraph", "text", "voting_done"]
+    list_display = ["code", "paragraph", "_text", "voting_done"]
+    list_display_links = []
+
+    def _text(self, obj):
+        return format_html(obj.text_rendered) if obj.text else self.get_empty_value_display()
+
+    # use md-editor for a(ll) TextFields
+    formfield_overrides = {
+        models.TextField: {"widget": MDEAdminWidget(options={
+        "spellChecker": False,
+        "toolbar": [
+            "undo", "redo", "|",
+            "bold", "italic", "heading-1", "heading-2", "heading-3", "|",
+            "unordered-list", "ordered-list", "table", "|",
+            "link", "quote", "|",
+            "guide"
+        ]
+        })},
+    }
+
+    
+    def has_module_permission(self, request: HttpRequest) -> bool:
+        return request.spieler.is_spielleiter
+
+
 admin.site.register(Party, PartyAdmin)
 admin.site.register(Politician, PoliticianAdmin)
+admin.site.register(LegalAct, LegalActAdmin)
