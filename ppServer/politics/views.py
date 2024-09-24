@@ -145,7 +145,7 @@ class VoteOnLegalActFormview(VerifiedAccountMixin, SpielleiterOnlyMixin, DetailV
             return redirect(reverse(f'{base}_change', args=[self.object.id]))
 
 
-class PlenumOverview(VerifiedAccountMixin, SpielleiterOnlyMixin, TemplateView):
+class PlenumOverview(VerifiedAccountMixin, TemplateView):
     template_name = "politics/plenum.html"
 
     def get_queryset(self) -> QuerySet[Any]:
