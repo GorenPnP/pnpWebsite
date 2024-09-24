@@ -20,7 +20,7 @@ interface Party {
     politicians: number[],
     color: string,
     textColor: string,
-    rightwing_tendency: number,
+    leftwing_tendency: number,
 };
 
 interface PartyWithPercentage extends Party {
@@ -36,7 +36,7 @@ interface PoliticianWithParty extends Politician {
 
 // important DOM things
 const parties = (JSON.parse(document.querySelector("#parties")!.innerHTML) as Party[])
-    .sort((a, b) => Math.sign(b.rightwing_tendency - a.rightwing_tendency));
+    .sort((a, b) => Math.sign(b.leftwing_tendency - a.leftwing_tendency));
 
 
 class Plenum {
@@ -61,7 +61,7 @@ class Plenum {
         this.politicians = ((JSON.parse(document.querySelector(datasource)!.innerHTML) || [])  as PoliticianWithPartyId[])
             .map(pol => ({ ...pol, party: parties.find(party => party.id === pol.party)! }))
             .sort((a, b) => {
-                if (a.party.rightwing_tendency !== b.party.rightwing_tendency) return Math.sign(b.party.rightwing_tendency - a.party.rightwing_tendency);
+                if (a.party.leftwing_tendency !== b.party.leftwing_tendency) return Math.sign(b.party.leftwing_tendency - a.party.leftwing_tendency);
                 if (a.is_party_lead !== b.is_party_lead) return a.is_party_lead ? -1 : 1;
                 return a.name < b.name ? -1 : 1;
             });

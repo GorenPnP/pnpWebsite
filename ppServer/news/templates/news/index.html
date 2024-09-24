@@ -15,7 +15,11 @@
             {% endfor %}
         </ul>
 
-        <h2><a href="{% url 'politics:plenum' %}">Politik</a></h2>
+        <h2>Politik</h2>
+        <ul>
+            <li><a href="{% url 'politics:plenum' %}">Apaxus aktuell und Abstimmungen</a></li>
+            <li><a href="{% url 'politics:party-programs' %}">Wahlprogramme</a></li>
+        </ul>
     </nav>
 
     <hr>

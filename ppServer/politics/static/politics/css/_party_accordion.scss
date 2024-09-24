@@ -1,0 +1,33 @@
+.party {
+    color: var(--bs-accordion-btn-color);
+
+    --bs-accordion-btn-focus-box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    --bs-accordion-active-color: var(--bs-accordion-btn-color);
+    --bs-accordion-active-bg: var(--bs-accordion-btn-bg);
+    --bs-accordion-btn-active-icon: var(--bs-accordion-btn-icon);
+
+    --bs-accordion-btn-focus-border-color: black;
+
+    .party__abbr {
+        font-size: 1.2rem;
+        padding-block: .3em;
+        line-height: 1em;
+    }
+
+    // color accordion button
+    &.accordion-button::after {
+        background-image: none;
+        mask-image:  url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' %3e%3cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3e%3c/svg%3e");
+        mask-repeat: no-repeat;
+        background-color: var(--bs-accordion-btn-color);
+    }
+    &.accordion-button:disabled::after {
+        filter: opacity(35%);
+    }
+
+    // focus styles
+    &:focus {
+        --bs-accordion-btn-focus-box-shadow: 0 0 0 .25rem rgba(180,180,180,.5);
+        box-shadow: var(--bs-accordion-btn-focus-box-shadow);
+    }
+}

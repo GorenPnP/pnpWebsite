@@ -1,0 +1,32 @@
+{% extends 'base/headed_main.html' %}
+{% load static i18n %}
+
+{% block extra-head %}
+<link href="{% static 'politics/css/party_program.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block main %}
+<div class="accordion" id="party-programs">
+    {% for party in object_list %}
+    <div class="accordion-item">
+        <div class="accordion-header">
+            <button id="header-party-{{ party.id }}" class="accordion-button collapsed party" style="--bs-accordion-btn-bg: {{ party.color }}; --bs-accordion-btn-color: {{ party.textColor }}" type="button" data-bs-toggle="collapse" data-bs-target="#party-{{ party.id }}" aria-expanded="false" aria-controls="party-{{ party.id }}">
+                <div>
+                    <b class="party__abbr">{{ party.abbreviation }}</b>
+                </div>
+            </button>
+        </div>
+        <div id="party-{{ party.id }}" class="accordion-collapse collapse" data-bs-parent="#party-programs">
+            <div class="accordion-body">
+                {% if party.program %}
+                    {{ party.program_rendered|safe }}
+                {% else %}
+                    <i>{% translate 'Kein Wahlprogramm verfügbar' %}</i>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{% endblock %}

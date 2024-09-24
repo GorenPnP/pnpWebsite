@@ -8,6 +8,7 @@ from django.db.models.query import QuerySet
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.generic import DetailView
 from django.views.generic.base import TemplateView
+from django.views.generic.list import ListView
 from django.urls import reverse
 from django.utils.translation import gettext as _
 
@@ -152,7 +153,6 @@ class PlenumOverview(VerifiedAccountMixin, TemplateView):
         return Party.objects.prefetch_related("politician_set")\
             .annotate(
                 politician_count=Count(F("politician"), filter=Q(politician__member_of_parliament=True)),
-                lead_count=Count(F("politician"), filter=Q(politician__is_party_lead=True) & Q(politician__member_of_parliament=True)),
             )\
             .order_by("-politician_count", "name")
     
@@ -164,7 +164,7 @@ class PlenumOverview(VerifiedAccountMixin, TemplateView):
         
         serialized_acts = []
         for act in qs:
-            votes = [{"vote": vote.vote, **vote.politician.serialize()} for vote in act.politicianvote_set.filter(politician__member_of_parliament=True)]
+            votes = [{"vote": vote.vote, **vote.politician.serialize()} for vote in act.politicianvote_set.prefetch_related("politician__party").filter(politician__member_of_parliament=True)]
             serialized_acts.append({
                 "label": f"act_{act.id}",
                 **act.serialize(),
@@ -174,14 +174,29 @@ class PlenumOverview(VerifiedAccountMixin, TemplateView):
 
 
     def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
-        plenum = [pol.serialize() for pol in Politician.objects.filter(member_of_parliament=True)]
+        plenum = [pol.serialize() for pol in Politician.objects.prefetch_related("party").filter(member_of_parliament=True)]
 
         return super().get_context_data(
             **kwargs,
             topic = "Apaxus' Abstimmungen",
             app_index = "Politik",
-            parties = [p.serialize() for p in self.get_queryset()],
+            parties = [{**p.serialize(), "politician_count": p.politician_count} for p in self.get_queryset()],
             plenum = plenum,
             legalActs = self.get_legalAct_queryset(),
-            app_index_url = '' #reverse("politics:index"),
+            app_index_url = '',
+            plus = 'Parteiprogramme',
+            plus_url = reverse("politics:party-programs"),
+        )
+
+
+class ProgramsListview(VerifiedAccountMixin, ListView):
+    template_name = "politics/party_program.html"
+    model = Party
+
+    def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
+        return super().get_context_data(
+            **kwargs,
+            topic = "Wahlprogramme",
+            app_index = "Politik",
+            app_index_url = reverse("politics:plenum"),
         )

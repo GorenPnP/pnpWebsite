@@ -40,7 +40,7 @@
                 </div>
             </td>
             <td>{{ party.name }}</td>
-            <td>{{ party.politicians|length }}</td>
+            <td>{{ party.politician_count }}</td>
         </tr>
         {% endfor %}
         <tr>
@@ -50,6 +50,11 @@
         </tr>
     </tbody>
 </table>
+
+<hr>
+<h2>Parteiprogramme</h2>
+<a class="text-dark" href="{% url 'politics:party-programs' %}">zu den aktuellen Parteiprogrammen aller politischen Parteien -></a>
+
 
 {% for act in legalActs %}
     <hr>

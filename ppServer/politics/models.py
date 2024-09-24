@@ -10,15 +10,16 @@ class Party(models.Model):
         verbose_name = "Partei"
         verbose_name_plural = "Parteien"
 
-        ordering = ["rightwing_tendency", "name"]
+        ordering = ["leftwing_tendency", "name"]
 
-    rightwing_tendency = models.FloatField(default=0, unique=True)
+    leftwing_tendency = models.FloatField(default=0, unique=True)
     color = ColorField(default='#ffffff')
     textColor = ColorField(default='#000000')
 
     name = models.TextField()
     abbreviation = models.CharField(max_length=10)
-    description = models.TextField(null=True, blank=True)
+    program = MarkdownField(rendered_field='program_rendered', validator=VALIDATOR_STANDARD, null=True, blank=True)
+    program_rendered = RenderedMarkdownField(null=True)
 
     def __str__(self):
         return self.abbreviation or self.name
@@ -30,8 +31,8 @@ class Party(models.Model):
             "textColor",
             "name",
             "abbreviation",
-            "description",
-            "rightwing_tendency",
+            "program_rendered",
+            "leftwing_tendency",
         ]
         return {
             **{field: getattr(self, field) for field in fields},

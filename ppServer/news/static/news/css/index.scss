@@ -22,6 +22,6 @@ article, .table-of-content {
 
 .categories {
     display: flex;
-    gap: .5em;
+    gap: calc(var(--bs-gutter-x) + 0.5em);
     margin: 1em 0;
 }

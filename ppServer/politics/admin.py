@@ -15,9 +15,9 @@ class PoliticianInlineAdmin(admin.TabularInline):
     verbose_name_plural = Politician._meta.verbose_name_plural
 
 class PartyAdmin(admin.ModelAdmin):
-    fields = ["color", "textColor", "name", "abbreviation", "description", "rightwing_tendency"]
+    fields = ["color", "textColor", "name", "abbreviation", "program", "leftwing_tendency"]
 
-    list_display = ["_logo", "name", "rightwing_tendency"]
+    list_display = ["_logo", "name", "leftwing_tendency"]
     list_display_links = ["_logo", "name"]
 
     inlines = [PoliticianInlineAdmin]
@@ -28,6 +28,23 @@ class PartyAdmin(admin.ModelAdmin):
         style = f"background-color:{obj.color}; color:{obj.textColor}; padding: .3em .5em; line-height: 1em; font-size: 1.2rem;"
         return format_html(f'<div style="{style}"><b>{obj.abbreviation}</b></div>')
 
+    @admin.display(ordering="text_rendered")
+    def _program(self, obj):
+        return format_html(obj.program_rendered)
+    
+        # use md-editor for a(ll) TextFields
+    formfield_overrides = {
+        "program": {"widget": MDEAdminWidget(options={
+        "spellChecker": False,
+        "toolbar": [
+            "undo", "redo", "|",
+            "bold", "italic", "heading-1", "heading-2", "heading-3", "|",
+            "unordered-list", "ordered-list", "table", "|",
+            "link", "quote", "|",
+            "guide"
+        ]
+        })},
+    }
 
 class PoliticianAdmin(admin.ModelAdmin):
     fields = ["portrait", "name", "is_party_lead", "party", "member_of_parliament", "genere", "birthyear"]
