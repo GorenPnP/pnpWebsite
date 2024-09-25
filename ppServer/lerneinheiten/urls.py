@@ -11,6 +11,7 @@ urlpatterns = [
     
     path('editor', views_sp.EditorIndexView.as_view(), name='editor_index'),
     path('editor/<int:pk>', views_sp.EditorPageView.as_view(), name='editor_page'),
+    path('access/', views_sp.AccessPageView.as_view(), name='access'),
     
     path('editor/new_einheit', views_sp.new_einheit, name='new_einheit'),
     path('editor/edit_einheit/<int:pk>', views_sp.edit_einheit, name='edit_einheit'),

@@ -222,6 +222,27 @@
         </div>
     </div>
 
+    <!-- lerneinheiten -->
+    {% if request.spieler.is_spielleiter or 'LARP-ler' in request.spieler.groups %}
+    <div class="card" id="lerneinheiten" onclick="registerForWebPush(false)">
+        <a href="{% url 'lerneinheiten:index' %}">
+            <div class="card__icon bg-primary">
+                <img class="card__icon__img" src="{% static 'res/img/icon-book.png' %}">
+            </div>
+        </a>
+        <div class="card__container text-bg-dark">
+            <h2 class="card__heading">LARP</h2>
+            <p class="card__text">
+                Die sicherste MFHS des Goren wartet auf dich!
+            </p>
+            <div class="btns">
+                {% if request.spieler.is_spielleiter %}<a href="{% url 'lerneinheiten:editor_index' %}" class="btn btn-primary">zum Editor</a>{% endif %}
+                {% 'LARP-ler' in request.spieler.groups %}<a href="{% url 'lerneinheiten:index' %}" class="btn btn-primary">Lets LARP!</a>{% endif %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
     <!-- quiz -->
     <div class="card" id="quiz" onclick="registerForWebPush(false)">
         <a href="{% url 'quiz:index' %}">

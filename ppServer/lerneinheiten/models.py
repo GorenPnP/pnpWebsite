@@ -95,6 +95,18 @@ class Page(models.Model):
         return f"#{self.einheit.number}.{self.number} {self.titel}"
 
 
+
+class SpielerEinheit(models.Model):
+    class Meta:
+        unique_together = [("spieler", "einheit")]
+
+    spieler = models.ForeignKey(Spieler, on_delete=models.CASCADE)
+    einheit = models.ForeignKey(Einheit, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"{self.einheit} - {self.spieler}"
+
+
 class SpielerPage(models.Model):
     class Meta:
         ordering = ["spieler", "page"]

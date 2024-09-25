@@ -1,0 +1,42 @@
+{% extends 'base/headed_main.html' %}
+{% load static %}
+
+{% block extra-head %}
+{{ spieler_einheiten|json_script:"spieler_einheiten" }}
+<style>
+    #einheiten_list { width: fit-content; }
+</style>
+<script src="{% static 'lerneinheiten/js/access.js' %}" defer></script>
+{% endblock %}
+
+{% block main %}
+<form method="POST" id="form">
+    {% csrf_token %}
+    
+    <label for="spieler-select">Spieler:</label>
+    <select id="spieler-select" name="spieler" required>
+        <option selected disabled value="">---------</option>
+        {% for spieler in object_list %}
+        <option value="{{ spieler.pk }}">{{ spieler.name }}</option>
+        {% endfor %}
+    </select>
+
+    <input name="einheiten" hidden>
+    
+    <ul class="list-group" id="einheiten_list">
+        {% for einheit in einheiten %}
+        <li class="list-group-item">
+            <input type="checkbox" id="einheit-{{ einheit.pk }}" class="form-check-input me-1">
+            <label for="einheit-{{ einheit.pk }}">#{{ einheit.number }} {{ einheit.titel }}</label>
+        </li>
+        {% endfor %}
+    </ul>
+</form>
+{% endblock %}
+
+{% block footer %}
+{{ block.super }}
+<footer class="sticky-footer bg-dark p-2">
+    <button class="btn btn-primary d-block m-auto" type="submit" form="form">Speichern</button>
+</footer>
+{% endblock %}

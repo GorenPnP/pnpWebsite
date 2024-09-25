@@ -2,6 +2,8 @@ import json
 from typing import Any
 
 from django.contrib import messages
+from django.contrib.auth.models import User
+from django.db.models import OuterRef, Exists
 from django.db.models.query import QuerySet
 from django.http.response import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, reverse
@@ -117,6 +119,47 @@ class EditorPageView(VerifiedAccountMixin, SpielleiterOnlyMixin, DetailView):
             messages.error(request, "Änderungen konnten nicht gespeichert werden")
 
         return redirect(request.build_absolute_uri())
+
+
+class AccessPageView(VerifiedAccountMixin, SpielleiterOnlyMixin, ListView):
+    model = Spieler
+    template_name = "lerneinheiten/sp/access.html"
+
+    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
+        spieler_qs = Spieler.objects.prefetch_related("spielereinheit_set__einheit")\
+            .filter(
+                Exists(User.objects.filter(username=OuterRef("name"), groups__name="LARP-ler")),
+                Exists(SpielerEinheit.objects.filter(spieler=OuterRef("pk")))
+            )
+
+        return super().get_context_data(
+            **kwargs,
+            topic = "Freigaben",
+            app_index = "LARP",
+            app_index_url = reverse("lerneinheiten:index"),
+            einheiten = Einheit.objects.all(),
+            spieler_einheiten = {spieler.pk: list(spieler.spielereinheit_set.values_list("einheit__pk", flat=True)) for spieler in spieler_qs}
+        )
+
+    def get_queryset(self) -> QuerySet[Any]:
+        return super().get_queryset()\
+            .filter(
+                Exists(User.objects.filter(username=OuterRef("name"), groups__name="LARP-ler")),
+            )\
+            .prefetch_related("spielereinheit_set__einheit")
+
+    def post(self, request, **kwargs):
+        spieler = get_object_or_404(Spieler, pk=request.POST.get("spieler"))
+        einheiten = Einheit.objects.filter(pk__in=json.loads(request.POST.get("einheiten")))
+
+        # delete old
+        SpielerEinheit.objects.filter(spieler=spieler).exclude(einheit__pk__in=einheiten).delete()
+        
+        # create new
+        for einheit in Einheit.objects.filter(pk__in=einheiten).exclude(Exists(SpielerEinheit.objects.filter(spieler=spieler, einheit__pk=OuterRef("pk")))):
+            SpielerEinheit.objects.create(spieler=spieler, einheit=einheit)
+
+        return redirect("lerneinheiten:access")
 
 
 @require_POST

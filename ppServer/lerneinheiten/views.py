@@ -1,7 +1,9 @@
 import json
-from typing import Any
+from typing import Any, Optional
 
 from django.contrib import messages
+from django.contrib.auth.mixins import UserPassesTestMixin
+from django.db.models import Exists, OuterRef
 from django.db.models.query import QuerySet
 from django.shortcuts import redirect
 from django.views.decorators.http import require_POST
@@ -28,15 +30,25 @@ class IndexView(VerifiedAccountMixin, LARPlerOnlyMixin, ListView):
 
     def get_queryset(self) -> QuerySet[Any]:
         return super().get_queryset()\
-            .prefetch_related("page_set", "fach")
+            .prefetch_related("page_set", "fach")\
+            .filter(Exists(SpielerEinheit.objects.filter(spieler=self.request.spieler.instance, einheit=OuterRef("pk"))))
 
 
-class PageView(VerifiedAccountMixin, LARPlerOnlyMixin, DetailView):
+class PageView(VerifiedAccountMixin, LARPlerOnlyMixin, UserPassesTestMixin, DetailView):
     model = Page
     template_name = "lerneinheiten/spieler/page/_default.html"
 
     def get_template_names(self) -> list[str]:
         return [f"lerneinheiten/spieler/page/{self.object.get_type_display().lower()}.html"] + super().get_template_names()
+
+
+    def test_func(self) -> Optional[bool]:
+        return SpielerEinheit.objects.filter(spieler=self.request.spieler.instance, einheit__pk=self.kwargs["pk"]).exists()
+
+    def handle_no_permission(self):
+        return redirect("lerneinheiten:index")
+
+
 
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         context = super().get_context_data(
