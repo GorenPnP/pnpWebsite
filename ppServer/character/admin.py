@@ -30,7 +30,7 @@ class WissenFertInLine(admin.TabularInline):
 
 
 class SpielerAdmin(admin.ModelAdmin):
-    fields = ["name", "geburtstag", "language_daemonisch"]
+    fields = ["name", "geburtstag", "language"]
     list_display = ["name", "geburtstag"]
 
 

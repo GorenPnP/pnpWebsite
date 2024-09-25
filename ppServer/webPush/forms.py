@@ -38,10 +38,4 @@ class SendMessageForm(forms.Form):
 class GeneralSettingsForm(forms.ModelForm):
     class Meta:
         model = Spieler
-        fields = ["language_daemonisch"]
-        widgets = {
-            "language_daemonisch": forms.Select(choices=((False, "Gemeinsprache"), (True, "Dämonisch"))),
-        }
-        labels = {
-            "language_daemonisch": "Sprache",
-        }
+        fields = ["language"]

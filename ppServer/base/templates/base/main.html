@@ -31,14 +31,51 @@
 		<link rel="stylesheet" href="{% static 'base/css/scrolling_header.css' %}" type="text/css">
 		<script src="{% static 'base/js/scrolling_header.js' %}" defer></script>
 
-		<!-- language dämonisch -->
-		{% if request.spieler.instance.language_daemonisch %}
+		<!-- fonts -->
 		<style>
+			@import url('https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,500;1,600;1,700;1,800&display=swap');
+
+			@font-face {
+				font-family: Army;
+				src: url('/static/res/fonts/army_rust.ttf')  format("truetype");
+			}
+			@font-face {
+				font-family: Underwood;
+				src: url('/static/res/fonts/underwood_champion.ttf')  format("truetype");
+			}
 			@font-face {
 				font-family: Daemonisch;
 				src: url('/static/res/fonts/daemonisch-bold.otf')  format("opentype");
 			}
-			:root { --bs-font-sans-serif: 'Daemonisch', 'Montserrat', sans-serif; }
+			@font-face {
+				font-family: Hochelfisch;
+				src: url('/static/res/fonts/Roots-Regular.otf')  format("opentype");
+				font-weight: normal;
+				font-style: normal;
+			}
+			@font-face {
+				font-family: Hochelfisch;
+				src: url('/static/res/fonts/Roots-Flow.otf')  format("opentype");
+				font-weight: normal;
+				font-style: italic;
+			}
+		</style>
+		<!-- language dämonisch -->
+		{% if request.spieler.instance.language == 'd' %}
+		<style>
+			:root {
+				--font-custom: 'Daemonisch';
+				--bs-font-sans-serif: var(--font-custom);
+			}
+		</style>
+		{% endif %}
+		<!-- language hochelfisch -->
+		{% if request.spieler.instance.language == 'e' %}
+		<style>
+			:root {
+				--font-custom: 'Hochelfisch';
+				--bs-font-sans-serif: var(--font-custom);
+			}
 		</style>
 		{% endif %}
 

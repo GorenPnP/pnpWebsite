@@ -9,7 +9,7 @@ textarea {
 	line-height: 1.7em;
 	resize: none;
 	overflow: hidden;
-	font-family: 'Montserrat', sans-serif;
+	font-family: var(--font-custom, 'Montserrat', sans-serif);
 }
 
 @media only screen and (max-width: 527px) {

@@ -35,10 +35,16 @@ class Spieler(models.Model):
         ordering = ['name']
         verbose_name_plural = "Spieler"
 
+    LANGUAGE_ENUM = [
+        ('g', 'Gemeinsprache'),
+        ('d', 'Dämonisch'),
+        ('e', 'Hochelfisch'),
+    ]
+
     name = models.CharField(max_length=200, default='default')
     geburtstag = models.DateField(null=True, blank=True)
 
-    language_daemonisch = models.BooleanField(default=False, blank=False, null=False)
+    language = models.CharField(max_length=1, choices=LANGUAGE_ENUM, default=LANGUAGE_ENUM[0][0], verbose_name="Sprache")
 
     def __str__(self):
         """ shown e.g. in dropdown as foreign key """

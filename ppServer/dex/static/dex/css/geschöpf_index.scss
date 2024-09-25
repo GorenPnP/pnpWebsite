@@ -1,10 +1,5 @@
-@font-face {
-    font-family: Underwood;
-    src: url('/static/res/fonts/underwood_champion.ttf')  format("truetype");
-}
-
 main {
-    font-family: Underwood, monospace;
+    font-family: var(--font-custom, Underwood, monospace);
 }
 
 .geschöpf-link {
