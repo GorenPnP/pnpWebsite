@@ -237,7 +237,7 @@
             </p>
             <div class="btns">
                 {% if request.spieler.is_spielleiter %}<a href="{% url 'lerneinheiten:editor_index' %}" class="btn btn-primary">zum Editor</a>{% endif %}
-                {% 'LARP-ler' in request.spieler.groups %}<a href="{% url 'lerneinheiten:index' %}" class="btn btn-primary">Lets LARP!</a>{% endif %}
+                {% if 'LARP-ler' in request.spieler.groups %}<a href="{% url 'lerneinheiten:index' %}" class="btn btn-primary">Lets LARP!</a>{% endif %}
             </div>
         </div>
     </div>
