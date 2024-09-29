@@ -19,9 +19,6 @@
     <h2>{{ object.titel|default:'' }}</h2>
     <p class="markdown--lücken" data-text="{{ object.content.text|default:'' }}"></p>
 
-    <label for="remaining-items">übrige Items</label>
-    <ul id="remaining-items" class="sortable-list list-group" data-category=""></ul>
-
     <form id="form" method="post">
         {% csrf_token %}
         {{ form.as_p }}

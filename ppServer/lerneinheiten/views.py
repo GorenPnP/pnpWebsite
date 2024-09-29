@@ -43,7 +43,7 @@ class PageView(VerifiedAccountMixin, LARPlerOnlyMixin, UserPassesTestMixin, Deta
 
 
     def test_func(self) -> Optional[bool]:
-        return SpielerEinheit.objects.filter(spieler=self.request.spieler.instance, einheit__pk=self.kwargs["pk"]).exists()
+        return SpielerEinheit.objects.filter(spieler=self.request.spieler.instance, einheit__page__id=self.kwargs["pk"]).exists()
 
     def handle_no_permission(self):
         return redirect("lerneinheiten:index")
