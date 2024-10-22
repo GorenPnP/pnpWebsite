@@ -7,4 +7,3 @@ class DexConfig(AppConfig):
 
     def ready(self):
         import dex.monster.admin
-        import dex.monster.signals

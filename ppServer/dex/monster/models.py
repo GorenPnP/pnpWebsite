@@ -369,9 +369,12 @@ class SpielerMonster(models.Model):
             pool = [p for p in pool if p not in polls]
 
         # increase polled stats
+        stats = []
         for stat in self.rangstat_set.filter(stat__in=polls):
             stat.wert += 1
-            stat.save(update_fields=["wert"])
+            stats.append(stat)
+
+        RangStat.objects.bulk_update(stats, fields=["wert"])
 
 
     class RangManager(models.Manager):

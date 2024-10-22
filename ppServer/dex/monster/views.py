@@ -1,3 +1,4 @@
+from random import sample
 from typing import Any, Dict
 
 from django.contrib import messages
@@ -47,6 +48,37 @@ class MonsterDetailView(VerifiedAccountMixin, DetailView):
         else:
             return SpielerMonsterForm(**kwargs)
 
+    def _skill_spmo(self, instance: SpielerMonster, keep_attacks: bool):
+
+        # create stats & get skilled
+        stats = RangStat.objects.bulk_create([
+            RangStat(stat=stat, spielermonster=instance)
+            for (stat, _) in RangStat.StatType
+        ])
+        skilled_at_stat_pks = [stats[i].pk for i in sample(range(len(RangStat.StatType)), RangStat.AMOUNT_SKILLED)]
+        RangStat.objects.filter(pk__in=skilled_at_stat_pks).update(skilled=True)
+
+        # rank-up stats :)
+        for _ in range(instance.rang): instance.level_up()
+
+        # .. attackenpunkte
+        instance.attackenpunkte = sum(MonsterRang.objects.filter(rang__lte=instance.rang).values_list("attackenpunkte", flat=True))
+        instance.save(update_fields=["attackenpunkte"])
+
+
+        # assign attacks
+
+        # spielleiter may keep the original attacks
+        attacks = instance.monster.attacken.all()
+        # .. otherwise assign random attacks
+        if not keep_attacks:
+            free_attacks = instance.monster.attacken.exclude(draft=True).filter(cost=0)
+            attacks = sample(list(free_attacks), 2) if attacks.count() > 2 else list(free_attacks)
+
+        SpielerMonsterAttack.objects.bulk_create([
+            SpielerMonsterAttack(spieler_monster=instance, attacke=attack, cost=0)
+            for attack in attacks
+        ])
 
     def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
         context = super().get_context_data(
@@ -99,12 +131,7 @@ class MonsterDetailView(VerifiedAccountMixin, DetailView):
             obj.spieler = spieler
             if obj.name == monster.name: obj.name = None
             obj.save()
-
-            # spielleiter may keep the original attacks
-            if self.request.spieler.is_spielleiter and "keep_attacks" in form.cleaned_data and form.cleaned_data["keep_attacks"]:
-                obj.attacken.all().delete()
-                for attack in monster.attacken.all():
-                    SpielerMonsterAttack.objects.get_or_create(spieler_monster=obj, attacke=attack, defaults={"cost": 0})
+            self._skill_spmo(obj, self.request.spieler.is_spielleiter and "keep_attacks" in form.cleaned_data and form.cleaned_data["keep_attacks"])
 
             messages.success(request, format_html(f"<b>{obj.name or monster.name}</b> ist in deiner <a class='text-light' href='{reverse('dex:monster_farm')}'>Monster-Farm</a> eingetroffen."))
         else:

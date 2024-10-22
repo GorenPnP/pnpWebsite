@@ -7,7 +7,6 @@ from django.http.response import HttpResponse
 from django.utils.html import format_html
 
 from dex.management.commands.calc_attack_cost import cost_estimate
-from ppServer.utils import get_filter
 
 from .models import *
 
@@ -192,20 +191,10 @@ class SpielerMonsterAttackInlineAdmin(admin.TabularInline):
     def has_delete_permission(self, *args, **kwargs) -> bool:
         return False
 
-class SpielerMonsterAdmin(admin.ModelAdmin):
-
-    list_display = ['spieler', 'name', 'monster', 'rang', "attackenpunkte"]
-
-    list_filter = [get_filter(Spieler, "name", ["spieler__name"]), "monster"]
-    search_fields = ['spieler__name", "monster__name']
-
-    fields = ['spieler', "monster", "name", "rang", "attackenpunkte"]
-    inlines = [StatInlineAdmin, SpielerMonsterAttackInlineAdmin]
 
 
 admin.site.register(Typ, TypAdmin)
 admin.site.register(Monster, MonsterAdmin)
-admin.site.register(SpielerMonster, SpielerMonsterAdmin)
 admin.site.register(MonsterTeam, MonsterTeamAdmin)
 admin.site.register(Attacke, AttackeAdmin)
 admin.site.register(MonsterRang, MonsterRangAdmin)
