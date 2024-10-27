@@ -115,7 +115,7 @@ class GfsAdmin(admin.ModelAdmin):
 
     @admin.display(ordering="wesenkraftnames")
     def wesenkraft_(self, obj):
-        return obj.nachteilnames or self.get_empty_value_display()
+        return obj.wesenkraftnames or self.get_empty_value_display()
 
 
 
@@ -125,6 +125,18 @@ class GfsAdmin(admin.ModelAdmin):
 class GfsStufenplanBaseAdmin(admin.ModelAdmin):
     list_display = ["stufe", "ep", "ap", "fp", "fg", "tp"]
     list_editable = ["ep", "ap", "fp", "fg", "tp"]
+
+class GfsStufenplanAdmin(admin.ModelAdmin):
+    list_display = ["stufe", "gfs", "_vorteile", "_wesenkräfte", "zauber", "ability"]
+    list_filter = ["basis__stufe", "gfs"]
+
+    @admin.display(ordering="basis__stufe")
+    def stufe(self, obj):
+        return obj.basis.stufe
+    def _vorteile(self, obj):
+        return ",".join([e.__str__() for e in obj.vorteile.all()]) or self.get_empty_value_display()
+    def _wesenkräfte(self, obj):
+        return ",".join([e.__str__() for e in obj.wesenkräfte.all()]) or self.get_empty_value_display()
 
 
 class GfsAbilityAdmin(admin.ModelAdmin):
