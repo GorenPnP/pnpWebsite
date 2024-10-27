@@ -123,6 +123,7 @@ class Effect(AbstractEffect):
     source_talent = models.ForeignKey("character.Talent", on_delete=models.CASCADE, null=True, blank=True)
     source_gfsAbility = models.ForeignKey("character.GfsAbility", on_delete=models.CASCADE, null=True, blank=True)
     source_klasse = models.ForeignKey("character.Klasse", on_delete=models.CASCADE, null=True, blank=True)
+    source_klasseAbility = models.ForeignKey("character.KlasseAbility", on_delete=models.CASCADE, null=True, blank=True)
 
     source_shopBegleiter = models.ForeignKey("shop.Begleiter", on_delete=models.CASCADE, null=True, blank=True)
     source_shopMagischeAusrüstung = models.ForeignKey("shop.Magische_Ausrüstung", on_delete=models.CASCADE, null=True, blank=True)
@@ -148,6 +149,7 @@ class RelEffect(AbstractEffect):
     source_talent = models.ForeignKey("character.RelTalent", on_delete=models.CASCADE, null=True, blank=True)
     source_gfsAbility = models.ForeignKey("character.RelGfsAbility", on_delete=models.CASCADE, null=True, blank=True)
     source_klasse = models.ForeignKey("character.RelKlasse", on_delete=models.CASCADE, null=True, blank=True)
+    source_klasseAbility = models.ForeignKey("character.RelKlasseAbility", on_delete=models.CASCADE, null=True, blank=True)
 
     source_shopBegleiter = models.ForeignKey("character.RelBegleiter", on_delete=models.CASCADE, null=True, blank=True)
     source_shopMagischeAusrüstung = models.ForeignKey("character.RelMagische_Ausrüstung", on_delete=models.CASCADE, null=True, blank=True)

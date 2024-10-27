@@ -3,7 +3,7 @@ import math
 from django.db.models.signals import pre_save, post_save, pre_delete, post_delete
 from django.dispatch import receiver
 
-from character.models import RelAttribut, RelFertigkeit, RelVorteil, RelNachteil, RelTalent, RelKlasse, RelGfsAbility, RelBegleiter, RelMagische_Ausrüstung, RelRüstung, RelAusrüstung_Technik, RelEinbauten, Charakter
+from character.models import RelAttribut, RelFertigkeit, RelVorteil, RelNachteil, RelTalent, RelKlasse, RelKlasseAbility, RelGfsAbility, RelBegleiter, RelMagische_Ausrüstung, RelRüstung, RelAusrüstung_Technik, RelEinbauten, Charakter
 
 from .models import *
 
@@ -31,6 +31,7 @@ def deactivate_effect_on_delete(sender, instance, **kwargs):
 @receiver(post_save, sender=RelTalent)
 @receiver(post_save, sender=RelGfsAbility)
 @receiver(post_save, sender=RelKlasse)
+@receiver(post_save, sender=RelKlasseAbility)
 @receiver(post_save, sender=RelBegleiter)
 @receiver(post_save, sender=RelMagische_Ausrüstung)
 @receiver(post_save, sender=RelRüstung)
@@ -44,7 +45,7 @@ def apply_effect_on_rel_relation(sender, instance, created, **kwargs):
         effect_qs = instance.teil.effect_set.all()
     elif sender == RelTalent:
         effect_qs = instance.talent.effect_set.all()
-    elif sender == RelGfsAbility: 
+    elif sender in [RelGfsAbility, RelKlasseAbility]: 
         effect_qs = instance.ability.effect_set.all()
     elif sender == RelKlasse: 
         effect_qs = instance.klasse.effect_set.all()

@@ -84,10 +84,43 @@ class Klasse(models.Model):
     titel = models.CharField(max_length=30, null=False, default="")
     beschreibung = models.TextField()
     # TODO requirements to get Klasse
-    # TODO stufen-tree
 
     def __str__(self):
         return self.titel
+
+
+class KlasseStufenplan(models.Model):
+    class Meta:
+        ordering = ['klasse', "stufe"]
+        verbose_name = "Klasse-Stufenplan"
+        verbose_name_plural = "Klasse-Stufenpläne"
+        unique_together = ["klasse", "stufe"]
+
+    klasse = models.ForeignKey(Klasse, on_delete=models.CASCADE)
+    stufe = models.PositiveSmallIntegerField(null=False, blank=False)
+
+    ap = models.PositiveSmallIntegerField(default=0)
+    fp = models.PositiveSmallIntegerField(default=0)
+    fg = models.PositiveSmallIntegerField(default=0)
+    tp = models.PositiveSmallIntegerField(default=0)
+    ip = models.PositiveSmallIntegerField(default=0)
+    zauber = models.PositiveSmallIntegerField(default=0)
+    ability = models.ForeignKey("KlasseAbility", on_delete=models.SET_NULL, null=True, blank=True)
+
+
+class KlasseAbility(models.Model):
+    class Meta:
+        ordering = ["name"]
+        verbose_name = "Klassen-Fähigkeit"
+        verbose_name_plural = "Klassen-Fähigkeiten"
+
+    name = models.CharField(max_length=100, null=False, unique=True, verbose_name="Fähigkeit")
+    beschreibung = models.TextField(max_length=2000, null=False, verbose_name="Beschreibung")
+
+    notizen = models.TextField(null=True, blank=True)
+
+    def __str__(self):
+        return self.name
 
 
 
@@ -1033,6 +1066,22 @@ class RelGfsAbility(models.Model):
 
     char = models.ForeignKey(Charakter, on_delete=models.CASCADE)
     ability = models.ForeignKey(GfsAbility, on_delete=models.CASCADE)
+
+    notizen = models.TextField(null=True, blank=True)
+
+    def __str__(self):
+        return "'{}' von '{}'".format(self.ability.__str__(), self.char.__str__())
+
+class RelKlasseAbility(models.Model):
+    class Meta:
+        ordering = ['char', 'ability']
+        verbose_name = "Klassen-Fähigkeit"
+        verbose_name_plural = "Klassen-Fähigkeiten"
+
+        unique_together = (('char', 'ability'),)
+
+    char = models.ForeignKey(Charakter, on_delete=models.CASCADE)
+    ability = models.ForeignKey(KlasseAbility, on_delete=models.CASCADE)
 
     notizen = models.TextField(null=True, blank=True)
 

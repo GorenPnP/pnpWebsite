@@ -1,5 +1,5 @@
 from typing import Any
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.db.models import OuterRef
 from django.db.models.query import QuerySet
 from django.http.request import HttpRequest
@@ -24,6 +24,11 @@ class SpezialAusgleichInLine(admin.TabularInline):
 class WissenFertInLine(admin.TabularInline):
     model = Wissensfertigkeit.fertigkeit.through
     extra = 1
+
+
+class KlasseStufenplanInLine(admin.TabularInline):
+    model = KlasseStufenplan
+    extra = 0
 
 
 
@@ -173,6 +178,27 @@ class TalentAdmin(admin.ModelAdmin):
         )
 
 
+class KlasseAdmin(admin.ModelAdmin):
+    list_display = ["titel", "beschreibung"]
+    search_fields = ["titel"]
+    inlines = [KlasseStufenplanInLine]
+    actions = ["create_stufenplans"]
+
+    @admin.action(description="Stufenpläne anlegen")
+    def create_stufenplans(self, request, queryset):
+        max_stufe = 30
+
+        new_klassenstufenplans = []
+        for klasse in queryset.prefetch_related("klassestufenplan_set"):
+            existent_stufen = klasse.klassestufenplan_set.values_list("stufe", flat=True)
+            for n in range(1, max_stufe+1):
+                if n not in existent_stufen:
+                    new_klassenstufenplans.append(KlasseStufenplan(stufe=n, klasse=klasse))
+
+        KlasseStufenplan.objects.bulk_create(new_klassenstufenplans)
+        messages.success(request, f"Stufenpläne aller Klassen bis Stufe {max_stufe} ergänzt")
+
+
 admin.site.register(Spieler, SpielerAdmin)
 
 admin.site.register(Wesen, WesenAdmin)
@@ -189,6 +215,8 @@ admin.site.register(Vorteil, VorNachteilAdmin)
 admin.site.register(Wissensfertigkeit, WissensfertigkeitAdmin)
 
 admin.site.register(Talent, TalentAdmin)
+admin.site.register(Klasse, KlasseAdmin)
+admin.site.register(KlasseAbility)
 
 
 
@@ -201,4 +229,3 @@ admin.site.register(GfsAbility, GfsAbilityAdmin)
 admin.site.register(SkilltreeBase, admin.ModelAdmin)
 admin.site.register(GfsSkilltreeEntry, GfsSkilltreeEntryAdmin)
 admin.site.register(GfsStufenplanBase, GfsStufenplanBaseAdmin)
-admin.site.register(Klasse)
