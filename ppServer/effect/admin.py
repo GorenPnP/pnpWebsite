@@ -16,6 +16,7 @@ class EffectAdmin(admin.ModelAdmin):
         "source_nachteil__titel",
         "source_talent__titel",
         "source_gfsAbility__name",
+        "source_klasse__titel",
         "source_shopBegleiter__name",
         "source_shopMagischeAusrüstung__name",
         "source_shopRüstung__name",

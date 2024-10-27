@@ -63,6 +63,12 @@ class RelPersönlichkeitInline(RelInlineAdmin):
     def get_queryset(self, request: HttpRequest) -> QuerySet[Any]:
         return super().get_queryset(request).prefetch_related("persönlichkeit")
 
+class RelKlasseInline(RelInlineAdmin):
+    model = RelKlasse
+
+    def get_queryset(self, request: HttpRequest) -> QuerySet[Any]:
+        return super().get_queryset(request).prefetch_related("klasse")
+
 class RelAttributInline(ReadonlyRelInlineAdmin):
     fields = ['attribut', 'aktuellerWert', "aktuellerWert_fix", 'aktuellerWert_temp', 'aktuellerWert_bonus', 'maxWert', "maxWert_fix", 'maxWert_temp']
     readonly_fields = ['attribut']
@@ -149,13 +155,13 @@ class RelTalentInLine(RelInlineAdmin):
 
 class RelEffectInLine(RelInlineAdmin):
     model = RelEffect
-    fields = ["wertaenderung", "target_fieldname", "target_attribut", "target_fertigkeit", "source_vorteil", "source_nachteil", "source_talent", "source_gfsAbility", "source_shopBegleiter", "source_shopMagischeAusrüstung", "source_shopRüstung", "source_shopAusrüstungTechnik", "source_shopEinbauten", "is_active"]
+    fields = ["wertaenderung", "target_fieldname", "target_attribut", "target_fertigkeit", "source_vorteil", "source_nachteil", "source_talent", "source_gfsAbility", "source_klasse", "source_shopBegleiter", "source_shopMagischeAusrüstung", "source_shopRüstung", "source_shopAusrüstungTechnik", "source_shopEinbauten", "is_active"]
     extra = 0
 
     def get_queryset(self, request):
         related_char_id = getattr(request.resolver_match.kwargs, 'object_id', None)
 
-        qs = self.model.objects.prefetch_related("target_char__eigentümer", 'target_attribut', 'target_fertigkeit', 'source_vorteil', 'source_nachteil', "source_talent", "source_gfsAbility", "source_shopBegleiter", "source_shopMagischeAusrüstung", "source_shopRüstung", "source_shopAusrüstungTechnik", "source_shopEinbauten")
+        qs = self.model.objects.prefetch_related("target_char__eigentümer", 'target_attribut', 'target_fertigkeit', 'source_vorteil', 'source_nachteil', "source_talent", "source_gfsAbility", "source_klasse", "source_shopBegleiter", "source_shopMagischeAusrüstung", "source_shopRüstung", "source_shopAusrüstungTechnik", "source_shopEinbauten")
         return qs.filter(target_char__id=related_char_id) if related_char_id else qs
 
     def get_readonly_fields(self, request: HttpRequest, obj):
@@ -289,6 +295,7 @@ class CharakterAdmin(admin.ModelAdmin):
     inlines = [
         # RelGfsInline,
         RelPersönlichkeitInline,
+        RelKlasseInline,
         RelWesenkraftInLine,
         RelAttributInline,
         RelGruppeInLine,

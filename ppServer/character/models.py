@@ -75,6 +75,22 @@ class Wesenkraft(models.Model):
         return self.titel
 
 
+class Klasse(models.Model):
+    class Meta:
+        ordering = ['titel']
+        verbose_name = "Klasse"
+        verbose_name_plural = "Klassen"
+
+    titel = models.CharField(max_length=30, null=False, default="")
+    beschreibung = models.TextField()
+    # TODO requirements to get Klasse
+    # TODO stufen-tree
+
+    def __str__(self):
+        return self.titel
+
+
+
 class Wesen(models.Model):
 
     class Meta:
@@ -114,8 +130,8 @@ class Gfs(models.Model):
 
     class Meta:
         ordering = ['titel']
-        verbose_name = "Gfs/Klasse"
-        verbose_name_plural = "Gfs/Klassen"
+        verbose_name = "Gfs/Genere"
+        verbose_name_plural = "Gfs/Genere"
 
     DIFFICULTY_ENUM = [
         ("e", "für Einsteiger"),
@@ -1022,6 +1038,23 @@ class RelGfsAbility(models.Model):
 
     def __str__(self):
         return "'{}' von '{}'".format(self.ability.__str__(), self.char.__str__())
+
+
+class RelKlasse(models.Model):
+    class Meta:
+        ordering = ['char', 'klasse']
+        verbose_name = "Klasse"
+        verbose_name_plural = "Klassen"
+
+        unique_together = (('char', 'klasse'),)
+
+    char = models.ForeignKey(Charakter, on_delete=models.CASCADE)
+    klasse = models.ForeignKey(Klasse, on_delete=models.CASCADE)
+
+    stufe = models.PositiveSmallIntegerField(default=1)
+
+    def __str__(self):
+        return "'{}' von '{}'".format(self.klasse.__str__(), self.char.__str__())
 
 
 ############ RelShop ###########
