@@ -331,9 +331,8 @@ class GfsStufenplanBase(models.Model):
         ordering = ["stufe"]
         verbose_name = "Gfs Basis-Stufenplan"
         verbose_name_plural = "Gfs Basis-Stufenpläne"
-        unique_together = ["stufe"]
 
-    stufe = models.PositiveIntegerField(default=0)
+    stufe = models.PositiveIntegerField(default=0, validators=[MinValueValidator(2)], unique=True)
     ep = models.PositiveIntegerField(default=0)
 
     ap = models.PositiveSmallIntegerField(default=0)
@@ -577,18 +576,18 @@ class Charakter(models.Model):
     manifest_fix = models.DecimalField(max_digits=4, decimal_places=2, default=None, null=True, blank=True)
 
     # roleplay
-    name = models.CharField(max_length=200, null=True)
-    gewicht = models.FloatField(null=True, validators=[MinValueValidator(0)], verbose_name="Gewicht in kg")
-    größe = models.PositiveIntegerField(null=True, verbose_name="Größe in cm")
-    alter = models.PositiveIntegerField(null=True)
-    geschlecht = models.CharField(max_length=100, null=True)
+    name = models.CharField(max_length=200, null=True, blank=True)
+    gewicht = models.FloatField(null=True, blank=True, validators=[MinValueValidator(0)], verbose_name="Gewicht in kg")
+    größe = models.PositiveIntegerField(null=True, blank=True, verbose_name="Größe in cm")
+    alter = models.PositiveIntegerField(null=True, blank=True)
+    geschlecht = models.CharField(max_length=100, null=True, blank=True)
     sexualität = models.CharField(max_length=100, blank=True, null=True)
     beruf = models.ForeignKey(Beruf, on_delete=models.SET_NULL, null=True, blank=True)
     präf_arm = models.CharField(max_length=100, null=True, blank=True, verbose_name="präferierter Arm (rechts/links?)")
     religion = models.ForeignKey(Religion, on_delete=models.SET_NULL, null=True, blank=True)
-    hautfarbe = models.CharField(max_length=100, default="")
-    haarfarbe = models.CharField(max_length=100, default="")
-    augenfarbe = models.CharField(max_length=100, default="")
+    hautfarbe = models.CharField(max_length=100, default="", blank=True)
+    haarfarbe = models.CharField(max_length=100, default="", blank=True)
+    augenfarbe = models.CharField(max_length=100, default="", blank=True)
 
     # currencies
     ap = models.PositiveIntegerField(null=True, blank=True)
@@ -611,8 +610,8 @@ class Charakter(models.Model):
 
     # Kampagne
     ep = models.PositiveIntegerField(default=0)
-    ep_stufe = models.PositiveIntegerField(default=0, verbose_name="aktuelle Stufe des Charakters")
-    ep_stufe_in_progress = models.PositiveIntegerField(default=0, verbose_name="Stufe des Charakters, die noch verteilt werden muss")
+    ep_stufe = models.PositiveIntegerField(default=1, validators=[MinValueValidator(1)], verbose_name="aktuelle Stufe des Charakters")
+    ep_stufe_in_progress = models.PositiveIntegerField(default=1, validators=[MinValueValidator(1)], verbose_name="Stufe des Charakters, die noch verteilt werden muss")
     skilltree_stufe = models.PositiveSmallIntegerField(default=1)
     processing_notes = models.JSONField(default=dict, null=False, blank=True)
 
@@ -684,10 +683,10 @@ class Charakter(models.Model):
         return "{} ({})".format(self.name, self.eigentümer)
 
     def get_max_stufe(self) -> int:
-        return GfsStufenplanBase.objects.filter(ep__lte=self.ep).aggregate(Max("stufe"))["stufe__max"] or 0
+        return GfsStufenplanBase.objects.filter(ep__lte=self.ep).aggregate(Max("stufe"))["stufe__max"] or 1
 
     def max_tier_allowed(self) -> int:
-        new_tiers_at_stufe = [0, 2, 5, 8, 12, 16, 20]
+        new_tiers_at_stufe = [1, 2, 5, 8, 12, 16, 20]
         return len([stufe for stufe in new_tiers_at_stufe if stufe <= self.ep_stufe_in_progress])
 
     def init_stufenhub(self):

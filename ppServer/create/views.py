@@ -83,7 +83,7 @@ class GfsFormView(VerifiedAccountMixin, TemplateView):
             char.manifest = char.gfs.startmanifest
             char.wesenschaden_waff_kampf = char.gfs.wesenschaden_waff_kampf
             char.wesenschaden_andere_gestalt = char.gfs.wesenschaden_andere_gestalt
-            if stufe:
+            if stufe > 1:
                 char.ep = GfsStufenplanBase.objects.get(stufe=stufe).ep
             char.save(update_fields=["manifest", "wesenschaden_waff_kampf", "wesenschaden_andere_gestalt", "ep"])
 

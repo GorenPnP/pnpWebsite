@@ -327,7 +327,7 @@ class CharakterAdmin(admin.ModelAdmin):
         RelEffectInLine
     ]
 
-    list_display = ['image_', 'name', 'eigentümer', "gfs", "larp", "in_erstellung"]
+    list_display = ['image_', 'name', 'eigentümer', "gfs", "ep_stufe", "larp", "in_erstellung"]
 
     list_filter = ['in_erstellung', 'larp', get_filter(Spieler, "name", ['eigentümer__name'])]
     search_fields = ['name', 'eigentümer__name']
