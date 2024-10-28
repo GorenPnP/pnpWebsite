@@ -9,52 +9,63 @@
 
 {% block main %}
 
-<span id="ap-debt-text">Du brauchst noch <b id="ap-debt">{{ char.gfs.ap }}</b> AP für die Gfs.</span>
+<span id="point-text">🛑 Du hast noch <b id="points">{{ points }}</b> Punkte auf Prioritäten zu verteilen. Alle müssen verteilt werden.</span>
+
+<span id="ap-debt-text">🛑 Du brauchst noch <b id="ap-debt">{{ char.gfs.ap }}</b> AP für die Gfs.</span>
 <span id="ap-left-text">Du hast <b id="ap-left">{{ char.gfs.ap }}</b> AP übrig.</span>
 
 <div class="table-wrapper">
-    <table>
+    <table id="priotable">
         {% for row in table %}
         <tr>
-            <td id="0|{{ forloop.counter0 }}" {% if row.1 is None %}class="grayed_out"></td>
-            {% else %}>{{ row.1 }} IP</td>{% endif %}
+            <td data-type="prio">
+                <small>
+                    Prio <span class="prio--name">{{ row.priority }}</span><br>
+                    <small><b class="prio--cost">{{ row.cost }}</b> Punkt{% if row.cost != 1 %}e{% endif %}</small>
+                </small>
+            </td>
 
-            <td id="1|{{ forloop.counter0 }}" {% if row.2 is None %}class="grayed_out"></td>
-            {% else %}>{{ row.2 }} AP</td>{% endif %}
+            <td id="0|{{ forloop.counter0 }}" data-type="ip">
+                {{ row.ip }} IP
+            </td>
 
-            <td id="2|{{ forloop.counter0 }}" {% if row.3 is None and row.4 is None %}class="grayed_out"></td>
-            {% else %}>
-                {% if row.3 %}{{ row.3 }} SP{% endif %}{% if row.3 and row.4 %},<br>{% endif %}
-                {% if row.4 %}{{ row.4 }} Konz.{% endif %}
-            </td>{% endif %}
+            <td id="1|{{ forloop.counter0 }}" data-type="ap">
+                {{ row.ap }} AP
+            </td>
 
-            <td id="3|{{ forloop.counter0 }}" {% if row.5 is None and row.6 is None %}class="grayed_out"></td>
-            {% else %}>
-                {% if row.5 %}{{ row.5 }} FP{% endif %}{% if row.5 and row.6 %},<br>{% endif %}
-                {% if row.6 %}{{ row.6 }} FG{% endif %}
-            </td>{% endif %}
+            <td id="2|{{ forloop.counter0 }}" data-type="sp">
+                {{ row.sp }} SP,<br>
+                {{ row.konzentration }} Konz.
+            </td>
 
-            <td id="4|{{ forloop.counter0 }}" {% if row.7 is None %}class="grayed_out"></td>
-            {% else %}>{{ row.7 }} Zauber</td>{% endif %}
+            <td id="3|{{ forloop.counter0 }}" data-type="fp">
+                {{ row.fp }} FP,<br>
+                {{ row.fg }} FG
+            </td>
 
-            <td id="5|{{ forloop.counter0 }}" {% if row.8 is None and row.9 is None %}class="grayed_out"></td>
-            {% else %}>
-                {% if row.8 %}{{ row.8 }} Drachmen{% endif %}{% if row.8 and row.9 %},<br>{% endif %}
-                {% if row.9 %}{{ row.9 }} Sp-Fert/W-Fert{% endif %}
-            </td>{% endif %}
+            <td id="4|{{ forloop.counter0 }}" data-type="zauber">
+                {{ row.zauber }} Zauber
+            </td>
+
+            <td id="5|{{ forloop.counter0 }}" data-type="drachmen">
+                {{ row.drachmen }} Drachmen,<br>
+                {{ row.spF_wF }} Sp-Fert/W-Fert
+            </td>
         </tr>
         {% endfor %}
     </table>
 </div>
 
-<button id='submit' class="btn btn-lg btn-primary" disabled onclick="submitPrio()">Weiter</button>
+<form method="post">
+    <button type="submit" id='submit' class="btn btn-lg btn-primary" disabled>Weiter</button>
+</form>
 
 <aside class="mt-3">
 
     <h4>Hilfreiches:</h4>
     <ul>
         <li><a href="{% url 'wiki:stufenplan' char.gfs.id %}" target="_blank" class="text-light">{{ char.gfs.titel }} öffnen</a></li>
-        {% for n in notizen %}<li>{{ n }}</li>{% endfor %}
+        {% for n in notes %}<li>{{ n }}</li>{% endfor %}
     </ul>
 </aside>
 {% endblock %}

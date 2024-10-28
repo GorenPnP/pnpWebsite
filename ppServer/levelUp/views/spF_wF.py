@@ -10,7 +10,8 @@ from django.utils.html import format_html
 import django_tables2 as tables
 
 from base.abstract_views import GenericTable
-from character.models import Spezialfertigkeit, Wissensfertigkeit, RelSpezialfertigkeit, RelWissensfertigkeit
+from character.models import Fertigkeit, Spezialfertigkeit, Wissensfertigkeit, RelSpezialfertigkeit, RelWissensfertigkeit
+from ppServer.utils import ConcatSubquery
 
 from ..decorators import is_erstellung_done
 from ..mixins import LevelUpMixin
@@ -39,15 +40,6 @@ class GenericSpF_wFView(LevelUpMixin, tables.SingleTableMixin, TemplateView):
                 attrs.append(record["attr3__titel"])
 
             return ", ".join(sorted(attrs))
-        
-        def render_ferts(self, value, record):
-            if record["art"] == "Spezial":
-                spezial = Spezialfertigkeit.objects.get(id=record["id"])
-                return ", ".join([sp.titel for sp in spezial.ausgleich.all().order_by("titel")])
-            
-            if record["art"] == "Wissen":
-                wissen = Wissensfertigkeit.objects.get(id=record["id"])
-                return ", ".join([wi.titel for wi in wissen.fertigkeit.all().order_by("titel")])
 
         def render_wp(self, value, record):
             value_exists = record["stufe"] is not None
@@ -92,7 +84,7 @@ class GenericSpF_wFView(LevelUpMixin, tables.SingleTableMixin, TemplateView):
                     .prefetch_related("attr1", "attr2")\
                     .annotate(
                         art = Value("Spezial"),
-                        ferts = Value(0),
+                        ferts = ConcatSubquery(Fertigkeit.objects.filter(spezialfertigkeit=OuterRef("pk")).order_by("titel").values("titel"), separator=", "),
                         attrs = Value(0),
                         stufe = Subquery(RelSpezialfertigkeit.objects.filter(char=char, spezialfertigkeit__id=OuterRef("id")).values("stufe")[:1]),
                         wp = Value(0), # replace later
@@ -107,7 +99,7 @@ class GenericSpF_wFView(LevelUpMixin, tables.SingleTableMixin, TemplateView):
                     .prefetch_related("attr1", "attr2", "attr3")\
                     .annotate(
                         art = Value("Wissen"),
-                        ferts = Value(0),
+                        ferts = ConcatSubquery(Fertigkeit.objects.filter(wissensfertigkeit=OuterRef("pk")).order_by("titel").values("titel"), separator=", "),
                         attrs = Value(0),
                         stufe = Subquery(RelWissensfertigkeit.objects.filter(char=char, wissensfertigkeit__id=OuterRef("id")).values("stufe")[:1]),
                         wp = Value(0),

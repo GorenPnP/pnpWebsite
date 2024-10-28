@@ -19,6 +19,8 @@ class Priotable(models.Model):
         verbose_name_plural = "Priotable Zeilen"
 
     priority = models.CharField(choices=priority_enum, null=False, unique=True, max_length=1)
+    cost = models.PositiveSmallIntegerField(default=0, null=False)
+
     ip = models.PositiveSmallIntegerField(default=0, null=False)
     ap = models.PositiveSmallIntegerField(default=0, null=False)
     sp = models.PositiveSmallIntegerField(default=0, null=False)

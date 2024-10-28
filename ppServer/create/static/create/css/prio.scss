@@ -1,63 +1,59 @@
 // colors
 :root {
-	--bg-selected: var(--bs-info);
-	--color-selected: #000;
-
-	--bg-blocked: var(--bs-purple);
-	--color-blocked: #fff;
-
-	--bg-grayed-out: transparent;
-	--color-grayed-out: #000;
-
-	--bg-hover: var(--bs-info);
-	--color-hover: #000;
+  --bg: var(--bs-yellow);
+  --color: #000;
 }
 
 .main-container {
-	display: grid;
-	justify-items: center;
-	justify-content: center;
-	gap: 2em;
-}
-.table-wrapper {
-	overflow: auto;
-	justify-self: stretch;
-}
-table {
-	background-color: var(--bs-light);
-	color: #000;
+  display: grid;
+  justify-items: center;
+  justify-content: center;
+  gap: 2em;
 }
 
+.table-wrapper {
+  overflow: auto;
+  justify-self: stretch;
+}
+
+#priotable {
+  background-color: var(--bs-light);
+  color: var(--bs-dark);
+}
 
 td {
-	padding: .5em 1em;
-	border: 1px solid black;
-	cursor: pointer;
+  padding: .25em .5em;
+  border: 1px solid black;
+  cursor: pointer;
 
-	background-color: var(--background-color);
-	color: var(--color);
+  background-color: var(--background-color);
+  color: var(--color);
 
-	&:hover {
-		background-color: var(--background-color, var(--bg-hover));
-		color: var(--color, var(--color-hover));
+  &[data-type="prio"] {
+    --background-color: var(--bs-dark);
+    --color: var(--bs-light);
+    cursor: not-allowed;
+
+	small {
+		font-weight: lighter;
+		font-size: .75rem;
 	}
-}
+  }
 
-.selected {
-	--background-color: var(--bg-selected);
-	--color: var(--color-selected);
-	font-weight: 800;
-}
-.grayed_out {
-	--background-color: var(--bg-grayed-out);
-	--color: var(--color-grayed-out);
-	cursor: not-allowed;
-}
-.blocked {
-	--background-color: var(--bg-blocked);
-	--color: var(--color-blocked);
-	cursor: not-allowed;
-	text-decoration: line-through;
-}
+  &:hover {
+    background-color: var(--background-color, var(--bg));
+    color: var(--color);
+  }
 
-#ap-left-text { display: none; }
+  &.selected {
+    --background-color: var(--bg);
+    --color: var(--color);
+  }
+  &.blocked {
+    --background-color: var(--bg);
+    --color: var(--color);
+    text-decoration: line-through;
+	font-weight: lighter;
+	opacity: 0.5;
+  }
+}

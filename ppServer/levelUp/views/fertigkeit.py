@@ -76,11 +76,11 @@ class GenericFertigkeitView(LevelUpMixin, DynamicTableView):
         #### collect values ####
         # fp
         fp = {}
-        for relfert in char.relfertigkeit_set.all():
+        attrs = {attr.attribut.titel: attr.aktuell() for attr in RelAttribut.objects.prefetch_related("char", "attribut").filter(char=char)}
+        for relfert in char.relfertigkeit_set.prefetch_related("fertigkeit__attribut").all():
             fert = relfert.fertigkeit
 
             # get & sanitize
-            attrs = {attr.attribut.titel: attr.aktuell() for attr in RelAttribut.objects.prefetch_related("char", "attribut").filter(char=char)}
             rel_fp = int(request.POST.get(f"fp-{relfert.id}") or 0)
             if rel_fp > attrs[relfert.fertigkeit.attribut.titel] - relfert.fp:
                 messages.error(request, f"Bei {fert} sind die FP höher als erlaubt")

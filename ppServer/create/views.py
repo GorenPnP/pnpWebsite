@@ -1,4 +1,6 @@
 import json
+from django.db.models import Subquery, OuterRef, Sum, Exists
+from django.db.models.base import Model as Model
 from django.http import HttpResponseNotFound
 from django.http.request import HttpRequest
 from django.http.response import HttpResponse, JsonResponse
@@ -8,11 +10,10 @@ from django.views.generic.base import TemplateView
 from django.urls import reverse
 from django.utils.decorators import method_decorator
 
-
 from ppServer.mixins import VerifiedAccountMixin
 
 from base.abstract_views import DynamicTableView
-from character.models import Spieler, Beruf, RelAttribut, RelFertigkeit, RelVorteil,\
+from character.models import Wesenkraft, Beruf, RelAttribut, RelFertigkeit, RelVorteil,\
     RelNachteil, RelWesenkraft, GfsAttribut, GfsFertigkeit, GfsWesenkraft, GfsVorteil,\
     GfsNachteil, GfsZauber, GfsStufenplanBase, RelZauber
 from levelUp.mixins import LevelUpMixin
@@ -88,26 +89,41 @@ class GfsFormView(VerifiedAccountMixin, TemplateView):
 
             # Attributes
             objects = []
-            for e in RelAttribut.objects.filter(char=char):
-                gfs_attr = GfsAttribut.objects.get(gfs=char.gfs, attribut=e.attribut)
-
-                e.aktuellerWert = gfs_attr.aktuellerWert
-                e.maxWert = gfs_attr.maxWert
+            qs = RelAttribut.objects.annotate(
+                    aktuell=Subquery(GfsAttribut.objects.filter(gfs=char.gfs, attribut=OuterRef("attribut")).values("aktuellerWert")[:1]),
+                    max=Subquery(GfsAttribut.objects.filter(gfs=char.gfs, attribut=OuterRef("attribut")).values("maxWert")[:1]),
+                )\
+                .filter(char=char)
+            for e in qs:
+                print(e.__dict__)
+                e.aktuellerWert = e.aktuell
+                e.maxWert = e.max
                 objects.append(e)
             RelAttribut.objects.bulk_update(objects, fields=["aktuellerWert", "maxWert"])
             
             # Fertigkeiten
             objects = []
-            for gfs_fert in GfsFertigkeit.objects.filter(gfs=char.gfs, fp__gt=0):
-                e = RelFertigkeit.objects.get(char=char, fertigkeit=gfs_fert.fertigkeit)
-                e.fp_bonus = gfs_fert.fp
+            qs = RelFertigkeit.objects.annotate(
+                    bonus=Subquery(GfsFertigkeit.objects.filter(gfs=char.gfs, fertigkeit=OuterRef("fertigkeit")).values("fp")[:1])
+                )\
+                .filter(char=char).exclude(bonus=0)
+
+            for e in qs:
+                e.fp_bonus = e.bonus
                 objects.append(e)
             RelFertigkeit.objects.bulk_update(objects, fields=["fp_bonus"])
 
             # Wesenkräfte
-            for gfs_wesenkr in GfsWesenkraft.objects.filter(gfs=char.gfs):
-                tier = 1 if gfs_wesenkr.wesenkraft.skilled_gfs.filter(id=gfs.id).exists() else 0
-                RelWesenkraft.objects.create(char=char, wesenkraft=gfs_wesenkr.wesenkraft, tier=tier)
+            RelWesenkraft.objects.bulk_create([
+                RelWesenkraft(
+                    char=char, wesenkraft=gfs_wesenkr.wesenkraft,
+                    tier=1 if gfs_wesenkr.tier_up else 0
+                )
+
+                for gfs_wesenkr in GfsWesenkraft.objects.prefetch_related("wesenkraft").annotate(
+                    tier_up = Exists(Wesenkraft.objects.filter(pk=OuterRef("wesenkraft"), skilled_gfs=gfs)),
+                ).filter(gfs=char.gfs)
+            ])
 
             # Vorteile
             for gfs_teil in GfsVorteil.objects.filter(gfs=char.gfs):
@@ -144,8 +160,10 @@ class GfsFormView(VerifiedAccountMixin, TemplateView):
                 rel.update_will_create()
 
             # Zauber
-            for gfs_zauber in GfsZauber.objects.filter(gfs=char.gfs):
-                RelZauber.objects.create(char=char, item=gfs_zauber.item, tier=gfs_zauber.tier)
+            RelZauber.objects.bulk_create([
+                RelZauber(char=char, item=gfs_zauber.item, tier=gfs_zauber.tier)
+                for gfs_zauber in GfsZauber.objects.filter(gfs=char.gfs)
+            ])
 
 
         return redirect(reverse("create:prio", args=[char.id]))
@@ -159,14 +177,38 @@ class PriotableFormView(LevelUpMixin, DetailView):
     # number of WP per spF & wF chosen
     WP_FACTOR = 4
 
+    class ResponseData:
+        @staticmethod
+        def get_fieldnames() -> list[str]:
+            return ["ip", "ap", "fp", "sp", "zauber", "drachmen"]
+
+        def __init__(self, ip: Priotable, ap: Priotable, fp: Priotable, sp: Priotable, zauber: Priotable, drachmen: Priotable):
+            self.ip = ip
+            self.ap = ap
+            self.fp = fp
+            self.sp = sp
+            self.zauber = zauber
+            self.drachmen = drachmen
+        
+        def valid(self) -> bool:
+            return len([1 for field in self.__class__.get_fieldnames() if getattr(self, field) is None]) == 0
+        
+        def keys(self):
+            return self.__class__.get_fieldnames()
+        
+        def values(self) -> list[Priotable]:
+            return [getattr(self, field) for field in self.__class__.get_fieldnames()]
+        
+
     def get_entries(self):
-        return Priotable.objects.all().values_list("priority", "ip", "ap", "sp", "konzentration", "fp", "fg", "zauber", "drachmen", "spF_wF")
+        return Priotable.objects.all()
 
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs,
             topic = "Prioritätentabelle",
             table = self.get_entries(),
+            points = self.get_entries().aggregate(cost = Sum("cost"))["cost"],
             notes = [
                 "IP = für Vor- und Nachteile",
                 "AP = Aufwerten eines Attributs",
@@ -174,6 +216,9 @@ class PriotableFormView(LevelUpMixin, DetailView):
                 "Konz. = Konzentration, um Proben besser zu würfeln als sonst",
                 "FP = Fertigkeitspunkte",
                 "FG = Fertigkeitsgruppen",
+                "Zauber = Anz. wählbarer Zauber, bzw. Zauberverbesserungen",
+                "Drachmen = Geld",
+                "SP-Fert und W-Fert = wählbare Spezialisierungen"
             ]
         )
         context["back_url"] = reverse("create:gfs")
@@ -185,56 +230,71 @@ class PriotableFormView(LevelUpMixin, DetailView):
         entries = self.get_entries()
 
         # collect data
-        num_entries = entries.count()
         if char is None:
             return JsonResponse({"url": reverse("create:gfs")}, status=300)
 
 
         try:
-            unordered_fields = list(json.loads(request.body.decode("utf-8")).items())
+            prio_by_name = {prio.priority: prio for prio in self.get_entries()}
+
+            chosen_fields = PriotableFormView.ResponseData(**{
+                key: prio_by_name[value]
+                    for key, value in list(json.loads(request.body.decode("utf-8")).items())
+                    if key in PriotableFormView.ResponseData.get_fieldnames() and value in prio_by_name.keys()
+            })
         except:
             return JsonResponse({'message': 'Falsche Auswahl (Format)'}, status=418)
 
-        if len(unordered_fields) != num_entries:
+        if not chosen_fields.valid():
             return JsonResponse({"message": "Falsche Auswahl (Anzahl Felder)"}, status=418)
 
-        for _, val in unordered_fields:
-            if val < 0 or val >= num_entries:
-                return JsonResponse({"message": "Falsche Auswahl (Inhalt Felder)"}, status=418)
+        # cost points
+        spend = sum([prio.cost for prio in chosen_fields.values()])
+        cost = self.get_entries().aggregate(cost = Sum("cost"))["cost"]
+        if spend != cost:
+            return JsonResponse({"message": f"Die gewählten Prioritäten kosten {spend} Punkte von {cost} Punkten. Es darf keiner übrig bleiben."}, status=418)
 
-        # start logic
-        fields = [{"prio": priority_enum[int(v)][0], "col": int(k)} for k, v in sorted(unordered_fields, key=lambda e: int(e[1]))]
-        for index, row in enumerate(Priotable.objects.all()):
-            col  = fields[index]["col"]
-
-            if col == 0:
-                char.ip = row.ip
-                fields[index]["text"] = f"{row.ip} IP"
-            elif col == 1:
-                ap = row.ap
-                fields[index]["text"] = f"{row.ap} AP"
-            elif col == 2:
-                char.sp = row.sp
-                char.konzentration = row.konzentration
-                fields[index]["text"] = f"{row.sp} SP, {row.konzentration} Konz."
-            elif col == 3:
-                char.fp = row.fp
-                char.fg = row.fg
-                fields[index]["text"] = f"{row.fp} FP, {row.fg} FG"
-            elif col == 4:
-                char.zauberplätze = {"0": row.zauber} if row.zauber else {}
-                fields[index]["text"] = f"{row.zauber} Zauber"
-            else:
-                char.geld = row.drachmen
-                char.spF_wF = row.spF_wF
-                char.wp = row.spF_wF * self.WP_FACTOR
-                fields[index]["text"] = f"{row.drachmen} Drachmen, {row.spF_wF} Sp-Fert/W-Fert"
-
-        ap -= char.gfs.ap
-        if ap < 0:
+        # cost ap
+        if getattr(chosen_fields, "ap").ap - char.gfs.ap < 0:
             return JsonResponse({"message": "Zu wenig AP für Gfs"}, status=418)
 
-        char.ap = ap
+        fields = []
+        prio = None
+        # ip
+        prio = getattr(chosen_fields, "ip")
+        char.ip = prio.ip
+        fields.append({"prio": prio.priority, "text": f"{prio.ip} IP"})
+
+        # ap
+        prio = getattr(chosen_fields, "ap")
+        char.ap = prio.ap - char.gfs.ap
+        fields.append({"prio": prio.priority, "text": f"{prio.ap} AP"})
+
+        # sp & konzentration
+        prio = getattr(chosen_fields, "sp")
+        char.sp = prio.sp
+        char.konzentration = prio.konzentration
+        fields.append({"prio": prio.priority, "text":  f"{prio.sp} SP, {prio.konzentration} Konz."})
+
+        # fp & fg
+        prio = getattr(chosen_fields, "fp")
+        char.fp = prio.fp
+        char.fg = prio.fg
+        fields.append({"prio": prio.priority, "text":  f"{prio.fp} FP, {prio.fg} FG"})
+
+        # zauber
+        prio = getattr(chosen_fields, "zauber")
+        char.zauberplätze = {"0": prio.zauber} if prio.zauber else {}
+        fields.append({"prio": prio.priority, "text": f"{prio.zauber} Zauber"})
+
+        # drachmen & spF_wF
+        prio = getattr(chosen_fields, "drachmen")
+        char.geld = prio.drachmen
+        char.spF_wF = prio.spF_wF
+        char.wp = prio.spF_wF * self.WP_FACTOR
+        fields.append({"prio": prio.priority, "text":  f"{prio.drachmen} Drachmen, {prio.spF_wF} Sp-Fert/W-Fert"})
+
+
         char.processing_notes["priotable"] = fields
         char.save(update_fields=["ip", "sp", "konzentration", "fp", "fg", "zauberplätze", "geld", "spF_wF", "wp", "ap", "processing_notes"])
 

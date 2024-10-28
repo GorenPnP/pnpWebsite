@@ -13,9 +13,7 @@ def create_spieler(sender, **kwargs):
 
 @receiver(post_delete, sender=User)
 def delete_spieler(sender, **kwargs):
-    spieler = Spieler.objects.filter(name=kwargs['instance'].username)
-    for s in spieler:
-        s.delete()
+    Spieler.objects.filter(name=kwargs['instance'].username).delete()
 
 
 @receiver(post_save, sender=Gfs)
@@ -36,15 +34,18 @@ def init_gfs(sender, **kwargs):
 def init_character(sender, **kwargs):
     instance = kwargs['instance']
 
-    for a in Attribut.objects.all():
-        RelAttribut.objects.get_or_create(char=instance, attribut=a)
+    RelAttribut.objects.bulk_create([
+        RelAttribut(char=instance, attribut=a) for a in Attribut.objects.exclude(relattribut__char=instance)
+    ])
 
-    for f in Fertigkeit.objects.all():
-        RelFertigkeit.objects.get_or_create(char=instance, fertigkeit=f)
+    RelFertigkeit.objects.bulk_create([
+        RelFertigkeit(char=instance, fertigkeit=a) for a in Fertigkeit.objects.exclude(relfertigkeit__char=instance)
+    ])
 
-    for token, _ in enums.gruppen_enum:
-        RelGruppe.objects.get_or_create(char=instance, gruppe=token)
-
+    existing_groups = RelGruppe.objects.filter(char=instance).values_list("gruppe", flat=True)
+    RelGruppe.objects.bulk_create([
+        RelGruppe(char=instance, gruppe=token) for token, _ in enums.gruppen_enum if token not in existing_groups
+    ])
 
 
 
