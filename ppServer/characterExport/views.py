@@ -27,15 +27,6 @@ class CharacterExportView(VerifiedAccountMixin, UserPassesTestMixin, DetailView)
     def handle_no_permission(self):
         return redirect("character:index")
 
-    def get_queryset(self, *args, **kwargs) -> Charakter:
-        return Charakter.objects.prefetch_related(
-            "eigentümer", "gfs__gfsstufenplan_set__basis", "persönlichkeit",
-            "beruf", "religion", "relattribut_set", "relfertigkeit_set",
-            "affektivität_set", "releinbauten_set__item", "relausrüstung_technik_set__item",
-            "relschusswaffen_set__item", "relwaffen_werkzeuge_set__item", "relitem_set__item",
-            "relwesenkraft_set__wesenkraft", "reltalent_set__talent", "relrituale_runen_set__item", "relzauber_set__item"
-        )
-
     def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
         return CharakterExporter(self.get_object()).export()
 

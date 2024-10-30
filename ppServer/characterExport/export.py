@@ -8,6 +8,7 @@ from django.http import HttpResponse
 
 from character.models import *
 from log.models import Log
+from ppServer.utils import ConcatSubquery
 
 class CharakterExporter:
     COLOR = {
@@ -169,11 +170,12 @@ class CharakterExporter:
         ROW = 3
 
         werte_ws.write_row(f"A{ROW}", ["Fertigkeit", "Attribut", "FP", "FG", "Bonus", "Pool", "Limit", "FG-Name"], format_heading)
+        gruppen = {rel.gruppe: rel for rel in self.char.relgruppe_set.all()}
         for i, fert in enumerate(self.char.relfertigkeit_set.values("fertigkeit__titel", "fertigkeit__impro_possible", "fertigkeit__limit", "fp", "fp_bonus", "fertigkeit__gruppe", attribut=F("fertigkeit__attribut__titel"))):
             ROW += 1
             is_first_of_gruppe = i % 3 == 0
             if is_first_of_gruppe:
-                relgruppe = self.char.relgruppe_set.get(gruppe=fert["fertigkeit__gruppe"])
+                relgruppe = gruppen[fert["fertigkeit__gruppe"]]
                 werte_ws.merge_range(f"D{ROW}:D{ROW+2}", relgruppe.fg, format_fg)
                 werte_ws.merge_range(f"H{ROW}:H{ROW+2}", relgruppe.get_gruppe_display(), format_gruppe)
 
@@ -282,11 +284,11 @@ class CharakterExporter:
         # Vor- & Nachteile
         ROW+1
         werte_ws.merge_range(f"I{ROW}:I{ROW+2}", "Vorteile", format_teil_titel)
-        werte_ws.merge_range(f"J{ROW}:R{ROW+2}", ", ".join([rel.__repr__() for rel in self.char.relvorteil_set.order_by("teil__titel").filter(will_create=False)]), format_vorteil)
+        werte_ws.merge_range(f"J{ROW}:R{ROW+2}", ", ".join([rel.__repr__() for rel in self.char.relvorteil_set.prefetch_related("teil").order_by("teil__titel").filter(will_create=False)]), format_vorteil)
 
         ROW += 3
         werte_ws.merge_range(f"I{ROW}:I{ROW+2}", "Nachteile", format_teil_titel)
-        werte_ws.merge_range(f"J{ROW}:R{ROW+2}", ", ".join([rel.__repr__() for rel in self.char.relnachteil_set.order_by("teil__titel").filter(will_create=False)]), format_nachteil)
+        werte_ws.merge_range(f"J{ROW}:R{ROW+2}", ", ".join([rel.__repr__() for rel in self.char.relnachteil_set.prefetch_related("teil", "attribut", "fertigkeit", "engelsroboter").order_by("teil__titel").filter(will_create=False)]), format_nachteil)
 
         # continue center down
         ROW += 3
@@ -549,34 +551,38 @@ class CharakterExporter:
         # Gfs-Fähigkeiten
         werte_ws.merge_range(f"A{ROW}:H{ROW}", "Wesen-Eigenschaften/Fähigkeiten", format_ramsch_titel)
         if self.char.gfs:
-            for r in RelGfsAbility.objects.filter(char=self.char):
+            for r in RelGfsAbility.objects.prefetch_related("ability").filter(char=self.char):
                 ROW += 1
                 werte_ws.write(f"A{ROW}", r.ability.name, format_border_left)
                 werte_ws.merge_range(f"B{ROW}:G{ROW}", r.ability.beschreibung, format_text_wrap)
                 werte_ws.write(f"H{ROW}", None, format_border_right)
         # Zauber, Rituale & Runen
         ROW += 1
+        start_zauberrow = ROW
         werte_ws.merge_range(f"A{ROW}:H{ROW}", "Zauber, Rituale und Runen", format_ramsch_titel)
-        for r in self.char.relzauber_set.all():
+        for r in self.char.relzauber_set.prefetch_related("item").all():
             ROW += 1
             werte_ws.write_row(f"A{ROW}", [r.item.name], format_border_left)
             werte_ws.write_row(f"B{ROW}", [r.tier])
             werte_ws.write(f"H{ROW}", None, format_border_right)
-        for r in self.char.relrituale_runen_set.all():
+        
+        end_zauberrow = ROW
+        ROW = start_zauberrow
+        for r in self.char.relrituale_runen_set.prefetch_related("item").all():
             ROW += 1
             werte_ws.write_row(f"D{ROW}", [r.anz, r.item.name, f"Stufe {r.stufe}"])
             werte_ws.write(f"H{ROW}", None, format_border_right)
         # Talente
-        ROW += 1
+        ROW = max(end_zauberrow, ROW) + 1
         werte_ws.merge_range(f"A{ROW}:H{ROW}", "Talente", format_ramsch_titel)
-        for r in self.char.reltalent_set.all():
+        for r in self.char.reltalent_set.prefetch_related("talent").all():
             ROW += 1
             werte_ws.write_row(f"A{ROW}", [r.talent.titel], format_border_left)
             werte_ws.write(f"H{ROW}", None, format_border_right)
         # Wesenkraft
         ROW += 1
         werte_ws.merge_range(f"A{ROW}:H{ROW}", "Wesenkräfte", format_ramsch_titel)
-        for r in self.char.relwesenkraft_set.all():
+        for r in self.char.relwesenkraft_set.prefetch_related("wesenkraft").all():
             ROW += 1
             werte_ws.write_row(f"A{ROW}", [r.wesenkraft.titel], format_border_left)
             werte_ws.write_row(f"B{ROW}", [r.tier])
@@ -584,7 +590,7 @@ class CharakterExporter:
         # Items
         ROW += 1
         werte_ws.merge_range(f"A{ROW}:H{ROW}", "Items", format_ramsch_titel)
-        for r in self.char.relitem_set.all():
+        for r in self.char.relitem_set.prefetch_related("item").all():
             ROW += 1
             werte_ws.write(f"A{ROW}", r.anz, format_border_left)
             werte_ws.write(f"B{ROW}", r.item.name)
@@ -592,7 +598,7 @@ class CharakterExporter:
         # Waffen & Werkzeuge
         ROW += 1
         werte_ws.merge_range(f"A{ROW}:H{ROW}", "Waffen & Werkzeuge", format_ramsch_titel)
-        for r in self.char.relwaffen_werkzeuge_set.all():
+        for r in self.char.relwaffen_werkzeuge_set.prefetch_related("item").all():
             ROW += 1
             werte_ws.write(f"A{ROW}", r.anz, format_border_left)
             werte_ws.write(f"B{ROW}", r.item.name)
@@ -600,7 +606,7 @@ class CharakterExporter:
         # Schusswaffen
         ROW += 1
         werte_ws.merge_range(f"A{ROW}:H{ROW}", "Schusswaffen", format_ramsch_titel)
-        for r in self.char.relschusswaffen_set.all():
+        for r in self.char.relschusswaffen_set.prefetch_related("item").all():
             ROW += 1
             werte_ws.write(f"A{ROW}", r.anz, format_border_left)
             werte_ws.write_row(f"B{ROW}", [r.item.name, f"BS {r.item.bs} ({r.item.erfolge} Erfolge)", f"ZS {r.item.zs}", f"Präzi {r.item.präzision}"])
@@ -608,7 +614,7 @@ class CharakterExporter:
         # Ausrüstung & Technik
         ROW += 1
         werte_ws.merge_range(f"A{ROW}:H{ROW}", "Ausrüstung und Technische Geräte", format_ramsch_titel)
-        for r in self.char.relausrüstung_technik_set.all():
+        for r in self.char.relausrüstung_technik_set.prefetch_related("item").all():
             ROW += 1
             werte_ws.write(f"A{ROW}", r.anz, format_border_left)
             werte_ws.write(f"B{ROW}", r.item.name)
@@ -619,7 +625,7 @@ class CharakterExporter:
         # Einbauten
         ROW += 1
         werte_ws.merge_range(f"A{ROW}:H{ROW}", "Cyber- und Bioware", format_ramsch_titel)
-        for r in self.char.releinbauten_set.all():
+        for r in self.char.releinbauten_set.prefetch_related("item").all():
             ROW += 1
             werte_ws.write(f"A{ROW}", r.anz, format_border_left)
             werte_ws.write(f"B{ROW}", r.item.name)
@@ -707,40 +713,40 @@ class CharakterExporter:
 
         # Wissensfertigkeiten
         spF_wF_ws.write_row(0, 0, ['Wissensfertigkeit', 'Attribute', 'Fertigkeit', 'WP', 'Schwellwert'], format_section_titel)
-        wissen_qs = Wissensfertigkeit.objects.prefetch_related("fertigkeit", "attr1", "attr2", "attr3").annotate(
+        wissen_qs = Wissensfertigkeit.objects.annotate(
                         attr=Concat(F("attr1__titel"), Value(' + '), F("attr2__titel"), Value(' + '), F("attr3__titel"), output_field=CharField()),
-                        wp=Subquery(RelWissensfertigkeit.objects.filter(wissensfertigkeit=OuterRef("id"), char=self.char)[:1].values("stufe")),
+                        ferts=ConcatSubquery(Fertigkeit.objects.filter(wissensfertigkeit=OuterRef("pk")).values("titel"), separator=" + "),
+                        wp=Subquery(RelWissensfertigkeit.objects.filter(wissensfertigkeit=OuterRef("pk"), char=self.char)[:1].values("stufe")),
                     )
 
         for i, wissen in enumerate(wissen_qs):
-            ferts = " + ".join([s.titel for s in wissen.fertigkeit.all()])
-            wert = "+".join([self._position(e) for e in [*wissen.attr.split(" + "), *ferts.split(" + ")]])
+            wert = "+".join([self._position(e) for e in [*wissen.attr.split(" + "), *wissen.ferts.split(" + ")]])
 
             spF_wF_ws.write(f"A{i+2}", wissen.titel, format_align_center_center)
             spF_wF_ws.write(f"B{i+2}", wissen.attr, format_wissen_attr)
-            spF_wF_ws.write(f"C{i+2}", ferts, format_align_center_center)
+            spF_wF_ws.write(f"C{i+2}", wissen.ferts, format_align_center_center)
             spF_wF_ws.write(f"D{i+2}", wissen.wp, format_wissen_dice)
             spF_wF_ws.write(f"E{i+2}", f'={wert}+{Wissensfertigkeit.WISSENSF_STUFENFAKTOR}*D{i+2}', format_wissen_wert)
 
 
         # spezialfertigkeiten
         spF_wF_ws.write_row(0, 6, ['Spezialfertigkeit', 'Attribute', 'Gesamt', 'Ausgleich', 'Korr.', 'WP', 'W20 Probe'], format_section_titel)
-        spezial_qs = Spezialfertigkeit.objects.prefetch_related("attr1", "attr2").annotate(
-                        attr=Concat(F("attr1__titel"), Value(' + '), F("attr2__titel"), output_field=CharField()))
+        spezial_qs = Spezialfertigkeit.objects.annotate(
+            attr=Concat(F("attr1__titel"), Value(' + '), F("attr2__titel"), output_field=CharField()),
+            ferts=ConcatSubquery(Fertigkeit.objects.filter(spezialfertigkeit=OuterRef("pk")).values("titel"), separator=" + "),
+            wp=Subquery(RelSpezialfertigkeit.objects.filter(spezialfertigkeit=OuterRef("pk"), char=self.char)[:1].values("stufe")),
+        )
 
         for i, spezial in enumerate(spezial_qs):
             attr_wert = "+".join([self._position(attr) for attr in spezial.attr.split(" + ")]) + "-5"
-            ausgleich = " + ".join([fert["titel"] for fert in spezial.ausgleich.values("titel")])
-            fert_wert = "+".join([self._position(fert) for fert in ausgleich.split(" + ")]) if len(ausgleich) else "0"
-            wp_query = spezial.relspezialfertigkeit_set.filter(char=self.char).values("stufe")
-            wp = wp_query.first()["stufe"] if wp_query.exists() else None
+            fert_wert = "+".join([self._position(fert) for fert in spezial.ferts.split(" + ")]) if len(spezial.ferts) else "0"
 
             spF_wF_ws.write(f"G{i+2}", spezial.titel, format_align_center_center)
             spF_wF_ws.write(f"H{i+2}", spezial.attr, format_wissen_attr)
             spF_wF_ws.write(f"I{i+2}", f'={attr_wert}', format_spezial_gesamt)
-            spF_wF_ws.write(f"J{i+2}", ausgleich, format_wissen_attr)
+            spF_wF_ws.write(f"J{i+2}", spezial.ferts, format_wissen_attr)
             spF_wF_ws.write(f"K{i+2}", f'=ROUND(({fert_wert})/2)', format_spezial_korrektur)
-            spF_wF_ws.write(f"L{i+2}", wp, format_spezial_wp)
+            spF_wF_ws.write(f"L{i+2}", spezial.wp, format_spezial_wp)
             spF_wF_ws.write(f"M{i+2}", f'=I{i+2} + L{i+2}', format_wissen_wert)
 
         # highlight owned
@@ -855,7 +861,7 @@ class CharakterExporter:
         history_ws.write("A1", json.dumps(self.char.processing_notes))
 
         history_ws.write_row("A3", ["Spieler", "Art", "Notizen", "Kosten", "Timestamp"])
-        for i, log in enumerate(Log.objects.filter(char=self.char, art__in=("s", "u", "i"))):
+        for i, log in enumerate(Log.objects.prefetch_related("spieler").filter(char=self.char, art__in=("s", "u", "i"))):
             history_ws.write_row(f"A{4+i}", [log.spieler.name if log.spieler else "", log.get_art_display(), log.notizen, log.kosten, log.timestamp.__str__()])
 
         return history_ws
