@@ -1,8 +1,9 @@
 from datetime import date
 from typing import Any, Dict
 
-from django.db.models import F, Subquery, OuterRef, Min, ExpressionWrapper, Q
-from django.db.models.fields import BooleanField
+from django.db.models import F, Subquery, OuterRef, Min, ExpressionWrapper, Q, Value
+from django.db.models.fields import BooleanField, CharField
+from django.db.models.functions import Concat
 from django.contrib import messages
 from django.db.models.query import QuerySet
 from django.shortcuts import render, get_object_or_404, redirect
@@ -18,6 +19,7 @@ from base.abstract_views import DynamicTableView, GenericTable
 from character.models import *
 from ppServer.mixins import VerifiedAccountMixin
 from ppServer.decorators import verified_account
+from ppServer.utils import ConcatSubquery
 
 from .models import *
 
@@ -67,6 +69,41 @@ class TalentView(VerifiedAccountMixin, DynamicTableView):
 
     app_index = "Wiki"
     app_index_url = "wiki:index"
+
+class KlasseListView(VerifiedAccountMixin, DynamicTableView):
+    class Table(GenericTable):
+
+        class Meta:
+            model = Klasse
+            fields = ["icon", "titel", "beschreibung"]
+            attrs = GenericTable.Meta.attrs
+
+        def render_icon(self, value, record):
+            return format_html(f'<img src="{value.url}" style="max-width: 64px; max-height 64px;" />')
+        
+        def render_titel(self, value, record):
+            url = reverse("wiki:klasse", args=[record.id])
+            return format_html("<a href='{url}'>{name}</a>", url=url, name=value)
+
+    model = Klasse
+    table_class = Table
+    filterset_fields = {"titel": ["icontains"], "beschreibung": ["icontains"]}
+    template_name = "base/dynamic-table.html"
+
+    app_index = "Wiki"
+    app_index_url = "wiki:index"
+
+class KlasseDetailView(VerifiedAccountMixin, DetailView):
+
+    queryset = Klasse.objects.prefetch_related("klassestufenplan_set__ability")
+    template_name = "wiki/klasse_detail.html"
+
+    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
+        context = super().get_context_data(**kwargs,
+            app_index = "Klassen",
+            app_index_url = reverse("wiki:klassen"),
+        )
+        return {**context, "topic": context["object"].titel}
 
 
 class WesenView(VerifiedAccountMixin, ListView):
@@ -206,21 +243,61 @@ class GfsView(VerifiedAccountMixin, DynamicTableView):
 
 @verified_account
 def stufenplan(request, gfs_id):
-    gfs = get_object_or_404(Gfs, id=gfs_id)
-    entries = []
 
-    # stufenplan
-    for e in GfsStufenplan.objects.filter(gfs=gfs):
+    # get Gfs with startboni
+    gfs_qs = Gfs.objects.prefetch_related("gfsimage_set").annotate(
+        start_attribut = ConcatSubquery(GfsAttribut.objects.filter(gfs=OuterRef("pk")).annotate(text=Concat("attribut__titel", Value(" "), "aktuellerWert", Value("/"), "maxWert", output_field=CharField())).values("text"), separator=", "),
+        start_fertigkeit = ConcatSubquery(GfsFertigkeit.objects.filter(gfs=OuterRef("pk"), fp__gt=0).annotate(text=Concat("fertigkeit__titel", Value(" +"), "fp", output_field=CharField())).values("text"), separator=", "),
+        start_vorteil = ConcatSubquery(GfsVorteil.objects.filter(gfs=OuterRef("pk")).annotate(text=Concat("teil__titel", Value(" "), "notizen", output_field=CharField())).values("text"), separator=", "),
+        start_nachteil = ConcatSubquery(GfsNachteil.objects.filter(gfs=OuterRef("pk")).annotate(text=Concat("teil__titel", Value(" "), "notizen", output_field=CharField())).values("text"), separator=", "),
+        start_zauber = ConcatSubquery(GfsZauber.objects.filter(gfs=OuterRef("pk")).annotate(text=Concat("item__name", Value(" (Tier "), "tier", Value(")"), output_field=CharField())).values("text"), separator=", "),
+        start_wesenkraft = ConcatSubquery(GfsWesenkraft.objects.filter(gfs=OuterRef("pk")).values("wesenkraft__titel"), separator=", "),
+    )
+    gfs = get_object_or_404(gfs_qs, id=gfs_id)
+
+    # startboni
+    boni = [
+        {"field": "Attribute", "val": gfs.start_attribut},
+        {"field": "Fertigkeiten", "val": gfs.start_fertigkeit},
+        {"field": "Vorteile", "val": gfs.start_vorteil},
+        {"field": "Nachteile", "val": gfs.start_nachteil},
+        {"field": "Zauber", "val": gfs.start_zauber},
+        {"field": "Wesenkräfte", "val": gfs.start_wesenkraft},
+        {"field": "Startmanifest", "val": gfs.startmanifest},
+        {"field": "Schaden waffenloser Kampf (andere Form) in HP", "val": f"{gfs.wesenschaden_waff_kampf or 0} ({gfs.wesenschaden_andere_gestalt or 0})"},
+        {"field": "Kosten in AP", "val": gfs.ap},
+    ]
+
+
+    # Skilltree
+    skilltree_subquery = GfsSkilltreeEntry.objects\
+        .prefetch_related("base", "fertigkeit", "vorteil", "nachteil", "wesenkraft", "spezialfertigkeit", "wissensfertigkeit")\
+        .filter(gfs=gfs)
+    skilltree = list(SkilltreeBase.objects.values("stufe", "sp").order_by("stufe"))
+    for skill in skilltree_subquery:
+        i = skill.base.stufe - skilltree[0]["stufe"]
+        if "text" in skilltree[i]:
+            skilltree[i]["text"].append(skill.__repr__())
+        else:
+            skilltree[i]["text"] = [skill.__repr__()]
+
+
+    # Stufenplan
+    entries = []
+    for e in GfsStufenplan.objects.prefetch_related("basis", "ability").filter(gfs=gfs).annotate(
+        vorteile_string = ConcatSubquery(Vorteil.objects.filter(gfsstufenplan=OuterRef("pk")).values("titel"), separator=", "),
+        wesenkräfte_string = ConcatSubquery(Wesenkraft.objects.filter(gfsstufenplan=OuterRef("pk")).values("titel"), separator=", "),
+    ):
         entry = {
             "stufe": e.basis.stufe,
             "ep": e.basis.ep,
-            "ap": None if e.basis.ap == 0 else "+{}".format(e.basis.ap),
-            "fert": [None if e.basis.fp == 0 else "+{}".format(e.basis.fp),
-                    None if e.basis.fg == 0 else "+{} Gr.".format(e.basis.fg)],
-            "zauber": "+{}".format(e.zauber) if e.zauber else None,
-            "tp": None if e.basis.tp == 0 else "+{}".format(e.basis.tp),
-            "wesenkräfte": ", ".join([i.titel for i in e.wesenkräfte.all()]),
-            "vorteile": ", ".join([i.titel for i in e.vorteile.all()])
+            "ap": f"+{e.basis.ap}" if e.basis.ap else None,
+            "fert": [f"+{e.basis.fp}" if e.basis.fp else None,
+                    f"+{e.basis.fg} Gr.".format() if e.basis.fg else None],
+            "zauber": f"+{e.zauber}" if e.zauber else None,
+            "tp": f"+{e.basis.tp}" if e.basis.tp else None,
+            "wesenkräfte": e.wesenkräfte_string,
+            "vorteile": e.vorteile_string
         }
         if hasattr(e, "ability") and e.ability:
             entry["ability"] = {
@@ -231,52 +308,14 @@ def stufenplan(request, gfs_id):
         entries.append(entry)
 
 
-    skilltree = [{"sp": entry.sp, "text": []} for entry in SkilltreeBase.objects.filter(stufe__gt=0).order_by("stufe")]
-
-    # Gfs Skilltree
-    for s in GfsSkilltreeEntry.objects.prefetch_related("base").filter(gfs=gfs, base__stufe__gt=0):
-
-        # offset is -2, because anyone lacks the bonus (with Stufe 0) and starts at Stufe 2
-        skilltree[s.base.stufe-2]["text"].append(s.__repr__())
-
-    # list to string
-    for s in skilltree: s["text"] = ", ".join(s["text"])
-
-    # set bonus (has stufe 0) as last entry
-    bonus = GfsSkilltreeEntry.objects.prefetch_related("base").filter(gfs=gfs, base__stufe=0)
-    skilltree.append({"sp": 0, "text": ", ".join([b.__repr__() for b in bonus])})
-
-
-    # startboni
-    boni = []
-
-    start = []
-    gAttrs = GfsAttribut.objects.filter(gfs=gfs)
-    for gAttr in gAttrs:
-        start.append("{} ({} | {})".format(gAttr.attribut.titel, gAttr.aktuellerWert, gAttr.maxWert))
-
-    boni.append({"field": "Attribute", "val": ", ".join(start)})
-
-    start = []
-    gFerts = GfsFertigkeit.objects.filter(gfs=gfs)
-    for gFert in gFerts:
-        if gFert.fp:
-            start.append("{} ({} Bonus-FP)".format(gFert.fertigkeit.titel, gFert.fp))
-    boni.append({"field": "Fertigkeiten", "val": ", ".join(start)})
-
-    boni.append({"field": "Vorteile", "val": ", ".join(["{} {}".format(i.teil.titel, i.notizen).strip() for i in GfsVorteil.objects.filter(gfs=gfs)])})
-    boni.append({"field": "Nachteile", "val": ", ".join(["{} {}".format(i.teil.titel, i.notizen).strip() for i in GfsNachteil.objects.filter(gfs=gfs)])})
-    boni.append({"field": "Zauber", "val": ", ".join(["{} (Tier {})".format(i.item.name, i.tier).strip() for i in GfsZauber.objects.prefetch_related("item").filter(gfs=gfs)])})
-    boni.append({"field": "Wesenkräfte", "val": ", ".join([i.wesenkraft.titel for i in GfsWesenkraft.objects.filter(gfs=gfs)])})
-
     context = {
+        "gfs": gfs,
+        "boni": boni,
         "skilltree": skilltree,
         "stufenplan_entries": entries,
-        "gfs": gfs,
         "topic": gfs.titel,
-        "boni": boni,
-        "app_index": "Wiki",
-        "app_index_url": reverse("wiki:index")
+        "app_index": Gfs._meta.verbose_name_plural,
+        "app_index_url": reverse("wiki:gfs")
     }
     return render(request, "wiki/stufenplan.html", context=context)
 

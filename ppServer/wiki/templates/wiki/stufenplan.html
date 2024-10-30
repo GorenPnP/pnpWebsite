@@ -80,19 +80,6 @@
                             <td>{{ b.val|default:'-'|linebreaks }}</td>
                         </tr>
                         {% endfor %}
-        
-                        <tr>
-                            <td>Startmanifest</td>
-                            <td>{{ gfs.startmanifest|default:'-' }}</td>
-                        </tr>
-                        <tr>
-                            <td>Schaden waffenloser Kampf (andere Form) in HP</td>
-                            <td>{{ gfs.wesenschaden_waff_kampf|default:'-' }} ({{ gfs.wesenschaden_andere_gestalt|default:'-' }})</td>
-                        </tr>
-                        <tr>
-                            <td>Kosten in AP</td>
-                            <td>{{ gfs.ap|default:'-' }}</td>
-                        </tr>
                     </tbody>
                 </table>
             </div>
@@ -116,11 +103,9 @@
                         {% for e in skilltree %}
                         <tr>
                             <td>
-                                {% if not forloop.last %}
                                 <b>{{ forloop.counter0|add:2 }}</b><br><small>({{ e.sp }} SP)</small>
-                                {% else %}Bonus{% endif %}
                             </td>
-                            <td>{{ e.text|default:'-'|linebreaks }}</td>
+                            <td>{{ e.text|join:', '|default:'-'|linebreaks }}</td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -134,7 +119,7 @@
 <section class="content ep-tree">
     <h2 class="title">EP-Tree</h2>
     <div class="table-container table-responsive">
-        <table class="ep-tree__table table table-dark table-striped table-hover">
+        <table class="table table-dark table-striped table-hover">
             <thead>
                 <tr>
                     <th>Stufe (EP)</th>
@@ -169,7 +154,7 @@
         
                     <td>
                         {% if not e.ability  %}-{% else %}
-                        <strong>{{ e.ability.name|default:"-"|linebreaks }}</strong><br>
+                        <strong>{{ e.ability.name|default:"-" }}</strong><br>
                         {{ e.ability.beschreibung|default:"-"|linebreaks }}
                         {% endif %}
                     </td>

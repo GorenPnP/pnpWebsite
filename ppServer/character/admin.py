@@ -179,10 +179,14 @@ class TalentAdmin(admin.ModelAdmin):
 
 
 class KlasseAdmin(admin.ModelAdmin):
-    list_display = ["titel", "beschreibung"]
+    list_display = ["_icon", "titel", "beschreibung"]
+    list_display_links = ["_icon", "titel"]
     search_fields = ["titel"]
     inlines = [KlasseStufenplanInLine]
     actions = ["create_stufenplans"]
+
+    def _icon(self, obj):
+        return format_html(f'<img src="{obj.icon.url}" style="max-width: 32px; max-height:32px;" />') if obj.icon else self.get_empty_value_display()
 
     @admin.action(description="Stufenpläne anlegen")
     def create_stufenplans(self, request, queryset):

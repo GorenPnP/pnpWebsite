@@ -1,0 +1,88 @@
+{% extends 'base/headed_main.html' %}
+{% load static %}
+{% block extra-head %}
+<style>
+section.general {
+    .image-container {
+        height: fit-content;
+        max-width: 500px;
+    }
+    .description__text {
+        max-width: 75ch;
+        line-height: 1.35em;
+    }
+}
+
+table thead tr th {
+    hyphens: initial;
+
+    position: sticky;
+    top: var(--table-heading-top-offset);
+    transition: top 0.25s 0.1s ease-in-out;
+}
+.hidden-header table thead tr th {
+    top: 0 !important;
+}
+</style>
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        document.querySelector("thead").style.setProperty("--table-heading-top-offset", document.querySelector("#after-header").style.getPropertyValue("margin-top"));
+    })
+</script>
+{% endblock %}
+
+{% block main %}
+<section class="general container">
+    <div class="row mb-5">
+
+        <!-- logo image -->
+        <img src="{% if object.icon %}{{ object.icon.url }}{% else %}{% static 'res/img/goren_logo.svg' %}{% endif %}" class="col-12 col-sm image-container">
+
+        <!-- description -->
+        <div class="col-12 col-sm">
+            <h2 class="title">Beschreibung</h2>
+            <p class="description__text">{{ object.beschreibung|default:"-"|linebreaks }}</p>
+        </div>
+    </div>
+</section>
+
+<!-- EP-tree -->
+<section class="content stufe-tree">
+    <h2 class="title">Stufen</h2>
+    <table class="table table-dark table-striped table-hover">
+        <thead>
+            <tr>
+                <th>Stufe</th>
+                <th>AP</th>
+                <th>FP</th>
+                <th>FG</th>
+                <th>TP</th>
+                <th>IP</th>
+                <th>Zauber</th>
+                <th>Klassen-Fähigkeiten</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for e in object.klassestufenplan_set.all %}
+            <tr>
+                <td><b>{{ e.stufe }}</b></td>
+                <td>{{ e.ap|default:'-' }}</td>
+                <td>{{ e.fp|default:'-' }}</td>
+                <td>{{ e.fg|default:'-' }}</td>
+                <td>{{ e.tp|default:"-" }}</td>
+                <td>{{ e.ip|default:"-" }}</td>
+                <td>{{ e.zauber|default:"-" }}</td>
+
+                <td>
+                    {% if not e.ability  %}-{% else %}
+                    <strong>{{ e.ability.name|default:"-" }}</strong>
+                    {{ e.ability.beschreibung|default:"-"|linebreaks }}
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</section>
+{% endblock %}

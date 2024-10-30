@@ -81,6 +81,7 @@ class Klasse(models.Model):
         verbose_name = "Klasse"
         verbose_name_plural = "Klassen"
 
+    icon = ResizedImageField(size=[1024, 1024], null=True, blank=True)
     titel = models.CharField(max_length=30, null=False, default="")
     beschreibung = models.TextField()
     # TODO requirements to get Klasse
