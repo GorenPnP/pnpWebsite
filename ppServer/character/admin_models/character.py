@@ -55,14 +55,6 @@ class ReadonlyRelInlineAdmin(RelInlineAdmin):
         return self._is_visible(request, obj)
 
 
-
-
-class RelPersönlichkeitInline(RelInlineAdmin):
-    model = RelPersönlichkeit
-
-    def get_queryset(self, request: HttpRequest) -> QuerySet[Any]:
-        return super().get_queryset(request).prefetch_related("persönlichkeit")
-
 class RelKlasseInline(RelInlineAdmin):
     model = RelKlasse
 
@@ -277,7 +269,7 @@ class CharakterAdmin(admin.ModelAdmin):
 
     fieldsets = [
         ("Settings (Finger weg)", {'fields': ['eigentümer', "in_erstellung", "larp", "gfs"]}),
-        ('Roleplay', {'fields': ['image', 'name', "gewicht", "größe", 'alter', 'geschlecht', 'sexualität', 'beruf', "präf_arm",
+        ('Roleplay', {'fields': ['image', 'name', "gewicht", "größe", 'alter', 'geschlecht', 'sexualität', 'persönlichkeit', 'beruf', "präf_arm",
                               'religion', "hautfarbe", "haarfarbe", "augenfarbe"]}),
 
         ("Manifest", {"fields": ["manifest", "sonstiger_manifestverlust", "notizen_sonstiger_manifestverlust", "manifest_fix"]}),
@@ -293,8 +285,6 @@ class CharakterAdmin(admin.ModelAdmin):
     ]
 
     inlines = [
-        # RelGfsInline,
-        RelPersönlichkeitInline,
         RelKlasseInline,
         RelWesenkraftInLine,
         RelAttributInline,

@@ -114,6 +114,10 @@ class GenericSpF_wFView(LevelUpMixin, tables.SingleTableMixin, TemplateView):
         return sorted(spezial + wissen, key=lambda x: x["titel"])
 
 
+    def get(self, request, *args, **kwargs):
+        messages.info(request, "Zum Erlernen '0' eintragen, höher geht nur mit mit WP bei Erstellung")
+        return super().get(request, *args, **kwargs)
+
     def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
         char = self.get_character()
 

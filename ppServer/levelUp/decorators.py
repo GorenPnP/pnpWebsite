@@ -14,7 +14,7 @@ def is_erstellung_done(view_func, redirect_to="create:gfs"):
     return wrap
 
 def is_personal_done(char: Charakter):
-    return char is not None and char.name is not None and len(char.name) > 0 and char.persönlichkeit.exists()
+    return char is not None and char.name is not None and len(char.name) > 0 and char.persönlichkeit
 
 def is_ap_done(char: Charakter, max_ap: int = 0):
     return char is not None and (char.ap is None or char.ap <= max_ap)

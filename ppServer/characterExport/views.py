@@ -29,7 +29,7 @@ class CharacterExportView(VerifiedAccountMixin, UserPassesTestMixin, DetailView)
 
     def get_queryset(self, *args, **kwargs) -> Charakter:
         return Charakter.objects.prefetch_related(
-            "eigentümer", "gfs__gfsstufenplan_set__basis", "relpersönlichkeit_set",
+            "eigentümer", "gfs__gfsstufenplan_set__basis", "persönlichkeit",
             "beruf", "religion", "relattribut_set", "relfertigkeit_set",
             "affektivität_set", "releinbauten_set__item", "relausrüstung_technik_set__item",
             "relschusswaffen_set__item", "relwaffen_werkzeuge_set__item", "relitem_set__item",

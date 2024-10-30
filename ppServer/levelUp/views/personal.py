@@ -28,11 +28,6 @@ class GenericPersonalView(LevelUpMixin, TemplateView):
         form.full_clean()
         if form.is_valid():
             form.save()
-
-            # Persönlichkeit is not updated automatically if None and stayed on first element in formfield
-            RelPersönlichkeit.objects.filter(char=char).delete()
-            RelPersönlichkeit.objects.create(char=char, persönlichkeit=form.cleaned_data["persönlichkeit"].first())
-
             messages.success(request, "Erfolgreich gespeichert")
 
         return redirect(request.build_absolute_uri())

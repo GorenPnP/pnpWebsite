@@ -2,7 +2,8 @@ from typing import Any, Dict
 
 from django.apps import apps
 from django.contrib import messages
-from django.db.models import Value, F
+from django.db.models import Value, F, CharField, OuterRef
+from django.db.models.functions import Concat
 from django.shortcuts import redirect
 from django.urls import reverse
 from django.utils.html import format_html
@@ -16,6 +17,7 @@ from log.create_log import render_number
 from log.models import Log
 from ppServer.decorators import verified_account
 from ppServer.mixins import VerifiedAccountMixin
+from ppServer.utils import ConcatSubquery
 
 from .models import *
 
@@ -40,6 +42,15 @@ class CharacterListView(VerifiedAccountMixin, TemplateView):
 class ShowView(VerifiedAccountMixin, DetailView):
     template_name = "character/show.html"
     model = Charakter
+    queryset = Charakter.objects.prefetch_related(
+        "gfs", "persönlichkeit", "religion", "beruf", "relfertigkeit_set__fertigkeit__attribut", "relgruppe_set",
+        "relattribut_set__attribut", "relwesenkraft_set__wesenkraft", "reltalent_set__talent",
+        "relgfsability_set__ability", "affektivität_set",
+        "relzauber_set__item", "relrituale_runen_set__item", "relschusswaffen_set__item", "relwaffen_werkzeuge_set__item",
+        "relmagazin_set__item", "relpfeil_bolzen_set__item", "relmagische_ausrüstung_set__item", "relrüstung_set__item",
+        "relausrüstung_technik_set__item", "relfahrzeug_set__item", "releinbauten_set__item", "relalchemie_set__item",
+        "reltinker_set__item", "relbegleiter_set__item",
+    )
 
     def get(self, request, *args, **kwargs):
         if not self.request.spieler.is_spielleiter and not Charakter.objects.filter(pk=kwargs["pk"], eigentümer=self.request.spieler.instance).exists():
@@ -49,15 +60,19 @@ class ShowView(VerifiedAccountMixin, DetailView):
     
 
     def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
-        char = self.get_object()
+        context = super().get_context_data(**kwargs)
 
-        return super().get_context_data(
-            **kwargs,
-            topic = char.name,
-            app_index = "Charaktere",
-            app_index_url = reverse("character:index"),
-            plus = "History",
-            plus_url = reverse("character:history", args=[char.id]),
+        char = context["object"]
+        self._rel_attribute = {rel.attribut.titel: rel for rel in char.relattribut_set.all()}
+        self._gruppen_fg = {rel.gruppe: rel.fg for rel in char.relgruppe_set.all()}
+
+        return {
+            **context,
+            "topic":  char.name,
+            "app_index": "Charaktere",
+            "app_index_url": reverse("character:index"),
+            "plus": "History",
+            "plus_url": reverse("character:history", args=[char.id]),
 
             **self.get_personal(char),
             **self.get_resources(char),
@@ -76,28 +91,14 @@ class ShowView(VerifiedAccountMixin, DetailView):
             **self.get_ritual(char),
             **self.get_nahkampf(char),
             **self.get_fernkampf(char),
-        )
-    
-    def get_object(self) -> Charakter:
-        qs = Charakter.objects.prefetch_related(
-            "gfs", "persönlichkeit", "religion", "beruf", "relfertigkeit_set__fertigkeit__attribut", "relgruppe_set",
-            "relattribut_set__attribut", "relwesenkraft_set__wesenkraft", "reltalent_set__talent",
-            "relgfsability_set__ability", "affektivität_set", "relvorteil_set__teil", "relnachteil_set__teil",
-            "relzauber_set__item", "relrituale_runen_set__item", "relschusswaffen_set__item", "relwaffen_werkzeuge_set__item",
-            "relmagazin_set__item", "relpfeil_bolzen_set__item", "relmagische_ausrüstung_set__item", "relrüstung_set__item",
-            "relausrüstung_technik_set__item", "relfahrzeug_set__item", "releinbauten_set__item", "relalchemie_set__item",
-            "reltinker_set__item", "relbegleiter_set__item",
-            "relspezialfertigkeit_set__spezialfertigkeit__attr1", "relspezialfertigkeit_set__spezialfertigkeit__attr2", "relspezialfertigkeit_set__spezialfertigkeit__ausgleich",
-            "relwissensfertigkeit_set__wissensfertigkeit__attr1", "relwissensfertigkeit_set__wissensfertigkeit__attr2", "relwissensfertigkeit_set__wissensfertigkeit__attr3", "relwissensfertigkeit_set__wissensfertigkeit__fertigkeit",
-        )
-        return super().get_object(qs)
+        }
     
 
     def get_personal(self, char):
         fields = [
                 ["Name", char.name],
                 ["Gfs (Stufe)", f"{char.gfs.titel if char.gfs is not None else '-'} ({char.skilltree_stufe})"],
-                ["Persönlichkeit", ", ".join(char.persönlichkeit.all().values_list("titel", flat=True))],
+                ["Persönlichkeit", char.persönlichkeit.titel],
                 ["Geschlecht", char.geschlecht],
                 ["Alter", char.alter],
                 ["Größe", f"{char.größe} cm"],
@@ -135,9 +136,9 @@ class ShowView(VerifiedAccountMixin, DetailView):
         }
     
     def get_calculated(self, char):
-        MA_relattr = char.relattribut_set.get(attribut__titel="MA")
+        MA_relattr = self._rel_attribute["MA"]
         MA_raw = MA_relattr.aktuellerWert if MA_relattr.aktuellerWert_fix is None else MA_relattr.aktuellerWert_fix
-        attrs = { rel.attribut.titel: rel.aktuell() for rel in char.relattribut_set.all() }
+        attrs = { attr_name: rel.aktuell() for attr_name, rel in self._rel_attribute.items() }
         fg = { rel.gruppe: rel.fg for rel in RelGruppe.objects.filter(char=char) }
         ferts = { rel.fertigkeit.titel: rel.fp + rel.fp_bonus + attrs[rel.fertigkeit.attribut.titel] + fg[rel.fertigkeit.gruppe] for rel in char.relfertigkeit_set.all() }
 
@@ -224,7 +225,6 @@ class ShowView(VerifiedAccountMixin, DetailView):
             def render_fertigkeit__gruppe(self, value):
                 return [name for token, name in enums.gruppen_enum if token == value][0]
 
-        gruppen = {rel.gruppe: rel.fg for rel in char.relgruppe_set.all()}
         qs_fert = char.relfertigkeit_set.all().prefetch_related("fertigkeit__attribut").annotate(
             fg=Value(1),
             pool=Value(1),
@@ -232,11 +232,10 @@ class ShowView(VerifiedAccountMixin, DetailView):
         ).values("fertigkeit__titel", "fertigkeit__attribut__titel", "fp", "fg", "fp_bonus", "pool", "fertigkeit__limit", "fertigkeit__gruppe", "impro_possible")
 
         for fert in qs_fert:
-            fert["fg"] = gruppen[fert["fertigkeit__gruppe"]]
+            fert["fg"] = self._gruppen_fg[fert["fertigkeit__gruppe"]]
 
-            relattr = char.relattribut_set.get(attribut__titel=fert["fertigkeit__attribut__titel"])
-            aktuell = relattr.aktuell()
-            fert["pool"] = sum([aktuell, fert["fp"], fert["fp_bonus"], fert["fg"]])
+            relattr = self._rel_attribute[fert["fertigkeit__attribut__titel"]]
+            fert["pool"] = sum([relattr.aktuell(), fert["fp"], fert["fp_bonus"], fert["fg"]])
 
         return {
             "fert__table": FertTable(qs_fert),
@@ -244,13 +243,13 @@ class ShowView(VerifiedAccountMixin, DetailView):
 
     def get_hp(self, char):
         khp = [
-            char.relattribut_set.get(attribut__titel="ST").aktuell() * 5,
+            self._rel_attribute["ST"].aktuell() * 5,
             char.ep_stufe * 2 + math.floor(char.larp_rang / 20),
             math.floor(char.rang / 10),
             char.HPplus_fix if char.HPplus_fix is not None else char.HPplus,
         ]
         ghp = [
-            char.relattribut_set.get(attribut__titel="WK").aktuell() * 5,
+            self._rel_attribute["WK"].aktuell() * 5,
             char.HPplus_geistig,
             math.ceil(char.larp_rang / 20),
         ]
@@ -276,31 +275,27 @@ class ShowView(VerifiedAccountMixin, DetailView):
         }
     
     def get_spF_wF(self, char):
-        attr = {rel.attribut.titel: rel.aktuell() for rel in char.relattribut_set.all()}
-        fg = {rel.gruppe: rel.fg for rel in char.relgruppe_set.all()}
-        fert = {rel.fertigkeit.titel: attr[rel.fertigkeit.attribut.titel] + fg[rel.fertigkeit.gruppe] + rel.fp + rel.fp_bonus for rel in char.relfertigkeit_set.prefetch_related("fertigkeit").all()}
+        attr = {attr_titel: rel.aktuell() for attr_titel, rel in self._rel_attribute.items()}
+        fert = {rel.fertigkeit.titel: attr[rel.fertigkeit.attribut.titel] + self._gruppen_fg[rel.fertigkeit.gruppe] + rel.fp + rel.fp_bonus for rel in char.relfertigkeit_set.all()}
 
         class SpezialTable(tables.Table):
             class Meta:
                 model = RelSpezialfertigkeit
                 fields = (
-                    "spezialfertigkeit__titel", "spezialfertigkeit__attr1__titel", "spezialfertigkeit__attr2__titel", "gesamt",
-                    "spezialfertigkeit__ausgleich", "korrektur", "wp", "w20_probe"
+                    "spezialfertigkeit__titel", "attribute", "gesamt",
+                    "fertigkeiten", "korrektur", "wp", "w20_probe"
                 )
                 orderable = False
                 attrs = {"class": "table table-dark table-striped table-hover"}
 
-            spezialfertigkeit__attr1__titel = tables.Column(verbose_name="Attribut 1")
-            spezialfertigkeit__attr2__titel = tables.Column(verbose_name="Attribut 2")
-
             def render_gesamt(self, value, record):
-                return attr[record.spezialfertigkeit.attr1.titel] + attr[record.spezialfertigkeit.attr2.titel] -5
+                return sum([attr[attr_name] for attr_name in record.attribute.split(" + ")]) -5
 
             def render_korrektur(self, value, record):
-                return math.floor(sum([fert[f.titel] for f in record.spezialfertigkeit.ausgleich.all()]) / 2 + 0.5)
+                return math.floor(sum([fert[fert_name] for fert_name in record.fertigkeiten_names.split(";")]) / 2 + 0.5)
             
             def render_w20_probe(self, value, record):
-                return attr[record.spezialfertigkeit.attr1.titel] + attr[record.spezialfertigkeit.attr2.titel] -5 + record.wp
+                return sum([attr[attr_name] for attr_name in record.attribute.split(" + ")]) -5 + record.wp
 
 
         class WissenTable(tables.Table):
@@ -308,43 +303,39 @@ class ShowView(VerifiedAccountMixin, DetailView):
                 model = RelWissensfertigkeit
                 fields = (
                     "wissensfertigkeit__titel", "attribute", "gesamt",
-                    "wissensfertigkeit__fertigkeit", "wp", "schwellwert"
+                    "fertigkeiten", "wp", "schwellwert"
                 )
                 orderable = False
                 attrs = {"class": "table table-dark table-striped table-hover"}
 
-            def render_attribute(self, value, record):
-                return " + ".join([record.wissensfertigkeit.attr1.titel, record.wissensfertigkeit.attr2.titel, record.wissensfertigkeit.attr3.titel])
-
             def render_gesamt(self, value, record):
-                return sum([
-                    attr[record.wissensfertigkeit.attr1.titel],
-                    attr[record.wissensfertigkeit.attr2.titel],
-                    attr[record.wissensfertigkeit.attr3.titel]
-                ])
+                return sum([attr[attr_name] for attr_name in record.attribute.split(" + ")])
             
             def render_schwellwert(self, value, record):
                 return sum([
-                    attr[record.wissensfertigkeit.attr1.titel],
-                    attr[record.wissensfertigkeit.attr2.titel],
-                    attr[record.wissensfertigkeit.attr3.titel],
-                    sum([fert[rel.fertigkeit.titel] for rel in char.relfertigkeit_set.filter(fertigkeit__in=record.wissensfertigkeit.fertigkeit.all())]),
+                    *[attr[attr_name] for attr_name in record.attribute.split(" + ")],
+                    *[fert[fert_titel] for fert_titel in record.fertigkeiten_names.split(";")],
                     record.wp * Wissensfertigkeit.WISSENSF_STUFENFAKTOR
                 ])
 
 
-        spezi_qs = char.relspezialfertigkeit_set.all().annotate(
+        spezi_qs = char.relspezialfertigkeit_set.prefetch_related("spezialfertigkeit").all().annotate(
+            attribute=Concat("spezialfertigkeit__attr1__titel", Value(" + "), "spezialfertigkeit__attr2__titel", output_field=CharField()),
+            fertigkeiten_names=ConcatSubquery(Fertigkeit.objects.filter(spezialfertigkeit=OuterRef("spezialfertigkeit")).values("titel"), separator=";"),
+            fertigkeiten=ConcatSubquery(Fertigkeit.objects.filter(spezialfertigkeit=OuterRef("spezialfertigkeit")).annotate(text=Concat("titel", Value(" ("), "attribut__titel", Value(")"), output_field=CharField())).values("text"), separator=", "),
             gesamt=Value(1),
             korrektur=Value(1),
             w20_probe=Value(1),
             wp=F("stufe")
         )
 
-        wissen_qs = char.relwissensfertigkeit_set.all().annotate(
-            attribute=Value("attr"),
+        wissen_qs = char.relwissensfertigkeit_set.prefetch_related("wissensfertigkeit").all().annotate(
+            attribute=Concat("wissensfertigkeit__attr1__titel", Value(" + "), "wissensfertigkeit__attr2__titel", Value(" + "), "wissensfertigkeit__attr3__titel", output_field=CharField()),
+            fertigkeiten_names=ConcatSubquery(Fertigkeit.objects.filter(wissensfertigkeit=OuterRef("wissensfertigkeit")).values("titel"), separator=";"),
+            fertigkeiten=ConcatSubquery(Fertigkeit.objects.filter(wissensfertigkeit=OuterRef("wissensfertigkeit")).annotate(text=Concat("titel", Value(" ("), "attribut__titel", Value(")"), output_field=CharField())).values("text"), separator=", "),
             gesamt=Value(1),
             wp=F("stufe"),
-            schwellwert=Value(1)
+            schwellwert=Value(1),
         )
 
         return {
@@ -364,8 +355,8 @@ class ShowView(VerifiedAccountMixin, DetailView):
                 return record.full_addons() or "—"
 
         return {
-            "vorteil__table": TeilTable(char.relvorteil_set.all().annotate(notiz=Value(" "))),
-            "nachteil__table": TeilTable(char.relnachteil_set.all().annotate(notiz=Value(" "))),
+            "vorteil__table": TeilTable(char.relvorteil_set.prefetch_related("teil", "attribut", "fertigkeit", "engelsroboter").all().annotate(notiz=Value(" "))),
+            "nachteil__table": TeilTable(char.relnachteil_set.prefetch_related("teil", "attribut", "fertigkeit", "engelsroboter").all().annotate(notiz=Value(" "))),
         }
 
     def get_wesenkraft(self, char):

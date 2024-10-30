@@ -567,6 +567,7 @@ class Charakter(models.Model):
     larp = models.BooleanField(default=False)
     eigentümer = models.ForeignKey(Spieler, on_delete=models.CASCADE, null=True, blank=True)
     gfs = models.ForeignKey(Gfs, on_delete=models.SET_NULL, null=True, blank=True)
+    persönlichkeit = models.ForeignKey(Persönlichkeit, on_delete=models.SET_NULL, null=True, blank=True)
 
     # manifest
     manifest = models.DecimalField('Startmanifest', max_digits=4, decimal_places=2, default=10.0,
@@ -655,8 +656,6 @@ class Charakter(models.Model):
     vorteile = models.ManyToManyField(Vorteil, through="character.RelVorteil", blank=True)
     nachteile = models.ManyToManyField(Nachteil, through="character.RelNachteil", blank=True)
     talente = models.ManyToManyField(Talent, through="character.RelTalent", blank=True)
-
-    persönlichkeit = models.ManyToManyField(Persönlichkeit, blank=True)
     wesenkräfte = models.ManyToManyField(Wesenkraft, through="character.RelWesenkraft", blank=True)
 
     attribute = models.ManyToManyField(Attribut, through="character.RelAttribut", blank=True)
@@ -857,21 +856,6 @@ class Affektivität(models.Model):
 
     def __str__(self):
         return "'{}' zu Charakter '{}'".format(self.name, self.char)
-
-
-class RelPersönlichkeit(models.Model):
-    class Meta:
-        ordering = ['char', 'persönlichkeit']
-        verbose_name = "Persönlichkeit"
-        verbose_name_plural = "Persönlichkeiten"
-
-        unique_together = (('char', 'persönlichkeit'),)
-
-    char = models.ForeignKey(Charakter, on_delete=models.CASCADE)
-    persönlichkeit = models.ForeignKey(Persönlichkeit, on_delete=models.CASCADE)
-
-    def __str__(self):
-        return "Charakter '{}' ist '{}'".format(self.char.name, self.persönlichkeit.titel)
 
 
 class RelTalent(models.Model):
