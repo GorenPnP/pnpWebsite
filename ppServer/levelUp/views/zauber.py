@@ -1,12 +1,15 @@
-from django.db.models import Sum
+from typing import Callable
+
 from django.contrib import messages
+from django.db.models import Sum, Value, CharField, Exists, OuterRef
+from django.db.models.functions import Concat, Replace
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import redirect, get_object_or_404
 from django.views.generic.base import TemplateView
 from django.utils.decorators import method_decorator
 
-from character.models import RelAttribut, FirmaZauber, get_tier_cost_with_sp, RelZauber
-from shop.models import Zauber
+from character.models import Charakter, RelAttribut, get_tier_cost_with_sp, RelZauber
+from shop.models import Firma, FirmaZauber, Modifier, Zauber
 
 from ..decorators import is_erstellung_done
 from ..mixins import LevelUpMixin
@@ -18,22 +21,37 @@ class GenericZauberView(LevelUpMixin, TemplateView):
 
     template_name = "levelUp/zauber.html"
 
+    def _get_price_modifiers(self) -> dict[int, Callable[[float], float]]:
+        ''' get price modifiers for Zauber by firma.pk
+            Should be called once to be used everywhere needed, because it contains pricy db operations.
+        '''
+        return {firma.pk: Modifier.getModifier(firma, Zauber) for firma in Firma.objects.annotate(pick=Exists(FirmaZauber.objects.filter(firma=OuterRef("pk")))).filter(pick=True)}
+        
 
     def get_context_data(self, *args, **kwargs):
-        char = self.get_character()
-        rel_ma = RelAttribut.objects.get(char=char, attribut__titel='MA')
+        char = self.get_character(Charakter.objects.prefetch_related("zauber", "relzauber_set", "relattribut_set__attribut"))
+
         zauberplätze = char.zauberplätze if char.zauberplätze else {}
         max_stufe = max([int(k) for k in zauberplätze.keys()], default=-1)
-        zauber = Zauber.objects\
-                .filter(frei_editierbar=False, ab_stufe__lte=max_stufe)\
-                .exclude(id__in=char.zauber.values("id"))\
-                .values("id", "name")
-        
-        for z in zauber:
-            z["geld"] = min([f.getPrice() for f in FirmaZauber.objects.filter(item__id=z["id"])])
 
+        own_zauber = char.relzauber_set.prefetch_related("item").all().annotate(
+            querystring=Concat(Value('?name__icontains='), Replace("item__name", Value(" "), Value("+")), output_field=CharField()),
+        ).order_by("item__name")
+
+        firmen_modifiers = self._get_price_modifiers()
+        zauber = [
+            {"zauber": z, "geld": min([firmen_modifiers[f.firma.pk](f.preis) for f in z.firmazauber_set.all()])}
+            for z in Zauber.objects.prefetch_related("firmazauber_set__firma")\
+                .annotate(
+                    querystring=Concat(Value('?name__icontains='), Replace("name", Value(" "), Value("+")), output_field=CharField()),
+                )\
+                .filter(frei_editierbar=False, ab_stufe__lte=max_stufe)\
+                .exclude(id__in=char.zauber.values("id"))
+        ]
+
+        rel_ma = char.relattribut_set.get(attribut__titel='MA')
         return super().get_context_data(*args, **kwargs,
-            own_zauber = RelZauber.objects.filter(char=char).order_by("item__name"),
+            own_zauber = own_zauber,
             zauber = zauber,
 
             MA_aktuell = rel_ma.aktuell() - get_required_aktuellerWert(char, "MA") if rel_ma.aktuellerWert_fix is None else 0,
@@ -61,7 +79,8 @@ class GenericZauberView(LevelUpMixin, TemplateView):
                 messages.error(request, f"Du hast keinen passenden Zauberplatz für {zauber.name}.")
                 return redirect(request.build_absolute_uri())
             
-            price = min([t.getPrice() for t in FirmaZauber.objects.filter(item=zauber)])
+            firmen_modifiers = self._get_price_modifiers()
+            price = min([firmen_modifiers[t.firma.pk](t.preis) for t in FirmaZauber.objects.prefetch_related("firma").filter(item=zauber)])
             if not char.in_erstellung and char.geld < price:
                 messages.error(request, f"Du hast nicht genug Geld für {zauber.name}.")
                 return redirect(request.build_absolute_uri())

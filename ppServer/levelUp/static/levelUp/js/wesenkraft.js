@@ -51,7 +51,7 @@ function update_general() {
             submittable = amount_tiers_chosen <= ap_available;
             break;
     }
-    document.querySelector("#learn-tier").disabled = !submittable;
+    document.querySelector("#learn-tier").disabled = !submittable || amount_tiers_chosen === 0;
 }
 
 

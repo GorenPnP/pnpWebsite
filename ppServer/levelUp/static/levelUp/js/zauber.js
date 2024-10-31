@@ -30,7 +30,7 @@ function update_display(card) {
 function update_general() {
     // update create zauber button
     const learn_btn = document.querySelector("#learn-zauber");
-    if (learn_btn) { learn_btn.disabled = !!document.querySelectorAll(".tier-filled").length; }
+    if (learn_btn) { learn_btn.disabled = !document.querySelectorAll("#create-form input[name='zauber_id']:checked").length; }
 
     // update number display in resources & disabled of #learn-tier btn
     document.querySelectorAll(".pay-tier").forEach(tag => tag.innerHTML = "");
@@ -59,7 +59,7 @@ function update_general() {
             submittable = amount_tiers_chosen <= ap_available;
             break;
     }
-    document.querySelector("#learn-tier").disabled = !submittable;
+    document.querySelector("#learn-tier").disabled = !submittable || amount_tiers_chosen === 0;
 }
 
 
@@ -82,11 +82,11 @@ document.querySelector("#payment-method")?.addEventListener("change", function()
     update_general();
 });
 
-document.querySelector("[name='zauber_id']")?.addEventListener("change", function() {
-    const price = this.selectedIndex ? parseInt(this.options[this.selectedIndex].dataset.money) : 0;
-    const formatted_price = price.toLocaleString("de-DE")
+document.querySelectorAll("[name='zauber_id']").forEach(radio_input => radio_input.addEventListener("change", function() {
+    update_general();
 
     if (document.querySelector("#pay-money")) {
-        document.querySelector("#pay-money").innerHTML = price ? ` (-${formatted_price})` : "";
+        const price = this.closest(".zauber-formitem").querySelector(".geld").innerText;
+        document.querySelector("#pay-money").innerHTML = price ? ` (-${price})` : "";
     }
-});
+}));

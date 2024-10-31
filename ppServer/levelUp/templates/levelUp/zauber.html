@@ -3,9 +3,35 @@
 
 {% block extra-head %}{{ block.super }}
 <style>
+    :where(#characterResources, .main-container) a {
+        --bs-link-color: currentcolor;
+        --bs-link-hover-color: currentcolor;
+
+        &:hover { opacity: 0.75; }
+    }
+    .row {
+        --bs-gutter-x: 2.5rem;
+        --bs-gutter-y: 3rem;
+    }
     .card {
-        width: fit-content;
-        min-width: min(100%, 300px);
+        width: min(100%, 45ch);
+
+        .card-title {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: flex-start;
+            gap: .3em;
+    
+            .zauber-icon {
+                width: 2em;
+                aspect-ratio: 1;
+            }
+        }
+        .card-text p br {
+            display: block;
+            margin-top: .5em;
+        }
     }
     .tier {
         width: 18px;
@@ -16,7 +42,12 @@
     .tier-bought { background-color: var(--bs-success); }
     .tier-filled { background-color: var(--bs-warning) !important; }
     .tier-blocked { background-color: #ccc; }
-    option:disabled { background-color: #f3f3f3; }
+
+    .zauber-formitem {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 1em;
+    }
 </style>
 
 {% localize off %}
@@ -32,7 +63,7 @@
 {% block asides %}
 {% resources %}
     <!-- Resources -->
-    <a class="text-light mb-3 d-block" href="{% url 'shop:zauber' %}" target="_blank">alle Zauber angucken</a>
+    <a class="mb-3 d-block" href="{% url 'shop:zauber' %}" target="_blank">alle Zauber angucken</a>
 
     <div class="fw-bold">Zauberslots <b class="pay-tier" id="pay-tier-with-slots"></b></div>
     <ul aria-label="Zauberslots">
@@ -55,74 +86,99 @@
 <span class="h4 mb-3 d-block">Du hast keine Zauber und kannst auch keine kaufen.</span>
 {% endif %}
 
-    {% if own_zauber|length > 0 %}
-    <form id="update-form" method="post">
-        {% csrf_token %}
-        <input type="hidden" name="operation" value="update">
+<div class="container m-0">
+    <div class="row">
+        
+        {% if own_zauber|length > 0 %}
+        <section class="col-md-6">
+            <form id="update-form" method="post">
+                {% csrf_token %}
+                <input type="hidden" name="operation" value="update">
 
-        <h2>Deine Zauber</h2>
+                <h2>Deine Zauber</h2>
 
-        {% for rel in own_zauber %}
-            <div class="card text-bg-dark my-4">
+                <ul>
+                    {% for rel in own_zauber %}
+                    <li class="card text-bg-dark my-4">
+                        <div class="card-body">
+                            <a class="card-title h5" href="{% url 'shop:zauber' %}{{ rel.querystring }}" target="_blank">
+                                <img src="{% if rel.item.icon %}{{ rel.item.icon.url }}{% else %}{% static 'res/img/goren_logo.svg' %}{% endif %}" class="zauber-icon">
+                                {{ rel.item.name }}
+                            </a>
+                            <div class="card-subtitle mt-2 mb-3 text-muted">
+                                Tier {{ rel.tier }}
+                                <input type="hidden" class="tier-input" name="{% localize off %}{{ rel.id }}{% endlocalize %}" value="{{ rel.tier }}">
+                                <div class="d-flex align-items-center">
+                                    <button type="button" class="btn--decrease btn btn-outline-light mx-2" disabled>-</button>
 
-                <div class="card-header">{{ rel.item.name }}</div>
-                <div class="card-body">
-            
-                    <div>Tier {{ rel.tier }}</div>
-                    <input type="hidden" class="tier-input" name="{% localize off %}{{ rel.id }}{% endlocalize %}" value="{{ rel.tier }}">
-                    <div class="d-flex align-items-center">
-                        <button type="button" class="btn--decrease btn btn-outline-light mx-2" disabled>-</button>
+                                    {% with ''|center:7 as range %}
+                                    {% for _ in range %}
+                                    <div aria-hidden="true" class="tier
+                                        {% if forloop.counter0 < rel.tier %}tier-bought{% endif %}
+                                        {% if forloop.counter > char.max_tier_allowed %}tier-blocked{% endif %}
+                                    "></div>
+                                    {% endfor %}
+                                    {% endwith %}
 
-                        {% with ''|center:7 as range %}
-                        {% for _ in range %}
-                        <div aria-hidden="true" class="tier
-                            {% if forloop.counter0 < rel.tier %}tier-bought{% endif %}
-                            {% if forloop.counter > char.max_tier_allowed %}tier-blocked{% endif %}
-                        "></div>
-                        {% endfor %}
-                        {% endwith %}
+                                    <button type="button" class="btn--increase btn btn-outline-light mx-2" {% if rel.tier == char.max_tier_allowed %}disabled{% endif %}>+</button>
+                                </div>
+                            </div>
+                            <small class="card-text">{{ rel.item.beschreibung|linebreaks }}</small>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
 
-                        <button type="button" class="btn--increase btn btn-outline-light mx-2" {% if rel.tier == char.max_tier_allowed %}disabled{% endif %}>+</button>
-                    </div>
-                </div>
-            </div>
-        {% endfor %}
+                <label for="payment-method" class="fw-bold mb-1">Bezahle Tiers mit</label>
+                <select id="payment-method" class="form-select w-auto mb-3" name="payment_method" required>
+                    <option value="slot">Zauberslots</option>
+                    <option value="sp">SP</option>
+                    <option value="ap">AP / MA-Attribut</option>
+                </select>
 
-        <label for="payment-method" class="fw-bold mb-1">Bezahle Tiers mit</label>
-        <select id="payment-method" class="form-select w-auto mb-3" name="payment_method" required>
-            <option value="slot">Zauberslots</option>
-            <option value="sp">SP</option>
-            <option value="ap">AP / MA-Attribut</option>
-        </select>
-
-        <button type="submit" id="learn-tier" class="btn btn-lg btn-primary sticky-footer" disabled>kaufen</button>
-    </form>
-    {% endif %}
+                <button type="submit" id="learn-tier" class="btn btn-lg btn-primary sticky-footer" disabled>kaufen</button>
+            </form>
+        </section>
+        {% endif %}
 
 
 
-    {% if free_slots > 0 %}
-    <form id="create-form" method="post">
-        {% csrf_token %}
-        <input type="hidden" name="operation" value="create">
+        {% if free_slots > 0 %}
+        <section class="col-md-6">
+            <form id="create-form" method="post">
+                {% csrf_token %}
+                <input type="hidden" name="operation" value="create">
 
-        <h2 class="mt-5">Neuen Zauber lernen</h2>
+                <h2>Neuen Zauber lernen</h2>
 
-        <select class="form-select w-auto my-3" name="zauber_id" required>
-            <option selected value="">---</option>
-            {% for z in zauber %}
-            <option value="{% localize off %}{{ z.id }}{% endlocalize %}" data-money="{% localize off %}{{ z.geld }}{% endlocalize %}" {% if not char.in_erstellung and z.geld > char.geld %}disabled{% endif %}>
-                {{ z.name }}{% if not char.in_erstellung %} ({{ z.geld }} Dr.){% endif %}
-            </option>
-            {% endfor %}
-        </select>
+                <ul class="p-0">
+                    {% for z in zauber %}
+                    <li class="zauber-formitem my-4">
+                        <input type="radio" id="zauber-{% localize off %}{{ z.zauber.id }}{% endlocalize %}" name="zauber_id" value="{% localize off %}{{ z.zauber.id }}{% endlocalize %}" class="form-check-input" {% if not char.in_erstellung and z.geld > char.geld %}disabled{% endif %}>
+                        <label for="zauber-{% localize off %}{{ z.zauber.id }}{% endlocalize %}">
+                            <div class="card text-bg-dark{% if not char.in_erstellung and z.geld > char.geld %} text-muted{% endif %}">
+                                <div class="card-body">
+                                    <a class="card-title h5" href="{% url 'shop:zauber' %}{{ z.zauber.querystring }}" target="_blank">
+                                        <img src="{% if z.zauber.icon %}{{ z.zauber.icon.url }}{% else %}{% static 'res/img/goren_logo.svg' %}{% endif %}" class="zauber-icon">
+                                        {{ z.zauber.name }}
+                                    </a>
+                                    {% if not char.in_erstellung %}<div class="card-subtitle mt-2 mb-3 text-muted"><span class="geld">{{ z.geld }}</span> Drachmen</div>{% endif %}
+                                    <small class="card-text">{{ z.zauber.beschreibung|linebreaks }}</small>
+                                </div>
+                            </div>
+                        </label>
+                    </li>
+                    {% endfor %}
+                </ul>
 
-        <button id="learn-zauber" class="btn btn-lg btn-primary">lernen</button>
-    </form>
-    {% endif %}
+                <button id="learn-zauber" class="btn btn-lg btn-primary sticky-footer" disabled>lernen</button>
+            </form>
+        </section>
+        {% endif %}
+    </div>
 
         
-    <div class="d-flex justify-content-center">
+    <div class="d-flex justify-content-center mt-5">
         <a class="btn btn-lg btn-outline-primary m-2" href="{{ back_url }}">Zurück</a>
     </div>
 {% endblock %}

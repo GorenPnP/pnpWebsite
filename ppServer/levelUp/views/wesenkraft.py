@@ -1,4 +1,5 @@
-from django.db.models import Sum
+from django.db.models import Sum, Value, CharField
+from django.db.models.functions import Concat, Replace
 from django.contrib import messages
 from django.http.request import HttpRequest
 from django.http.response import HttpResponse
@@ -19,10 +20,15 @@ class GenericWesenkraftView(LevelUpMixin, TemplateView):
 
     def get_context_data(self, *args, **kwargs):
         char = self.get_character()
-        rel_ma = RelAttribut.objects.get(char=char, attribut__titel='MA')
 
+        own_wesenkraft = RelWesenkraft.objects.filter(char=char).prefetch_related("wesenkraft")\
+            .annotate(
+                querystring=Concat(Value('?titel__icontains='), Replace("wesenkraft__titel", Value(" "), Value("+")), output_field=CharField()),
+            ).order_by("wesenkraft__titel")
+
+        rel_ma = RelAttribut.objects.get(char=char, attribut__titel='MA')
         return super().get_context_data(*args, **kwargs,
-            own_wesenkraft = RelWesenkraft.objects.filter(char=char).order_by("wesenkraft__titel"),
+            own_wesenkraft = own_wesenkraft,
             MA_aktuell = rel_ma.aktuell() - get_required_aktuellerWert(char, "MA") if rel_ma.aktuellerWert_fix is None else 0,
             get_tier_cost_with_sp = get_tier_cost_with_sp(),
             topic = "Wesenkraft",

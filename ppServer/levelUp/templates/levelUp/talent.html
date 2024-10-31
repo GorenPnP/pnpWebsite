@@ -3,55 +3,87 @@
 
 {% block extra-head %}{{ block.super }}
 <style>
+    .row {
+        --bs-gutter-x: 2.5rem;
+        --bs-gutter-y: 3rem;
+    }
     .card {
-        width: fit-content;
-        min-width: min(100%, 300px);
+        width: min(100%, 45ch);
+    }
+    .talent-formitem {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 1em;
     }
 </style>
 {% endblock %}
 
 {% block asides %}
-    {% resources %}<b id="tp_pool">{{ char.tp }}</b> TP{% endresources %}
+    {% resources %}
+    <b id="tp_pool">{{ char.tp }}</b> TP
+    <a class="text-light mt-3 d-block" href="{% url 'wiki:talente' %}" target="_blank">alle Talente angucken</a>
+    {% endresources %}
 {% endblock %}
 
 {% block main %}
-{% if own_talente|length == 0 and char.tp == 0 %}
-    <span class="h4 mb-3 d-block">Du hast keine Talente und kannst auch keine kaufen.</span>
-{% endif %}
+<div class="container m-0">
+    <div class="row">
+        <section class="col-md-6">
+            {% if own_talente|length == 0 and char.tp == 0 %}
+                <span class="h4 mb-3 d-block">Du hast keine Talente und kannst auch keine kaufen.</span>
+            {% endif %}
 
-{% if own_talente|length > 0 %}
-    <h2>Deine Talente</h2>
+            {% if own_talente|length > 0 %}
+                <h2>Deine Talente</h2>
 
-    <ul>
-        {% for t in own_talente %}
-        <li class="card text-bg-dark my-4">
-            <div class="card-header">{{ t.titel }}</div>
-        </li>
-        {% endfor %}
-    </ul>
-{% endif %}
+                <ul>
+                    {% for t in own_talente %}
+                    <li class="card text-bg-dark my-4">
+                        <div class="card-body">
+                            <p class="card-title h5">{{ t.titel }}</p>
+                            <p class="card-subtitle h6 mb-2 text-muted">{{ t.tp }} TP</p>
+                            <small class="card-text">{{ t.beschreibung }}</small>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </section>
 
 
 
-{% if talente|length > 0 %}
-    <form id="create-form" method="post">
-        {% csrf_token %}
+        {% if talente|length > 0 %}
+        <section class="col-md-6">
+            <form id="create-form" method="post">
+                {% csrf_token %}
 
-        <h2 class="mt-5">Neues Talent</h2>
+                <h2>Neues Talent</h2>
+                <ul class="p-0">
+                    {% for t in talente %}
+                    <li class="talent-formitem my-4">
+                        <input type="radio" id="talent-{% localize off %}{{ t.id }}{% endlocalize %}" name="talent_id" value="{% localize off %}{{ t.id }}{% endlocalize %}" class="form-check-input">
+                        <label for="talent-{% localize off %}{{ t.id }}{% endlocalize %}">
+                            <div class="card text-bg-dark">
+                                <div class="card-body">
+                                    <p class="card-title h5">{{ t.titel }}</p>
+                                    <p class="card-subtitle h6 mb-2 text-muted">{{ t.tp }} TP</p>
+                                    <small class="card-text">{{ t.beschreibung }}</small>
+                                </div>
+                            </div>
+                        </label>
+                    </li>
+                    {% endfor %}
+                </ul>
 
-        <select class="form-select w-auto my-3" name="talent_id" required>
-            <option selected value="">---</option>
-            {% for z in talente %}
-            <option value="{% localize off %}{{ z.id }}{% endlocalize %}">{{ z.titel }}</option>
-            {% endfor %}
-        </select>
+                <button class="btn btn-lg btn-primary">lernen</button>
+            </form>
+        </section>
+        {% endif %}
+    </div>
 
-        <button id="learn-zauber" class="btn btn-lg btn-primary">lernen</button>
-    </form>
-{% endif %}
-
-        
-    <div class="d-flex justify-content-center">
+            
+    <div class="d-flex justify-content-center mt-5">
         <a class="btn btn-lg btn-outline-primary m-2" href="{{ back_url }}">Zurück</a>
     </div>
+</div>
 {% endblock %}

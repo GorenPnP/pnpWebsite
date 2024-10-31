@@ -3,9 +3,19 @@
 
 {% block extra-head %}{{ block.super }}
 <style>
+    :where(#characterResources, .main-container) a {
+        --bs-link-color: currentcolor;
+        --bs-link-hover-color: currentcolor;
+
+        &:hover { opacity: 0.75; }
+    }
     .card {
-        width: fit-content;
-        min-width: min(100%, 300px);
+        width: min(100%, 45ch);
+
+        .card-text p br {
+            display: block;
+            margin-top: .5em;
+        }
     }
     .tier {
         width: 18px;
@@ -30,8 +40,10 @@
 {% block asides %}
 {% resources %}
     <!-- Resources -->
-    <p>{{char.sp}} SP <b class="pay-tier" id="pay-tier-with-sp"></b></p>
-    <p>{{char.ap}} AP / {{MA_aktuell}} MA <b class="pay-tier" id="pay-tier-with-ap"></b></p>
+    <p class="mb-0">{{char.sp}} SP <b class="pay-tier" id="pay-tier-with-sp"></b></p>
+    <p class="mb-0">{{char.ap}} AP / {{MA_aktuell}} MA <b class="pay-tier" id="pay-tier-with-ap"></b></p>
+
+    <a class="text-light mt-3 d-block" href="{% url 'wiki:wesenkraft' %}" target="_blank">alle Wesenkräfte angucken</a>
 {% endresources %}
 {% endblock %}
 
@@ -46,31 +58,34 @@
 
         <h2>Deine Wesenkräfte</h2>
 
-        {% for rel in own_wesenkraft %}
-            <div class="card text-bg-dark my-4">
-
-                <div class="card-header">{{ rel.wesenkraft.titel }}</div>
+        <ul>
+            {% for rel in own_wesenkraft %}
+            <li class="card text-bg-dark my-4">
                 <div class="card-body">
-            
-                    <div>Tier {{ rel.tier }}</div>
-                    <input type="hidden" class="tier-input" name="{% localize off %}{{ rel.id }}{% endlocalize %}" value="{{ rel.tier }}">
-                    <div class="d-flex align-items-center">
-                        <button type="button" class="btn--decrease btn btn-outline-light mx-2" disabled>-</button>
-
-                        {% with ''|center:7 as range %}
-                        {% for _ in range %}
-                        <div aria-hidden="true" class="tier
-                            {% if forloop.counter0 < rel.tier %}tier-bought{% endif %}
-                            {% if forloop.counter > char.max_tier_allowed %}tier-blocked{% endif %}
-                        "></div>
-                        {% endfor %}
-                        {% endwith %}
-
-                        <button type="button" class="btn--increase btn btn-outline-light mx-2" {% if rel.tier == char.max_tier_allowed %}disabled{% endif %}>+</button>
+                    <a class="card-title h5" href="{% url 'wiki:wesenkraft' %}{{ rel.querystring }}" target="_blank">{{ rel.wesenkraft.titel }}</a>
+                    <div class="card-subtitle mt-2 mb-3 text-muted">
+                        Tier {{ rel.tier }}
+                        <input type="hidden" class="tier-input" name="{% localize off %}{{ rel.id }}{% endlocalize %}" value="{{ rel.tier }}">
+                        <div class="d-flex align-items-center">
+                            <button type="button" class="btn--decrease btn btn-outline-light mx-2" disabled>-</button>
+    
+                            {% with ''|center:7 as range %}
+                            {% for _ in range %}
+                            <div aria-hidden="true" class="tier
+                                {% if forloop.counter0 < rel.tier %}tier-bought{% endif %}
+                                {% if forloop.counter > char.max_tier_allowed %}tier-blocked{% endif %}
+                            "></div>
+                            {% endfor %}
+                            {% endwith %}
+    
+                            <button type="button" class="btn--increase btn btn-outline-light mx-2" {% if rel.tier == char.max_tier_allowed %}disabled{% endif %}>+</button>
+                        </div>
                     </div>
+                    <small class="card-text">{{ rel.wesenkraft.wirkung|linebreaks }}</small>
                 </div>
-            </div>
-        {% endfor %}
+            </li>
+            {% endfor %}
+        </ul>
 
         <label for="payment-method" class="fw-bold mb-1">Bezahle Tiers mit</label>
         <select id="payment-method" class="form-select w-auto mb-3" name="payment_method" required>

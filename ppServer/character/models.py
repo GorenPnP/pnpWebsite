@@ -687,6 +687,8 @@ class Charakter(models.Model):
 
     def max_tier_allowed(self) -> int:
         new_tiers_at_stufe = [1, 2, 5, 8, 12, 16, 20]
+
+        if self.larp: return len(new_tiers_at_stufe)
         return len([stufe for stufe in new_tiers_at_stufe if stufe <= self.ep_stufe_in_progress])
 
     def init_stufenhub(self):

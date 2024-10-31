@@ -3,7 +3,7 @@ import math
 from django.shortcuts import get_object_or_404
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
-from django.db.models import Count
+from django.db.models import Count, Q
 
 from django_resized import ResizedImageField
 
@@ -44,23 +44,20 @@ class Modifier(models.Model):
 
     @classmethod
     def getModifier(cls, firma, shopCategory):
+        # get Category letter of Shop-model
         catName = shopCategory._meta.verbose_name_plural
-        catEnumValue = ''
-        for letter, cat in enums.category_enum:
-            if cat == catName:
-                catEnumValue = letter
-                break
+        catLetter = {cat: letter for letter, cat in enums.category_enum}.get(catName, '')
 
-        kategorie = get_object_or_404(ShopCategory, kategorie=catEnumValue) if catEnumValue else None
-        specificModifiers =\
-            (Modifier.objects.filter(firmen__id__exact=firma.id) if firma else Modifier.objects.none()) |\
-            (Modifier.objects.filter(kategorien__id__exact=kategorie.id) if kategorie else Modifier.objects.none())
-
-        baseModifier = Modifier.objects.annotate(Count('firmen')).annotate(Count('kategorien')).filter(firmen__count=0, kategorien__count=0)
-        allModifiers = (baseModifier | specificModifiers).filter(active=True).order_by("prio")
-        if allModifiers.count() == 0:
-            return lambda price: price
-
+        allModifiers = Modifier.objects\
+            .annotate(Count('firmen'), Count('kategorien'))\
+            .filter(
+                # get category-specific modifiers with correct firma OR category
+                Q(firmen=firma) | Q(kategorien__kategorie=catLetter) |
+                # get base modifiers (that modify everything)
+                Q(firmen__count=0, kategorien__count=0)
+            )\
+            .filter(active=True).order_by("prio")
+        
         # return function that calculates the modified value of a passed price
         def calcPrice(price: int) -> int:
             for modifier in allModifiers:
