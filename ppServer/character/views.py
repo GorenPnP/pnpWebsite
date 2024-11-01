@@ -13,6 +13,7 @@ from django.views.generic.base import TemplateView
 import django_tables2 as tables
 
 from base.abstract_views import GenericTable
+from effect.models import RelEffect
 from log.create_log import render_number
 from log.models import Log
 from ppServer.decorators import verified_account
@@ -44,7 +45,7 @@ class ShowView(VerifiedAccountMixin, DetailView):
     model = Charakter
     queryset = Charakter.objects.prefetch_related(
         "gfs", "persönlichkeit", "religion", "beruf", "relfertigkeit_set__fertigkeit__attribut", "relgruppe_set",
-        "relattribut_set__attribut", "relwesenkraft_set__wesenkraft", "reltalent_set__talent",
+        "relklasse_set__klasse","relattribut_set__attribut", "relwesenkraft_set__wesenkraft", "reltalent_set__talent",
         "relgfsability_set__ability", "affektivität_set",
         "relzauber_set__item", "relrituale_runen_set__item", "relschusswaffen_set__item", "relwaffen_werkzeuge_set__item",
         "relmagazin_set__item", "relpfeil_bolzen_set__item", "relmagische_ausrüstung_set__item", "relrüstung_set__item",
@@ -85,12 +86,14 @@ class ShowView(VerifiedAccountMixin, DetailView):
             **self.get_wesenkraft(char),
             **self.get_talent(char),
             **self.get_gfs_ability(char),
+            **self.get_klasse_ability(char),
             **self.get_affektivität(char),
             **self.get_inventory(char),
             **self.get_zauber(char),
             **self.get_ritual(char),
             **self.get_nahkampf(char),
             **self.get_fernkampf(char),
+            **self.get_effekte(char),
         }
     
 
@@ -98,6 +101,7 @@ class ShowView(VerifiedAccountMixin, DetailView):
         fields = [
                 ["Name", char.name],
                 ["Gfs (Stufe)", f"{char.gfs.titel if char.gfs is not None else '-'} ({char.skilltree_stufe})"],
+                ["Klassen (Stufe)", ", ".join([f"{rel.klasse.titel} ({rel.stufe})" for rel in char.relklasse_set.all()]) or "-"],
                 ["Persönlichkeit", char.persönlichkeit.titel],
                 ["Geschlecht", char.geschlecht],
                 ["Alter", char.alter],
@@ -399,6 +403,18 @@ class ShowView(VerifiedAccountMixin, DetailView):
             "gfs_ability__table": GfsAbilityTable(char.relgfsability_set.all())
         }
 
+    def get_klasse_ability(self, char):
+        class KlasseAbilityTable(tables.Table):
+            class Meta:
+                model = RelKlasseAbility
+                fields = ("ability__name", "ability__beschreibung", "notizen")
+                orderable = False
+                attrs = {"class": "table table-dark table-striped table-hover"}
+
+        return {
+            "klasse_ability__table": KlasseAbilityTable(char.relklasseability_set.all())
+        }
+
     def get_affektivität(self, char):
         class AffektivitätTable(tables.Table):
             class Meta:
@@ -511,6 +527,51 @@ class ShowView(VerifiedAccountMixin, DetailView):
             "fernkampf__table": SchusswaffenTable(char.relschusswaffen_set.all())
         }
 
+    def get_effekte(self, char):
+        class EffectTable(tables.Table):
+            class Meta:
+                model = RelEffect
+                fields = ("wertaenderung", "fieldname", "source")
+                orderable = False
+                attrs = {"class": "table table-dark table-striped table-hover"}
+
+            def render_fieldname(self, value, record):
+                display = record.get_target_fieldname_display()
+                if "RelAttribut" in record.target_fieldname: return f"{display} {record.target_attribut.attribut.titel}"
+                if "RelFertigkeit" in record.target_fieldname: return f"{display} {record.target_fertigkeit.fertigkeit.titel}"
+                return display
+
+            def render_source(self, value, record):
+                fieldnames = [field for field, val in record.__dict__.items() if "source_" in field and val]
+                sources = [getattr(record, field.replace("_id", "")) for field in fieldnames if getattr(record, field) is not None]
+                reprs = [f"{field.__class__._meta.verbose_name} {field}".__str__() for field in sources]
+                return ", ".join(reprs)
+
+        return {
+            "effect__table": EffectTable(
+                char.releffect_set.filter(is_active=True)\
+                    .prefetch_related(
+                        "target_attribut__attribut", "target_fertigkeit__fertigkeit",
+
+                        "source_vorteil__char", "source_vorteil__teil",
+                        "source_nachteil__char", "source_nachteil__teil",
+                        "source_talent__char", "source_talent__talent",
+                        "source_gfsAbility__char", "source_gfsAbility__ability",
+                        "source_klasse__char", "source_klasse__klasse",
+                        "source_klasseAbility__char", "source_klasseAbility__ability",
+                        "source_shopBegleiter__char", "source_shopBegleiter__item",
+                        "source_shopMagischeAusrüstung__char", "source_shopMagischeAusrüstung__item",
+                        "source_shopRüstung__char", "source_shopRüstung__item",
+                        "source_shopAusrüstungTechnik__char", "source_shopAusrüstungTechnik__item",
+                        "source_shopEinbauten__char", "source_shopEinbauten__item",
+                    )\
+                    .annotate(
+                        fieldname=Value(" "),
+                        source=Value(" "),
+                    ).all()
+                )
+        }
+
 
 class HistoryView(VerifiedAccountMixin, tables.SingleTableMixin, TemplateView):
 
@@ -526,7 +587,7 @@ class HistoryView(VerifiedAccountMixin, tables.SingleTableMixin, TemplateView):
     
     def get_table_data(self):
         char = get_object_or_404(Charakter, pk=self.kwargs["pk"])
-        return Log.objects.filter(char=char, art__in=("s", "u", "i", "j"))
+        return Log.objects.filter(char=char, art__in=("s", "u", "i", "j", "l"))
     
 
     def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:

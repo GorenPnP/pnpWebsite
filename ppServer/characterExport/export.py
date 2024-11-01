@@ -314,6 +314,10 @@ class CharakterExporter:
         werte_ws.merge_range(f"J{ROW}:L{ROW}", f"{self.char.gfs.titel if self.char.gfs else '-'} ({self.char.skilltree_stufe})", format_wesen)
 
         ROW += 1
+        werte_ws.write(f"I{ROW}", "Klassen (Stufe):", format_wesen_titel)
+        werte_ws.merge_range(f"J{ROW}:L{ROW}", ", ".join([f"{rel.klasse.titel} ({rel.stufe})" for rel in self.char.relklasse_set.prefetch_related("klasse").all()]), format_wesen)
+
+        ROW += 1
         werte_ws.write(f"I{ROW}", "Persönlichkeit:", format_wesen_titel)
         werte_ws.merge_range(f"J{ROW}:L{ROW}", self.char.persönlichkeit.titel, format_wesen)
 
@@ -549,13 +553,26 @@ class CharakterExporter:
         format_large_cell =         wb.add_format({'text_wrap': True, "valign": "top", "border": 1, 'align': 'left', "valign": "top"})
 
         # Gfs-Fähigkeiten
-        werte_ws.merge_range(f"A{ROW}:H{ROW}", "Wesen-Eigenschaften/Fähigkeiten", format_ramsch_titel)
+        werte_ws.merge_range(f"A{ROW}:H{ROW}", "Gfs-Eigenschaften/Fähigkeiten", format_ramsch_titel)
         if self.char.gfs:
             for r in RelGfsAbility.objects.prefetch_related("ability").filter(char=self.char):
                 ROW += 1
                 werte_ws.write(f"A{ROW}", r.ability.name, format_border_left)
                 werte_ws.merge_range(f"B{ROW}:G{ROW}", r.ability.beschreibung, format_text_wrap)
-                werte_ws.write(f"H{ROW}", None, format_border_right)
+                werte_ws.write(f"H{ROW}", r.notizen, format_border_right)
+        # Klassen-Fähigkeiten
+        ROW += 1
+        werte_ws.merge_range(f"A{ROW}:H{ROW}", "Klassen-Eigenschaften/Fähigkeiten", format_ramsch_titel)
+        for r in RelKlasse.objects.prefetch_related("klasse").filter(char=self.char):
+            ROW += 1
+            werte_ws.write(f"A{ROW}", f"{r.klasse.titel} 1", format_border_left)
+            werte_ws.merge_range(f"B{ROW}:G{ROW}", r.klasse.beschreibung, format_text_wrap)
+            werte_ws.write(f"H{ROW}", None, format_border_right)
+        for r in RelKlasseAbility.objects.prefetch_related("ability").filter(char=self.char):
+            ROW += 1
+            werte_ws.write(f"A{ROW}", r.ability.name, format_border_left)
+            werte_ws.merge_range(f"B{ROW}:G{ROW}", r.ability.beschreibung, format_text_wrap)
+            werte_ws.write(f"H{ROW}", r.notizen, format_border_right)
         # Zauber, Rituale & Runen
         ROW += 1
         start_zauberrow = ROW
@@ -570,8 +587,9 @@ class CharakterExporter:
         ROW = start_zauberrow
         for r in self.char.relrituale_runen_set.prefetch_related("item").all():
             ROW += 1
-            werte_ws.write_row(f"D{ROW}", [r.anz, r.item.name, f"Stufe {r.stufe}"])
-            werte_ws.write(f"H{ROW}", None, format_border_right)
+            werte_ws.write(f"D{ROW}", r.anz)
+            werte_ws.merge_range(f"E{ROW}:G{ROW}", r.item.name)
+            werte_ws.write(f"H{ROW}", f"Stufe {r.stufe}", format_border_right)
         # Talente
         ROW = max(end_zauberrow, ROW) + 1
         werte_ws.merge_range(f"A{ROW}:H{ROW}", "Talente", format_ramsch_titel)

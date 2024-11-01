@@ -1,6 +1,7 @@
 from typing import Any, Dict
 
-from django.db.models import Q
+from django.db.models import Q, Sum
+from django.db.models.functions import Coalesce
 from django.contrib import messages
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import reverse, redirect
@@ -12,7 +13,7 @@ from levelUp.decorators import is_done_entirely, pending_areas, is_ap_done, is_f
 from levelUp.views import *
 from log.create_log import render_number
 
-from ..decorators import is_erstellung_done
+from ..decorators import is_erstellung_done, is_klasse_done
 from ..mixins import LevelUpMixin
 from ..views import get_required_aktuellerWert
 
@@ -99,6 +100,10 @@ class IndexView(LevelUpMixin, DetailView):
 
         # Personal
         rows.append({"done": is_personal_done(char), "link": self._get_url("personal", char), "text": "<b>Persönliches</b>", "werte": "-"})
+        # Klassen
+        klassenstufen_missing = char.ep_stufe_in_progress - char.relklasse_set.aggregate(stufen=Coalesce(Sum("stufe"), 0))["stufen"]
+        rows.append({"done": is_klasse_done(char), "link": self._get_url("klasse", char), "text": "<b>Klassen</b>", "werte": f"{klassenstufen_missing} {'Stufen fehlen' if klassenstufen_missing != 1 else 'Stufe fehlt'}"})
+        
         # Skilltree
         if not char.larp:
             rows.append({"done": None, "link": self._get_url("skilltree", char), "text": "<b>Skilltree</b>", "werte": f"{char.sp} SP"})

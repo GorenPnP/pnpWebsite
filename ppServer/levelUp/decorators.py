@@ -1,3 +1,5 @@
+from django.db.models import Sum
+from django.db.models.functions import Coalesce
 from django.shortcuts import get_object_or_404, redirect
 
 from character.models import Charakter, RelVorteil, RelNachteil, RelGfsAbility
@@ -15,6 +17,9 @@ def is_erstellung_done(view_func, redirect_to="create:gfs"):
 
 def is_personal_done(char: Charakter):
     return char is not None and char.name is not None and len(char.name) > 0 and char.persönlichkeit
+
+def is_klasse_done(char: Charakter):
+    return char is not None and char.ep_stufe_in_progress == char.relklasse_set.aggregate(stufen=Coalesce(Sum("stufe"), 0))["stufen"]
 
 def is_ap_done(char: Charakter, max_ap: int = 0):
     return char is not None and (char.ap is None or char.ap <= max_ap)
@@ -45,6 +50,7 @@ def pending_areas(char: Charakter) -> list:
 
         res = []
 
+        if not is_klasse_done(char): res.append("Klassen")
         if not is_ap_done(char, max_ap): res.append("Attribute")
         if not is_ferts_done(char): res.append("Fertigkeiten")
         if not is_zauber_done(char): res.append("Zauber")

@@ -1,16 +1,30 @@
 let initial_ap = 0;
 
+const INITIAL_AP_PENALTY_AKTUELL = parseInt(document.querySelector("#INITIAL_AP_PENALTY_AKTUELL").innerText);
+const INITIAL_AP_PENALTY_MAX = parseInt(document.querySelector("#INITIAL_AP_PENALTY_MAX").innerText);
+
 
 function ap_spent() {
+    let penalties = 0;
     const ap_aktuell = [...document.querySelectorAll(`.aktuell-input`)]
-        .map(tag => parseInt(tag.value) || 0)
+        .map(tag => {
+            const cost = parseInt(tag.value) || 0;
+            const fix = parseInt(tag.closest("td").querySelector(".aktuell-fix")?.innerText) || 0;
+            if (cost && !fix) penalties += INITIAL_AP_PENALTY_AKTUELL;
+            return cost;
+        })
         .reduce((sum, ap) => sum + ap, 0);
     
     const ap_max = [...document.querySelectorAll(`.max-input`)]
-        .map(tag => parseInt(tag.value) || 0)
+        .map(tag => {
+            const cost = parseInt(tag.value) || 0;
+            const fix = parseInt(tag.closest("td").querySelector(".max-fix")?.innerText) || 0;
+            if (cost && !fix) penalties += INITIAL_AP_PENALTY_MAX;
+            return cost;
+        })
         .reduce((sum, ap) => sum + ap, 0);
 
-    return ap_aktuell + 2* ap_max;
+    return ap_aktuell + 2* ap_max + penalties;
 }
 function calc_ap_pool() {
     const ap = initial_ap - ap_spent();

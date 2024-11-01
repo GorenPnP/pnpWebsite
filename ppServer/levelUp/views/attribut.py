@@ -48,6 +48,9 @@ class GenericAttributView(LevelUpMixin, DynamicTableView):
 
     table_class = Table
 
+    INITIAL_AP_PENALTY_AKTUELL = 1
+    INITIAL_AP_PENALTY_MAX = 1
+
 
     def get_queryset(self):
         char = self.get_character()
@@ -71,6 +74,11 @@ class GenericAttributView(LevelUpMixin, DynamicTableView):
             dataset_id=F("attribut__id"),
         )
 
+    def get_context_data(self, *args, **kwargs):
+        return super().get_context_data(*args, **kwargs,
+            INITIAL_AP_PENALTY_AKTUELL=self.INITIAL_AP_PENALTY_AKTUELL,
+            INITIAL_AP_PENALTY_MAX=self.INITIAL_AP_PENALTY_MAX,
+        )
 
     def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
         char = self.get_character()
@@ -78,6 +86,7 @@ class GenericAttributView(LevelUpMixin, DynamicTableView):
         # collect values
         ap = {}
         ap_spent = 0
+        ap_max = char.ap
         for relattr in self.get_queryset():
             attr = relattr.attribut
 
@@ -92,20 +101,25 @@ class GenericAttributView(LevelUpMixin, DynamicTableView):
                 messages.error(request, f"Im {attr}-Pool musst du mindestens {min_aktuell} haben, weil du das für deine verteilten FP/FG brauchst")
 
 
-            # save in temporal datastructure
+            # save in temporary datastructure
             ap[attr.id] = {
                 "aktuell": aktuell,
                 "max": max,
             }
+
+            # calc spent ap ..
+
+            # .. previously
+            ap_max += relattr.aktuellerWert_temp + 2* relattr.maxWert_temp
+            if relattr.aktuellerWert_temp and not relattr.aktuellerWert: ap_max += self.INITIAL_AP_PENALTY_AKTUELL
+            if relattr.maxWert_temp and not relattr.maxWert: ap_max += self.INITIAL_AP_PENALTY_MAX
+
+            # .. now
             ap_spent += aktuell + 2* max
+            if aktuell and not relattr.aktuellerWert: ap_spent += self.INITIAL_AP_PENALTY_AKTUELL
+            if max and not relattr.maxWert: ap_spent += self.INITIAL_AP_PENALTY_MAX
 
         # test them
-        ap_max = self.get_queryset()\
-            .prefetch_related("attribut")\
-            .aggregate(
-                spent = Sum("aktuellerWert_temp") + 2* Sum("maxWert_temp")
-            )["spent"] + char.ap
-
         if ap_spent > ap_max:
             messages.error(request, "Du hast zu wenig AP")
 

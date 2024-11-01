@@ -156,6 +156,12 @@
             {% render_table gfs_ability__table %}
         </section>
         {% endif %}
+        {% if klasse_ability__table.data|length %}
+        <section id="klasse">
+            <h2>Klassenähigkeiten</h2>
+            {% render_table klasse_ability__table %}
+        </section>
+        {% endif %}
         {% if affektivität__table.data|length %}
         <section id="affekt">
             <h2>Affektivität</h2>
@@ -191,6 +197,12 @@
         <section id="fernkampf">
             <h2>Fernkampfwaffen</h2>
             {% render_table fernkampf__table %}
+        </section>
+        {% endif %}
+        {% if effect__table.data|length %}
+        <section id="effect">
+            <h2>Aktive Effekte</h2>
+            {% render_table effect__table %}
         </section>
         {% endif %}
     </div>

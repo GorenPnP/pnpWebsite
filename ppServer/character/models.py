@@ -1,12 +1,13 @@
-from datetime import date
 import re, sys
+from datetime import date
 from sentry_sdk import capture_message
 
 from django.contrib.auth.models import User
-from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-from django.db.models import Max, Sum
+from django.db.models import Max, Sum, Subquery, OuterRef, F, Q, Exists
+from django.db.models.functions import Coalesce
+from django.db.models.query import QuerySet
 from django.shortcuts import get_object_or_404
 
 from django_resized import ResizedImageField
@@ -107,6 +108,28 @@ class KlasseStufenplan(models.Model):
     ip = models.PositiveSmallIntegerField(default=0)
     zauber = models.PositiveSmallIntegerField(default=0)
     ability = models.ForeignKey("KlasseAbility", on_delete=models.SET_NULL, null=True, blank=True)
+
+    @staticmethod
+    def get_own_KlasseStufenplan(char: "Charakter") -> QuerySet["KlasseStufenplan"]:
+        return KlasseStufenplan.objects\
+            .annotate(owned = Exists(RelKlasse.objects.filter(char=char, klasse=OuterRef("klasse"), stufe__gte=OuterRef("stufe"))))\
+            .filter(owned=True)
+
+    @staticmethod
+    def get_choosable_KlasseStufenplan(char: "Charakter") -> QuerySet["KlasseStufenplan"]:
+        # TODO requirements
+
+        return KlasseStufenplan.objects\
+            .annotate(
+                current_stufe = Coalesce(Subquery(RelKlasse.objects.filter(char=char, klasse=OuterRef("klasse")).values("stufe")), 0),
+                min_stufe = Subquery(KlasseStufenplan.objects.filter(klasse=OuterRef("klasse")).values("stufe").order_by("stufe")[:1]),
+            )\
+            .filter(
+                # in new Klasse: 1st stufe
+                (Q(current_stufe=0) & Q(stufe=F("min_stufe"))) |
+                # in chosen Klasse: next stufe
+                (~Q(current_stufe=0) & Q(stufe=F("current_stufe")+1))
+            )
 
 
 class KlasseAbility(models.Model):
@@ -564,6 +587,7 @@ class Charakter(models.Model):
 
     # settings
     in_erstellung = models.BooleanField(default=True)
+    reduced_rewards_until_klasse_stufe = models.PositiveSmallIntegerField(default=0)
     larp = models.BooleanField(default=False)
     eigentümer = models.ForeignKey(Spieler, on_delete=models.CASCADE, null=True, blank=True)
     gfs = models.ForeignKey(Gfs, on_delete=models.SET_NULL, null=True, blank=True)
@@ -652,7 +676,7 @@ class Charakter(models.Model):
     sonstige_items = models.TextField(default='', blank=True)
 
     # M2M #
-
+    klassen = models.ManyToManyField(Klasse, through="character.RelKlasse", blank=True)
     vorteile = models.ManyToManyField(Vorteil, through="character.RelVorteil", blank=True)
     nachteile = models.ManyToManyField(Nachteil, through="character.RelNachteil", blank=True)
     talente = models.ManyToManyField(Talent, through="character.RelTalent", blank=True)
@@ -663,6 +687,7 @@ class Charakter(models.Model):
     spezialfertigkeiten = models.ManyToManyField(Spezialfertigkeit, through='character.RelSpezialfertigkeit', blank=True)
     wissensfertigkeiten = models.ManyToManyField(Wissensfertigkeit, through='character.RelWissensfertigkeit', blank=True)
     gfs_fähigkeiten = models.ManyToManyField(GfsAbility, through='character.RelGfsAbility', blank=True)
+    klassen_fähigkeiten = models.ManyToManyField(KlasseAbility, through='character.RelKlasseAbility', blank=True)
 
     items = models.ManyToManyField(Item, through='character.RelItem', blank=True)
     waffenWerkzeuge = models.ManyToManyField(Waffen_Werkzeuge, through='character.RelWaffen_Werkzeuge', blank=True)

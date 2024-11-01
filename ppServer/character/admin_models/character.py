@@ -119,6 +119,13 @@ class RelGfsAbilityInLine(RelInlineAdmin):
     def get_queryset(self, request):
         return super().get_queryset(request).prefetch_related('ability')
 
+class RelKlasseAbilityInLine(RelInlineAdmin):
+    model = RelKlasseAbility
+    fields = ["ability", "notizen"]
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).prefetch_related('ability')
+
 
 class RelVorteilInLine(RelInlineAdmin):
     model = RelVorteil
@@ -268,7 +275,7 @@ class CharakterAdmin(admin.ModelAdmin):
 
 
     fieldsets = [
-        ("Settings (Finger weg)", {'fields': ['eigentümer', "in_erstellung", "larp", "gfs"]}),
+        ("Settings (Finger weg)", {'fields': ['eigentümer', "in_erstellung", "reduced_rewards_until_klasse_stufe", "larp", "gfs"]}),
         ('Roleplay', {'fields': ['image', 'name', "gewicht", "größe", 'alter', 'geschlecht', 'sexualität', 'persönlichkeit', 'beruf', "präf_arm",
                               'religion', "hautfarbe", "haarfarbe", "augenfarbe"]}),
 
@@ -295,6 +302,7 @@ class CharakterAdmin(admin.ModelAdmin):
         RelNachteilInLine, RelTalentInLine,
         AffektivitätInLine,
         RelGfsAbilityInLine,
+        RelKlasseAbilityInLine,
 
         RelItemlInLine,
         RelWaffen_WerkzeugelInLine,

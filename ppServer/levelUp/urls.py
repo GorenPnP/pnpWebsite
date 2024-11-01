@@ -1,6 +1,7 @@
 from django.urls import path
 
 from .views.index import IndexView
+from .views.klasse import GenericKlasseView
 from .views.attribut import GenericAttributView
 from .views.fertigkeit import GenericFertigkeitView
 from .views.zauber import GenericZauberView
@@ -17,6 +18,7 @@ app_name = 'levelUp'
 
 urlpatterns = [
     path('<int:pk>/', IndexView.as_view(), name='index'),
+	path('<int:pk>/klasse/', GenericKlasseView.as_view(), name='klasse'),
 	path('<int:pk>/attribute/', GenericAttributView.as_view(), name='attribute'),
 	path('<int:pk>/fertigkeiten/', GenericFertigkeitView.as_view(), name='fertigkeiten'),
 	path('<int:pk>/zauber/', GenericZauberView.as_view(), name='zauber'),

@@ -5,6 +5,7 @@ kind_enum = [
     ("s", "Shop"),
     ("u", "Auswertung"),
     ("i", "Stufenaufstieg"),
+    ("l", "Klasse verteilt"),
 
     ("o", "Sonderangebot"),
     ("a", "Attribute"),
