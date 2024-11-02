@@ -4,73 +4,96 @@
 <link rel="stylesheet" href="{% static 'auth/css/centered_form.css' %}">
 
 <style>
-    .main-container { background-image: none; }
-    @media only screen and (max-width: 770px) {
-        .main-container { flex-direction: column; }
+    .main-container {
+        background-image: none;
+
+        flex-wrap: wrap;
+        justify-content: space-evenly;
+        align-items: flex-start;
+        gap: 2em;
     }
 
+    .text-container {
+        padding-right: 0;
+        width: 290px;
+    }
     .text-container > * {
         margin-block: 1em;
         display: block;
     }
-    .form-field { max-width: 270px; }
-    input:not([type=checkbox]), select { width: 100%; }
-</style>
-<script>
-    document.addEventListener("DOMContentLoaded", () => {
-        document.querySelector("#larp").addEventListener("input", function() {
-            const stufe = document.querySelector("#stufe");
-            stufe.disabled = this.checked;
-            if (this.checked) { stufe.value = 1; }
-        });
+    .fix-link {
+        --bs-link-color: currentcolor;
+        --bs-link-hover-color: currentcolor;
 
-        document.querySelector("#stufe").addEventListener("input", function() {
-            const value = parseInt(this.value || 0);
-            const larp = document.querySelector("#larp");
-            larp.disabled = value !== 1;
-            if (value) { larp.checked = false; }
-        });
-    })
-</script>
+        &:hover { opacity: 0.75; }
+    }
+</style>
+<script src="{% static 'create/js/gfs.js' %}" type="text/javascript" defer></script>
 {% endblock %}
 
 {% block main %}
-<form method="post" class="text-container">
+<form method="post" class="text-container" id="create-char-form">
     {% csrf_token %}
 
-    <h2>neuen Charakter erstellen</h2>
+    <h2>Charakter erstellen</h2>
 
     <div class="form-field">
-        <label for="gfs">Klasse/Gfs</label>
-        <select name="gfs_id" id="gfs">
+        <label for="gfs"><a class="fix-link" href="{% url 'wiki:gfs' %}" target="_blank">Gfs/Genere</a></label>
+        <select name="gfs_id" id="gfs" class="form-select">
             {% for g in gfs %}
-                <option value=" {% localize off %}{{ g.id }}{% endlocalize %}" id="option{{ forloop.counter0 }}">{{ g.titel }} (AP: {{ g.ap }})</option>
+                <option value=" {% localize off %}{{ g.id }}{% endlocalize %}" id="option{{ forloop.counter0 }}">
+                    {{ g.titel }} {% if g.ap %}({{ g.ap }} AP)</small>{% endif %}
+                </option>
             {% endfor %}
         </select>
     </div class="form-field">
     
     <div class="form-field">
         <label for="stufe">Stufe</label>
-        <input type="number" id="stufe" name="stufe" min="1" max="30" value="1">
+        <input type="number" id="stufe" name="stufe" min="1" max="30" value="1" class="form-control">
     </div>
 
-    <div class="form-field d-flex" style="gap: 1.7em; align-items: center;">
-        <input type="checkbox" name="larp" id="larp">
-        <label for="larp">Im LARP</label>
+    <div class="form-field d-flex align-items-center gap-3">
+        <input type="checkbox" name="larp" id="larp" class="form-check-input">
+        <label for="larp" class="form-check-label">Im LARP</label>
     </div>
 
+    <fieldset id="fieldset-klassen">
+        <div class="d-flex justify-content-start align-items-center gap-2 my-2">
+            <legend style="width: unset; margin-bottom: 0;">Klassen</legend>
+            <small><a class="fix-link" href="{% url 'wiki:klassen' %}" target="_blank">alle Klassen</a></small>
+        </div>
+        
+        <!-- select stufen -->
+        <div id="klassen-container" class="mb-3">
+            <!-- will be filled when choosing klasse -->
+        </div>
 
-    <button type="submit" class="btn btn-lg btn-primary">Weiter</button>
+        <!-- choose new klasse -->
+        <div class="input-group flex-nowrap mb-3">
+            <select class="form-select" id="new-klasse-select" aria-label="Neue Klasse für Charakter wählen">
+                <option selected disabled value="">Klasse ...</option>
+                {% for klasse in klassen %}<option value="{{ klasse.pk }}">{{ klasse.titel }}</option>{% endfor %}
+            </select>
+            <button type="button" class="btn btn-primary" id="choose-klasse-btn">wählen</button>
+        </div>
+
+        <!-- infotext for stufen -->
+        <p class="bg-danger text-light" id="stufen-errortext"></p>
+    </fieldset>
+
+
+    <button type="submit" class="btn btn-lg btn-primary" id="submit-char-btn">Weiter</button>
 </form>
 
 <div class="text-container">
     <h2>was Anderes</h2>
     <ul>
-        <li><a class="text-light" href="{% url 'create:gfs_characterization' %}" target="_blank"><b>Noch keinen konkreten Plan?</b> Hole dir deine Inspiration hier</a>
-        <li><a class="text-light" href="{% url 'wiki:gfs' %}" target="_blank">Alle Infos zu <b>wählbaren Gfs/Generen</b></a>
+        <li><a class="fix-link" href="{% url 'create:gfs_characterization' %}" target="_blank"><b>Noch keinen konkreten Plan?</b> Hole dir deine Inspiration hier</a>
+        <li><a class="fix-link" href="{% url 'wiki:gfs' %}" target="_blank">Alle Infos zu <b>wählbaren Gfs/Generen</b></a>
 
         {% for s in old_scetches %}
-        <li><a class="text-light" href="{% url 'create:prio' s.id %}">Einen <b>bestehenden Entwurf ({{ s.name|default:"" }} {{ s.gfs.titel }}) fortführen</b></a></li>
+        <li><a class="fix-link" href="{% url 'create:prio' s.id %}">Einen <b>bestehenden Entwurf ({{ s.name|default:"" }} {{ s.gfs.titel }}) fortführen</b></a></li>
         {% endfor %}
     </ul>
 

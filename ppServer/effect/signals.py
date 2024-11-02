@@ -165,8 +165,7 @@ def apply_hp_effect_of_haustierfels(sender, instance, **kwargs):
 
     kHp_without_fels = sum([
         instance.relattribut_set.get(attribut__titel="ST").aktuell() * 5,
-        instance.ep_stufe * 2,
-        math.floor(instance.larp_rang / 20),
+        math.floor(instance.larp_rang / 20) if instance.larp else instance.ep_stufe * 2,
         math.floor(instance.rang / 10),
         instance.HPplus,
     ])

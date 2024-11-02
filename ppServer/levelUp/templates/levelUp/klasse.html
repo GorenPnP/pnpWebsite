@@ -1,4 +1,4 @@
-p{% extends 'base/headed_main.html' %}
+{% extends 'base/headed_main.html' %}
 {% load static levelUp.resources l10n %}
 
 {% block extra-head %}{{ block.super }}
@@ -9,30 +9,32 @@ p{% extends 'base/headed_main.html' %}
 
         &:hover { opacity: 0.75; }
     }
-    ul > :not(li) { display: none; }
-    .formitem {
-        display: grid;
-        grid-template-columns: auto 1fr;
-        gap: 1em;
-    }
-    .card {
-        width: min(100%, 45ch);
-
-        .card-text p br {
-            display: block;
-            margin-top: .5em;
+    .main-container {
+        ul > :not(li) { display: none; }
+        .formitem {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 1em;
         }
-    }
-    .card-title {
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-        justify-content: flex-start;
-        gap: .3em;
+        .card {
+            width: min(100%, 45ch);
 
-        .klasse-icon {
-            width: 2em;
-            aspect-ratio: 1;
+            .card-text p br {
+                display: block;
+                margin-top: .5em;
+            }
+        }
+        .card-title {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: flex-start;
+            gap: .3em;
+
+            .klasse-icon {
+                width: 2em;
+                aspect-ratio: 1;
+            }
         }
     }
 </style>
@@ -91,15 +93,15 @@ p{% extends 'base/headed_main.html' %}
         <ul class="p-0">
             {% for rel in stufenpläne %}
             <li class="formitem my-4">
-                <input type="radio" id="stufenplan-{% localize off %}{{ rel.id }}{% endlocalize %}" name="stufenplan_id" value="{% localize off %}{{ rel.id }}{% endlocalize %}" class="form-check-input">
+                <input type="radio" id="stufenplan-{% localize off %}{{ rel.id }}{% endlocalize %}" name="stufenplan_id" value="{% localize off %}{{ rel.id }}{% endlocalize %}" class="form-check-input" {% if not rel.requirements_met %}disabled{% endif %}>
                 <label for="stufenplan-{% localize off %}{{ rel.id }}{% endlocalize %}">
-                    <div class="card text-bg-dark">
+                    <div class="card text-bg-dark{% if not rel.requirements_met %} text-muted{% endif %}">
                         <div class="card-body">
                             <a class="card-title h5" href="{% url 'wiki:klasse' rel.klasse.pk %}" target="_blank">
                                 <img src="{% if rel.klasse.icon %}{{ rel.klasse.icon.url }}{% else %}{% static 'res/img/goren_logo.svg' %}{% endif %}" class="klasse-icon">
                                 {{ rel.klasse.titel }} Stufe {{ rel.stufe }}
                             </a>
-                            {% if rel.stufe == rel.min_stufe %}<div class="card-subtitle mt-2 mb-3 text-muted">TODO Requirement</div>{% endif %}
+                            {% if rel.stufe == rel.min_stufe or not rel.requirements_met %}<div class="card-subtitle mt-2 mb-3 text-muted">Voraussetzung: {{ rel.klasse.requirement }}</div>{% endif %}
                             <small class="card-text">
                                 {% if rel.stufe == rel.min_stufe %}
                                     {{ rel.klasse.beschreibung|linebreaks }}

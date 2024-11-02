@@ -5,7 +5,7 @@ from sentry_sdk import capture_message
 from django.contrib.auth.models import User
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-from django.db.models import Max, Sum, Subquery, OuterRef, F, Q, Exists
+from django.db.models import Max, Sum, Subquery, OuterRef, F, Q, Exists, Value
 from django.db.models.functions import Coalesce
 from django.db.models.query import QuerySet
 from django.shortcuts import get_object_or_404
@@ -82,10 +82,10 @@ class Klasse(models.Model):
         verbose_name = "Klasse"
         verbose_name_plural = "Klassen"
 
+    requirement = models.CharField(max_length=128, null=True, blank=True, help_text="Wird auch halbwegs zur Berechnung benutzt, also bitte nicht selbstständig ändern!")
     icon = ResizedImageField(size=[1024, 1024], null=True, blank=True)
     titel = models.CharField(max_length=30, null=False, default="")
     beschreibung = models.TextField()
-    # TODO requirements to get Klasse
 
     def __str__(self):
         return self.titel
@@ -116,13 +116,14 @@ class KlasseStufenplan(models.Model):
             .filter(owned=True)
 
     @staticmethod
-    def get_choosable_KlasseStufenplan(char: "Charakter") -> QuerySet["KlasseStufenplan"]:
-        # TODO requirements
-
-        return KlasseStufenplan.objects\
+    def get_choosable_KlasseStufenplan(char: "Charakter") -> list["KlasseStufenplan"]:
+        # qs with all immediately-choosable-by-stufe-stufenpläne of all Klassen 
+        qs = KlasseStufenplan.objects\
+            .prefetch_related("klasse")\
             .annotate(
                 current_stufe = Coalesce(Subquery(RelKlasse.objects.filter(char=char, klasse=OuterRef("klasse")).values("stufe")), 0),
                 min_stufe = Subquery(KlasseStufenplan.objects.filter(klasse=OuterRef("klasse")).values("stufe").order_by("stufe")[:1]),
+                requirements_met = Value(True),
             )\
             .filter(
                 # in new Klasse: 1st stufe
@@ -130,6 +131,34 @@ class KlasseStufenplan(models.Model):
                 # in chosen Klasse: next stufe
                 (~Q(current_stufe=0) & Q(stufe=F("current_stufe")+1))
             )
+        
+        
+        # evaluate requirements
+
+        # prepare fields to check
+        attrs = {rel.attribut.titel: rel.aktuell() for rel in char.relattribut_set.prefetch_related("attribut").all()}
+        fg = { rel.gruppe: rel.fg for rel in char.relgruppe__set.objects.all() }
+        fert = {rel.fertigkeit.titel: attrs[rel.fertigkeit.attribut.titel] + fg[rel.fertigkeit.gruppe] + rel.fp + rel.fp_bonus for rel in char.relfertigkeit_set.prefetch_related("fertigkeit__attribut").all()}
+        calc_vals = {
+            "Initiative": attrs["SCH"]*2 + attrs["WK"] + attrs["GES"] + char.initiative_bonus,
+            "Astral-Widerstand": attrs["MA"] + attrs["WK"] + char.astralwiderstand_bonus,
+            "Reaktion": attrs["SCH"] + attrs["GES"] + char.reaktion_bonus,
+            "nat. Schadenswiderstand": attrs["ST"] + attrs["VER"] + char.natürlicher_schadenswiderstand_bonus,
+            "Intuition": (attrs["IN"] + 2*attrs["SCH"]) / 2,
+            "körperliche HP": attrs["ST"]*5 + math.floor(char.rang / 10) + (char.HPplus_fix if char.HPplus_fix is not None else char.HPplus) + (math.floor(char.larp_rang / 20) if char.larp else char.ep_stufe*2),
+            "geistige HP": attrs["WK"]*5 + char.HPplus_geistig + math.ceil(char.larp_rang / 20),
+        }
+        fields = { **attrs, **fert, **calc_vals }
+
+        # decide if requirements are met
+        result_list: list["KlasseStufenplan"] = []
+        for stufenplan in qs:
+            field, _, value = stufenplan.klasse.requirement.rpartition(" ")
+            stufenplan.requirements_met = fields[field] >= int(value)
+            result_list.append(stufenplan)
+
+        return result_list
+        
 
 
 class KlasseAbility(models.Model):
@@ -990,8 +1019,8 @@ class RelAttribut(models.Model):
     def __str__(self):
         return "'{}' von '{}'".format(self.attribut.__str__(), self.char.__str__())
 
-    def aktuell(self): return self.aktuellerWert + self.aktuellerWert_temp + self.aktuellerWert_bonus if self.aktuellerWert_fix is None else self.aktuellerWert_fix
-    def max(self): return self.maxWert + self.maxWert_temp if self.maxWert_fix is None else self.maxWert_fix
+    def aktuell(self) -> int: return self.aktuellerWert + self.aktuellerWert_temp + self.aktuellerWert_bonus if self.aktuellerWert_fix is None else self.aktuellerWert_fix
+    def max(self) -> int: return self.maxWert + self.maxWert_temp if self.maxWert_fix is None else self.maxWert_fix
 
 class RelGruppe(models.Model):
     
@@ -1115,6 +1144,24 @@ class RelKlasse(models.Model):
 
     def __str__(self):
         return "'{}' von '{}'".format(self.klasse.__str__(), self.char.__str__())
+
+    @staticmethod
+    def get_own_number_annotated(char: Charakter) -> QuerySet["RelKlasse"]:
+        get_SumSubquery = lambda field: KlasseStufenplan.objects\
+            .filter(klasse=OuterRef("klasse"), stufe__lte=OuterRef("stufe"))\
+            .values("klasse")\
+            .annotate(sum=Sum(field))\
+            .values("sum")
+
+        return char.relklasse_set\
+            .annotate(
+                ap = Subquery(get_SumSubquery("ap")),
+                fp = Subquery(get_SumSubquery("fp")),
+                fg = Subquery(get_SumSubquery("fg")),
+                tp = Subquery(get_SumSubquery("tp")),
+                ip = Subquery(get_SumSubquery("ip")),
+                zauber = Subquery(get_SumSubquery("zauber")),
+            )
 
 
 ############ RelShop ###########

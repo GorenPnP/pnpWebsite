@@ -1,3 +1,5 @@
+from functools import cmp_to_key
+
 from django.db.models import Sum, Value, CharField, OuterRef, Subquery, Min
 from django.db.models.functions import Concat, Replace, Coalesce
 from django.contrib import messages
@@ -6,7 +8,7 @@ from django.http.response import HttpResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.views.generic.base import TemplateView
 
-from character.models import Charakter, KlasseAbility, KlasseStufenplan
+from character.models import Charakter, KlasseAbility, KlasseStufenplan, RelKlasse
 from log.models import Log
 from ppServer.utils import ConcatSubquery
 
@@ -21,20 +23,9 @@ class GenericKlasseView(LevelUpMixin, TemplateView):
     def get_context_data(self, *args, **kwargs):
         char = self.get_character()
 
-        get_SumSubquery = lambda field: KlasseStufenplan.objects\
-            .filter(klasse=OuterRef("klasse"), stufe__lte=OuterRef("stufe"))\
-            .values("klasse")\
-            .annotate(sum=Sum(field))\
-            .values("sum")
-
-        own_klassen = char.relklasse_set\
+        # own Klassen
+        own_klassen = RelKlasse.get_own_number_annotated(char)\
             .annotate(
-                ap = Subquery(get_SumSubquery("ap")),
-                fp = Subquery(get_SumSubquery("fp")),
-                fg = Subquery(get_SumSubquery("fg")),
-                tp = Subquery(get_SumSubquery("tp")),
-                ip = Subquery(get_SumSubquery("ip")),
-                zauber = Subquery(get_SumSubquery("zauber")),
                 abilities = ConcatSubquery(
                     KlasseAbility.objects\
                         .filter(klassestufenplan__klasse=OuterRef("klasse"), klassestufenplan__stufe__lte=OuterRef("stufe"))\
@@ -46,10 +37,15 @@ class GenericKlasseView(LevelUpMixin, TemplateView):
             )\
             .prefetch_related("klasse").order_by("-stufe", "klasse__titel")
 
-        stufenpläne = KlasseStufenplan.get_choosable_KlasseStufenplan(char)\
-            .prefetch_related("klasse")\
-            .order_by("-current_stufe", "klasse__titel")
-        
+        # KlasseStufenpläne of potentially new Klassen
+        def sort_stufenplan(a, b):
+            if a.requirements_met != b.requirements_met: return (-1 if a.requirements_met else 1)
+            if a.current_stufe != b.current_stufe: return b.current_stufe - a.current_stufe
+            if a.klasse.titel != b.klasse.titel: return (-1 if a.klasse.titel < b.klasse.titel else 1)
+            return 0
+        stufenpläne = sorted(KlasseStufenplan.get_choosable_KlasseStufenplan(char), key=cmp_to_key(sort_stufenplan))
+
+        # add info for reduced rewards where necessary
         if char.reduced_rewards_until_klasse_stufe:
             messages.info(self.request, f"{char.name} ist älter als Klassen, bekommt also bis Charakterstufe {char.reduced_rewards_until_klasse_stufe} nur deren Fähigkeiten.")
 
@@ -83,8 +79,8 @@ class GenericKlasseView(LevelUpMixin, TemplateView):
             return redirect(request.build_absolute_uri())
 
         # char cannot get stufenplan
-        if not KlasseStufenplan.get_choosable_KlasseStufenplan(char).filter(pk=stufenplan_id).exists():
-            messages.error(request, "Du kannst die Klassenstufe nicht wählenn")
+        if not len([kl for kl in KlasseStufenplan.get_choosable_KlasseStufenplan(char) if kl.requirements_met and kl.pk == stufenplan_id]):
+            messages.error(request, "Du kannst die Klassenstufe nicht wählen")
             return redirect(request.build_absolute_uri())
 
 
@@ -124,5 +120,5 @@ class GenericKlasseView(LevelUpMixin, TemplateView):
 
         # LOG & RETURN
         Log.objects.create(art="l", spieler=request.spieler.instance, char=char, kosten=f"Charakter Stufe {stufen_already_spent+1}", notizen=f"{stufenplan.klasse.titel} Stufe {stufenplan.stufe}")
-        messages.success(request, "Klassenstufe erfolgreich gespeichert")
+        messages.success(request, f"{stufenplan.klasse.titel}-Klassenstufe erfolgreich gespeichert")
         return redirect(request.build_absolute_uri())

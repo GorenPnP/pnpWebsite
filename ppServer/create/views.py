@@ -1,6 +1,8 @@
 import json
-from django.db.models import Subquery, OuterRef, Sum, Exists
+
+from django.db.models import Subquery, OuterRef, Sum, Exists, F, Value, IntegerField
 from django.db.models.base import Model as Model
+from django.db.models.functions import Coalesce
 from django.http import HttpResponseNotFound
 from django.http.request import HttpRequest
 from django.http.response import HttpResponse, JsonResponse
@@ -15,8 +17,9 @@ from ppServer.mixins import VerifiedAccountMixin
 from base.abstract_views import DynamicTableView
 from character.models import Wesenkraft, Beruf, RelAttribut, RelFertigkeit, RelVorteil,\
     RelNachteil, RelWesenkraft, GfsAttribut, GfsFertigkeit, GfsWesenkraft, GfsVorteil,\
-    GfsNachteil, GfsZauber, GfsStufenplanBase, RelZauber
+    GfsNachteil, GfsZauber, GfsStufenplanBase, RelZauber, Klasse, RelKlasse, RelKlasseAbility, KlasseStufenplan
 from levelUp.mixins import LevelUpMixin
+from log.models import Log
 
 from .decorators import *
 from .models import *
@@ -40,21 +43,27 @@ class GfsFormView(VerifiedAccountMixin, TemplateView):
     def get(self, request: HttpRequest) -> HttpResponse:
         context = {
             "gfs": Gfs.objects.all(),
+            "klassen": Klasse.objects.all(),
             "old_scetches": Charakter.objects.filter(eigentümer=request.spieler.instance, in_erstellung=True),
             "topic": "Charakter erstellen",
-            "app_index": "Erstellung",
-            "app_index_url": reverse("create:gfs"),
+            "app_index": "Charaktere",
+            "app_index_url": reverse("character:index"),
         }
 
         return render(request, "create/gfs.html", context)
 
     def post(self, request: HttpRequest) -> HttpResponse:
+        klassen_pks = Klasse.objects.all().values_list("pk", flat=True)
         try:
             gfs_id = int(request.POST["gfs_id"])
             larp = "larp" in request.POST
             stufe = int(request.POST.get("stufe")) if "stufe" in request.POST else 0
+            klassenstufen = {int(key.replace("klasse-", "")): int(stufe) for key, stufe in request.POST.items() if "klasse-" in key and int(key.replace("klasse-", "")) in klassen_pks}
         except:
             return JsonResponse({"message": "Keine Gfs angekommen"}, status=418)
+        
+        if sum(klassenstufen.values()) != stufe:
+            return JsonResponse({"message": "Charakter-Stufe stimmt nicht mit der Summe der Klassenstufen überein"}, status=418)
 
         spieler = request.spieler.instance
         if not spieler: return HttpResponseNotFound()
@@ -95,7 +104,6 @@ class GfsFormView(VerifiedAccountMixin, TemplateView):
                 )\
                 .filter(char=char)
             for e in qs:
-                print(e.__dict__)
                 e.aktuellerWert = e.aktuell
                 e.maxWert = e.max
                 objects.append(e)
@@ -165,6 +173,12 @@ class GfsFormView(VerifiedAccountMixin, TemplateView):
                 for gfs_zauber in GfsZauber.objects.filter(gfs=char.gfs)
             ])
 
+            # Klassen
+            for klasse in Klasse.objects.filter(pk__in=klassenstufen.keys()):
+                RelKlasse.objects.create(char=char, klasse=klasse, stufe=klassenstufen[klasse.id])
+                # klasse logging
+                Log.objects.create(art="l", spieler=request.spieler.instance, char=char, kosten=f"Charaktererstellung", notizen=f"{klasse.titel} bis Stufe {klassenstufen[klasse.id]}")
+                # note: values of chosen Klassen will be distributed in Prio.post() due to crotocal values for priotable
 
         return redirect(reverse("create:prio", args=[char.id]))
 
@@ -296,7 +310,38 @@ class PriotableFormView(LevelUpMixin, DetailView):
 
 
         char.processing_notes["priotable"] = fields
-        char.save(update_fields=["ip", "sp", "konzentration", "fp", "fg", "zauberplätze", "geld", "spF_wF", "wp", "ap", "processing_notes"])
+
+        # rewards of Klassen ..
+
+        # .. KlasseAbility
+        qs = KlasseStufenplan.objects\
+            .annotate(
+                max_stufe=Coalesce(Subquery(RelKlasse.objects.filter(char=char, klasse=OuterRef("klasse")).values("stufe")), Value(0), output_field=IntegerField()),
+            )\
+            .filter(stufe__lte=F("max_stufe")).exclude(ability=None)
+        for stufenplan in qs:
+            RelKlasseAbility.objects.create(char=char, ability=stufenplan.ability)
+
+        # .. numeric & base-abilities
+        klasse_rewards = RelKlasse.get_own_number_annotated(char).values("klasse__titel", "klasse__beschreibung", "ap", "fp", "fg", "tp", "ip", "zauber")
+        for reward in klasse_rewards:
+            char.ap += reward["ap"]
+            char.fp += reward["fp"]
+            char.fg += reward["fg"]
+            char.tp += reward["tp"]
+            char.ip += reward["ip"]
+            new_zauber = char.zauberplätze.get(f"{char.ep_stufe_in_progress}", 0) + reward["zauber"]
+            if new_zauber: char.zauberplätze[char.ep_stufe_in_progress] = new_zauber
+
+            # .. base-ability
+            notizen = []
+            # keep notizen as is
+            if char.notizen: notizen.append(char.notizen)
+            # add base-klasse
+            notizen.append(f'---\n{reward["klasse__titel"]} 1:\n{reward["klasse__beschreibung"]}\n---')
+            char.notizen = "\n\n".join(notizen)
+
+        char.save(update_fields=["ip", "sp", "konzentration", "fp", "fg", "zauberplätze", "geld", "spF_wF", "wp", "ap", "tp", "notizen", "processing_notes"])
 
         if not char.processing_notes["creation_larp"] and char.ep:
             char.init_stufenhub()

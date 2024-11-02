@@ -248,7 +248,7 @@ class ShowView(VerifiedAccountMixin, DetailView):
     def get_hp(self, char):
         khp = [
             self._rel_attribute["ST"].aktuell() * 5,
-            char.ep_stufe * 2 + math.floor(char.larp_rang / 20),
+            math.floor(char.larp_rang / 20) if char.larp else char.ep_stufe * 2,
             math.floor(char.rang / 10),
             char.HPplus_fix if char.HPplus_fix is not None else char.HPplus,
         ]

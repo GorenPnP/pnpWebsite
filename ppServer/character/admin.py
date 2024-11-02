@@ -179,9 +179,10 @@ class TalentAdmin(admin.ModelAdmin):
 
 
 class KlasseAdmin(admin.ModelAdmin):
-    list_display = ["_icon", "titel", "beschreibung"]
+    list_display = ["_icon", "titel", "beschreibung", "requirement"]
     list_display_links = ["_icon", "titel"]
-    search_fields = ["titel"]
+    list_editable = ["requirement"]
+    search_fields = ["titel", "beschreibung", "requirement"]
     inlines = [KlasseStufenplanInLine]
     actions = ["create_stufenplans"]
 

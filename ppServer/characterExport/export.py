@@ -500,7 +500,7 @@ class CharakterExporter:
         ROW += 1
         self._POSITION["kHP"] = f"Werte!J{ROW}"
         werte_ws.write(f"I{ROW}", "Körperliche HP", format_section_titel)
-        werte_ws.write(f"J{ROW}", f"=J{ROW-2}+J{ROW-1}+({self._position('ep_stufe')}*2)+({self._position('ST')}*5)", format_hp)
+        werte_ws.write(f"J{ROW}", f"=J{ROW-2}+J{ROW-1}+({0 if self.char.larp else self._position('ep_stufe')}*2)+({self._position('ST')}*5)", format_hp)
         werte_ws.write(f"K{ROW}", "Tot ab", format_section_titel)
         werte_ws.write(f"L{ROW}", f"=(-2)*{self._position('ST')}", format_hp)
         
