@@ -181,7 +181,7 @@ class IndexView(LevelUpMixin, DetailView):
         char = self.get_character()
         if "campaign" in char.processing_notes:
             for msg in char.processing_notes["campaign"]:
-                messages.error(request, msg)
+                messages.info(request, msg)
         
         return super().get(request, *args, **kwargs)
 

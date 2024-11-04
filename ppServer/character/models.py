@@ -86,6 +86,7 @@ class Klasse(models.Model):
     icon = ResizedImageField(size=[1024, 1024], null=True, blank=True)
     titel = models.CharField(max_length=30, null=False, default="")
     beschreibung = models.TextField()
+    base_abilities = models.ManyToManyField("KlasseAbility")
 
     def __str__(self):
         return self.titel
@@ -119,7 +120,7 @@ class KlasseStufenplan(models.Model):
     def get_choosable_KlasseStufenplan(char: "Charakter") -> list["KlasseStufenplan"]:
         # qs with all immediately-choosable-by-stufe-stufenpläne of all Klassen 
         qs = KlasseStufenplan.objects\
-            .prefetch_related("klasse")\
+            .prefetch_related("klasse__base_abilities")\
             .annotate(
                 current_stufe = Coalesce(Subquery(RelKlasse.objects.filter(char=char, klasse=OuterRef("klasse")).values("stufe")), 0),
                 min_stufe = Subquery(KlasseStufenplan.objects.filter(klasse=OuterRef("klasse")).values("stufe").order_by("stufe")[:1]),
@@ -136,8 +137,8 @@ class KlasseStufenplan(models.Model):
         # evaluate requirements
 
         # prepare fields to check
-        attrs = {rel.attribut.titel: rel.aktuell() for rel in char.relattribut_set.prefetch_related("attribut").all()}
-        fg = { rel.gruppe: rel.fg for rel in char.relgruppe__set.objects.all() }
+        attrs = {rel.attribut.titel: rel.aktuellerWert + rel.aktuellerWert_bonus if rel.aktuellerWert_fix is None else rel.aktuellerWert_fix for rel in char.relattribut_set.prefetch_related("attribut").all()}
+        fg = { rel.gruppe: rel.fg for rel in char.relgruppe_set.all() }
         fert = {rel.fertigkeit.titel: attrs[rel.fertigkeit.attribut.titel] + fg[rel.fertigkeit.gruppe] + rel.fp + rel.fp_bonus for rel in char.relfertigkeit_set.prefetch_related("fertigkeit__attribut").all()}
         calc_vals = {
             "Initiative": attrs["SCH"]*2 + attrs["WK"] + attrs["GES"] + char.initiative_bonus,
@@ -154,7 +155,7 @@ class KlasseStufenplan(models.Model):
         result_list: list["KlasseStufenplan"] = []
         for stufenplan in qs:
             field, _, value = stufenplan.klasse.requirement.rpartition(" ")
-            stufenplan.requirements_met = fields[field] >= int(value)
+            stufenplan.requirements_met = fields[field] >= int(value) or stufenplan.stufe > stufenplan.min_stufe
             result_list.append(stufenplan)
 
         return result_list
@@ -1154,6 +1155,7 @@ class RelKlasse(models.Model):
             .values("sum")
 
         return char.relklasse_set\
+            .prefetch_related("klasse__base_abilities")\
             .annotate(
                 ap = Subquery(get_SumSubquery("ap")),
                 fp = Subquery(get_SumSubquery("fp")),

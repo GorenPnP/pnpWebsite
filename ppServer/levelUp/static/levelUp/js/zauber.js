@@ -37,7 +37,7 @@ function update_general() {
     
     const amount_tiers_chosen = document.querySelectorAll(".tier-filled").length;
     let submittable = false;
-    switch (document.querySelector("#payment-method").value) {
+    switch (document.querySelector("#payment-method")?.value) {
         case "sp": 
             let sp = 0
             cards.forEach(card => {

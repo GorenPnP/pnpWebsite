@@ -63,7 +63,7 @@
         </div>
     </div>
 
-    {% if teil.is_sellable and rel %}
+    {% if rel and rel.is_sellable %}
     <div class="card-footer">
         <button type="button" aria-label="delete" data-delete="delete-{{rel.id}}" class="del-btn btn btn-lg btn-danger d-block m-auto">
             <svg style="width:1em; margin: auto; display: block;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">

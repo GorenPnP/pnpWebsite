@@ -241,7 +241,6 @@ class PriotableFormView(LevelUpMixin, DetailView):
 
     def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
         char = self.get_object()
-        entries = self.get_entries()
 
         # collect data
         if char is None:
@@ -322,26 +321,22 @@ class PriotableFormView(LevelUpMixin, DetailView):
         for stufenplan in qs:
             RelKlasseAbility.objects.create(char=char, ability=stufenplan.ability)
 
-        # .. numeric & base-abilities
-        klasse_rewards = RelKlasse.get_own_number_annotated(char).values("klasse__titel", "klasse__beschreibung", "ap", "fp", "fg", "tp", "ip", "zauber")
+        klasse_rewards = RelKlasse.get_own_number_annotated(char) # has keys { "klasse", "ap", "fp", "fg", "tp", "ip", "zauber", ...}
         for reward in klasse_rewards:
-            char.ap += reward["ap"]
-            char.fp += reward["fp"]
-            char.fg += reward["fg"]
-            char.tp += reward["tp"]
-            char.ip += reward["ip"]
-            new_zauber = char.zauberplätze.get(f"{char.ep_stufe_in_progress}", 0) + reward["zauber"]
+            # .. numeric
+            char.ap += reward.ap
+            char.fp += reward.fp
+            char.fg += reward.fg
+            char.tp += reward.tp
+            char.ip += reward.ip
+            new_zauber = char.zauberplätze.get(f"{char.ep_stufe_in_progress}", 0) + reward.zauber
             if new_zauber: char.zauberplätze[char.ep_stufe_in_progress] = new_zauber
 
-            # .. base-ability
-            notizen = []
-            # keep notizen as is
-            if char.notizen: notizen.append(char.notizen)
-            # add base-klasse
-            notizen.append(f'---\n{reward["klasse__titel"]} 1:\n{reward["klasse__beschreibung"]}\n---')
-            char.notizen = "\n\n".join(notizen)
+            # .. base-abilities
+            for ability in reward.klasse.base_abilities.all():
+                RelKlasseAbility.objects.create(char=char, ability=ability)
 
-        char.save(update_fields=["ip", "sp", "konzentration", "fp", "fg", "zauberplätze", "geld", "spF_wF", "wp", "ap", "tp", "notizen", "processing_notes"])
+        char.save(update_fields=["ip", "sp", "konzentration", "fp", "fg", "zauberplätze", "geld", "spF_wF", "wp", "ap", "tp", "processing_notes"])
 
         if not char.processing_notes["creation_larp"] and char.ep:
             char.init_stufenhub()

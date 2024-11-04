@@ -40,8 +40,20 @@ table thead tr th {
 
         <!-- description -->
         <div class="col-12 col-sm">
+            <h2 class="title">Voraussetzung</h2>
+            <p class="description__text">{{ object.requirement|default:"-" }}</p>
+            {% if object.beschreibung %}
             <h2 class="title">Beschreibung</h2>
             <p class="description__text">{{ object.beschreibung|default:"-"|linebreaks }}</p>
+            {% endif %}
+            <h2 class="title">Basisfähigkeiten</h2>
+            <p class="description__text">
+                <ul>
+                    {% for ability in object.base_abilities.all %}
+                    <li><b>{{ ability.name }}</b><br>{{ ability.beschreibung }}</li>    
+                    {% endfor %}
+                </ul>
+            </p>
         </div>
     </div>
 </section>

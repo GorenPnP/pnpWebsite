@@ -1,6 +1,6 @@
 from functools import cmp_to_key
 
-from django.db.models import Sum, Value, CharField, OuterRef, Subquery, Min
+from django.db.models import Sum, Value, CharField, OuterRef, Min, Q
 from django.db.models.functions import Concat, Replace, Coalesce
 from django.contrib import messages
 from django.http.request import HttpRequest
@@ -8,7 +8,7 @@ from django.http.response import HttpResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.views.generic.base import TemplateView
 
-from character.models import Charakter, KlasseAbility, KlasseStufenplan, RelKlasse
+from character.models import Charakter, KlasseAbility, KlasseStufenplan, RelKlasse, RelKlasseAbility
 from log.models import Log
 from ppServer.utils import ConcatSubquery
 
@@ -28,14 +28,14 @@ class GenericKlasseView(LevelUpMixin, TemplateView):
             .annotate(
                 abilities = ConcatSubquery(
                     KlasseAbility.objects\
-                        .filter(klassestufenplan__klasse=OuterRef("klasse"), klassestufenplan__stufe__lte=OuterRef("stufe"))\
+                        .filter(Q(klassestufenplan__klasse=OuterRef("klasse")) & Q(klassestufenplan__stufe__lte=OuterRef("stufe")) | Q(klasse=OuterRef("klasse")))\
                         .annotate(repr = Concat(Value("<li><b>"), "name", Value("</b><br>"), Replace("beschreibung", Value("\n"), Value("<br>")), Value("</li>"), output_field=CharField()))\
-                        .order_by("klassestufenplan__stufe")\
+                        .order_by("klasse", "klassestufenplan__stufe", "name")\
                         .values("repr"),
                     separator=""
                 )
             )\
-            .prefetch_related("klasse").order_by("-stufe", "klasse__titel")
+            .prefetch_related("klasse__base_abilities").order_by("-stufe", "klasse__titel")
 
         # KlasseStufenpläne of potentially new Klassen
         def sort_stufenplan(a, b):
@@ -97,26 +97,26 @@ class GenericKlasseView(LevelUpMixin, TemplateView):
 
         # give rewards to char
 
-        notizen = []
-        # keep notizen as is
-        if char.notizen: notizen.append(char.notizen)
-        # add base-klasse
+        # .. base-abilities
         if stufenplan.stufe == min_stufe:
-            notizen.append(f"---\n{stufenplan.klasse.titel} 1:\n{stufenplan.klasse.beschreibung}\n---")
-        char.notizen = "\n\n".join(notizen)
+            for ability in stufenplan.klasse.base_abilities.all():
+                RelKlasseAbility.objects.create(char=char, ability=ability)
 
+        # .. numeric
         if char.reduced_rewards_until_klasse_stufe < stufen_already_spent+1:
             char.ap += stufenplan.ap
             char.fp += stufenplan.fp
             char.fg += stufenplan.fg
             char.tp += stufenplan.tp
             char.ip += stufenplan.ip
-            char.zauberplätze[char.ep_stufe_in_progress] = char.zauberplätze.get(f"{char.ep_stufe_in_progress}", 0) + stufenplan.zauber
+            new_zauber = char.zauberplätze.get(f"{char.ep_stufe_in_progress}", 0) + stufenplan.zauber
+            if new_zauber: char.zauberplätze[char.ep_stufe_in_progress] = new_zauber
 
-            char.save(update_fields=["ap", "fp", "fg", "tp", "ip", "zauberplätze", "notizen"])
-        else:
-            char.save(update_fields=["notizen"])
+            char.save(update_fields=["ap", "fp", "fg", "tp", "ip", "zauberplätze"])
+
+        # .. stufe-abilities
         if stufenplan.ability: char.relklasseability_set.create(ability=stufenplan.ability)
+
 
         # LOG & RETURN
         Log.objects.create(art="l", spieler=request.spieler.instance, char=char, kosten=f"Charakter Stufe {stufen_already_spent+1}", notizen=f"{stufenplan.klasse.titel} Stufe {stufenplan.stufe}")

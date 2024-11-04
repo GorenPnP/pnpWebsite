@@ -563,11 +563,6 @@ class CharakterExporter:
         # Klassen-Fähigkeiten
         ROW += 1
         werte_ws.merge_range(f"A{ROW}:H{ROW}", "Klassen-Eigenschaften/Fähigkeiten", format_ramsch_titel)
-        for r in RelKlasse.objects.prefetch_related("klasse").filter(char=self.char):
-            ROW += 1
-            werte_ws.write(f"A{ROW}", f"{r.klasse.titel} 1", format_border_left)
-            werte_ws.merge_range(f"B{ROW}:G{ROW}", r.klasse.beschreibung, format_text_wrap)
-            werte_ws.write(f"H{ROW}", None, format_border_right)
         for r in RelKlasseAbility.objects.prefetch_related("ability").filter(char=self.char):
             ROW += 1
             werte_ws.write(f"A{ROW}", r.ability.name, format_border_left)

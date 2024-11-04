@@ -75,8 +75,7 @@
                             {% if rel.tp %}<li>{{ rel.tp }} TP</li>{% endif %}
                             {% if rel.ip %}<li>{{ rel.ip }} IP</li>{% endif %}
                             {% if rel.zauber %}<li>{{ rel.zauber }} Zauberslots</li>{% endif %}
-                            <li>Basisfähigkeiten:<br><ul><li>{{ rel.klasse.beschreibung|linebreaks }}</li></ul></li>
-                            {% if rel.abilities %}<li>Klassenfähigkeiten:<ul>{{ rel.abilities|safe|linebreaks }}</ul></li>{% endif %}
+                            <li>Klassenfähigkeiten:<ul>{{ rel.abilities|safe|linebreaks }}</ul></li>
                         </ul>
                     </small>
                 </div>
@@ -104,7 +103,11 @@
                             {% if rel.stufe == rel.min_stufe or not rel.requirements_met %}<div class="card-subtitle mt-2 mb-3 text-muted">Voraussetzung: {{ rel.klasse.requirement }}</div>{% endif %}
                             <small class="card-text">
                                 {% if rel.stufe == rel.min_stufe %}
-                                    {{ rel.klasse.beschreibung|linebreaks }}
+                                <ul>
+                                    {% for ability in rel.klasse.base_abilities.all %}
+                                    <li><b>{{ ability.name }}</b><br>{{ ability.beschreibung }}</li>
+                                    {% endfor %}
+                                </ul>
                                 {% else %}
                                     <ul>
                                         {% if rel.ap %}<li>{{ rel.ap }} AP</li>{% endif %}

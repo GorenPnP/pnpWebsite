@@ -26,9 +26,17 @@ class WissenFertInLine(admin.TabularInline):
     extra = 1
 
 
+class KlasseAbilityInLine(admin.TabularInline):
+    model = Klasse.base_abilities.through
+    extra = 1
+
+
 class KlasseStufenplanInLine(admin.TabularInline):
     model = KlasseStufenplan
     extra = 0
+
+    def get_queryset(self, request: HttpRequest) -> QuerySet:
+        return super().get_queryset(request).prefetch_related("ability")
 
 
 
@@ -179,15 +187,20 @@ class TalentAdmin(admin.ModelAdmin):
 
 
 class KlasseAdmin(admin.ModelAdmin):
-    list_display = ["_icon", "titel", "beschreibung", "requirement"]
+    readonly_fields = ["requirement"]
+    fields = ["icon", "titel", "beschreibung", "requirement"]
+
+    list_display = ["_icon", "titel", "beschreibung", "_base_abilities", "requirement"]
     list_display_links = ["_icon", "titel"]
-    list_editable = ["requirement"]
     search_fields = ["titel", "beschreibung", "requirement"]
-    inlines = [KlasseStufenplanInLine]
+    inlines = [KlasseAbilityInLine, KlasseStufenplanInLine]
     actions = ["create_stufenplans"]
 
     def _icon(self, obj):
         return format_html(f'<img src="{obj.icon.url}" style="max-width: 32px; max-height:32px;" />') if obj.icon else self.get_empty_value_display()
+
+    def _base_abilities(self, obj):
+        return ", ".join([f"{a.name}: {a.beschreibung}" for a in obj.base_abilities.all()])
 
     @admin.action(description="Stufenpläne anlegen")
     def create_stufenplans(self, request, queryset):
@@ -202,6 +215,11 @@ class KlasseAdmin(admin.ModelAdmin):
 
         KlasseStufenplan.objects.bulk_create(new_klassenstufenplans)
         messages.success(request, f"Stufenpläne aller Klassen bis Stufe {max_stufe} ergänzt")
+
+
+class KlasseAbilityAdmin(admin.ModelAdmin):
+    search_fields = ["name", "beschreibung"]
+    list_display = ["name", "beschreibung"]#, "klassestufenplan_set__klasse__titel"]
 
 
 admin.site.register(Spieler, SpielerAdmin)
@@ -221,7 +239,7 @@ admin.site.register(Wissensfertigkeit, WissensfertigkeitAdmin)
 
 admin.site.register(Talent, TalentAdmin)
 admin.site.register(Klasse, KlasseAdmin)
-admin.site.register(KlasseAbility)
+admin.site.register(KlasseAbility, KlasseAbilityAdmin)
 
 
 
