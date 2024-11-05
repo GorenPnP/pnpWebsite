@@ -319,7 +319,7 @@ class CharakterExporter:
 
         ROW += 1
         werte_ws.write(f"I{ROW}", "Persönlichkeit:", format_wesen_titel)
-        werte_ws.merge_range(f"J{ROW}:L{ROW}", self.char.persönlichkeit.titel, format_wesen)
+        werte_ws.merge_range(f"J{ROW}:L{ROW}", self.char.persönlichkeit.titel if self.char.persönlichkeit else None, format_wesen)
 
         ROW += 1
         werte_ws.write(f"I{ROW}", "Gewicht:", format_person_titel__first)
