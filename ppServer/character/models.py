@@ -272,8 +272,8 @@ class Persönlichkeit(models.Model):
         verbose_name_plural = "Persönlichkeiten"
 
     titel = models.CharField(max_length=30, unique=True)
-    positiv = models.TextField()
-    negativ = models.TextField()
+    beschreibung = models.TextField()
+    charakterbeispiele = models.TextField()
 
     def __str__(self):
         return self.titel

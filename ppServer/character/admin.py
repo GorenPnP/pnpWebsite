@@ -55,8 +55,8 @@ class WesenAdmin(admin.ModelAdmin):
 
 
 class PersönlichkeitAdmin(admin.ModelAdmin):
-    list_display = ('titel', 'positiv', 'negativ')
-    search_fields = ('titel', 'positiv', 'negativ')
+    list_display = ('titel', 'beschreibung', 'charakterbeispiele')
+    search_fields = ('titel', 'beschreibung', 'charakterbeispiele')
 
 
 class AttributAdmin(admin.ModelAdmin):

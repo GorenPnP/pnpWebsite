@@ -322,11 +322,11 @@ def stufenplan(request, gfs_id):
 
 class PersönlichkeitTableView(VerifiedAccountMixin, DynamicTableView):
     model = Persönlichkeit
-    table_fields = ["titel", "positiv", "negativ"]
+    table_fields = ["titel", "beschreibung", "charakterbeispiele"]
     filterset_fields = {
         "titel": ["icontains"],
-        "positiv": ["icontains"],
-        "negativ": ["icontains"]
+        "beschreibung": ["icontains"],
+        "charakterbeispiele": ["icontains"]
     }
 
     app_index = "Wiki"
