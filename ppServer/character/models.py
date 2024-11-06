@@ -271,7 +271,7 @@ class Persönlichkeit(models.Model):
         verbose_name = "Persönlichkeit"
         verbose_name_plural = "Persönlichkeiten"
 
-    titel = models.CharField(max_length=30, unique=True)
+    titel = models.CharField(max_length=64, unique=True)
     beschreibung = models.TextField()
     charakterbeispiele = models.TextField()
 
