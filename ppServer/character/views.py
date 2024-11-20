@@ -102,7 +102,7 @@ class ShowView(VerifiedAccountMixin, DetailView):
                 ["Name", char.name],
                 ["Gfs (Stufe)", f"{char.gfs.titel if char.gfs is not None else '-'} ({char.skilltree_stufe})"],
                 ["Klassen (Stufe)", ", ".join([f"{rel.klasse.titel} ({rel.stufe})" for rel in char.relklasse_set.all()]) or "-"],
-                ["Persönlichkeit", char.persönlichkeit.titel],
+                ["Persönlichkeit", char.persönlichkeit.titel if char.persönlichkeit else "-"],
                 ["Geschlecht", char.geschlecht],
                 ["Alter", char.alter],
                 ["Größe", f"{char.größe} cm"],

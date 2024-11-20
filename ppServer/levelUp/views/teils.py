@@ -129,7 +129,7 @@ class GenericTeilView(LevelUpMixin, TemplateView):
         changes = {key:value for (key,value) in changes.items() if "delete" not in key and "add" not in key}
 
         for teil_id in additions:
-            fields = {(k.replace(f"-{teil_id}", '')): v for (k, v) in changes.items() if f"-{teil_id}" in k}
+            fields = {(k.replace(f"-{teil_id}", '')): v for (k, v) in changes.items() if re.match(f"\-{teil_id}$", k)}
             teil = self.Model.objects.get(id=teil_id)
 
             # amount
