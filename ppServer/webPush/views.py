@@ -19,29 +19,42 @@ from .models import *
 
 class SettingView(VerifiedAccountMixin, TemplateView):
 	template_name = "webPush/settings.html"
+	object = None
 
 	def get_object(self):
-		return get_object_or_404(PushSettings, user=self.request.user)
+		self.object = self.object or get_object_or_404(PushSettings, user=self.request.user)
+		return self.object
 
 	def get(self, request):
 		context = {
 			"topic": "Einstellungen",
-			"general_form": GeneralSettingsForm(instance=self.request.spieler.instance),
+			"profile_forms": [UserSettingsForm(instance=self.request.user), SpielerSettingsForm(instance=self.request.spieler.instance)],
 			"form": PushSettingsForm(instance=self.get_object()),
 		}
 		return render(request, self.template_name, context)
 	
 	def post(self, request):
-		form = PushSettingsForm(request.POST, instance=self.get_object())
+		spieler_form = SpielerSettingsForm(request.POST, instance=request.spieler.instance)
+		user_form = UserSettingsForm(request.POST, instance=request.user)
 
-		form.full_clean()
-		if form.is_valid():
-			form.save()
-			messages.success(request, "Einstellungen erfolgreich gespeichert")
-		else:
-			messages.error(request, "Einstellungen konnten nicht gespeichert werden")
+		spieler_form.full_clean()
+		user_form.full_clean()
+		if spieler_form.is_valid() and user_form.is_valid():
+			user_form.save()
+			spieler = spieler_form.save(commit=False)
+			spieler.name = user_form.cleaned_data["username"]
+			spieler.save()
+			messages.success(request, "Dein Profil wurde gespeichert")
+			return redirect("web_push:settings")
 
-		return redirect("web_push:settings")
+		# on form error
+		messages.error(request, "Fehler beim Speichern des Profils")
+		context = {
+			"topic": "Einstellungen",
+			"profile_forms": [user_form, spieler_form],
+			"form": PushSettingsForm(instance=self.get_object()),
+		}
+		return render(request, self.template_name, context)
 
 
 class TestView(SpielleiterOnlyMixin, TemplateView):
@@ -77,14 +90,17 @@ class TestView(SpielleiterOnlyMixin, TemplateView):
 
 @require_POST
 @verified_account
-def general_settings(request):
-    form = GeneralSettingsForm(request.POST, instance=request.spieler.instance)
-    form.full_clean()
-    if form.is_valid():
-        form.save()
-    else:
-        messages.error(request, "Fehler beim speichern allgemeiner Settings")
-    return redirect("web_push:settings")
+def save_push_settings(request):
+	form = PushSettingsForm(request.POST, instance=get_object_or_404(PushSettings, user=request.user))
+
+	form.full_clean()
+	if form.is_valid():
+		form.save()
+		messages.success(request, "Einstellungen erfolgreich gespeichert")
+	else:
+		messages.error(request, "Einstellungen konnten nicht gespeichert werden")
+
+	return redirect("web_push:settings")
 
 
 @require_POST

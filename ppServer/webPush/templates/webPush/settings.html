@@ -14,6 +14,14 @@
         grid-template-columns: 1fr auto;
         gap: .5em;
     }
+    .helptext {
+        opacity: .8;
+        font-weight: lighter;
+        font-size: .8em;
+    }
+    .errorlist {
+        color: var(--bs-danger);
+    }
 </style>
 
 <script id="send_test_endpoint" type="application/json">{% url 'web_push:send_testmessage' %}</script>
@@ -39,14 +47,20 @@
 {% endblock %}
 
 {% block main %}
-<h2>Allgemeine Settings</h2>
+<h2>Mein Profil</h2>
 
-<form class="mt-5" method="post" action="{% url 'web_push:general_settings' %}">
+<form class="mt-5" method="post">
     {% csrf_token %}
-    {{ general_form.as_p }}
+    {% for form in profile_forms %}
+    {{ form.as_p }}
+    {% endfor %}
 
     <button class="btn btn-primary" type="submit">Speichern</button>
 </form>
+<div class="mt-4">
+    <a class="d-block mb-1" href="{% url 'auth:change_email' %}">Email ändern</a>
+    <a class="d-block mb-1" href="{% url 'admin:password_change' %}">Passwort ändern</a>
+</div>
 
 <h2 style="margin-top: 3em">Benachrichtigungen</h2>
 
@@ -59,7 +73,7 @@
 <div class="mt-5">
     <h3>Themen</h3>
     <p>Welche Themen möchtest du mit deinen Geräten abonnieren?</p>
-    <form method="post">
+    <form method="post" action="{% url 'web_push:push_settings' %}">
         {% csrf_token %}
         {{ form.as_p }}
         <button type="submit" class="btn btn-primary">Themen speichern</button>
