@@ -102,7 +102,7 @@ class IndexView(LevelUpMixin, DetailView):
         rows.append({"done": is_personal_done(char), "link": self._get_url("personal", char), "text": "<b>Persönliches</b>", "werte": "-"})
         # Klassen
         klassenstufen_missing = char.ep_stufe_in_progress - char.relklasse_set.aggregate(stufen=Coalesce(Sum("stufe"), 0))["stufen"]
-        rows.append({"done": is_klasse_done(char), "link": self._get_url("klasse", char), "text": "<b>Klassen</b>", "werte": f"{klassenstufen_missing} {'Stufen fehlen' if klassenstufen_missing != 1 else 'Stufe fehlt'}"})
+        rows.append({"done": klassenstufen_missing == 0, "link": self._get_url("klasse", char), "text": "<b>Klassen</b>", "werte": f"{klassenstufen_missing} {'Stufen fehlen' if klassenstufen_missing != 1 else 'Stufe fehlt'}"})
         
         # Skilltree
         if not char.larp:

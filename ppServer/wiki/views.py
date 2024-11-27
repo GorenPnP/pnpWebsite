@@ -14,6 +14,7 @@ from django.views.generic.base import TemplateView
 from django.views.generic.list import ListView
 
 import django_tables2 as tables
+from django_filters import FilterSet, ModelChoiceFilter
 
 from base.abstract_views import DynamicTableView, GenericTable
 from character.models import *
@@ -334,34 +335,103 @@ class PersönlichkeitTableView(VerifiedAccountMixin, DynamicTableView):
 
 
 class SpezialfertigkeitTableView(VerifiedAccountMixin, DynamicTableView):
+    class SpF_Filter(FilterSet):
+        class Meta:
+            model = Spezialfertigkeit
+            fields = {
+                "titel": ["icontains"],
+                "attr1": ["exact"],
+                "attr2": ["exact"],
+                "ausgleich": ["exact"],
+                "beschreibung": ["icontains"]
+            }
+
+        attr1 = ModelChoiceFilter(
+            field_name="attr1",
+            method="filter_attr",
+            queryset=Attribut.objects.all()
+        )
+        attr2 = ModelChoiceFilter(
+            field_name="attr2",
+            method="filter_attr",
+            queryset=Attribut.objects.all()
+        )
+        ausgleich = ModelChoiceFilter(
+            field_name="ausgleich",
+            method="filter_ausgleich",
+            queryset=Fertigkeit.objects.prefetch_related("attribut").all()
+        )
+
+        def filter_attr(self, queryset, name, value):
+            qs = queryset.prefetch_related("attr1", "attr2")
+            return qs.filter(**{name: value}) if value else qs
+
+        def filter_ausgleich(self, queryset, name, value):
+            qs = queryset.prefetch_related("ausgleich__attribut")
+            return qs.filter(ausgleich=value) if value else qs
+    
     model = Spezialfertigkeit
     table_fields = ["titel", "attr1", "attr2", "ausgleich", "beschreibung"]
-    filterset_fields = {
-        "titel": ["icontains"],
-        "attr1": ["exact"],
-        "attr2": ["exact"],
-        "ausgleich": ["exact"],
-        "beschreibung": ["icontains"]
-    }
+    filterset_class = SpF_Filter
 
     app_index = "Wiki"
     app_index_url = "wiki:index"
+
+    def get_queryset(self) -> QuerySet[Any]:
+        return super().get_queryset().prefetch_related("attr1", "attr2", "ausgleich__attribut")
 
 
 class WissensfertigkeitTableView(VerifiedAccountMixin, DynamicTableView):
+    class WF_Filter(FilterSet):
+        class Meta:
+            model = Wissensfertigkeit
+            fields = {
+                "titel": ["icontains"],
+                "attr1": ["exact"],
+                "attr2": ["exact"],
+                "attr3": ["exact"],
+                "fertigkeit": ["exact"],
+                "beschreibung": ["icontains"]
+            }
+
+        attr1 = ModelChoiceFilter(
+            field_name="attr1",
+            method="filter_attr",
+            queryset=Attribut.objects.all()
+        )
+        attr2 = ModelChoiceFilter(
+            field_name="attr2",
+            method="filter_attr",
+            queryset=Attribut.objects.all()
+        )
+        attr3 = ModelChoiceFilter(
+            field_name="attr3",
+            method="filter_attr",
+            queryset=Attribut.objects.all()
+        )
+        fertigkeit = ModelChoiceFilter(
+            field_name="fertigkeit",
+            method="filter_fertigkeit",
+            queryset=Fertigkeit.objects.prefetch_related("attribut").all()
+        )
+
+        def filter_attr(self, queryset, name, value):
+            qs = queryset.prefetch_related("attr1", "attr2")
+            return qs.filter(**{name: value}) if value else qs
+
+        def filter_fertigkeit(self, queryset, name, value):
+            qs = queryset.prefetch_related("fertigkeit__attribut")
+            return qs.filter(fertigkeit=value) if value else qs
+
     model = Wissensfertigkeit
     table_fields = ["titel", "attr1", "attr2", "attr3", "fertigkeit", "beschreibung"]
-    filterset_fields = {
-        "titel": ["icontains"],
-        "attr1": ["exact"],
-        "attr2": ["exact"],
-        "attr3": ["exact"],
-        "fertigkeit": ["exact"],
-        "beschreibung": ["icontains"],
-    }
+    filterset_class = WF_Filter
 
     app_index = "Wiki"
     app_index_url = "wiki:index"
+
+    def get_queryset(self) -> QuerySet[Any]:
+        return super().get_queryset().prefetch_related("attr1", "attr2", "attr3", "fertigkeit__attribut")
 
 
 class WesenkraftTableView(VerifiedAccountMixin, DynamicTableView):
@@ -388,6 +458,9 @@ class WesenkraftTableView(VerifiedAccountMixin, DynamicTableView):
 
     app_index = "Wiki"
     app_index_url = "wiki:index"
+
+    def get_queryset(self):
+        return super().get_queryset().prefetch_related("skilled_gfs__wesen")
 
 
 class ReligionTableView(VerifiedAccountMixin, DynamicTableView):

@@ -252,7 +252,7 @@ class Gfs(models.Model):
     difficulty = models.CharField(max_length=1, choices=DIFFICULTY_ENUM, default=DIFFICULTY_ENUM[0][0], verbose_name=".. leicht/mittel/schwer zu spielen sein?")
 
     def __str__(self):
-        return "{} ({})".format(self.titel, self.wesen.titel if self.wesen else "-")
+        return self.titel
 
     def relAttributQueryset(self):
         return GfsAttribut.objects.filter(gfs=self)
@@ -1127,7 +1127,7 @@ class RelKlasseAbility(models.Model):
     notizen = models.TextField(null=True, blank=True)
 
     def __str__(self):
-        return "'{}' von '{}'".format(self.ability.__str__(), self.char.__str__())
+        return "'{}' von '{}'".format(self.ability.__str__(), self.char.name)
 
 
 class RelKlasse(models.Model):

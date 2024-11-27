@@ -45,7 +45,7 @@ class ShowView(VerifiedAccountMixin, DetailView):
     model = Charakter
     queryset = Charakter.objects.prefetch_related(
         "gfs", "persönlichkeit", "religion", "beruf", "relfertigkeit_set__fertigkeit__attribut", "relgruppe_set",
-        "relklasse_set__klasse","relattribut_set__attribut", "relwesenkraft_set__wesenkraft", "reltalent_set__talent",
+        "relklasse_set__klasse", "relklasseability_set__ability", "relattribut_set__attribut", "relwesenkraft_set__wesenkraft", "reltalent_set__talent",
         "relgfsability_set__ability", "affektivität_set",
         "relzauber_set__item", "relrituale_runen_set__item", "relschusswaffen_set__item", "relwaffen_werkzeuge_set__item",
         "relmagazin_set__item", "relpfeil_bolzen_set__item", "relmagische_ausrüstung_set__item", "relrüstung_set__item",
