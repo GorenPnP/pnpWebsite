@@ -87,6 +87,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    "logRequest.middleware.SentryignoreDisallowedHostMiddleware",
     "django_prometheus.middleware.PrometheusBeforeMiddleware",
 
     # django

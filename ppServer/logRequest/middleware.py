@@ -1,4 +1,5 @@
-import re
+from django.core.exceptions import DisallowedHost
+from django.http import HttpResponseBadRequest
 
 from ppServer.settings import DEBUG
 
@@ -46,3 +47,20 @@ class RequestMiddleware:
             return string[:(limit-3)] + "..."
 
         return string
+
+
+class SentryignoreDisallowedHostMiddleware:
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        # Code to be executed for each request before
+        # the view (and later middleware) are called.
+        try:
+            # check if host is included in ALLOWED_HOSTS.
+            # if not, return 403-response immediately without alerting Sentry
+            request.get_host()
+        except DisallowedHost:
+            return HttpResponseBadRequest()
+
+        return self.get_response(request)
