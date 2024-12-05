@@ -245,6 +245,7 @@ class Waffen_Werkzeuge(BaseShop):
     bs = models.CharField(max_length=20, default=0)
     zs = models.CharField(max_length=20, default=0)
     dk = models.PositiveIntegerField(default=0, blank=True, null=True)
+    schadensart = models.CharField(max_length=1, choices=enums.schadensart_enum, null=True, blank=True)
 
     kategorie = models.CharField(choices=enums.werkzeuge_enum, max_length=2, default=enums.werkzeuge_enum[0][0])
     firmen = models.ManyToManyField('Firma', through='FirmaWaffen_Werkzeuge', blank=True)
@@ -270,6 +271,8 @@ class Pfeil_Bolzen(BaseShop):
 
     bs = models.CharField(max_length=20, default='')
     zs = models.CharField(max_length=20, default='')
+    schadensart = models.CharField(max_length=1, choices=enums.schadensart_enum, null=True, blank=True)
+
     firmen = models.ManyToManyField('Firma', through='FirmaPfeil_Bolzen', blank=True)
 
 
@@ -283,6 +286,7 @@ class Schusswaffen(BaseShop):
     erfolge = models.PositiveIntegerField(default=0)
     bs = models.CharField(max_length=20, default='')
     zs = models.CharField(max_length=20, default='')
+    schadensart = models.CharField(max_length=1, choices=enums.schadensart_enum, null=True, blank=True)
 
     magazine = models.ManyToManyField(Magazin, blank=True)
     pfeile_bolzen = models.ManyToManyField(Pfeil_Bolzen, blank=True)
@@ -385,6 +389,7 @@ class Zauber(BaseShop):
     verteidigung = models.CharField(max_length=1, choices=enums.zauberverteidigung_enum, default=enums.zauberverteidigung_enum[0][0])
     astralsch_is_direct = models.BooleanField(default=False, verbose_name="direkter Astralschaden?")
 
+    schadensart = models.CharField(max_length=1, choices=enums.schadensart_enum, null=True, blank=True)
     kategorie = models.CharField(choices=enums.zauber_enum, max_length=2, null=True, blank=True)
 
     firmen = models.ManyToManyField('Firma', through='FirmaZauber', blank=True)

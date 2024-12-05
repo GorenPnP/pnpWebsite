@@ -279,8 +279,9 @@ class WaffenWerkzeugeTableView(ShopTableView):
         "bs": ["icontains"],
         "zs": ["icontains"],
         "dk": ["lte"],
+        "schadensart": ["exact"]
     }
-    table_fields = ("icon", "name", "beschreibung", "ab_stufe", "erfolge", "bs", "zs", "dk", "preis")
+    table_fields = ("icon", "name", "beschreibung", "ab_stufe", "erfolge", "bs", "zs", "dk", "schadensart", "preis")
 
 
 class MagazinTableView(ShopTableView):
@@ -291,8 +292,8 @@ class MagazinTableView(ShopTableView):
 
 class PfeilBolzenTableView(ShopTableView):
     model = Pfeil_Bolzen
-    filterset_fields = {**ShopFilter._meta.fields, "bs": ["icontains"], "zs": ["icontains"]}
-    table_fields = ("icon", "name", "beschreibung", "ab_stufe", "bs", "zs", "preis")
+    filterset_fields = {**ShopFilter._meta.fields, "bs": ["icontains"], "zs": ["icontains"], "schadensart": ["exact"]}
+    table_fields = ("icon", "name", "beschreibung", "ab_stufe", "bs", "zs", "schadensart", "preis")
 
 
 class SchusswaffenTableView(ShopTableView):
@@ -302,9 +303,10 @@ class SchusswaffenTableView(ShopTableView):
                 "bs": ["icontains"],
                 "zs": ["icontains"],
                 "dk": ["exact"],
-                "präzision": ["exact"]
+                "präzision": ["exact"],
+                "schadensart": "exact"
             }
-    table_fields = ("icon", "name", "beschreibung", "ab_stufe", "erfolge", "bs", "zs", "dk", "präzision", "preis")
+    table_fields = ("icon", "name", "beschreibung", "ab_stufe", "erfolge", "bs", "zs", "dk", "präzision", "schadensart", "preis")
 
 
 class MagischeAusrüstungTableView(ShopTableView):
@@ -436,9 +438,10 @@ class ZauberTableView(ShopTableView):
         "manaverbrauch": ["icontains"],
         "astralsch_is_direct": ["exact"],
         "verteidigung": ["exact"],
-        "kategorie": ["exact"]
+        "kategorie": ["exact"],
+        "schadensart": ["exact"]
     }
-    table_fields = ("icon", "name", "beschreibung", "ab_stufe", "schaden", "astralschaden", "astralsch_is_direct", "manaverbrauch", "verteidigung", "kategorie", "preis")
+    table_fields = ("icon", "name", "beschreibung", "ab_stufe", "schaden", "astralschaden", "astralsch_is_direct", "manaverbrauch", "verteidigung", "schadensart", "kategorie", "preis")
 
 
 class VergessenerZauberTableView(ShopTableView):

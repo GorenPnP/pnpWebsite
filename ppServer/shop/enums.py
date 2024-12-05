@@ -17,6 +17,28 @@ category_enum = [
     ('t', 'für Selbstständige')
 ]
 
+schadensart_enum = [
+    ('k', 'körperlich'),
+    ('e', 'elementar'),
+    ('f', 'Feuer'),
+    ('n', 'energetisch'),
+    ('l', 'Laser/Licht'),
+    ('h', 'elektrisch'),
+    ('m', 'Mana'),
+    ('g', 'Gift'),
+    ('o', 'korrosion (Säuren, Laugen, ...)'),
+    ('i', 'Eis'),
+    ('b', 'Boden/Gestein'),
+    ('p', 'Pflanzen'),
+    ('r', 'radioaktiv'),
+    ('s', 'stich'),
+    ('w', 'wucht (mit phys. Objekt)'),
+    ('c', 'Schall (mit Schallwellen)'),
+    ('d', 'Druck (mit einer Welle)'),
+    ('t', 'geistig'),
+    ('a', 'astral'),
+]
+
 item_enum = [
     ('n', 'Nahrungsmittel'),
     ('h', 'Heilung'),

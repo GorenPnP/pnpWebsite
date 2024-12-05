@@ -622,7 +622,7 @@ class CharakterExporter:
         for r in self.char.relschusswaffen_set.prefetch_related("item").all():
             ROW += 1
             werte_ws.write(f"A{ROW}", r.anz, format_border_left)
-            werte_ws.write_row(f"B{ROW}", [r.item.name, f"BS {r.item.bs} ({r.item.erfolge} Erfolge)", f"ZS {r.item.zs}", f"Präzi {r.item.präzision}"])
+            werte_ws.write_row(f"B{ROW}", [r.item.name, f"BS {r.item.bs}", f"ZS {r.item.zs} ({r.item.erfolge} Erfolge)", f"Präzi {r.item.präzision}"])
             werte_ws.write(f"H{ROW}", None, format_border_right)
         # Ausrüstung & Technik
         ROW += 1

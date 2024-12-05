@@ -6,7 +6,7 @@ from django.http.request import HttpRequest
 from django.utils.html import format_html
 
 from mining.models import Item as MiningItem
-from ppServer.utils import get_filter, ConcatSubquery
+from ppServer.utils import ConcatSubquery
 
 from .models import *
 
@@ -150,9 +150,10 @@ class Waffen_WerkzeugeAdmin(BaseAdmin):
     shop_model = Waffen_Werkzeuge
     firma_shop_model = FirmaWaffen_Werkzeuge
 
-    list_display = ('name', 'beschreibung', "ab_stufe", 'erfolge', 'bs', 'zs', 'dk', 'billigste',
+    list_display = ('name', 'beschreibung', "ab_stufe", 'erfolge', 'bs', 'zs', 'dk', 'schadensart', 'billigste',
                     'kategorie', 'info', "has_implementation")
-    list_filter = ['kategorie', 'erfolge', 'bs', 'zs', 'dk', 'illegal', 'lizenz_benötigt', "frei_editierbar"]
+    list_filter = ['kategorie', 'erfolge', 'bs', 'zs', 'dk', 'schadensart', 'illegal', 'lizenz_benötigt', "frei_editierbar"]
+    list_editable = ['schadensart']
 
     inlines = [FirmaWaffen_WerkzeugeInLine]
 
@@ -173,8 +174,9 @@ class Pfeil_BolzenAdmin(BaseAdmin):
     shop_model = Pfeil_Bolzen
     firma_shop_model = FirmaPfeil_Bolzen
 
-    list_display = ('name', 'beschreibung', "ab_stufe", 'bs', 'zs', 'billigste', 'info', "has_implementation")
-    list_filter = ['bs', 'zs', 'illegal', 'lizenz_benötigt', "frei_editierbar"]
+    list_display = ('name', 'beschreibung', "ab_stufe", 'bs', 'zs', 'schadensart', 'billigste', 'info', "has_implementation")
+    list_filter = ['bs', 'zs', 'schadensart', 'illegal', 'lizenz_benötigt', "frei_editierbar"]
+    list_editable = ['schadensart']
 
     inlines = [FirmaPfeil_BolzenInLine]
 
@@ -185,9 +187,10 @@ class SchusswaffenAdmin(BaseAdmin):
     firma_shop_model = FirmaSchusswaffen
 
     exclude = ['magazine', 'st_magazine', 'pfeile_bolzen', 'st_pfeile_bolzen']
-    list_display = ('name', 'beschreibung', "ab_stufe", 'erfolge', 'bs', 'zs', 'dk', 'präzision', 'billigste',
+    list_display = ('name', 'beschreibung', "ab_stufe", 'erfolge', 'bs', 'zs', 'dk', 'präzision', 'schadensart', 'billigste',
                     'kategorie', 'info', "has_implementation")
-    list_filter = ['kategorie', 'erfolge', 'bs', 'zs', 'dk', 'präzision', 'illegal', 'lizenz_benötigt', "frei_editierbar"]
+    list_filter = ['kategorie', 'erfolge', 'bs', 'zs', 'dk', 'präzision', 'schadensart', 'illegal', 'lizenz_benötigt', "frei_editierbar"]
+    list_editable = ['schadensart']
 
     inlines = [SchussMagazineInLine, SchussPfeileBolzenInLine,
                FirmaSchusswaffenInLine]
@@ -292,11 +295,11 @@ class ZauberAdmin(BaseAdmin):
     shop_model = Zauber
     firma_shop_model = FirmaZauber
 
-    list_display = ('name', 'beschreibung', "ab_stufe", 'schaden', 'astralschaden', "astralsch_is_direct", 'manaverbrauch', "verteidigung", 'billigste',
+    list_display = ('name', 'beschreibung', "ab_stufe", 'schaden', 'astralschaden', "astralsch_is_direct", 'manaverbrauch', "verteidigung", 'schadensart', 'billigste',
                     'kategorie', 'info', "has_implementation")
-    list_filter = ['kategorie', 'schaden', 'astralschaden', "astralsch_is_direct", 'manaverbrauch', "verteidigung", 'illegal', 'lizenz_benötigt', "frei_editierbar"]
+    list_filter = ['kategorie', 'schaden', 'astralschaden', "astralsch_is_direct", 'manaverbrauch', "verteidigung", 'schadensart', 'illegal', 'lizenz_benötigt', "frei_editierbar"]
 
-    list_editable = ["verteidigung", "astralsch_is_direct", "has_implementation"]
+    list_editable = ["verteidigung", "astralsch_is_direct", "has_implementation", 'schadensart']
 
     inlines = [FirmaZauberInLine]
 

@@ -505,7 +505,7 @@ class ShowView(VerifiedAccountMixin, DetailView):
                 orderable = False
                 attrs = {"class": "table table-dark table-striped table-hover"}
 
-            def render_item__bs(self, value, record):
+            def render_item__zs(self, value, record):
                 return f"{value} (ab {record.item.erfolge})"
 
         return {
@@ -520,7 +520,7 @@ class ShowView(VerifiedAccountMixin, DetailView):
                 orderable = False
                 attrs = {"class": "table table-dark table-striped table-hover"}
 
-            def render_item__bs(self, value, record):
+            def render_item__zs(self, value, record):
                 return f"{value} (ab {record.item.erfolge})"
 
         return {
