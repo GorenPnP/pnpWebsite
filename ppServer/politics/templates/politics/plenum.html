@@ -8,6 +8,8 @@
 
     h2 { margin-bottom: .5em; }
     * + h2 { margin-top: 1.5em; }
+
+    .collapse { overflow: auto; }
 </style>
 {{ parties|json_script:"parties" }}
 {{ plenum|json_script:"plenum" }}
@@ -21,7 +23,7 @@
 <h2>Allgemeine Sitzverteilung</h2>
 <p>Innerhalb einer Parteibesteht freie Platzwahl für die Abgeordneten. Lediglich die Parteispitzen haben feste Sitzplätze.</p>
 
-<div class="plenum" data-source="plenum"></div>
+<div class="plenum plenum--main" data-source="plenum"></div>
 
 <table class="table">
     <thead>
@@ -65,8 +67,6 @@
     <h3>Abstimmung</h3>
     {% if not act.voting_done %}<p>Die finale Abstimmung steht noch aus.</p>
     {% else %}
-        <div class="plenum" data-source="{{ act.label }}"></div>
-
         <table class="table table--vote-result">
             <thead>
                 <tr>
@@ -109,6 +109,14 @@
                 </tr>
             </tbody>
         </table>
+
+        <button class="btn btn-outline-dark plenum-collapse" type="button" data-bs-toggle="collapse" data-bs-target="#collapsePlenum-{{ act.id }}" aria-expanded="false" aria-controls="collapsePlenum-{{ act.id }}">
+            Plenare Abstimmung ->
+        </button>
+        </p>
+        <div class="collapse" id="collapsePlenum-{{ act.id }}">
+            <div class="plenum card card-body" data-source="{{ act.label }}"></div>
+        </div>
     {% endif %}
 {% endfor %}
 

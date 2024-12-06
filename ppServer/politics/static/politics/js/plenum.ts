@@ -1,6 +1,6 @@
 // config
 const politician_diameter = 20;
-const overall_angle = 180;
+const overall_angle = 178;
 const initial_radius = 4*politician_diameter;
 
 interface Politician {
@@ -47,10 +47,12 @@ class Plenum {
 
     private plenum_tag: Element;
     private horiz_center: number;
+    public visible: boolean;
 
     private constructor(id: number, plenum_tag: Element) {
         this.id = id;
         this.plenum_tag = plenum_tag;
+        this.visible = false;
         (plenum_tag as any).dataset.plenumId = this.id;
 
         this.horiz_center = this.plenum_tag.getBoundingClientRect().width / 2;
@@ -65,6 +67,8 @@ class Plenum {
                 if (a.is_party_lead !== b.is_party_lead) return a.is_party_lead ? -1 : 1;
                 return a.name < b.name ? -1 : 1;
             });
+
+        Plenum.instances.push(this);
     }
 
     public static getInstance(plenum_tag: Element): Plenum {
@@ -77,24 +81,37 @@ class Plenum {
     }
     
     public draw() {
+        if (!this.visible) { return; }
+
+        /* calc number of rows for plenum size */
         this.horiz_center = this.plenum_tag.getBoundingClientRect().width / 2;
-        this.plenum_tag.innerHTML = `<div class="speakers-desk"></div>`;
-        
+
         // draw them in rows
         let current_row = 1;
         let politicians = [...this.politicians];
         while (politicians.length) {
-            politicians = this.draw_row(current_row, politicians, parties);
+            politicians = this.draw_row(current_row, politicians, parties, true);
             current_row++;
         }
-        
-        // resize plenum to politicians' placements
+
+        /* resize plenum to politicians' rows */
         const max_radius = current_row*politician_diameter + initial_radius;
+        this.horiz_center = max_radius;
+        this.plenum_tag.innerHTML = `<div class="speakers-desk" style="left:${this.horiz_center-politician_diameter}px"></div>`;
+
         (this.plenum_tag as any).style.width = (max_radius * 2)  + "px";
         (this.plenum_tag as any).style.height = max_radius + "px";
+
+        /* really draw politicians in rows */
+        current_row = 1;
+        politicians = [...this.politicians];
+        while (politicians.length) {
+            politicians = this.draw_row(current_row, politicians, parties, false);
+            current_row++;
+        }
     }
 
-    private draw_row(row_num: number, politicians_with_party: PoliticianWithParty[], parties: Party[]): PoliticianWithParty[] {
+    private draw_row(row_num: number, politicians_with_party: PoliticianWithParty[], parties: Party[], test=false): PoliticianWithParty[] {
         const deg_to_rad = (deg: number) => deg * 2 * Math.PI / 360;
         const party_angles = this.calc_angles(row_num, parties).reduce((acc, party) => ({...acc, [party.abbreviation]: party}), {} as {[abbr: string]: PartyWithPercentage});
 
@@ -127,14 +144,16 @@ class Plenum {
                 remaining_politicians.push(politician);
                 continue;
             }
-            
-            // draw politician
-            const angle_in_radians = deg_to_rad(angle_in_deg);
-            this.plenum_tag.innerHTML += this.create_politician(
-                politician,
-                Math.cos(angle_in_radians) * radius,
-                Math.sin(angle_in_radians) * radius,
-            );
+
+            if (!test) {
+                // draw politician
+                const angle_in_radians = deg_to_rad(angle_in_deg);
+                this.plenum_tag.innerHTML += this.create_politician(
+                    politician,
+                    Math.cos(angle_in_radians) * radius,
+                    Math.sin(angle_in_radians) * radius,
+                );
+            }
     
             // prep for next round
             angle_in_deg += (1/num_politicians)* populated_kreisbogen_in_deg;
@@ -207,9 +226,20 @@ function init() {
     const cssRoot = document.querySelector(':root')!;
     (cssRoot as any).style.setProperty('--politician-size', `${politician_diameter}px`);
     (cssRoot as any).style.setProperty('--politician-inner-size', `80%`);
+
+    // show/hide plenums in collapseables
+    document.querySelectorAll(".plenum-collapse").forEach(btn => btn.addEventListener("click", function(e) {
+        const plenum = Plenum.getInstance(document.querySelector(`${(e.target as any).dataset.bsTarget} .plenum`)!);
+        plenum.visible = !plenum.visible;
+        // plenum.draw(); ist handled automatically by ResizeObserver
+    }))
     
     // listen to resize of plenum to paint politicians
-    const plenum_observer = new ResizeObserver(entries => entries.forEach(e => Plenum.getInstance(e.target).draw()));
+    const plenum_observer = new ResizeObserver(entries => entries.forEach(e => {
+            const plenum = Plenum.getInstance(e.target);
+            if (e.target.classList.contains("plenum--main")) plenum.visible = true;
+            plenum.draw();
+    }));
     document.querySelectorAll(".plenum").forEach(plenum => {
         plenum_observer.observe(plenum);
     });
