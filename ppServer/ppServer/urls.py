@@ -63,6 +63,7 @@ urlpatterns = [
     path('web_push/', include('webPush.urls')),
     path('wiki/', include('wiki.urls')),
 
+    path('robots.txt', TemplateView.as_view(template_name="base/robots.txt")),
     path('sw.js', TemplateView.as_view(template_name="webPush/service_worker.js", content_type='application/javascript'), name='sw.js'),
     path('__debug__/', include('debug_toolbar.urls')),
     path("prometheus/", include("django_prometheus.urls")),
