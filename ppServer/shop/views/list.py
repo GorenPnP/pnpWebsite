@@ -304,7 +304,7 @@ class SchusswaffenTableView(ShopTableView):
                 "zs": ["icontains"],
                 "dk": ["exact"],
                 "präzision": ["exact"],
-                "schadensart": "exact"
+                "schadensart": ["exact"]
             }
     table_fields = ("icon", "name", "beschreibung", "ab_stufe", "erfolge", "bs", "zs", "dk", "präzision", "schadensart", "preis")
 
