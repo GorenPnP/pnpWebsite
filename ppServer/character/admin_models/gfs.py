@@ -144,7 +144,7 @@ class GfsAbilityAdmin(admin.ModelAdmin):
     list_editable = ["needs_implementation", "has_implementation", "has_choice"]
 
     list_filter = [get_filter(Gfs, "titel", ["gfsstufenplan__gfs__titel"]), "needs_implementation", "has_choice"]
-    search_fields = ("name", "beschreibung")
+    search_fields = ("name", "beschreibung__contains")
 
     @admin.display(ordering="gfsstufenplan__gfs__titel")
     def _gfs(self, obj):
@@ -182,7 +182,7 @@ class GfsSkilltreeEntryAdmin(admin.ModelAdmin):
 
     list_display = ["context_", "entry", "operation", "correctly_formatted"]
 
-    search_fields = ["gfs__titel", "base__stufe", "text", "vorteil__titel", "nachteil__titel", "spezialfertigkeit__titel", "wissensfertigkeit__titel", "amount", "stufe", "wesenkraft__titel"]
+    search_fields = ["gfs__titel", "base__stufe", "text__contains", "vorteil__titel", "nachteil__titel", "spezialfertigkeit__titel", "wissensfertigkeit__titel", "amount", "stufe", "wesenkraft__titel"]
     list_filter = [get_filter(Gfs, "titel", ["gfs__titel"]), "base__stufe", "operation", IsCorrectlyFormattedFilter]
 
     def context_(self, obj):

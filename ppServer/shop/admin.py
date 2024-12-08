@@ -94,7 +94,7 @@ class FirmaEngelsroboterInLine(FirmaShopInLine):
 
 ######### BaseAdmin ##################
 class BaseAdmin(admin.ModelAdmin):
-    search_fields = ['name']
+    search_fields = ['name', "beschreibung__contains"]
     list_editable = ["has_implementation"]
 
     def _firmashop_modelset(self) -> str:
@@ -216,6 +216,7 @@ class Rituale_RunenAdmin(admin.ModelAdmin):
                      'kategorie', 'info', "has_implementation")
     list_filter = ['kategorie', 'illegal', 'lizenz_benötigt', "frei_editierbar"]
     list_editable = ("has_implementation",)
+    search_fields = ["name", "beschreibung__contains"]
 
     inlines = [FirmaRituale_RunenInLine]
 

@@ -218,7 +218,7 @@ class KlasseAdmin(admin.ModelAdmin):
 
 
 class KlasseAbilityAdmin(admin.ModelAdmin):
-    search_fields = ["name", "beschreibung"]
+    search_fields = ["name", "beschreibung__contains"]
     list_display = ["name", "beschreibung"]#, "klassestufenplan_set__klasse__titel"]
 
 
