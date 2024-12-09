@@ -383,11 +383,9 @@ class Zauber(BaseShop):
 
         ordering = ['name']
 
-    schaden = models.CharField(max_length=100, default='', null=True, blank=True)
     astralschaden = models.CharField(max_length=100, default='', null=True, blank=True)
     manaverbrauch = models.CharField(max_length=100, default='', null=True, blank=True)
     verteidigung = models.CharField(max_length=1, choices=enums.zauberverteidigung_enum, default=enums.zauberverteidigung_enum[0][0])
-    astralsch_is_direct = models.BooleanField(default=False, verbose_name="direkter Astralschaden?")
 
     schadensart = models.CharField(max_length=1, choices=enums.schadensart_enum, null=True, blank=True)
     kategorie = models.CharField(choices=enums.zauber_enum, max_length=2, null=True, blank=True)

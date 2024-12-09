@@ -476,11 +476,6 @@ class ShowView(VerifiedAccountMixin, DetailView):
                 regex = "Tier [0IVX]+:"
                 return format_html(re.sub(regex, lambda match: f"<br><b>{match.group(0)}</b>", value))
 
-            def render_item__astralschaden(self, value, record):
-                if record.item.astralsch_is_direct:
-                    return f"{value} (direkt!)"
-                return value
-
         return {
             "zauber__table": ZauberTable(char.relzauber_set.all())
         }

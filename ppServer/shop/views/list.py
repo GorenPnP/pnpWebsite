@@ -433,15 +433,13 @@ class EinbautenTableView(ShopTableView):
 class ZauberTableView(ShopTableView):
     model = Zauber
     filterset_fields = {**ShopFilter._meta.fields,
-        "schaden": ["icontains"],
         "astralschaden": ["icontains"],
         "manaverbrauch": ["icontains"],
-        "astralsch_is_direct": ["exact"],
         "verteidigung": ["exact"],
         "kategorie": ["exact"],
         "schadensart": ["exact"]
     }
-    table_fields = ("icon", "name", "beschreibung", "ab_stufe", "schaden", "astralschaden", "astralsch_is_direct", "manaverbrauch", "verteidigung", "schadensart", "kategorie", "preis")
+    table_fields = ("icon", "name", "beschreibung", "ab_stufe", "astralschaden", "manaverbrauch", "verteidigung", "schadensart", "kategorie", "preis")
 
 
 class VergessenerZauberTableView(ShopTableView):
