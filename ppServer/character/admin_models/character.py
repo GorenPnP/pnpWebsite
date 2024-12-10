@@ -18,21 +18,6 @@ class RelInlineAdmin(admin.TabularInline):
     extra = 1
     show_change_link = False
 
-    def _is_visible(self, request, obj = ...) -> bool:
-        return request.spieler.is_spielleiter or not obj or ("trägt seine chars ein" in request.spieler.groups and getattr(obj, "eigentümer") == request.spieler.instance)
-
-    def has_add_permission(self, request: HttpRequest, obj: Charakter = None) -> bool:
-        return self._is_visible(request, obj)
-
-    def has_change_permission(self, request: HttpRequest, obj = ...) -> bool:
-        return self._is_visible(request, obj)
-
-    def has_delete_permission(self, request: HttpRequest, obj = ...) -> bool:
-        return request.spieler.is_spielleiter
-
-    def has_view_permission(self, request: HttpRequest, obj = ...) -> bool:
-        return self._is_visible(request, obj)
-    
     def get_queryset(self, request: HttpRequest) -> QuerySet[Any]:
         related_char_id = getattr(request.resolver_match.kwargs, 'object_id', None)
         
@@ -47,12 +32,6 @@ class ReadonlyRelInlineAdmin(RelInlineAdmin):
 
     def has_delete_permission(self, request, obj=None):
         return False
-    
-    def has_change_permission(self, request: HttpRequest, obj=...) -> bool:
-        return self._is_visible(request, obj)
-
-    def has_view_permission(self, request: HttpRequest, obj=...) -> bool:
-        return self._is_visible(request, obj)
 
 
 class RelKlasseInline(RelInlineAdmin):
@@ -333,55 +312,13 @@ class CharakterAdmin(admin.ModelAdmin):
 
     save_on_top = True
 
+    def has_module_permission(self, request):
+        return request.spieler.is_spielleiter
+
 
     def image_(self, obj):
         return format_html(f"<img src='{obj.image.url}' style='max-width: 32px; max-height:32px;'>") if obj.image else "-"
-
-
-    # utils for groups
-
-    def _is_spielleiter_or_adds_chars(self, request, obj):
-        return request.spieler.is_spielleiter or not obj or ("trägt seine chars ein" in request.spieler.groups and getattr(obj, "eigentümer") == request.spieler.instance)
-
-    def _only_adds_chars(self, request):
-        return not request.spieler.is_spielleiter and "trägt seine chars ein" in request.spieler.groups
-
-    # permissions
-
-    def has_add_permission(self, request: HttpRequest) -> bool:
-        return self._is_spielleiter_or_adds_chars(request, None)
-
-    def has_change_permission(self, request: HttpRequest, obj = None) -> bool:
-        return self._is_spielleiter_or_adds_chars(request, obj)
-
-    def has_delete_permission(self, request: HttpRequest, obj = None) -> bool:
-        return request.spieler.is_spielleiter
-
-    def has_view_permission(self, request: HttpRequest, obj = None) -> bool:
-        return self._is_spielleiter_or_adds_chars(request, obj)
     
     def get_queryset(self, request):
-        qs = super().get_queryset(request).prefetch_related('eigentümer', "gfs__wesen")
-    
-        if self._only_adds_chars(request): return qs.filter(eigentümer=request.spieler.instance)
-        return qs
+        return super().get_queryset(request).prefetch_related('eigentümer', "gfs__wesen")
 
-    # specials for "trägt seine chars ein"-group
-
-    
-    # set "eigentümer" to readonly if user has the "trägt seine chars ein"-group
-    def get_readonly_fields(self, request: HttpRequest, obj = ...) -> list[str] or tuple[Any, ...]:
-        fields = list(super().get_readonly_fields(request, obj))
-
-        if self._only_adds_chars(request): return fields + ["eigentümer"]
-        return fields
-        
-    
-    # set "eigentümer" to logged-in-user if user has the "trägt seine chars ein"-group
-    def save_form(self, request: Any, form: Any, change: Any) -> Any:
-        char = super().save_form(request, form, change)
-
-        if self._only_adds_chars(request):
-            char.eigentümer = request.spieler.instance
-            char.save()
-        return char

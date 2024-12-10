@@ -38,7 +38,9 @@ def deactivate_effect_on_delete(sender, instance, **kwargs):
 @receiver(post_save, sender=RelAusrüstung_Technik)
 @receiver(post_save, sender=RelEinbauten)
 def apply_effect_on_rel_relation(sender, instance, created, **kwargs):
-    if not created: return
+    if not created or\
+        ("effect_signals" in instance.char.processing_notes and instance.char.processing_notes["effect_signals"] == "ignore"):
+         return
 
     effect_qs = []
     if sender in [RelVorteil, RelNachteil]:

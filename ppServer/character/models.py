@@ -714,6 +714,7 @@ class Charakter(models.Model):
 
     attribute = models.ManyToManyField(Attribut, through="character.RelAttribut", blank=True)
     fertigkeiten = models.ManyToManyField(Fertigkeit, through='character.RelFertigkeit', blank=True)
+    gruppen = models.ManyToManyField("RelGruppe", blank=True)
     spezialfertigkeiten = models.ManyToManyField(Spezialfertigkeit, through='character.RelSpezialfertigkeit', blank=True)
     wissensfertigkeiten = models.ManyToManyField(Wissensfertigkeit, through='character.RelWissensfertigkeit', blank=True)
     gfs_fähigkeiten = models.ManyToManyField(GfsAbility, through='character.RelGfsAbility', blank=True)
@@ -722,6 +723,7 @@ class Charakter(models.Model):
     items = models.ManyToManyField(Item, through='character.RelItem', blank=True)
     waffenWerkzeuge = models.ManyToManyField(Waffen_Werkzeuge, through='character.RelWaffen_Werkzeuge', blank=True)
     magazine = models.ManyToManyField(Magazin, through='character.RelMagazin', blank=True)
+    pfeile_bolzen = models.ManyToManyField(Pfeil_Bolzen, through='character.RelPfeil_Bolzen', blank=True)
     schusswaffen = models.ManyToManyField(Schusswaffen, through='character.RelSchusswaffen', blank=True)
     magischeAusrüstung = models.ManyToManyField(Magische_Ausrüstung, through='character.RelMagische_Ausrüstung', blank=True)
     rituale_runen = models.ManyToManyField(Rituale_Runen, through='character.RelRituale_Runen', blank=True)
@@ -733,6 +735,8 @@ class Charakter(models.Model):
     vergessene_zauber = models.ManyToManyField(VergessenerZauber, through='character.RelVergessenerZauber', blank=True)
     begleiter = models.ManyToManyField(Begleiter, through='character.RelBegleiter', blank=True)
     engelsroboter = models.ManyToManyField(Engelsroboter, through='character.RelEngelsroboter', blank=True)
+
+    affektivitäten = models.ManyToManyField("Affektivität", blank=True)
 
     def __str__(self):
         return "{} ({})".format(self.name, self.eigentümer)

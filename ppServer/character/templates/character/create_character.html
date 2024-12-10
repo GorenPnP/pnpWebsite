@@ -1,0 +1,53 @@
+{% extends 'base/headed_main.html' %}
+{% load static crispy_forms_tags %}
+
+{% block extra-head %}
+<style>
+    body * {
+        --bs-nav-link-color: var(--bs-gray-400);
+        --bs-nav-link-hover-color: var(--bs-white);
+
+        --formfield-minwidth: 211.25px;
+    }
+    .main-container {
+        .input-group, .form-select, .form-control { min-width: var(--formfield-minwidth); }
+        input[type=number] { min-width: unset; width: 100px; }
+        .input-group { width: var(--formfield-minwidth); }
+        .form-select, .form-control { width: unset; } /* not 100% */
+
+        .errorlist:not(.nonform) { display: none; }
+    }
+</style>
+{% endblock %}
+{% block main %}
+
+{% crispy form %}
+<ul class="submit-errors text-danger mt-2"></ul>
+
+<script>
+    // add labels for individual zauberslots
+    document.querySelectorAll(".zauberplätze-input").forEach(input => {
+        input.classList.add("numberinput", "form-control");
+
+        const label = document.createElement("label");
+        label.setAttribute("for", input.id);
+        label.classList.add("form-label");
+        label.innerHTML = `Stufe ${parseInt(input.id.match(/\d+/))}`;
+
+        input.parentNode.insertBefore(label, input);
+    });
+
+
+    
+    // catch submit errors & display them below the submit button
+    let timer = Date.now();
+    const submit_errors = document.querySelector(".submit-errors");
+    document.querySelector(".main-container form").addEventListener('invalid', function(e) {
+        if (Date.now() - timer > 1000) { submit_errors.innerHTML = ""; }
+        timer = Date.now();
+
+        const fieldname = document.querySelector(`[for="${e.target.id}"]`).innerText.replace("*", "");
+        submit_errors.innerHTML += `<li>Fehler bei: ${fieldname}</li>`
+    }, true);
+</script>
+{% endblock %}

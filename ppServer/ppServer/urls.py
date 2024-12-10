@@ -26,7 +26,6 @@ class LegalActUpdateRedirectView(RedirectView):
 
     def get_redirect_url(self, *args, **kwargs):
         url = super().get_redirect_url(kwargs["pk"])
-        print(url)
         return url
 
 urlpatterns = [

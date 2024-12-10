@@ -2,13 +2,17 @@ from typing import Any, Dict
 
 from django.apps import apps
 from django.contrib import messages
+from django.contrib.auth.mixins import UserPassesTestMixin
+from django.db import transaction
 from django.db.models import Value, F, CharField, OuterRef
 from django.db.models.functions import Concat
-from django.shortcuts import redirect
+from django.http import HttpResponseRedirect
+from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils.html import format_html
 from django.views.generic import DetailView
 from django.views.generic.base import TemplateView
+from django.views.generic.edit import CreateView
 
 import django_tables2 as tables
 
@@ -20,6 +24,7 @@ from ppServer.decorators import verified_account
 from ppServer.mixins import VerifiedAccountMixin
 from ppServer.utils import ConcatSubquery
 
+from .forms import *
 from .models import *
 
 
@@ -640,3 +645,121 @@ def use_relshop(request, relshop_model, pk):
 
     messages.success(request, f'Du hast von "{item_name}" 1 verbraucht')
     return redirect(reverse("character:show", args=[char.id]))
+
+
+class CreateCharacterView(UserPassesTestMixin, CreateView):
+    # permission
+    def test_func(self):
+        """ is_spielleiter_or_adds_chars """
+        return self.request.spieler.is_spielleiter or "trägt seine chars ein" in self.request.spieler.groups
+
+    def handle_no_permission(self):
+        return redirect("character:index")
+    # /permission
+
+    model = Charakter
+    template_name = "character/create_character.html"
+    form_class = CharacterForm
+    success_url = None
+
+    def get_formsets_for_context(self):
+        formsets = {
+            "attribute": AttributFormSet,
+            "fertigkeiten": FertigkeitFormSet,
+            "gruppen": GruppenFormSet,
+            "affektivitäten": AffektivitätenFormSet,
+            "klassen": KlassenFormSet,
+            "klassen_fähigkeiten": KlassenAbilityFormSet,
+            "spezialfertigkeiten": SpezialfertigkeitenFormSet,
+            "wissensfertigkeiten": WissensfertigkeitenFormSet,
+            "gfs_fähigkeiten": GfsAbilityFormSet,
+            "vorteile": VorteilFormSet,
+            "nachteile": NachteilFormSet,
+            "talente": TalentFormSet,
+            "wesenkräfte": WesenkraftFormSet,
+
+            # shop
+            "items": ShopItemFormSet,
+            "waffenWerkzeuge": ShopWaffenWerkzeugeFormSet,
+            "magazine": ShopMagazineFormSet,
+            "pfeile_bolzen": ShopPfeilBolzenFormSet,
+            "schusswaffen": ShopSchusswaffenFormSet,
+            "magischeAusrüstung": ShopMagAusrüstungFormSet,
+            "rituale_runen": ShopRitualeRunenFormSet,
+            "rüstungen": ShopRüstungFormSet,
+            "ausrüstungTechnik": ShopAusrüstungTechnikFormSet,
+            "fahrzeuge": ShopFahrzeugFormSet,
+            "einbauten": ShopEinbautenFormSet,
+            "zauber": ShopZauberFormSet,
+            "vergessene_zauber": ShopVergesseneZauberFormSet,
+            "begleiter": ShopBegleiterFormSet,
+            "engelsroboter": ShopEngelsroboterFormSet,
+
+        }
+        return {k: v(self.request.POST) if self.request.POST else v() for k, v in formsets.items()}
+
+    def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
+        return super().get_context_data(
+            **kwargs,
+            topic = "Charakter nachtragen",
+            app_index = "Charaktere",
+            app_index_url=reverse("character:index"),
+            **self.get_formsets_for_context(),
+        )
+    
+    def get(self, request, *args, **kwargs):
+        messages.info(request, "Felder, die auf '_fix' enden sind erstmal leer (nicht 0, sondern leer!). Sie sind für Fixwerte gedacht, z.B. 0 auf 'konzentration_fix' bei Nachteil Insomnie.")
+        return super().get(request, *args, **kwargs)
+    
+
+    def form_valid(self, form):
+        context = self.get_formsets_for_context()
+
+        with transaction.atomic():
+            # Has errors?
+            invalid_formsets = ["form"] if not form.is_valid() else []
+            non_form_errors = ""
+            for formset in context.values():
+                if not formset.is_valid():
+                    invalid_formsets.append(formset.prefix)
+
+                    nonform = formset.non_form_errors() or ""
+                    if nonform:
+                        non_form_errors += f"<p>{formset.prefix}: {nonform}</p>"
+
+            # render form with errors
+            if invalid_formsets:
+                messages.error(self.request, f"Fehler sind aufgetreten in: {', '.join(invalid_formsets)}")
+                if non_form_errors: messages.error(self.request, format_html(non_form_errors))
+
+                return render(self.request, self.template_name, {**self.get_context_data(), **context})
+  
+
+            messages.success(self.request, "Charakter ist nun übernommen")
+            # create char in db
+            self.object = form.save(commit=False)
+            self.object.eigentümer = self.request.spieler.instance
+            self.object.in_erstellung = False
+            self.object.ep_stufe_in_progress = self.object.ep_stufe
+            self.object.processing_notes = {
+                "creation": "manuell online nachgetragen",
+                "effect_signals": "ignore" # do not create RelEffect instances in effect.signals.apply_effect_on_rel_relation()
+            }
+            self.object.save()
+            # create related objects in db
+            for formset in context.values():
+                formset.instance = self.object
+                formset.save()
+
+            del self.object.processing_notes["effect_signals"]
+            # add missing Attribute, Fertigkeiten, Gruppen. Would be called automatically,
+            # but we had to create explicitly named attrs, ferts, gruppen first. Fill up missing ones with character.signals.init_character()
+            self.object.save()
+
+
+        # redirect to the supplied URL.
+        return HttpResponseRedirect(self.get_success_url())
+
+
+    def get_success_url(self):
+        return reverse('character:show', kwargs={'pk': self.object.pk})

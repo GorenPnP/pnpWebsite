@@ -1,0 +1,122 @@
+{% load static crispy_forms_tags %}
+
+<style>
+    /* .delete-row { display: none !important; } */
+    /* inline formsets: add & delete buttons for inline forms/rows */
+
+    .formset-table .add-row, .formset .delete-row {
+        * { cursor: pointer; }
+        --bs-link-hover-color: var(--bs-btn-color);
+
+        /* styles of .btn */
+        --bs-btn-padding-x: 0.75rem;
+        --bs-btn-padding-y: 0.375rem;
+        --bs-btn-font-size: 1rem;
+        --bs-btn-font-weight: 400;
+        --bs-btn-line-height: 1.5;
+        --bs-btn-color: #212529;
+        --bs-btn-bg: transparent;
+        --bs-btn-border-width: 1px;
+        --bs-btn-border-color: transparent;
+        --bs-btn-border-radius: 0.375rem;
+        --bs-btn-box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15),0 1px 1px rgba(0, 0, 0, 0.075);
+        --bs-btn-disabled-opacity: 0.65;
+        --bs-btn-focus-box-shadow: 0 0 0 0.25rem rgba(var(--bs-btn-focus-shadow-rgb), .5);
+        --bs-btn-color: #fff;
+        display: inline-block;
+        padding: var(--bs-btn-padding-y) var(--bs-btn-padding-x);
+        font-family: var(--bs-btn-font-family);
+        font-size: var(--bs-btn-font-size);
+        font-weight: var(--bs-btn-font-weight);
+        line-height: var(--bs-btn-line-height);
+        color: var(--bs-btn-color);
+        text-align: center;
+        text-decoration: none;
+        vertical-align: middle;
+        cursor: pointer;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        user-select: none;
+        border: var(--bs-btn-border-width) solid var(--bs-btn-border-color);
+        border-radius: var(--bs-btn-border-radius);
+        background-color: var(--bs-btn-bg);
+        transition: color .15s ease-in-out,background-color .15s ease-in-out,border-color .15s ease-in-out,box-shadow .15s ease-in-out;
+    }
+    .formset .delete-row {
+        margin-top: 1em;
+
+        /* styles of .btn-danger */
+        --bs-btn-color: #fff;
+        --bs-btn-bg: #dc3545;
+        --bs-btn-border-color: #dc3545;
+        --bs-btn-hover-color: #fff;
+        --bs-btn-hover-bg: #bb2d3b;
+        --bs-btn-hover-border-color: #b02a37;
+        --bs-btn-focus-shadow-rgb: 225,83,97;
+        --bs-btn-active-color: #fff;
+        --bs-btn-active-bg: #b02a37;
+        --bs-btn-active-border-color: #a52834;
+        --bs-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+        --bs-btn-disabled-color: #fff;
+        --bs-btn-disabled-bg: #dc3545;
+        --bs-btn-disabled-border-color: #dc3545;
+    }
+    .formset-table .add-row {
+        /* styles of .btn-success */
+        --bs-btn-color: #fff;
+        --bs-btn-bg: #198754;
+        --bs-btn-border-color: #198754;
+        --bs-btn-hover-color: #fff;
+        --bs-btn-hover-bg: #157347;
+        --bs-btn-hover-border-color: #146c43;
+        --bs-btn-focus-shadow-rgb: 60,153,110;
+        --bs-btn-active-color: #fff;
+        --bs-btn-active-bg: #146c43;
+        --bs-btn-active-border-color: #13653f;
+        --bs-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+        --bs-btn-disabled-color: #fff;
+        --bs-btn-disabled-bg: #198754;
+        --bs-btn-disabled-border-color: #198754;
+    }
+    td:has(.delete-row) > div {
+        display: block;
+        height: 0;
+        margin: unset !important;
+    }
+    td:has(.delete-row) .form-check {
+        height: 0;
+        width: 0;
+        margin: 0;
+        padding: 0;
+    }
+</style>
+
+<table class="formset-table">
+{{ formset.management_form|crispy }}
+
+{% for form in formset.forms %}
+    <tr class="formset formset_row-{{ formset.prefix }}">
+        {% for field in form.visible_fields %}
+        <td>
+            {# Include the hidden fields in the form #}
+            {% if forloop.first %}
+                {% for hidden in form.hidden_fields %}{{ hidden }}{% endfor %}
+            {% endif %}
+            {{ field|as_crispy_field }}
+        </td>
+        {% endfor %}
+    </tr>
+{% endfor %}
+
+</table>
+
+<script src="{% static 'character/js/jquery-3.7.0.slim.min.js' %}"></script>
+<script src="{% static 'character/js/jquery.formset.js' %}"></script>
+<script type="text/javascript">
+    $('.formset_row-{{ formset.prefix }}').formset({
+        addText: '+ 1 Eintrag',
+        deleteText: 'löschen',
+        prefix: '{{ formset.prefix }}',
+        formCssClass: 'formset_row-{{ formset.prefix }}'
+    });
+</script>

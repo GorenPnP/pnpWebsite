@@ -51,6 +51,8 @@ INSTALLED_APPS = [
     'markdownfield',
     'markdown_view',
     'push_notifications',
+    "crispy_forms",
+    "crispy_bootstrap5",
 
     # own apps
     'admin',   # replacement for 'django.contrib.admin'
@@ -253,6 +255,9 @@ DJANGO_TABLES2_TEMPLATE = "django_tables2/bootstrap5-responsive.html"
 #     "theme_url": os.path.join(BASE_DIR, 'static', "base", "css", "theme") # Or I could override the theme here
 # }
 
+CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
+CRISPY_TEMPLATE_PACK = "bootstrap5"
+CRISPY_FAIL_SILENTLY = not DEBUG
 
 ###################################################
 # markdown-field

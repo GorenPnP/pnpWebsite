@@ -60,7 +60,6 @@ def transfer_items(request):
                 ModelFirma = FirmaAusrüstung_Technik
                 kategorie = 'p'
 
-            print(form.cleaned_data)
             for item in form.cleaned_data["items"]:
 
                 # create in new category
