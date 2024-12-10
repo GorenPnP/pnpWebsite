@@ -561,7 +561,7 @@ class Fertigkeit(models.Model):
     limit = models.CharField(choices=enums.limit_enum, max_length=20, default=enums.limit_enum[0])
 
     def __str__(self):
-        return "{} ({})".format(self.titel, self.attribut)
+        return self.titel
 
 
 class Wissensfertigkeit(models.Model):
