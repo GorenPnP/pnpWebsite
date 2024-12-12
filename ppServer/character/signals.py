@@ -32,7 +32,7 @@ def init_gfs(sender, **kwargs):
 
 @receiver(post_save, sender=Charakter)
 def init_character(sender, instance, created: bool, **kwargs):
-    if created and "nachgetragen" in instance.processing_notes["creation"]: return
+    if created and "creation" in instance.processing_notes and "nachgetragen" in instance.processing_notes["creation"]: return
 
     RelAttribut.objects.bulk_create([
         RelAttribut(char=instance, attribut=a) for a in Attribut.objects.exclude(relattribut__char=instance)
