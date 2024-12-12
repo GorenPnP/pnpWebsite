@@ -297,7 +297,7 @@ class PriotableFormView(LevelUpMixin, DetailView):
 
         # zauber
         prio = getattr(chosen_fields, "zauber")
-        char.zauberplätze = {"0": prio.zauber} if prio.zauber else {}
+        char.zauberplätze = {"1": prio.zauber} if prio.zauber else {}
         fields.append({"prio": prio.priority, "text": f"{prio.zauber} Zauber"})
 
         # drachmen & spF_wF
