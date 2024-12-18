@@ -32,13 +32,12 @@
 }
 
 /* with :has parent selector */
-// #hero-carousel:has(.active.carousel-item-light) {
-// 	.carousel-control-next-icon,
-// 	.carousel-control-prev-icon {filter:invert(1) grayscale(100)}
-// 	.carousel-indicators [data-bs-target]{background-color:#000}
-// 	.carousel-caption {color:#000}
-// }
-
+#hero-carousel:has(.active.carousel-item-light) {
+	.carousel-control-next-icon,
+	.carousel-control-prev-icon {filter:invert(1) grayscale(100)}
+	.carousel-indicators [data-bs-target]{background-color:#000}
+	.carousel-caption {color:#000}
+}
 
 .news-ticker {
 	font-family: var(--font-custom, 'EB Garamond', serif);

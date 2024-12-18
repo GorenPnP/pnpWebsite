@@ -3,7 +3,7 @@
 
 {% block extra-head %}
 <style>
-    table {
+    table, p.note {
         max-width: 700px;
         margin-inline: auto;
     }
@@ -24,4 +24,6 @@
     <button type="submit" class="btn btn-lg btn-primary m-2" disabled>Speichern</button>
     <a class="btn btn-lg btn-outline-primary m-2" href="{{ back_url }}">Zurück</a>
 </form>
+
+<p class="note mt-4">Den aktuellen Wert zu erhöhen kostet 1 AP, das Maximum 2 AP. Wenn von 0 auf 1 erhöht wird, kostet es noch 1 AP mehr.</p>
 {% endblock %}

@@ -78,9 +78,12 @@ class GfsStufenplanInLine(admin.TabularInline):
 
 
 class GfsAdmin(admin.ModelAdmin):
-    list_display = ('icon_', 'titel', 'ap', "wesen", 'difficulty', 'vorteil_', 'nachteil_', 'zauber_',
-                    "wesenschaden_waff_kampf", "wesenschaden_andere_gestalt", "wesenkraft_", "startmanifest",)
+    # TODO change back
+    # list_display = ('icon_', 'titel', 'ap', 'difficulty', 'vorteil_', 'nachteil_', 'zauber_',
+    #                 "wesenschaden_waff_kampf", "wesenschaden_andere_gestalt", "wesenkraft_", "startmanifest",)
+    list_display = ('icon_', 'titel', '_beschreibung', 'eigenschaften',)
     list_filter = ["wesen", 'ap', 'startmanifest', "wesenschaden_waff_kampf"]
+    list_editable = ["eigenschaften"]
     search_fields = ('titel', 'ap')
 
     list_display_links = ["icon_", "titel"]
@@ -117,7 +120,8 @@ class GfsAdmin(admin.ModelAdmin):
     def wesenkraft_(self, obj):
         return obj.wesenkraftnames or self.get_empty_value_display()
 
-
+    def _beschreibung(self, obj):
+        return format_html(obj.beschreibung_rendered)
 
 
 

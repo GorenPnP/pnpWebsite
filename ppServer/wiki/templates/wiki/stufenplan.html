@@ -61,8 +61,11 @@
 
         <!-- description -->
         <div class="col-12 col-sm">
+            <h2 class="title">Eigenschaften</h2>
+            <p class="description__text">{{ gfs.eigenschaften_rendered|default_if_none:"-"|safe }}</p>
+
             <h2 class="title">Beschreibung</h2>
-            <p class="description__text">{{ gfs.beschreibung_rendered|safe }}</p>
+            <p class="description__text">{{ gfs.beschreibung_rendered|default_if_none:"-"|safe }}</p>
         </div>
     </div>
 

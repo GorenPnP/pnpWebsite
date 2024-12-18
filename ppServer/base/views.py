@@ -68,7 +68,7 @@ class IndexView(VerifiedAccountMixin, TemplateView):
 
         spieler = self.request.spieler.instance
 
-        context = { "hero_pages": ["Fun Fact"], }
+        context = { "hero_pages": ["Fun Fact", "Regeln"], }
 
         ## polls
         if not self.request.spieler.is_spielleiter:

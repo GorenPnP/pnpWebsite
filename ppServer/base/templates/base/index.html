@@ -12,25 +12,6 @@
 </style>
 
 <script>
-    // TODO remove when css :has is widely supported (see index.css)
-    document.addEventListener("DOMContentLoaded", () => {
-        const carousel = document.querySelector('#hero-carousel');
-
-        carousel.addEventListener('slid.bs.carousel', function () {
-            if (this.querySelector(".active.carousel-item-light")) {
-                this.classList.add("carousel-dark");
-            } else {
-                this.classList.remove("carousel-dark");
-            }
-        });
-
-        if (carousel.querySelector(".active.carousel-item-light")) {
-            carousel.classList.add("carousel-dark");
-        }
-    });
-</script>
-
-<script>
     document.addEventListener("DOMContentLoaded", () => registerForWebPush(false));
 </script>
 {% endblock %}
@@ -48,6 +29,18 @@
         <div class="carousel-inner h-100">
 
             {% for page in hero_pages %}
+
+                <!-- rules -->
+                {% if page == "Regeln" %}
+                <div class="carousel-item carousel-item-light h-100{% if not forloop.counter0 %} active{% endif %}">
+                    <img src="{% static 'res/img/hero-rules.jpg' %}" class="d-block w-100" style="object-position: bottom right;">
+                    <div class="carousel-caption h-100 d-flex flex-column justify-content-center" style="padding-inline: 10%">
+                        <h2>Regeln</h2>
+                        <p>... für Einsteiger und Profis</p>
+                        <p><a class="btn btn-dark" href="{% url 'wiki:rule_index' %}">Regeln lesen</a></p>
+                    </div>
+                </div>
+                {% endif %}
 
                 <!-- fun fact -->
                 {% if page == "Fun Fact" %}

@@ -8,7 +8,7 @@ from django.shortcuts import redirect, get_object_or_404
 from django.views.generic.base import TemplateView
 from django.utils.decorators import method_decorator
 
-from character.models import Charakter, RelAttribut, get_tier_cost_with_sp, RelZauber
+from character.models import Charakter, RelAttribut, RelVorteil, get_tier_cost_with_sp, RelZauber
 from shop.models import Firma, FirmaZauber, Modifier, Zauber
 
 from ..decorators import is_erstellung_done
@@ -29,10 +29,18 @@ class GenericZauberView(LevelUpMixin, TemplateView):
         
 
     def get_context_data(self, *args, **kwargs):
-        char = self.get_character(Charakter.objects.prefetch_related("zauber", "relzauber_set", "relattribut_set__attribut"))
+        char = self.get_character(Charakter.objects.prefetch_related("zauber", "relzauber_set", "relattribut_set__attribut").annotate(
+            # mind. 5 bei Zaubern:
+            magieamateur_exists = Exists(RelVorteil.objects.filter(char=OuterRef("pk"), teil__titel="Magie-Amateur")),                    
+            # mind. 10 bei Zaubern:
+            magiegelehrter_exists = Exists(RelVorteil.objects.filter(char=OuterRef("pk"), teil__titel="Magie-Gelehrter")),
+        ))
 
         zauberplätze = char.zauberplätze if char.zauberplätze else {}
-        max_stufe = max([int(k) for k in zauberplätze.keys()], default=-1)
+
+        zauberplatz_stufe_limit = max([int(k) for k in zauberplätze.keys()], default=-1)
+        char_stufe_limit = max(char.ep_stufe_in_progress, 5 if char.magieamateur_exists else 0, 10 if char.magiegelehrter_exists else 0)
+        max_stufe = min(zauberplatz_stufe_limit, char_stufe_limit)
 
         own_zauber = char.relzauber_set.prefetch_related("item").all().annotate(
             querystring=Concat(Value('?name__icontains='), Replace("item__name", Value(" "), Value("+")), output_field=CharField()),

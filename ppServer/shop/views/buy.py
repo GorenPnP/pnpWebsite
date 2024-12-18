@@ -1,6 +1,7 @@
 import random
 from datetime import date
 
+from django.db.models import Case, When, PositiveIntegerField, Q
 from django.contrib import messages
 from django.shortcuts import render, get_object_or_404, redirect
 from django.views.generic import DetailView
@@ -29,14 +30,40 @@ class BuyView(VerifiedAccountMixin, DetailView):
         firma_shop_entries = self.firmashop_model.objects.filter(item=id)
         item = get_object_or_404(self.shop_model, id=id)
 
-        # character to buy stuff for
-        if request.spieler.is_spielleiter:
-            charaktere = Charakter.objects.all().order_by('name')
-        else:
-            charaktere = Charakter.objects.filter(eigentümer=request.spieler.instance).order_by('name')
+        charaktere = Charakter.objects.all()
+
+        # characters to buy stuff for
+        if not request.spieler.is_spielleiter:
+            if self.shop_model._meta.model_name == "zauber":
+                charaktere = charaktere.annotate(
+                        # mind. 5 bei Zaubern:
+                        magieamateur_exists = Exists(RelVorteil.objects.filter(char=OuterRef("pk"), teil__titel="Magie-Amateur")),                    
+                        # mind. 10 bei Zaubern:
+                        magiegelehrter_exists = Exists(RelVorteil.objects.filter(char=OuterRef("pk"), teil__titel="Magie-Gelehrter")),
+
+                        max_shopstufe=Case(When(
+                            Q(magiegelehrter_exists=True) & Q(ep_stufe_in_progress__lt=10),
+                            then=10),
+                            default=Case(When(
+                                Q(magieamateur_exists=True) & Q(ep_stufe_in_progress__lt=5),
+                                then=5),
+                                default=F("ep_stufe_in_progress"),
+                                output_field=PositiveIntegerField()
+                            ),
+                            output_field=PositiveIntegerField()
+                        ),
+                    )
+            else:
+                charaktere = charaktere.annotate(
+                    # mind. 3
+                    basarflipper_exists = Exists(RelVorteil.objects.filter(char=OuterRef("pk"), teil__titel="Basar-Flipper")),
+                    max_shopstufe=Case(When(Q(basarflipper_exists=True) & Q(ep_stufe_in_progress__lt=3), then=3), default=F("ep_stufe_in_progress"), output_field=PositiveIntegerField()), #F("ep_stufe_in_progress"),
+                )
+
+            charaktere = charaktere.filter(eigentümer=request.spieler.instance, max_shopstufe__gte=item.ab_stufe)
 
         context = {
-            "charaktere": charaktere,
+            "charaktere": charaktere.order_by('name'),
             "entries": firma_shop_entries,
             "extra_preis_field": request.spieler.is_spielleiter,
             "st": item.stufenabhängig,
