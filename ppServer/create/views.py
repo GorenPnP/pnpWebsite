@@ -77,15 +77,17 @@ class GfsFormView(VerifiedAccountMixin, TemplateView):
 
         # set default vals
         if larp:
-            char.ap = 100
+            char.ap = 120
             char.fp = 20
             char.fg = 2
             char.geld = 5000
             char.sp = 0
             char.ip = 0
             char.zauberplätze = {}
+            char.ep_stufe = 0
+            char.ep_stufe_in_progress = 0
             char.beruf = get_object_or_404(Beruf, titel="Schüler")
-            char.save(update_fields=["ap", "fp", "fg", "geld", "sp", "ip", "zauberplätze", "beruf"])
+            char.save(update_fields=["ap", "fp", "fg", "geld", "sp", "ip", "zauberplätze", "beruf", "ep_stufe", "ep_stufe_in_progress"])
 
         else:
             # some fields

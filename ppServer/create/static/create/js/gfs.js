@@ -3,6 +3,7 @@
 document.querySelector("#larp").addEventListener("input", function() {
     const stufe = document.querySelector("#stufe");
     stufe.disabled = this.checked;
+    stufe.closest(".form-field").style.display = this.checked ? "none" : "block";
     document.querySelector("#fieldset-klassen").style.display = this.checked ? "none" : "block";
     if (this.checked) { stufe.value = 1; }
 
