@@ -103,9 +103,10 @@ class ShowView(VerifiedAccountMixin, DetailView):
     
 
     def get_personal(self, char):
+        gfs = f"<a class='text-white' href='{reverse('wiki:stufenplan', args=[char.gfs.id])}'>{char.gfs.titel}</a>" if char.gfs is not None else '-'
         fields = [
                 ["Name", char.name],
-                ["Gfs (Stufe)", f"{char.gfs.titel if char.gfs is not None else '-'} ({char.skilltree_stufe})"],
+                ["Gfs (Stufe)", format_html(f"{gfs} ({char.skilltree_stufe})")],
                 ["Klassen (Stufe)", ", ".join([f"{rel.klasse.titel} ({rel.stufe})" for rel in char.relklasse_set.all()]) or "-"],
                 ["Persönlichkeit", char.persönlichkeit.titel if char.persönlichkeit else "-"],
                 ["Geschlecht", char.geschlecht],

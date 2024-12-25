@@ -30,38 +30,11 @@
 		<!-- scrolling header -->
 		<link rel="stylesheet" href="{% static 'base/css/scrolling_header.css' %}" type="text/css">
 		<script src="{% static 'base/js/scrolling_header.js' %}" defer></script>
-
+		
 		<!-- fonts -->
-		<style>
-			@import url('https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,500;1,600;1,700;1,800&display=swap');
-
-			@font-face {
-				font-family: Army;
-				src: url('/static/res/fonts/army_rust.ttf')  format("truetype");
-			}
-			@font-face {
-				font-family: Underwood;
-				src: url('/static/res/fonts/underwood_champion.ttf')  format("truetype");
-			}
-			@font-face {
-				font-family: Daemonisch;
-				src: url('/static/res/fonts/Daemonisch-Bold.otf')  format("opentype");
-			}
-			@font-face {
-				font-family: Hochelfisch;
-				src: url('/static/res/fonts/Roots-Regular.otf')  format("opentype");
-				font-weight: normal;
-				font-style: normal;
-			}
-			@font-face {
-				font-family: Hochelfisch;
-				src: url('/static/res/fonts/Roots-Flow.otf')  format("opentype");
-				font-weight: normal;
-				font-style: italic;
-			}
-		</style>
-		<!-- language dämonisch -->
+		<link rel="stylesheet" href="{% static 'base/css/fonts.css' %}" type="text/css">
 		{% if request.spieler.instance.language == 'd' %}
+		<!-- language dämonisch -->
 		<style>
 			:root {
 				--font-custom: 'Daemonisch';
@@ -69,8 +42,8 @@
 			}
 		</style>
 		{% endif %}
-		<!-- language hochelfisch -->
 		{% if request.spieler.instance.language == 'e' %}
+		<!-- language hochelfisch -->
 		<style>
 			:root {
 				--font-custom: 'Hochelfisch';
