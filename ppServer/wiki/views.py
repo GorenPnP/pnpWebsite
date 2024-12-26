@@ -246,7 +246,7 @@ class GfsView(VerifiedAccountMixin, DynamicTableView):
 def stufenplan(request, gfs_id):
 
     # get Gfs with startboni
-    gfs_qs = Gfs.objects.prefetch_related("gfsimage_set").annotate(
+    gfs_qs = Gfs.objects.prefetch_related("gfsimage_set", "eigenschaften").annotate(
         start_attribut = ConcatSubquery(GfsAttribut.objects.filter(gfs=OuterRef("pk")).annotate(text=Concat("attribut__titel", Value(" "), "aktuellerWert", Value("/"), "maxWert", output_field=CharField())).values("text"), separator=", "),
         start_fertigkeit = ConcatSubquery(GfsFertigkeit.objects.filter(gfs=OuterRef("pk"), fp__gt=0).annotate(text=Concat("fertigkeit__titel", Value(" +"), "fp", output_field=CharField())).values("text"), separator=", "),
         start_vorteil = ConcatSubquery(GfsVorteil.objects.filter(gfs=OuterRef("pk")).annotate(text=Concat("teil__titel", Value(" "), "notizen", output_field=CharField())).values("text"), separator=", "),

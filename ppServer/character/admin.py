@@ -76,22 +76,21 @@ class FertigkeitAdmin(admin.ModelAdmin):
 
 class WesenkraftAdmin(admin.ModelAdmin):
 
-    fields = ['titel', 'probe', 'wirkung', 'manaverbrauch', "skilled_gfs"]
-    inlines = [WesenkraftZusatzWesenspInLine]
+    fields = ['titel', 'probe', 'wirkung', 'manaverbrauch']
+    inlines = [WesenkraftZusatzWesenspInLine, GfsWesenkraftInLine]
 
-    list_display = ['titel', 'probe', 'manaverbrauch', 'wirkung', 'skilled_gfs_']
+    list_display = ['titel', 'probe', 'manaverbrauch', 'wirkung', 'start_gfs_']
     search_fields = ['titel', 'skilled_gfs']
-    list_filter = ['skilled_gfs__titel']
 
-    @admin.display(ordering="skilled_gfsnames")
-    def skilled_gfs_(self, obj):
-        return obj.skilled_gfsnames or self.get_empty_value_display()
+    @admin.display(ordering="start_gfsnames")
+    def start_gfs_(self, obj):
+        return obj.start_gfsnames or self.get_empty_value_display()
 
     def get_queryset(self, request):
         qs = Gfs.objects.filter(wesenkraft__id=OuterRef("id")).values("titel")
 
         return super().get_queryset(request).annotate(
-            skilled_gfsnames = ConcatSubquery(qs, separator=", ")
+            start_gfsnames = ConcatSubquery(qs, separator=", ")
         )
 
 
@@ -249,6 +248,7 @@ admin.site.register(KlasseAbility, KlasseAbilityAdmin)
 admin.site.register(Charakter, CharakterAdmin)
 admin.site.register(Gfs, GfsAdmin)
 admin.site.register(GfsAbility, GfsAbilityAdmin)
+admin.site.register(GfsEigenschaft, GfsEigenschaftAdmin)
 admin.site.register(SkilltreeBase, admin.ModelAdmin)
 admin.site.register(GfsSkilltreeEntry, GfsSkilltreeEntryAdmin)
 admin.site.register(GfsStufenplanBase, GfsStufenplanBaseAdmin)

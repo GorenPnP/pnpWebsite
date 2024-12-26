@@ -10,6 +10,9 @@ from ppServer.utils import get_filter, ConcatSubquery
 from ..models import *
 
 
+class GfsEigenschaftInLine(admin.TabularInline):
+    model = Gfs.eigenschaften.through
+    extra = 1
 
 class GfsImageInLine(admin.TabularInline):
     model = GfsImage
@@ -81,9 +84,8 @@ class GfsAdmin(admin.ModelAdmin):
     # TODO change back
     # list_display = ('icon_', 'titel', 'ap', 'difficulty', 'vorteil_', 'nachteil_', 'zauber_',
     #                 "wesenschaden_waff_kampf", "wesenschaden_andere_gestalt", "wesenkraft_", "startmanifest",)
-    list_display = ('icon_', 'titel', '_beschreibung', 'eigenschaften',)
+    list_display = ('icon_', 'titel', '_beschreibung', 'eigenschaft_',)
     list_filter = ["wesen", 'ap', 'startmanifest', "wesenschaden_waff_kampf"]
-    list_editable = ["eigenschaften"]
     search_fields = ('titel', 'ap')
 
     list_display_links = ["icon_", "titel"]
@@ -95,6 +97,7 @@ class GfsAdmin(admin.ModelAdmin):
     
     def get_queryset(self, request):
         return super().get_queryset(request).prefetch_related("wesen").annotate(
+            eigenschaftnames = ConcatSubquery(GfsEigenschaft.objects.filter(gfs=OuterRef("id")).values("name"), ", "),
             vorteilnames = ConcatSubquery(Vorteil.objects.filter(gfs=OuterRef("id")).values("titel"), ", "),
             nachteilnames = ConcatSubquery(Nachteil.objects.filter(gfs=OuterRef("id")).values("titel"), ", "),
             zaubernames = ConcatSubquery(GfsZauber.objects.prefetch_related("item").filter(gfs=OuterRef("id")).values("item__name"), ", "),
@@ -103,6 +106,10 @@ class GfsAdmin(admin.ModelAdmin):
 
     def icon_(self, obj):
         return format_html(f'<img src="{obj.icon.url}" style="max-width: 32px; max-height:32px;" />' if obj.icon else self.get_empty_value_display())
+
+    @admin.display(ordering="eigenschaftnames")
+    def eigenschaft_(self, obj):
+        return obj.eigenschaftnames or self.get_empty_value_display()
 
     @admin.display(ordering="vorteilnames")
     def vorteil_(self, obj):
@@ -160,6 +167,21 @@ class GfsAbilityAdmin(admin.ModelAdmin):
     
     def get_queryset(self, request: HttpRequest) -> QuerySet[Any]:
         return super().get_queryset(request).prefetch_related("gfsstufenplan__gfs", "gfsstufenplan__basis")
+
+
+class GfsEigenschaftAdmin(admin.ModelAdmin):
+    list_display = ('name', 'beschreibung', '_gfs')
+
+    inlines = [GfsEigenschaftInLine]
+
+    @admin.display(ordering="gfsnames")
+    def _gfs(self, obj):
+        return obj.gfsnames or self.get_empty_value_display()
+    
+    def get_queryset(self, request):
+        return super().get_queryset(request).annotate(
+            gfsnames = ConcatSubquery(Gfs.objects.filter(eigenschaften=OuterRef("id")).values("titel"), ", "),
+        )
 
     
 class GfsSkilltreeEntryAdmin(admin.ModelAdmin):

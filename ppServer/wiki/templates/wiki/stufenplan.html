@@ -61,11 +61,19 @@
 
         <!-- description -->
         <div class="col-12 col-sm">
-            <h2 class="title">Eigenschaften</h2>
-            <p class="description__text">{{ gfs.eigenschaften_rendered|default_if_none:"-"|safe }}</p>
-
             <h2 class="title">Beschreibung</h2>
             <p class="description__text">{{ gfs.beschreibung_rendered|default_if_none:"-"|safe }}</p>
+
+            <h2 class="title">Eigenschaften</h2>
+            {% if gfs.eigenschaften.count %}
+                <ul class="description__text">
+                {% for eigenschaft in gfs.eigenschaften.all %}
+                    <li><b>{{ eigenschaft.name }}</b>: {{ eigenschaft.beschreibung|default:"-" }}</li>
+                {% endfor %}
+                </ul>
+            {% else %}
+                <p class="description__text">-</p>
+            {% endif %}
         </div>
     </div>
 
@@ -131,7 +139,6 @@
                     <th>FP, FG</th>
                     <th>TP</th>
                     <th>Zauber</th>
-                    <th>Wesenkräfte</th>
                     <th>Gfs-Fähigkeiten</th>
                 </tr>
             </thead>
@@ -142,19 +149,14 @@
                     <td><b>{{ e.stufe }}</b><br><small>({{ e.ep }} EP)</small></td>
                     <td>{{ e.vorteile|default:"-" }}</td>
                     <td>{{ e.ap|default:'-' }}</td>
-        
                     <td>
                         {% if e.fert.0 %}{{ e.fert.0 }}
                             {% if e.fert.1 %}, {{ e.fert.1 }}{% endif %}
                         {% elif e.fert.1 %}{{ e.fert.1 }}
                         {% else %}-{% endif %}
                     </td>
-                    
                     <td>{{ e.tp|default:"-" }}</td>
-                        <td>{{ e.zauber|default:"-" }}</td>
-                            <td>{{ e.wesenkräfte|default:"-" }}</td>
-        
-        
+                    <td>{{ e.zauber|default:"-" }}</td>
                     <td>
                         {% if not e.ability  %}-{% else %}
                         <strong>{{ e.ability.name|default:"-" }}</strong><br>

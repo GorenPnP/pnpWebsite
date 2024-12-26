@@ -196,6 +196,20 @@ class Wesen(models.Model):
         return self.titel
 
 
+class GfsEigenschaft(models.Model):
+
+    class Meta:
+        verbose_name = "Gfs-Eigenschaft"
+        verbose_name_plural = "Gfs-Eigenschaften"
+
+        ordering = ["name"]
+
+    name = models.CharField(max_length=128, unique=True)
+    beschreibung = models.TextField(blank=True, null=True)
+
+    def __str__(self): return self.name
+
+
 class GfsImage(models.Model):
 
     class Meta:
@@ -232,8 +246,7 @@ class Gfs(models.Model):
     wesen = models.ForeignKey(Wesen, on_delete=models.SET_NULL, blank=True, null=True)
     beschreibung = MarkdownField(rendered_field='beschreibung_rendered', validator=VALIDATOR_STANDARD)
     beschreibung_rendered = RenderedMarkdownField(null=True)
-    eigenschaften = MarkdownField(rendered_field='eigenschaften_rendered', validator=VALIDATOR_STANDARD)
-    eigenschaften_rendered = RenderedMarkdownField(null=True)
+    eigenschaften = models.ManyToManyField(GfsEigenschaft)
 
     ap = models.PositiveIntegerField(default=0, validators=[MaxValueValidator(100)], verbose_name="AP-Kosten")
 
@@ -317,8 +330,8 @@ class GfsWesenkraft(models.Model):
 
     class Meta:
         ordering = ['gfs', 'wesenkraft']
-        verbose_name = "Wesenkraft"
-        verbose_name_plural = "Wesenkräfte"
+        verbose_name = "Start-Wesenkraft von Gfs"
+        verbose_name_plural = "Start-Wesenkräfte von Gfs"
 
         unique_together = (('gfs', 'wesenkraft'),)
 
