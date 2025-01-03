@@ -338,7 +338,7 @@ class SpielerMonster(models.Model):
     def get_buyable_attacks(self) -> QuerySet[Attacke]:
         max_cost = min(self.attackenpunkte, self.max_cost_attack())
 
-        return Attacke.objects\
+        return self.monster.attacken.all()\
             .prefetch_related("types")\
             .annotate(
                 types_count = Count("types__pk", distinct=True),
