@@ -70,8 +70,12 @@ class GenericAttributView(LevelUpMixin, DynamicTableView):
             aktuell_limit = Case(When(is_aktuell_fix=False, then=F("maxWert") + F("maxWert_temp") - F("aktuellerWert")), default=0, output_field=models.IntegerField()),
             max_limit = Case(When(is_max_fix=False, then=sys.maxsize), default=0, output_field=models.IntegerField()),
 
-            result=Value(1), # override later
             dataset_id=F("attribut__id"),
+
+            # override later
+            aktuell_ap=Value(1),
+            max_ap=Value(1),
+            result=Value(1),
         )
 
     def get_context_data(self, *args, **kwargs):
