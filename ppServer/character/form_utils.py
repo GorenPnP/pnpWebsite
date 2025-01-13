@@ -7,16 +7,15 @@ def PopulatedFormSet(parent_model: Model, db_model: Model, prefix: str, fieldnam
     populateable_field = db_model._meta.get_field(fieldname_of_fk)
     try:
         FkModel = populateable_field.remote_field.model
-
-        queryset = FkModel.objects.all().select_related()
-        choices = None
-        initial = [{fieldname_of_fk: obj} for obj in queryset]
-        count = FkModel.objects.count()
-    except:
+    except AttributeError:
         queryset = None
         choices = populateable_field.choices
         initial = [{fieldname_of_fk: obj} for obj, _ in choices]
-        count = len(choices)
+    else:
+        queryset = FkModel.objects.all().select_related()
+        choices = None
+        initial = [{fieldname_of_fk: obj} for obj in queryset]
+    count = len(initial)
 
     # classes
     class _Form(forms.ModelForm):

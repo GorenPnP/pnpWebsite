@@ -101,7 +101,6 @@ class VoteOnLegalActFormview(VerifiedAccountMixin, SpielleiterOnlyMixin, DetailV
         votes_per_politician = {int(key.replace("politician-", "")): request.POST.get(key) for key in request.POST.keys() if key.startswith("politician-")}
         
         choices = [v for v, _ in PoliticianVote.VOTE_ENUM]
-        print(choices)
         votes_per_choice = {choice: set() for choice in choices}
         for politician_id, vote in votes_per_politician.items():
             # vote has to be one of y, n, e, a
