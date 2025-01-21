@@ -72,8 +72,8 @@ class MonsterDetailView(VerifiedAccountMixin, DetailView):
         attacks = instance.monster.attacken.all()
         # .. otherwise assign random attacks
         if not keep_attacks:
-            free_attacks = instance.monster.attacken.exclude(draft=True).filter(cost=0)
-            attacks = sample(list(free_attacks), 2) if attacks.count() > 2 else list(free_attacks)
+            free_attacks = list(instance.monster.attacken.exclude(draft=True).filter(cost=0))
+            attacks = sample(free_attacks, 2) if len(free_attacks) > 2 else free_attacks
 
         SpielerMonsterAttack.objects.bulk_create([
             SpielerMonsterAttack(spieler_monster=instance, attacke=attack, cost=0)
