@@ -10,6 +10,7 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils.html import format_html
+from django.views.decorators.http import require_POST
 from django.views.generic import DetailView
 from django.views.generic.base import TemplateView
 from django.views.generic.edit import CreateView
@@ -33,16 +34,38 @@ class CharacterListView(VerifiedAccountMixin, TemplateView):
 
     def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
 
-        char_qs = Charakter.objects.prefetch_related("eigentümer").filter(in_erstellung=False).order_by('name')
+        char_qs = Charakter.objects.prefetch_related("eigentümer", "tags").filter(in_erstellung=False).order_by('name')
         if not self.request.spieler.is_spielleiter:
             char_qs = char_qs.filter(eigentümer=self.request.spieler.instance)
 
         return {
             'charaktere': char_qs,
+            "num_all_chars": char_qs.count(),
+            "tags": Tag.objects.filter(spieler=self.request.spieler.instance).annotate(num=Count("charakter")).order_by("name"),
             'topic': "Charaktere",
             "plus": "+ Charakter",
-            "plus_url": reverse('create:gfs')
+            "plus_url": reverse('create:gfs'),
         }
+    
+    def get(self, request, *args, **kwargs):
+        tagname = self.request.GET["tag"] if "tag" in self.request.GET else None
+        context = self.get_context_data(**kwargs)
+
+        if tagname and Tag.objects.filter(name=tagname, spieler=self.request.spieler.instance).exists():
+            context["charaktere"] = context["charaktere"].filter(tags__name=tagname)
+
+        return self.render_to_response(context)
+    
+    def post(self, *args, **kwargs):
+        create_tag_form = CreateTagForm({"name": self.request.POST.get("name"), "spieler": self.request.spieler.instance})
+        create_tag_form.full_clean()
+        if create_tag_form.is_valid():
+            create_tag_form.save()
+
+            messages.success(self.request, "Neuer Tag angelegt")
+        else:
+            messages.error(self.request, format_html(f"Tag konnte nicht angelegt werden: {create_tag_form.errors}"))
+        return redirect(reverse("character:index"))
 
 
 class ShowView(VerifiedAccountMixin, DetailView):
@@ -601,6 +624,42 @@ class HistoryView(VerifiedAccountMixin, tables.SingleTableMixin, TemplateView):
             app_index_url=reverse("character:show", args=[char.id]),
             priotable=char.processing_notes["priotable"] if "priotable" in char.processing_notes else None,
         )
+
+
+@require_POST
+@verified_account
+def edit_tag(request, pk):
+
+    # assert user requesting to edit the chars of a tag
+    tag = Tag.objects.filter(pk=pk, spieler=request.spieler.instance).first()
+    if not tag:
+        messages.error(request, "Das ist nicht dein Tag.")
+        return redirect("character:index")
+    
+    # get all selected chars for the tag
+    char_ids = [int(k.replace(f"tag-{tag.id}-char-", "")) for k, v in request.POST.items() if v == "on" and re.match(f"^tag\-{tag.id}\-char\-\d+$", k)]
+    chars = Charakter.objects.filter(id__in=char_ids)
+    if not request.spieler.is_spielleiter: chars = chars.filter(eigentümer=request.spieler.instance)
+    
+    # set chars to db
+    tag.charakter_set.set(chars)
+
+    messages.success(request, f'Du hast Charaktere von Tag "{tag.name}" verändert.')
+    return redirect("character:index")
+
+
+@verified_account
+def delete_tag(request, pk):
+
+    # assert user requesting to edit the chars of a tag
+    tag = Tag.objects.filter(pk=pk, spieler=request.spieler.instance).first()
+    num_tags_and_chars_deleted = Tag.objects.filter(pk=pk, spieler=request.spieler.instance).delete()[0]
+    if num_tags_and_chars_deleted == 0:
+        messages.error(request, "Der Tag existiert nicht.")
+        return redirect("character:index")
+
+    messages.success(request, f'Du hast Tag "{tag.name}" gelöscht.')
+    return redirect("character:index")
 
 
 @verified_account

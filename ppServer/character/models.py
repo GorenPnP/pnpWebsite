@@ -621,6 +621,21 @@ class Spezialfertigkeit(models.Model):
         return "{} ({}, {})".format(self.titel, st, nd)
 
 
+class Tag(models.Model):
+
+    class Meta:
+        verbose_name = "Tag"
+        verbose_name_plural = "Tags"
+        ordering = ["spieler", 'name']
+        unique_together = ["spieler", 'name']
+
+    spieler = models.ForeignKey(Spieler, on_delete=models.CASCADE)
+    name = models.CharField(max_length=128, null=False, blank=False)
+
+    def __str__(self):
+        return self.name
+
+
 class Charakter(models.Model):
 
     class Meta:
@@ -752,6 +767,7 @@ class Charakter(models.Model):
     engelsroboter = models.ManyToManyField(Engelsroboter, through='character.RelEngelsroboter', blank=True)
 
     affektivitäten = models.ManyToManyField("Affektivität", blank=True)
+    tags = models.ManyToManyField(Tag)
 
     def __str__(self):
         return "{} ({})".format(self.name, self.eigentümer)

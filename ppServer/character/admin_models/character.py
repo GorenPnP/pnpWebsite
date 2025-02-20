@@ -254,7 +254,7 @@ class CharakterAdmin(admin.ModelAdmin):
 
 
     fieldsets = [
-        ("Settings (Finger weg)", {'fields': ['eigentümer', "in_erstellung", "reduced_rewards_until_klasse_stufe", "larp", "gfs"]}),
+        ("Settings (Finger weg)", {'fields': ['eigentümer', "in_erstellung", "reduced_rewards_until_klasse_stufe", "larp", "gfs", "tags"]}),
         ('Roleplay', {'fields': ['image', 'name', "gewicht", "größe", 'alter', 'geschlecht', 'sexualität', 'persönlichkeit', 'beruf', "präf_arm",
                               'religion', "hautfarbe", "haarfarbe", "augenfarbe"]}),
 

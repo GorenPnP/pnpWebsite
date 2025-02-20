@@ -10,5 +10,7 @@ urlpatterns = [
     path('history/<int:pk>/', views.HistoryView.as_view(), name='history'),
     path('create/', views.CreateCharacterView.as_view(), name='create'),
 
+    path('edit_tag/<int:pk>/', views.edit_tag, name='edit_tag'),
+    path('delete_tag/<int:pk>/', views.delete_tag, name='delete_tag'),
     path('use_item/<str:relshop_model>/<int:pk>/', views.use_relshop, name='use_item'),
 ]

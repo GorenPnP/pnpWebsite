@@ -1,4 +1,5 @@
 import json
+
 from django import forms
 
 from crispy_forms.bootstrap import AppendedText, Tab, TabHolder
@@ -286,3 +287,9 @@ class CharacterForm(forms.ModelForm):
             Submit("submit", 'Charakter anlegen', css_class='btn-default mt-5'),
         )
 
+
+
+class CreateTagForm(forms.ModelForm):
+    class Meta:
+        model = Tag
+        fields = ["spieler", "name"]

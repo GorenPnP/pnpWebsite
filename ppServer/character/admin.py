@@ -47,6 +47,15 @@ class SpielerAdmin(admin.ModelAdmin):
     list_display = ["name", "geburtstag"]
 
 
+class TagAdmin(admin.ModelAdmin):
+    list_display = ['name', 'spieler', "_charaktere"]
+    list_filter = ["spieler", 'name',]
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).prefetch_related("charakter_set")
+
+    def _charaktere(self, obj):
+        return ", ".join([c.name for c in obj.charakter_set.all()]) or self.get_empty_value_display()
 
 
 class WesenAdmin(admin.ModelAdmin):
@@ -253,3 +262,5 @@ admin.site.register(SkilltreeBase, admin.ModelAdmin)
 admin.site.register(GfsSkilltreeEntry, GfsSkilltreeEntryAdmin)
 admin.site.register(GfsStufenplanBase, GfsStufenplanBaseAdmin)
 admin.site.register(GfsStufenplan, GfsStufenplanAdmin)
+
+admin.site.register(Tag, TagAdmin)

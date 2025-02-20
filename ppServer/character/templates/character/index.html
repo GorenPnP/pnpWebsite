@@ -1,5 +1,5 @@
 {% extends 'base/headed_main.html' %}
-{% load static %}
+{% load static character.has_tag %}
 
 {% block extra-head %}
 <style>
@@ -11,6 +11,100 @@
 
 {% block main %}
 
+	<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+		<div class="container-fluid">
+
+			<ul class="navbar-nav me-auto mb-2 mb-lg-0" style="gap: 5px">
+				<li class="nav-item">
+					<a class="nav-link {% if not request.GET.tag %}active{% endif %}" aria-current="page" href="{{ request.path }}">
+						alle
+						<span class="badge rounded-pill {% if not request.GET.tag %}bg-warning{% else %}bg-secondary{% endif %} text-dark">{{ num_all_chars }}</span>
+					</a>
+				</li>
+			</ul>
+
+			<!-- toggle button -->
+			<button class="navbar-toggler position-relative" type="button" data-bs-toggle="collapse" data-bs-target="#tag-nav-toggler" aria-controls="tag-nav-toggler" aria-expanded="false" aria-label="Toggle Tags">
+				<span class="navbar-toggler-icon"></span>
+			</button>
+
+			<div class="collapse navbar-collapse" id="tag-nav-toggler">
+				<ul class="navbar-nav me-auto mb-2 mb-lg-0" style="gap: 5px">
+					{% for tag in tags %}
+					<li class="nav-item">
+						<a class="nav-link {% if not tag.num %}disabled{% endif %} {% if request.GET.tag and request.GET.tag == tag.name %}active{% endif %}" href="{{ request.path }}?tag={{ tag.name|urlencode }}">
+							{{ tag.name }}
+							<span class="badge rounded-pill {% if request.GET.tag and request.GET.tag == tag.name %}bg-warning{% else %}bg-secondary{% endif %} text-dark">{{ tag.num }}</span>
+						</a>
+					</li>
+					{% endfor %}
+				</ul>
+
+				<ul class="navbar-nav mb-2 mb-lg-0 justify-content-end align-items-start" style="gap: 7px">
+					<li>
+						<form class="d-flex" method="post">
+							{% csrf_token %}
+							<input class="form-control me-2" type="text" name="name" required placeholder="Neuer Tag" aria-label="Neuer Tag">
+							<button class="btn btn-primary" type="submit">+</button>
+						</form>
+					</li>
+				</ul>
+			</div>
+		</div>
+	</nav>
+
+
+	{% if not request.GET.tag %}
+		<ul id="char-tags-editlist" class="list-unstyled my-2 d-flex gap-2">
+
+			{% for tag in tags %}
+			<li class="badge text-bg-primary">
+				<button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#editTagModal-{{ tag.id }}">{{ tag.name }}</button>
+				<a type="button" aria-label="delete" class="del-btn btn btn-sm btn-danger ms-2 m-auto" href="{% url 'character:delete_tag' tag.id %}">
+					<svg style="width:1em; margin: auto; display: block;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
+						<!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
+						<path fill="#ffffff" d="M135.2 17.7L128 32H32C14.3 32 0 46.3 0 64S14.3 96 32 96H416c17.7 0 32-14.3 32-32s-14.3-32-32-32H320l-7.2-14.3C307.4 6.8 296.3 0 284.2 0H163.8c-12.1 0-23.2 6.8-28.6 17.7zM416 128H32L53.2 467c1.6 25.3 22.6 45 47.9 45H346.9c25.3 0 46.3-19.7 47.9-45L416 128z"/>
+					</svg>
+				</a>
+			</li>
+			{% endfor %}
+		</ul>
+
+		<!-- Modal -->
+		{% for tag in tags %}
+		<div class="modal fade" id="editTagModal-{{ tag.id }}" tabindex="-1" aria-labelledby="editTagModalLabel-{{ tag.id }}" aria-hidden="true" style="z-index: 100000">
+			<div class="modal-dialog modal-dialog-scrollable">
+				<div class="modal-content">
+					<div class="modal-header">
+						<h5 class="modal-title" id="editTagModalLabel-{{ tag.id }}">Tag: {{ tag.name }}</h5>
+						<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+					</div>
+					<div class="modal-body">
+						<p>Welche Charaktere sollen den Tag "{{ tag.name }}" bekommen?</p>
+
+						<form id="editTagModalForm-{{ tag.id }}" action="{% url 'character:edit_tag' tag.id %}" method="post">
+							{% csrf_token %}
+							
+							{% for c in charaktere %}
+							<div class="form-check">
+								<input class="form-check-input" type="checkbox" id="tag-{{tag.id}}-char-{{ c.id }}" name="tag-{{tag.id}}-char-{{ c.id }}" {% if c|hasTag:tag %}checked{% endif %}>
+								<label class="form-check-label" for="tag-{{tag.id}}-char-{{ c.id }}">{{ c.name|default:'&#60;no name&#62;' }}{% if c.larp %} (LARP){% endif %}{% if request.spieler.is_spielleiter %} <small><i> von {{ c.eigentümer.name|default:"?" }}</i></small>{% endif %}</label>
+							</div>
+							{% endfor %}
+						</form>
+					</div>
+			
+					<div class="modal-footer">
+						<button type="submit" class="btn btn-primary" form="editTagModalForm-{{ tag.id }}">Speichern</button>
+						<button type="button" class="btn btn-outline-primary" data-bs-dismiss="modal">Schließen</button>
+					</div>
+				</div>
+			</div>
+		</div>
+		{% endfor %}
+	{% endif %}
+
+
 <ul class="list-group">
 	{% for c in charaktere %}
 	<li class="container list-group-item list-group-item-dark py-4 py-md-2">
@@ -20,9 +114,17 @@
 				<img src="{% if c.image %}{{ c.image.url }}{% else %}{% static 'res/img/goren_logo.png' %}{% endif %}" style="width: 64px; aspect-ratio: 1; border-radius: 50%;">
 			</div>
 			
-			<a href="{% url 'character:show' c.id %}" class="col-12 col-md char-name text-dark text-center text-md-start">
-				<p><span class="h4">{{ c.name|default:"&#60;no name&#62;" }}{% if c.larp %} (LARP){% endif %}</span> {% if request.spieler.is_spielleiter %}<small> von {{ c.eigentümer.name|default:"?" }}</small>{% endif %}</p>
+			<a href="{% url 'character:show' c.id %}" class="col-12 col-md char-name text-dark text-center text-md-start text-decoration-none">
+				<p><span class="h4 text-decoration-underline">{{ c.name|default:"&#60;no name&#62;" }}{% if c.larp %} (LARP){% endif %}</span> {% if request.spieler.is_spielleiter %}<small> von {{ c.eigentümer.name|default:"?" }}</small>{% endif %}</p>
 				<p>{{ c.persönlicheZiele|default:""|linebreaks }}</p>
+				
+				{% if c.tags.count %}
+				<ul class="list-unstyled d-flex gap-2">
+					{% for tag in c.tags.all %}
+					<li><small><i>#{{ tag.name }}</i></small></li>
+					{% endfor %}
+				</ul>
+				{% endif %}
 			</a>
 	
 			<div class="col-12 col-md-3 d-flex justify-content-center align-items-start">
