@@ -767,7 +767,7 @@ class Charakter(models.Model):
     engelsroboter = models.ManyToManyField(Engelsroboter, through='character.RelEngelsroboter', blank=True)
 
     affektivitäten = models.ManyToManyField("Affektivität", blank=True)
-    tags = models.ManyToManyField(Tag)
+    tags = models.ManyToManyField(Tag, blank=True)
 
     def __str__(self):
         return "{} ({})".format(self.name, self.eigentümer)
