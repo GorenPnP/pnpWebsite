@@ -1,0 +1,127 @@
+/* fullscreen with header and grid layout */
+
+#after-header {
+    height: calc(100vh - var(--after-header__margin-top));
+}
+.main-container {
+    padding: 0 1em 50px;
+    height: 100%;
+    max-height: 100%;
+
+    display: grid;
+    grid-template-rows: auto 1fr;
+}
+#main-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr auto;
+    grid-template-areas: 'mining  inv'
+                         'shop    inv';
+    gap: 0.3em;
+    min-height: 0%;
+}
+
+#shop { grid-area: shop; }
+#mining { grid-area: mining; }
+#inventory { grid-area: inv; }
+#shop, #mining, #inventory {
+    background-color: rgba(var(--bs-light-rgb), 0.05);
+    padding: 0.3em;
+    min-height: 0%;
+}
+
+/* individual designs */
+
+#save-spinner {
+    visibility: hidden;
+    opacity: 0;
+    transition: visibility 0s, opacity 0.5s linear;
+
+    &.visible {
+        visibility: visible;
+        opacity: 1;
+    }
+}
+
+#mining #mining-btn {
+    height: 128px;
+    aspect-ratio: 1;
+
+    img {
+        height: 100%;
+        width: 100%;
+    }
+
+    position: relative;
+    .progress {
+        --height: 20px;
+        --width: 70%;
+
+        position: absolute;
+        top: calc(50% - (var(--height) / 2));
+        left: calc((100% - var(--width)) / 2);
+        width: var(--width);
+        height: var(--height);
+
+        background-color: rgba(var(--bs-light-rgb), 0.25);
+    }
+
+    .particle--drop {
+        --timeout: 5000ms; // needs to stay in ms
+
+        position: absolute;
+        display: block;
+        top: calc(50% - 0.5em);
+        line-height: 1em;
+        width: 100%;
+        text-align: center;
+
+        z-index: 10000;
+        font-weight: 900;
+
+        animation: fly var(--timeout) ease-out;
+
+        @keyframes fly {
+            0% {
+              transform: translateY(0);
+              left: 0;
+              opacity: 0;
+            }
+            1% {
+                opacity: 1;
+            }
+            20% { left: 20px; }
+            40% { left: -20px; }
+            60% { left: 20px; opacity: 1; }
+            80% { left: -20px; }
+            100% {
+              transform: translateY(-50vh);
+              opacity: 0;
+              left: 20px;
+            }
+        }
+    }
+}
+
+#inventory {
+    display: grid;
+    grid-template-rows: auto 1fr;
+    height: 100%;
+
+    .inventory-container {
+        overflow: auto;
+        min-height: 0%;
+    }
+
+    .fade-with-drops {
+        visibility: hidden;
+        opacity: 0;
+        max-height: 0;
+        transition: visibility 0.5s, opacity 0.5s, max-height 0.5s linear;
+    }
+    &:has(.grid--drops .item) .fade-with-drops {
+        visibility: visible;
+        opacity: 1;
+        max-height: unset;
+    }
+}

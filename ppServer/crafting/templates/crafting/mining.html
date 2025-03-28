@@ -1,0 +1,98 @@
+{% extends 'base/headed_main.html' %}
+{% load static l10n %}
+
+{% block extra-head %}
+<link rel="stylesheet" href="{% static 'crafting/css/mining.css' %}">
+<link rel="stylesheet"  type="text/css" href="{% static 'crafting/css/inventory.css' %}">
+<script src="{% static 'res/js/axios.min.js' %}" type='text/javascript'></script>
+<script src="{% static 'base/js/ajax.js' %}" type='text/javascript'></script>
+<script src="{% static 'crafting/js/inventory.js' %}" type='text/javascript'></script>
+{{ block_pool|json_script:"block_pool" }}
+{{ blocks|json_script:"blocks" }}
+<script src="{% static 'crafting/js/mining.js' %}" type='text/javascript' defer></script>
+{% endblock %}
+
+{% block main %}
+<div class="infos">
+    <div id="save-spinner" class="pt-1">
+        <strong role="status">Fortschritt speichern ...</strong>
+        <div class="spinner-border ms-2" aria-hidden="true"></div>
+    </div>
+</div>
+
+<div id="main-container">
+    
+    
+    <aside id="shop">
+        <h2>Perk-Shop</h2>
+        <p>Abh. von Profil & Region</p>
+    </aside>
+    
+    <main id="mining" class="d-flex flex-column">
+        <h2>Mining</h2>
+    
+        <div class="d-flex flex-column align-items-center justify-content-between m-auto gap-2">
+            <button id="mining-btn" onclick="mine()">
+                <img id="mining-btn__block-texture" src="" alt="">
+                <div class="progress" role="progressbar" aria-label="Abbaufortschritt" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+                    <div class="progress-bar bg-dark" style="width: 0%"></div>
+                </div>              
+            </button>
+            <label>Hardness left: <b id="mining-btn__hardness"></b></label>
+        </div>
+    </main>
+    
+    <aside id="inventory">
+        <h2 class="d-flex justify-content-between mb-3">
+            <a class="text-light" href="{% url 'crafting:inventory' %}">Inventar von {{ profil.name }}</a>
+            <a class="btn btn-outline-light" href="{% url 'crafting:index' %}?redirect={{ request.path|urlencode }}">wechseln</a>
+        </h2>
+    
+        <div class="inventory-container" onclick="this.scrollTo(0, 0)">
+    
+            <div class="overlay">
+                <button class="btn btn-outline-light" onclick="document.querySelector('.overlay').style.display = 'none'">X</button>
+                <img id="overlay__icon">
+                <label for="overlay__name">Name:</label><span id="overlay__name"></span>
+                <label for="overlay__owned">Im Besitz:</label><span id="overlay__owned"></span>
+                <label for="overlay__stufe">Ab Stufe:</label><span id="overlay__stufe"></span>
+                <label for="overlay__description">Beschreibung:</label><span id="overlay__description"></span>
+                <label for="overlay__values">Info:</label><span id="overlay__values"></span>
+                <label for="overlay__kategory">Kategorie:</label><span id="overlay__kategory"></span>
+            
+                <div class="separator"></div>
+            
+                <label for="overlay__duration">Crafting Time:</label><span id="overlay__duration"></span>
+                <label for="overlay__spezial">Spezialfertigkeiten:</label><div id="overlay__spezial"></div>
+                <label for="overlay__wissen">Wissensfertigkeiten:</label><div id="overlay__wissen"></div>
+                <label for="overlay__table">Anzahl pro Rezept:</label><div id="overlay__num-prod"></div>
+                <label for="overlay__table">Hergestellt an:</label><div id="overlay__table"></div>
+                <label for="overlay__table">Hergestellt aus:</label><div id="overlay__ingredients"></div>
+            
+                <div class="separator"></div>
+            
+                <a id="overlay__link" class="btn btn-primary" href="">Im Shop ansehen</a>
+            </div>
+    
+            <div class="inv-container fade-with-drops">
+                <h3>Auf Tasche</h3>
+                <div class="grid grid--drops"></div>
+                <button class="btn btn-outline-light d-block mb-4" onclick="save_progress()">Nach Hause bringen</button>
+            </div>
+            
+            
+            <div class="inv-container">
+                <h3 class="fade-with-drops">Zu Hause</h3>
+                <div class="grid grid--current-inv">
+                    {% for i in items %}
+                        <div class="item" data-drop-id="{% localize off %}{{ i.item.id }}{% endlocalize %}" onclick="openDetails({% localize off %}{{ i.id }}{% endlocalize %})">
+                            <img src="{{ i.item.getIconUrl }}" alt="{{ i.item.name }}">
+                            <span class="num">{{ i.num|floatformat }}</span>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </aside>
+</div>
+{% endblock %}

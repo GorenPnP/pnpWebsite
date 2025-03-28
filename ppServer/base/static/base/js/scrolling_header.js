@@ -16,6 +16,7 @@ const header = document.querySelector("#scrolling-header");
 
 function set_afterheader_margin() {
     const header_height = header.getBoundingClientRect().height + "px";
+    document.querySelector("#after-header").style.setProperty("--after-header__margin-top", header_height);
     document.querySelector("#after-header").style.setProperty("margin-top", header_height);
 
     // FULLSCREEN MD-EDITOR: stay under header

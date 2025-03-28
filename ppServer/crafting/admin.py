@@ -88,7 +88,66 @@ class RecipeAdmin(admin.ModelAdmin):
         )
 
 
+class RegionBlockChanceInLineAdmin(admin.TabularInline):
+    model = BlockChance
+    fields = ['chance', 'block']
+
+    extra = 3
+
+class RegionAdmin(admin.ModelAdmin):
+
+    list_display = ('_icon', 'name')
+    list_display_links = ('_icon', 'name')
+    search_fields = ('name', )
+
+    fields = ["icon", "name", "allowed_profiles"]
+    inlines = [RegionBlockChanceInLineAdmin]
+
+    def _icon(self, obj):
+        return format_html('<img src="{0}" style="max-width: 32px; max-height:32px;" />'.format(obj.icon.url)) if obj.icon else self.get_empty_value_display()
+
+
+class BlockDropInLineAdmin(admin.TabularInline):
+    model = Drop
+    fields = ["chance", "item"]
+
+    extra = 3
+
+class BlockAdmin(admin.ModelAdmin):
+
+    list_display = ('_icon', 'name', 'hardness', 'effective_pick', 'effective_axe', 'effective_shovel')
+    list_display_links = ('_icon', 'name')
+    list_editable = ['effective_pick', 'effective_axe', 'effective_shovel']
+    search_fields = ('name', )
+
+    fields = ["icon", "name", 'hardness', 'effective_pick', 'effective_axe', 'effective_shovel']
+    inlines = [BlockDropInLineAdmin]
+
+    def _icon(self, obj):
+        return format_html('<img src="{0}" style="max-width: 32px; max-height:32px;" />'.format(obj.icon.url)) if obj.icon else self.get_empty_value_display()
+
+class ToolAdmin(admin.ModelAdmin):
+
+    list_display = ('_icon', 'name', 'speed', 'is_pick', 'is_axe', 'is_shovel')
+    list_display_links = ('_icon', 'name')
+    list_editable = ['is_pick', 'is_axe', 'is_shovel']
+    search_fields = ('item__name', )
+
+    fields = ["item", "speed", 'is_pick', 'is_axe', 'is_shovel']
+
+    def _icon(self, obj):
+        return format_html('<img src="{0}" style="max-width: 32px; max-height:32px;" />'.format(obj.item.icon.url)) if obj.item and obj.item.icon else self.get_empty_value_display()
+
+    def name(self, obj):
+        return obj.item.name if obj.item else self.get_empty_value_display()
+
+
 
 admin.site.register(Profile, ProfileAdmin)
 admin.site.register(InventoryItem, InventoryAdmin)
 admin.site.register(Recipe, RecipeAdmin)
+admin.site.register(RelCrafting)
+
+admin.site.register(Region, RegionAdmin)
+admin.site.register(Block, BlockAdmin)
+admin.site.register(Tool, ToolAdmin)

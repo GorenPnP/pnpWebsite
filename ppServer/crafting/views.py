@@ -1,77 +1,83 @@
 import json
-from random import randrange, random
 
+from django.contrib import messages
 from django.http import HttpResponseNotFound
 from django.http.response import JsonResponse
-from django.shortcuts import render, redirect, get_object_or_404, reverse
+from django.shortcuts import redirect, get_object_or_404, reverse
+from django.views.generic import DetailView
+from django.views.generic.base import TemplateView
+from django.views.generic.list import ListView
 
-from ppServer.decorators import spielleiter_only, verified_account
+from ppServer.mixins import SpielleiterOnlyMixin, VerifiedAccountMixin
 from shop.models import Tinker
 
 from .forms import AddToInventoryForm
 from .models import *
+from .mixins import ProfileSetMixin
 from .templatetags.crafting.duration import duration
+from .utils import *
 
 
-@verified_account
-def index(request):
+class IndexView(VerifiedAccountMixin, TemplateView):
+	template_name = "crafting/index.html"
 
-	if request.method == "GET":
-		context = {
-			"profiles": Profile.objects.all(),
-			"topic": "Profilwahl",
-			"app_index": "Crafting",
-			"app_index_url": reverse("crafting:craft")
-		}
-		return render(request, "crafting/index.html", context)
+	def get_context_data(self, **kwargs):
+		return super().get_context_data(
+			**kwargs,
+			topic = "Profilwahl",
+			app_index = "Crafting",
+			app_index_url = reverse("crafting:craft"),
 
-	if request.method == "POST":
-		name = request.POST.get("name")
-		spieler = request.spieler.instance
+			profiles = Profile.objects.all(),
+		)
+	
+	def post(self, *args, **kwargs):
+
+		name = self.request.POST.get("name")
+		spieler = self.request.spieler.instance
 		if not spieler: return HttpResponseNotFound()
 
 		# get or create profile with name
 		profile, created = Profile.objects.get_or_create(name=name)
 		if created:
 			profile.owner = spieler
-			profile.restricted = request.POST.get("restriction") is not None
+			profile.restricted = self.request.POST.get("restriction") is not None
 			profile.save(update_fields=["owner", "restricted"])
 
 		# set profile as current
 		rel, _ = RelCrafting.objects.get_or_create(spieler=spieler)
 		rel.profil = profile
 		rel.save(update_fields=["profil"])
-
-		return redirect("crafting:inventory")
-
-
-@verified_account
-def inventory(request):
-
-	spieler = request.spieler.instance
-	if not spieler: return HttpResponseNotFound()
-	rel, _ = RelCrafting.objects.get_or_create(spieler=spieler)
-
-	# no profile active? change that!
-	if not rel.profil: return redirect("crafting:index")
+    	
+		redirect_path = self.request.GET.get("redirect")
+		return redirect(redirect_path if redirect_path and redirect_path.startswith("/crafting/") else reverse("crafting:inventory"))
 
 
-	if request.method == "GET":
+class InventoryView(VerifiedAccountMixin, ProfileSetMixin, DetailView):
+	model = Profile
+	template_name = "crafting/inventory.html"
 
-		context = {
-			"topic": "Inventar von {}".format(rel.profil.name),
-			"add_form": AddToInventoryForm(),
-			"restricted_profile": rel.profil.restricted,
-			"duration": rel.profil.craftingTime,
-			"items": InventoryItem.objects.filter(char=rel.profil).order_by("item__name").prefetch_related("item"),
-			"app_index": "Crafting",
-			"app_index_url": reverse("crafting:craft")
-		}
-		return render(request, "crafting/inventory.html", context)
+	def get_object(self):
+		return self.relCrafting.profil
 
-	if request.method == "POST":
+	def get_context_data(self, **kwargs):
+		self.object = self.get_object()
 
-		json_dict = json.loads(request.body.decode("utf-8"))
+		return super().get_context_data(
+			**kwargs,
+			topic = "Inventar von {}".format(self.object.name),
+			app_index = "Crafting",
+			app_index_url = reverse("crafting:craft"),
+
+			add_form = AddToInventoryForm(),
+			restricted_profile = self.object.restricted,
+			duration = self.object.craftingTime,
+			items = InventoryItem.objects.filter(char=self.object).order_by("item__name").prefetch_related("item"),
+		)
+
+	def post(self, *args, **kwargs):
+
+		json_dict = json.loads(self.request.body.decode("utf-8"))
 
 		# add item to inventory without crafting
 		if "item" in json_dict.keys():
@@ -84,7 +90,7 @@ def inventory(request):
 
 			# add num of items and save
 			item = get_object_or_404(Tinker, id=id)
-			iitem, _ = InventoryItem.objects.get_or_create(char=rel.profil, item=item)
+			iitem, _ = InventoryItem.objects.get_or_create(char=self.object, item=item)
 			iitem.num += num
 			iitem.save(update_fields=["num"])
 
@@ -111,7 +117,7 @@ def inventory(request):
 
 			data = {
 					"id": iitem.item.id,
-					"link": "{}#{}".format(reverse("shop:tinker"), iitem.item.id),
+					"link": "{}?name__icontains={}".format(reverse("shop:tinker"), iitem.item.name.replace(" ", "+")),
 					"name": iitem.item.name,
 					"table": {"name": "", "icon": ""},
 					"ingredients": [],
@@ -146,40 +152,35 @@ def inventory(request):
 			return JsonResponse(data)
 
 
-@verified_account
-def craft(request):
+class CraftingView(VerifiedAccountMixin, ProfileSetMixin, ListView):
+	model = InventoryItem
+	template_name = "crafting/craft.html"
 
-	spieler = request.spieler.instance
-	if not spieler: return HttpResponseNotFound()
-	rel, _ = RelCrafting.objects.prefetch_related("profil").get_or_create(spieler=spieler)
+	def get_queryset(self):
+		return InventoryItem.objects.prefetch_related("item").filter(char=self.relCrafting.profil)
 
-	# no profile active? change that!
-	if not rel.profil: return redirect("crafting:index")
+	def get_context_data(self, **kwargs):
+		# collect current inventory
+		self.inventory = {i.item.id: i.num for i in self.get_queryset()}
 
-	# collect current inventory
-	inventory = {}
-	for i in InventoryItem.objects.prefetch_related("item").filter(char=rel.profil):
-			inventory[i.item.id] = i.num
+		# get all (used) table instances from db in alphabetical order
+		table_list = self.relCrafting.profil.getTables()
+		for t in table_list: t["available"] = t["id"] in self.inventory.keys() or t["id"] == 0		# id == 0: special case for Handwerk (is always available)
+
+		return super().get_context_data(
+			**kwargs,
+			topic = table_list[0]["name"],
+
+			tables = table_list,
+			recipes = get_recipes_of_table(self.inventory, self.relCrafting.profil.restricted, table_list[0]["id"] if len(table_list) else 0),
+		)
 
 
-	if request.method == "GET":
+	def post(self, *args, **kwargs):
+		# collect current inventory
+		self.inventory = {i.item.id: i.num for i in self.get_queryset()}
 
-		# get all (used) table instances from db in alpabetical order
-		table_list = rel.profil.getTables()
-		for t in table_list: t["available"] = t["id"] in inventory.keys() or t["id"] == 0		# id == 0: special case for Handwerk (is always available)
-
-
-
-		context = {
-			"topic": table_list[0]["name"],
-			"tables": table_list,
-			"recipes": get_recipes_of_table(inventory, rel.profil.restricted, table_list[0]["id"] if len(table_list) else 0),
-		}
-		return render(request, "crafting/craft.html", context)
-
-	if request.method == "POST":
-
-		json_dict = json.loads(request.body.decode("utf-8"))
+		json_dict = json.loads(self.request.body.decode("utf-8"))
 
 		# table selection has changed, update the recipes
 		if "table" in json_dict.keys():
@@ -187,22 +188,22 @@ def craft(request):
 				table_id = int(json_dict["table"])
 			except: return JsonResponse({"message": "Parameter nicht lesbar angekommen"}, status=418)
 
-			return JsonResponse({"recipes": get_recipes_of_table(inventory, rel.profil.restricted, table_id)})
+			return JsonResponse({"recipes": get_recipes_of_table(self.inventory, self.relCrafting.profil.restricted, table_id)})
 
 
 		# search for an item, return just names for autocomplete
 		if "search" in json_dict.keys():
 
 			search = json_dict["search"]
-			return JsonResponse({"res": [{"name": t.name} for t in Tinker.objects.filter(name__iregex=search) if not (rel.profil.restricted and not TinkerNeeds.objects.filter(product=t).exists())]})
+			return JsonResponse({"res": [{"name": t.name} for t in Tinker.objects.filter(name__iregex=search) if not (self.relCrafting.profil.restricted and not TinkerNeeds.objects.filter(product=t).exists())]})
 
 
 		# search for an item
 		if "search_btn" in json_dict.keys():
 			search = json_dict["search_btn"]
 
-			return JsonResponse({"as_product": construct_recipes(Product.objects.filter(item__name__iregex=search), inventory, rel),
-                           "as_ingredient": construct_recipes(Ingredient.objects.filter(item__name__iregex=search), inventory, rel)})
+			return JsonResponse({"as_product": construct_recipes(Product.objects.filter(item__name__iregex=search), self.inventory, self.relCrafting),
+                           "as_ingredient": construct_recipes(Ingredient.objects.filter(item__name__iregex=search), self.inventory, self.relCrafting)})
 
 
 		# craft items out of others at a table
@@ -218,7 +219,7 @@ def craft(request):
 			recipe = get_object_or_404(Recipe, id=id)
 
 			# test if table owned
-			if recipe.table and recipe.table.id not in inventory.keys():
+			if recipe.table and recipe.table.id not in self.inventory.keys():
 				return JsonResponse({"message": "Tisch nicht vorhanden."}, status=418)
 
 
@@ -227,9 +228,9 @@ def craft(request):
 			for ni in recipe.ingredient_set.all():
 
 				#  ingredient not owned. Abort.
-				if not ni.item.id in inventory.keys(): return JsonResponse({"message": "Zu wenig Materialien vorhanden."}, status=418)
+				if not ni.item.id in self.inventory.keys(): return JsonResponse({"message": "Zu wenig Materialien vorhanden."}, status=418)
 
-				num_owned = inventory[ni.item.id]
+				num_owned = self.inventory[ni.item.id]
 				debt = ni.num * num
 
 				# insufficient amount of ingredients. Abort.
@@ -239,7 +240,7 @@ def craft(request):
 
 
 			# subtract amounts
-			for ni in InventoryItem.objects.filter(item__id__in=ingredients.keys(), char=rel.profil):
+			for ni in InventoryItem.objects.filter(item__id__in=ingredients.keys(), char=self.relCrafting.profil):
 
 				# decrease ingredient amount
 				if ni.num == ingredients[ni.item.id]:
@@ -250,15 +251,15 @@ def craft(request):
 
 
 			# add crafting time
-			if rel.profil.craftingTime: rel.profil.craftingTime += recipe.duration * num
-			else:						rel.profil.craftingTime  = recipe.duration * num
+			if self.relCrafting.profil.craftingTime: self.relCrafting.profil.craftingTime += recipe.duration * num
+			else:						self.relCrafting.profil.craftingTime  = recipe.duration * num
 
-			rel.profil.save(update_fields=["craftingTime"])
+			self.relCrafting.profil.save(update_fields=["craftingTime"])
 
 
 			# save products
 			for t in recipe.product_set.all():
-				crafted, _ = InventoryItem.objects.get_or_create(char=rel.profil, item=t.item)
+				crafted, _ = InventoryItem.objects.get_or_create(char=self.relCrafting.profil, item=t.item)
 				crafted.num += t.num * num
 				crafted.save(update_fields=["num"])
 
@@ -268,101 +269,54 @@ def craft(request):
 		# save new ordering of tables in profile model
 		if "table_ordering" in json_dict.keys():
 
-			rel.profil.tableOrdering = [to for to in json_dict["table_ordering"] if to is not None]
-			rel.profil.save(update_fields=["tableOrdering"])
+			self.relCrafting.profil.tableOrdering = [to for to in json_dict["table_ordering"] if to is not None]
+			self.relCrafting.profil.save(update_fields=["tableOrdering"])
 
 			return JsonResponse({})
 
 
-# queryset may contain either ingredients or products of recipes
-def construct_recipes(queryset, inventory, rel):
-	recipes = []
-	recipe_ids = []
-	for q in queryset:
-		recipe = q.recipe
+class RecipeDetailsView(VerifiedAccountMixin, ProfileSetMixin, DetailView):
+	model = Recipe
+	template_name = "crafting/details.html"
 
-		# prevent duplicates
-		if recipe.id in recipe_ids: continue
-		recipe_ids.append(recipe.id)
+	def get_context_data(self, **kwargs):
+		recipe = self.get_object()
 
-		ingredients = recipe.ingredient_set.all()
-		products = recipe.product_set.all()
+		return super().get_context_data(
+			**kwargs,
+			topic = "Rezept",
+			app_index = "Crafting",
+			app_index_url = reverse("crafting:craft"),
 
-		# restrict only to recipes that need ingredients, IF restricted
-		if rel.profil.restricted and not ingredients.exists():
-			continue
-
-		recipe = {
-			"id": recipe.id,
-			"ingredients": [{"num": i.num, "own": inventory[i.item.id] if i.item.id in inventory.keys() else 0, "icon": i.item.getIconUrl(), "name": i.item.name} for i in ingredients],
-			"products": [{"num": p.num, "icon": p.item.getIconUrl(), "name": p.item.name, "id": p.item.id} for p in products],
-			"table": {"icon": recipe.table.getIconUrl(), "name": recipe.table.name} if recipe.table else Recipe.getHandwerk(),
-			"locked": recipe.table.id not in inventory.keys() if recipe.table else False
-		}
-		recipes.append(recipe)
-
-	return recipes
+			ingredients = [{"link": "{}#{}".format(reverse("shop:tinker"), e.item.id), "name": e.item.name, "num": e.num, "icon": e.item.getIconUrl()} for e in recipe.ingredient_set.all()],
+			products = [{"link": "{}#{}".format(reverse("shop:tinker"), e.item.id), "name": e.item.name, "num": e.num, "icon": e.item.getIconUrl()} for e in recipe.product_set.all()],
+			table = {
+				"link": "{}#{}".format(reverse("shop:tinker"), recipe.table.id),
+				"name": recipe.table.name,
+				"icon": recipe.table.getIconUrl()
+				} if recipe.table else Recipe.getHandwerk(),
+			spezial = ", ".join([e.titel for e in recipe.spezial.all()]),
+			wissen = ", ".join([e.titel for e in recipe.wissen.all()]),
+			duration = recipe.duration,
+		)
 
 
-# inventory of a profile, restricted = profile.restricted, id = id of table
-def get_recipes_of_table(inventory, restricted, id):
+class SpGiveItemsView(VerifiedAccountMixin, SpielleiterOnlyMixin, ProfileSetMixin, TemplateView):
+	template_name = "crafting/sp_give_items.html"
 
-	# get all recipes that need the table with this id
-	recipes = []
-	for r in Recipe.objects.prefetch_related("ingredient_set__item", "product_set__item").filter(table__id=id if id else None):		# without table is represented by id=0, but need to query with table=None
+	def get_context_data(self, **kwargs):
+		return super().get_context_data(
+			**kwargs,
+			topic = "Profilen Items geben",
+			app_index = "Crafting",
+			app_index_url = reverse("crafting:craft"),
 
-		ingredients = r.ingredient_set.all()
-		if restricted and not ingredients.exists(): continue
+			allProfiles = sorted([{"name": p.name, "id": p.id, "restricted": p.restricted} for p in Profile.objects.all()], key=lambda p: p["name"]),
+			allItems = sorted([{"icon": t.getIconUrl(), "id": t.id, "name": t.name} for t in Tinker.objects.all()], key=lambda t: t["name"]),
+		)
 
-		products = r.product_set.all()
-
-		recipe = {
-			"id": r.id,
-			"ingredients": [{"num": i.num, "own": inventory[i.item.id] if i.item.id in inventory.keys() else 0, "icon": i.item.getIconUrl(), "name": i.item.name} for i in ingredients],
-			"products": [{"num": n.num, "icon": n.item.getIconUrl(), "name": n.item.name, "id": n.item.id} for n in products],
-			"locked": id not in inventory.keys() if id else False		# special case again for Handwerk
-		}
-		recipes.append(recipe)
-
-	return recipes
-
-
-@verified_account
-def details(request, id):
-	recipe = get_object_or_404(Recipe, id=id)
-	context = {
-		"topic": "Rezept",
-		"ingredients": [{"link": "{}#{}".format(reverse("shop:tinker"), e.item.id), "name": e.item.name, "num": e.num, "icon": e.item.getIconUrl()} for e in recipe.ingredient_set.all()],
-		"products": [{"link": "{}#{}".format(reverse("shop:tinker"), e.item.id), "name": e.item.name, "num": e.num, "icon": e.item.getIconUrl()} for e in recipe.product_set.all()],
-		"table": {
-			"link": "{}#{}".format(reverse("shop:tinker"), recipe.table.id),
-			"name": recipe.table.name,
-			"icon": recipe.table.getIconUrl()
-			} if recipe.table else Recipe.getHandwerk(),
-		"spezial": ", ".join([e.titel for e in recipe.spezial.all()]),
-		"wissen": ", ".join([e.titel for e in recipe.wissen.all()]),
-		"duration": recipe.duration,
-		"app_index": "Crafting",
-		"app_index_url": reverse("crafting:craft")
-	}
-	return render(request, "crafting/details.html", context)
-
-
-@spielleiter_only(redirect_to="crafting:craft")
-def sp_give_items(request):
-
-	if request.method == "GET":
-		context = {
-			"topic": "Profilen Items geben",
-			"allProfiles": sorted([{"name": p.name, "id": p.id, "restricted": p.restricted} for p in Profile.objects.all()], key=lambda p: p["name"]),
-			"allItems": sorted([{"icon": t.getIconUrl(), "id": t.id, "name": t.name} for t in Tinker.objects.all()], key=lambda t: t["name"]),
-			"app_index": "Crafting",
-			"app_index_url": reverse("crafting:craft")
-		}
-		return render(request, "crafting/sp_give_items.html", context)
-
-	if request.method == "POST":
-		json_dict = json.loads(request.body.decode("utf-8"))
+	def post(self, *args, **kwargs):
+		json_dict = json.loads(self.request.body.decode("utf-8"))
 
 		try:
 			item = int(json_dict["item"])
@@ -383,17 +337,57 @@ def sp_give_items(request):
 
 
 
+class MiningView(VerifiedAccountMixin, ProfileSetMixin, DetailView):
+	model = Region
+	template_name = "crafting/mining.html"
 
-def get_2nd_chance_material(prev_material, materials):
-	chance = randrange(1, 101)
-	return prev_material if chance <= prev_material.second_spawn_chance else get_rand_material(materials)
 
-def get_rand_material(materials):
-	sum_chances = sum([material.spawn_chance for material in materials])
-	chance = random() * sum_chances
+	def get_context_data(self, **kwargs):
+		# collect mining blocks & their drops
+		pool = []
+		blocks = {}
+		for block_chance in self.object.blockchance_set.prefetch_related("block__drop_set__item").all():
+			for _ in range(block_chance.chance): pool.append(block_chance.block.pk)
+			blocks[block_chance.block.pk] = block_chance.block.toDict()
+
+		return super().get_context_data(
+			**kwargs,
+            topic = "Mining von {}".format(self.relCrafting.profil.name),
+            app_index = "Crafting",
+            app_index_url = reverse("crafting:craft"),
+
+            profil = self.relCrafting.profil,
+            items = InventoryItem.objects.filter(char=self.relCrafting.profil).order_by("item__name").prefetch_related("item"),
+			block_pool = pool,
+			blocks = blocks,
+        )
 	
-	for material in materials:
-		chance -= material.spawn_chance
+	def get(self, request, *args, **kwargs):
+		self.object = self.get_object()
+		if not self.object.allowed_profiles.filter(id=self.relCrafting.profil.id).exists():
+			messages.error(self.request, f"Kein Zutritt zur {self.object}")
+			return redirect("crafting:index")
 
-		if chance <= 0:
-			return  material
+		return super().get(request, *args, **kwargs)
+    
+	def post(self, *args, **kwargs):
+		self.object = self.get_object()
+		if not self.object.allowed_profiles.filter(id=self.relCrafting.profil.id).exists():
+			messages.error(self.request, f"Kein Zutritt zur {self.object}")
+			return redirect("crafting:index")
+
+		json_dict = json.loads(self.request.body.decode("utf-8"))
+
+		# gather all the details of one item to display them
+		if "details" in json_dict:
+			return InventoryView(request=self.request).post(*args, **kwargs)
+		
+		if "drops" in json_dict:
+			drops = json_dict["drops"]
+
+			for tinker in Tinker.objects.filter(pk__in=[k for k, v in drops.items() if v > 0]):
+				iitem, _ = InventoryItem.objects.get_or_create(char=self.relCrafting.profil, item=tinker)
+				iitem.num += drops[str(tinker.pk)]
+				iitem.save(update_fields=["num"])
+
+			return JsonResponse({})

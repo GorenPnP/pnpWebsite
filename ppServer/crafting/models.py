@@ -2,11 +2,15 @@ import json
 from datetime import timedelta
 
 from django.db import models
-from django.core.validators import MinValueValidator
+from django.core.validators import MinValueValidator, MaxValueValidator
+
+from django_resized import ResizedImageField
 
 from character.models import Spieler, Spezialfertigkeit, Wissensfertigkeit
 from shop.models import Tinker
 
+
+############### Profiles & Inventory #################
 
 class RelCrafting(models.Model):
 	class Meta:
@@ -19,7 +23,7 @@ class RelCrafting(models.Model):
 	profil = models.ForeignKey("Profile", on_delete=models.SET_NULL, null=True, blank=True)
 
 	def __str__(self):
-		return "{} aktiv mit {}".format(self.spieler.name, self.profil.name)
+		return "{} aktiv mit {}".format(self.spieler.name if self.spieler else "-", self.profil.name if self.profil else "-")
 
 
 class Profile(models.Model):
@@ -94,7 +98,7 @@ class InventoryItem(models.Model):
 
 
 
-
+############### Recipes #################
 
 class Ingredient(models.Model):
 
@@ -151,3 +155,103 @@ class Recipe(models.Model):
 	@staticmethod
 	def getTables():
 		return Tinker.objects.filter(recipe__isnull=False).distinct().order_by("name")
+
+
+
+############### Mining #################
+
+class Region(models.Model):
+
+	class Meta:
+		verbose_name = "Region"
+		verbose_name_plural = "Regionen"
+
+	icon = ResizedImageField(size=[64, 64])
+	name = models.CharField(max_length=64, unique=True)
+
+	allowed_profiles = models.ManyToManyField(Profile, blank=True)
+
+	def __str__(self):
+		return "Region {}".format(self.name)
+
+
+
+class BlockChance(models.Model):
+	class Meta:
+		verbose_name = "Block Chance"
+		verbose_name_plural = "Block Chances"
+		ordering = ["-chance"]
+
+	region = models.ForeignKey(Region, on_delete=models.CASCADE)
+	block = models.ForeignKey("Block", on_delete=models.CASCADE)
+
+	chance = models.PositiveSmallIntegerField(default=1, validators=[MinValueValidator(1)], help_text="Higher is appears more often. # copies goes into a pool to randomly select the next block.")
+
+class Drop(models.Model):
+	class Meta:
+		verbose_name = "Block Drop"
+		verbose_name_plural = "Block Drops"
+		ordering = ["-chance"]
+	
+	item = models.ForeignKey(Tinker, on_delete=models.CASCADE)
+	block = models.ForeignKey("Block", on_delete=models.CASCADE)
+
+	chance = models.FloatField(default=50, validators=[MinValueValidator(0.0), MaxValueValidator(100.0)], help_text="Probabiliy of (0%, 100%]")
+
+	def toDict(self):
+		return {
+			"chance": self.chance,
+			"item": self.item.toDict(),
+		}
+
+class Block(models.Model):
+
+	class Meta:
+		verbose_name = "Block"
+		verbose_name_plural = "Blöcke"
+
+	icon = ResizedImageField(size=[64, 64])
+	name = models.CharField(max_length=64, unique=True)
+	hardness = models.PositiveIntegerField(default=1)
+
+	chance = models.ManyToManyField(Region, through=BlockChance)
+	drops = models.ManyToManyField(Tinker, through=Drop)
+
+	effective_pick = models.BooleanField(default=False)
+	effective_axe = models.BooleanField(default=False)
+	effective_shovel = models.BooleanField(default=False)
+
+	def __str__(self):
+		return "Block {}".format(self.name)
+	
+	def toDict(self):
+		fields = [
+			"name",
+			"hardness",
+			"effective_pick",
+			"effective_axe",
+			"effective_shovel",
+		]
+		return {
+			"icon": self.icon.url if self.icon else None,
+			"drops": [d.toDict() for d in self.drop_set.all()],
+			**{field: getattr(self, field) for field in fields}
+		}
+
+
+class Tool(models.Model):
+
+	class Meta:
+		verbose_name = "Werkzeug"
+		verbose_name_plural = "Werkzeuge"
+		ordering = ["speed"]
+
+	item = models.OneToOneField(Tinker, on_delete=models.CASCADE)
+	speed = models.PositiveIntegerField(default=1)
+
+	is_pick = models.BooleanField(default=False)
+	is_axe = models.BooleanField(default=False)
+	is_shovel = models.BooleanField(default=False)
+
+	def __str__(self):
+		return "Werkzeug {} ({})".format(self.item.name, self.speed)
