@@ -244,7 +244,7 @@ class Tool(models.Model):
 	class Meta:
 		verbose_name = "Werkzeug"
 		verbose_name_plural = "Werkzeuge"
-		ordering = ["speed"]
+		ordering = ["-speed", "-is_pick", "-is_axe", "-is_shovel"]
 
 	item = models.OneToOneField(Tinker, on_delete=models.CASCADE)
 	speed = models.PositiveIntegerField(default=1)
@@ -255,3 +255,12 @@ class Tool(models.Model):
 
 	def __str__(self):
 		return "Werkzeug {} ({})".format(self.item.name, self.speed)
+	
+	def toDict(self):
+		return {
+			"item": self.item.toDict(),
+			"speed": self.speed,
+			"is_pick": self.is_pick,
+			"is_axe": self.is_axe,
+			"is_shovel": self.is_shovel,
+		}

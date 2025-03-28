@@ -1,3 +1,8 @@
+/* resets */
+.grid { margin-bottom: 0 !important; }
+.progress-bar { transition: unset; }
+
+
 /* fullscreen with header and grid layout */
 
 #after-header {
@@ -16,13 +21,15 @@
     grid-template-columns: 1fr 1fr;
     grid-template-rows: 1fr auto;
     grid-template-areas: 'mining  inv'
+                         'tools   inv'
                          'shop    inv';
     gap: 0.3em;
     min-height: 0%;
 }
 
-#shop { grid-area: shop; }
 #mining { grid-area: mining; }
+#tools { grid-area: tools; }
+#shop { grid-area: shop; }
 #inventory { grid-area: inv; }
 #shop, #mining, #inventory {
     background-color: rgba(var(--bs-light-rgb), 0.05);
@@ -102,6 +109,8 @@
         }
     }
 }
+
+#tools .tool.tool--active { border: 2px solid var(--bs-danger) !important; }
 
 #inventory {
     display: grid;

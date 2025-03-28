@@ -14,17 +14,48 @@ const mining_progressbar = document.querySelector("#mining .progress");
 
 let current_block;
 let hardness_left = 0;
-
 let drops = {};
 
+// A cross-browser requestAnimationFrame
+// See https://hacks.mozilla.org/2011/08/animating-with-javascript-from-setinterval-to-requestanimationframe/
+const requestAnimFrame = (function(){
+    return window.requestAnimationFrame       ||
+        window.webkitRequestAnimationFrame ||
+        window.mozRequestAnimationFrame    ||
+        window.oRequestAnimationFrame      ||
+        window.msRequestAnimationFrame     ||
+        function(callback){
+            window.setTimeout(callback, 1000 / 60);
+        };
+})();
+let total_block_duration = 0;
+let passed_block_duration = 0;
+let currently_mining_flag = false;
+let stop_mining_flag = false;
+
 function mining_set_block() {
+
+    // randomly get new block
     current_block = blocks[block_pool[Math.floor(Math.random() * block_pool.length)]];
 
+    // set block display
     mining_img.src = current_block.icon;
     mining_img.alt = current_block.name;
 
-    hardness_left = current_block.hardness;
-    mining_hardness.innerText = ""+hardness_left;
+    // update preferred tool
+    let type;
+    if (current_block.effective_pick) type = "pick"
+    else if (current_block.effective_axe) type = "axe"
+    else type = "shovel"
+
+    document.querySelectorAll(".tool.tool--active").forEach(tool => tool.classList.remove("tool--active"));
+    const tool = document.querySelector(`.tool[data-type="${type}"]`);
+    tool?.classList.add("tool--active");
+
+    // update block mining duration
+    const tool_speed = Math.max(parseInt(tool?.dataset.speed) || 0, 1);
+    passed_block_duration = 0;
+    total_block_duration = current_block.hardness / (tool_speed+1) * 3000 // in ms
 }
 
 function mining_get_drops() {
@@ -52,22 +83,41 @@ function mining_get_drops() {
     mining_update_drops();
 }
 
-function mine() {
-    hardness_left -= 1;
-    mining_hardness.innerText = ""+hardness_left;
 
-    if (hardness_left <= 0) {
+// The mining loop
+let lastTime;
+function start_mining() {
+    if (stop_mining_flag) {
+        stop_mining_flag = false;
+        currently_mining_flag = false;
+        lastTime = null;
+        return;
+    }
+    currently_mining_flag = true;
+
+    let now = Date.now();
+    let dt = lastTime ? now - lastTime : 0.0; // delta time in ms
+
+    passed_block_duration += dt;
+    if (passed_block_duration >= total_block_duration) {
         mining_get_drops();
         mining_set_block();
     }
 
     mining_update_progressbar();
+
+    lastTime = now;
+    requestAnimFrame(start_mining);
+};
+
+function stop_mining() {
+    stop_mining_flag = currently_mining_flag;
 }
 
 function mining_update_progressbar() {
 
     // progress in %
-    const mining_progress = 100 - Math.floor(hardness_left / current_block.hardness *100);
+    const mining_progress = Math.floor(passed_block_duration / total_block_duration *100);
     mining_progressbar.setAttribute("aria-valuenow", mining_progress);
     mining_progressbar.querySelector(".progress-bar").style.width =  `${mining_progress}%`;
 
@@ -172,3 +222,6 @@ mining_update_progressbar();
 // autosave
 const min_in_ms = 1000 * 60;
 setInterval(save_progress, 5 * min_in_ms);
+
+// prevent dragging of images
+document.querySelectorAll(".main-container img").forEach(img => img.ondragstart = () => false);

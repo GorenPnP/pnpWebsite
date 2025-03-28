@@ -32,12 +32,12 @@
 	</div>
 
 	<div class="btns">
-		<a href="{% url 'crafting:inventory' %}" class="btn btn-outline-light">Inventar</a>
-		<a href="{% url 'crafting:index' %}" class="">Profil wechseln</a>
+		<a href="{% url 'crafting:inventory' %}">Inventar</a>
+		<a href="{% url 'crafting:regions' %}">Ressourcen sammeln</a>
+		<a class="mt-4" href="{% url 'crafting:index' %}">Profil wechseln</a>
 
 		{% if request.spieler.is_spielleiter %}
-			<div></div>
-			<a href="{% url 'crafting:sp_give_items' %}" class="">Profilen Items geben</a>
+			<a href="{% url 'crafting:sp_give_items' %}">Profilen Items geben</a>
 		{% endif %}
 	</div>
 </header>

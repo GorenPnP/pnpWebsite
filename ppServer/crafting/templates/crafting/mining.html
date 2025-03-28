@@ -23,22 +23,38 @@
 <div id="main-container">
     
     
+    <aside id="tools">
+        <h2>Werkzeuge</h2>
+
+        <div class="grid">
+            {% for i in tools %}
+            <div class="item tool tool--active" data-drop-id="{% localize off %}{{ i.item.id }}{% endlocalize %}" data-speed="{% localize off %}{{ i.speed }}{% endlocalize %}" title="{{ i.item.name }}"
+                {% if i.is_pick %}data-type="pick"{% endif %}
+                {% if i.is_axe %}data-type="axe"{% endif %}
+                {% if i.is_shovel %}data-type="shovel"{% endif %}
+            >
+                <img src="{{ i.item.icon_url }}" alt="{{ i.item.name }}">
+                <span class="num">{{ i.speed|floatformat }}</span>
+            </div>
+            {% endfor %}
+        </div>
+    </aside>
+
     <aside id="shop">
-        <h2>Perk-Shop</h2>
-        <p>Abh. von Profil & Region</p>
+        <h2>Perks</h2>
+        <p>(wird abhängig von Profil & Region)</p>
     </aside>
     
     <main id="mining" class="d-flex flex-column">
         <h2>Mining</h2>
     
         <div class="d-flex flex-column align-items-center justify-content-between m-auto gap-2">
-            <button id="mining-btn" onclick="mine()">
+            <button id="mining-btn" onmousedown="start_mining()" onmouseup="stop_mining()" onmouseleave="stop_mining()">
                 <img id="mining-btn__block-texture" src="" alt="">
                 <div class="progress" role="progressbar" aria-label="Abbaufortschritt" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
                     <div class="progress-bar bg-dark" style="width: 0%"></div>
                 </div>              
             </button>
-            <label>Hardness left: <b id="mining-btn__hardness"></b></label>
         </div>
     </main>
     
@@ -85,7 +101,7 @@
                 <h3 class="fade-with-drops">Zu Hause</h3>
                 <div class="grid grid--current-inv">
                     {% for i in items %}
-                        <div class="item" data-drop-id="{% localize off %}{{ i.item.id }}{% endlocalize %}" onclick="openDetails({% localize off %}{{ i.id }}{% endlocalize %})">
+                        <div class="item" data-drop-id="{% localize off %}{{ i.item.id }}{% endlocalize %}" onclick="openDetails({% localize off %}{{ i.item.id }}{% endlocalize %})">
                             <img src="{{ i.item.getIconUrl }}" alt="{{ i.item.name }}">
                             <span class="num">{{ i.num|floatformat }}</span>
                         </div>
