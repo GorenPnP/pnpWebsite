@@ -13,13 +13,13 @@ const save_spinner = document.querySelector("#save-spinner");
 const mining_progressbar = document.querySelector("#mining .progress");
 
 let current_block;
-let hardness_left = 0;
 let drops = {};
+let time_elapsed = 0;
 
 // A cross-browser requestAnimationFrame
 // See https://hacks.mozilla.org/2011/08/animating-with-javascript-from-setinterval-to-requestanimationframe/
-const requestAnimFrame = (function(){
-    return window.requestAnimationFrame       ||
+const requestAnimFrame = (function() {
+    return window.requestAnimationFrame    ||
         window.webkitRequestAnimationFrame ||
         window.mozRequestAnimationFrame    ||
         window.oRequestAnimationFrame      ||
@@ -34,6 +34,8 @@ let currently_mining_flag = false;
 let stop_mining_flag = false;
 
 function mining_set_block() {
+    // update mining time for finished block
+    time_elapsed += total_block_duration;
 
     // randomly get new block
     current_block = blocks[block_pool[Math.floor(Math.random() * block_pool.length)]];
@@ -55,7 +57,7 @@ function mining_set_block() {
     // update block mining duration
     const tool_speed = Math.max(parseInt(tool?.dataset.speed) || 0, 1);
     passed_block_duration = 0;
-    total_block_duration = current_block.hardness / (tool_speed+1) * 3000 // in ms
+    total_block_duration = current_block.hardness / tool_speed * 3000 // in ms
 }
 
 function mining_get_drops() {
@@ -86,14 +88,13 @@ function mining_get_drops() {
 
 // The mining loop
 let lastTime;
-function start_mining() {
+function mine() {
     if (stop_mining_flag) {
         stop_mining_flag = false;
         currently_mining_flag = false;
         lastTime = null;
         return;
     }
-    currently_mining_flag = true;
 
     let now = Date.now();
     let dt = lastTime ? now - lastTime : 0.0; // delta time in ms
@@ -107,11 +108,19 @@ function start_mining() {
     mining_update_progressbar();
 
     lastTime = now;
-    requestAnimFrame(start_mining);
+    requestAnimFrame(mine);
 };
 
+function start_mining(event) {
+    if (!event || event.button !== 0 || !event.isTrusted) { return; }
+
+    currently_mining_flag = true;
+    stop_mining_flag = false;
+    mine();
+}
+
 function stop_mining() {
-    stop_mining_flag = currently_mining_flag;
+    stop_mining_flag = true;
 }
 
 function mining_update_progressbar() {
@@ -161,8 +170,9 @@ function save_progress() {
     save_spinner.classList.add("visible");
     
     const save_drops = JSON.parse(JSON.stringify(drops));
+    const save_time = time_elapsed;
     post(
-        { drops: save_drops },
+        { drops: save_drops, time: save_time },
         _ => {
             save_spinner.classList.remove("visible");
             
@@ -192,6 +202,7 @@ function save_progress() {
                 // update its num
                 element.querySelector(".num").innerText = parseInt(element.querySelector(".num").innerText) + mined_num;
             }
+            time_elapsed -= save_time;
 
             // update drops' display
             mining_update_drops();

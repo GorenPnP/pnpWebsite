@@ -8,15 +8,11 @@ from django.utils.html import format_html
 from ppServer.utils import ConcatSubquery
 
 from .models import *
-from .templatetags.crafting.duration import duration
 
 
 class ProfileAdmin(admin.ModelAdmin):
-    list_display = ["owner", "name", "restricted", "_craftingTime"]
+    list_display = ["owner", "name", "restricted", "miningTime", "craftingTime"]
 
-    def _craftingTime(self, obj):
-        return duration(obj.craftingTime)
-    
     def get_queryset(self, request: HttpRequest) -> QuerySet[Any]:
         return super().get_queryset(request).prefetch_related("owner")
 
@@ -56,6 +52,7 @@ class RecipeAdmin(admin.ModelAdmin):
     list_display = ('icons_produkte', 'produkte', 'icons_zutaten', 'zutaten', 'table', 'duration', 'fertigkeiten')
     list_display_links = ('icons_produkte', 'produkte')
     search_fields = ('product__item__name', )
+    list_editable = ('duration',)
 
     exclude = ["wissen", "spezial"]
 

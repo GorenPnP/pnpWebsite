@@ -1,6 +1,8 @@
 import json
 
 from django.contrib import messages
+from django.db.models import Subquery, F, Q
+from django.db.models.functions import Coalesce
 from django.http import HttpResponseNotFound
 from django.http.response import JsonResponse
 from django.shortcuts import redirect, get_object_or_404, reverse
@@ -9,6 +11,7 @@ from django.views.generic.base import TemplateView
 from django.views.generic.list import ListView
 
 from ppServer.mixins import SpielleiterOnlyMixin, VerifiedAccountMixin
+from ppServer.utils import ConcatSubquery
 from shop.models import Tinker
 
 from .forms import AddToInventoryForm
@@ -57,8 +60,17 @@ class InventoryView(VerifiedAccountMixin, ProfileSetMixin, DetailView):
 	model = Profile
 	template_name = "crafting/inventory.html"
 
+	object = None
 	def get_object(self):
-		return self.relCrafting.profil
+		if self.object: return self.object
+		spieler = self.request.spieler.instance
+		if not spieler: return HttpResponseNotFound()
+
+		rel, _ = RelCrafting.objects.prefetch_related("profil").get_or_create(spieler=spieler)
+		self.object = rel.profil
+
+		return self.object
+
 
 	def get_context_data(self, **kwargs):
 		self.object = self.get_object()
@@ -71,7 +83,6 @@ class InventoryView(VerifiedAccountMixin, ProfileSetMixin, DetailView):
 
 			add_form = AddToInventoryForm(),
 			restricted_profile = self.object.restricted,
-			duration = self.object.craftingTime,
 			items = InventoryItem.objects.filter(char=self.object).order_by("item__name").prefetch_related("item"),
 		)
 
@@ -101,12 +112,12 @@ class InventoryView(VerifiedAccountMixin, ProfileSetMixin, DetailView):
 		if "details" in json_dict.keys():
 
 			try:
-				iid = int(json_dict["details"])
+				id = int(json_dict["details"])
 			except:
 				return JsonResponse({"message": "Konnte Parameter nicht lesbar empfangen"}, status=418)
 
 			# get inventory item (has to exist, because clicked on it in inventory)
-			iitem = get_object_or_404(InventoryItem, id=iid)
+			iitem = get_object_or_404(InventoryItem, item__id=id, char=self.get_object())
 			prod = Product.objects.filter(item=iitem.item).first()
 
 			weiteres = "illegal" if iitem.item.illegal else ""
@@ -279,25 +290,20 @@ class RecipeDetailsView(VerifiedAccountMixin, ProfileSetMixin, DetailView):
 	model = Recipe
 	template_name = "crafting/details.html"
 
-	def get_context_data(self, **kwargs):
-		recipe = self.get_object()
+	def get_queryset(self):
+		return super().get_queryset().prefetch_related("table", "ingredient_set__item", "product_set__item").annotate(
+			spezial_names = ConcatSubquery(Spezialfertigkeit.objects.filter(recipe=self.kwargs["pk"]).values("titel"), ", "),
+			wissen_names = ConcatSubquery(Wissensfertigkeit.objects.filter(recipe=self.kwargs["pk"]).values("titel"), ", "),
+		)
 
+	def get_context_data(self, **kwargs):
 		return super().get_context_data(
 			**kwargs,
 			topic = "Rezept",
 			app_index = "Crafting",
 			app_index_url = reverse("crafting:craft"),
 
-			ingredients = [{"link": "{}#{}".format(reverse("shop:tinker"), e.item.id), "name": e.item.name, "num": e.num, "icon": e.item.getIconUrl()} for e in recipe.ingredient_set.all()],
-			products = [{"link": "{}#{}".format(reverse("shop:tinker"), e.item.id), "name": e.item.name, "num": e.num, "icon": e.item.getIconUrl()} for e in recipe.product_set.all()],
-			table = {
-				"link": "{}#{}".format(reverse("shop:tinker"), recipe.table.id),
-				"name": recipe.table.name,
-				"icon": recipe.table.getIconUrl()
-				} if recipe.table else Recipe.getHandwerk(),
-			spezial = ", ".join([e.titel for e in recipe.spezial.all()]),
-			wissen = ", ".join([e.titel for e in recipe.wissen.all()]),
-			duration = recipe.duration,
+			handwerk = Recipe.getHandwerk(),
 		)
 
 
@@ -337,10 +343,39 @@ class SpGiveItemsView(VerifiedAccountMixin, SpielleiterOnlyMixin, ProfileSetMixi
 
 
 
+class RegionListView(VerifiedAccountMixin, ProfileSetMixin, ListView):
+	model = Region
+	template_name = "crafting/regions.html"
+
+	def get_queryset(self):
+		return super().get_queryset().filter(allowed_profiles=self.relCrafting.profil)
+	
+	def get_context_data(self, **kwargs):
+		drops = {region.pk: Tinker.objects.filter(drop__block__blockchance__region=region).distinct() for region in self.get_queryset()}
+
+		return super().get_context_data(
+			**kwargs,
+            topic = "Regionen für {}".format(self.relCrafting.profil.name),
+            app_index = "Crafting",
+            app_index_url = reverse("crafting:craft"),
+
+			drops = drops,
+        )
+
+
 class MiningView(VerifiedAccountMixin, ProfileSetMixin, DetailView):
 	model = Region
 	template_name = "crafting/mining.html"
+	object = None
 
+
+	def check_region_allowed(self):
+		self.object = self.object or self.get_object()
+		allowed = self.object.allowed_profiles.filter(id=self.relCrafting.profil.id).exists()
+		if not allowed:
+			messages.error(self.request, f"Kein Zutritt zur {self.object}")
+			return "crafting:regions"
+		return None
 
 	def get_context_data(self, **kwargs):
 		# collect mining blocks & their drops
@@ -350,44 +385,62 @@ class MiningView(VerifiedAccountMixin, ProfileSetMixin, DetailView):
 			for _ in range(block_chance.chance): pool.append(block_chance.block.pk)
 			blocks[block_chance.block.pk] = block_chance.block.toDict()
 
+		# collect tools
+		tool_qs = Tool.objects.filter(item__inventoryitem__char=self.relCrafting.profil)
+		tools = tool_qs.prefetch_related("item").annotate(
+			pick_maxspeed = Coalesce(Subquery(tool_qs.filter(is_pick=True).values("speed")[:1]), 0),
+			axe_maxspeed = Coalesce(Subquery(tool_qs.filter(is_axe=True).values("speed")[:1]), 0),
+			shovel_maxspeed = Coalesce(Subquery(tool_qs.filter(is_shovel=True).values("speed")[:1]), 0),
+		).filter(
+			(Q(is_pick=True) & Q(speed=F("pick_maxspeed"))) |
+			(Q(is_axe=True) & Q(speed=F("axe_maxspeed"))) |
+			(Q(is_shovel=True) & Q(speed=F("shovel_maxspeed")))
+		)
+
 		return super().get_context_data(
 			**kwargs,
             topic = "Mining von {}".format(self.relCrafting.profil.name),
             app_index = "Crafting",
-            app_index_url = reverse("crafting:craft"),
+            app_index_url = reverse("crafting:regions"),
 
             profil = self.relCrafting.profil,
             items = InventoryItem.objects.filter(char=self.relCrafting.profil).order_by("item__name").prefetch_related("item"),
 			block_pool = pool,
 			blocks = blocks,
+			tools = [tool.toDict() for tool in tools],
         )
 	
 	def get(self, request, *args, **kwargs):
-		self.object = self.get_object()
-		if not self.object.allowed_profiles.filter(id=self.relCrafting.profil.id).exists():
-			messages.error(self.request, f"Kein Zutritt zur {self.object}")
-			return redirect("crafting:index")
+		redirectUrl = self.check_region_allowed()
+		if redirectUrl: return redirect(redirectUrl)
 
 		return super().get(request, *args, **kwargs)
     
 	def post(self, *args, **kwargs):
-		self.object = self.get_object()
-		if not self.object.allowed_profiles.filter(id=self.relCrafting.profil.id).exists():
-			messages.error(self.request, f"Kein Zutritt zur {self.object}")
-			return redirect("crafting:index")
+		redirectUrl = self.check_region_allowed()
+		if redirectUrl: return redirect(redirectUrl)
 
 		json_dict = json.loads(self.request.body.decode("utf-8"))
 
 		# gather all the details of one item to display them
 		if "details" in json_dict:
 			return InventoryView(request=self.request).post(*args, **kwargs)
-		
-		if "drops" in json_dict:
+
+		if "drops" in json_dict and "time" in json_dict:
+			from datetime import datetime, timedelta
 			drops = json_dict["drops"]
+			time = timedelta(milliseconds=json_dict["time"])
 
 			for tinker in Tinker.objects.filter(pk__in=[k for k, v in drops.items() if v > 0]):
 				iitem, _ = InventoryItem.objects.get_or_create(char=self.relCrafting.profil, item=tinker)
 				iitem.num += drops[str(tinker.pk)]
 				iitem.save(update_fields=["num"])
+
+
+			# add mining time
+			if self.relCrafting.profil.miningTime: self.relCrafting.profil.miningTime += time
+			else:						self.relCrafting.profil.miningTime  = time
+
+			self.relCrafting.profil.save(update_fields=["miningTime"])
 
 			return JsonResponse({})

@@ -17,7 +17,10 @@
 {% endif %}
 
 <div class="head">
-	<div class="crafting-time">Crafting Time: {{ duration|duration|default:'-' }}</div>
+	<div class="crafting-time">
+		<p>Mining Time: {{ object.miningTime|duration|default:'-' }}</p>
+		<p>Crafting Time: {{ object.craftingTime|duration|default:'-' }}</p>
+	</div>
 
 	<div class="btns">
 		<a href="{% url 'crafting:regions' %}">Ressourcen sammeln</a>

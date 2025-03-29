@@ -36,6 +36,9 @@
                 <img src="{{ i.item.icon_url }}" alt="{{ i.item.name }}">
                 <span class="num">{{ i.speed|floatformat }}</span>
             </div>
+            {% empty %}
+            </div>
+            <div>Tja, du hast wohl nix. Musste wohl Fäuste benutzen :)
             {% endfor %}
         </div>
     </aside>
@@ -49,7 +52,7 @@
         <h2>Mining</h2>
     
         <div class="d-flex flex-column align-items-center justify-content-between m-auto gap-2">
-            <button id="mining-btn" onmousedown="start_mining()" onmouseup="stop_mining()" onmouseleave="stop_mining()">
+            <button id="mining-btn" onmousedown="start_mining(event)" onmouseup="stop_mining()" onmouseleave="stop_mining()">
                 <img id="mining-btn__block-texture" src="" alt="">
                 <div class="progress" role="progressbar" aria-label="Abbaufortschritt" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
                     <div class="progress-bar bg-dark" style="width: 0%"></div>

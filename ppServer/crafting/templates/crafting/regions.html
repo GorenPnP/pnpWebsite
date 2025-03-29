@@ -1,5 +1,5 @@
 {% extends 'base/headed_main.html' %}
-{% load static l10n %}
+{% load static l10n crafting.dict_key %}
 
 {% block extra-head %}
 <link rel="stylesheet"  type="text/css" href="{% static 'crafting/css/inventory.css' %}">
@@ -24,9 +24,17 @@
 <ul class="list-group">
     {% for region in object_list %}
     <li class="list-group-item d-flex justify-content-between align-items-center">
-        <img src="{{ region.icon.url }}" class="rounded-circle border border-primary" style="height: 47px; aspect-ratio: 1">
-        <a href="{% url 'crafting:mining' region.pk %}" class="ms-2 me-auto fw-bold text-dark">
-            {{ region.name }}
+        <a href="{% url 'crafting:mining' region.pk %}" class="text-dark d-flex flex-wrap align-items-center justify-content-between w-100">
+
+            <div>
+                <img src="{{ region.icon.url }}" class="rounded-circle border border-primary" style="height: 50px; aspect-ratio: 1">
+                <span class="mx-2 fw-bold">{{ region.name }}</span>
+            </div>
+            <span>
+            {% for item in drops|dict_key:region.pk %}
+                <img class="drop" src="{{ item.icon.url }}" alt="{{ item.name }}" style="height: 27px; aspect-ratio: 1;">
+            {% endfor %}
+            </span>
         </a>
     </li>
     {% empty %}

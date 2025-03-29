@@ -35,7 +35,8 @@ class Profile(models.Model):
 	owner = models.ForeignKey(Spieler, on_delete=models.SET_NULL, null=True)
 	name = models.CharField(max_length=100, unique=True)
 
-	craftingTime = models.DurationField(null=True, blank=True, default=timedelta(minutes=0))
+	miningTime = models.DurationField('mining time (hh:mm:ss)', null=True, blank=True, default=timedelta(minutes=0))
+	craftingTime = models.DurationField('crafting time (hh:mm:ss)', null=True, blank=True, default=timedelta(minutes=0))
 	tableOrdering = models.TextField(default="[]")
 
 	electricity = models.FloatField(default=0.0)
@@ -137,7 +138,7 @@ class Recipe(models.Model):
 		verbose_name_plural = "Rezepte"
 
 	table = models.ForeignKey(to=Tinker, on_delete=models.CASCADE, null=True, blank=True)
-	duration = models.DurationField('herstellungsdauer (dd:hh:mm)', default=timedelta(minutes=0), null=True, blank=True)
+	duration = models.DurationField('herstellungsdauer (hh:mm:ss)', default=timedelta(seconds=0), null=True, blank=True)
 
 	spezial = models.ManyToManyField(Spezialfertigkeit, blank=True)
 	wissen = models.ManyToManyField(Wissensfertigkeit, blank=True)

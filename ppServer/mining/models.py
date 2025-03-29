@@ -153,6 +153,13 @@ class Entity(models.Model):
 
 	last_changed_at = models.DateTimeField(auto_now=True)
 
+	class PrefetchMaterialManager(models.Manager):
+
+		def get_queryset(self):
+			return super().get_queryset().prefetch_related("material")
+
+	objects = PrefetchMaterialManager()
+
 
 	def __str__(self):
 		return "Objekt {} in Layer {} von {}".format(self.material.name, self.layer.index, self.layer.region.name)

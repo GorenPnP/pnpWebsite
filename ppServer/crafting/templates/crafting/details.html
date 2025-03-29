@@ -13,31 +13,38 @@
 </div>
 
 <div class="overlay">
-	<label for="overlay__duration">Crafting Time:</label><span id="overlay__duration">{{ duration|duration }}</span>
-	<label for="overlay__spezial">Spezialfertigkeiten:</label><div id="overlay__spezial">{{ spezial|default:"-" }}</div>
-	<label for="overlay__wissen">Wissensfertigkeiten:</label><div id="overlay__wissen">{{ wissen|default:"-" }}</div>
+	<label for="overlay__duration">Crafting Time:</label><span id="overlay__duration">{{ object.duration|duration }}</span>
+	<label for="overlay__spezial">Spezialfertigkeiten:</label><div id="overlay__spezial">{{ object.spezial_names|default:"-" }}</div>
+	<label for="overlay__wissen">Wissensfertigkeiten:</label><div id="overlay__wissen">{{ object.wissen_names|default:"-" }}</div>
 	<label for="overlay__table">Zutaten:</label><div id="overlay__ingredients">
-		{% for item in ingredients %}
-			<a class="ingredient" href="{{ item.link }}">
-				<img src="{{ item.icon }}" alt="{{ item.name }}">
-				<span class="num">{{ item.num|floatformat:-1 }}</span>
-				<span class="name">{{ item.name }}</span>
+		{% for ingredient in object.ingredient_set.all %}
+			<a class="ingredient" href="{% url 'shop:tinker' %}#{{ ingredient.item.id }}">
+				<img src="{{ ingredient.item.icon.url }}" alt="{{ ingredient.item.name }}">
+				<span class="num">{{ ingredient.num|floatformat:-1 }}</span>
+				<span class="name">{{ ingredient.item.name }}</span>
 			</a>
 		{% empty %}<div>-</div>
 		{% endfor %}
 	</div>
 	<label for="overlay__table">Hergestellt an:</label><div id="overlay__table">
-		<a class="ingredient" href="{{ table.link }}">
-				<img src="{{ table.icon }}" alt="{{ table.name }}">
-				<span class="name">{{ table.name }}</span>
-			</a>
+		{% if object.table %}
+		<a class="ingredient" href="{% url 'shop:tinker' %}#{{ object.table.id }}">
+			<img src="{{ object.table.icon.url }}" alt="{{ object.table.name }}">
+			<span class="name">{{ object.table.name }}</span>
+		</a>
+		{% else %}
+		<div class="ingredient">
+			<img src="{{ handwerk.icon }}" alt="{{ handwerk.name }}">
+			<span class="name">{{ handwerk.name }}</span>
+		</div>
+		{% endif %}
 	</div>
 	<label for="overlay__table">Produkte:</label><div id="overlay__table">
-		{% for item in products %}
-			<a class="ingredient" href="{{ item.link }}">
-				<img src="{{ item.icon }}" alt="{{ item.name }}">
-				<span class="num">{{ item.num|floatformat:-1 }}</span>
-				<span class="name">{{ item.name }}</span>
+		{% for product in object.product_set.all %}
+			<a class="ingredient" href="{% url 'shop:tinker' %}#{{ product.item.id }}">
+				<img src="{{ product.item.icon.url }}" alt="{{ product.item.name }}">
+				<span class="num">{{ product.num|floatformat:-1 }}</span>
+				<span class="name">{{ product.item.name }}</span>
 			</a>
 		{% empty %}<div>-</div>
 		{% endfor %}
