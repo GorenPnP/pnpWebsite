@@ -24,6 +24,7 @@
 <ul class="list-group">
     {% for region in object_list %}
     <li class="list-group-item d-flex justify-content-between align-items-center">
+        {% if region.accessible %}
         <a href="{% url 'crafting:mining' region.pk %}" class="text-dark d-flex flex-wrap align-items-center justify-content-between w-100">
 
             <div>
@@ -36,9 +37,25 @@
             {% endfor %}
             </span>
         </a>
+        {% else %}
+        <form method="post" id="region-form--{{ region.pk }}" class="bg-medium text-dark d-flex flex-wrap align-items-center justify-content-between w-100">
+            {% csrf_token %}
+            <input type="number" value="{{ region.pk }}" name="region_id" hidden>
+            <div>
+                <img src="{{ region.icon.url }}" class="rounded-circle border border-primary" style="height: 50px; aspect-ratio: 1">
+                <span class="mx-2 fw-bold">{{ region.name }}</span>
+            </div>
+            <span>
+                {% for item in drops|dict_key:region.pk %}
+                <img class="drop" src="{{ item.icon.url }}" alt="{{ item.name }}" style="height: 27px; aspect-ratio: 1;">
+                {% endfor %}
+            </span>
+        </form>
+        <p><button type="submit" form="region-form--{{ region.pk }}" class="btn btn-dark btn-sm">Zugang kaufen <span class="text-danger">{{ region.wooble_cost }}</span></button></p>
+        {% endif %}
     </li>
     {% empty %}
-    <p>Dieses Profil hat noch keine gefunden/freigeschaltet.</p>
+    <p>Es gibt (noch) keine Regionen, die du mit deiner Zerstörungswut heimsuchen könntest.</p>
     <a class="text-light" href="{% url 'crafting:index' %}">Profil wechseln</a>
     {% endfor %}
 </ul>

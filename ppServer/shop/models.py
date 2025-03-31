@@ -430,6 +430,8 @@ class Tinker(BaseShop):
     firmen = models.ManyToManyField('Firma', through='FirmaTinker', blank=True)
 
     minecraft_mod_id = models.CharField(max_length=512, null=True, blank=True)
+    wooble_buy_price = models.FloatField(default=1.0)
+    wooble_sell_price = models.FloatField(default=1.0)
 
 
     @staticmethod

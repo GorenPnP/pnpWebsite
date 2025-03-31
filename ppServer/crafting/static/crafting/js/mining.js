@@ -1,18 +1,19 @@
+const tool_types = ["pick", "axe", "shovel"];
+
 const block_pool = JSON.parse(document.querySelector("#block_pool").innerHTML);
 const blocks = JSON.parse(document.querySelector("#blocks").innerHTML);
+const block_count = parseInt(document.querySelector("#block_count").innerHTML);
+const perks = JSON.parse(document.querySelector("#perks").innerHTML);
 const items = Object.values(blocks).reduce((acc, block) => {
     block.drops
         .map(drop => drop.item)
         .forEach(droppable_item => acc[droppable_item.id] = droppable_item);
     return acc;
 }, {});
-
-const mining_img = document.querySelector("#mining-btn__block-texture");
-const mining_hardness = document.querySelector("#mining-btn__hardness");
+const multidrop_percentage = tool_types.reduce((acc, type) => ({...acc, [type]: 0.0}), {});
+const spread_percentage = tool_types.reduce((acc, type) => ({...acc, [type]: 0.0}), {});
 const save_spinner = document.querySelector("#save-spinner");
-const mining_progressbar = document.querySelector("#mining .progress");
 
-let current_block;
 let drops = {};
 let time_elapsed = 0;
 
@@ -28,70 +29,107 @@ const requestAnimFrame = (function() {
             window.setTimeout(callback, 1000 / 60);
         };
 })();
-let total_block_duration = 0;
-let passed_block_duration = 0;
-let currently_mining_flag = false;
-let stop_mining_flag = false;
+
+let active_block_index = null;
+let total_block_duration = Array.from({length: block_count});
+let passed_block_duration = Array.from({length: block_count});
+let current_block = Array.from({length: block_count});
 
 function mining_set_block() {
     // update mining time for finished block
-    time_elapsed += total_block_duration;
+    time_elapsed += total_block_duration[active_block_index] || 0;
 
-    // randomly get new block
-    current_block = blocks[block_pool[Math.floor(Math.random() * block_pool.length)]];
+    for (let i = 0; i < block_count; i++) {
+        const block_tag = document.querySelector(`#mining .mining-btn#mining-btn--${i}`)
 
-    // set block display
-    mining_img.src = current_block.icon;
-    mining_img.alt = current_block.name;
+        // randomly get new block
+        current_block[i] = blocks[block_pool[Math.floor(Math.random() * block_pool.length)]];
 
-    // update preferred tool
-    let type;
-    if (current_block.effective_pick) type = "pick"
-    else if (current_block.effective_axe) type = "axe"
-    else type = "shovel"
+        // set block display
+        block_tag.querySelector(".mining-btn__block-texture").src = current_block[i].icon;
+        block_tag.querySelector(".mining-btn__block-texture").alt = current_block[i].name;
 
-    document.querySelectorAll(".tool.tool--active").forEach(tool => tool.classList.remove("tool--active"));
-    const tool = document.querySelector(`.tool[data-type="${type}"]`);
-    tool?.classList.add("tool--active");
+        // update preferred tool
+        let type;
+        if (current_block[i].effective_pick) type = "pick";
+        else if (current_block[i].effective_axe) type = "axe";
+        else type = "shovel";
+        current_block[i].toolType = type;
 
-    // update block mining duration
-    const tool_speed = Math.max(parseInt(tool?.dataset.speed) || 0, 1);
-    passed_block_duration = 0;
-    total_block_duration = current_block.hardness / tool_speed * 3000 // in ms
+        // get perk speed
+        const tool = document.querySelector(`.tool[data-type="${type}"]`);
+        const perk_speed = parseInt(tool.dataset.perkSpeed) || 0;
+
+        // update block mining duration
+        const tool_speed = Math.max(parseInt(tool?.dataset.speed) || 0, 1);
+        passed_block_duration[i] = 0;
+        total_block_duration[i] = current_block[i].hardness / (tool_speed + perk_speed) * 3000 // in ms
+    }
 }
 
-function mining_get_drops() {
-    let num_block_drops = 0;
-    for (const drop of current_block.drops) {
-        // no lock, sorry
-        if (Math.ceil(Math.random() * 100) > drop.chance) { continue; }
-        
-        // add drop
-        drops[drop.item.id] = (drops[drop.item.id] || 0) + 1;
+function mining_get_drops(index) {
+    _mining_get_drops_of_block(index);
 
-        // add particle
-        const particle = document.createElement("span");
-        particle.classList.add("particle--drop");
-        particle.innerText = "+ " + drop.item.name;
-        const delay = num_block_drops++ * 150;
-        particle.style.animationDelay = delay + "ms";
-        document.querySelector("#mining-btn").appendChild(particle);
+    /* mining spread */
 
-        const timeout = parseInt(window.getComputedStyle(particle).getPropertyValue("--timeout") || "1000");
-        setTimeout(() => particle.remove(), delay + timeout -100);
+    // indices of all possible blocks
+    let other_block_indices = current_block
+        .map((block, i) => ({
+            index: i,
+            pick: i !== index &&
+                block.toolType === current_block[index].toolType &&
+                block.hardness <= current_block[index].hardness
+        }))
+        .filter(e => e.pick)
+        .map(e => e.index);
+
+    // how many blocks?
+    let runs = Math.floor(spread_percentage[current_block[index].toolType] / 100) + (Math.random() * 100 < spread_percentage[current_block[index].toolType] % 100 ? 1 : 0);
+    
+    // spread to blocks
+    while(runs-- && other_block_indices.length) {
+        const other_index = other_block_indices[Math.floor(Math.random() * other_block_indices.length)];
+
+        other_block_indices = other_block_indices.filter(i => i !== other_index);
+        _mining_get_drops_of_block(other_index);
     }
 
     // update inventory
     mining_update_drops();
 }
 
+function _mining_get_drops_of_block(index) {
+    let num_block_drops = 0;
+    for (const drop of current_block[index].drops) {
+        let runs = 1 + Math.floor(multidrop_percentage[current_block[index].toolType] / 100) + (Math.random() * 100 < multidrop_percentage[current_block[index].toolType] % 100 ? 1 : 0);
+
+        while (runs--) {
+
+            // no luck, sorry
+            if (Math.ceil(Math.random() * 100) > drop.chance) { continue; }
+            
+            // add drop
+            drops[drop.item.id] = (drops[drop.item.id] || 0) + 1;
+
+            // add particle
+            const particle = document.createElement("span");
+            particle.classList.add("particle--drop");
+            if (runs) particle.classList.add("particle--multidrop");
+            particle.innerText = "+ " + drop.item.name;
+            const delay = num_block_drops++ * 150;
+            particle.style.animationDelay = delay + "ms";
+            document.querySelector(`.mining-btn#mining-btn--${index}`).appendChild(particle);
+
+            const timeout = parseInt(window.getComputedStyle(particle).getPropertyValue("--timeout") || "1000");
+            setTimeout(() => particle.remove(), delay + timeout -100);
+        }
+    }
+}
 
 // The mining loop
 let lastTime;
 function mine() {
-    if (stop_mining_flag) {
-        stop_mining_flag = false;
-        currently_mining_flag = false;
+    if (active_block_index === null) {
         lastTime = null;
         return;
     }
@@ -99,13 +137,21 @@ function mine() {
     let now = Date.now();
     let dt = lastTime ? now - lastTime : 0.0; // delta time in ms
 
-    passed_block_duration += dt;
-    if (passed_block_duration >= total_block_duration) {
-        mining_get_drops();
+    passed_block_duration[active_block_index] += dt;
+    if (passed_block_duration[active_block_index] >= total_block_duration[active_block_index]) {
+        mining_get_drops(active_block_index);
         mining_set_block();
+        mining_update_progressbar();
+
+    } else {
+        mining_update_progressbar(active_block_index);
     }
 
-    mining_update_progressbar();
+    // set active tool
+    document.querySelectorAll(".tool.tool--active").forEach(tool => tool.classList.remove("tool--active"));
+    const tool = document.querySelector(`.tool[data-type="${current_block[active_block_index].toolType}"]`);
+    tool?.classList.add("tool--active");
+
 
     lastTime = now;
     requestAnimFrame(mine);
@@ -114,31 +160,38 @@ function mine() {
 function start_mining(event) {
     if (!event || event.button !== 0 || !event.isTrusted) { return; }
 
-    currently_mining_flag = true;
-    stop_mining_flag = false;
+    active_block_index = parseInt(event.target.closest(".mining-btn").id.replace("mining-btn--", ""));
+
     mine();
 }
 
 function stop_mining() {
-    stop_mining_flag = true;
+    active_block_index = null;
 }
 
-function mining_update_progressbar() {
+function mining_update_progressbar(index=null) {
 
-    // progress in %
-    const mining_progress = Math.floor(passed_block_duration / total_block_duration *100);
-    mining_progressbar.setAttribute("aria-valuenow", mining_progress);
-    mining_progressbar.querySelector(".progress-bar").style.width =  `${mining_progress}%`;
+    const indices = index !== null ? [index] : Array.from({length: block_count}, (_, i) => i);
 
-    // hardness-color
-    let color = "--bs-dark-rgb";
-    if (current_block.hardness < 10) color = "--bs-info-rgb";
-    else if (current_block.hardness < 50) color = "--bs-success-rgb";
-    else if (current_block.hardness < 200) color = "--bs-warning-rgb";
-    else if (current_block.hardness < 1000) color = "--bs-danger-rgb";
-    else color = "--bs-dark-rgb";
+    for (let i of indices) {
 
-    mining_progressbar.querySelector(".progress-bar").style.setProperty("--bs-dark-rgb", `var(${color})`);
+        // progress in %
+        const progress = Math.floor(passed_block_duration[i] / total_block_duration[i] *100);
+        const progress_tag = document.querySelector(`#mining .mining-btn#mining-btn--${i} .progress`);
+        const progressbar_tag = progress_tag.querySelector(".progress-bar");
+        progress_tag.setAttribute("aria-valuenow", progress);
+        progressbar_tag.style.width =  `${progress}%`;
+
+        // hardness-color
+        let color = "--bs-dark-rgb";
+        if (current_block[i].hardness < 10) color = "--bs-info-rgb";
+        else if (current_block[i].hardness < 50) color = "--bs-success-rgb";
+        else if (current_block[i].hardness < 200) color = "--bs-warning-rgb";
+        else if (current_block[i].hardness < 1000) color = "--bs-danger-rgb";
+        else color = "--bs-dark-rgb";
+
+        progressbar_tag.style.setProperty("--bs-dark-rgb", `var(${color})`);
+    }
 }
 
 function mining_update_drops() {
@@ -163,9 +216,12 @@ function mining_update_drops() {
     }
 }
 
-function save_progress() {
+function save_progress(on_success=() => {}, on_error=() => {}) {
     // nothing to save? -> Skip
-    if (!Object.values(drops).some(num => num)) { return; }
+    if (!Object.values(drops).some(num => num)) {
+        on_success();
+        return;
+    }
 
     save_spinner.classList.add("visible");
     
@@ -206,6 +262,8 @@ function save_progress() {
 
             // update drops' display
             mining_update_drops();
+
+            on_success();
 	    },
         _ => {
             save_spinner.classList.remove("visible");
@@ -221,10 +279,68 @@ function save_progress() {
             const container = document.querySelector(".main-container .infos");
             container.appendChild(dummy.firstChild);
             dummy.remove();
+
+            on_error();
         }
     )
 }
 
+function perk_update_effects() {
+    const get_perk_number = (effect, tool_type) => {
+        return perks
+            .filter(perk => perk.effect === effect && (!perk.tool_type || perk.tool_type === tool_type))
+            .map(perk => parseInt(document.querySelector(`#shop .grid--perks [data-drop-id="${perk.item}"] .num__effect`).dataset.effect))
+            .reduce((sum, num) => sum + num, 0);
+    };
+
+    for (const type of tool_types) {
+
+        /* tool speed */
+        
+        // get perk speed
+        const perk_speed = get_perk_number("speed", type);
+        if (perk_speed) {
+
+            // get tool
+            const tool = document.querySelector(`.tool[data-type="${type}"]`);
+    
+            // display perk speed
+            tool.querySelector(".num").innerHTML = `${tool.dataset.speed} <span class="text-success"> +${perk_speed}</span>`;
+            tool.dataset.perkSpeed = perk_speed;
+        }
+
+
+        /* multidrop */
+        multidrop_percentage[type] = get_perk_number("multidrop", type);
+
+        /* spread */
+        spread_percentage[type] = get_perk_number("spread", type);
+    }
+}
+
+function perk_buy_stufe(item_id) {
+    // save everything first before reloading page
+    
+    save_progress(on_success = () => {
+        save_spinner.classList.add("visible");
+
+        post(
+            { perk_item: item_id },
+            _ => {
+                save_spinner.classList.remove("visible");
+                location.reload();
+            },
+            error => {
+                save_spinner.classList.remove("visible");
+                alert(error.response.data.message);
+            }
+        );
+    });
+}
+
+
+// init perks
+perk_update_effects();
 
 // init mining block
 mining_set_block();

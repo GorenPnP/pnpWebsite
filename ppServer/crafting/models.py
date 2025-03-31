@@ -2,6 +2,7 @@ import json
 from datetime import timedelta
 
 from django.db import models
+from django.db.models.query import QuerySet
 from django.core.validators import MinValueValidator, MaxValueValidator
 
 from django_resized import ResizedImageField
@@ -41,6 +42,7 @@ class Profile(models.Model):
 
 	electricity = models.FloatField(default=0.0)
 	thermic = models.FloatField(default=0.0)
+	woobles = models.FloatField(default=0.0, validators=[MinValueValidator(0.0)])
 
 	restricted = models.BooleanField(default=False)
 
@@ -48,7 +50,7 @@ class Profile(models.Model):
 		return self.name
 
 
-	def getTables(self):
+	def getTables(self) -> list[dict["id", "name", "icon"]]:
 
 		# get tables
 		rawTables = Recipe.getTables()
@@ -154,12 +156,14 @@ class Recipe(models.Model):
 
 	# get all used table instances from db in alpabetical order
 	@staticmethod
-	def getTables():
+	def getTables() -> QuerySet[Tinker]:
 		return Tinker.objects.filter(recipe__isnull=False).distinct().order_by("name")
 
 
 
 ############### Mining #################
+
+ToolType = models.TextChoices("ToolType", "pick axe shovel")
 
 class Region(models.Model):
 
@@ -169,6 +173,7 @@ class Region(models.Model):
 
 	icon = ResizedImageField(size=[64, 64])
 	name = models.CharField(max_length=64, unique=True)
+	wooble_cost = models.FloatField(default=0.0, validators=[MinValueValidator(0.0)])
 
 	allowed_profiles = models.ManyToManyField(Profile, blank=True)
 
@@ -265,3 +270,30 @@ class Tool(models.Model):
 			"is_axe": self.is_axe,
 			"is_shovel": self.is_shovel,
 		}
+
+
+class MiningPerk(models.Model):
+
+	class Meta:
+		verbose_name = "Mining-Perk"
+		verbose_name_plural = "Mining-Perks"
+		ordering = ["region", "effect", "item__name", "tool_type"]
+		unique_together = ["effect", "tool_type", "region"]
+
+	Effect = models.TextChoices("Effect", "speed multidrop block_count spread")
+	def default_perk_dict(): return {i: 1.0 for i in range(1, 11)}
+
+	beschreibung = models.TextField()
+
+	# what does it do?
+	effect = models.CharField(max_length=32, choices=Effect.choices, default="speed")
+	tool_type = models.CharField(max_length=32, choices=ToolType.choices, null=True, blank=True)
+	effect_increment = models.JSONField(default=default_perk_dict, null=False, blank=False)
+
+	# when does it apply?
+	item = models.OneToOneField(Tinker, on_delete=models.CASCADE, null=True)
+	region = models.ForeignKey(Region, on_delete=models.CASCADE, null=True, blank=True)
+	stufe_wooble_price = models.JSONField(default=default_perk_dict, null=False, blank=False)
+
+	def __str__(self):
+		return self.get_effect_display() + " " + (self.get_tool_type_display() if self.tool_type else "global")

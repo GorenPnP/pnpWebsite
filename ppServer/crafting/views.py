@@ -1,7 +1,8 @@
 import json
+from datetime import timedelta
 
 from django.contrib import messages
-from django.db.models import Subquery, F, Q
+from django.db.models import Subquery, F, Q, Exists, OuterRef
 from django.db.models.functions import Coalesce
 from django.http import HttpResponseNotFound
 from django.http.response import JsonResponse
@@ -170,6 +171,20 @@ class CraftingView(VerifiedAccountMixin, ProfileSetMixin, ListView):
 	def get_queryset(self):
 		return InventoryItem.objects.prefetch_related("item").filter(char=self.relCrafting.profil)
 
+	def get_recipe_queryset(self, set_perk_filter=True) -> QuerySet[Recipe]:
+		owned_perk_items = Tinker.objects.exclude(miningperk=None).filter(inventoryitem__char=self.relCrafting.profil)
+		qs = Recipe.objects.prefetch_related("ingredient_set__item", "product_set__item")\
+			.annotate(
+				ingredient_exists = Exists(Ingredient.objects.filter(recipe=OuterRef("pk"))),
+				produces_perk = Exists(MiningPerk.objects.filter(item__in=OuterRef("product__item"))),
+				produces_known_perk = Exists(Product.objects.filter(recipe=OuterRef("pk"), item__in=owned_perk_items)),
+			)
+
+		if self.relCrafting.profil.restricted: qs = qs.filter(ingredient_exists=True)
+		if set_perk_filter: qs = qs.filter(produces_known_perk=False)
+
+		return qs.distinct()
+
 	def get_context_data(self, **kwargs):
 		# collect current inventory
 		self.inventory = {i.item.id: i.num for i in self.get_queryset()}
@@ -183,7 +198,7 @@ class CraftingView(VerifiedAccountMixin, ProfileSetMixin, ListView):
 			topic = table_list[0]["name"],
 
 			tables = table_list,
-			recipes = get_recipes_of_table(self.inventory, self.relCrafting.profil.restricted, table_list[0]["id"] if len(table_list) else 0),
+			recipes = construct_recipes(self.get_recipe_queryset(), self.inventory, table_list[0]["id"] if len(table_list) else 0),
 		)
 
 
@@ -199,22 +214,26 @@ class CraftingView(VerifiedAccountMixin, ProfileSetMixin, ListView):
 				table_id = int(json_dict["table"])
 			except: return JsonResponse({"message": "Parameter nicht lesbar angekommen"}, status=418)
 
-			return JsonResponse({"recipes": get_recipes_of_table(self.inventory, self.relCrafting.profil.restricted, table_id)})
+			return JsonResponse({"recipes": construct_recipes(self.get_recipe_queryset(), self.inventory, table_id)})
 
 
 		# search for an item, return just names for autocomplete
 		if "search" in json_dict.keys():
+			visible_recipes = self.get_recipe_queryset()
+			all_items = Tinker.objects.filter(Q(ingredient__recipe__in=visible_recipes) | Q(prod__recipe__in=visible_recipes)).values_list("name", flat=True)
 
-			search = json_dict["search"]
-			return JsonResponse({"res": [{"name": t.name} for t in Tinker.objects.filter(name__iregex=search) if not (self.relCrafting.profil.restricted and not TinkerNeeds.objects.filter(product=t).exists())]})
+			return JsonResponse({"res": list(all_items.filter(name__iregex=json_dict["search"]).distinct())})
 
 
 		# search for an item
 		if "search_btn" in json_dict.keys():
 			search = json_dict["search_btn"]
+			recipe_qs = self.get_recipe_queryset()
 
-			return JsonResponse({"as_product": construct_recipes(Product.objects.filter(item__name__iregex=search), self.inventory, self.relCrafting),
-                           "as_ingredient": construct_recipes(Ingredient.objects.filter(item__name__iregex=search), self.inventory, self.relCrafting)})
+			return JsonResponse({
+				"as_product": construct_recipes(recipe_qs.filter(product__item__name__iregex=search), self.inventory),
+				"as_ingredient": construct_recipes(recipe_qs.filter(ingredient__item__name__iregex=search), self.inventory),
+			})
 
 
 		# craft items out of others at a table
@@ -227,11 +246,17 @@ class CraftingView(VerifiedAccountMixin, ProfileSetMixin, ListView):
 				return JsonResponse({"message": "Parameter nicht lesbar angekommen"}, status=418)
 
 			# get the product prototype
-			recipe = get_object_or_404(Recipe, id=id)
+			recipe = get_object_or_404(self.get_recipe_queryset(set_perk_filter=False), id=id)
 
 			# test if table owned
 			if recipe.table and recipe.table.id not in self.inventory.keys():
 				return JsonResponse({"message": "Tisch nicht vorhanden."}, status=418)
+			
+			# handle recipe that produces a perk:
+			if recipe.produces_perk:
+				num = 1
+				if recipe.produces_known_perk:
+					return JsonResponse({"message": "Den Perk hast du schon hergestellt."}, status=418)
 
 
 			# test if enough ingredients exist and collect them in 'ingredients'. Keys are tinker_id's
@@ -348,7 +373,9 @@ class RegionListView(VerifiedAccountMixin, ProfileSetMixin, ListView):
 	template_name = "crafting/regions.html"
 
 	def get_queryset(self):
-		return super().get_queryset().filter(allowed_profiles=self.relCrafting.profil)
+		return super().get_queryset().annotate(
+			accessible = Exists(Profile.objects.filter(pk=self.relCrafting.profil.pk, region=OuterRef("pk")))
+		)
 	
 	def get_context_data(self, **kwargs):
 		drops = {region.pk: Tinker.objects.filter(drop__block__blockchance__region=region).distinct() for region in self.get_queryset()}
@@ -361,6 +388,28 @@ class RegionListView(VerifiedAccountMixin, ProfileSetMixin, ListView):
 
 			drops = drops,
         )
+	
+	def post(self, *args, **kwargs):
+		try:
+			region = get_object_or_404(Region, id=int(self.request.POST.get("region_id")))
+		except:
+			messages.error(self.request, "Parameter nicht lesbar angekommen")
+			return redirect("crafting:regions")
+
+
+
+		if region.wooble_cost > self.relCrafting.profil.woobles:
+			messages.error(self.request, "Das ist zu teuer für dich")
+			return redirect("crafting:regions")
+
+
+		self.relCrafting.profil.woobles -= region.wooble_cost
+		self.relCrafting.profil.save(update_fields=["woobles"])
+
+		region.allowed_profiles.add(self.relCrafting.profil)
+		messages.success(self.request, f"Der weg in {region.__str__()} ist jetzt frei!")
+		return redirect("crafting:regions")
+
 
 
 class MiningView(VerifiedAccountMixin, ProfileSetMixin, DetailView):
@@ -397,17 +446,37 @@ class MiningView(VerifiedAccountMixin, ProfileSetMixin, DetailView):
 			(Q(is_shovel=True) & Q(speed=F("shovel_maxspeed")))
 		)
 
+		# inventory items
+		items = InventoryItem.objects.filter(char=self.relCrafting.profil).order_by("item__name").prefetch_related("item")
+
+		# active perks
+		perk_items = items.exclude(item__miningperk=None).filter(Q(item__miningperk__region=None) | Q(item__miningperk__region=self.kwargs["pk"])).prefetch_related("item__miningperk")
+		perks = list(MiningPerk.objects.filter(item__in=[i.item for i in perk_items]).values("item", "effect", "tool_type", "effect_increment", "stufe_wooble_price"))
+
+		# num simultaneously displayed blocks
+		block_count = 1
+		block_perk_qs = MiningPerk.objects.filter(item__in=[i.item for i in perk_items], effect="block_count").annotate(
+			stufe = Subquery(InventoryItem.objects.filter(char=self.relCrafting.profil, item=OuterRef("item")).values_list("num", flat=True)[:1])
+		)
+		for perk in block_perk_qs:
+			for stufe in range(1, int(perk.stufe)+1):
+				block_count += perk.effect_increment[str(stufe)]
+
+
 		return super().get_context_data(
 			**kwargs,
-            topic = "Mining von {}".format(self.relCrafting.profil.name),
-            app_index = "Crafting",
+            topic = self.object.__str__(),
+            app_index = "Region wechseln",
             app_index_url = reverse("crafting:regions"),
 
             profil = self.relCrafting.profil,
-            items = InventoryItem.objects.filter(char=self.relCrafting.profil).order_by("item__name").prefetch_related("item"),
+            items = items,
 			block_pool = pool,
 			blocks = blocks,
+			block_count = block_count,
 			tools = [tool.toDict() for tool in tools],
+			perk_items = perk_items,
+			perks = perks,
         )
 	
 	def get(self, request, *args, **kwargs):
@@ -427,7 +496,6 @@ class MiningView(VerifiedAccountMixin, ProfileSetMixin, DetailView):
 			return InventoryView(request=self.request).post(*args, **kwargs)
 
 		if "drops" in json_dict and "time" in json_dict:
-			from datetime import datetime, timedelta
 			drops = json_dict["drops"]
 			time = timedelta(milliseconds=json_dict["time"])
 
@@ -442,5 +510,27 @@ class MiningView(VerifiedAccountMixin, ProfileSetMixin, DetailView):
 			else:						self.relCrafting.profil.miningTime  = time
 
 			self.relCrafting.profil.save(update_fields=["miningTime"])
+
+			return JsonResponse({})
+		
+		if "perk_item" in json_dict:
+			qs = InventoryItem.objects.annotate(
+				cost = F("item__miningperk__stufe_wooble_price")
+			)
+			iitem = get_object_or_404(qs, char=self.relCrafting.profil, item=json_dict["perk_item"])
+			
+			
+			cost = iitem.cost[str(int(iitem.num) + 1)]
+			print(cost)
+			if cost > self.relCrafting.profil.woobles:
+				return JsonResponse({"message": "Du kannst dir die nächste Stufe nicht leisten"}, status=418)
+			
+			self.relCrafting.profil.woobles -= cost
+			self.relCrafting.profil.save(update_fields=["woobles"])
+
+			iitem.num += 1
+			iitem.save(update_fields=["num"])
+
+			messages.success(self.request, f"Perk {iitem.item.name} auf stufe {int(iitem.num)} verbessert")
 
 			return JsonResponse({})

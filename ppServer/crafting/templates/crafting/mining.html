@@ -1,5 +1,5 @@
 {% extends 'base/headed_main.html' %}
-{% load static l10n %}
+{% load static l10n crafting.dict_key %}
 
 {% block extra-head %}
 <link rel="stylesheet" href="{% static 'crafting/css/mining.css' %}">
@@ -9,6 +9,8 @@
 <script src="{% static 'crafting/js/inventory.js' %}" type='text/javascript'></script>
 {{ block_pool|json_script:"block_pool" }}
 {{ blocks|json_script:"blocks" }}
+{{ perks|json_script:"perks" }}
+{{ block_count|json_script:"block_count" }}
 <script src="{% static 'crafting/js/mining.js' %}" type='text/javascript' defer></script>
 {% endblock %}
 
@@ -21,46 +23,73 @@
 </div>
 
 <div id="main-container">
-    
-    
-    <aside id="tools">
-        <h2>Werkzeuge</h2>
 
-        <div class="grid">
-            {% for i in tools %}
-            <div class="item tool tool--active" data-drop-id="{% localize off %}{{ i.item.id }}{% endlocalize %}" data-speed="{% localize off %}{{ i.speed }}{% endlocalize %}" title="{{ i.item.name }}"
-                {% if i.is_pick %}data-type="pick"{% endif %}
-                {% if i.is_axe %}data-type="axe"{% endif %}
-                {% if i.is_shovel %}data-type="shovel"{% endif %}
-            >
-                <img src="{{ i.item.icon_url }}" alt="{{ i.item.name }}">
-                <span class="num">{{ i.speed|floatformat }}</span>
-            </div>
-            {% empty %}
-            </div>
-            <div>Tja, du hast wohl nix. Musste wohl Fäuste benutzen :)
-            {% endfor %}
-        </div>
-    </aside>
-
-    <aside id="shop">
-        <h2>Perks</h2>
-        <p>(wird abhängig von Profil & Region)</p>
-    </aside>
+    <article id="mining">
+        <h2 class="visually-hidden">Mining</h2>
     
-    <main id="mining" class="d-flex flex-column">
-        <h2>Mining</h2>
-    
-        <div class="d-flex flex-column align-items-center justify-content-between m-auto gap-2">
-            <button id="mining-btn" onmousedown="start_mining(event)" onmouseup="stop_mining()" onmouseleave="stop_mining()">
-                <img id="mining-btn__block-texture" src="" alt="">
+        <div id="mining-grid">
+            {% with ''|center:block_count as range %}
+            {% for _ in range %}
+            <button class="mining-btn" id="mining-btn--{{ forloop.counter0 }}" onmousedown="start_mining(event)" onmouseup="stop_mining()" onmouseleave="stop_mining()">
+                <img class="mining-btn__block-texture" src="" alt="">
                 <div class="progress" role="progressbar" aria-label="Abbaufortschritt" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
                     <div class="progress-bar bg-dark" style="width: 0%"></div>
                 </div>              
             </button>
+            {% endfor %}
+            {% endwith %}
         </div>
-    </main>
+
+        <div id="tools">
+            <h2 class="visually-hidden">Werkzeuge</h2>
     
+            <div class="grid">
+                {% for i in tools %}
+                <div class="item tool" data-drop-id="{% localize off %}{{ i.item.id }}{% endlocalize %}" data-speed="{% localize off %}{{ i.speed }}{% endlocalize %}" title="{{ i.item.name }}"
+                    {% if i.is_pick %}data-type="pick"{% endif %}
+                    {% if i.is_axe %}data-type="axe"{% endif %}
+                    {% if i.is_shovel %}data-type="shovel"{% endif %}
+                >
+                    <img src="{{ i.item.icon_url }}" alt="{{ i.item.name }}">
+                    <span class="num">{{ i.speed|floatformat }}</span>
+                </div>
+                {% empty %}
+                </div>
+                <div>Tja, du hast wohl keine Werkzeuge. Musste wohl Fäuste benutzen :)
+                {% endfor %}
+            </div>
+        </div>
+    </article>
+
+    <aside id="shop">
+        <h2 class="d-flex justify-content-between">Perks  <span class="text-danger">{{ profil.woobles }}</span></h2>
+        <div class="grid grid--perks">
+            {% for i in perk_items %}
+                <div class="item" data-drop-id="{% localize off %}{{ i.item.id }}{% endlocalize %}" onclick="openDetails({% localize off %}{{ i.item.id }}{% endlocalize %})">
+                    {% with i.num|add:1 as next_stufe %}
+                    {% with i.item.miningperk.effect_increment|dict_key:next_stufe as next_increment %}
+                    {% if next_increment is not None %}
+                    {% with i.item.miningperk.stufe_wooble_price|dict_key:next_stufe as next_price %}
+                    <button class="num num__cost btn btn-sm btn-dark" onclick="perk_buy_stufe({{ i.item.id }})">
+                        <span class="text-success">+{{ next_increment }}</span> für <span class="text-danger">{{ next_price }}</span>
+                    </button>
+                    {% endwith %}
+                    {% endif %}
+                    {% endwith %}
+                    {% endwith %}
+                    
+                    <img src="{{ i.item.getIconUrl }}" alt="{{ i.item.name }}">
+                    <div class="num d-flex justify-content-between">
+                        {% with i.item.miningperk.effect_increment|dict_key_sum_until:i.num as effect %}
+                        <span class="num__effect text-success" data-effect="{{ effect }}">{{ effect|floatformat }}</span>
+                        {% endwith %}
+                        <span class="num__stufe">{{ i.num|floatformat }}</span>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </aside>
+
     <aside id="inventory">
         <h2 class="d-flex justify-content-between mb-3">
             <a class="text-light" href="{% url 'crafting:inventory' %}">Inventar von {{ profil.name }}</a>

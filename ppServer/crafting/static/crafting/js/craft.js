@@ -73,7 +73,7 @@ function constructRecipes(recipes, include_table=false) {
 				</div>
 
 				<div class="craft input-with-btn">
-					<input type="number" name="craftNum" class="craftNum id-${recipe.id}" min=1 value=1 oninput="craftChange(event)">
+					<input type="number" name="craftNum" class="craftNum id-${recipe.id}" min=1 value=1 ${recipe.produces_perk ? 'max=1 disabled' : ''} oninput="craftChange(event)">
 					<button class="btn btn-primary id-${recipe.id}" onclick="craft(event)" data-locked="${recipe.locked }">Craft</button>
 				</div>
 
@@ -90,7 +90,7 @@ function constructRecipes(recipes, include_table=false) {
 
 // helper function. Updates disabled-status of crafting for each recipe by triggering the onInput-eventhandler of .craftNum
 function updateRecipeStatus() {
-	var event = new Event('input')
+	const event = new Event('input')
 
 	document.querySelectorAll(".craftNum").forEach(num_input => {
 		num_input.dispatchEvent(event)
@@ -123,17 +123,20 @@ function drag_end_callback() {
 
 // select a different table and show its recipes instead of the current ones
 function tableChange(id) {
-	var selected_tag = document.querySelector(`#${id}`)
+	const selected_tag = document.querySelector(`#${id}`);
+	const table_id = parseInt(/\d+/.exec(id)[0]);
+
+	location.hash = table_id;
 
 	// markup for selection
-	Array.from(document.querySelectorAll(".table.selected")).forEach(table => {table.classList.remove("selected")})
-	selected_tag.classList.add("selected")
+	document.querySelectorAll(".table.selected").forEach(table => table.classList.remove("selected"));
+	selected_tag.classList.add("selected");
 
 	// set topic to selected
 	document.querySelector("title").innerHTML = selected_tag.dataset.title;
 	document.querySelector("header .navbar-brand .topic").innerHTML = selected_tag.dataset.title;
 
-	post({ table: /\d+/.exec(id)[0] }, data => {
+	post({ table: table_id }, data => {
 		document.querySelector(".recipes").innerHTML = constructRecipes(data.recipes)
 
 		// disable recipes where necessary
@@ -189,8 +192,17 @@ function craftChange({ currentTarget }) {
 
 // craft num of items
 function craft({ currentTarget }) {
-
 	if (currentTarget.disabled) return;
+
+	reload_recipes = () => {
+		const selected_table = document.querySelector(".table.selected");
+		
+		// reload by table
+		if (selected_table) tableChange(selected_table.id);
+
+		// reload by search term
+		else document.querySelector("#search-btn").dispatchEvent(new Event('click'));
+	};
 
 	// get common recipe_id
 	var id_class = "";
@@ -210,16 +222,11 @@ function craft({ currentTarget }) {
 			document.querySelector("#tid-" + pid)?.classList.add("available");
 		})
 
-		// reload by table
-		var selected_table = document.querySelector(".table.selected");
-		if (selected_table)
-			tableChange(selected_table.id);
+		reload_recipes();
+	}, error => {
+		alert(error.response.data.message);
 
-		// reload by search term
-		else {
-			var event = new Event('click');
-			document.querySelector("#search-btn").dispatchEvent(event);
-		}
+		reload_recipes();
 	})
 }
 
@@ -237,17 +244,7 @@ function searchChange({ currentTarget }) {
 	post({search: text}, data => {
 
 		// repopulate datalist of searchbar
-		var datalist = document.getElementById("item-search");
-		datalist.innerHTML = "";
-		data.res.forEach(item => {
-			datalist.append(`<option value="${item.name}"></option>`);
-		})
-
-		// TODO figure out autocomplete in searchbar
-		//document.getElementsByClassName("recipes")[0].innerHTML = constructRecipes(data.recipes)
-
-		// disable recipes where necessary
-		//updateRecipeStatus()
+		document.querySelector("#item-search").innerHTML = data.res.map(name => `<option value="${name}">${name}</option>`).join("");
 	}, reaction, false)		// false => don't display spinner
 }
 
@@ -280,8 +277,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
 	// load page content
 
-	// get all recipes of first table
-	tableChange(document.querySelector(".table").id);
+	// get all recipes of the table whose table id is in the url-# or from the first table
+	tableChange(location.hash?.length ? `tid-${location.hash.substring(1)}` : document.querySelector(".table").id);
 
 
 	// initially disable recipes where necessary

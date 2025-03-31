@@ -25,7 +25,7 @@
 
 <header class="head">
 	<div class="search input-with-btn">
-		<input type="text" list="item-search" id="search-input" class="p-1" />
+		<input type="text" list="item-search" id="search-input" class="p-1" oninput="searchChange(event)" />
 		<datalist id="item-search"></datalist>
 
 		<button onclick="search()" id="search-btn" class="btn btn-primary">Suche</button>

@@ -9,12 +9,20 @@ from ppServer.utils import ConcatSubquery
 
 from .models import *
 
+class AllowedRegionInLineAdmin(admin.TabularInline):
+    model = Region.allowed_profiles.through
+
 
 class ProfileAdmin(admin.ModelAdmin):
-    list_display = ["owner", "name", "restricted", "miningTime", "craftingTime"]
+    list_display = ["owner", "name", "restricted", "woobles", "miningTime", "craftingTime", "regions"]
+
+    inlines = [AllowedRegionInLineAdmin]
 
     def get_queryset(self, request: HttpRequest) -> QuerySet[Any]:
-        return super().get_queryset(request).prefetch_related("owner")
+        return super().get_queryset(request).prefetch_related("owner", "region_set")
+    
+    def regions(self, obj):
+        return ", ".join([region.name for region in obj.region_set.all()]) or self.get_empty_value_display()
 
 
 class InventoryAdmin(admin.ModelAdmin):
@@ -52,7 +60,6 @@ class RecipeAdmin(admin.ModelAdmin):
     list_display = ('icons_produkte', 'produkte', 'icons_zutaten', 'zutaten', 'table', 'duration', 'fertigkeiten')
     list_display_links = ('icons_produkte', 'produkte')
     search_fields = ('product__item__name', )
-    list_editable = ('duration',)
 
     exclude = ["wissen", "spezial"]
 
@@ -93,11 +100,11 @@ class RegionBlockChanceInLineAdmin(admin.TabularInline):
 
 class RegionAdmin(admin.ModelAdmin):
 
-    list_display = ('_icon', 'name')
+    list_display = ('_icon', 'name', "wooble_cost")
     list_display_links = ('_icon', 'name')
     search_fields = ('name', )
 
-    fields = ["icon", "name", "allowed_profiles"]
+    fields = ["icon", "name", "wooble_cost", "allowed_profiles"]
     inlines = [RegionBlockChanceInLineAdmin]
 
     def _icon(self, obj):
@@ -138,6 +145,16 @@ class ToolAdmin(admin.ModelAdmin):
     def name(self, obj):
         return obj.item.name if obj.item else self.get_empty_value_display()
 
+class MiningPerkAdmin(admin.ModelAdmin):
+
+    list_display = ('effect', 'tool_type', 'beschreibung', '_item', 'region')
+    list_filter = ('effect', 'tool_type', 'region')
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).prefetch_related("item")
+    
+    def _item(self, obj):
+        return format_html('<img src="{}" style="max-width: 32px; max-height:32px;" />{}'.format(obj.item.getIconUrl(), obj.item.name))
 
 
 admin.site.register(Profile, ProfileAdmin)
@@ -148,3 +165,4 @@ admin.site.register(RelCrafting)
 admin.site.register(Region, RegionAdmin)
 admin.site.register(Block, BlockAdmin)
 admin.site.register(Tool, ToolAdmin)
+admin.site.register(MiningPerk, MiningPerkAdmin)
