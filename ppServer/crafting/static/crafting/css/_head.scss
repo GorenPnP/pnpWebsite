@@ -15,3 +15,14 @@
 		color: var(--bs-body-color)
 	}
 }
+
+
+// for search and crafting combos
+.input-with-btn {
+	display: flex;
+	flex-wrap: nowrap;
+
+	--border-radius: 8px;
+	.btn {border-radius: 0 var(--border-radius) var(--border-radius) 0;}
+	input {border-radius: var(--border-radius) 0 0 var(--border-radius);}
+}

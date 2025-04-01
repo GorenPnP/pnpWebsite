@@ -2,16 +2,6 @@
 
 .main-container { padding-left: 5px; }
 
-// for search and crafting combos
-.input-with-btn {
-	display: flex;
-	flex-wrap: nowrap;
-
-	--border-radius: 8px;
-	.btn {border-radius: 0 var(--border-radius) var(--border-radius) 0;}
-	input {border-radius: var(--border-radius) 0 0 var(--border-radius);}
-}
-
 // tables, in sidebar and search over the arrow
 .table {
 	cursor: move;
