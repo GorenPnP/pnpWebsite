@@ -50,8 +50,8 @@
 		
 		<div class="grid grid--category-{{ category|cut:' '|cut:'/' }}">
 			{% for i in items %}
-			{% if i.get_kategorie_display == category and not i.is_perk %}
-			<div class="item {% if not i.owned %}item--unowned{% endif %}" onclick="openDetails({% localize off %}{{ i.id }}{% endlocalize %})">
+			{% if i.get_kategorie_display == category %}
+			<div class="item item--visible {% if not i.owned %}item--unowned{% endif %}" data-name="{{ i.name }}" onclick="openDetails({% localize off %}{{ i.id }}{% endlocalize %})">
 				<img src="{{ i.getIconUrl }}" alt="{{ i.name }}">
 				{% if i.num %}<span class="num">{{ i.num|floatformat }}</span>{% endif %}
 			</div>
@@ -107,6 +107,7 @@
 
 		<button class="btn btn-primary d-block mt-2" onclick="buy_item()">Kaufen</button>
 	</div>
+	<p class="perk-info">Perks werden hier nicht zum Kauf und Verkauf angeboten. Sie können selbst hergestellt und dann in einer <a href="{% url 'crafting:regions' %}" class="text-light">beliebigen Region</a> verbessert werden.</p>
 
 	<div class="separator"></div>
 

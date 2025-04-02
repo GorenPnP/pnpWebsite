@@ -96,13 +96,12 @@
             <a class="btn btn-outline-light" href="{% url 'crafting:index' %}?redirect={{ request.path|urlencode }}">wechseln</a>
         </h2>
     
-        <div class="inventory-container" onclick="this.scrollTo(0, 0)">
+        <div class="inventory-container">
     
             <div class="overlay">
                 <button class="btn btn-outline-light" onclick="document.querySelector('.overlay').style.display = 'none'">X</button>
                 <img id="overlay__icon">
                 <label for="overlay__name">Name:</label><span id="overlay__name"></span>
-                <label for="overlay__owned">Im Besitz:</label><span id="overlay__owned"></span>
                 <label for="overlay__stufe">Ab Stufe:</label><span id="overlay__stufe"></span>
                 <label for="overlay__description">Beschreibung:</label><span id="overlay__description"></span>
                 <label for="overlay__values">Info:</label><span id="overlay__values"></span>
@@ -116,6 +115,37 @@
                 <label for="overlay__table">Anzahl pro Rezept:</label><div id="overlay__num-prod"></div>
                 <label for="overlay__table">Hergestellt an:</label><div id="overlay__table"></div>
                 <label for="overlay__table">Hergestellt aus:</label><div id="overlay__ingredients"></div>
+            
+                <div class="separator"></div>
+
+                <label for="overlay__owned">Items im Besitz:</label><span id="overlay__owned"></span>
+                <label class="text-danger" for="overlay__woobles">aktuelle Woobles:</label><span class="text-danger" id="overlay__woobles">{{ profil.woobles }}</span>
+            
+                <div class="mini-form">
+                    <p><b>Items verkaufen</b></p>
+                    <div class="input-group">
+                        <span class="input-group-text" id="overlay__sell">Anzahl</span>
+                        <input type="number" min="0" value="1" class="form-control" id="input-sell" oninput="update_woobles(event)" aria-label="Anzahl Items verkaufen" aria-describedby="overlay__sell">
+                        <span class="input-group-text text-danger wooble_sum"></span>
+                    </div>
+                    <small>(gibt <span class="text-danger" id="overlay__wooble_sell"></span> Wooble(s) pro Item)</small>
+            
+                    <button class="btn btn-primary d-block mt-2" onclick="sell_item()">Verkaufen</button>
+                </div>
+            
+                <div class="mini-form">
+                    <p><b>Items kaufen</b></p>
+                    <div class="input-group">
+                        <span class="input-group-text" id="overlay__buy">Anzahl</span>
+                        <input type="number" min="1" value="1" class="form-control" id="input-buy" oninput="update_woobles(event)" aria-label="Anzahl Items kaufen" aria-describedby="overlay__buy">
+                        <span class="input-group-text text-danger wooble_sum"></span>
+                    </div>
+                    <small>(kostet <span class="text-danger" id="overlay__wooble_buy"></span> Woobles(s) pro Item)</small>
+                      
+            
+                    <button class="btn btn-primary d-block mt-2" onclick="buy_item()">Kaufen</button>
+                </div>
+                <p class="perk-info">Perks werden hier nicht zum Kauf und Verkauf angeboten. Sie können selbst hergestellt und dann in einer <a href="{% url 'crafting:regions' %}" class="text-light">beliebigen Region</a> verbessert werden.</p>
             
                 <div class="separator"></div>
             

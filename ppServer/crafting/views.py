@@ -24,6 +24,108 @@ from .templatetags.crafting.duration import duration
 from .utils import *
 
 
+def handle_overlay(json_dict: dict, item_qs: QuerySet[Tinker], profil:Profile) -> JsonResponse:
+
+	# add item to inventory without crafting
+	if "item_id" in json_dict.keys():
+
+		try:
+			num = int(json_dict["num"])
+			id = int(json_dict["item_id"])
+			item = get_object_or_404(item_qs, is_perk=False, id=id)
+		except:
+			return JsonResponse({"message": "Konnte Parameter nicht lesbar empfangen"}, status=418)
+
+		if "buy" in json_dict.keys():
+
+			# add num of items, pay and save
+			wooble_cost = item.wooble_buy_price * num
+			if wooble_cost > profil.woobles:
+				return JsonResponse({"message": "Dafür hast du zu wenig Woobles :("}, status=418)
+
+			profil.woobles -= wooble_cost
+			profil.save(update_fields=["woobles"])
+
+			iitem, _ = InventoryItem.objects.get_or_create(char=profil, item=item)
+			iitem.num += num
+			iitem.save(update_fields=["num"])
+
+		elif "sell" in json_dict.keys():
+			# remove num of items, get woobles and save
+			iitem = get_object_or_404(InventoryItem.objects.prefetch_related("item"), item=item, char=profil)
+			if iitem.num < num:
+				return JsonResponse({"message": "So viele hast du nicht"}, status=418)
+
+			iitem.num -= num
+			iitem.save(update_fields=["num"])
+
+			profil.woobles += (iitem.item.wooble_sell_price * num)
+			profil.save(update_fields=["woobles"])
+		
+		else:
+			return JsonResponse({"message": "Konnte Parameter buy/sell nicht lesbar empfangen"}, status=418)
+
+		return JsonResponse({})
+
+	elif "details" in json_dict:
+		try:
+			id = int(json_dict["details"])
+		except:
+			return JsonResponse({"message": "Konnte Parameter nicht lesbar empfangen"}, status=418)
+
+		# get inventory item (has to exist, because clicked on it in inventory)
+		item = get_object_or_404(item_qs, id=id)
+		recipe = Recipe.objects\
+			.prefetch_related("ingredient_set__item", "spezial", "wissen")\
+			.filter(product__item=item)\
+			.annotate(product_num = Subquery(Product.objects.filter(item=item, recipe=OuterRef("pk")).values_list("num", flat=True)[:1]))\
+			.first()
+
+		weiteres = "illegal" if item.illegal else ""
+		if item.lizenz_benötigt and not weiteres:
+				weiteres = "Lizenz benötigt"
+		if item.lizenz_benötigt and item.illegal:
+				weiteres += ", Lizenz benötigt"
+
+		data = {
+			"id": item.id,
+			"link": "{}?name__icontains={}".format(reverse("shop:tinker"), item.name.replace(" ", "+")),
+			"name": item.name,
+			"table": {"name": "", "icon": ""},
+			"ingredients": [],
+			"icon": item.getIconUrl(),
+			"description": item.beschreibung,
+			"values": item.werte,
+			"other": weiteres,
+			"duration": "",
+			"spezial": [],
+			"wissen": [],
+			"ab_stufe": item.ab_stufe,
+			"kategory": item.get_kategorie_display(),
+			"num_prod": "",
+			"own": item.num,
+			"wooble_buy": item.wooble_buy_price,
+			"wooble_sell": item.wooble_sell_price,
+			"is_perk": item.is_perk,
+		}
+
+		# not found
+		if not recipe: return JsonResponse(data)
+
+		# iitem is not json-serializable, therefore mapping manually ...
+		missing_fields = {
+			"table": {"name": recipe.table.name, "icon": recipe.table.getIconUrl()} if recipe.table else Recipe.getHandwerk(),
+			"ingredients": [{"icon": i.item.getIconUrl(), "name": i.item.name, "num": i.num} for i in recipe.ingredient_set.all()],
+			"duration": duration(recipe.duration),
+			"spezial": [e.titel for e in recipe.spezial.all()],
+			"wissen": [e.titel for e in recipe.wissen.all()],
+			"num_prod": recipe.product_num,
+		}
+		for k, v in missing_fields.items(): data[k] = v
+
+		return JsonResponse(data)
+
+
 class IndexView(VerifiedAccountMixin, TemplateView):
 	template_name = "crafting/index.html"
 
@@ -74,15 +176,16 @@ class InventoryView(VerifiedAccountMixin, ProfileSetMixin, DetailView):
 
 		return self.object
 	
-	def get_item_qs(self):
-		return Tinker.objects.annotate(
+	def get_item_qs(self, filter_perks=False):
+		qs = Tinker.objects.annotate(
 				num = Coalesce(Subquery(InventoryItem.objects.filter(char=self.relCrafting.profil, item=OuterRef("pk")).values_list("num", flat=True)[:1]), 0.0),
 				owned = Case(When(num=0, then=False), default=True, output_field=models.BooleanField()),
 
-				is_tool = Exists(Tool.objects.filter(item=OuterRef("pk"))),
 				is_perk = Exists(MiningPerk.objects.filter(item=OuterRef("pk"))),
-				is_table = Exists(Recipe.objects.filter(table=OuterRef("pk"))),
-			).filter(is_perk=False).order_by("-owned", "name")
+			).order_by("-owned", "name")
+		if filter_perks: qs = qs.filter(is_perk=False)
+
+		return qs
 
 
 	def get_context_data(self, **kwargs):
@@ -97,128 +200,16 @@ class InventoryView(VerifiedAccountMixin, ProfileSetMixin, DetailView):
 			add_form = AddToInventoryForm(),
 			restricted_profile = self.object.restricted,
 			items = self.get_item_qs(),
-			categories = sorted([val[1] for val in tinker_enum]),
+			categories = sorted([val[1] for val in tinker_enum], key=lambda val: val.lower()),
 		)
-	
-	def get(self, request, *args, **kwargs):
-		messages.info(self.request, format_html(f"Perks werden hier nicht aufgeführt, siehe dazu eine <a href='{reverse('crafting:regions')}'>beliebige Region</a>."))
-		return super().get(request, *args, **kwargs)
 
 	def post(self, *args, **kwargs):
 
 		json_dict = json.loads(self.request.body.decode("utf-8"))
 
-		# add item to inventory without crafting
-		if "item_id" in json_dict.keys():
-
-			try:
-				num = int(json_dict["num"])
-				id = int(json_dict["item_id"])
-				item = get_object_or_404(self.get_item_qs(), id=id)
-			except:
-				return JsonResponse({"message": "Konnte Parameter nicht lesbar empfangen"}, status=418)
-
-			if "buy" in json_dict.keys():
-
-				# add num of items, pay and save
-				wooble_cost = item.wooble_buy_price * num
-				if wooble_cost > self.relCrafting.profil.woobles:
-					return JsonResponse({"message": "Dafür hast du zu wenig Woobles :("}, status=418)
-
-				self.relCrafting.profil.woobles -= wooble_cost
-				self.relCrafting.profil.save(update_fields=["woobles"])
-
-				iitem, _ = InventoryItem.objects.get_or_create(char=self.relCrafting.profil, item=item)
-				iitem.num += num
-				iitem.save(update_fields=["num"])
-
-			elif "sell" in json_dict.keys():
-				# remove num of items, get woobles and save
-				iitem = get_object_or_404(InventoryItem.objects.prefetch_related("item"), item=item, char=self.relCrafting.profil)
-				if iitem.num < num:
-					return JsonResponse({"message": "So viele hast du nicht"}, status=418)
-
-				iitem.num -= num
-				iitem.save(update_fields=["num"])
-
-				self.relCrafting.profil.woobles += (iitem.item.wooble_sell_price * num)
-				self.relCrafting.profil.save(update_fields=["woobles"])
-			
-			else:
-				return JsonResponse({"message": "Konnte Parameter buy/sell nicht lesbar empfangen"}, status=418)
-
-			return JsonResponse({})
-
-		if "search_btn" in json_dict.keys():
-			search = json_dict["search_btn"]
-			items = self.get_item_qs().filter(name__icontains=search)
-			serialized_items = [{
-				"id": item.id, "name": item.name, "icon_url": item.getIconUrl(), "num": item.num, "owned": item.owned, "category": item.get_kategorie_display()
-			} for item in items]
-
-			return JsonResponse({ "items": serialized_items })
-
-
-		# gather all the details of one item to display them
-		if "details" in json_dict.keys():
-
-			try:
-				id = int(json_dict["details"])
-			except:
-				return JsonResponse({"message": "Konnte Parameter nicht lesbar empfangen"}, status=418)
-
-			# get inventory item (has to exist, because clicked on it in inventory)
-			item = get_object_or_404(self.get_item_qs(), id=id)
-			recipe = Recipe.objects\
-				.prefetch_related("ingredient_set__item", "product_set")\
-				.filter(product__item=item)\
-				.annotate(product_num = Subquery(Product.objects.filter(item=item, recipe=OuterRef("pk")).values_list("num", flat=True)[:1]))\
-				.first()
-
-			weiteres = "illegal" if item.illegal else ""
-			if item.lizenz_benötigt and not weiteres:
-					weiteres = "Lizenz benötigt"
-			if item.lizenz_benötigt and item.illegal:
-					weiteres += ", Lizenz benötigt"
-
-			data = {
-				"id": item.id,
-				"link": "{}?name__icontains={}".format(reverse("shop:tinker"), item.name.replace(" ", "+")),
-				"name": item.name,
-				"table": {"name": "", "icon": ""},
-				"ingredients": [],
-				"icon": item.getIconUrl(),
-				"description": item.beschreibung,
-				"values": item.werte,
-				"other": weiteres,
-				"duration": "",
-				"spezial": [],
-				"wissen": [],
-				"ab_stufe": item.ab_stufe,
-				"kategory": item.get_kategorie_display(),
-				"num_prod": "",
-				"own": item.num,
-				"wooble_buy": item.wooble_buy_price,
-				"wooble_sell": item.wooble_sell_price,
-			}
-
-			# not found
-			if not recipe: return JsonResponse(data)
-
-			ingredients = recipe.ingredient_set.all()
-
-			# iitem is not json-serializable, therefore mapping manually ...
-			missing_fields = {
-				"table": {"name": recipe.table.name, "icon": recipe.table.getIconUrl()} if recipe.table else Recipe.getHandwerk(),
-				"ingredients": [{"icon": i.item.getIconUrl(), "name": i.item.name, "num": i.num} for i in  ingredients],
-				"duration": duration(recipe.duration),
-				"spezial": [e.titel for e in recipe.spezial.all()],
-				"wissen": [e.titel for e in recipe.wissen.all()],
-				"num_prod": recipe.product_num,
-			}
-			for k, v in missing_fields.items(): data[k] = v
-
-			return JsonResponse(data)
+		# gather all the details of one item to display them OR buy/sell items
+		if "details" in json_dict.keys() or "item_id" in json_dict:
+			return handle_overlay(json_dict, self.get_item_qs(), self.relCrafting.profil)
 
 
 class CraftingView(VerifiedAccountMixin, ProfileSetMixin, ListView):
@@ -504,10 +495,12 @@ class MiningView(VerifiedAccountMixin, ProfileSetMixin, DetailView):
 		)
 
 		# inventory items
-		items = InventoryItem.objects.filter(char=self.relCrafting.profil).order_by("item__name").prefetch_related("item")
+		items = InventoryItem.objects.prefetch_related("item").annotate(
+			is_perk = Exists(MiningPerk.objects.filter(item=OuterRef("item"))),
+		).filter(char=self.relCrafting.profil).order_by("item__name")
 
 		# active perks
-		perk_items = items.exclude(item__miningperk=None).filter(Q(item__miningperk__region=None) | Q(item__miningperk__region=self.kwargs["pk"])).prefetch_related("item__miningperk")
+		perk_items = items.filter(is_perk=True).filter(Q(item__miningperk__region=None) | Q(item__miningperk__region=self.kwargs["pk"])).prefetch_related("item__miningperk")
 		perks = list(MiningPerk.objects.filter(item__in=[i.item for i in perk_items]).values("item", "effect", "tool_type", "effect_increment", "stufe_wooble_price"))
 
 		# num simultaneously displayed blocks
@@ -548,9 +541,9 @@ class MiningView(VerifiedAccountMixin, ProfileSetMixin, DetailView):
 
 		json_dict = json.loads(self.request.body.decode("utf-8"))
 
-		# gather all the details of one item to display them
-		if "details" in json_dict:
-			return InventoryView(request=self.request).post(*args, **kwargs)
+		# gather all the details of one item to display them OR buy/sell items
+		if "details" in json_dict.keys() or "item_id" in json_dict:
+			return handle_overlay(json_dict, InventoryView(relCrafting=self.relCrafting).get_item_qs(), self.relCrafting.profil)
 
 		if "drops" in json_dict and "time" in json_dict:
 			drops = json_dict["drops"]

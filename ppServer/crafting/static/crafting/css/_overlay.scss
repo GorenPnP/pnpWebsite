@@ -21,6 +21,9 @@
 
 		.input-group { max-width: 300px; }
 	}
+	.perk-info  { grid-column: 1 / -1; }
+	&:not(.overlay--perk) .perk-info,
+	&.overlay--perk .mini-form { display: none; }
 
 	.separator {
 		grid-column: 1 / -1;
