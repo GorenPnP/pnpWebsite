@@ -189,8 +189,8 @@ class Wesen(models.Model):
 
     icon = ResizedImageField(size=[64, 64], null=True, blank=True)
     titel = models.CharField(max_length=20, unique=True)
-    beschreibung = MarkdownField(rendered_field='beschreibung_rendered', validator=VALIDATOR_STANDARD)
-    beschreibung_rendered = RenderedMarkdownField(null=True)
+    beschreibung = MarkdownField(rendered_field='beschreibung_rendered', validator=VALIDATOR_STANDARD, blank=True)
+    beschreibung_rendered = RenderedMarkdownField(null=True, blank=True)
 
     def __str__(self):
         return self.titel

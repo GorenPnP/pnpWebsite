@@ -26,10 +26,10 @@ function openDetails(id) {
 		document.querySelector("#overlay__stufe").innerText = data.ab_stufe || 0
 
 		document.querySelector("#overlay__table").innerHTML = data.table.icon || data.table.name ?
-		`<img src="${data.table.icon}" alt="${data.table.name}">
-		<span>${data.table.name}</span>` : `-`
+		`<div class="overlay__item"><img src="${data.table.icon}" alt="${data.table.name}">
+		<span>${data.table.name}</span></div>` : `-`
 
-		const ingredients = data.ingredients.map(i => `<div class="ingredient"><img src="${i.icon}" alt="${i.name}"><span>${i.num.toLocaleString("de-DE") || "?"}x ${i.name}</span></div>`)
+		const ingredients = data.ingredients.map(i => `<div class="overlay__item"><img src="${i.icon}" alt="${i.name}"><span>${i.num.toLocaleString("de-DE") || "?"}x ${i.name}</span></div>`)
 		document.querySelector("#overlay__ingredients").innerHTML = ingredients.join("") || "-"
 		document.querySelector("#overlay__num-prod").innerText = data.num_prod.toLocaleString("de-DE") || "-"
 
@@ -45,7 +45,9 @@ function openDetails(id) {
 
 		// display overlay
 		document.querySelector(".overlay").classList.toggle("overlay--perk", data.is_perk);
-		document.querySelector(".overlay").style.display = "grid"
+		document.querySelector(".overlay").classList.add("overlay--visible");
+
+		window.scrollTo({ top: 0, behavior: 'smooth' });
 	})
 }
 

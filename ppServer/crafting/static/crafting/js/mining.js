@@ -58,7 +58,7 @@ function mining_set_block() {
 
         // get perk speed
         const tool = document.querySelector(`.tool[data-type="${type}"]`);
-        const perk_speed = parseInt(tool.dataset.perkSpeed) || 0;
+        const perk_speed = parseInt(tool?.dataset.perkSpeed) || 0;
 
         // update block mining duration
         const tool_speed = Math.max(parseInt(tool?.dataset.speed) || 0, 1);
