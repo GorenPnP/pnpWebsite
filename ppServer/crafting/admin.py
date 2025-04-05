@@ -55,6 +55,11 @@ class WissenInLineAdmin(admin.TabularInline):
     extra = 1
 
 
+class PermanentlyNeedsTinkerInLineAdmin(admin.TabularInline):
+    model = Region.permanently_needs.through
+    extra = 1
+
+
 class RecipeAdmin(admin.ModelAdmin):
 
     list_display = ('icons_produkte', 'produkte', 'icons_zutaten', 'zutaten', 'table', 'duration', 'fertigkeiten')
@@ -105,7 +110,7 @@ class RegionAdmin(admin.ModelAdmin):
     search_fields = ('name', )
 
     fields = ["icon", "name", "wooble_cost", "allowed_profiles"]
-    inlines = [RegionBlockChanceInLineAdmin]
+    inlines = [PermanentlyNeedsTinkerInLineAdmin, RegionBlockChanceInLineAdmin]
 
     def _icon(self, obj):
         return format_html('<img src="{0}" style="max-width: 32px; max-height:32px;" />'.format(obj.icon.url)) if obj.icon else self.get_empty_value_display()
@@ -119,12 +124,12 @@ class BlockDropInLineAdmin(admin.TabularInline):
 
 class BlockAdmin(admin.ModelAdmin):
 
-    list_display = ('_icon', 'name', 'hardness', 'effective_pick', 'effective_axe', 'effective_shovel')
+    list_display = ('_icon', 'name', 'hardness', 'effective_pick', 'effective_axe', 'effective_shovel', 'effective_oildrill')
     list_display_links = ('_icon', 'name')
-    list_editable = ['effective_pick', 'effective_axe', 'effective_shovel']
+    list_editable = ['effective_pick', 'effective_axe', 'effective_shovel', 'effective_oildrill']
     search_fields = ('name', )
 
-    fields = ["icon", "name", 'hardness', 'effective_pick', 'effective_axe', 'effective_shovel']
+    fields = ["icon", "name", 'hardness', 'effective_pick', 'effective_axe', 'effective_shovel', 'effective_oildrill']
     inlines = [BlockDropInLineAdmin]
 
     def _icon(self, obj):
@@ -132,12 +137,12 @@ class BlockAdmin(admin.ModelAdmin):
 
 class ToolAdmin(admin.ModelAdmin):
 
-    list_display = ('_icon', 'name', 'speed', 'is_pick', 'is_axe', 'is_shovel')
+    list_display = ('_icon', 'name', 'speed', 'is_pick', 'is_axe', 'is_shovel', 'is_oildrill')
     list_display_links = ('_icon', 'name')
-    list_editable = ['is_pick', 'is_axe', 'is_shovel']
+    list_editable = ['is_pick', 'is_axe', 'is_shovel', 'is_oildrill']
     search_fields = ('item__name', )
 
-    fields = ["item", "speed", 'is_pick', 'is_axe', 'is_shovel']
+    fields = ["item", "speed", 'is_pick', 'is_axe', 'is_shovel', 'is_oildrill']
 
     def _icon(self, obj):
         return format_html('<img src="{0}" style="max-width: 32px; max-height:32px;" />'.format(obj.item.icon.url)) if obj.item and obj.item.icon else self.get_empty_value_display()

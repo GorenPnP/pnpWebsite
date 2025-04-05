@@ -20,14 +20,16 @@
 }
 
 
-.category {
-	.item:not(.item--visible) { display: none; }
-
-	&:not(:has(.item--visible)) {
-		b { display: none; }
-		.grid { margin: 0; }
-	}
+body:has(#checkbox--show-all:not(:checked)) .item.item--unowned {
+	display: none;
 }
+body:has(#checkbox--show-all:not(:checked)) .category:not(:has(.item.item--visible:not(.item--unowned))),
+.category:not(:has(.item--visible)) {
+	b { display: none; }
+	.grid { margin: 0; }
+}
+
+.category .item:not(.item--visible) { display: none; }
 
 .grid {
 	display: grid;

@@ -56,7 +56,7 @@
 
 	<div class="overlay__grid">
 		<label for="overlay__owned">Items im Besitz:</label><span id="overlay__owned"></span>
-		<label class="text-danger" for="overlay__woobles">aktuelle Woobles:</label><b class="text-danger" id="overlay__woobles">{{ profil.woobles }}</b>
+		<label class="text-danger" for="overlay__woobles">aktuelle Woobles:</label><b class="text-danger" id="overlay__woobles">{{ profil.woobles|floatformat }}</b>
 	</div>
 
 	<div class="separator"></div>
@@ -127,6 +127,7 @@
                     {% if i.is_pick %}data-type="pick"{% endif %}
                     {% if i.is_axe %}data-type="axe"{% endif %}
                     {% if i.is_shovel %}data-type="shovel"{% endif %}
+                    {% if i.is_oildrill %}data-type="oildrill"{% endif %}
                 >
                     <img src="{{ i.item.icon_url }}" alt="{{ i.item.name }}">
                     <span class="num">{{ i.speed|floatformat }}</span>
@@ -140,7 +141,7 @@
     </article>
 
     <aside id="shop">
-        <h2 class="d-flex justify-content-between">Perks  <span class="text-danger">{{ profil.woobles }}</span></h2>
+        <h2 class="d-flex justify-content-between">Perks  <span class="text-danger">{{ profil.woobles|floatformat }}</span></h2>
         <div class="grid grid--perks">
             {% for i in perk_items %}
                 <div class="item" data-drop-id="{% localize off %}{{ i.item.id }}{% endlocalize %}" onclick="openDetails({% localize off %}{{ i.item.id }}{% endlocalize %})">

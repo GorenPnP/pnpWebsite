@@ -73,7 +73,7 @@ function sell_item() {
 
 function update_woobles(event) {
 	const form = event.target.closest(".mini-form");
-	const per_item = parseInt(form.querySelector("#overlay__wooble_buy, #overlay__wooble_sell").dataset.cost);
+	const per_item = parseFloat(form.querySelector("#overlay__wooble_buy, #overlay__wooble_sell").dataset.cost);
 	form.querySelector(".wooble_sum").innerText = (per_item * event.target.value).toLocaleString("de-DE");
 }
 

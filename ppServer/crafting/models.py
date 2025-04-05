@@ -163,7 +163,7 @@ class Recipe(models.Model):
 
 ############### Mining #################
 
-ToolType = models.TextChoices("ToolType", "pick axe shovel")
+ToolType = models.TextChoices("ToolType", "pick axe shovel oildrill")
 
 class Region(models.Model):
 
@@ -174,6 +174,7 @@ class Region(models.Model):
 	icon = ResizedImageField(size=[64, 64])
 	name = models.CharField(max_length=64, unique=True)
 	wooble_cost = models.FloatField(default=0.0, validators=[MinValueValidator(0.0)])
+	permanently_needs = models.ManyToManyField(Tinker, blank=True)
 
 	allowed_profiles = models.ManyToManyField(Profile, blank=True)
 
@@ -226,6 +227,7 @@ class Block(models.Model):
 	effective_pick = models.BooleanField(default=False)
 	effective_axe = models.BooleanField(default=False)
 	effective_shovel = models.BooleanField(default=False)
+	effective_oildrill = models.BooleanField(default=False)
 
 	def __str__(self):
 		return "Block {}".format(self.name)
@@ -237,6 +239,7 @@ class Block(models.Model):
 			"effective_pick",
 			"effective_axe",
 			"effective_shovel",
+			"effective_oildrill",
 		]
 		return {
 			"icon": self.icon.url if self.icon else None,
@@ -250,7 +253,7 @@ class Tool(models.Model):
 	class Meta:
 		verbose_name = "Werkzeug"
 		verbose_name_plural = "Werkzeuge"
-		ordering = ["-speed", "-is_pick", "-is_axe", "-is_shovel"]
+		ordering = ["-speed", "-is_pick", "-is_axe", "-is_shovel", "-is_oildrill"]
 
 	item = models.OneToOneField(Tinker, on_delete=models.CASCADE)
 	speed = models.PositiveIntegerField(default=1)
@@ -258,6 +261,7 @@ class Tool(models.Model):
 	is_pick = models.BooleanField(default=False)
 	is_axe = models.BooleanField(default=False)
 	is_shovel = models.BooleanField(default=False)
+	is_oildrill = models.BooleanField(default=False)
 
 	def __str__(self):
 		return "Werkzeug {} ({})".format(self.item.name, self.speed)
@@ -269,6 +273,7 @@ class Tool(models.Model):
 			"is_pick": self.is_pick,
 			"is_axe": self.is_axe,
 			"is_shovel": self.is_shovel,
+			"is_oildrill": self.is_oildrill,
 		}
 
 

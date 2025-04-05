@@ -1,4 +1,4 @@
-const tool_types = ["pick", "axe", "shovel"];
+const tool_types = ["pick", "axe", "shovel", "oildrill"];
 
 const block_pool = JSON.parse(document.querySelector("#block_pool").innerHTML);
 const blocks = JSON.parse(document.querySelector("#blocks").innerHTML);
@@ -53,7 +53,8 @@ function mining_set_block() {
         let type;
         if (current_block[i].effective_pick) type = "pick";
         else if (current_block[i].effective_axe) type = "axe";
-        else type = "shovel";
+        else if (current_block[i].effective_shovel) type = "shovel";
+        else type = "oildrill";
         current_block[i].toolType = type;
 
         // get perk speed

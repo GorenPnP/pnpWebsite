@@ -21,10 +21,12 @@
 
 <h2>Wo willst du abbauen?</h2>
 
+<p class="text-danger">aktuelle Woobles: {{ profil.woobles|floatformat }}</p>
+
 <ul class="list-group">
     {% for region in object_list %}
     <li class="list-group-item d-flex justify-content-between align-items-center">
-        {% if region.accessible %}
+        {% if region.accessible and region.has_items == region.needs_items %}
         <a href="{% url 'crafting:mining' region.pk %}" class="text-dark d-flex flex-wrap align-items-center justify-content-between w-100">
 
             <div>
@@ -45,14 +47,26 @@
                 <img src="{{ region.icon.url }}" class="rounded-circle border border-primary" style="height: 50px; aspect-ratio: 1">
                 <span class="mx-2 fw-bold">{{ region.name }}</span>
             </div>
+            
+            {% if region.needs_items and region.has_items != region.needs_items %}
+            <span>
+                <span class="text-danger d-block">Fehlende Items, Zugang benötigt:</span>
+                {% for item in region.permanently_needs.all %}
+                    <img class="drop" src="{{ item.icon.url }}" alt="{{ item.name }}" style="height: 27px; aspect-ratio: 1;" title="{{ item.name }}">
+                {% endfor %}
+            </span>
+            {% endif %}
+
             <span>
                 {% for item in drops|dict_key:region.pk %}
-                <img class="drop" src="{{ item.icon.url }}" alt="{{ item.name }}" style="height: 27px; aspect-ratio: 1;">
+                <img class="drop" src="{{ item.icon.url }}" alt="{{ item.name }}" style="height: 27px; aspect-ratio: 1;" title="{{ item.name }}">
                 {% endfor %}
             </span>
         </form>
+        {% if not region.accessible %}
         <p><button type="submit" form="region-form--{{ region.pk }}" class="btn btn-dark btn-sm">Zugang kaufen <span class="text-danger">{{ region.wooble_cost }}</span></button></p>
         {% endif %}
+    {% endif %}
     </li>
     {% empty %}
     <p>Es gibt (noch) keine Regionen, die du mit deiner Zerstörungswut heimsuchen könntest.</p>

@@ -2,7 +2,7 @@ import json
 from datetime import timedelta
 
 from django.contrib import messages
-from django.db.models import Subquery, F, Q, Exists, OuterRef, Case, When
+from django.db.models import Subquery, F, Q, Exists, OuterRef, Case, When, Count
 from django.db.models.functions import Coalesce
 from django.http import HttpResponseNotFound
 from django.http.response import JsonResponse
@@ -65,6 +65,8 @@ def handle_overlay(json_dict: dict, item_qs: QuerySet[Tinker], profil:Profile) -
 		else:
 			return JsonResponse({"message": "Konnte Parameter buy/sell nicht lesbar empfangen"}, status=418)
 
+		clean_inventory(profil)
+
 		return JsonResponse({})
 
 	elif "details" in json_dict:
@@ -124,6 +126,10 @@ def handle_overlay(json_dict: dict, item_qs: QuerySet[Tinker], profil:Profile) -
 		for k, v in missing_fields.items(): data[k] = v
 
 		return JsonResponse(data)
+
+
+def clean_inventory(profile: Profile) -> None:
+	InventoryItem.objects.filter(char=profile, num=0).delete()
 
 
 class IndexView(VerifiedAccountMixin, TemplateView):
@@ -347,6 +353,8 @@ class CraftingView(VerifiedAccountMixin, ProfileSetMixin, ListView):
 				crafted.num += t.num * num
 				crafted.save(update_fields=["num"])
 
+			clean_inventory(self.relCrafting.profil)
+
 			return JsonResponse({})
 
 
@@ -421,8 +429,11 @@ class RegionListView(VerifiedAccountMixin, ProfileSetMixin, ListView):
 	template_name = "crafting/regions.html"
 
 	def get_queryset(self):
-		return super().get_queryset().annotate(
-			accessible = Exists(Profile.objects.filter(pk=self.relCrafting.profil.pk, region=OuterRef("pk")))
+		return super().get_queryset().prefetch_related("permanently_needs").annotate(
+			accessible = Exists(Profile.objects.filter(pk=self.relCrafting.profil.pk, region=OuterRef("pk"))),
+
+			has_items = Count("permanently_needs", filter=Q(permanently_needs__inventoryitem__char=self.relCrafting.profil), distinct=True),
+			needs_items = Count(F("permanently_needs"), distinct=True),
 		)
 	
 	def get_context_data(self, **kwargs):
@@ -435,6 +446,7 @@ class RegionListView(VerifiedAccountMixin, ProfileSetMixin, ListView):
             app_index_url = reverse("crafting:craft"),
 
 			drops = drops,
+			profil = self.relCrafting.profil,
         )
 	
 	def post(self, *args, **kwargs):
@@ -465,10 +477,18 @@ class MiningView(VerifiedAccountMixin, ProfileSetMixin, DetailView):
 	template_name = "crafting/mining.html"
 	object = None
 
+	def get_queryset(self):
+		return super().get_queryset().annotate(
+			accessible = Exists(Profile.objects.filter(pk=self.relCrafting.profil.pk, region=OuterRef("pk"))),
+
+			has_items = Count("permanently_needs", filter=Q(permanently_needs__inventoryitem__char=self.relCrafting.profil), distinct=True),
+			needs_items = Count(F("permanently_needs"), distinct=True),
+		)
 
 	def check_region_allowed(self):
 		self.object = self.object or self.get_object()
-		allowed = self.object.allowed_profiles.filter(id=self.relCrafting.profil.id).exists()
+
+		allowed = self.object.accessible and self.object.needs_items == self.object.has_items
 		if not allowed:
 			messages.error(self.request, f"Kein Zutritt zur {self.object}")
 			return "crafting:regions"
@@ -488,10 +508,12 @@ class MiningView(VerifiedAccountMixin, ProfileSetMixin, DetailView):
 			pick_maxspeed = Coalesce(Subquery(tool_qs.filter(is_pick=True).values("speed")[:1]), 0),
 			axe_maxspeed = Coalesce(Subquery(tool_qs.filter(is_axe=True).values("speed")[:1]), 0),
 			shovel_maxspeed = Coalesce(Subquery(tool_qs.filter(is_shovel=True).values("speed")[:1]), 0),
+			oildrill_maxspeed = Coalesce(Subquery(tool_qs.filter(is_oildrill=True).values("speed")[:1]), 0),
 		).filter(
 			(Q(is_pick=True) & Q(speed=F("pick_maxspeed"))) |
 			(Q(is_axe=True) & Q(speed=F("axe_maxspeed"))) |
-			(Q(is_shovel=True) & Q(speed=F("shovel_maxspeed")))
+			(Q(is_shovel=True) & Q(speed=F("shovel_maxspeed"))) |
+			(Q(is_oildrill=True) & Q(speed=F("oildrill_maxspeed")))
 		)
 
 		# inventory items
@@ -580,6 +602,6 @@ class MiningView(VerifiedAccountMixin, ProfileSetMixin, DetailView):
 			iitem.num += 1
 			iitem.save(update_fields=["num"])
 
-			messages.success(self.request, f"Perk {iitem.item.name} auf stufe {int(iitem.num)} verbessert")
+			messages.success(self.request, f"Perk {iitem.item.name} auf Stufe {int(iitem.num)} verbessert")
 
 			return JsonResponse({})

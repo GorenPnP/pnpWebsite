@@ -49,7 +49,7 @@
 
 	<div class="overlay__grid">
 		<label for="overlay__owned">Items im Besitz:</label><span id="overlay__owned"></span>
-		<label class="text-danger" for="overlay__woobles">aktuelle Woobles:</label><b class="text-danger" id="overlay__woobles">{{ object.woobles }}</b>
+		<label class="text-danger" for="overlay__woobles">aktuelle Woobles:</label><b class="text-danger" id="overlay__woobles">{{ object.woobles|floatformat }}</b>
 	</div>
 
 	<div class="separator"></div>
@@ -98,6 +98,11 @@
 	<div class="crafting-time">
 		<p>Mining Time: {{ object.miningTime|duration|default:'-' }}</p>
 		<p>Crafting Time: {{ object.craftingTime|duration|default:'-' }}</p>
+
+		<div class="form-check">
+			<input class="form-check-input" type="checkbox" id="checkbox--show-all" checked>
+			<label class="form-check-label" for="checkbox--show-all">Alle anzeigen</label>
+		</div>
 
 		<div class="search input-with-btn">
 			<input type="text" list="item-search" id="search-input" class="p-1" />
