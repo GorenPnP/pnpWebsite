@@ -60,6 +60,7 @@ function mining_set_block() {
         block_tag.querySelector(".mining-btn__block-texture").alt = current_block[i].name;
 
         // update preferred tool
+console.log(current_block[i], blocks)
         const fastest_tool = current_block[i].effective_tool.split(", ")
             .filter(tool_type => tool_types.includes(tool_type))
             .map(tool_type => ({
