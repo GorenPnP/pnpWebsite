@@ -231,7 +231,7 @@ class Block(models.Model):
 	name = models.CharField(max_length=64, unique=True)
 
 	hardness = models.PositiveIntegerField(default=1)
-	effektive_tool = models.ManyToManyField(ToolType, blank=False)
+	effective_tool = models.ManyToManyField(ToolType, blank=True)
 
 	chance = models.ManyToManyField(Region, through=BlockChance)
 	drops = models.ManyToManyField(Tinker, through=Drop)
@@ -247,7 +247,7 @@ class Block(models.Model):
 		return {
 			"icon": self.icon.url if self.icon else None,
 			"drops": [d.toDict() for d in self.drop_set.all()],
-			"effektive_tool": ", ".join(self.effektive_tool.values_list("name", flat=True)),
+			"effective_tool": ", ".join(self.effective_tool.values_list("name", flat=True)),
 			**{field: getattr(self, field) for field in fields}
 		}
 

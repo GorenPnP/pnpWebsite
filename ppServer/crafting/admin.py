@@ -134,17 +134,17 @@ class BlockAdmin(admin.ModelAdmin):
     list_display_links = ('_icon', 'name')
     search_fields = ('name', )
 
-    fields = ["icon", "name", 'hardness', "effektive_tool"]
+    fields = ["icon", "name", 'hardness', "effective_tool"]
     inlines = [BlockDropInLineAdmin]
 
     def get_queryset(self, request):
-        return super().get_queryset(request).prefetch_related("effektive_tool")
+        return super().get_queryset(request).prefetch_related("effective_tool")
 
     def _icon(self, obj):
         return format_html('<img src="{0}" style="max-width: 32px; max-height:32px;" />'.format(obj.icon.url)) if obj.icon else self.get_empty_value_display()
 
     def _tool_types(self, obj):
-        return ", ".join(obj.effektive_tool.values_list("name", flat=True))
+        return ", ".join(obj.effective_tool.values_list("name", flat=True))
 
 
 class ToolAdmin(admin.ModelAdmin):

@@ -60,7 +60,7 @@ function mining_set_block() {
         block_tag.querySelector(".mining-btn__block-texture").alt = current_block[i].name;
 
         // update preferred tool
-        const fastest_tool = current_block[i].effektive_tool.split(", ")
+        const fastest_tool = current_block[i].effective_tool.split(", ")
             .filter(tool_type => tool_types.includes(tool_type))
             .map(tool_type => ({
                 tool_type,
@@ -99,7 +99,7 @@ function mining_get_drops(index) {
         .map(e => e.index);
 
     // how many blocks?
-    let runs = Math.floor(spread_percentage[current_block[index].toolType] / 100) + (Math.random() * 100 < spread_percentage[current_block[index].toolType] % 100 ? 1 : 0);
+    let runs = Math.floor((spread_percentage[current_block[index].toolType] || 0) / 100) + (Math.random() * 100 < (spread_percentage[current_block[index].toolType] || 0) % 100 ? 1 : 0);
 
     // spread to blocks
     while(runs-- && other_block_indices.length) {
@@ -116,13 +116,13 @@ function mining_get_drops(index) {
 function _mining_get_drops_of_block(index) {
     let num_block_drops = 0;
     for (const drop of current_block[index].drops) {
-        let runs = 1 + Math.floor(multidrop_percentage[current_block[index].toolType] / 100) + (Math.random() * 100 < multidrop_percentage[current_block[index].toolType] % 100 ? 1 : 0);
+        let runs = 1 + Math.floor((multidrop_percentage[current_block[index].toolType] || 0) / 100) + (Math.random() * 100 < (multidrop_percentage[current_block[index].toolType] || 0) % 100 ? 1 : 0);
 
         while (runs--) {
 
             // no luck, sorry
             if (Math.ceil(Math.random() * 100) > drop.chance) { continue; }
-            
+
             // add drop
             drops[drop.item.id] = (drops[drop.item.id] || 0) + 1;
 
