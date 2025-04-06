@@ -53,15 +53,14 @@ function mining_set_block() {
         const block_tag = document.querySelector(`#mining .mining-btn#mining-btn--${i}`)
 
         // randomly get new block
-        current_block[i] = blocks[block_pool[Math.floor(Math.random() * block_pool.length)]];
+        const block = blocks[block_pool[Math.floor(Math.random() * block_pool.length)]];
 
         // set block display
-        block_tag.querySelector(".mining-btn__block-texture").src = current_block[i].icon;
-        block_tag.querySelector(".mining-btn__block-texture").alt = current_block[i].name;
+        block_tag.querySelector(".mining-btn__block-texture").src = block.icon;
+        block_tag.querySelector(".mining-btn__block-texture").alt = block.name;
 
         // update preferred tool
-console.log(current_block[i], blocks)
-        const fastest_tool = current_block[i].effective_tool.split(", ")
+        const fastest_tool = block.effective_tool.split(", ")
             .filter(tool_type => tool_types.includes(tool_type))
             .map(tool_type => ({
                 tool_type,
@@ -72,15 +71,16 @@ console.log(current_block[i], blocks)
                 if (num < max.max) { return max; }
                 return {...tool, max: num};
             }, {tool_type: "", tool_tag: null, max: 0});
-        current_block[i].toolType = fastest_tool.tool_type;
+        block.toolType = fastest_tool.tool_type;
 
         // get perk speed
         const perk_speed = parseInt(fastest_tool.tool_tag?.dataset.perkSpeed) || 0;
 
         // update block mining duration
         const tool_speed = Math.max(fastest_tool.max, 1);
+        current_block[i] = block;
         passed_block_duration[i] = 0;
-        total_block_duration[i] = current_block[i].hardness / (tool_speed + perk_speed) * 3000 // in ms
+        total_block_duration[i] = block.hardness / (tool_speed + perk_speed) * 3000 // in ms
     }
 }
 
