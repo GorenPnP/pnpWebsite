@@ -505,16 +505,8 @@ class MiningView(VerifiedAccountMixin, ProfileSetMixin, DetailView):
 		# collect tools
 		tool_qs = Tool.objects.filter(item__inventoryitem__char=self.relCrafting.profil)
 		tools = tool_qs.prefetch_related("item").annotate(
-			pick_maxspeed = Coalesce(Subquery(tool_qs.filter(is_pick=True).values("speed")[:1]), 0),
-			axe_maxspeed = Coalesce(Subquery(tool_qs.filter(is_axe=True).values("speed")[:1]), 0),
-			shovel_maxspeed = Coalesce(Subquery(tool_qs.filter(is_shovel=True).values("speed")[:1]), 0),
-			oildrill_maxspeed = Coalesce(Subquery(tool_qs.filter(is_oildrill=True).values("speed")[:1]), 0),
-		).filter(
-			(Q(is_pick=True) & Q(speed=F("pick_maxspeed"))) |
-			(Q(is_axe=True) & Q(speed=F("axe_maxspeed"))) |
-			(Q(is_shovel=True) & Q(speed=F("shovel_maxspeed"))) |
-			(Q(is_oildrill=True) & Q(speed=F("oildrill_maxspeed")))
-		)
+			maxspeed = Coalesce(Subquery(tool_qs.filter(is_type=OuterRef("is_type")).values("speed")[:1]), 0),
+		).filter(speed=F("maxspeed"))
 
 		# inventory items
 		items = InventoryItem.objects.prefetch_related("item").annotate(
@@ -523,7 +515,7 @@ class MiningView(VerifiedAccountMixin, ProfileSetMixin, DetailView):
 
 		# active perks
 		perk_items = items.filter(is_perk=True).filter(Q(item__miningperk__region=None) | Q(item__miningperk__region=self.kwargs["pk"])).prefetch_related("item__miningperk")
-		perks = list(MiningPerk.objects.filter(item__in=[i.item for i in perk_items]).values("item", "effect", "tool_type", "effect_increment", "stufe_wooble_price"))
+		perks = list(MiningPerk.objects.filter(item__in=[i.item for i in perk_items]).values("item", "effect", "tool_type__name", "effect_increment", "stufe_wooble_price"))
 
 		# num simultaneously displayed blocks
 		block_count = 1
@@ -549,6 +541,7 @@ class MiningView(VerifiedAccountMixin, ProfileSetMixin, DetailView):
 			tools = [tool.toDict() for tool in tools],
 			perk_items = perk_items,
 			perks = perks,
+			tool_types = [*ToolType.objects.values_list("name", flat=True)],
         )
 	
 	def get(self, request, *args, **kwargs):

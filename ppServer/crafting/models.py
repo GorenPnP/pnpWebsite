@@ -163,7 +163,17 @@ class Recipe(models.Model):
 
 ############### Mining #################
 
-ToolType = models.TextChoices("ToolType", "pick axe shovel oildrill")
+class ToolType(models.Model):
+
+	class Meta:
+		verbose_name = "Tool Type"
+		verbose_name_plural = "Tool Types"
+		ordering = ["name"]
+
+	name = models.CharField(max_length=64, unique=True)
+
+	def __str__(self):
+		return f"ToolType {self.name}"
 
 class Region(models.Model):
 
@@ -219,15 +229,12 @@ class Block(models.Model):
 
 	icon = ResizedImageField(size=[64, 64])
 	name = models.CharField(max_length=64, unique=True)
+
 	hardness = models.PositiveIntegerField(default=1)
+	effektive_tool = models.ManyToManyField(ToolType, blank=False)
 
 	chance = models.ManyToManyField(Region, through=BlockChance)
 	drops = models.ManyToManyField(Tinker, through=Drop)
-
-	effective_pick = models.BooleanField(default=False)
-	effective_axe = models.BooleanField(default=False)
-	effective_shovel = models.BooleanField(default=False)
-	effective_oildrill = models.BooleanField(default=False)
 
 	def __str__(self):
 		return "Block {}".format(self.name)
@@ -236,14 +243,11 @@ class Block(models.Model):
 		fields = [
 			"name",
 			"hardness",
-			"effective_pick",
-			"effective_axe",
-			"effective_shovel",
-			"effective_oildrill",
 		]
 		return {
 			"icon": self.icon.url if self.icon else None,
 			"drops": [d.toDict() for d in self.drop_set.all()],
+			"effektive_tool": ", ".join(self.effektive_tool.values_list("name", flat=True)),
 			**{field: getattr(self, field) for field in fields}
 		}
 
@@ -253,15 +257,11 @@ class Tool(models.Model):
 	class Meta:
 		verbose_name = "Werkzeug"
 		verbose_name_plural = "Werkzeuge"
-		ordering = ["-speed", "-is_pick", "-is_axe", "-is_shovel", "-is_oildrill"]
+		ordering = ["-speed", "is_type__name", "item"]
 
 	item = models.OneToOneField(Tinker, on_delete=models.CASCADE)
 	speed = models.PositiveIntegerField(default=1)
-
-	is_pick = models.BooleanField(default=False)
-	is_axe = models.BooleanField(default=False)
-	is_shovel = models.BooleanField(default=False)
-	is_oildrill = models.BooleanField(default=False)
+	is_type = models.ManyToManyField(ToolType, blank=False)
 
 	def __str__(self):
 		return "Werkzeug {} ({})".format(self.item.name, self.speed)
@@ -270,10 +270,7 @@ class Tool(models.Model):
 		return {
 			"item": self.item.toDict(),
 			"speed": self.speed,
-			"is_pick": self.is_pick,
-			"is_axe": self.is_axe,
-			"is_shovel": self.is_shovel,
-			"is_oildrill": self.is_oildrill,
+			"is_type": ", ".join(self.is_type.values_list("name", flat=True))
 		}
 
 
@@ -282,8 +279,7 @@ class MiningPerk(models.Model):
 	class Meta:
 		verbose_name = "Mining-Perk"
 		verbose_name_plural = "Mining-Perks"
-		ordering = ["region", "effect", "item__name", "tool_type"]
-		unique_together = ["effect", "tool_type", "region"]
+		ordering = ["region", "effect", "item__name", "tool_type__name"]
 
 	Effect = models.TextChoices("Effect", "speed multidrop block_count spread")
 	def default_perk_dict(): return {i: 1.0 for i in range(1, 11)}
@@ -292,7 +288,7 @@ class MiningPerk(models.Model):
 
 	# what does it do?
 	effect = models.CharField(max_length=32, choices=Effect.choices, default="speed")
-	tool_type = models.CharField(max_length=32, choices=ToolType.choices, null=True, blank=True)
+	tool_type = models.ManyToManyField(ToolType, blank=True)
 	effect_increment = models.JSONField(default=default_perk_dict, null=False, blank=False)
 
 	# when does it apply?
@@ -301,4 +297,4 @@ class MiningPerk(models.Model):
 	stufe_wooble_price = models.JSONField(default=default_perk_dict, null=False, blank=False)
 
 	def __str__(self):
-		return self.get_effect_display() + " " + (self.get_tool_type_display() if self.tool_type else "global")
+		return self.get_effect_display() + " " + (", ".join(self.tool_type.values_list("name", flat=True)) or "global")

@@ -1,4 +1,4 @@
-const tool_types = ["pick", "axe", "shovel", "oildrill"];
+const tool_types = JSON.parse(document.querySelector("#tool_types").innerHTML);
 
 const block_pool = JSON.parse(document.querySelector("#block_pool").innerHTML);
 const blocks = JSON.parse(document.querySelector("#blocks").innerHTML);
@@ -9,6 +9,16 @@ const items = Object.values(blocks).reduce((acc, block) => {
         .map(drop => drop.item)
         .forEach(droppable_item => acc[droppable_item.id] = droppable_item);
     return acc;
+}, {});
+const tools = tool_types.reduce((acc, tool_type) => {
+    const fastest_tool = [...document.querySelectorAll(`.tool`)]
+        .filter(tag => tag.dataset.type.split(", ").includes(tool_type))
+        .reduce((max, tool) => {
+            if (!max || parseInt(max.dataset.speed) < parseInt(tool.dataset.speed)) { return tool; }
+            return max;
+        }, null);
+
+    return { ...acc, [tool_type]: fastest_tool}
 }, {});
 const multidrop_percentage = tool_types.reduce((acc, type) => ({...acc, [type]: 0.0}), {});
 const spread_percentage = tool_types.reduce((acc, type) => ({...acc, [type]: 0.0}), {});
@@ -50,19 +60,24 @@ function mining_set_block() {
         block_tag.querySelector(".mining-btn__block-texture").alt = current_block[i].name;
 
         // update preferred tool
-        let type;
-        if (current_block[i].effective_pick) type = "pick";
-        else if (current_block[i].effective_axe) type = "axe";
-        else if (current_block[i].effective_shovel) type = "shovel";
-        else type = "oildrill";
-        current_block[i].toolType = type;
+        const fastest_tool = current_block[i].effektive_tool.split(", ")
+            .filter(tool_type => tool_types.includes(tool_type))
+            .map(tool_type => ({
+                tool_type,
+                tool_tag: tools[tool_type],
+            }))
+            .reduce((max, tool) => {
+                const num = parseInt(tool.tool_tag.dataset.speed) || 0;
+                if (num < max.max) { return max; }
+                return {...tool, max: num};
+            }, {tool_type: "", tool_tag: null, max: 0});
+        current_block[i].toolType = fastest_tool.tool_type;
 
         // get perk speed
-        const tool = document.querySelector(`.tool[data-type="${type}"]`);
-        const perk_speed = parseInt(tool?.dataset.perkSpeed) || 0;
+        const perk_speed = parseInt(fastest_tool.tool_tag?.dataset.perkSpeed) || 0;
 
         // update block mining duration
-        const tool_speed = Math.max(parseInt(tool?.dataset.speed) || 0, 1);
+        const tool_speed = Math.max(fastest_tool.max, 1);
         passed_block_duration[i] = 0;
         total_block_duration[i] = current_block[i].hardness / (tool_speed + perk_speed) * 3000 // in ms
     }
@@ -74,8 +89,7 @@ function mining_get_drops(index) {
     /* mining spread */
 
     // indices of all possible blocks
-    let other_block_indices = current_block
-        .map((block, i) => ({
+    let other_block_indices = current_block.map((block, i) => ({
             index: i,
             pick: i !== index &&
                 block.toolType === current_block[index].toolType &&
@@ -86,7 +100,7 @@ function mining_get_drops(index) {
 
     // how many blocks?
     let runs = Math.floor(spread_percentage[current_block[index].toolType] / 100) + (Math.random() * 100 < spread_percentage[current_block[index].toolType] % 100 ? 1 : 0);
-    
+
     // spread to blocks
     while(runs-- && other_block_indices.length) {
         const other_index = other_block_indices[Math.floor(Math.random() * other_block_indices.length)];
@@ -150,8 +164,7 @@ function mine() {
 
     // set active tool
     document.querySelectorAll(".tool.tool--active").forEach(tool => tool.classList.remove("tool--active"));
-    const tool = document.querySelector(`.tool[data-type="${current_block[active_block_index].toolType}"]`);
-    tool?.classList.add("tool--active");
+    tools[current_block[active_block_index].toolType]?.classList.add("tool--active");
 
 
     lastTime = now;
@@ -289,7 +302,7 @@ function save_progress(on_success=() => {}, on_error=() => {}) {
 function perk_update_effects() {
     const get_perk_number = (effect, tool_type) => {
         return perks
-            .filter(perk => perk.effect === effect && (!perk.tool_type || perk.tool_type === tool_type))
+            .filter(perk => perk.effect === effect && (!perk.tool_type__name || perk.tool_type__name.split(", ").includes(tool_type)))
             .map(perk => parseInt(document.querySelector(`#shop .grid--perks [data-drop-id="${perk.item}"] .num__effect`).dataset.effect))
             .reduce((sum, num) => sum + num, 0);
     };
@@ -303,11 +316,11 @@ function perk_update_effects() {
         if (perk_speed) {
 
             // get tool
-            const tool = document.querySelector(`.tool[data-type="${type}"]`);
+            const corresponding_tool = tools[type];
     
             // display perk speed
-            tool.querySelector(".num").innerHTML = `${tool.dataset.speed} <span class="text-success"> +${perk_speed}</span>`;
-            tool.dataset.perkSpeed = perk_speed;
+            corresponding_tool.querySelector(".num").innerHTML = `${corresponding_tool.dataset.speed} <span class="text-success"> +${perk_speed}</span>`;
+            corresponding_tool.dataset.perkSpeed = perk_speed;
         }
 
 

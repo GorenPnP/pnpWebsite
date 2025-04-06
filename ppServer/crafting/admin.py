@@ -122,44 +122,64 @@ class BlockDropInLineAdmin(admin.TabularInline):
 
     extra = 3
 
+class BlockToolInLineAdmin(admin.TabularInline):
+    model = Drop
+    fields = ["chance", "item"]
+
+    extra = 3
+
 class BlockAdmin(admin.ModelAdmin):
 
-    list_display = ('_icon', 'name', 'hardness', 'effective_pick', 'effective_axe', 'effective_shovel', 'effective_oildrill')
+    list_display = ('_icon', 'name', 'hardness', "_tool_types")
     list_display_links = ('_icon', 'name')
-    list_editable = ['effective_pick', 'effective_axe', 'effective_shovel', 'effective_oildrill']
     search_fields = ('name', )
 
-    fields = ["icon", "name", 'hardness', 'effective_pick', 'effective_axe', 'effective_shovel', 'effective_oildrill']
+    fields = ["icon", "name", 'hardness', "effektive_tool"]
     inlines = [BlockDropInLineAdmin]
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).prefetch_related("effektive_tool")
 
     def _icon(self, obj):
         return format_html('<img src="{0}" style="max-width: 32px; max-height:32px;" />'.format(obj.icon.url)) if obj.icon else self.get_empty_value_display()
 
+    def _tool_types(self, obj):
+        return ", ".join(obj.effektive_tool.values_list("name", flat=True))
+
+
 class ToolAdmin(admin.ModelAdmin):
 
-    list_display = ('_icon', 'name', 'speed', 'is_pick', 'is_axe', 'is_shovel', 'is_oildrill')
+    list_display = ('_icon', 'name', 'speed', "type")
     list_display_links = ('_icon', 'name')
-    list_editable = ['is_pick', 'is_axe', 'is_shovel', 'is_oildrill']
     search_fields = ('item__name', )
 
-    fields = ["item", "speed", 'is_pick', 'is_axe', 'is_shovel', 'is_oildrill']
+    fields = ["item", "speed", "is_type"]
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).prefetch_related("is_type")
 
     def _icon(self, obj):
         return format_html('<img src="{0}" style="max-width: 32px; max-height:32px;" />'.format(obj.item.icon.url)) if obj.item and obj.item.icon else self.get_empty_value_display()
 
     def name(self, obj):
         return obj.item.name if obj.item else self.get_empty_value_display()
+    
+    def type(self, obj):
+        return ", ".join(obj.is_type.values_list("name", flat=True))
 
 class MiningPerkAdmin(admin.ModelAdmin):
 
-    list_display = ('effect', 'tool_type', 'beschreibung', '_item', 'region')
-    list_filter = ('effect', 'tool_type', 'region')
+    list_display = ('effect', '_tool_type', 'beschreibung', '_item', 'region')
+    list_filter = ('effect', 'tool_type__name', 'region__name')
 
     def get_queryset(self, request):
-        return super().get_queryset(request).prefetch_related("item")
+        return super().get_queryset(request).prefetch_related("item", "tool_type")
     
     def _item(self, obj):
         return format_html('<img src="{}" style="max-width: 32px; max-height:32px;" />{}'.format(obj.item.getIconUrl(), obj.item.name))
+
+    def _tool_type(self, obj):
+        return ", ".join(obj.tool_type.values_list("name", flat=True))
 
 
 admin.site.register(Profile, ProfileAdmin)
@@ -171,3 +191,4 @@ admin.site.register(Region, RegionAdmin)
 admin.site.register(Block, BlockAdmin)
 admin.site.register(Tool, ToolAdmin)
 admin.site.register(MiningPerk, MiningPerkAdmin)
+admin.site.register(ToolType)

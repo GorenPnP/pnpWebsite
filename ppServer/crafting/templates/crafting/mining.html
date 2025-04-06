@@ -11,6 +11,7 @@
 {{ blocks|json_script:"blocks" }}
 {{ perks|json_script:"perks" }}
 {{ block_count|json_script:"block_count" }}
+{{ tool_types|json_script:"tool_types" }}
 <script src="{% static 'crafting/js/mining.js' %}" type='text/javascript' defer></script>
 {% endblock %}
 
@@ -123,12 +124,7 @@
     
             <div class="grid">
                 {% for i in tools %}
-                <div class="item tool" data-drop-id="{% localize off %}{{ i.item.id }}{% endlocalize %}" data-speed="{% localize off %}{{ i.speed }}{% endlocalize %}" title="{{ i.item.name }}"
-                    {% if i.is_pick %}data-type="pick"{% endif %}
-                    {% if i.is_axe %}data-type="axe"{% endif %}
-                    {% if i.is_shovel %}data-type="shovel"{% endif %}
-                    {% if i.is_oildrill %}data-type="oildrill"{% endif %}
-                >
+                <div class="item tool" data-drop-id="{% localize off %}{{ i.item.id }}{% endlocalize %}" data-speed="{% localize off %}{{ i.speed }}{% endlocalize %}" title="{{ i.item.name }}" data-type="{{ i.is_type }}">
                     <img src="{{ i.item.icon_url }}" alt="{{ i.item.name }}">
                     <span class="num">{{ i.speed|floatformat }}</span>
                 </div>
