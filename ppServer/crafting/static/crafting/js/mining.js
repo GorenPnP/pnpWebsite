@@ -1,32 +1,3 @@
-const tool_types = JSON.parse(document.querySelector("#tool_types").innerHTML);
-
-const block_pool = JSON.parse(document.querySelector("#block_pool").innerHTML);
-const blocks = JSON.parse(document.querySelector("#blocks").innerHTML);
-const block_count = parseInt(document.querySelector("#block_count").innerHTML);
-const perks = JSON.parse(document.querySelector("#perks").innerHTML);
-const items = Object.values(blocks).reduce((acc, block) => {
-    block.drops
-        .map(drop => drop.item)
-        .forEach(droppable_item => acc[droppable_item.id] = droppable_item);
-    return acc;
-}, {});
-const tools = tool_types.reduce((acc, tool_type) => {
-    const fastest_tool = [...document.querySelectorAll(`.tool`)]
-        .filter(tag => tag.dataset.type.split(", ").includes(tool_type))
-        .reduce((max, tool) => {
-            if (!max || parseInt(max.dataset.speed) < parseInt(tool.dataset.speed)) { return tool; }
-            return max;
-        }, null);
-
-    return { ...acc, [tool_type]: fastest_tool}
-}, {});
-const multidrop_percentage = tool_types.reduce((acc, type) => ({...acc, [type]: 0.0}), {});
-const spread_percentage = tool_types.reduce((acc, type) => ({...acc, [type]: 0.0}), {});
-const save_spinner = document.querySelector("#save-spinner");
-
-let drops = {};
-let time_elapsed = 0;
-
 // A cross-browser requestAnimationFrame
 // See https://hacks.mozilla.org/2011/08/animating-with-javascript-from-setinterval-to-requestanimationframe/
 const requestAnimFrame = (function() {
@@ -40,14 +11,75 @@ const requestAnimFrame = (function() {
         };
 })();
 
+/** tool_types: string[] */
+const tool_types = JSON.parse(document.querySelector("#tool_types").innerHTML);
+/** tools: {[tool_type: string]: HTMLElement} */
+const tools = tool_types.reduce((acc, tool_type) => {
+    const fastest_tool = [...document.querySelectorAll(`.tool`)]
+        .filter(tag => tag.dataset.type.split(", ").includes(tool_type))
+        .reduce((max, tool) => {
+            if (!max || parseInt(max.dataset.speed) < parseInt(tool.dataset.speed)) { return tool; }
+            return max;
+        }, null);
+
+    return { ...acc, [tool_type]: fastest_tool}
+}, {});
+
+/** blocks: {[block_id: number]: {
+    icon: string,
+    name: string,
+    effective_tool: tool_types as string-concat with ', ',
+    hardness: number,
+    
+    duration: number,               // after calling init()
+    toolType: tool_type as string   // after calling init()
+}} */
+const blocks = JSON.parse(document.querySelector("#blocks").innerHTML);
+/** items: {[item_id: number]: {
+    id: number,
+    name: string,
+    icon_url: string,
+}} */
+const items = Object.values(blocks).reduce((acc, block) => {
+    block.drops
+        .map(drop => drop.item)
+        .forEach(droppable_item => acc[droppable_item.id] = droppable_item);
+    return acc;
+}, {});
+/** drops: {[item_id: number]: number} */
+let drops = {};
+
+/** block_pool: number */
+const block_pool = JSON.parse(document.querySelector("#block_pool").innerHTML);
+/** block_pool: number */
+const block_count = parseInt(document.querySelector("#block_count").innerHTML);
+
+/** perks: {
+    item: number,
+    effect: string,
+    tool_type__name: string | null,
+    effect_increment: {[stufe: number]: number},
+    stufe_wooble_price: {[stufe: number]: number},
+}[] */
+const perks = JSON.parse(document.querySelector("#perks").innerHTML);
+/** multidrop_percentage: {[tool_type & '': string]: number} */
+const multidrop_percentage = tool_types.reduce((acc, type) => ({...acc, [type]: 0.0}), {});
+/** spread_percentage: {[tool_type & '': string]: number} */
+const spread_percentage = tool_types.reduce((acc, type) => ({...acc, [type]: 0.0}), {});
+const save_spinner = document.querySelector("#save-spinner");
+
+/** active_block_index: number | null  // null if not currently mining */
 let active_block_index = null;
-let total_block_duration = Array.from({length: block_count});
-let passed_block_duration = Array.from({length: block_count});
+/** current_block: Block[] (s. blocks) */
 let current_block = Array.from({length: block_count});
+/** passed_block_duration: number[] */
+let passed_block_duration = Array.from({length: block_count});
+let time_elapsed = 0;
+
 
 function mining_set_block() {
     // update mining time for finished block
-    time_elapsed += total_block_duration[active_block_index] || 0;
+    time_elapsed += current_block[active_block_index]?.duration || 0;
 
     for (let i = 0; i < block_count; i++) {
         const block_tag = document.querySelector(`#mining .mining-btn#mining-btn--${i}`)
@@ -59,28 +91,9 @@ function mining_set_block() {
         block_tag.querySelector(".mining-btn__block-texture").src = block.icon;
         block_tag.querySelector(".mining-btn__block-texture").alt = block.name;
 
-        // update preferred tool
-        const fastest_tool = block.effective_tool.split(", ")
-            .filter(tool_type => tool_types.includes(tool_type))
-            .map(tool_type => ({
-                tool_type,
-                tool_tag: tools[tool_type],
-            }))
-            .reduce((max, tool) => {
-                const num = parseInt(tool.tool_tag.dataset.speed) || 0;
-                if (num < max.max) { return max; }
-                return {...tool, max: num};
-            }, {tool_type: "", tool_tag: null, max: 0});
-        block.toolType = fastest_tool.tool_type;
-
-        // get perk speed
-        const perk_speed = parseInt(fastest_tool.tool_tag?.dataset.perkSpeed) || 0;
-
         // update block mining duration
-        const tool_speed = Math.max(fastest_tool.max, 1);
         current_block[i] = block;
         passed_block_duration[i] = 0;
-        total_block_duration[i] = block.hardness / (tool_speed + perk_speed) * 3000 // in ms
     }
 }
 
@@ -100,7 +113,7 @@ function mining_get_drops(index) {
         .map(e => e.index);
 
     // how many blocks?
-    let runs = Math.floor((spread_percentage[current_block[index].toolType] || 0) / 100) + (Math.random() * 100 < (spread_percentage[current_block[index].toolType] || 0) % 100 ? 1 : 0);
+    let runs = Math.floor(spread_percentage[current_block[index].toolType] / 100) + (Math.random() * 100 < spread_percentage[current_block[index].toolType] % 100 ? 1 : 0);
 
     // spread to blocks
     while(runs-- && other_block_indices.length) {
@@ -154,7 +167,7 @@ function mine() {
     let dt = lastTime ? now - lastTime : 0.0; // delta time in ms
 
     passed_block_duration[active_block_index] += dt;
-    if (passed_block_duration[active_block_index] >= total_block_duration[active_block_index]) {
+    if (passed_block_duration[active_block_index] >= current_block[active_block_index].duration) {
         mining_get_drops(active_block_index);
         mining_set_block();
         mining_update_progressbar();
@@ -191,7 +204,7 @@ function mining_update_progressbar(index=null) {
     for (let i of indices) {
 
         // progress in %
-        const progress = Math.floor(passed_block_duration[i] / total_block_duration[i] *100);
+        const progress = Math.floor(passed_block_duration[i] / current_block[i].duration *100);
         const progress_tag = document.querySelector(`#mining .mining-btn#mining-btn--${i} .progress`);
         const progressbar_tag = progress_tag.querySelector(".progress-bar");
         progress_tag.setAttribute("aria-valuenow", progress);
@@ -300,28 +313,31 @@ function save_progress(on_success=() => {}, on_error=() => {}) {
     )
 }
 
-function perk_update_effects() {
+function init() {
+    const perk_speed = tool_types.reduce((acc, type) => ({...acc, [type]: 0.0}), {});
+
+    /* init perks */
+
     const get_perk_number = (effect, tool_type) => {
         return perks
-            .filter(perk => perk.effect === effect && (!perk.tool_type__name || perk.tool_type__name.split(", ").includes(tool_type)))
+            .filter(perk => perk.effect === effect && (!perk.tool_type__name || (tool_type && perk.tool_type__name.split(", ").includes(tool_type))))
             .map(perk => parseInt(document.querySelector(`#shop .grid--perks [data-drop-id="${perk.item}"] .num__effect`).dataset.effect))
             .reduce((sum, num) => sum + num, 0);
     };
 
-    for (const type of tool_types) {
+    for (const type of ["", ...tool_types]) {
 
         /* tool speed */
-        
+
         // get perk speed
-        const perk_speed = get_perk_number("speed", type);
-        if (perk_speed) {
+        perk_speed[type] = get_perk_number("speed", type);
+        if (type && perk_speed[type]) {
 
             // get tool
             const corresponding_tool = tools[type];
     
             // display perk speed
-            corresponding_tool.querySelector(".num").innerHTML = `${corresponding_tool.dataset.speed} <span class="text-success"> +${perk_speed}</span>`;
-            corresponding_tool.dataset.perkSpeed = perk_speed;
+            corresponding_tool.querySelector(".num").innerHTML = `${corresponding_tool.dataset.speed} <span class="text-success"> +${perk_speed[type]}</span>`;
         }
 
 
@@ -330,6 +346,31 @@ function perk_update_effects() {
 
         /* spread */
         spread_percentage[type] = get_perk_number("spread", type);
+    }
+
+
+    /* init_blocks */
+
+    for (const block of Object.values(blocks)) {
+
+        // update preferred tool
+        const fastest_tool = block.effective_tool.split(", ")
+            .filter(tool_type => tool_types.includes(tool_type))
+            .map(tool_type => ({
+                tool_type,
+                tool_tag: tools[tool_type],
+            }))
+            .reduce((max, tool) => {
+                const num = parseInt(tool.tool_tag.dataset.speed) || 0;
+                if (num < max.max) { return max; }
+                return {...tool, max: num};
+            }, {tool_type: "", tool_tag: null, max: 0});
+        block.toolType = fastest_tool.tool_type;
+
+        // update block mining duration
+        const toolSpeed = Math.max(fastest_tool.max, 1);
+        const perkSpeed = perk_speed[fastest_tool.tool_type] || 0;
+        block.duration = block.hardness / (toolSpeed + perkSpeed) * 3000; // in ms
     }
 }
 
@@ -354,14 +395,14 @@ function perk_buy_stufe(item_id) {
 }
 
 
-// init perks
-perk_update_effects();
+// init perks, blocks & more
+init();
 
 // init mining block
 mining_set_block();
 mining_update_progressbar();
 
-// autosave
+// set autosave
 const min_in_ms = 1000 * 60;
 setInterval(save_progress, 5 * min_in_ms);
 

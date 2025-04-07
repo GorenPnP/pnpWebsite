@@ -1,6 +1,10 @@
+import locale
 from typing import Any
+
 from django.contrib import admin
-from django.db.models import OuterRef
+from django.db.models import OuterRef, F, Q, Subquery
+from django.db.models.aggregates import Sum
+from django.db.models.functions import Coalesce
 from django.db.models.query import QuerySet
 from django.http import HttpRequest
 from django.utils.html import format_html
@@ -62,7 +66,7 @@ class PermanentlyNeedsTinkerInLineAdmin(admin.TabularInline):
 
 class RecipeAdmin(admin.ModelAdmin):
 
-    list_display = ('icons_produkte', 'produkte', 'icons_zutaten', 'zutaten', 'table', 'duration', 'fertigkeiten')
+    list_display = ('icons_produkte', 'produkte', 'icons_zutaten', 'zutaten', 'profitable_flip', 'table', 'duration', 'fertigkeiten')
     list_display_links = ('icons_produkte', 'produkte')
     search_fields = ('product__item__name', )
 
@@ -88,12 +92,36 @@ class RecipeAdmin(admin.ModelAdmin):
         separator = ", " if obj.spezialnames and obj.wissennames else ""
         return separator.join([obj.spezialnames, obj.wissennames]) or self.get_empty_value_display()
     
+    @admin.display(ordering="profitable_flip", description="Flip (Produktverkauf - Zutatenkauf)")
+    def profitable_flip(self, obj):
+        locale.setlocale(locale.LC_NUMERIC, "de_DE")
+        return format_html(f"<b>{obj.profitable_flip:+n}</b><small> = {obj.product_yield:n} - {obj.ingredient_cost:n}</small>")
+
     def get_queryset(self, request: HttpRequest) -> QuerySet[Any]:
+        ingredient_cost_subquery = Ingredient.objects\
+            .annotate(
+                cost = F("num") * F("item__wooble_buy_price"),
+            ).filter(recipe=OuterRef('pk')).values('recipe__pk')\
+            .annotate(
+                total_cost=Sum('cost'),
+            ).values('total_cost')[:1]
+        
+        product_yield_subquery = Product.objects\
+            .annotate(
+                cost = F("num") * F("item__wooble_sell_price"),
+            ).filter(recipe=OuterRef('pk')).values('recipe__pk')\
+            .annotate(
+                total_cost=Sum('cost'),
+            ).values('total_cost')[:1]
+
         return super().get_queryset(request).prefetch_related("ingredient_set__item", "product_set__item", "table").annotate(
             zutatennames = ConcatSubquery(Ingredient.objects.prefetch_related("item").filter(recipe=OuterRef("id")).values("item__name"), ", "),
             produktenames = ConcatSubquery(Product.objects.prefetch_related("item").filter(recipe=OuterRef("id")).values("item__name"), ", "),
             spezialnames = ConcatSubquery(Spezialfertigkeit.objects.filter(recipe=OuterRef("id")).values("titel"), ", "),
             wissennames = ConcatSubquery(Wissensfertigkeit.objects.filter(recipe=OuterRef("id")).values("titel"), ", "),
+            ingredient_cost = Coalesce(Subquery(ingredient_cost_subquery), 0.0),
+            product_yield = Coalesce(Subquery(product_yield_subquery), 0.0),
+            profitable_flip = F("product_yield") - F("ingredient_cost"),
         )
 
 

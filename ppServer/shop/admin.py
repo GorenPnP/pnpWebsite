@@ -1,6 +1,8 @@
+import locale
 from typing import Any
+
 from django.contrib import admin
-from django.db.models import OuterRef
+from django.db.models import OuterRef, F
 from django.db.models.query import QuerySet
 from django.http.request import HttpRequest
 from django.utils.html import format_html
@@ -333,7 +335,7 @@ class TinkerAdmin(BaseAdmin):
     shop_model = Tinker
     firma_shop_model = FirmaTinker
 
-    list_display = ('icon_', 'name', 'beschreibung', "wooble_buy_price", "wooble_sell_price", "minecraft_mod_id", "werte", "ab_stufe", 'billigste', 'kategorie', 'info', "has_implementation", "has_implementation")
+    list_display = ('icon_', 'name', 'beschreibung', "profitable_flip", "wooble_buy_price", "wooble_sell_price", "werte", "ab_stufe", 'billigste', 'kategorie', 'info', "has_implementation", "has_implementation", "minecraft_mod_id")
     list_display_links = ('icon_', 'name')
     list_filter = ['kategorie', 'illegal', 'lizenz_benötigt', "frei_editierbar"]
     list_editable = BaseAdmin.list_editable + ["wooble_buy_price", "wooble_sell_price"]
@@ -343,9 +345,19 @@ class TinkerAdmin(BaseAdmin):
     inlines = [MiningItemInLine]
 
 
+    def get_queryset(self, request):
+        return super().get_queryset(request).annotate(
+            profitable_flip = F("wooble_sell_price") - F("wooble_buy_price")
+        )
+
     def icon_(self, obj):
         return format_html('<img src="{0}" style="max-width: 32px; max-height:32px;" />'.format(obj.icon.url)) if obj.icon else "-"
     icon_.allow_tags = True
+
+    @admin.display(ordering="profitable_flip", description="Flip (Verkaufspreis - Kaufpreis)")
+    def profitable_flip(self, obj):
+        locale.setlocale(locale.LC_NUMERIC, "de_DE")
+        return format_html(f"<b>{obj.profitable_flip:+n}</b><small> = {obj.wooble_sell_price:n} - {obj.wooble_buy_price:n}</small>")
 
 
 class BegleiterAdmin(BaseAdmin):
