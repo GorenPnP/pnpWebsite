@@ -1,0 +1,68 @@
+{% extends 'base/headed_main.html' %}
+{% load static l10n crafting.dict_key %}
+
+{% block extra-head %}
+<link rel="stylesheet" href="{% static 'combat/css/fight.css' %}">
+<style>
+    #grid {
+        grid-template-columns: repeat({{ grid_size }}, var(--cell-size));
+        grid-template-rows: repeat({{ grid_size }}, var(--cell-size));
+
+        --enemy-sprite-path: {% static 'combat/img/char_front.png' %};
+    }
+</style>
+
+{{ grid_size|json_script:"grid_size" }}
+{{ player_stats|json_script:"player_stats" }}
+{{ enemies|json_script:"enemies" }}
+<script src="{% static 'combat/js/fight.js' %}" defer></script>
+{% endblock %}
+
+{% block main %}
+<div id="grid">
+
+    {% for cell in object.grid %}
+    {% with types|dict_key:cell as type %}
+    <div class="cell" data-type="{{ type.pk }}" style="background-image: url('{{ type.sprite }}')"
+        {% if type.obstacle %}data-obstacle=""{% endif %}
+        {% if type.spawn %}data-spawn=""{% endif %}
+        {% if type.enemy_spawn %}data-enemy_spawn=""{% endif %}
+        {% if type.exit %}data-exit=""{% endif %}
+    ></div>
+    {% endwith %}
+    {% endfor %}
+</div>
+
+<p>Ein Zug besteht aus <b>Laufen</b> und <b>Angreifen</b> oder Teilen davon.</p>
+<p>Du hast noch:</p>
+<ul>
+    <li><span id="turn_overview--speed"></span><small> (mit Pfeiltasten oder WASD)</small></li>
+    <li><span id="turn_overview--attack"></span><small> (mit Maus zielen und Linksklick)</small></li>
+</ul>
+<button id="btn-end_player_turn" class="btn btn-primary" onclick="enemy_turn()">Eigenen Zug beenden</button>
+
+
+<!-- Button trigger exit-modal -->
+<button type="button" class="btn btn-primary" id="exit-btn" data-bs-toggle="modal" data-bs-target="#exit-modal" hidden>verlasse Region</button>
+<!-- Exit-Modal -->
+<div class="modal fade" id="exit-modal" tabindex="-1" style="z-index: 10000;" aria-label="Region verlassen">
+    <div class="modal-dialog modal-fullscreen-sm-down">
+        <form class="modal-content" method="post">
+            {% csrf_token %}
+            <div class="modal-header">
+                <h5 class="modal-title">Region verlassen</h5>
+            </div>        
+            <div class="modal-body">
+                <input name="loot" id="loot" value="{}" hidden>
+
+                Glückwunsch, du hast überlebt! Und das ist dabei herausgekommen:
+
+                <div id="loot-display"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="submit" class="btn btn-primary" data-bs-dismiss="modal">Nach Hause bringen</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

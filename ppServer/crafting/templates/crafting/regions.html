@@ -10,7 +10,7 @@
 	<div class="btns">
 		<a class="mt-4" href="{% url 'crafting:inventory' %}">Inventar</a>
 		<a href="{% url 'crafting:craft' %}">Crafting</a>
-		<a class="mt-4" href="{% url 'crafting:index' %}">Profil wechseln</a>
+		<a class="mt-4" href="{% url 'crafting:index' %}?redirect={{ request.path|urlencode }}">Profil wechseln</a>
 
 		{% if request.spieler.is_spielleiter %}
 		<div></div>
@@ -70,7 +70,33 @@
     </li>
     {% empty %}
     <p>Es gibt (noch) keine Regionen, die du mit deiner Zerstörungswut heimsuchen könntest.</p>
-    <a class="text-light" href="{% url 'crafting:index' %}">Profil wechseln</a>
+    <a class="text-light" href="{% url 'crafting:index' %}?redirect={{ request.path|urlencode }}">Profil wechseln</a>
     {% endfor %}
+</ul>
+
+<h2 class="mt-5">
+    Wo willst du kämpfen?
+    {% if request.spieler.is_spielleiter %}<a class="btn btn-primary" href="{% url 'combat:region_select' %}">Bearbeiten</a>{% endif %}
+</h2>
+
+<ul class="list-group">
+    {% for region in combat_regions %}
+	<li class="list-group-item">
+        <a href="{% url 'combat:fight' region.id %}" class="text-dark d-flex flex-wrap align-items-center justify-content-between w-100">
+
+            <div>
+                <img src="{% static 'res/img/goren_logo.svg' %}" class="rounded-circle border border-primary" style="height: 50px; aspect-ratio: 1">
+                <span class="mx-2 fw-bold">{{ region.name }}</span>
+            </div>
+            <span>
+                {% for item in region.enemies.all %}
+                <img class="drop" src="{{ item.sprite.url }}" alt="{{ item.name }}" style="height: 27px; aspect-ratio: 1;" title="{{ item.name }}">
+                {% endfor %}
+            </span>
+        </a>
+	</li>
+    {% empty %}
+    <p>Keine Regionen vorhanden</p>
+	{% endfor %}
 </ul>
 {% endblock %}

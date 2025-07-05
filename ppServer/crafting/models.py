@@ -151,7 +151,7 @@ class Recipe(models.Model):
 	# to display a table in /crafting for all recipes without an actual table
 	@staticmethod
 	def getHandwerk():
-		return {"name": "Handwerk", "icon": "/static/res/img/crafting/Handwerk.png", "id": 0, "available": True, "link": None}
+		return {"name": "Handwerk", "icon": "/static/crafting/img/Handwerk.png", "id": 0, "available": True, "link": None}
 
 
 	# get all used table instances from db in alpabetical order

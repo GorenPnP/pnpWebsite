@@ -1,0 +1,48 @@
+.hidden {
+    position: absolute;
+    left: -10000px;
+    top: auto;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+}
+
+.form--top {
+    --cell-size: 40px;
+
+    display: grid;
+    grid-template-columns: repeat(2, auto);
+    gap: 1em;
+
+    justify-content: center;
+
+    #toolbar {
+        display: flex;
+        flex-direction: column;
+        gap: 0,5em;
+
+        .cell {
+            min-height: max(1.5em, calc(var(--cell-size) / 2));
+            width: calc(2* var(--cell-size));
+        }
+        .cell--active {
+            border: 2px solid red;
+        }
+    }
+
+    #grid {
+        display: grid;
+        // see grid-template-columns, grid-template-rows in html
+
+        width: fit-content;
+
+        .cell {
+            background-size: cover;
+        }
+    }
+}
+
+#save-btn {
+    grid-column: 1 / -1;
+    justify-self: center;
+}

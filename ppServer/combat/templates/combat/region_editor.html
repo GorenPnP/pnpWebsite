@@ -1,0 +1,57 @@
+{% extends 'base/headed_main.html' %}
+{% load static l10n crafting.dict_key crispy_forms_tags %}
+
+{% block extra-head %}
+<link rel="stylesheet" href="{% static 'combat/css/region_editor.css' %}">
+<style>
+    #grid {
+        grid-template-columns: repeat({{ grid_size }}, var(--cell-size));
+        grid-template-rows: repeat({{ grid_size }}, var(--cell-size));
+    }
+</style>
+{{ types|json_script:"cell_types" }}
+{{ empty_type_pk|json_script:"empty_type_pk" }}
+<script src="{% static 'combat/js/region_editor.js' %}" defer></script>
+{% endblock %}
+
+{% block main %}
+<form id="main-form" method="post" enctype='multipart/form-data' onsubmit="intercept_submit()">
+    {% csrf_token %}
+    {{ form.grid }}
+
+    <div class="form--top">
+        <aside id="toolbar" aria-labelledby="#toolbar-label">
+            <label id="toolbar-label">Toolbar</label>
+            {% for type in types %}
+                <div class="form-input d-flex">
+                    <button type="button" class="cell cell--type" onclick="set_active_type(event, {{ type.pk }})" data-type="{{ type.pk }}">{{ type.name }}</button>
+                    <div>
+                        <label for="input-type-{{ type.pk }}" class="form-label hidden">Sprite upload</label>
+                        <input class="form-control sprite-input" type="file" accept="image/*" id="input-type-{{ type.pk }}" name="type-{{ type.pk }}" oninput="previewFile(event, {{ type.pk }})">
+                    </div>              
+                </div>
+            {% endfor %}
+        </aside>
+    
+        <div>
+            <div id="grid"></div>
+            <span class="text-danger">{{ form.grid.errors }}</span>
+        </div>
+    </div>
+
+    <p>
+        <h3>Gegner</h3>
+        {{ formset.management_form }}
+        <div class="d-flex flex-column">
+            {% for form in formset %}
+            <div class="d-flex gap-3">{{ form.as_div }}</div>
+            {% endfor %}
+        </div>
+    </p>
+
+    <div id="save-btn">
+        <span class="text-danger">{{ form.non_field_errors }}</span>
+        <button type="submit" class="btn btn-lg btn-primary">Speichern</button>
+    </div>
+</form>
+{% endblock %}

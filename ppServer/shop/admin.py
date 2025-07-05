@@ -7,7 +7,6 @@ from django.db.models.query import QuerySet
 from django.http.request import HttpRequest
 from django.utils.html import format_html
 
-from mining.models import Item as MiningItem
 from ppServer.utils import ConcatSubquery
 
 from .models import *
@@ -81,9 +80,6 @@ class FirmaVergessenerZauberInLine(FirmaShopInLine):
 
 class FirmaAlchemieInLine(FirmaShopInLine):
     model = FirmaAlchemie
-
-class MiningItemInLine(admin.TabularInline):
-    model = MiningItem
 
 class FirmaBegleiterInLine(FirmaShopInLine):
     model = FirmaBegleiter
@@ -341,8 +337,6 @@ class TinkerAdmin(BaseAdmin):
     list_editable = BaseAdmin.list_editable + ["wooble_buy_price", "wooble_sell_price"]
 
     fields = ['icon', 'name', 'beschreibung', 'ab_stufe', 'illegal', 'lizenz_benötigt', 'frei_editierbar', 'werte', 'kategorie', "wooble_buy_price", "wooble_sell_price"]
-
-    inlines = [MiningItemInLine]
 
 
     def get_queryset(self, request):

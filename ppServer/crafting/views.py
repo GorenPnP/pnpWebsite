@@ -12,6 +12,7 @@ from django.views.generic.base import TemplateView
 from django.views.generic.list import ListView
 from django.utils.html import format_html
 
+from combat.models import Region as CombatRegion
 from ppServer.mixins import SpielleiterOnlyMixin, VerifiedAccountMixin
 from ppServer.utils import ConcatSubquery
 from shop.models import Tinker
@@ -164,7 +165,7 @@ class IndexView(VerifiedAccountMixin, TemplateView):
 		rel.save(update_fields=["profil"])
     	
 		redirect_path = self.request.GET.get("redirect")
-		return redirect(redirect_path if redirect_path and redirect_path.startswith("/crafting/") else reverse("crafting:inventory"))
+		return redirect(redirect_path if redirect_path and (redirect_path.startswith("/crafting/") or redirect_path.startswith("/combat/")) else reverse("crafting:inventory"))
 
 
 class InventoryView(VerifiedAccountMixin, ProfileSetMixin, DetailView):
@@ -447,6 +448,7 @@ class RegionListView(VerifiedAccountMixin, ProfileSetMixin, ListView):
 
 			drops = drops,
 			profil = self.relCrafting.profil,
+			combat_regions = CombatRegion.objects.prefetch_related("enemies").all(),
         )
 	
 	def post(self, *args, **kwargs):

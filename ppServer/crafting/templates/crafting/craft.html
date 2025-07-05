@@ -34,7 +34,7 @@
 	<div class="btns">
 		<a href="{% url 'crafting:inventory' %}">Inventar</a>
 		<a href="{% url 'crafting:regions' %}">Ressourcen sammeln</a>
-		<a class="mt-4" href="{% url 'crafting:index' %}">Profil wechseln</a>
+		<a class="mt-4" href="{% url 'crafting:index' %}?redirect={{ request.path|urlencode }}">Profil wechseln</a>
 
 		{% if request.spieler.is_spielleiter %}
 			<a href="{% url 'crafting:sp_give_items' %}">Profilen Items geben</a>

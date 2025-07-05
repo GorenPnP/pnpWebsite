@@ -9,7 +9,7 @@
 	<a href="{% url 'crafting:inventory' %}" class="text-light">Inventar</a>
 	<a href="{% url 'crafting:regions' %}" class="text-light">Ressourcen sammeln</a>
 	<a href="{% url 'crafting:craft' %}" class="text-light">Crafting</a>
-	<a href="{% url 'crafting:index' %}" class="text-light">Profil wechseln</a>
+	<a href="{% url 'crafting:index' %}?redirect={{ request.path|urlencode }}" class="text-light">Profil wechseln</a>
 </div>
 
 <div class="overlay">

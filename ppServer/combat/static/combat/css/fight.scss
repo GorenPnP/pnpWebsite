@@ -1,0 +1,117 @@
+.main-container {
+    --cell-size: 40px;
+}
+
+#grid {
+    display: grid;
+    // see grid-template-columns, grid-template-rows in html
+
+    width: fit-content;
+    cursor: crosshair;
+
+    .cell {
+        background-size: cover;
+
+        &.cell--visible {
+            padding: 4px;
+            
+            &::before {
+                content: "";
+                display: block;
+                width: 100%;
+                height: 100%;
+                background-color: green;
+            }
+        }
+    }
+
+    position: relative;
+}
+
+.pawn, .loot {
+    position: absolute;
+    z-index: 10;
+    width: var(--cell-size);
+    height: var(--cell-size);
+
+    top: calc(var(--y, 0) * var(--cell-size));
+    left: calc(var(--x, 0) * var(--cell-size));
+
+    &.loot { cursor: pointer; }
+
+    &.pawn .stats {
+        --difficulty_height: .75rem;
+        position: relative;
+        width: 95%;
+        left: 5%;
+        top: calc(-1 * var(--difficulty_height) - 5px);
+        
+        > * {
+            position: absolute;
+            width: inherit;
+
+            &.difficulty, &.steps-left {
+                line-height: 1em;
+                font-size: var(--difficulty_height);
+            }
+            &.progress {
+                margin-top: calc(var(--difficulty_height) + 1px);
+                height: 4px;
+                border: 1px solid black;
+            }
+        }
+    }
+    img {
+        height: 100%;
+        width: 100%;
+    }
+
+    transition: top 200ms ease-in-out, left 200ms ease-in-out;
+
+    cursor: not-allowed;
+    &.pawn--targeted { cursor: pointer; }
+}
+
+.LOS--wooble {
+    --wooble-size: 4px;
+
+    height: var(--wooble-size);
+    aspect-ratio: 1;
+    background-color: red;
+    border-radius: 100%;
+
+    position: absolute;
+}
+
+
+.particle--wounded {
+    --timeout: 500ms; // needs to stay in ms
+
+    position: absolute;
+    display: block;
+    top: calc(-.5 * var(--cell-size));
+    line-height: 1em;
+    width: 100%;
+    text-align: center;
+    color: var(--bs-danger);
+
+    z-index: 10000;
+    font-weight: 900;
+
+    animation: fly var(--timeout) ease-out;
+
+    @keyframes fly {
+        0% { opacity: 1; }
+        80% { opacity: 1; }
+        100% { opacity: 0; }
+    }
+}
+
+.loot-item {
+    background-repeat: no-repeat;
+    background-size: contain;
+    background-position: center;
+
+    height: var(--cell-size);
+    aspect-ratio: 1;
+}

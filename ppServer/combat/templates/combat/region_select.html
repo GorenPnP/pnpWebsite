@@ -1,0 +1,48 @@
+{% extends 'base/headed_main.html' %}
+{% load static %}
+
+{% block main %}
+<a class="mt-4 text-white" href="{% url 'crafting:index' %}?redirect={{ request.path|urlencode }}">Profil wechseln</a>
+
+<h2>
+    Regionen
+
+    <!-- Button trigger modal -->
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#new-region-modal">+ Region</button>
+</h2>
+
+<ul class="list-group">
+	{% for region in object_list %}
+	<li class="list-group-item">
+		{{ region.name }}
+		<a href="{% url 'combat:region_editor' region.id %}" class="me-2">Bearbeiten</a>
+		<a href="{% url 'combat:fight' region.id %}">Kämpfen</a>
+	</li>
+    {% empty %}
+    <p>Keine Regionen vorhanden</p>
+	{% endfor %}
+</ul>
+
+<!-- Modal -->
+<div class="modal fade" id="new-region-modal" tabindex="-1" style="z-index: 10000;" aria-label="Neuen Block erstellen">
+    <div class="modal-dialog modal-fullscreen-sm-down">
+        <form class="modal-content" method="post">
+            {% csrf_token %}
+            <div class="modal-header">
+                <h5 class="modal-title">Neue Region erstellen</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>        
+            <div class="modal-body">
+                <div class="input-group mb-3">
+                    <span class="input-group-text" id="name-label">Name</span>
+                    <input name="name" class="form-control" placeholder="Dungeon" aria-label="Name" aria-describedby="name-label" required>
+                </div>                  
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-danger" data-bs-dismiss="modal">Abbrechen</button>
+                <button type="submit" class="btn btn-primary" data-bs-dismiss="modal">Erstellen</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
