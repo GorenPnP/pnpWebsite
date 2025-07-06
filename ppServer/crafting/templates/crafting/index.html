@@ -16,10 +16,14 @@
 	{% csrf_token %}
 
 	<label for="name">Crafting für Profil:</label>
-	<input type="text" list="profiles" name="name" placeholder="Name" autocomplete="off" required autofocus>
+	<input type="text" list="profiles" name="name" placeholder="Name" autocomplete="off" value="{{ relProfil.profil.name }}" required autofocus>
 	<datalist id="profiles">
 		{% for p in profiles %}<option value="{{ p.name }}"></option>{% endfor %}
 	</datalist>
+
+	<select name="char" required>
+		{% for c in chars %}<option value="{{ c.pk }}" {% if c.pk == relProfil.char.pk %}selected{% endif %}>{{ c.name }}</option>{% endfor %}
+	</select>
 
 	<div id="restriction">
 		<input type="checkbox" name="restriction">

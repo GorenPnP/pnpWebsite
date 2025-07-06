@@ -19,9 +19,11 @@ from .forms import RegionEditorForm
 from .models import *
 
 
-class RegionSelectView(VerifiedAccountMixin, ProfileSetMixin, SpielleiterOnlyMixin, ListView):
+class RegionSelectView(VerifiedAccountMixin, SpielleiterOnlyMixin, ProfileSetMixin, ListView):
 	template_name = "combat/region_select.html"
 	model = Region
+	# redirect_to = reverse("crafting:regions")
+	redirect_to = "/crafting/regions/"
 
 	def get_context_data(self, **kwargs):
 		return super().get_context_data(
@@ -105,6 +107,7 @@ class FightView(VerifiedAccountMixin, ProfileSetMixin, DetailView):
 
 	def get_context_data(self, **kwargs):
 		default_sprite = CellType.objects.annotate_sprite(self.object).filter(is_default_sprite=True).values_list("sprite", flat=True).first()
+		player_stats, _ = PlayerStats.objects.get_or_create(profil=self.relCrafting.profil, char=self.relCrafting.char)
 
 		return super().get_context_data(
 			**kwargs,
@@ -120,7 +123,7 @@ class FightView(VerifiedAccountMixin, ProfileSetMixin, DetailView):
 				}
 				for type in CellType.objects.annotate_sprite(self.object).values("pk", "sprite", "use_default_sprite", "spawn", "enemy_spawn", "obstacle", "exit")
 			},
-			player_stats = DefaultPlayerStats,
+			player_stats = player_stats.toDict(),
 			enemies = [{"num": e.num, "enemy": e.enemy.toDict()} for e in self.object.regionenemy_set.all()]
 		)
 	
@@ -128,7 +131,9 @@ class FightView(VerifiedAccountMixin, ProfileSetMixin, DetailView):
 		loot = json.loads(self.request.POST.get("loot"))
 		profil = self.relCrafting.profil
 
-		for item_pk in loot.keys():
-			InventoryItem.objects.update_or_create(char=profil, item__pk=int(item_pk), defaults={"num": F("num") + loot[item_pk]})
+		for item in Tinker.objects.filter(pk__in=loot.keys()):
+			iitem, _ = InventoryItem.objects.get_or_create(char=profil, item=item, defaults={"num": 0})
+			iitem.num += loot[str(item.pk)]
+			iitem.save(update_fields=["num"])
 
 		return redirect("combat:region_select")

@@ -7,7 +7,7 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 
 from django_resized import ResizedImageField
 
-from character.models import Spieler, Spezialfertigkeit, Wissensfertigkeit
+from character.models import Spieler, Spezialfertigkeit, Wissensfertigkeit, Charakter
 from shop.models import Tinker
 
 
@@ -22,6 +22,8 @@ class RelCrafting(models.Model):
 
 	spieler = models.OneToOneField(Spieler, on_delete=models.CASCADE)
 	profil = models.ForeignKey("Profile", on_delete=models.SET_NULL, null=True, blank=True)
+
+	char = models.ForeignKey(Charakter, on_delete=models.SET_NULL, null=True, blank=True)
 
 	def __str__(self):
 		return "{} aktiv mit {}".format(self.spieler.name if self.spieler else "-", self.profil.name if self.profil else "-")
@@ -180,6 +182,8 @@ class Region(models.Model):
 	class Meta:
 		verbose_name = "Region"
 		verbose_name_plural = "Regionen"
+
+		ordering = ["wooble_cost", "name"]
 
 	icon = ResizedImageField(size=[64, 64])
 	name = models.CharField(max_length=64, unique=True)

@@ -32,6 +32,7 @@ class ProfileAdmin(admin.ModelAdmin):
 class InventoryAdmin(admin.ModelAdmin):
     list_display = ["char", "item", "num"]
     search_fields = ("char__name", "item__name")
+    list_filter = ("char", "item")
 
     def get_queryset(self, request: HttpRequest) -> QuerySet[Any]:
         return super().get_queryset(request).prefetch_related("char", "item")
@@ -125,6 +126,10 @@ class RecipeAdmin(admin.ModelAdmin):
         )
 
 
+class RelCraftingAdmin(admin.ModelAdmin):
+    list_display = ['spieler', 'char', 'profil']
+    list_filter = ['profil']
+
 class RegionBlockChanceInLineAdmin(admin.TabularInline):
     model = BlockChance
     fields = ['chance', 'block']
@@ -213,7 +218,7 @@ class MiningPerkAdmin(admin.ModelAdmin):
 admin.site.register(Profile, ProfileAdmin)
 admin.site.register(InventoryItem, InventoryAdmin)
 admin.site.register(Recipe, RecipeAdmin)
-admin.site.register(RelCrafting)
+admin.site.register(RelCrafting, RelCraftingAdmin)
 
 admin.site.register(Region, RegionAdmin)
 admin.site.register(Block, BlockAdmin)

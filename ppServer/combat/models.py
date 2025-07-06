@@ -12,24 +12,10 @@ from django.forms.models import model_to_dict
 from django_resized import ResizedImageField
 from PIL import Image as PilImage
 
-from character.models import Spieler
+from character.models import Spieler, Charakter
 from crafting.models import Profile
 from ppServer.settings import STATIC_ROOT, STATIC_URL
 from shop.models import Tinker
-
-
-DefaultPlayerStats = {
-	"sprite": f"{STATIC_URL}combat/img/char_skin_front.png",
-	"speed": 4,
-	"hp": 10,
-	"defense": 0,
-	"weapons": {
-		"n": {"accuracy": 90.0, "damage": 7.0, "crit_chance": 0.0, "crit_damage": 0.0, "min_range": 0, "max_range": 1},
-		"f": {"accuracy": 95.0, "damage": 5.0, "crit_chance": 0.0, "crit_damage": 0.0, "min_range": 1, "max_range": 5},
-		"m": {"accuracy": 99.0, "damage": 0.0, "crit_chance": 0.0, "crit_damage": 0.0, "min_range": 0, "max_range": 3},
-	},
-}
-
 
 class Weapon(models.Model):
 	class Meta:
@@ -287,3 +273,50 @@ class Enemy(models.Model):
 
 	# def __str__(self):
 	# 	return f"Player-Boost {self.item.name}"
+
+
+class PlayerStats(models.Model):
+	class Meta:
+		ordering = ["char", "profil"]
+		unique_together = ["char", "profil"]
+
+	char = models.ForeignKey(Charakter, on_delete=models.CASCADE, null=False, blank=False)
+	profil = models.ForeignKey(Profile, on_delete=models.CASCADE, null=False, blank=False)
+
+	speed = models.SmallIntegerField(default=200, null=False, blank=False, help_text="100 ^= 1 Feld")
+	hp = models.SmallIntegerField(default=10, null=False, blank=False)
+	defense = models.SmallIntegerField(default=0, null=False, blank=False)
+
+	weapons = models.ManyToManyField(Weapon, through="RelWeapon")
+
+	def __str__(self):
+		return f"Char-Stats von {self.char} in Profil {self.profil}"
+
+	def toDict(self):
+		weapons = self.weapons\
+			.values("type")\
+			.annotate(
+				accuracy = Sum("accuracy"),
+				damage = Sum("damage"),
+				crit_chance = Sum("crit_chance"),
+				crit_damage = Sum("crit_damage"),
+				min_range = Sum("min_range"),
+				max_range = Sum("max_range"),
+			).order_by() # values(val).order_by() ^= GROUP_BY val
+
+		return {
+			"sprite": f"{STATIC_URL}combat/img/char_skin_front.png",
+			"speed": self.speed,
+			"hp": self.hp,
+			"defense": self.defense,
+			"weapons": {d["type"]: {key: val for key, val in d.items() if key != "type"} for d in weapons},
+		}
+	
+class RelWeapon(models.Model):
+	# class Meta:
+		# constraints = [
+        #     models.UniqueConstraint(fields=["weapon.type", "weapon.weapon_part", "player_stats"], name="one_weapon_type_and_part_per_player_stat_unique_together")
+		# ]
+		
+	player_stats = models.ForeignKey(PlayerStats, on_delete=models.CASCADE)
+	weapon = models.ForeignKey(Weapon, on_delete=models.CASCADE)

@@ -137,13 +137,17 @@ class IndexView(VerifiedAccountMixin, TemplateView):
 	template_name = "crafting/index.html"
 
 	def get_context_data(self, **kwargs):
+		relProfil, _ = RelCrafting.objects.get_or_create(spieler=self.request.spieler.instance)
+
 		return super().get_context_data(
 			**kwargs,
 			topic = "Profilwahl",
 			app_index = "Crafting",
 			app_index_url = reverse("crafting:craft"),
 
+			relProfil = relProfil,
 			profiles = Profile.objects.all(),
+			chars = Charakter.objects.filter(eigentümer=self.request.spieler.instance, in_erstellung=False)
 		)
 	
 	def post(self, *args, **kwargs):
@@ -151,6 +155,7 @@ class IndexView(VerifiedAccountMixin, TemplateView):
 		name = self.request.POST.get("name")
 		spieler = self.request.spieler.instance
 		if not spieler: return HttpResponseNotFound()
+		char = get_object_or_404(Charakter.objects.filter(eigentümer=spieler, in_erstellung=False), pk=self.request.POST.get("char"))
 
 		# get or create profile with name
 		profile, created = Profile.objects.get_or_create(name=name)
@@ -162,7 +167,8 @@ class IndexView(VerifiedAccountMixin, TemplateView):
 		# set profile as current
 		rel, _ = RelCrafting.objects.get_or_create(spieler=spieler)
 		rel.profil = profile
-		rel.save(update_fields=["profil"])
+		rel.char = char
+		rel.save(update_fields=["profil", "char"])
     	
 		redirect_path = self.request.GET.get("redirect")
 		return redirect(redirect_path if redirect_path and (redirect_path.startswith("/crafting/") or redirect_path.startswith("/combat/")) else reverse("crafting:inventory"))

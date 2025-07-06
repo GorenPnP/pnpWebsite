@@ -113,9 +113,23 @@ class WeaponAdmin(admin.ModelAdmin):
         return obj.munition_display or self.get_empty_value_display()
 
 
+class RelWeaponsInlineAdmin(admin.TabularInline):
+    model = RelWeapon
+    fields = ["weapon"]
+    extra = 1
+class PlayerStatsAdmin(admin.ModelAdmin):
+    list_display = ("char", "profil", "speed", "hp", "defense")
+    list_filter = ["profil", "char"]
+    inlines = [RelWeaponsInlineAdmin]
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).prefetch_related("char", "profil")
+
+
 admin.site.register(Region, RegionAdmin)
 admin.site.register(CellType, CellTypeAdmin)
 admin.site.register(Potion, PotionAdmin)
 admin.site.register(Enemy, EnemyAdmin)
 # admin.site.register(PlayerStatBoost, PlayerStatBoostAdmin)
+admin.site.register(PlayerStats, PlayerStatsAdmin)
 admin.site.register(Weapon, WeaponAdmin)

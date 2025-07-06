@@ -41,7 +41,7 @@ function exit() {
 
 
 class Cell {
-    
+
 
     get classList() {
         return this.cell_tag.classList;
@@ -168,6 +168,7 @@ class Pawn {
      */
     stats = {wounded: 0, steps_left: 0};
     has_attacked = false;
+    is_killed = false;
 
     get pos() {
         const style = window.getComputedStyle(this.pawn_tag);
@@ -217,6 +218,7 @@ class Pawn {
 
         this.aim_at = null;
         this.stats = {...this.stats, ...stats};
+        if (stats.speed !== undefined && stats.speed !== null) this.stats.speed = stats.speed /100;
         this.update_health_bar();
         this.steps_left = this.stats.speed;
 
@@ -374,6 +376,11 @@ class Pawn {
         this.stats.wounded += amount;
         this.update_health_bar();
 
+
+        if (this.stats.wounded >= this.stats.hp) {
+            Pawn.instances = Pawn.instances.filter(pawn => pawn.id !== this.id);
+        }
+
         // animate amount wounded
         const particle = document.createElement("span");
         particle.classList.add("particle--wounded");
@@ -406,6 +413,9 @@ class Pawn {
     }
 
     kill() {
+        if (this.is_killed) return;
+        this.is_killed = true;
+
         Cell.all()
             .filter(cell => cell.pawn === this)
             .forEach(cell => cell.pawn = null);
@@ -415,12 +425,11 @@ class Pawn {
             .forEach(pawn => pawn.aim(null));
 
         this.aim(null);
-        this.cell.pawn = null;
         Pawn.instances = Pawn.instances.filter(pawn => pawn.id !== this.id);
 
         if (this.type === "PLAYER") {
             confirm("game over");
-            window.location.pathname = "/combat";
+            window.location.pathname = "/combat/";
         }
         if (this.type === "ENEMY") {
             // give loot
@@ -549,7 +558,6 @@ class Loot {
         const dummy = document.createElement("div");
         dummy.innerHTML = html_tags;
         document.querySelector("#loot").innerHTML = "";
-console.log(html_tags, dummy.childNodes)
         dummy.childNodes.forEach(item => document.querySelector("#loot").appendChild(item));
         dummy.remove();
     }
@@ -558,6 +566,17 @@ console.log(html_tags, dummy.childNodes)
 
 
 // init game
+const player_weapons = JSON.parse(document.querySelector("#player_stats").innerHTML).weapons;
+if (!Object.keys(player_weapons).length) {
+    confirm("Keine Waffen ausgewählt!");
+    window.location.pathname = "/combat/";
+}
+const weapon_types = Object.keys(player_weapons);
+const weapon_fields = Object.keys(Object.values(player_weapons)[0]);
+document.querySelector("#attack-table").innerHTML = `
+    <thead><tr><th></th><th>${weapon_types.join("</th><th>")}</th></tr></thead>
+    <tbody>${weapon_fields.map(field => `<tr><td>${field.replace("_", " ")}:</td><td>${weapon_types.map(type => player_weapons[type][field]).join("</td><td>")}</td></tr>`).join("")}</tbody>`;
+
 Cell.init_grid();
 Pawn.init_pawns();
 player_turn();

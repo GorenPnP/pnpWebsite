@@ -20,7 +20,7 @@ class ProfileSetMixin(UserPassesTestMixin):
         self.relCrafting = rel
 
         # no profile active? change that!
-        return self.relCrafting.profil is not None
+        return self.relCrafting.profil is not None and self.relCrafting.char is not None
 
 
     def handle_no_permission(self):
