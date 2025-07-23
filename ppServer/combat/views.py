@@ -19,16 +19,17 @@ from .forms import RegionEditorForm
 from .models import *
 
 
-class RegionSelectView(VerifiedAccountMixin, SpielleiterOnlyMixin, ProfileSetMixin, ListView):
+class RegionSelectView(VerifiedAccountMixin, SpielleiterOnlyMixin, ListView):
 	template_name = "combat/region_select.html"
 	model = Region
-	# redirect_to = reverse("crafting:regions")
-	redirect_to = "/crafting/regions/"
+	redirect_to = "crafting:regions"
 
 	def get_context_data(self, **kwargs):
+		relCrafting = getattr(self, "relCrafting", None)
+
 		return super().get_context_data(
 			**kwargs,
-			topic = "Kämpfen für " + self.relCrafting.profil.name,
+			topic = "Kämpfen für " + (relCrafting.profil.name if relCrafting else "-"),
 			app_index = "Crafting",
 			app_index_url = reverse("crafting:craft"),
 		)
