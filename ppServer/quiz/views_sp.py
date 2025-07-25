@@ -9,18 +9,18 @@ from django.utils.html import format_html
 from django_tables2.columns import TemplateColumn
 
 from base.abstract_views import DynamicTableView, GenericTable
-from ppServer.decorators import spielleiter_only, verified_account
-from ppServer.mixins import SpielleiterOnlyMixin, VerifiedAccountMixin
+from ppServer.decorators import spielleitung_only, verified_account
+from ppServer.mixins import SpielleitungOnlyMixin, VerifiedAccountMixin
 
 from .models import *
 from .views import get_grade_score
 
 
 @verified_account
-@spielleiter_only(redirect_to="quiz:index")
+@spielleitung_only(redirect_to="quiz:index")
 def sp_index(request):
 
-    context = {"topic": "Quiz (Spielleiter)", "entries": [
+    context = {"topic": "Quiz (Spielleitung)", "entries": [
         {"titel": "Fragen sortieren", "url": reverse("quiz:sp_questions"), "beschreibung": "Fragen Modulen zuordnen"},
         {"titel": "Modulkontrolle", "url": reverse("quiz:sp_modules"), "beschreibung": "Module vom Spielern verwalten, z.B. korrigieren"},
         {"titel": "Quiz Big Brother", "url": reverse("service:quiz_BB"), "beschreibung": "nach Fächern"},
@@ -31,7 +31,7 @@ def sp_index(request):
 
 # map existing questions to modules
 @verified_account
-@spielleiter_only(redirect_to="quiz:index")
+@spielleitung_only(redirect_to="quiz:index")
 def sp_questions(request):
 
     if request.method == "GET":
@@ -59,7 +59,7 @@ def sp_questions(request):
         return JsonResponse({})
 
 
-class SpModulesView(VerifiedAccountMixin, SpielleiterOnlyMixin, DynamicTableView):
+class SpModulesView(VerifiedAccountMixin, SpielleitungOnlyMixin, DynamicTableView):
     class Table(GenericTable):
         class Meta:
             model = SpielerModule
@@ -121,7 +121,7 @@ class SpModulesView(VerifiedAccountMixin, SpielleiterOnlyMixin, DynamicTableView
 
 
 @verified_account
-@spielleiter_only(redirect_to="quiz:index")
+@spielleitung_only(redirect_to="quiz:index")
 def sp_correct(request, id, question_index=0):
 
     sp_mo = get_object_or_404(SpielerModule, id=id)
@@ -240,7 +240,7 @@ def sp_correct(request, id, question_index=0):
 
 
 @verified_account
-@spielleiter_only("quiz:index")
+@spielleitung_only("quiz:index")
 def old_answer(request, sp_mo_id, question_id, question_index):    # id of currently answered SpielerQuestion
 
     sp_mo = get_object_or_404(SpielerModule, id=sp_mo_id)

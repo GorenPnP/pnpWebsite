@@ -1,4 +1,4 @@
-from ppServer.decorators import spielleiter_only
+from ppServer.decorators import spielleitung_only
 
 from django.shortcuts import render
 from django.urls import reverse
@@ -27,7 +27,7 @@ def random(request):
 
 # quiz big brother
 @verified_account
-@spielleiter_only("quiz:index")
+@spielleitung_only("quiz:index")
 def quiz_BB(request):
 
     all_spieler = RelQuiz.objects.all().order_by("-quiz_points_achieved")

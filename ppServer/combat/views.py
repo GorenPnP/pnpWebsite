@@ -13,13 +13,13 @@ from django.utils.html import format_html
 
 from crafting.mixins import ProfileSetMixin
 from crafting.models import InventoryItem
-from ppServer.mixins import VerifiedAccountMixin, SpielleiterOnlyMixin
+from ppServer.mixins import VerifiedAccountMixin, SpielleitungOnlyMixin
 
 from .forms import RegionEditorForm
 from .models import *
 
 
-class RegionSelectView(VerifiedAccountMixin, SpielleiterOnlyMixin, ListView):
+class RegionSelectView(VerifiedAccountMixin, SpielleitungOnlyMixin, ListView):
 	template_name = "combat/region_select.html"
 	model = Region
 	redirect_to = "crafting:regions"
@@ -40,7 +40,7 @@ class RegionSelectView(VerifiedAccountMixin, SpielleiterOnlyMixin, ListView):
 		return redirect(reverse("combat:region_editor", args=[region.pk]))
 
 
-class RegionEditorView(VerifiedAccountMixin, SpielleiterOnlyMixin, DetailView):
+class RegionEditorView(VerifiedAccountMixin, SpielleitungOnlyMixin, DetailView):
 	template_name = "combat/region_editor.html"
 	model = Region
 

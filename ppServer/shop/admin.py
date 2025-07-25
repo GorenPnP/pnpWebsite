@@ -116,8 +116,8 @@ class BaseAdmin(admin.ModelAdmin):
         return super().get_queryset(request).prefetch_related(f"{self._firmashop_modelset()}__firma")
 
     def get_readonly_fields(self, request: HttpRequest, obj = ...):
-        # spielleiter
-        if request.spieler.is_spielleiter:
+        # spielleitung
+        if request.spieler.is_spielleitung:
             return super().get_readonly_fields(request, obj)
         
         # spieler (create OR frei_editierbar)
@@ -227,8 +227,8 @@ class Rituale_RunenAdmin(admin.ModelAdmin):
     
 
     def get_readonly_fields(self, request: HttpRequest, obj = ...):
-        # spielleiter
-        if request.spieler.is_spielleiter:
+        # spielleitung
+        if request.spieler.is_spielleitung:
             return super().get_readonly_fields(request, obj)
         
         # spieler (create OR frei_editierbar)

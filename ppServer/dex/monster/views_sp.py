@@ -4,13 +4,13 @@ from django.contrib import messages
 from django.shortcuts import redirect, get_object_or_404
 from django.views.generic.base import TemplateView
 
-from ppServer.mixins import SpielleiterOnlyMixin, VerifiedAccountMixin
+from ppServer.mixins import SpielleitungOnlyMixin, VerifiedAccountMixin
 
 from .forms import MonsterVisibilityForm, AttackToMonsterForm
 from .models import *
 
 
-class MonsterVisibilityView(VerifiedAccountMixin, SpielleiterOnlyMixin, TemplateView):
+class MonsterVisibilityView(VerifiedAccountMixin, SpielleitungOnlyMixin, TemplateView):
     template_name = "dex/sp/visibility.html"
 
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
@@ -34,7 +34,7 @@ class MonsterVisibilityView(VerifiedAccountMixin, SpielleiterOnlyMixin, Template
         return redirect(request.build_absolute_uri())
 
 
-class AttackToMonsterView(VerifiedAccountMixin, SpielleiterOnlyMixin, TemplateView):
+class AttackToMonsterView(VerifiedAccountMixin, SpielleitungOnlyMixin, TemplateView):
     template_name = "dex/sp/attack_to_monster.html"
 
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:

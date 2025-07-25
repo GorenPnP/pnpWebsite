@@ -12,11 +12,11 @@ from django.views.generic.list import ListView
 from django.urls import reverse
 from django.utils.translation import gettext as _
 
-from ppServer.mixins import SpielleiterOnlyMixin, VerifiedAccountMixin
+from ppServer.mixins import SpielleitungOnlyMixin, VerifiedAccountMixin
 
 from .models import *
 
-class AdminDuplicatePoliticiansFormview(VerifiedAccountMixin, SpielleiterOnlyMixin, TemplateView):
+class AdminDuplicatePoliticiansFormview(VerifiedAccountMixin, SpielleitungOnlyMixin, TemplateView):
     template_name = "politics/admin/action_duplicate_politicians.html"
     model = Politician
 
@@ -51,7 +51,7 @@ class AdminDuplicatePoliticiansFormview(VerifiedAccountMixin, SpielleiterOnlyMix
             return render(request, self.template_name, self.get_context_data(form=form))
 
 
-class VoteOnLegalActFormview(VerifiedAccountMixin, SpielleiterOnlyMixin, DetailView):
+class VoteOnLegalActFormview(VerifiedAccountMixin, SpielleitungOnlyMixin, DetailView):
     template_name = "politics/admin/vote_on_legalAct.html"
     model = LegalAct
 

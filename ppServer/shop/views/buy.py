@@ -33,7 +33,7 @@ class BuyView(VerifiedAccountMixin, DetailView):
         charaktere = Charakter.objects.all()
 
         # characters to buy stuff for
-        if not request.spieler.is_spielleiter:
+        if not request.spieler.is_spielleitung:
             if self.shop_model._meta.model_name == "zauber":
                 charaktere = charaktere.annotate(
                         # mind. 5 bei Zaubern:
@@ -65,7 +65,7 @@ class BuyView(VerifiedAccountMixin, DetailView):
         context = {
             "charaktere": charaktere.order_by('name'),
             "entries": firma_shop_entries,
-            "extra_preis_field": request.spieler.is_spielleiter,
+            "extra_preis_field": request.spieler.is_spielleitung,
             "st": item.stufenabhängig,
             "topic": item.name,
             "app_index": "Shop",
@@ -99,7 +99,7 @@ class BuyView(VerifiedAccountMixin, DetailView):
         # check if spieler may modify char
         spieler = request.spieler.instance
         char = get_object_or_404(Charakter, id=char_id)
-        if char.eigentümer != spieler and not request.spieler.is_spielleiter:
+        if char.eigentümer != spieler and not request.spieler.is_spielleitung:
             messages.error(request, "Keine Erlaubnis einzukaufen")
             return redirect(request.build_absolute_uri())
 

@@ -10,7 +10,7 @@ from django.shortcuts import redirect
 from django.views.decorators.http import require_GET
 from django.views.generic import DetailView
 
-from ppServer.decorators import spielleiter_only, verified_account
+from ppServer.decorators import spielleitung_only, verified_account
 from ppServer.mixins import VerifiedAccountMixin
 from ppServer.settings import STATIC_ROOT
 from character.models import Charakter
@@ -22,7 +22,7 @@ class CharacterExportView(VerifiedAccountMixin, UserPassesTestMixin, DetailView)
     model = Charakter
 
     def test_func(self):
-        return self.request.spieler.is_spielleiter or Charakter.objects.filter(pk=self.kwargs["pk"], eigentümer=self.request.spieler.instance).exists()
+        return self.request.spieler.is_spielleitung or Charakter.objects.filter(pk=self.kwargs["pk"], eigentümer=self.request.spieler.instance).exists()
 
     def handle_no_permission(self):
         return redirect("character:index")
@@ -33,7 +33,7 @@ class CharacterExportView(VerifiedAccountMixin, UserPassesTestMixin, DetailView)
 
 @require_GET
 @verified_account
-@spielleiter_only(redirect_to="character:index")
+@spielleitung_only(redirect_to="character:index")
 def export_all(request, *args, **kwargs):
     try:
         path = os.path.join(STATIC_ROOT, "character_export", "characters.zip")

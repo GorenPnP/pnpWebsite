@@ -10,7 +10,7 @@ from django.views.generic.base import TemplateView
 from push_notifications.models import WebPushDevice
 
 from ppServer.decorators import verified_account
-from ppServer.mixins import SpielleiterOnlyMixin, VerifiedAccountMixin
+from ppServer.mixins import SpielleitungOnlyMixin, VerifiedAccountMixin
 from ppServer.settings import PUSH_NOTIFICATION_KEY
 
 from .forms import *
@@ -57,7 +57,7 @@ class SettingView(VerifiedAccountMixin, TemplateView):
 		return render(request, self.template_name, context)
 
 
-class TestView(SpielleiterOnlyMixin, TemplateView):
+class TestView(SpielleitungOnlyMixin, TemplateView):
 	template_name = "webPush/testpage.html"
 
 	def get(self, request: HttpRequest) -> HttpResponse:

@@ -5,7 +5,7 @@ from django.http.response import JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
 
-from ppServer.decorators import verified_account, spielleiter_only
+from ppServer.decorators import verified_account, spielleitung_only
 
 from .models import Message
 
@@ -43,18 +43,18 @@ def index(request):
                     "messages":
                         [{"author": m.author.get_real_name(), "text": m.text, "created_at": m.created_at.isoformat()} for m in messages],
                     "own_name": spieler.get_real_name(),
-                    "spielleiter": request.spieler.is_spielleiter
+                    "spielleitung": request.spieler.is_spielleitung
                 }
             )
 
 
 
 @verified_account
-@spielleiter_only("chat:index")
+@spielleitung_only("chat:index")
 def sp_index_get(request):
 
     context = {
-        "topic": "Spielleiter-Chat",
+        "topic": "Spielleitung-Chat",
         "messages": Message.objects.all(),
         "own_name": request.spieler.instance.get_real_name(),
         "app_index": "Chats",

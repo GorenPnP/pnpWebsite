@@ -41,7 +41,7 @@ def signup(request):
             user.is_staff = True
             user.save()
 
-            my_group = Group.objects.get(name='spieler') 
+            my_group = Group.objects.get(name='Spieler') 
             my_group.user_set.add(user)
 
             # send email

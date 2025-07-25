@@ -35,7 +35,7 @@ class CharacterListView(VerifiedAccountMixin, TemplateView):
     def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
 
         char_qs = Charakter.objects.prefetch_related("eigentümer", "tags").filter(in_erstellung=False).order_by('name')
-        if not self.request.spieler.is_spielleiter:
+        if not self.request.spieler.is_spielleitung:
             char_qs = char_qs.filter(eigentümer=self.request.spieler.instance)
 
         return {
@@ -82,7 +82,7 @@ class ShowView(VerifiedAccountMixin, DetailView):
     )
 
     def get(self, request, *args, **kwargs):
-        if not self.request.spieler.is_spielleiter and not Charakter.objects.filter(pk=kwargs["pk"], eigentümer=self.request.spieler.instance).exists():
+        if not self.request.spieler.is_spielleitung and not Charakter.objects.filter(pk=kwargs["pk"], eigentümer=self.request.spieler.instance).exists():
             return redirect("character:index")
         
         return super().get(request, *args, **kwargs)
@@ -639,7 +639,7 @@ def edit_tag(request, pk):
     # get all selected chars for the tag
     char_ids = [int(k.replace(f"tag-{tag.id}-char-", "")) for k, v in request.POST.items() if v == "on" and re.match(f"^tag\-{tag.id}\-char\-\d+$", k)]
     chars = Charakter.objects.filter(id__in=char_ids)
-    if not request.spieler.is_spielleiter: chars = chars.filter(eigentümer=request.spieler.instance)
+    if not request.spieler.is_spielleitung: chars = chars.filter(eigentümer=request.spieler.instance)
     
     # set chars to db
     tag.charakter_set.set(chars)
@@ -674,7 +674,7 @@ def use_relshop(request, relshop_model, pk):
         return redirect("character:index")
 
     # assert user requesting to use an item
-    if not request.spieler.is_spielleiter and not Model.objects.filter(pk=pk, char__eigentümer=request.spieler.instance).exists():
+    if not request.spieler.is_spielleitung and not Model.objects.filter(pk=pk, char__eigentümer=request.spieler.instance).exists():
         messages.error(request, "Es ist nicht dein Charakter, von dem du Items benutzen willst.")
         return redirect("character:index")
 
@@ -710,8 +710,8 @@ def use_relshop(request, relshop_model, pk):
 class CreateCharacterView(UserPassesTestMixin, CreateView):
     # permission
     def test_func(self):
-        """ is_spielleiter_or_adds_chars """
-        return self.request.spieler.is_spielleiter or "trägt seine chars ein" in self.request.spieler.groups
+        """ is_spielleitung or adds chars """
+        return self.request.spieler.is_spielleitung or "trägt seine chars ein" in self.request.spieler.groups
 
     def handle_no_permission(self):
         return redirect("character:index")

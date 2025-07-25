@@ -70,10 +70,10 @@ def mw_from_grade_list(grade_list):
 def index(request, spieler_id=None):
 
     # for Phillip's wish to see everyone's timetable
-    spielleiter_service = spieler_id is not None and request.spieler.is_spielleiter
+    spielleitung_service = spieler_id is not None and request.spieler.is_spielleitung
 
-    # usual case if not spielleiter_service (as in: BB). Or not.
-    spieler = get_object_or_404(Spieler, id=spieler_id) if spielleiter_service else request.spieler.instance
+    # usual case if not spielleitung_service (as in: BB). Or not.
+    spieler = get_object_or_404(Spieler, id=spieler_id) if spielleitung_service else request.spieler.instance
 
     if request.method == "GET":
 
@@ -94,7 +94,7 @@ def index(request, spieler_id=None):
 
         context = {
             "timetable": timetable,
-            "topic": "{}'s Quiz".format(spieler.get_real_name()) if spielleiter_service else "Quiz",
+            "topic": "{}'s Quiz".format(spieler.get_real_name()) if spielleitung_service else "Quiz",
             "akt_punktzahl": get_object_or_404(models.RelQuiz, spieler=spieler).quiz_points_achieved,
             "button_states": ["opened", "corrected"]
         }

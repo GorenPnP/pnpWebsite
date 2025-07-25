@@ -270,7 +270,7 @@ def send_pushies_on_update_of_spielermodule_state(sender, instance, **kwargs):
 
         return PushSettings.send_message(users, title, message, PushTag.quiz)
     
-    # message to spielleiter [answered, seen]
+    # message to spielleitung [answered, seen]
     if new_state in [3, 5]:
         title = "Quiz: Modul beantwortet" if new_state == 3 else "Quiz: Modul angesehen"
         message = f"{instance.spieler} hat {message} " + ("beantwortet" if new_state == 3 else "angesehen")

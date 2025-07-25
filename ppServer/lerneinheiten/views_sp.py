@@ -11,13 +11,13 @@ from django.views.decorators.http import require_POST
 from django.views.generic import DetailView
 from django.views.generic.list import ListView
 
-from ppServer.decorators import spielleiter_only, verified_account
-from ppServer.mixins import SpielleiterOnlyMixin, VerifiedAccountMixin
+from ppServer.decorators import spielleitung_only, verified_account
+from ppServer.mixins import SpielleitungOnlyMixin, VerifiedAccountMixin
 
 from .forms import *
 from .models import *
 
-class EditorIndexView(VerifiedAccountMixin, SpielleiterOnlyMixin, ListView):
+class EditorIndexView(VerifiedAccountMixin, SpielleitungOnlyMixin, ListView):
     model = Einheit
     template_name = "lerneinheiten/sp/editor/index.html"
 
@@ -65,7 +65,7 @@ class EditorIndexView(VerifiedAccountMixin, SpielleiterOnlyMixin, ListView):
         return redirect("lerneinheiten:editor_index")
 
 
-class EditorPageView(VerifiedAccountMixin, SpielleiterOnlyMixin, DetailView):
+class EditorPageView(VerifiedAccountMixin, SpielleitungOnlyMixin, DetailView):
     model = Page
     template_name = "lerneinheiten/sp/editor/_default.html"
 
@@ -121,7 +121,7 @@ class EditorPageView(VerifiedAccountMixin, SpielleiterOnlyMixin, DetailView):
         return redirect(request.build_absolute_uri())
 
 
-class AccessPageView(VerifiedAccountMixin, SpielleiterOnlyMixin, ListView):
+class AccessPageView(VerifiedAccountMixin, SpielleitungOnlyMixin, ListView):
     model = Spieler
     template_name = "lerneinheiten/sp/access.html"
 
@@ -164,7 +164,7 @@ class AccessPageView(VerifiedAccountMixin, SpielleiterOnlyMixin, ListView):
 
 @require_POST
 @verified_account
-@spielleiter_only()
+@spielleitung_only()
 def edit_einheit(request, pk: int):
     einheit = get_object_or_404(Einheit, pk=pk)
 
@@ -180,7 +180,7 @@ def edit_einheit(request, pk: int):
 
 @require_POST
 @verified_account
-@spielleiter_only()
+@spielleitung_only()
 def new_einheit(request):
     form = EinheitForm(request.POST)
     form.full_clean()
@@ -194,7 +194,7 @@ def new_einheit(request):
 
 @require_POST
 @verified_account
-@spielleiter_only()
+@spielleitung_only()
 def new_page(request):
     form = PageForm(request.POST)
     form.full_clean()
@@ -208,7 +208,7 @@ def new_page(request):
 
 @require_POST
 @verified_account
-@spielleiter_only()
+@spielleitung_only()
 def image_upload(request, page_id):
     try:
         page = Page.objects.get(pk=page_id)

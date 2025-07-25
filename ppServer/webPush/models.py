@@ -58,9 +58,9 @@ class PushSettings(models.Model):
         # transform tag to string
         tag = tag.value if type(tag) == PushTag else tag
 
-        # spielleiter-only tags
+        # spielleitung-only tags
         if tag in [PushTag.quiz_control.value]:
-            recipients = recipients.filter(groups__name="spielleiter")
+            recipients = recipients.filter(groups__name="Spielleitung")
 
         # get filtered recipients
         filters = {"user__in": recipients}

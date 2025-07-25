@@ -119,7 +119,7 @@
 		<a href="{% url 'crafting:craft' %}">Crafting</a>
 		<a class="mt-4" href="{% url 'crafting:index' %}?redirect={{ request.path|urlencode }}">Profil wechseln</a>
 
-		{% if request.spieler.is_spielleiter %}
+		{% if request.spieler.is_spielleitung %}
 		<div></div>
 		<a href="{% url 'crafting:sp_give_items' %}">Profilen Items geben</a>
 		{% endif %}

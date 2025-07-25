@@ -6,7 +6,7 @@ from django.views.generic import DetailView
 from django.views.generic.base import TemplateView
 from django.views.generic.list import ListView
 
-from ppServer.decorators import spielleiter_only, verified_account
+from ppServer.decorators import spielleitung_only, verified_account
 from ppServer.mixins import VerifiedAccountMixin
 
 from .forms import *
@@ -51,7 +51,7 @@ class CardDetailView(VerifiedAccountMixin, UserPassesTestMixin, DetailView):
 
 
 @verified_account
-@spielleiter_only(redirect_to="cards:index")
+@spielleitung_only(redirect_to="cards:index")
 def sp_transaction(request):
     errors = []
 
@@ -99,7 +99,7 @@ class TransactionView(VerifiedAccountMixin, UserPassesTestMixin, TemplateView):
         sender = self.get_sender()
 
         return sender.active and (
-            self.request.spieler.is_spielleiter or
+            self.request.spieler.is_spielleitung or
             sender.spieler == self.request.spieler.instance
         )
 

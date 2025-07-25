@@ -216,7 +216,7 @@
     </div>
 
     <!-- lerneinheiten -->
-    {% if request.spieler.is_spielleiter or 'LARP-ler' in request.spieler.groups %}
+    {% if request.spieler.is_spielleitung or 'LARP-ler' in request.spieler.groups %}
     <div class="card" id="lerneinheiten" onclick="registerForWebPush(false)">
         <a href="{% url 'lerneinheiten:index' %}">
             <div class="card__icon bg-primary">
@@ -229,7 +229,7 @@
                 Die sicherste MFHS des Goren wartet auf dich!
             </p>
             <div class="btns">
-                {% if request.spieler.is_spielleiter %}<a href="{% url 'lerneinheiten:editor_index' %}" class="btn btn-primary">zum Editor</a>{% endif %}
+                {% if request.spieler.is_spielleitung %}<a href="{% url 'lerneinheiten:editor_index' %}" class="btn btn-primary">zum Editor</a>{% endif %}
                 {% if 'LARP-ler' in request.spieler.groups %}<a href="{% url 'lerneinheiten:index' %}" class="btn btn-primary">Lets LARP!</a>{% endif %}
             </div>
         </div>
@@ -273,7 +273,7 @@
     </div>
 
     <!-- Logs -->
-    <div class="card" {% if not request.spieler.is_spielleiter %}hidden{% endif %} id="logs">
+    <div class="card" {% if not request.spieler.is_spielleitung %}hidden{% endif %} id="logs">
         <div class="card__icon bg-primary">
             <img class="card__icon__img" src="{% static 'res/img/icon-logs.png' %}">
         </div>
@@ -291,7 +291,7 @@
     </div>
 
     <!-- Quizkontrolle -->
-    <div class="card" {% if not request.spieler.is_spielleiter %}hidden{% endif %} id="quizkontrolle">
+    <div class="card" {% if not request.spieler.is_spielleitung %}hidden{% endif %} id="quizkontrolle">
         <a href="{% url 'quiz:sp_index' %}">
             <div class="card__icon bg-primary">
                 <img class="card__icon__img" src="{% static 'res/img/icon-trophy.png' %}">

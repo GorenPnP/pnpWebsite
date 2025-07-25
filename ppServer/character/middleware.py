@@ -4,7 +4,7 @@ class RequestSpieler:
     instance: Spieler = None
 
     is_verified: bool = False
-    is_spielleiter: bool = False
+    is_spielleitung: bool = False
 
     groups: list[str] = []
 
@@ -21,6 +21,6 @@ class SpielerMiddleware:
             request.spieler.instance = Spieler.objects.get(name=request.user.username)
             request.spieler.groups = request.user.groups.values_list("name", flat=True)
             request.spieler.is_verified = len(request.spieler.groups)
-            request.spieler.is_spielleiter = "spielleiter" in request.spieler.groups
+            request.spieler.is_spielleitung = "Spielleitung" in request.spieler.groups
 
         return self.get_response(request)

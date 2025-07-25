@@ -8,11 +8,11 @@ from django.views.generic.list import ListView
 
 from markdown_view.views import MarkdownView
 
-from ppServer.mixins import SpielleiterOnlyMixin, VerifiedAccountMixin
+from ppServer.mixins import SpielleitungOnlyMixin, VerifiedAccountMixin
 
 from .models import *
 
-class IndexView(VerifiedAccountMixin, SpielleiterOnlyMixin, ListView):
+class IndexView(VerifiedAccountMixin, SpielleitungOnlyMixin, ListView):
 	model = Level
 	template_name = "time_space/index.html"
 
@@ -24,7 +24,7 @@ class IndexView(VerifiedAccountMixin, SpielleiterOnlyMixin, ListView):
 		)
 
 
-class PlayNetView(VerifiedAccountMixin, SpielleiterOnlyMixin, DetailView):
+class PlayNetView(VerifiedAccountMixin, SpielleitungOnlyMixin, DetailView):
 	model = Level
 	template_name = "time_space/net.html"
 
@@ -37,7 +37,7 @@ class PlayNetView(VerifiedAccountMixin, SpielleiterOnlyMixin, DetailView):
 		return context
 
 
-class EditNetView(VerifiedAccountMixin, SpielleiterOnlyMixin, TemplateView):
+class EditNetView(VerifiedAccountMixin, SpielleitungOnlyMixin, TemplateView):
 	template_name = "time_space/editor.html"
 	
 	def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
@@ -66,7 +66,7 @@ class EditNetView(VerifiedAccountMixin, SpielleiterOnlyMixin, TemplateView):
 		return redirect(reverse("time_space:editNet", args=[level.id]))
 
 
-class ManualView(VerifiedAccountMixin, SpielleiterOnlyMixin, MarkdownView):
+class ManualView(VerifiedAccountMixin, SpielleitungOnlyMixin, MarkdownView):
 	template_name = "time_space/manual.html"
 	file_name='/static/time_space/manual.md'
 

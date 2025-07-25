@@ -12,7 +12,7 @@
 		<a href="{% url 'crafting:craft' %}">Crafting</a>
 		<a class="mt-4" href="{% url 'crafting:index' %}?redirect={{ request.path|urlencode }}">Profil wechseln</a>
 
-		{% if request.spieler.is_spielleiter %}
+		{% if request.spieler.is_spielleitung %}
 		<div></div>
 		<a href="{% url 'crafting:sp_give_items' %}">Profilen Items geben</a>
 		{% endif %}
@@ -76,7 +76,7 @@
 
 <h2 class="mt-5">
     Wo willst du kämpfen?
-    {% if request.spieler.is_spielleiter %}<a class="btn btn-primary" href="{% url 'combat:region_select' %}">Bearbeiten</a>{% endif %}
+    {% if request.spieler.is_spielleitung %}<a class="btn btn-primary" href="{% url 'combat:region_select' %}">Bearbeiten</a>{% endif %}
 </h2>
 
 <ul class="list-group">

@@ -1,11 +1,11 @@
 from django.contrib.admin.models import LogEntry
 
 from base.abstract_views import DynamicTableView, GenericTable
-from ppServer.mixins import SpielleiterOnlyMixin, VerifiedAccountMixin
+from ppServer.mixins import SpielleitungOnlyMixin, VerifiedAccountMixin
 
 from .models import Log
 
-class UserLogView(VerifiedAccountMixin, SpielleiterOnlyMixin, DynamicTableView):
+class UserLogView(VerifiedAccountMixin, SpielleitungOnlyMixin, DynamicTableView):
     model = Log
     filterset_fields = {
         "char": ["exact"],
@@ -21,7 +21,7 @@ class UserLogView(VerifiedAccountMixin, SpielleiterOnlyMixin, DynamicTableView):
     def get_app_index_url(self): return None
 
 
-class AdminLogView(VerifiedAccountMixin, SpielleiterOnlyMixin, DynamicTableView):
+class AdminLogView(VerifiedAccountMixin, SpielleitungOnlyMixin, DynamicTableView):
     class Table(GenericTable):
         class Meta:
             model = LogEntry
@@ -32,11 +32,13 @@ class AdminLogView(VerifiedAccountMixin, SpielleiterOnlyMixin, DynamicTableView)
             return record.get_change_message()
 
     model = LogEntry
-    queryset = LogEntry.objects.exclude(user__username="spielleiter").filter(content_type__app_label="character", content_type__model="charakter")
     
     topic = "Changes in Admin area"
     filterset_fields = {"action_time": ["lte"], "user": ["exact"], "object_repr": ["icontains"], "change_message": ["icontains"]}
     table_class = Table
+
+    def get_queryset(self):
+        return super().get_queryset().exclude(user__username=self.request.spieler.instance.name).filter(content_type__app_label="character", content_type__model="charakter")
     
     def get_app_index(self): return None
     def get_app_index_url(self): return None

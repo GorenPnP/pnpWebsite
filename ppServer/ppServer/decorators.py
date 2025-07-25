@@ -41,10 +41,10 @@ def verified_account(function=None, redirect_field_name=REDIRECT_FIELD_NAME, log
     return actual_decorator(function) if function else actual_decorator
 
 
-def spielleiter_only(redirect_to="base:index"):
+def spielleitung_only(redirect_to="base:index"):
     def decorator(view_func):
         def wrap(request, *args, **kwargs):
-            if request.spieler.is_spielleiter:
+            if request.spieler.is_spielleitung:
                 return view_func(request, *args, **kwargs)
             else:
                 return redirect(redirect_to)

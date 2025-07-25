@@ -13,7 +13,7 @@ from django.views.generic.list import ListView
 from django.utils.html import format_html
 
 from combat.models import Region as CombatRegion
-from ppServer.mixins import SpielleiterOnlyMixin, VerifiedAccountMixin
+from ppServer.mixins import SpielleitungOnlyMixin, VerifiedAccountMixin
 from ppServer.utils import ConcatSubquery
 from shop.models import Tinker
 from shop.enums import tinker_enum
@@ -395,7 +395,7 @@ class RecipeDetailsView(VerifiedAccountMixin, ProfileSetMixin, DetailView):
 		)
 
 
-class SpGiveItemsView(VerifiedAccountMixin, SpielleiterOnlyMixin, ProfileSetMixin, TemplateView):
+class SpGiveItemsView(VerifiedAccountMixin, SpielleitungOnlyMixin, ProfileSetMixin, TemplateView):
 	template_name = "crafting/sp_give_items.html"
 
 	def get_context_data(self, **kwargs):

@@ -3,7 +3,7 @@ from django.urls import path
 import quiz.views as quiz_v
 from . import views
 
-# extra service for spielleiter
+# extra service for spielleitung
 app_name = 'service'
 
 urlpatterns = [

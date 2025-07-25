@@ -43,7 +43,7 @@ class MonsterDetailView(VerifiedAccountMixin, DetailView):
     template_name = "dex/monster/monster_detail.html"
 
     def _create_form(self, **kwargs):
-        if self.request.spieler.is_spielleiter:
+        if self.request.spieler.is_spielleitung:
             return SpSpielerMonsterForm(**kwargs)
         else:
             return SpielerMonsterForm(**kwargs)
@@ -68,7 +68,7 @@ class MonsterDetailView(VerifiedAccountMixin, DetailView):
 
         # assign attacks
 
-        # spielleiter may keep the original attacks
+        # spielleitung may keep the original attacks
         attacks = instance.monster.attacken.all()
         # .. otherwise assign random attacks
         if not keep_attacks:
@@ -131,7 +131,7 @@ class MonsterDetailView(VerifiedAccountMixin, DetailView):
             obj.spieler = spieler
             if obj.name == monster.name: obj.name = None
             obj.save()
-            self._skill_spmo(obj, self.request.spieler.is_spielleiter and "keep_attacks" in form.cleaned_data and form.cleaned_data["keep_attacks"])
+            self._skill_spmo(obj, self.request.spieler.is_spielleitung and "keep_attacks" in form.cleaned_data and form.cleaned_data["keep_attacks"])
 
             messages.success(request, format_html(f"<b>{obj.name or monster.name}</b> ist in deiner <a class='text-light' href='{reverse('dex:monster_farm')}'>Monster-Farm</a> eingetroffen."))
         else:

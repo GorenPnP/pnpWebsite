@@ -37,12 +37,12 @@ def reviewable_shop():
         Zauber,
     ]
 
-    spielleiter_notes = []
+    spielleitung_notes = []
     for m in models:
         for i in m.objects.filter(frei_editierbar=True):
-            spielleiter_notes.append({"titel": i.name, "model": m,
+            spielleitung_notes.append({"titel": i.name, "model": m,
                                     "url": reverse('admin:shop_{}_change'.format(m.__name__.lower()), args=(i.id,))})
-    return spielleiter_notes
+    return spielleitung_notes
 
 
 class IndexView(VerifiedAccountMixin, TemplateView):
@@ -71,7 +71,7 @@ class IndexView(VerifiedAccountMixin, TemplateView):
         context = { "hero_pages": ["Fun Fact", "Regeln"], }
 
         ## polls
-        if not self.request.spieler.is_spielleiter:
+        if not self.request.spieler.is_spielleitung:
             now = datetime.now()
 
             # all currently open polls, which haven't been answered by the player
@@ -93,7 +93,7 @@ class IndexView(VerifiedAccountMixin, TemplateView):
         context["hero_pages"].append("Schmiedesystem")
 
         ## shop review
-        if self.request.spieler.is_spielleiter:
+        if self.request.spieler.is_spielleitung:
             shop = reviewable_shop()
             if len(shop): context["hero_pages"].append("Shop review")
 

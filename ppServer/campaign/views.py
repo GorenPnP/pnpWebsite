@@ -9,12 +9,12 @@ from django.urls import reverse
 
 from character.models import Charakter
 from log.create_log import logAuswertung
-from ppServer.mixins import SpielleiterOnlyMixin, VerifiedAccountMixin
+from ppServer.mixins import SpielleitungOnlyMixin, VerifiedAccountMixin
 
 from .forms import AuswertungForm, LarpAuswertungForm
 
 
-class AuswertungListView(VerifiedAccountMixin, SpielleiterOnlyMixin, ListView):
+class AuswertungListView(VerifiedAccountMixin, SpielleitungOnlyMixin, ListView):
     model = Charakter
     template_name = "campaign/auswertung_hub.html"
 
@@ -34,7 +34,7 @@ class AuswertungListView(VerifiedAccountMixin, SpielleiterOnlyMixin, ListView):
         )
 
 
-class AuswertungView(VerifiedAccountMixin, SpielleiterOnlyMixin, DetailView):
+class AuswertungView(VerifiedAccountMixin, SpielleitungOnlyMixin, DetailView):
     model = Charakter
     template_name = "campaign/auswertung.html"
 

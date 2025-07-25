@@ -8,8 +8,8 @@ from character.models import Spieler
 class ChatRoomConsumer(AsyncWebsocketConsumer):
 
     @database_sync_to_async
-    def _db_is_spielleiter(self, user):
-        return user.groups.filter(name__iexact="spielleiter").exists()
+    def _db_is_spielleitung(self, user):
+        return user.groups.filter(name__iexact="Spielleitung").exists()
 
     @database_sync_to_async
     def _db_get_spieler(self, user):
@@ -19,7 +19,7 @@ class ChatRoomConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         self.user = self.scope["user"]
         self.spieler = await self._db_get_spieler(self.user)
-        self.is_spielleiter = await self._db_is_spielleiter(self.user)
+        self.is_spielleitung = await self._db_is_spielleitung(self.user)
 
         self.room_name = self.scope['url_route']['kwargs']['room_name']
         self.room_group_name = 'chat_{}'.format(self.room_name)
@@ -81,7 +81,7 @@ class ChatRoomConsumer(AsyncWebsocketConsumer):
         # multiple windows of same user open? cut all connections to THIS CHAT on logout
         if username == self.spieler.name:
             self.close()
-            self.disconnect(none)
+            self.disconnect(None)
 
     async def chatroom_message(self, event):
         message = event['message']

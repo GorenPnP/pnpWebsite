@@ -31,10 +31,10 @@ function send_new_msg() {
 }
 
 
-// construct new messages for spielleiter view
-function construct_messages({ messages, own_name, spielleiter }) {
+// construct new messages for spielleitung view
+function construct_messages({ messages, own_name, spielleiter: spielleitung }) {
 
-	if (spielleiter) {
+	if (spielleitung) {
 		return messages.map(message => {
 			let html_fragment = `<div class="message ${message.author == own_name ? 'message--own' : 'message--foreign'}">`
 			if (message.author != own_name)

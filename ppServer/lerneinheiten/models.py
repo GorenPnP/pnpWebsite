@@ -134,7 +134,7 @@ class Inquiry(models.Model):
     spieler = models.ForeignKey(Spieler, on_delete=models.CASCADE)
 
     question = models.TextField(null=False, blank=True, verbose_name="Feedback, Nachfrage oder allgemeine Verwirrtheit")
-    response = models.TextField(null=True, blank=True, verbose_name="Spielleiter-Antwort")
+    response = models.TextField(null=True, blank=True, verbose_name="Spielleitung-Antwort")
 
     def __str__(self):
         return f"Nachfrage von {self.spieler} zu {self.question}"

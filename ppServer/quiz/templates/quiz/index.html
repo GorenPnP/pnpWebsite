@@ -30,7 +30,7 @@
                     <span class="points">{% if module.points is None %}-{% else %}{{ module.points|floatformat:"-2" }}{% endif %}/{{ module.max_points|floatformat:"-2" }} P.</span>
     
                     <div>
-                        {% if spielleiter_service or module.state not in button_states %}
+                        {% if spielleitung_service or module.state not in button_states %}
                             <div>{{ module.state }}</div>
                         {% else %}
                             <form method="POST">

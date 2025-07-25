@@ -16,11 +16,11 @@ class VerifiedAccountMixin(LoginRequiredMixin):
         return super().dispatch(request, *args, **kwargs)
 
 
-class SpielleiterOnlyMixin(UserPassesTestMixin):
+class SpielleitungOnlyMixin(UserPassesTestMixin):
     redirect_to="base:index"
 
     def test_func(self) -> Optional[bool]:
-        return self.request.spieler.is_spielleiter
+        return self.request.spieler.is_spielleitung
     
     def handle_no_permission(self):
         return redirect(self.redirect_to)

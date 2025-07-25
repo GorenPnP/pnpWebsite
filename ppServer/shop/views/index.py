@@ -4,12 +4,12 @@ from django.contrib import messages
 from django.shortcuts import render, redirect
 
 from base.views import reviewable_shop
-from ppServer.decorators import spielleiter_only, verified_account
+from ppServer.decorators import spielleitung_only, verified_account
 from ..models import *
 
 
 @verified_account
-@spielleiter_only()
+@spielleitung_only()
 def review_items(request):
 
     context = {"topic": "Neue Items", "items": reviewable_shop()}
@@ -21,7 +21,7 @@ def review_items(request):
 
 
 @verified_account
-@spielleiter_only()
+@spielleitung_only()
 def transfer_items(request):
 
     class TransferForm(forms.Form):
