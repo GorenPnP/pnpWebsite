@@ -95,7 +95,7 @@ class RecipeAdmin(admin.ModelAdmin):
     
     @admin.display(ordering="profitable_flip", description="Flip (Produktverkauf - Zutatenkauf)")
     def profitable_flip(self, obj):
-        locale.setlocale(locale.LC_NUMERIC, "de_DE")
+        locale.setlocale(locale.LC_NUMERIC, "de_DE.utf8")
         return format_html(f"<b>{obj.profitable_flip:+n}</b><small> = {obj.product_yield:n} - {obj.ingredient_cost:n}</small>")
 
     def get_queryset(self, request: HttpRequest) -> QuerySet[Any]:

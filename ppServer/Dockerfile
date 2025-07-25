@@ -16,7 +16,7 @@ RUN ln -fs /usr/share/zoneinfo/Europe/Berlin /etc/localtime
 # - netcat for nc in entrypoint.sh
 # - postgresql-client-12 for dbbackup
 # - curl for nodejs for npm
-RUN apt-get update && apt-get install -y python3-pip netcat postgresql-client-12 curl tzdata
+RUN apt-get update && apt-get install -y python3-pip netcat postgresql-client-12 curl tzdata language-pack-de-base
 
 # exec install script for npm v14 by curl
 RUN curl -sL https://deb.nodesource.com/setup_14.x | bash

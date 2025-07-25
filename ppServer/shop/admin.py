@@ -350,7 +350,7 @@ class TinkerAdmin(BaseAdmin):
 
     @admin.display(ordering="profitable_flip", description="Flip (Verkaufspreis - Kaufpreis)")
     def profitable_flip(self, obj):
-        locale.setlocale(locale.LC_NUMERIC, "de_DE")
+        locale.setlocale(locale.LC_NUMERIC, "de_DE.utf8")
         return format_html(f"<b>{obj.profitable_flip:+n}</b><small> = {obj.wooble_sell_price:n} - {obj.wooble_buy_price:n}</small>")
 
 
