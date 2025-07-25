@@ -30,13 +30,9 @@ def random(request):
 @spielleitung_only("quiz:index")
 def quiz_BB(request):
 
-    all_spieler = RelQuiz.objects.all().order_by("-quiz_points_achieved")
-    all_subjects = Subject.objects.all().order_by("titel")
+    table = [[{"text": "Name"}, {"text": "Punkte"}, {"text": "Gesamt"}, *[{"text": s.titel} for s in Subject.objects.all().order_by("titel")]]]
 
-    table = [[{"text": "Name"}, {"text": "Punkte"}, {"text": "Gesamt"}]]
-    for s in all_subjects:
-        table[0].append({"text": s.titel})
-
+    all_spieler = RelQuiz.objects.prefetch_related("spieler").order_by("-quiz_points_achieved")
     for rel in all_spieler:
         # get name and points
         row = [
@@ -45,7 +41,10 @@ def quiz_BB(request):
         ]
 
         # use questions of seen/passed modules
-        sp_mods = [sp_mo for sp_mo in SpielerModule.objects.filter(spieler=rel.spieler).exclude(achieved_points=None) if sp_mo.pointsEarned()]      # state=passed OR seen
+        sp_mo_qs = SpielerModule.objects\
+            .prefetch_related("spielersession_set__questions__question__topic__subject")\
+            .filter(spieler=rel.spieler).exclude(achieved_points=None)
+        sp_mods = [sp_mo for sp_mo in sp_mo_qs if sp_mo.pointsEarned()]      # state=passed OR seen
         sessions = [sp_mo.getFinishedSession() for sp_mo in sp_mods if sp_mo is not None]
 
         # really retrieve (spieler)questions
