@@ -402,10 +402,10 @@ class RüstungenTableView(ShopTableView):
     model = Rüstungen
     filterset_fields = {**ShopFilter._meta.fields,
         "schutz": ["gte"],
-        "stärke": ["gte"],
+        "härte": ["gte"],
         "haltbarkeit": ["gte"]
     }
-    table_fields = ("icon", "name", "beschreibung", "ab_stufe", "schutz", "stärke", "haltbarkeit",  "preis")
+    table_fields = ("icon", "name", "beschreibung", "ab_stufe", "schutz", "härte", "haltbarkeit",  "preis")
 
 
 class AusrüstungTechnikTableView(ShopTableView):

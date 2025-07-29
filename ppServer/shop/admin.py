@@ -244,9 +244,9 @@ class RüstungenAdmin(BaseAdmin):
     shop_model = Rüstungen
     firma_shop_model = FirmaRüstungen
 
-    list_display = ('name', 'beschreibung', "ab_stufe", 'schutz', 'stärke', 'haltbarkeit', 'billigste',
+    list_display = ('name', 'beschreibung', "ab_stufe", 'schutz', 'härte', 'haltbarkeit', 'billigste',
                     'info', "has_implementation")
-    list_filter = ['schutz', 'stärke', 'haltbarkeit', 'illegal', 'lizenz_benötigt', "frei_editierbar"]
+    list_filter = ['schutz', 'härte', 'haltbarkeit', 'illegal', 'lizenz_benötigt', "frei_editierbar"]
 
     inlines = [FirmaRüstungenInLine]
 
