@@ -77,7 +77,8 @@ function date_clicked(day_tag, date) {
     }
 
     document.querySelector("#dayModalLabel").innerText = toDate(date).toLocaleDateString('de-DE', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-    document.querySelector("#dayModal .modal-body").innerHTML = appointments
+    
+    const appointments_html = appointments
         .sort((a, b) =>
             toDate(a.start).getTime() - toDate(b.start).getTime() ||
             toDate(a.end).getTime() - toDate(b.end).getTime() ||
@@ -98,6 +99,20 @@ function date_clicked(day_tag, date) {
 				</a>
             </div>`
         ).join("") || "Keine Termine";
+
+    const csrf_token = document.querySelector("[name=csrfmiddlewaretoken]").value;
+    const create_appointment_form = `<hr><form class="input-group" method="post" action="/todo/add_day_interval/">
+        <input type="date" name="day" value="${date}" hidden>
+        <input value="${csrf_token}" name="csrfmiddlewaretoken" hidden>
+        <select class="form-select" aria-label="Neuer ganztägiger Termin" required name="category">
+            <option selected disabled hidden value= "">Neuer ganztägiger Termin</option>
+            ${categories.map(cat => `<option value="${cat.id}">${cat.name}</option>`).join('')}
+        </select>
+        <button type="submit" class="btn btn-primary">+</button>
+    </form>`;
+
+    document.querySelector("#dayModal .modal-body").innerHTML = appointments_html + create_appointment_form;
+
     document.querySelector('[data-bs-toggle="modal"][data-bs-target="#dayModal"]').click();
 
 }

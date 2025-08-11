@@ -93,7 +93,7 @@
 
                 <p>Wann soll <span class="badge" style="background: {{ tag.color }}; color: {{ tag.textColor }}">{{ tag.name }}</span> gelten?</p>
 
-                <form id="editTagModalForm-{{ tag.id }}" action="{% url 'todo:add_interval' tag.id %}" method="post">
+                <form id="editTagModalForm-{{ tag.id }}" action="{% url 'todo:add_interval_to_category' tag.id %}" method="post">
                     {% csrf_token %}
 
                     <div class="mb-3">

@@ -43,11 +43,16 @@ class CalendarOverview(VerifiedAccountMixin, TODOPersonMixin, TemplateView):
         }
 
         return super().get_context_data(**kwargs, **context)
+    
+    def get(self, request, *args, **kwargs):
+        TimeInterval.objects.filter(end__lt=datetime.now()).delete()
+
+        return super().get(request, *args, **kwargs)
 
 @require_POST
 @verified_account
 @TODOperson_only("base:index")
-def add_interval(request, pk):
+def add_interval_to_category(request, pk):
     locale.setlocale(locale.LC_TIME, "de_DE.utf8")
     to_datetime = lambda iso: datetime(*[int(n) for n in re.split(r'[-T:]', iso)], tzinfo=timezone.utc)
 
@@ -62,6 +67,25 @@ def add_interval(request, pk):
         messages.error(request, "Fehler: " + json.dumps(form.errors))
     else:
         form.save()
+    return redirect("todo:calendar")
+
+
+@require_POST
+@verified_account
+@TODOperson_only("base:index")
+def add_day_interval(request):
+    locale.setlocale(locale.LC_TIME, "de_DE.utf8")
+
+    category = get_object_or_404(Category.objects.prefetch_related("timeinterval_set"), pk=request.POST["category"])
+    day_start = datetime(*[int(n) for n in re.split(r'[-T:]', request.POST["day"])], tzinfo=timezone.utc)
+    day_end = day_start + timedelta(days=1) - timedelta(minutes=1)
+
+    if category.timeinterval_set.filter(start__lte=day_start, end__gte=day_end).exists():
+        messages.warning(request, "Den Termin gibt es schon ganztägig!")
+        return redirect("todo:calendar")
+    
+    TimeInterval.objects.create(start=day_start, end=day_end, category=category)
+    messages.success(request, "Der Termin wurde angelegt")
     return redirect("todo:calendar")
 
 
