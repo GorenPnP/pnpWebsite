@@ -1,0 +1,63 @@
+.main-container {
+    padding-top: 1em;
+}
+
+.category-tag:not(.active) {
+    opacity: .3;
+}
+
+.day {
+    padding: 0 !important;
+    overflow: hidden;
+
+    display: flex;
+    flex-direction: column;
+
+    & > * {
+        height: 100%;
+        width: 100%;
+    }
+}
+
+.day-title {
+    z-index: 100;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.category-container {
+    display: flex;
+    height: fit-content;
+    border-top: 1px solid var(--bs-gray-400);
+
+    .category {
+        min-height: 20px;
+        height: 100%;
+        width: 100%;
+    }
+}
+
+.appointment {
+    border-radius: 5px;
+    padding: .5em;
+
+    display: grid;
+    grid-template-columns: 1fr auto;
+    grid-template-areas: 'name delete'
+                         'time delete';
+
+    .appointment__name {
+        grid-area: name;
+    }
+
+    .appointment__time {
+        grid-area: time;
+        font-style: italic;
+    }
+
+    .del-btn {
+        grid-area: delete;
+    }
+}

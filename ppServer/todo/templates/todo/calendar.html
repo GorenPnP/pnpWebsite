@@ -1,0 +1,142 @@
+{% extends 'base/headed_main.html' %}
+{% load static %}
+
+{% block extra-head %}
+<link rel="stylesheet" href="{% static 'todo/css/calendar.css' %}">
+
+{{ categories|json_script:'categories' }}
+<script src="{% static 'todo/js/calendar.js' %}" defer></script>
+{% endblock %}
+
+{% block main %}
+    
+<div class="d-flex flex-wrap gap-2 mb-4">
+{% for o in categories %}
+    <!-- split button -->
+    <div class="btn-group" role="group">
+        <button type="button" class="btn active category-tag" data-tag="{{ o.name }}" data-bs-toggle="button" style="background: {{ o.color }}; color: {{ o.textColor }}" onclick="toggleTag()">{{ o.name }}</button>
+        <button type="button" class="btn dropdown-toggle dropdown-toggle-split" style="background: {{ o.color }}; color: {{ o.textColor }}" data-bs-toggle="dropdown" aria-expanded="false">
+            <span class="visually-hidden">Toggle Dropdown</span>
+        </button>
+        <ul class="dropdown-menu">
+            <li><button class="dropdown-item" data-bs-toggle="modal" data-bs-target="#editTagModal-{{ o.id }}">+ Termine</button></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item text-danger" href="{% url 'todo:delete_category' o.id %}">Löschen</a></li>
+        </ul>
+    </div>
+    {% empty %}
+    <p>Keine vorhanden.</p>
+    {% endfor %}
+
+    <div class="btn-group" role="group">
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addTagModal">+</button>
+    </div>
+</div>
+
+
+<nav class="calendars d-flex flex-wrap gap-5">
+    {% include 'planner/calendar.html' with today=today month_data=this_month %}
+    {% include 'planner/calendar.html' with today=today month_data=next_month load_styles=False %}
+    {% include 'planner/calendar.html' with today=today month_data=far_month load_styles=False%}
+</nav>
+
+
+
+<!-- Modal (add category) -->
+ <div class="modal fade" id="addTagModal" tabindex="-1" aria-labelledby="addTagModalLabel" aria-hidden="true" style="z-index: 100000">
+    <div class="modal-dialog modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addTagModalLabel">Neue Kategorie</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addTagModalForm" action="{% url 'todo:add_category' %}" method="post">
+                    {% csrf_token %}
+
+                    <div class="mb-3">
+                        <label for="name-input" class="form-label">Name</label>
+                        <input type="text" class="form-control" id="name-input" name="name">
+                    </div>
+                    <span class="container row p-0 mb-3">
+                        <div class="col">
+                            <label for="color-input" class="form-label">Farbe</label>
+                            <input type="color" class="form-control" id="color-input" name="color" value="#000000">
+                        </div>
+                        <div class="col">
+                            <label for="textcolor-input" class="form-label">Textfarbe</label>
+                            <input type="color" class="form-control" id="textcolor-input" name="textColor" value="#ffffff">
+                        </div>
+                    </span>
+                </form>
+            </div>
+    
+            <div class="modal-footer">
+                <button type="submit" class="btn btn-primary" form="addTagModalForm">Speichern</button>
+                <button type="button" class="btn btn-outline-primary" data-bs-dismiss="modal">Schließen</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Modal (add interval to category) -->
+{% for tag in categories %}
+<div class="modal fade" id="editTagModal-{{ tag.id }}" tabindex="-1" aria-labelledby="editTagModalLabel-{{ tag.id }}" aria-hidden="true" style="z-index: 100000">
+    <div class="modal-dialog modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editTagModalLabel-{{ tag.id }}">Kategorie: <span class="badge" style="background: {{ tag.color }}; color: {{ tag.textColor }}">{{ tag.name }}</span></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+
+                <p>Wann soll <span class="badge" style="background: {{ tag.color }}; color: {{ tag.textColor }}">{{ tag.name }}</span> gelten?</p>
+
+                <form id="editTagModalForm-{{ tag.id }}" action="{% url 'todo:add_interval' tag.id %}" method="post">
+                    {% csrf_token %}
+
+                    <div class="mb-3">
+                        <label for="start-input" class="form-label">Von</label>
+                        <input type="datetime-local" class="form-control" id="start-input" name="start">
+                    </div>
+                    <div class="mb-3">
+                        <label for="end-input" class="form-label">Bis</label>
+                        <input type="datetime-local" class="form-control" id="end-input" name="end">
+                    </div>
+                </form>
+            </div>
+    
+            <div class="modal-footer">
+                <button type="submit" class="btn btn-primary" form="editTagModalForm-{{ tag.id }}">Speichern</button>
+                <button type="button" class="btn btn-outline-primary" data-bs-dismiss="modal">Schließen</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+
+<!-- day Modal -->
+ <!-- Modal -->
+<div class="modal fade" id="dayModal" tabindex="-1" aria-labelledby="dayModalLabel" aria-hidden="true" style="z-index: 100000">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="dayModalLabel"></h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-primary" data-bs-dismiss="modal">Schließen</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Button trigger modal -->
+<button type="button" class="d-none" data-bs-toggle="modal" data-bs-target="#dayModal" aria-hidden="true">
+  Launch day modal
+</button>
+{% endblock %}

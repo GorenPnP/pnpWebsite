@@ -84,6 +84,7 @@ INSTALLED_APPS = [
     'shop',
     'time_space',
     'todays_fact',
+    'todo',
     'webPush',
     'wiki',
 ]

@@ -59,6 +59,7 @@ urlpatterns = [
     path('service/', include('service.urls')),
     path('shop/', include('shop.urls')),
     path('time_space/', include('time_space.urls')),
+    path('todo/', include('todo.urls')),
     path('web_push/', include('webPush.urls')),
     path('wiki/', include('wiki.urls')),
 
