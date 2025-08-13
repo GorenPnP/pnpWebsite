@@ -8,6 +8,7 @@ urlpatterns = [
     path('', views.CharacterListView.as_view(), name='index'),
     path('<int:pk>/', views.ShowView.as_view(), name='show'),
     path('history/<int:pk>/', views.HistoryView.as_view(), name='history'),
+    path('delete/<int:pk>/', views.delete_char, name='delete'),
     path('create/', views.CreateCharacterView.as_view(), name='create'),
 
     path('edit_tag/<int:pk>/', views.edit_tag, name='edit_tag'),

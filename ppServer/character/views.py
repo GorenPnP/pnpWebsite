@@ -10,7 +10,7 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils.html import format_html
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_GET, require_POST
 from django.views.generic import DetailView
 from django.views.generic.base import TemplateView
 from django.views.generic.edit import CreateView
@@ -625,6 +625,24 @@ class HistoryView(VerifiedAccountMixin, tables.SingleTableMixin, TemplateView):
             priotable=char.processing_notes["priotable"] if "priotable" in char.processing_notes else None,
         )
 
+
+@require_GET
+@verified_account
+def delete_char(request, pk):
+    # assert user requesting delete a character
+    qs = Charakter.objects.filter(pk=pk)
+    if not request.spieler.is_spielleitung: qs = qs.filter(char__eigentümer=request.spieler.instance)
+    char = qs.first()
+    
+    # cannot find char
+    if not char:
+        messages.error(request, "Es ist nicht dein Charakter, den du löschen willst oder er existiert gar nicht.")
+    # delete char
+    else:
+        messages.success(request, f"{char.name} ist gelöscht.")
+        char.delete()
+
+    return redirect("character:index")
 
 @require_POST
 @verified_account

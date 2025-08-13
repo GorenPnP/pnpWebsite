@@ -222,5 +222,35 @@
     {% endif %}
 
     <a class="btn btn-primary mx-3" href="{% url 'character_export:export' object.id %}">Export</a>
+
+    <!-- Button trigger delete-modal -->
+    <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#delete-modal">Löschen</button>
 </footer>
+
+
+<!-- Delete-Modal -->
+<div class="modal fade" id="delete-modal" tabindex="-1" style="z-index: 10000;" aria-label="{{ object.name }} löschen?">
+    <div class="modal-dialog modal-fullscreen-sm-down">
+        <form class="modal-content" method="get" action="{% url 'character:delete' object.id %}">
+            {% csrf_token %}
+            <div class="modal-header">
+                <h5 class="modal-title">{{ object.name }} löschen?</h5>
+            </div>        
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="input--name" class="form-label">Willst du den Charakter wirklich löschen?</label>
+                    <div class="input-group">
+                        <span class="input-group-text" id="basic-addon1">{{ object.name }}</span>
+                        <input type="text" class="form-control" id="input--name" pattern="{{ object.name }}" aria-describedby="basic-addon1 basic-addon2" required>
+                    </div>
+                    <div class="form-text" id="basic-addon2">Gebe den Namen ein</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-danger" data-bs-dismiss="modal">Abbrechen</button>
+                <button type="submit" class="btn btn-danger">Löschen</button>
+            </div>
+        </form>
+    </div>
+</div>
 {% endblock %}
