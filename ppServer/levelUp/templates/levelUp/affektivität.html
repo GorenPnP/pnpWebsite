@@ -18,7 +18,7 @@
     {% csrf_token %}
     <input type="hidden" name="method" value="update">
     
-    <button type="submit" class="btn btn-lg btn-primary m-2">Speichern</button>
+    <button type="submit" class="btn btn-primary m-2">Speichern</button>
 </form>
 
 
@@ -29,8 +29,8 @@
     <input type="hidden" name="method" value="create">
     {{ form.as_p }}
 
-    <button type="submit" class="btn btn-lg btn-primary m-2">Neu anlegen</button>
+    <button type="submit" class="btn btn-primary m-2">Neu anlegen</button>
 </form>
 
-<a class="btn btn-lg btn-outline-primary my-2" href="{{ back_url }}">Zurück</a>
+<a class="btn btn-outline-primary my-2" href="{{ back_url }}">Zurück</a>
 {% endblock %}

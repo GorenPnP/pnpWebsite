@@ -136,7 +136,7 @@
                     <option value="ap">AP / MA-Attribut</option>
                 </select>
 
-                <button type="submit" id="learn-tier" class="btn btn-lg btn-primary sticky-footer" disabled>kaufen</button>
+                <button type="submit" id="learn-tier" class="btn btn-lg btn-primary" disabled>kaufen</button>
             </form>
         </section>
         {% endif %}
@@ -171,14 +171,15 @@
                     {% endfor %}
                 </ul>
 
-                <button id="learn-zauber" class="btn btn-lg btn-primary sticky-footer" disabled>lernen</button>
+                <button id="learn-zauber" class="btn btn-lg btn-primary" disabled>lernen</button>
             </form>
         </section>
         {% endif %}
     </div>
 
-        
-    <div class="d-flex justify-content-center mt-5">
-        <a class="btn btn-lg btn-outline-primary m-2" href="{{ back_url }}">Zurück</a>
-    </div>
+<div class="fixed-bottom">
+    <footer class="sticky-footer d-flex justify-content-center">
+        <a class="btn btn-outline-primary" href="{{ back_url }}">Zurück</a>
+    </footer>
+</div>
 {% endblock %}

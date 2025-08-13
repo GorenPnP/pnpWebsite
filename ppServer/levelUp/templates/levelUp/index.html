@@ -59,7 +59,7 @@
             {% if pending_areas %}<p>Es fehlt noch: {{ pending_areas }}</p>{% endif %}
             {% if not pending_areas and not is_done %}<p>Du bist nicht der Eigentümer dieses Charakters</p>{% endif %}
 
-            <button type="submit" class="btn btn-lg btn-primary" {% if not is_done %}disabled{% endif %}>{{ sub_btn_text }}</button>
+            <button type="submit" class="btn btn-primary" {% if not is_done %}disabled{% endif %}>{{ sub_btn_text }}</button>
         </form>
     </div>
 

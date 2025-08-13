@@ -173,11 +173,13 @@
 
 {% block footer %}
     {{ block.super }}
-    <footer class="sticky-footer bg-dark p-2">
-        <form style="width: fit-content; margin: auto;" method="post">
-            {% csrf_token %}
-            <input hidden id="input-sortable" name="id_order">
-            <button class="btn btn-primary" type="submit">Reihenfolge speichern</button>
-        </form>
-    </footer>
+    <div class="fixed-bottom">
+        <footer class="sticky-footer bg-dark p-2">
+            <form style="width: fit-content; margin: auto;" method="post">
+                {% csrf_token %}
+                <input hidden id="input-sortable" name="id_order">
+                <button class="btn btn-primary" type="submit">Reihenfolge speichern</button>
+            </form>
+        </footer>
+    </div>
 {% endblock %}

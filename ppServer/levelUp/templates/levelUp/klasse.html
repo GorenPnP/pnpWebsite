@@ -126,13 +126,14 @@
             </li>
             {% endfor %}
         </ul>
-
-        <button id="choose-stufe" class="btn btn-lg btn-primary sticky-footer" disabled>Stufe wählen</button>
     </form>
     {% endif %}
 
         
-    <div class="d-flex justify-content-center">
-        <a class="btn btn-lg btn-outline-primary m-2" href="{{ back_url }}">Zurück</a>
+    <div class="fixed-bottom">
+        <footer class="sticky-footer d-flex justify-content-center">
+            <button id="choose-stufe" class="btn btn-primary" form="create-form" disabled>Stufe wählen</button>
+            <a class="btn btn-outline-primary mx-2" href="{{ back_url }}">Zurück</a>
+        </footer>
     </div>
 {% endblock %}

@@ -93,12 +93,13 @@
             <option value="ap">AP / MA-Attribut</option>
         </select>
 
-        <button type="submit" id="learn-tier" class="btn btn-lg btn-primary sticky-footer" disabled>kaufen</button>
     </form>
     {% endif %}
-
-        
-    <div class="d-flex justify-content-center">
-        <a class="btn btn-lg btn-outline-primary m-2" href="{{ back_url }}">Zurück</a>
-    </div>
+    
+<div class="fixed-bottom">
+    <footer class="sticky-footer d-flex justify-content-center">
+        <button type="submit" id="learn-tier" class="btn btn-primary" form="update-form" disabled>kaufen</button>
+        <a class="btn btn-outline-primary mx-2" href="{{ back_url }}">Zurück</a>
+    </footer>
+</div>
 {% endblock %}

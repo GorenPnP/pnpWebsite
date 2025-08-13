@@ -10,10 +10,13 @@
 {% endblock %}
 
 {% block after_table %}
-<form id="form" method="post" class="d-flex justify-content-center">
-    {% csrf_token %}
-    <button id="sub-btn" type="submit" class="btn btn-lg btn-primary m-2">Speichern</button>
-</form>
-
-<a class="btn btn-lg btn-outline-primary my-2" href="{{ back_url }}">Zurück</a>
+<div class="fixed-bottom">
+    <footer class="sticky-footer d-flex justify-content-center">
+        <form id="form" method="post" class="d-flex justify-content-center">
+            {% csrf_token %}
+            <button id="sub-btn" type="submit" class="btn btn-primary">Speichern</button>
+        </form>
+        <a class="btn btn-outline-primary my-2" href="{{ back_url }}">Zurück</a>
+    </footer>
+</div>
 {% endblock %}

@@ -497,7 +497,7 @@ class ShowView(VerifiedAccountMixin, DetailView):
         class ZauberTable(tables.Table):
             class Meta:
                 model = RelZauber
-                fields = ("item__name", "tier", "item__beschreibung", "item__manaverbrauch", "item__astralschaden")
+                fields = ("item__name", "tier", "item__beschreibung", "item__manaverbrauch", "item__astralschaden", "item__verteidigung", "item__schadensart")
                 orderable = False
                 attrs = {"class": "table table-dark table-striped table-hover"}
 
@@ -525,7 +525,7 @@ class ShowView(VerifiedAccountMixin, DetailView):
         class WaffenTable(tables.Table):
             class Meta:
                 model = RelWaffen_Werkzeuge
-                fields = ("anz", "item__name", "item__bs", "item__zs", "item__dk", "notizen")
+                fields = ("anz", "item__name", "item__bs", "item__zs", "item__dk", "item__schadensart", "notizen")
                 orderable = False
                 attrs = {"class": "table table-dark table-striped table-hover"}
 
@@ -540,7 +540,7 @@ class ShowView(VerifiedAccountMixin, DetailView):
         class SchusswaffenTable(tables.Table):
             class Meta:
                 model = RelSchusswaffen
-                fields = ("anz", "item__name", "item__bs", "item__zs", "item__dk", "item__präzision", "notizen")
+                fields = ("anz", "item__name", "item__bs", "item__zs", "item__dk", "item__präzision", "item__schadensart", "notizen")
                 orderable = False
                 attrs = {"class": "table table-dark table-striped table-hover"}
 
