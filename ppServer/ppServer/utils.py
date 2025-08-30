@@ -3,7 +3,7 @@ from operator import or_
 
 from django.contrib import admin
 from django.db import models
-from django.db.models import fields, Subquery, Window, Avg, Q
+from django.db.models import Case, fields, Subquery, Value, When, Window, Avg, Q
 
 def get_filter(model: models.Model, model_field: str, fields: list[str]):
     """
@@ -96,3 +96,13 @@ class AvgSubquery(Subquery):
 
         super().__init__(queryset, fields.IntegerField(), **kwargs)
 
+
+def display_value(choices, field):
+    """
+    converts short form of choice into the long form on db-level.
+    Usage: Model.objects.annotate(fieldname_display=display_value([('a', 'Ableism'), ('b', 'Buddha')], 'fieldname'))
+    """
+    return Case(
+        *[When(**{field: k, 'then': Value(v) }) for k, v in choices],
+        output_field=models.CharField()
+    )

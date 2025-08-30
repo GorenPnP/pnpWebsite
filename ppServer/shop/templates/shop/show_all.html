@@ -49,9 +49,13 @@
                             <input type="number" name="preis__lte" step="any" value="{{request.GET.preis__lte}}" class="form-control" placeholder="bis zu" id="id_preis__lte">
                         </td>
                         <td>
-                            <!-- <input type="number" name="preis__lte" step="any" value="{{request.GET.preis__lte}}" class="form-control" placeholder="kleiner oder gleich" id="id_preis__lte">
-                            -->
-                            </td>
+                            <select name="art" class="form-control" placeholder="vom Typ" id="id_art">
+                                {% for o in model_choices %}<option value="{{ o.0 }}"{% if o.0 == request.GET.art %} selected{% endif %}>{{ o.1 }}</option>{% endfor %}
+                            </select>
+                        </td>
+                        <td>
+                            <input type="text" name="other__icontains" value="{{request.GET.other__icontains}}" class="form-control" placeholder="enthält" id="id_other__icontains">
+                        </td>
                     </form></tr>
                 {% for row in table.paginated_rows %}
                     {% block table.tbody.row %}

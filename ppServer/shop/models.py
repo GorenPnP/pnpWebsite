@@ -222,6 +222,13 @@ class BaseShop(models.Model):
     def getIconUrl(self):
         return self.icon.url if self.icon else "/static/res/img/goren_logo.png"
 
+    @staticmethod
+    def getShopDisplayFields():
+        return [
+            "name", "beschreibung", "icon", "ab_stufe", "preis",    # preis needs to be added sepatately by firmen->preis/stufe_1
+            "illegal", "lizenz_benötigt",
+        ]
+
 
 class Item(BaseShop):
     class Meta:
@@ -232,6 +239,10 @@ class Item(BaseShop):
 
     kategorie = models.CharField(choices=enums.item_enum, max_length=2, default=enums.item_enum[0][0])
     firmen = models.ManyToManyField('Firma', through='FirmaItem', blank=True, related_name='firmen')
+
+    @staticmethod
+    def getShopDisplayFields():
+        return super(Item, Item).getShopDisplayFields() + ["kategorie"]
 
 
 class Waffen_Werkzeuge(BaseShop):
@@ -250,6 +261,9 @@ class Waffen_Werkzeuge(BaseShop):
     kategorie = models.CharField(choices=enums.werkzeuge_enum, max_length=2, default=enums.werkzeuge_enum[0][0])
     firmen = models.ManyToManyField('Firma', through='FirmaWaffen_Werkzeuge', blank=True)
 
+    @staticmethod
+    def getShopDisplayFields():
+        return super(Waffen_Werkzeuge, Waffen_Werkzeuge).getShopDisplayFields() + ["erfolge", "bs", "zs", "dk", "schadensart", "kategorie"]
 
 class Magazin(BaseShop):
     class Meta:
@@ -260,6 +274,10 @@ class Magazin(BaseShop):
 
     schuss = models.PositiveIntegerField(default=0)
     firmen = models.ManyToManyField('Firma', through='FirmaMagazin', blank=True)
+
+    @staticmethod
+    def getShopDisplayFields():
+        return super(Magazin, Magazin).getShopDisplayFields() + ["schuss"]
 
 
 class Pfeil_Bolzen(BaseShop):
@@ -274,6 +292,10 @@ class Pfeil_Bolzen(BaseShop):
     schadensart = models.CharField(max_length=1, choices=enums.schadensart_enum, null=True, blank=True)
 
     firmen = models.ManyToManyField('Firma', through='FirmaPfeil_Bolzen', blank=True)
+
+    @staticmethod
+    def getShopDisplayFields():
+        return super(Pfeil_Bolzen, Pfeil_Bolzen).getShopDisplayFields() + [ "bs", "zs", "schadensart"]
 
 
 class Schusswaffen(BaseShop):
@@ -297,6 +319,11 @@ class Schusswaffen(BaseShop):
     kategorie = models.CharField(choices=enums.schusswaffen_enum, max_length=2, default=enums.schusswaffen_enum[0][0])
     firmen = models.ManyToManyField('Firma', through='FirmaSchusswaffen', blank=True)
 
+    @staticmethod
+    def getShopDisplayFields():
+        return super(Schusswaffen, Schusswaffen).getShopDisplayFields() + ["erfolge", "bs", "zs", "dk", "präzision", "schadensart", "kategorie",
+        "magazine"] # , "pfeile_bolzen"]  ist eh leer
+
 
 class Magische_Ausrüstung(BaseShop):
     class Meta:
@@ -308,6 +335,9 @@ class Magische_Ausrüstung(BaseShop):
     kategorie = models.CharField(choices=enums.magische_Ausrüstung_enum, max_length=2, default=enums.magische_Ausrüstung_enum[0][0])
     firmen = models.ManyToManyField('Firma', through='FirmaMagische_Ausrüstung', blank=True)
 
+    @staticmethod
+    def getShopDisplayFields():
+        return super(Magische_Ausrüstung, Magische_Ausrüstung).getShopDisplayFields() + ["kategorie"]
 
 class Rituale_Runen(BaseShop):
     class Meta:
@@ -318,6 +348,10 @@ class Rituale_Runen(BaseShop):
 
     kategorie = models.CharField(choices=enums.rituale_enum, max_length=2, default=enums.rituale_enum[0][0])
     firmen = models.ManyToManyField('Firma', through='FirmaRituale_Runen', blank=True)
+
+    @staticmethod
+    def getShopDisplayFields():
+        return super(Rituale_Runen, Rituale_Runen).getShopDisplayFields() + ["kategorie"]
 
 
 class Rüstungen(BaseShop):
@@ -332,6 +366,10 @@ class Rüstungen(BaseShop):
     haltbarkeit = models.PositiveIntegerField(default=0)
 
     firmen = models.ManyToManyField('Firma', through='FirmaRüstungen', blank=True)
+
+    @staticmethod
+    def getShopDisplayFields():
+        return super(Rüstungen, Rüstungen).getShopDisplayFields() + ["schutz", "härte", "haltbarkeit"]
 
 
 class Ausrüstung_Technik(BaseShop):
@@ -348,6 +386,9 @@ class Ausrüstung_Technik(BaseShop):
     kategorie = models.CharField(choices=enums.ausrüstung_enum, max_length=2, default=enums.ausrüstung_enum[0][0])
     firmen = models.ManyToManyField('Firma', through='FirmaAusrüstung_Technik', blank=True)
 
+    @staticmethod
+    def getShopDisplayFields():
+        return super(Ausrüstung_Technik, Ausrüstung_Technik).getShopDisplayFields() + ["manifestverlust", "manifestverlust_str", "kategorie"]
 
 class Fahrzeug(BaseShop):
     class Meta:
@@ -363,6 +404,10 @@ class Fahrzeug(BaseShop):
     kategorie = models.CharField(choices=enums.fahrzeuge_enum, max_length=2, default=enums.fahrzeuge_enum[0][0])
     firmen = models.ManyToManyField('Firma', through='FirmaFahrzeug', blank=True)
 
+    @staticmethod
+    def getShopDisplayFields():
+        return super(Fahrzeug, Fahrzeug).getShopDisplayFields() + ["schnelligkeit", "rüstunge", "erfolge", "kategorie"]
+
 
 class Einbauten(BaseShop):
     class Meta:
@@ -374,6 +419,10 @@ class Einbauten(BaseShop):
     manifestverlust = models.CharField(max_length=20, null=True, blank=True)
     kategorie = models.CharField(choices=enums.einbauten_enum, max_length=2, default=enums.einbauten_enum[0][0])
     firmen = models.ManyToManyField('Firma', through='FirmaEinbauten', blank=True)
+
+    @staticmethod
+    def getShopDisplayFields():
+        return super(Einbauten, Einbauten).getShopDisplayFields() + ["manifestverlust", "kategorie"]
 
 
 class Zauber(BaseShop):
@@ -392,6 +441,10 @@ class Zauber(BaseShop):
 
     firmen = models.ManyToManyField('Firma', through='FirmaZauber', blank=True)
 
+    @staticmethod
+    def getShopDisplayFields():
+        return super(Zauber, Zauber).getShopDisplayFields() + ["astralschaden", "manaverbrauch", "verteidigung", "schadensart", "kategorie"]
+
 
 class VergessenerZauber(BaseShop):
     class Meta:
@@ -406,6 +459,10 @@ class VergessenerZauber(BaseShop):
 
     firmen = models.ManyToManyField('Firma', through='FirmaVergessenerZauber', blank=True)
 
+    @staticmethod
+    def getShopDisplayFields():
+        return super(VergessenerZauber, VergessenerZauber).getShopDisplayFields() + ["astralschaden", "manaverbrauch", "verteidigung", "schadensart"]
+
 
 class Alchemie(BaseShop):
     class Meta:
@@ -417,6 +474,9 @@ class Alchemie(BaseShop):
     kategorie = models.CharField(choices=enums.alchemie_enum, max_length=2, default=enums.alchemie_enum[0][0])
     firmen = models.ManyToManyField('Firma', through='FirmaAlchemie', blank=True)
 
+    @staticmethod
+    def getShopDisplayFields():
+        return super(Alchemie, Alchemie).getShopDisplayFields() + ["kategorie"]
 
 class Tinker(BaseShop):
     class Meta:
@@ -433,6 +493,9 @@ class Tinker(BaseShop):
     wooble_buy_price = models.FloatField(default=1.0)
     wooble_sell_price = models.FloatField(default=1.0)
 
+    @staticmethod
+    def getShopDisplayFields():
+        return super(Tinker, Tinker).getShopDisplayFields() + ["werte", "kategorie"]
 
     @staticmethod
     def getIdOdMod():
@@ -468,3 +531,7 @@ class Engelsroboter(BaseShop):
     IN = models.PositiveSmallIntegerField(default=0, null=False, blank=False, help_text="Intelligenz")
 
     firmen = models.ManyToManyField('Firma', through='FirmaEngelsroboter', blank=True)
+
+    @staticmethod
+    def getShopDisplayFields():
+        return super(Engelsroboter, Engelsroboter).getShopDisplayFields() + ["ST", "UM", "MA", "IN"]

@@ -1,14 +1,17 @@
+import re
 from typing import Any, Dict
 
 from django.apps import apps
 from django.core.exceptions import ImproperlyConfigured
-from django.db.models import Max, Min, Value
+from django.db.models import Max, Min, Value, TextField, F, ManyToManyField, OuterRef
+from django.db.models.fields import BooleanField
+from django.db.models.functions import Concat
 from django.db.models.query import QuerySet
 from django.shortcuts import reverse
 from django.utils.html import format_html
 from django.views.generic import TemplateView
 
-from django_filters import FilterSet, NumberFilter
+from django_filters import FilterSet, NumberFilter, CharFilter
 import django_tables2 as tables
 from django_tables2.export.views import ExportMixin
 from django_tables2.views import SingleTableMixin
@@ -16,9 +19,117 @@ from django_tables2.views import SingleTableMixin
 from base.abstract_views import DynamicTableView, GenericTable
 from log.create_log import render_number
 from ppServer.mixins import VerifiedAccountMixin
+from ppServer.utils import ConcatSubquery, display_value
 
 from ..models import *
 
+
+def annotate_price(Model: models.Model) -> dict[str, any]:
+    
+    if hasattr(Model.firmen.rel.through, "preis"):
+        return {
+            "preis": Min('firma{}__{}'.format(Model._meta.model_name, "preis")),
+            "max_preis": Max('firma{}__{}'.format(Model._meta.model_name, "preis")),
+        }
+    
+    # Rituale/Runen
+    stufen: list[int] = sorted([int(k.replace("stufe_", "")) for k in Model.firmen.rel.through.__dict__.keys() if re.match("^stufe_\d+$", k)])
+    if stufen:
+        annotations = {
+            "preis": Min(f'firma{Model._meta.model_name}__stufe_{stufen[0]}'),
+            "max_preis": Max(f'firma{Model._meta.model_name}__stufe_{stufen[0]}'),
+        }
+        for i in stufen:
+            annotations[f"stufe_{i}"] = Min(f'firma{Model._meta.model_name}__stufe_{i}')
+            annotations[f"stufe_{i}_max"] = Max(f'firma{Model._meta.model_name}__stufe_{i}')
+
+        return annotations
+
+    return {}
+
+def annotate_other(Model: models.Model, ignore_fields: list[str]) -> dict[str, any]:
+    other_fieldnames = [fieldname for fieldname in Model.getShopDisplayFields() if fieldname not in ignore_fields]
+
+    # get all fields displayed on "other"
+    other_fields = [field for field in Model._meta.get_fields() if field.name in other_fieldnames]
+
+    # qs-prep: change display in "other"-cell of table at db level (to make it searchable)
+    other_concat_parts = []
+    displays_of_fields_in_other = {}
+    for field in other_fields:
+        queryname = f"{field.name}_display"
+
+        # prepare EACH FIELD used in "other" for concat later
+        other_concat_parts.append(Value(f"{field.verbose_name}: " if not len(other_concat_parts) else f",\n {field.verbose_name}: "))
+        other_concat_parts.append(queryname)
+
+
+        choices = getattr(field, "choices", []) or []
+        # use verbose text of choice/enum
+        if len(choices):
+            displays_of_fields_in_other[queryname] = display_value(choices, field.name)
+
+        # translate boolean field values to german
+        elif field.__class__ == BooleanField:
+            displays_of_fields_in_other[queryname] = display_value([("True", "Ja"), ("False", "Nein")], field.name)
+
+        # resolves M2M with related_object.name
+        elif field.__class__ == ManyToManyField:
+            displays_of_fields_in_other[queryname] = ConcatSubquery(field.related_model.objects.filter(**{f"{Model._meta.model_name}__id": OuterRef("id")}).values("name"), separator=", ")
+
+        # base case, no changes
+        else:
+            displays_of_fields_in_other[queryname] = F(field.name)
+
+    # construct base queryset without frei_editierbare instances
+    return {
+        **displays_of_fields_in_other,
+        "other": Concat(*other_concat_parts, output_field=TextField()),
+    } if len(displays_of_fields_in_other) else {"other": Value("")}
+
+
+class RenderableTable(GenericTable):
+    class Meta:
+        attrs = GenericTable.Meta.attrs
+        order_by_field = "name"
+
+    def _get(self, obj, key: str):
+        try:
+            return getattr(obj, key, obj[key])
+        except:
+            return obj.__dict__[key] 
+
+    def render_icon(self, value, record):
+        Model = apps.get_model('shop', self._get(record, "model_name"))
+        instance = Model.objects.get(id=self._get(record, "id"))
+
+        # use python model .objects.get().getIconUrl()
+        return format_html("<img src='{url}'>", url=instance.getIconUrl())
+
+    def render_name(self, value, record):
+        try:
+            url = reverse("shop:buy_{}".format(self._get(record, "model_name")), args=[self._get(record, "id")])
+            return format_html(f"<a href='{url}'>{value}</a>")
+        except:
+            return value
+
+    def render_beschreibung(self, value):
+        return format_html(value.replace("\n", "<br>"))
+
+    def render_art(self, value, record):
+        return self._get(record, "art_display")
+    
+    def render_preis(self, value, record):
+        preis = "{}{}".format(render_number(value), " - {}".format(render_number(self._get(record, "max_preis"))) if self._get(record, "max_preis") != value else "")
+        return "{} Dr.{}".format(preis, " * Stufe" if self._get(record, "stufenabhängig") else "")
+
+    def render_other(self, value):
+
+        # build dict; convert "kategory: some stuff,\ntimes: 3" => {kategory: "some stuff", "times": "3"}
+        values = {v.split(": ")[0].strip(): v.split(": ")[1].strip() for v in value.split(',\n')}
+
+        # format cell content
+        return format_html("<ul><li>" + '</li><li>'.join(f'<em>{k}</em>: {v}' for k, v in values.items()) + "</li></ul>")
 
 ########################################################################
 ######################### all at once ##################################
@@ -43,11 +154,10 @@ model_list = [
     Begleiter,
     Engelsroboter,
 ]
-    
+
 
 class FullShopTableView(VerifiedAccountMixin, ExportMixin, SingleTableMixin, TemplateView):
-
-    class Table(GenericTable):
+    class Table(RenderableTable):
         class Meta:
             attrs = GenericTable.Meta.attrs
 
@@ -57,35 +167,7 @@ class FullShopTableView(VerifiedAccountMixin, ExportMixin, SingleTableMixin, Tem
         ab_stufe = tables.Column()
         preis = tables.Column()
         art = tables.Column()
-
-        def render_icon(self, value, record):
-            # use python model .objects.get().getIconUrl()
-            Model = apps.get_model('shop', record["model_name"])
-            instance = Model.objects.get(id=record["id"])
-
-            return format_html("<img src='{url}'>", url=instance.getIconUrl())
-
-        def render_name(self, value, record):
-            try:
-                url = reverse("shop:buy_{}".format(record["model_name"]), args=[record["id"]])
-                return format_html("<a href='{url}'>{name}</a>", url=url, name=value)
-            except:
-                return value
-        def value_name(self, value):
-            return value
-
-        def render_beschreibung(self, value):
-            return format_html(value.replace("\n", "<br>"))
-        def value_beschreibung(self, value):
-            return value
-
-        def render_preis(self, value, record):
-            preis = "{}{}".format(render_number(value), " - {}".format(render_number(record["max_preis"])) if record["max_preis"] != value else "")
-
-            if record["stufenabhängig"]: return f"{preis} Dr * Stufe"
-            if record["model_name"] == "rituale_runen": return f"Stufe 1: {preis} Dr."
-
-            return f"{preis} Dr."
+        other = tables.Column()
 
     table_class = Table
 
@@ -95,66 +177,53 @@ class FullShopTableView(VerifiedAccountMixin, ExportMixin, SingleTableMixin, Tem
     exclude_columns = ["icon"]
     export_formats = ["csv", "json", "latex", "tsv"]
 
-    def get_topic(self): return "Shop"
+    # list of all table columns in class FullShopTableView.Table
+    regular_table_columns = Table.base_columns.keys()
+
     def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
-        return super().get_context_data(**kwargs, topic=self.get_topic())
+        return super().get_context_data(
+            **kwargs,
+            topic="ganzer Shop",
+            app_index="Shop",
+            app_index_url=reverse("shop:index"),
+            model_choices=[('', '--------'), *[(Model._meta.model_name, Model._meta.verbose_name) for Model in model_list]], # for filter of "art"
+        )
 
     def get_table_data(self):
         """
         Return the table data that should be used to populate the rows.
         """
-        if self.table_data is not None:
-            return self.table_data
-        
+        if self.table_data is not None: return self.table_data
 
-        # construct filters from query params. use only ones with "__". ignoring page, ordering, etc.
+
+        # construct filters from query params. use only ones concerning table cols, ignoring page, ordering, etc.
         filters = {}
         for key, values in self.request.GET.items():
-            if "__" not in key or not values or not len(values): continue
+            if not len([col for col in self.regular_table_columns if key == col or key.startswith(f"{col}__")]) or not values or not len(values): continue
 
             # number_fields are "ab_stufe", "preis"
             filters[key] = int(values) if key.startswith("ab_stufe") or key.startswith("preis") else values
-        
+
 
         # get filtered objects
         objects = []
         for Model in model_list:
-            model_name = Model._meta.model_name
 
-            # construct base queryset without frei_editierbare instances
-            model_verbose = Model._meta.verbose_name
-            queryset = Model.objects\
-                .filter(frei_editierbar=False)\
+            # construct base queryset without frei_editierbare instances, apply user-filters and return objects as dicts in list
+            objects += Model.objects\
+                .prefetch_related("firmen")\
                 .annotate(
-                    model_name=Value(model_name),
-                    art=Value(model_verbose)
-                )
-            
-            # annotate non-tinker instances with their prices
-            if model_name != "tinker":
-                field = "preis" if model_name != "rituale_runen" else "stufe_1"
-
-                queryset = queryset\
-                    .prefetch_related("firmen")\
-                    .annotate(
-                        preis=Min('firma{}__{}'.format(Model._meta.model_name, field)),
-                        max_preis=Max('firma{}__{}'.format(Model._meta.model_name, field))
-                    )
-
-            # tinker-instances don't have a price. remove price from filter
-            if model_name == "tinker" and "preis__lte" in filters:
-                filters = {**filters}
-                del filters["preis__lte"]
-            
-            # filter queryset and return as dict
-            objects += queryset\
-                .filter(**filters)\
+                    model_name=Value(Model._meta.model_name),
+                    art=Value(Model._meta.model_name),
+                    art_display=Value(Model._meta.verbose_name),
+                    **annotate_price(Model),
+                    **annotate_other(Model, self.regular_table_columns),
+                )\
+                .filter(frei_editierbar=False, **filters)\
                 .values()
 
-        # return objects (ordered by name)
+        # return objects (manually ordered by name)
         return sorted(objects, key=lambda a: a["name"])
-    
-
 
 
 ########################################################################
@@ -164,55 +233,11 @@ class FullShopTableView(VerifiedAccountMixin, ExportMixin, SingleTableMixin, Tem
 
 ####################### abstract base ##################################
 
-class ShopTable(GenericTable):
-    class Meta:
-        model = Item
-        fields = ("icon", "name", "beschreibung", "ab_stufe", "preis")
-        order_by_field = "name"
-
-        attrs = GenericTable.Meta.attrs
-
-    def render_icon(self, value):
-        return format_html("<img src='{url}'>", url=value.instance.getIconUrl())
-
-    def render_name(self, value, record):
-        return format_html("<a href='{url}'>{name}</a>", url=reverse("shop:buy_{}".format(self._meta.model._meta.model_name), args=[record.pk]), name=value)
-    def value_name(self, value):
-        return value
-
-    def render_beschreibung(self, value):
-        return format_html(value.replace("\n", "<br>"))
-    def value_beschreibung(self, value):
-        return value
-
-    def render_preis(self, value, record):
-        preis = "{}{}".format(render_number(value), " - {}".format(render_number(record.max_preis)) if record.max_preis != value else "")
-        return "{} Dr.{}".format(preis, " * Stufe" if record.stufenabhängig else "")
-
-    # TODO add:
-    # illegal = models.BooleanField(default=False)
-    # lizenz_benötigt = models.BooleanField(default=False)
-
-
-class ShopFilter(FilterSet):
-    class Meta:
-        model = Item
-        fields = {
-            "name": ["icontains"],
-            "beschreibung": ["icontains"],
-            "ab_stufe": ["lte"],
-        }
-
-    preis = NumberFilter(
-        field_name="preis",
-        method="filter_preis",
-        label="Preis ist kleiner oder gleich",
-    )
-
-    def filter_preis(self, queryset, name, value):
-        return queryset.prefetch_related("firmen").annotate(
-            preis=Min('firma{}__preis'.format(self._meta.model._meta.model_name)),
-        ).filter(preis__lte=value)
+shop_filter_fields = {
+    "name": ["icontains"],
+    "beschreibung": ["icontains"],
+    "ab_stufe": ["lte"],
+}
 
 
 class ShopTableView(VerifiedAccountMixin, DynamicTableView):
@@ -220,6 +245,7 @@ class ShopTableView(VerifiedAccountMixin, DynamicTableView):
     model = None
     filterset_class = None
     table_class = None
+    custom_table_class = RenderableTable
 
     export_name = "<shop>"
     exclude_columns = ["icon"]
@@ -230,8 +256,9 @@ class ShopTableView(VerifiedAccountMixin, DynamicTableView):
 
     def get_queryset(self) -> QuerySet[Any]:
         return super().get_queryset().filter(frei_editierbar=False).prefetch_related("firmen").annotate(
-            max_preis=Max('firma{}__preis'.format(self.model._meta.model_name)),
-            preis=Min('firma{}__preis'.format(self.model._meta.model_name)),
+            model_name=Value(self.model._meta.model_name),  # needed to render links at "name" cells
+            **annotate_price(self.model),
+            **annotate_other(self.model, self.get_table_class().base_columns.keys()),
         ).order_by("name")
 
     def get_topic(self):
@@ -254,11 +281,22 @@ class ShopTableView(VerifiedAccountMixin, DynamicTableView):
         if self.table_class:
             return self.table_class
         if self.model:
-            return tables.table_factory(self.model, table=ShopTable, fields=self.table_fields)
+            has_fields_without_col = len([fieldname for fieldname in self.model.getShopDisplayFields() if fieldname not in self.table_fields]) > 0
+            fields = (*self.table_fields, "other") if has_fields_without_col else self.table_fields
+
+            return tables.table_factory(self.model, table=self.custom_table_class, fields=fields)
 
         name = type(self).__name__
         raise ImproperlyConfigured(f"You must either specify {name}.table_class or {name}.model")
 
+    def get_filterset(self, filterset_class):
+        filterset = super().get_filterset(filterset_class)
+
+        # add non-model fields as filter. They are annotated in get_queryset()
+        filterset.filters["preis__lte"] = NumberFilter(field_name="preis", lookup_expr='lte', label="Preis ist kleiner oder gleich")
+        filterset.filters["other__icontains"] = CharFilter(field_name="other", lookup_expr='icontains', label="other enthält")
+
+        return filterset
 
 
 
@@ -268,13 +306,14 @@ class ShopTableView(VerifiedAccountMixin, DynamicTableView):
 
 class ItemTableView(ShopTableView):
     model = Item
-    filterset_fields = ShopFilter._meta.fields
+    filterset_fields = shop_filter_fields
     table_fields = ("icon", "name", "beschreibung", "ab_stufe", "preis")
 
 
 class WaffenWerkzeugeTableView(ShopTableView):
     model = Waffen_Werkzeuge
-    filterset_fields = {**ShopFilter._meta.fields,
+    filterset_fields = {
+        **shop_filter_fields,
         "erfolge": ["icontains"],
         "bs": ["icontains"],
         "zs": ["icontains"],
@@ -286,32 +325,33 @@ class WaffenWerkzeugeTableView(ShopTableView):
 
 class MagazinTableView(ShopTableView):
     model = Magazin
-    filterset_fields = {**ShopFilter._meta.fields, "schuss": ["exact"]}
+    filterset_fields = {**shop_filter_fields, "schuss": ["exact"]}
     table_fields = ("icon", "name", "beschreibung", "ab_stufe", "schuss", "preis")
 
 
 class PfeilBolzenTableView(ShopTableView):
     model = Pfeil_Bolzen
-    filterset_fields = {**ShopFilter._meta.fields, "bs": ["icontains"], "zs": ["icontains"], "schadensart": ["exact"]}
+    filterset_fields = {**shop_filter_fields, "bs": ["icontains"], "zs": ["icontains"], "schadensart": ["exact"]}
     table_fields = ("icon", "name", "beschreibung", "ab_stufe", "bs", "zs", "schadensart", "preis")
 
 
 class SchusswaffenTableView(ShopTableView):
     model = Schusswaffen
-    filterset_fields = {**ShopFilter._meta.fields,
-                "erfolge": ["exact"],
-                "bs": ["icontains"],
-                "zs": ["icontains"],
-                "dk": ["exact"],
-                "präzision": ["exact"],
-                "schadensart": ["exact"]
-            }
+    filterset_fields = {
+        **shop_filter_fields,
+        "erfolge": ["exact"],
+        "bs": ["icontains"],
+        "zs": ["icontains"],
+        "dk": ["exact"],
+        "präzision": ["exact"],
+        "schadensart": ["exact"]
+    }
     table_fields = ("icon", "name", "beschreibung", "ab_stufe", "erfolge", "bs", "zs", "dk", "präzision", "schadensart", "preis")
 
 
 class MagischeAusrüstungTableView(ShopTableView):
     model = Magische_Ausrüstung
-    filterset_fields = ShopFilter._meta.fields
+    filterset_fields = shop_filter_fields
     table_fields = ("icon", "name", "beschreibung", "ab_stufe", "preis")
 
 
@@ -325,42 +365,16 @@ class RitualeRunenTableView(ShopTableView):
                 "ab_stufe": ["lte"],
             }
 
-        stufe_1 = NumberFilter(
-            field_name="stufe_1",
-            method="filter_stufe",
-            label="Preis für Stufe 1 ist kleiner oder gleich",
-        )
-        stufe_2 = NumberFilter(
-            field_name="stufe_2",
-            method="filter_stufe",
-            label="Preis für Stufe 2 ist kleiner oder gleich",
-        )
-        stufe_3 = NumberFilter(
-            field_name="stufe_3",
-            method="filter_stufe",
-            label="Preis für Stufe 3 ist kleiner oder gleich",
-        )
-        stufe_4 = NumberFilter(
-            field_name="stufe_4",
-            method="filter_stufe",
-            label="Preis für Stufe 4 ist kleiner oder gleich",
-        )
-        stufe_5 = NumberFilter(
-            field_name="stufe_5",
-            method="filter_stufe",
-            label="Preis für Stufe 5 ist kleiner oder gleich",
-        )
-    
-        def filter_stufe(self, queryset, name, value):
-            return queryset.prefetch_related("firmen").annotate(
-                stufe=Min('firma{}__{}'.format(self._meta.model._meta.model_name, name)),
-            ).filter(stufe__lte=value)
+        stufe_1__lte = NumberFilter(field_name="stufe_1", lookup_expr="lte", label="Preis für Stufe 1 ist kleiner oder gleich")
+        stufe_2__lte = NumberFilter(field_name="stufe_2", lookup_expr="lte", label="Preis für Stufe 2 ist kleiner oder gleich")
+        stufe_3__lte = NumberFilter(field_name="stufe_3", lookup_expr="lte", label="Preis für Stufe 3 ist kleiner oder gleich")
+        stufe_4__lte = NumberFilter(field_name="stufe_4", lookup_expr="lte", label="Preis für Stufe 4 ist kleiner oder gleich")
+        stufe_5__lte = NumberFilter(field_name="stufe_5", lookup_expr="lte", label="Preis für Stufe 5 ist kleiner oder gleich")
+        other__icontains = CharFilter(field_name="other", lookup_expr="icontains", label="other enthält")
 
-    class Table(ShopTable):
-        class Meta:
-            model = Rituale_Runen
-            fields = ("icon", "name", "beschreibung", "ab_stufe", "stufe_1", "stufe_2", "stufe_3", "stufe_4", "stufe_5")
-            attrs = GenericTable.Meta.attrs
+    class Table(RenderableTable):
+        class Meta(RenderableTable.Meta):
+            pass
 
         def _render_stufe_x(self, value, record, column):
             max_value = getattr(record, column.accessor + "_max")
@@ -379,28 +393,14 @@ class RitualeRunenTableView(ShopTableView):
 
     model = Rituale_Runen
     filterset_class = Filter
-    table_class = Table
-
-
-    def get_queryset(self) -> QuerySet[Any]:
-        return self.model.objects.filter(frei_editierbar=False).order_by("name")\
-        .prefetch_related("firmen").annotate(
-            stufe_1=Min('firma{}__stufe_1'.format(self.model._meta.model_name)),
-            stufe_1_max=Max('firma{}__stufe_1'.format(self.model._meta.model_name)),
-            stufe_2=Min('firma{}__stufe_2'.format(self.model._meta.model_name)),
-            stufe_2_max=Max('firma{}__stufe_2'.format(self.model._meta.model_name)),
-            stufe_3=Min('firma{}__stufe_3'.format(self.model._meta.model_name)),
-            stufe_3_max=Max('firma{}__stufe_3'.format(self.model._meta.model_name)),
-            stufe_4=Min('firma{}__stufe_4'.format(self.model._meta.model_name)),
-            stufe_4_max=Max('firma{}__stufe_4'.format(self.model._meta.model_name)),
-            stufe_5=Min('firma{}__stufe_5'.format(self.model._meta.model_name)),
-            stufe_5_max=Max('firma{}__stufe_5'.format(self.model._meta.model_name))
-        )
+    custom_table_class = Table
+    table_fields = ("icon", "name", "beschreibung", "ab_stufe", "stufe_1", "stufe_2", "stufe_3", "stufe_4", "stufe_5")
 
 
 class RüstungenTableView(ShopTableView):
     model = Rüstungen
-    filterset_fields = {**ShopFilter._meta.fields,
+    filterset_fields = {
+        **shop_filter_fields,
         "schutz": ["gte"],
         "härte": ["gte"],
         "haltbarkeit": ["gte"]
@@ -410,13 +410,14 @@ class RüstungenTableView(ShopTableView):
 
 class AusrüstungTechnikTableView(ShopTableView):
     model = Ausrüstung_Technik
-    filterset_fields = ShopFilter._meta.fields
+    filterset_fields = shop_filter_fields
     table_fields = ("icon", "name", "beschreibung", "ab_stufe", "preis")
 
 
 class FahrzeugTableView(ShopTableView):
     model = Fahrzeug
-    filterset_fields = {**ShopFilter._meta.fields,
+    filterset_fields = {
+        **shop_filter_fields,
         "schnelligkeit": ["gte"],
         "rüstung": ["gte"],
         "erfolge": ["lte"],
@@ -426,13 +427,14 @@ class FahrzeugTableView(ShopTableView):
 
 class EinbautenTableView(ShopTableView):
     model = Einbauten
-    filterset_fields = {**ShopFilter._meta.fields, "manifestverlust": ["icontains"]}
+    filterset_fields = {**shop_filter_fields, "manifestverlust": ["icontains"]}
     table_fields = ("icon", "name", "beschreibung", "ab_stufe", "manifestverlust", "preis")
 
 
 class ZauberTableView(ShopTableView):
     model = Zauber
-    filterset_fields = {**ShopFilter._meta.fields,
+    filterset_fields = {
+        **shop_filter_fields,
         "astralschaden": ["icontains"],
         "manaverbrauch": ["icontains"],
         "verteidigung": ["exact"],
@@ -444,7 +446,8 @@ class ZauberTableView(ShopTableView):
 
 class VergessenerZauberTableView(ShopTableView):
     model = VergessenerZauber
-    filterset_fields = {**ShopFilter._meta.fields,
+    filterset_fields = {
+        **shop_filter_fields,
         "schaden": ["icontains"],
         "astralschaden": ["icontains"],
         "manaverbrauch": ["icontains"]
@@ -454,34 +457,26 @@ class VergessenerZauberTableView(ShopTableView):
 
 class AlchemieTableView(ShopTableView):
     model = Alchemie
-    filterset_fields = ShopFilter._meta.fields
+    filterset_fields = shop_filter_fields
     table_fields = ("icon", "name", "beschreibung", "ab_stufe", "preis")
 
 
 class TinkerTableView(ShopTableView):
-    class Table(ShopTable):
-        class Meta:
-            model = Tinker
-            fields = ("icon", "name", "beschreibung", "ab_stufe", "werte", "preis")
-            attrs = GenericTable.Meta.attrs
-
-        def render_name(self, value):
-            return value
-
     model = Tinker
-    filterset_fields = {**ShopFilter._meta.fields, "werte": ["icontains"]}
-    table_class = Table
+    table_fields = ("icon", "name", "beschreibung", "ab_stufe", "werte")
+    filterset_fields = {**shop_filter_fields, "werte": ["icontains"]}
 
 
 class BegleiterTableView(ShopTableView):
     model = Begleiter
-    filterset_fields = ShopFilter._meta.fields
+    filterset_fields = shop_filter_fields
     table_fields = ("icon", "name", "beschreibung", "ab_stufe", "preis")
 
 
 class EngelsroboterTableView(ShopTableView):
     model = Engelsroboter
-    filterset_fields = {**ShopFilter._meta.fields,
+    filterset_fields = {
+        **shop_filter_fields,
         'ST': ["gte"],
         'UM': ["gte"],
         'MA': ["gte"],
