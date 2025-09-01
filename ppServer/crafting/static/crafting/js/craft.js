@@ -80,11 +80,12 @@ function constructRecipes(recipes, include_table=false) {
 				<a class="info" href="/crafting/details/${recipe.id}/">
 					<img src="/static/res/img/info.svg" alt="Info">
 				</a>
+				<button class="btn btn-outline-warning fav-btn" onclick="toggleFav(${recipe.id})">${recipe.is_fav ? '⭑' : '⭒'}</button>
 			</div>`;
 
 		html += html_recipe;
 	});
-	return html;
+	return html || "keine Rezepte vorhanden :(";
 }
 
 
@@ -124,7 +125,7 @@ function drag_end_callback() {
 // select a different table and show its recipes instead of the current ones
 function tableChange(id) {
 	const selected_tag = document.querySelector(`#${id}`);
-	const table_id = parseInt(/\d+/.exec(id)[0]);
+	const table_id = id.replace(/^tid\-/, "");
 
 	location.hash = table_id;
 
@@ -137,10 +138,28 @@ function tableChange(id) {
 	document.querySelector("header .navbar-brand .topic").innerHTML = selected_tag.dataset.title;
 
 	post({ table: table_id }, data => {
-		document.querySelector(".recipes").innerHTML = constructRecipes(data.recipes)
+		document.querySelector(".recipes").innerHTML = constructRecipes(data.recipes, table_id === "fav")
 
 		// disable recipes where necessary
 		updateRecipeStatus();
+	}, null)
+}
+
+function toggleFav(id) {
+	
+	post({ fav: id }, ({ num_favs }) => {
+
+		// toggle pressed fav button
+		const fav_btn = document.querySelector(`.recipes .recipe-row.id-${id} .fav-btn`);
+		fav_btn.innerHTML = fav_btn.innerHTML === '⭒' ? '⭑' : '⭒';
+
+		// currently on fav-"table" and need to remove recipe from view
+		if (fav_btn.innerHTML === '⭒' && location.hash === "#fav") {
+			document.querySelector(`.recipes .recipe-row.id-${id}`).remove();
+		}
+
+		// update availability of fav-"table"
+		document.querySelector(`#tid-fav`).classList.toggle("available", num_favs > 0);
 	}, null)
 }
 

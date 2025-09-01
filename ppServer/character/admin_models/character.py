@@ -46,7 +46,7 @@ class RelAttributInline(ReadonlyRelInlineAdmin):
     model = RelAttribut
 
 
-    def get_queryset(self, request):
+    def get_queryset(self, request) -> QuerySet[Any]:
         return super().get_queryset(request).prefetch_related("attribut")
 
 
@@ -61,8 +61,8 @@ class RelFertigkeitInLine(ReadonlyRelInlineAdmin):
     readonly_fields = ['fertigkeit']
     model = RelFertigkeit
 
-    def get_queryset(self, request):
-        return super().get_queryset(request).prefetch_related("fertigkeit__attribut")
+    def get_queryset(self, request) -> QuerySet[Any]:
+        return super().get_queryset(request).prefetch_related("fertigkeit")
 
 
 class RelWesenkraftInLine(RelInlineAdmin):
@@ -77,6 +77,12 @@ class RelSpezialfertigkeitInLine(RelInlineAdmin):
 
     def get_queryset(self, request: HttpRequest) -> QuerySet[Any]:
         return super().get_queryset(request).prefetch_related("spezialfertigkeit__attr1", "spezialfertigkeit__attr2")
+    
+    def get_formset(self, request, obj=None, **kwargs):
+        formset = super().get_formset(request, obj, **kwargs)
+        queryset = formset.form.base_fields["spezialfertigkeit"].queryset.prefetch_related("attr1", "attr2")
+        formset.form.base_fields["spezialfertigkeit"].queryset = queryset
+        return formset
 
 
 class RelWissensfertigkeitInLine(RelInlineAdmin):
@@ -84,6 +90,12 @@ class RelWissensfertigkeitInLine(RelInlineAdmin):
 
     def get_queryset(self, request: HttpRequest) -> QuerySet[Any]:
         return super().get_queryset(request).prefetch_related("wissensfertigkeit__attr1", "wissensfertigkeit__attr2", "wissensfertigkeit__attr3")
+    
+    def get_formset(self, request, obj=None, **kwargs):
+        formset = super().get_formset(request, obj, **kwargs)
+        queryset = formset.form.base_fields["wissensfertigkeit"].queryset.prefetch_related("attr1", "attr2", "attr3")
+        formset.form.base_fields["wissensfertigkeit"].queryset = queryset
+        return formset
 
 
 class AffektivitätInLine(RelInlineAdmin):
@@ -95,14 +107,14 @@ class RelGfsAbilityInLine(RelInlineAdmin):
     model = RelGfsAbility
     fields = ["ability", "notizen"]
 
-    def get_queryset(self, request):
+    def get_queryset(self, request) -> QuerySet[Any]:
         return super().get_queryset(request).prefetch_related('ability')
 
 class RelKlasseAbilityInLine(RelInlineAdmin):
     model = RelKlasseAbility
     fields = ["ability", "notizen"]
 
-    def get_queryset(self, request):
+    def get_queryset(self, request) -> QuerySet[Any]:
         return super().get_queryset(request).prefetch_related('ability')
 
 
@@ -111,35 +123,49 @@ class RelVorteilInLine(RelInlineAdmin):
     fields = ["teil", "attribut", "fertigkeit", "engelsroboter", "notizen", "ip", "is_sellable", "will_create"]
     exclude = ["anzahl"]
 
-    def get_queryset(self, request):
-        return super().get_queryset(request).prefetch_related('teil', 'attribut', 'fertigkeit__attribut', 'engelsroboter')
+    def get_queryset(self, request) -> QuerySet[Any]:
+        return super().get_queryset(request).prefetch_related('teil', 'attribut', 'fertigkeit', 'engelsroboter')
 
 
 class RelNachteilInLine(RelInlineAdmin):
     model = RelNachteil
     fields = ["teil", "attribut", "fertigkeit", "notizen", "ip", "is_sellable", "will_create"]
 
-    def get_queryset(self, request):
-        return super().get_queryset(request).prefetch_related('teil', 'attribut', 'fertigkeit__attribut')
+    def get_queryset(self, request) -> QuerySet[Any]:
+        return super().get_queryset(request).prefetch_related('teil', 'attribut', 'fertigkeit')
 
 
 class RelTalentInLine(RelInlineAdmin):
     model = RelTalent
     fields = ["talent"]
 
-    def get_queryset(self, request):
+    def get_queryset(self, request) -> QuerySet[Any]:
         return super().get_queryset(request).prefetch_related('talent')
 
 
 class RelEffectInLine(RelInlineAdmin):
     model = RelEffect
-    fields = ["wertaenderung", "target_fieldname", "target_attribut", "target_fertigkeit", "source_vorteil", "source_nachteil", "source_talent", "source_gfsAbility", "source_klasse", "source_klasseAbility", "source_shopBegleiter", "source_shopMagischeAusrüstung", "source_shopRüstung", "source_shopAusrüstungTechnik", "source_shopEinbauten", "is_active"]
+    fields = [
+        "wertaenderung", "target_fieldname", "target_attribut", "target_fertigkeit", "source_vorteil", "source_nachteil",
+        "source_talent", "source_gfsAbility", "source_klasse", "source_klasseAbility", "source_shopBegleiter",
+        "source_shopMagischeAusrüstung", "source_shopRüstung", "source_shopAusrüstungTechnik", "source_shopEinbauten", "is_active"
+    ]
     extra = 0
 
-    def get_queryset(self, request):
+    def get_queryset(self, request) -> QuerySet[Any]:
         related_char_id = getattr(request.resolver_match.kwargs, 'object_id', None)
 
-        qs = self.model.objects.prefetch_related("target_char__eigentümer", 'target_attribut', 'target_fertigkeit', 'source_vorteil', 'source_nachteil', "source_talent", "source_gfsAbility", "source_klasse", "source_klasseAbility", "source_shopBegleiter", "source_shopMagischeAusrüstung", "source_shopRüstung", "source_shopAusrüstungTechnik", "source_shopEinbauten")
+        qs = self.model.objects.prefetch_related(
+            'target_attribut__attribut', 'target_attribut__char__eigentümer',
+            'target_fertigkeit__fertigkeit', 'target_fertigkeit__char__eigentümer',
+            'source_vorteil__teil', 'source_vorteil__char',
+            'source_nachteil__teil', 'source_nachteil__char',
+            "source_talent__talent", "source_talent__char",
+            "source_gfsAbility__gfsability", "source_gfsAbility__char__eigentümer",
+            "source_klasse__klasse", "source_klasse__char__eigentümer",
+            "source_klasseAbility__ability", "source_klasseAbility__char",
+            "source_shopBegleiter__item", "source_shopMagischeAusrüstung__item", "source_shopRüstung__item", "source_shopAusrüstungTechnik__item", "source_shopEinbauten__item"
+        )
         return qs.filter(target_char__id=related_char_id) if related_char_id else qs
 
     def get_readonly_fields(self, request: HttpRequest, obj):
@@ -157,7 +183,7 @@ class RelEffectInLine(RelInlineAdmin):
 class RelShopInLine(RelInlineAdmin):
     fields = ["anz", "item", "notizen"]
 
-    def get_queryset(self, request):
+    def get_queryset(self, request) -> QuerySet[Any]:
         return super().get_queryset(request).prefetch_related('item')
 
 
@@ -192,10 +218,6 @@ class RelRituale_RunenInLine(RelShopInLine):
     model = RelRituale_Runen
     fields = ["anz", "stufe", "item", "notizen"]
 
-    def get_queryset(self, request):
-        return super().get_queryset(request).prefetch_related('item')
-
-
 class RelRüstungInLine(RelShopInLine):
     model = RelRüstung
 
@@ -203,9 +225,6 @@ class RelRüstungInLine(RelShopInLine):
 class RelAusrüstung_TechnikInLine(RelShopInLine):
     model = RelAusrüstung_Technik
     fields = ["anz", "stufe", "item", "notizen", "selbst_eingebaut"]
-
-    def get_queryset(self, request):
-        return super().get_queryset(request).prefetch_related('item')
 
 
 class RelFahrzeugInLine(RelShopInLine):
@@ -220,9 +239,6 @@ class RelEinbautenInLine(RelShopInLine):
 class RelZauberInLine(RelShopInLine):
     fields = fields = ["anz", "item", "tier", "notizen"]
     model = RelZauber
-
-    def get_queryset(self, request):
-        return super().get_queryset(request).prefetch_related('item')
 
 
 class RelVergessenerZauberInLine(RelShopInLine):
@@ -319,6 +335,5 @@ class CharakterAdmin(admin.ModelAdmin):
     def image_(self, obj):
         return format_html(f"<img src='{obj.image.url}' style='max-width: 32px; max-height:32px;'>") if obj.image else "-"
     
-    def get_queryset(self, request):
-        return super().get_queryset(request).prefetch_related('eigentümer', "gfs__wesen")
-
+    def get_queryset(self, request) -> QuerySet[Any]:
+        return super().get_queryset(request).prefetch_related('eigentümer', "gfs", "tags")

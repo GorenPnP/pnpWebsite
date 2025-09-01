@@ -10,6 +10,13 @@
 
 {% block main %}
 <aside class="tables reorder-container">
+		<div
+			class="item reorder-container__element table{% if has_favorite_recipes %} available{% endif %}"
+			id="tid-fav"
+			draggable="false"
+			onclick="tableChange('tid-fav')"
+			data-title="Favorisiert">⭑
+		</div>
 	{% for table in tables %}
 		<div
 			class="item reorder-container__element table{% if forloop.first %} selected{% endif %}{% if table.available %} available{% endif %}"

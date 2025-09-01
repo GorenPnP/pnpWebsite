@@ -2,8 +2,8 @@ import locale
 from typing import Any
 
 from django.contrib import admin
-from django.db.models import OuterRef, F, Q, Subquery
-from django.db.models.aggregates import Sum
+from django.db.models import OuterRef, F, Subquery
+from django.db.models.aggregates import Sum, Count
 from django.db.models.functions import Coalesce
 from django.db.models.query import QuerySet
 from django.http import HttpRequest
@@ -54,15 +54,37 @@ class SpezialInLineAdmin(admin.TabularInline):
     model = Recipe.spezial.through
     extra = 1
 
+    def get_formset(self, request, obj=None, **kwargs):
+        formset = super().get_formset(request, obj, **kwargs)
+        queryset = formset.form.base_fields["spezialfertigkeit"].queryset.prefetch_related("attr1", "attr2")
+        formset.form.base_fields["spezialfertigkeit"].queryset = queryset
+        return formset
+
 
 class WissenInLineAdmin(admin.TabularInline):
     model = Recipe.wissen.through
     extra = 1
 
+    def get_formset(self, request, obj=None, **kwargs):
+        formset = super().get_formset(request, obj, **kwargs)
+        queryset = formset.form.base_fields["wissensfertigkeit"].queryset.prefetch_related("attr1", "attr2", "attr3")
+        formset.form.base_fields["wissensfertigkeit"].queryset = queryset
+        return formset
+
 
 class PermanentlyNeedsTinkerInLineAdmin(admin.TabularInline):
     model = Region.permanently_needs.through
     extra = 1
+
+class FavoriteRecipesInLineAdmin(admin.TabularInline):
+    model = RelCrafting.favorite_recipes.through
+    extra = 1
+
+    def get_formset(self, request, obj=None, **kwargs):
+        formset = super().get_formset(request, obj, **kwargs)
+        queryset = formset.form.base_fields["recipe"].queryset.prefetch_related("table", "ingredient_set__item", "product_set__item")
+        formset.form.base_fields["recipe"].queryset = queryset
+        return formset
 
 
 class RecipeAdmin(admin.ModelAdmin):
@@ -127,8 +149,24 @@ class RecipeAdmin(admin.ModelAdmin):
 
 
 class RelCraftingAdmin(admin.ModelAdmin):
-    list_display = ['spieler', 'char', 'profil']
+    list_display = ['spieler', 'char', 'profil', "num_fav_recipes"]
     list_filter = ['profil']
+    fields = ['spieler', 'profil', 'char']
+
+    inlines = [FavoriteRecipesInLineAdmin]
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).prefetch_related("spieler", "char", "profil").annotate(num_fav_recipes=Count("favorite_recipes"))
+
+    def get_form(self, request, obj = ..., change = ..., **kwargs):
+        form = super().get_form(request, obj, change, **kwargs)
+
+        form.base_fields["char"].queryset = form.base_fields["char"].queryset.prefetch_related("eigentümer")
+        return form
+
+    @admin.display(ordering="num_fav_recipes")
+    def num_fav_recipes(self, obj):
+        return obj.num_fav_recipes
 
 class RegionBlockChanceInLineAdmin(admin.TabularInline):
     model = BlockChance

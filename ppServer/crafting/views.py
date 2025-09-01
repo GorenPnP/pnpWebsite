@@ -234,11 +234,12 @@ class CraftingView(VerifiedAccountMixin, ProfileSetMixin, ListView):
 
 	def get_recipe_queryset(self, set_perk_filter=True) -> QuerySet[Recipe]:
 		owned_perk_items = Tinker.objects.exclude(miningperk=None).filter(inventoryitem__char=self.relCrafting.profil)
-		qs = Recipe.objects.prefetch_related("ingredient_set__item", "product_set__item")\
+		qs = Recipe.objects.prefetch_related("ingredient_set__item", "product_set__item", "table")\
 			.annotate(
 				ingredient_exists = Exists(Ingredient.objects.filter(recipe=OuterRef("pk"))),
 				produces_perk = Exists(MiningPerk.objects.filter(item__in=OuterRef("product__item"))),
 				produces_known_perk = Exists(Product.objects.filter(recipe=OuterRef("pk"), item__in=owned_perk_items)),
+				is_fav = Exists(self.relCrafting.favorite_recipes.filter(id=OuterRef("pk"))),
 			)
 
 		if self.relCrafting.profil.restricted: qs = qs.filter(ingredient_exists=True)
@@ -260,6 +261,7 @@ class CraftingView(VerifiedAccountMixin, ProfileSetMixin, ListView):
 
 			tables = table_list,
 			recipes = construct_recipes(self.get_recipe_queryset(), self.inventory, table_list[0]["id"] if len(table_list) else 0),
+			has_favorite_recipes = self.relCrafting.favorite_recipes.exists(),
 		)
 
 
@@ -272,10 +274,16 @@ class CraftingView(VerifiedAccountMixin, ProfileSetMixin, ListView):
 		# table selection has changed, update the recipes
 		if "table" in json_dict.keys():
 			try:
-				table_id = int(json_dict["table"])
-			except: return JsonResponse({"message": "Parameter nicht lesbar angekommen"}, status=418)
+				restrict_to_fav = json_dict["table"] == "fav"
+				table_id = int(json_dict["table"]) if not restrict_to_fav else None
+			except:
+				if not restrict_to_fav: return JsonResponse({"message": "Parameter nicht lesbar angekommen"}, status=418)
 
-			return JsonResponse({"recipes": construct_recipes(self.get_recipe_queryset(), self.inventory, table_id)})
+			qs = self.get_recipe_queryset()
+			if restrict_to_fav:
+				qs = qs.filter(pk__in=self.relCrafting.favorite_recipes.values_list("id", flat=True))
+
+			return JsonResponse({"recipes": construct_recipes(qs, self.inventory, table_id)})
 
 
 		# search for an item, return just names for autocomplete
@@ -372,6 +380,23 @@ class CraftingView(VerifiedAccountMixin, ProfileSetMixin, ListView):
 			self.relCrafting.profil.save(update_fields=["tableOrdering"])
 
 			return JsonResponse({})
+
+		# toggle fav on recipe
+		if "fav" in json_dict.keys():
+			try:
+				recipe_id = int(json_dict["fav"])
+				recipe = get_object_or_404(Recipe, id=recipe_id)
+			except:
+				return JsonResponse({"message": "Parameter nicht lesbar angekommen"}, status=418)
+
+			# add
+			if not self.relCrafting.favorite_recipes.filter(id=recipe.id).exists():
+				self.relCrafting.favorite_recipes.add(recipe)
+			# remove
+			else:
+				self.relCrafting.favorite_recipes.remove(recipe)
+
+			return JsonResponse({"num_favs": self.relCrafting.favorite_recipes.count()})
 
 
 class RecipeDetailsView(VerifiedAccountMixin, ProfileSetMixin, DetailView):

@@ -20,6 +20,7 @@ def construct_recipes(recipe_qs: QuerySet[Recipe], inventory, table_id: int = No
 			"table": {"icon": recipe.table.getIconUrl(), "name": recipe.table.name} if recipe.table else Recipe.getHandwerk(),
 			"locked": recipe.table.id not in inventory.keys() if recipe.table else False,
 			"produces_perk": recipe.produces_perk,
+			"is_fav": recipe.is_fav,
 		}
 		recipes.append(recipe)
 

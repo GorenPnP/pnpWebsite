@@ -10,6 +10,15 @@
 
 	// disable opening of image-uri while dragging or sth.
 	img { pointer-events: none; }
+	
+	&#tid-fav {
+		aspect-ratio: 2;
+		height: unset;
+
+		font-size: calc(var(--itemTile-size) * 0.8);
+		color: var(--bs-warning);
+		line-height: .1em;
+	}
 }
 
 .table.dragging {opacity: .5;}
@@ -44,16 +53,14 @@
 	.item {
 		height: var(--itemTile-size);
 		aspect-ratio: 1;
+
+		display: flex;
+		justify-content: center;
+		align-items: center;
 	
 		img {
 			--img-size: 80%;
-	
-			// center in parent
-			position: relative;
-			top: calc(calc(100% - var(--img-size)) / 2);
-			left: calc(calc(100% - var(--img-size)) / 2);
-	
-	
+
 			height: var(--img-size);
 			width: var(--img-size);
 		}
@@ -160,6 +167,11 @@ a.info {display: contents;}
 .info img {
 	height: 45px;
 	margin: 1em;
+}
+
+.fav-btn {
+	font-size: 45px;
+	line-height: .75em;
 }
 
 

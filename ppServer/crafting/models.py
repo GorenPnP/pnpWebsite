@@ -24,6 +24,7 @@ class RelCrafting(models.Model):
 	profil = models.ForeignKey("Profile", on_delete=models.SET_NULL, null=True, blank=True)
 
 	char = models.ForeignKey(Charakter, on_delete=models.SET_NULL, null=True, blank=True)
+	favorite_recipes = models.ManyToManyField("Recipe")
 
 	def __str__(self):
 		return "{} aktiv mit {}".format(self.spieler.name if self.spieler else "-", self.profil.name if self.profil else "-")
@@ -141,7 +142,7 @@ class Recipe(models.Model):
 		verbose_name = "Rezept"
 		verbose_name_plural = "Rezepte"
 
-	table = models.ForeignKey(to=Tinker, on_delete=models.CASCADE, null=True, blank=True)
+	table = models.ForeignKey(Tinker, on_delete=models.CASCADE, null=True, blank=True)
 	duration = models.DurationField('herstellungsdauer (hh:mm:ss)', default=timedelta(seconds=0), null=True, blank=True)
 
 	spezial = models.ManyToManyField(Spezialfertigkeit, blank=True)
