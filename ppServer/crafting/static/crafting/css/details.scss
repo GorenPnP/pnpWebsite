@@ -9,8 +9,13 @@
 
 
 @import './overlay';
-.overlay .ingredient {color: #ddd;}
-.overlay .num {margin-right: .3em;}
 .overlay {margin: 0 auto;}
+.overlay .ingredient {
+	display: flex;
+	gap: 0.3em;
+	align-items: center;
+
+	color: black;
+}
 
 .btn-primary { display: block; margin: auto; }

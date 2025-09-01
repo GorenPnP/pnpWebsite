@@ -12,7 +12,7 @@
 	<a href="{% url 'crafting:index' %}?redirect={{ request.path|urlencode }}" class="text-light">Profil wechseln</a>
 </div>
 
-<div class="overlay">
+<div class="overlay d-block">
 	<label for="overlay__duration">Crafting Time:</label><span id="overlay__duration">{{ object.duration|duration }}</span>
 	<label for="overlay__spezial">Spezialfertigkeiten:</label><div id="overlay__spezial">{{ object.spezial_names|default:"-" }}</div>
 	<label for="overlay__wissen">Wissensfertigkeiten:</label><div id="overlay__wissen">{{ object.wissen_names|default:"-" }}</div>
