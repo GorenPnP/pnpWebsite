@@ -177,6 +177,8 @@ class RelEffectInLine(RelInlineAdmin):
     def has_add_permission(self, request: HttpRequest, obj) -> bool:
         return False
 
+class RelRamschInLine(RelInlineAdmin):
+    model = RelRamsch
 
 ########## generic (st)shop ##############
 
@@ -316,6 +318,7 @@ class CharakterAdmin(admin.ModelAdmin):
         RelTinkerInLine,
         RelBegleiterInLine,
         RelEngelsroboterInLine,
+        RelRamschInLine,
 
         RelEffectInLine
     ]

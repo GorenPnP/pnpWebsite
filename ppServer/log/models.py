@@ -31,6 +31,8 @@ kind_enum = [
 
     ("d", "Quiz-Punkte für SP"),
     ("j", "Inventar-Item verbraucht"),
+    ("q", "Inventar-Item angelegt"),
+    ("w", "Inventar-Item verkauft"),
 ]
 
 

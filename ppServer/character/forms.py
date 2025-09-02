@@ -2,9 +2,9 @@ import json
 
 from django import forms
 
-from crispy_forms.bootstrap import AppendedText, Tab, TabHolder
+from crispy_forms.bootstrap import AppendedText, Tab, TabHolder, Container, InlineField
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Layout, Submit, HTML, Fieldset, LayoutObject, TEMPLATE_PACK
+from crispy_forms.layout import Layout, Submit, HTML, Fieldset, ButtonHolder, LayoutObject, TEMPLATE_PACK
 
 from campaign.forms import ZauberplätzeWidget
 
@@ -293,3 +293,29 @@ class CreateTagForm(forms.ModelForm):
     class Meta:
         model = Tag
         fields = ["spieler", "name"]
+
+
+class CreateRamschForm(forms.ModelForm):
+    class Meta:
+        model = RelRamsch
+        fields = ["char", "anz", "item"]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["char"].widget = forms.HiddenInput()
+
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            "char",
+            Container(
+                "neues Item mitnehmen", # name of container, not a field
+                InlineField("anz", wrapper_class="col-sm-2"),
+                InlineField("item", wrapper_class="col-sm"),
+                ButtonHolder(
+                    Submit('Save', 'ins Inventar', css_class='btn btn-primary'),
+                    css_class="col-sm-auto"
+                ),
+
+                css_class="row g-3"
+            )
+        )
