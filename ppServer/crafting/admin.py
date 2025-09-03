@@ -89,8 +89,9 @@ class FavoriteRecipesInLineAdmin(admin.TabularInline):
 
 class RecipeAdmin(admin.ModelAdmin):
 
-    list_display = ('icons_produkte', 'produkte', 'icons_zutaten', 'zutaten', 'profitable_flip', 'table', 'duration', 'fertigkeiten')
+    list_display = ('icons_produkte', 'produkte', 'icons_zutaten', 'zutaten', 'duration', 'profitable_flip', 'table', 'fertigkeiten')
     list_display_links = ('icons_produkte', 'produkte')
+    list_editable = ("duration", )
     search_fields = ('product__item__name', )
 
     exclude = ["wissen", "spezial"]

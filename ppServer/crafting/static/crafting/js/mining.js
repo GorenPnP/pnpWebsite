@@ -361,7 +361,7 @@ function init() {
                 tool_tag: tools[tool_type],
             }))
             .reduce((max, tool) => {
-                const num = parseInt(tool.tool_tag.dataset.speed) || 0;
+                const num = parseInt(tool.tool_tag?.dataset.speed) || 0;
                 if (num < max.max) { return max; }
                 return {...tool, max: num};
             }, {tool_type: "", tool_tag: null, max: 0});
