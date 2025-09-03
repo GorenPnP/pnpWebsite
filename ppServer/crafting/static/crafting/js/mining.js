@@ -331,7 +331,7 @@ function init() {
 
         // get perk speed
         perk_speed[type] = get_perk_number("speed", type);
-        if (type && perk_speed[type]) {
+        if (type && perk_speed[type] && tools[type]) {
 
             // get tool
             const corresponding_tool = tools[type];
