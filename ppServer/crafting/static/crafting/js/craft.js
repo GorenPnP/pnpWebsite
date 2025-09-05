@@ -91,11 +91,11 @@ function constructRecipes(recipes, include_table=false) {
 
 // helper function. Updates disabled-status of crafting for each recipe by triggering the onInput-eventhandler of .craftNum
 function updateRecipeStatus() {
-	const event = new Event('input')
+	const event = new Event('input');
 
 	document.querySelectorAll(".craftNum").forEach(num_input => {
 		num_input.dispatchEvent(event)
-	})
+	});
 }
 
 
@@ -139,26 +139,28 @@ function tableChange(id) {
 
 	post({ table: table_id }, data => {
 
+		// update durability on table in table list on the left
+		if (data.part) {
+			selected_tag.querySelector(".progressbar-inner").style.width = data.percent_durability_left + "%";
+			selected_tag.classList.toggle("broken",  data.durability_left === 0);
+		}
+
 		// construct table part
-		let part_html = ""
+		document.querySelector(".recipes").innerHTML = "";
 		if (data.part && data.durability_left === 0) {
-			part_html = `<div class="alert alert-danger" role="alert">
+			document.querySelector(".recipes").innerHTML = `<div class="alert alert-danger" role="alert">
 					Bauteil "${data.part.name}" ist kaputt gegangen. Um die Werkstation weiter zu verwenden musst du es erst${!data.owns_part ? ' besorgen und' : ''} eneuern${!data.owns_part ? '.' : ':'}
 				</div>`;
 			
 			// has part?
 			if (data.owns_part) {
-				part_html += `<button class="btn btn-danger ingredient" onclick=repair_table(${table_id})>
+				document.querySelector(".recipes").innerHTML += `<button class="btn btn-danger ingredient" onclick="repair_table(${table_id})">
 					<img src="${data.part.icon_url}" alt="${data.part.name}">
 					<span class="text">Bauteil ${data.part.name} erneuern</span>
 				</button>`;
 			}
 		}
-		document.querySelector(".recipes").innerHTML = part_html + constructRecipes(data.recipes, table_id === "fav")
-
-		// update durability on table in table list on the left
-		selected_tag.querySelector(".progressbar-inner").style.width = data.percent_durability_left + "%";
-		selected_tag.classList.toggle("broken",  data.durability_left === 0);
+		document.querySelector(".recipes").innerHTML += constructRecipes(data.recipes, table_id === "fav");
 
 		// disable recipes where necessary
 		updateRecipeStatus();
@@ -188,30 +190,30 @@ function toggleFav(id) {
 function craftChange({ currentTarget }) {
 
 	// amount of product
-	var num = parseInt(currentTarget.value) || 0;
+	const num = parseInt(currentTarget.value) || 0;
 
 	// get common id (used as class on html)
-	var id_class = ""
+	let id_class = ""
 	currentTarget.classList.forEach(e => {if (e.startsWith("id-")) id_class = e});
 
-	var row = document.querySelector(".recipe-row." + id_class);
+	const row = document.querySelector(".recipe-row." + id_class);
 
 	// should crafting be allowed?
-	var disable_btn = document.querySelector(".btn." + id_class).dataset.locked == "true";
+	let disable_btn = document.querySelector(".btn." + id_class).dataset.locked == "true";
 
 	// calc amount for products
 	row.querySelectorAll(".pnum").forEach(pnum_tag => {
-		var base = parseFloat(pnum_tag.dataset.default);
+		const base = parseFloat(pnum_tag.dataset.default);
 		pnum_tag.innerHTML = (base * num).toFixed(1).toString().replace(".", ",").replace(",0", "");		// round to one digit after decimal sign, leave out if it is a 0
 	})
 
 	// calc amount for ingredients
 	row.querySelectorAll(".inum").forEach(inum_tag => {
-		var needed_tag = inum_tag.querySelector(".needed-num");
-		var own_tag = inum_tag.querySelector(".own-num");
+		const needed_tag = inum_tag.querySelector(".needed-num");
+		const own_tag = inum_tag.querySelector(".own-num");
 
 		// calc needed
-		var needed_num = parseFloat(needed_tag.dataset.default) * num;
+		const needed_num = parseFloat(needed_tag.dataset.default) * num;
 		needed_tag.innerHTML = needed_num.toFixed(1).toString().replace(".", ",").replace(",0", "");		// round to one digit after decimal sign, leave out if it is a 0
 
 		// still own sufficient amount?
@@ -244,22 +246,34 @@ function craft({ currentTarget }) {
 	};
 
 	// get common recipe_id
-	var id_class = "";
+	let id_class = "";
 	currentTarget.classList.forEach(e => { if (e.startsWith("id-")) id_class = e });
 
 	// get num produced items
-	var num = document.querySelector(".craftNum." + id_class).value;
-	var id = /\d+/.exec(id_class)[0];
+	const num = document.querySelector(".craftNum." + id_class).value;
+	const id = /\d+/.exec(id_class)[0];
 
-	post({ craft: id, num: num}, _ => {
+	post({ craft: id, num}, _ => {
 
-		// if crafted element was a table, enable it
+		// if crafted element was a table, enable it ...
 		document.querySelectorAll(".product." + id_class).forEach(product => {
-			var pid = -1;
+			let pid = -1;
 			product.classList.forEach(e => { if (e.startsWith("pid-")) pid = /\d+/.exec(e); })
 
-			document.querySelector("#tid-" + pid)?.classList.add("available");
-		})
+			let table = document.querySelector("#tid-" + pid);
+			table?.classList.add("available");
+
+			// ... and move it up
+			const first_unavailable_table = document.querySelector(".tables .table:not(.available)");
+			const tables = [...document.querySelector(".tables").children];
+			const table_index = tables.indexOf(table);
+			const space_before = tables.indexOf(first_unavailable_table);
+			if (table_index > space_before) {
+				table.remove();
+				document.querySelector(".tables").insertBefore(table, first_unavailable_table);
+				drag_end_callback();	// save new ordering to BE
+			}
+		});
 
 		reload_recipes();
 	}, error => {
@@ -277,7 +291,7 @@ function craft({ currentTarget }) {
 // oninput="searchChange(event)"
 // on input again, temporarily disabled
 function searchChange({ currentTarget }) {
-	var text = currentTarget.value;
+	const text = currentTarget.value;
 
 	// post -> get fitting entries back
 	post({search: text}, data => {

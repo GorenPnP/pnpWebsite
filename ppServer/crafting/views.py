@@ -252,7 +252,7 @@ class CraftingView(VerifiedAccountMixin, ProfileSetMixin, ListView):
 		self.inventory = {i.item.id: i.num for i in self.get_queryset()}
 
 		# get all (used) table instances from db in alphabetical order
-		table_list = self.relCrafting.profil.getTables()
+		table_list = self.relCrafting.profil.getTables(self.inventory.keys())
 		for t in table_list: t["available"] = t["id"] in self.inventory.keys() or t["id"] == 0		# id == 0: special case for Handwerk (is always available)
 
 		return super().get_context_data(
@@ -283,7 +283,7 @@ class CraftingView(VerifiedAccountMixin, ProfileSetMixin, ListView):
 			if restrict_to_fav:
 				qs = qs.filter(pk__in=self.relCrafting.favorite_recipes.values_list("id", flat=True))
 			elif table_id: # is not fav and not Handwerk
-				return JsonResponse({"recipes": construct_recipes(qs, self.inventory, table_id), **self.relCrafting.profil.getTables(table_id)})
+				return JsonResponse({"recipes": construct_recipes(qs, self.inventory, table_id), **self.relCrafting.profil.getTables(self.inventory.keys(), table_id)})
 			return JsonResponse({"recipes": construct_recipes(qs, self.inventory, table_id)})
 
 
@@ -328,11 +328,10 @@ class CraftingView(VerifiedAccountMixin, ProfileSetMixin, ListView):
 				if recipe.produces_known_perk:
 					return JsonResponse({"message": "Den Perk hast du schon hergestellt."}, status=418)
 			
+			durability, _ = ProfileTableDurability.objects.get_or_create(char=self.relCrafting.profil, table=recipe.table)
 			# test if table part has enough durability left
-			if recipe.table:
-				durability = recipe.table.durability - ProfileTableDurability.objects.get_or_create(char=self.relCrafting.profil, table=recipe.table)[0].recipes_crafted
-				if recipe.table.part and durability < num:
-					return JsonResponse({"message": "Mit dem Bauteil der Werkstätte kannst du "+ (f"nur noch {durability} Rezepte" if durability else "nichts mehr") + " herstellen."}, status=418)
+			if recipe.table and recipe.table.part and recipe.table.durability - durability.recipes_crafted < num:
+				return JsonResponse({"message": "Mit dem Bauteil der Werkstätte kannst du "+ (f"nur noch {recipe.table.durability - durability.recipes_crafted} Rezepte" if recipe.table.durability != durability.recipes_crafted else "nichts mehr") + " herstellen."}, status=418)
 
 
 			# test if enough ingredients exist and collect them in 'ingredients'. Keys are tinker_id's
@@ -369,7 +368,8 @@ class CraftingView(VerifiedAccountMixin, ProfileSetMixin, ListView):
 			self.relCrafting.profil.save(update_fields=["craftingTime"])
 
 			# decrease table durability
-			ProfileTableDurability.objects.filter(char=self.relCrafting.profil, table=recipe.table).update(recipes_crafted=F("recipes_crafted") + num)
+			durability.recipes_crafted += num
+			durability.save(update_fields=["recipes_crafted"])
 
 			# save products
 			for t in recipe.product_set.all():
@@ -409,7 +409,7 @@ class CraftingView(VerifiedAccountMixin, ProfileSetMixin, ListView):
 		
 		if "repair_table" in json_dict.keys():
 			try:
-				table = get_object_or_404(Table.objects.prefetch_related("part"), item__id=int(json_dict["repair_table"]))
+				table = get_object_or_404(Table.objects.prefetch_related("part", "profiletabledurability_set"), item__id=int(json_dict["repair_table"]))
 			except:
 				return JsonResponse({"message": "Parameter nicht lesbar angekommen"}, status=418)
 
@@ -418,7 +418,7 @@ class CraftingView(VerifiedAccountMixin, ProfileSetMixin, ListView):
 			if not iitem or iitem.num < 1:
 				return JsonResponse({"message": "Du besitzt das Bauteil nicht"}, status=418)
 			
-			durability, _ = ProfileTableDurability.objects.get_or_create(char=self.relCrafting.profil, table=table)
+			durability = table.profiletabledurability_set.get(char=self.relCrafting.profil)
 			# test if reparable
 			if durability.recipes_crafted < table.durability:
 				return JsonResponse({"message": "Die Werkstation ist nicht kaputt"}, status=418)

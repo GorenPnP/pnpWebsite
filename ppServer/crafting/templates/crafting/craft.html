@@ -19,7 +19,7 @@
 		</div>
 	{% for table in tables %}
 		<div
-			class="item reorder-container__element table{% if forloop.first %} selected{% endif %}{% if table.available %} available{% endif %}{% if table.durability_left == 0 %} broken{% endif %}"
+			class="item reorder-container__element table{% if forloop.first %} selected{% endif %}{% if table.available %} available{% endif %}{% if table.part and table.durability_left == 0 %} broken{% endif %}"
 			id="tid-{% localize off %}{{ table.id }}{% endlocalize %}"
 			draggable="true"
 			onclick="tableChange('tid-{% localize off %}{{ table.id }}{% endlocalize %}')"

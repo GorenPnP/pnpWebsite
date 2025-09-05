@@ -1,7 +1,7 @@
-import json
 from datetime import timedelta
 
 from django.db import models
+from django.db.models import Subquery, OuterRef, F, Case, When
 from django.core.validators import MinValueValidator, MaxValueValidator
 
 from django_resized import ResizedImageField
@@ -40,7 +40,7 @@ class Profile(models.Model):
 
 	miningTime = models.DurationField('mining time (hh:mm:ss)', null=True, blank=True, default=timedelta(minutes=0))
 	craftingTime = models.DurationField('crafting time (hh:mm:ss)', null=True, blank=True, default=timedelta(minutes=0))
-	tableOrdering = models.TextField(default="[]")
+	tableOrdering = models.JSONField(default=list)
 
 	electricity = models.FloatField(default=0.0)
 	thermic = models.FloatField(default=0.0)
@@ -52,28 +52,32 @@ class Profile(models.Model):
 		return self.name
 
 
-	def getTables(self, tinker_id=None) -> list[dict["id", "name", "icon"]]:
+	def getTables(self, iitem_ids: list[int], tinker_id=None) -> list[dict["id", "name", "icon"]]:
 
 		# get tables
-		rawTables = Table.objects.prefetch_related("item", "part").order_by("item__name")
+		rawTables = Table.objects.prefetch_related("item", "part")\
+			.annotate(
+				used = Subquery(ProfileTableDurability.objects.filter(char=self, table=OuterRef("pk")).values_list("recipes_crafted", flat=True)),
+				durability_left = F("durability") - F("used"),
+				percent_durability_left = Case(When(durability=0, then=0), default=100 * (F("durability") - F("used")) / F("durability") +0.5, output_field=models.IntegerField())
+			)\
+			.order_by("item__name")
 		if tinker_id is not None: rawTables = rawTables.filter(item__id=tinker_id)
 
 		tables = []
 		for t in rawTables:
-			durability = t.profiletabledurability_set.prefetch_related("table__part").filter(char=self).first() or ProfileTableDurability.objects.create(char=self, table=t)
-
 			tables.append({
 				"id": t.item.id, "name": t.item.name, "icon": t.item.getIconUrl(),
-				"percent_durability_left": int(100 * (t.durability - durability.recipes_crafted) / t.durability +0.5) if t.durability else 0,
-				"durability_left": t.durability - durability.recipes_crafted,
+				"percent_durability_left": t.percent_durability_left,
+				"durability_left": t.durability_left,
 				"part": t.part.toDict() if t.part else None,
-				"owns_part": InventoryItem.objects.filter(char=self, item=t.part).exists(),
+				"owns_part": t.part.id in iitem_ids if t.part else False,
 			})
 
 		if tinker_id is not None: return tables[0]
 
 		# get & use order
-		order = json.loads(self.tableOrdering)
+		order = self.tableOrdering
 		ordered_tables = []
 
 		# default alphabetical ordering but beginning with Handwerk
