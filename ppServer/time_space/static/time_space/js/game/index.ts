@@ -20,10 +20,10 @@ const game_board = new GameBoard();
 
 
 
-/****** mouse callbacks *******/
+/****** pointer callbacks *******/
 
 // change cursor when hovering over clickable tile
-canvas_container.onmousemove = function ({x, y}) {
+canvas_container.onpointermove = function ({x, y}) {
     const {x: offsetX, y: offsetY} = canvas_container.getBoundingClientRect();
     x = Math.floor((x-offsetX) / TILE_SIZE);
     y = Math.floor((y-offsetY) / TILE_SIZE);

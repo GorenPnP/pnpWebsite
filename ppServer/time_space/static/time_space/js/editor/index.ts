@@ -24,7 +24,7 @@ const tb = new Toolbar();
 
 
 // change cursor when hovering over clickable tile
-canvas.onmousemove = function ({x, y}) {
+canvas.onpointermove = function ({x, y}) {
     const {x: offsetX, y: offsetY} = canvas.getBoundingClientRect();
     x = Math.floor((x-offsetX) / TILE_SIZE);
     y = Math.floor((y-offsetY) / TILE_SIZE);

@@ -48,53 +48,53 @@ container.querySelector<HTMLDivElement>('.brushes')!.addEventListener('click', f
 });
 
 
-// Mouse Down Event
-canvas.addEventListener('mousedown', function (event) {
-    setMouseCoordinates(event);
+// Pointer Down Event
+canvas.addEventListener('pointerdown', function (event) {
+    setPointerCoordinates(event);
     isDrawing = true;
 
     // Start Drawing
     context.beginPath();
-    context.moveTo(mouseX, mouseY);
+    context.moveTo(pointerX, pointerY);
 });
 
-// Mouse Move Event
-canvas.addEventListener('mousemove', function (event) {
-    setMouseCoordinates(event);
+// Pointer Move Event
+canvas.addEventListener('pointermove', function (event) {
+    setPointerCoordinates(event);
 
     if (isDrawing) {
-        context.lineTo(mouseX, mouseY);
+        context.lineTo(pointerX, pointerY);
         context.stroke();
     }
 });
 
-// Mouse Up Event
-document.addEventListener('mouseup', function (event) {
-    setMouseCoordinates(event);
+// Pointer Up Event
+document.addEventListener('pointerup', function (event) {
+    setPointerCoordinates(event);
     isDrawing = false;
 });
 
-// Mouse Out Event
-canvas.addEventListener('mouseout', function (event) {
-    setMouseCoordinates(event);
+// Pointer Out Event
+canvas.addEventListener('pointerout', function (event) {
+    setPointerCoordinates(event);
 });
 
-// Mouse Enter Event
-canvas.addEventListener('mouseenter', function (event) {
-    setMouseCoordinates(event);
+// Pointer Enter Event
+canvas.addEventListener('pointerenter', function (event) {
+    setPointerCoordinates(event);
     if (isDrawing) {
         // Start Drawing
         context.beginPath();
-        context.moveTo(mouseX, mouseY);
+        context.moveTo(pointerX, pointerY);
     }
 });
 
 
-// Handle Mouse Coordinates
-function setMouseCoordinates(event: MouseEvent) {
+// Handle Pointer Coordinates
+function setPointerCoordinates(event: PointerEvent) {
     const boundings = canvas.getBoundingClientRect();
-    mouseX = (event.clientX - boundings.left) / scale;
-    mouseY = (event.clientY - boundings.top) / scale;
+    pointerX = (event.clientX - boundings.left) / scale;
+    pointerY = (event.clientY - boundings.top) / scale;
 }
 
 

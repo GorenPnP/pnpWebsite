@@ -109,7 +109,7 @@
         <div id="mining-grid">
             {% with ''|center:block_count as range %}
             {% for _ in range %}
-            <button class="mining-btn" id="mining-btn--{{ forloop.counter0 }}" onmousedown="start_mining(event)" onmouseup="stop_mining()" onmouseleave="stop_mining()">
+            <button class="mining-btn" id="mining-btn--{{ forloop.counter0 }}" onpointerdown="start_mining(event)" onpointerup="stop_mining()" onpointerleave="stop_mining()">
                 <img class="mining-btn__block-texture" src="" alt="">
                 <div class="progress" role="progressbar" aria-label="Abbaufortschritt" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
                     <div class="progress-bar bg-dark" style="width: 0%"></div>

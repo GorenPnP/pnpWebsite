@@ -8,8 +8,8 @@ const dummy = document.createElement("div");
 JSON.parse(document.querySelector("#id_grid").value).forEach(cell => {
     dummy.innerHTML = `<button type="button" class="cell"
             data-type="${cell}"
-            onmouseover="set_grid_cell(event)"
-            onmousedown="set_grid_cell(event)"
+            onpointerover="set_grid_cell(event)"
+            onpointerdown="set_grid_cell(event)"
             oncontextmenu="return false;"
         ></button>`;
     document.querySelector("#grid").appendChild(dummy.firstChild);

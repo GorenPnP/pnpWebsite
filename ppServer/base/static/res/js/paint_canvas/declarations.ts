@@ -11,8 +11,8 @@ const bg_context = bg_canvas.getContext("2d")!;
 
 let bg_image: HTMLImageElement;
 let scale = 1.0;
-let mouseX = 0;
-let mouseY = 0;
+let pointerX = 0;
+let pointerY = 0;
 let isDrawing = false;
 let eraserActive = false;
 

@@ -50,8 +50,8 @@ all_parties.forEach(party => {
 document.querySelectorAll(".party__select-utils").forEach(utils_container => {
      const attr = 'data-bs-toggle';
      const accordionButton = utils_container.closest(`[${attr}]`);
-     utils_container.addEventListener('mouseenter', () => accordionButton!.setAttribute(attr, ''));
-     utils_container.addEventListener('mouseleave', () => accordionButton!.setAttribute(attr, 'collapse'));
+     utils_container.addEventListener('pointerenter', () => accordionButton!.setAttribute(attr, ''));
+     utils_container.addEventListener('pointerleave', () => accordionButton!.setAttribute(attr, 'collapse'));
 });
 
 // update final voting results (displayed in a table)

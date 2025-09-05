@@ -616,8 +616,8 @@ document.addEventListener('keydown', function(event) {
     if (player.steps_left <= 0 && player.has_attacked) { enemy_turn(); }
 });
 
-// target visible enemy with mouse
-document.querySelector("#grid").addEventListener("mousemove", function(event) {
+// target visible enemy with pointer
+document.querySelector("#grid").addEventListener("pointermove", function(event) {
     if (turn !== "PLAYER") { return; }
 
     const pawn_id = parseInt(event.target.closest(".pawn--enemy")?.id.replace("pawn-", "")) || null;
