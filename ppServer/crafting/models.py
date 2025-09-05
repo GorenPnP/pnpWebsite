@@ -2,7 +2,6 @@ import json
 from datetime import timedelta
 
 from django.db import models
-from django.db.models.query import QuerySet
 from django.core.validators import MinValueValidator, MaxValueValidator
 
 from django_resized import ResizedImageField
@@ -53,11 +52,25 @@ class Profile(models.Model):
 		return self.name
 
 
-	def getTables(self) -> list[dict["id", "name", "icon"]]:
+	def getTables(self, tinker_id=None) -> list[dict["id", "name", "icon"]]:
 
 		# get tables
-		rawTables = Recipe.getTables()
-		tables = [{ "id": t.id, "name": t.name, "icon": t.getIconUrl() } for t in rawTables]
+		rawTables = Table.objects.prefetch_related("item", "part").order_by("item__name")
+		if tinker_id is not None: rawTables = rawTables.filter(item__id=tinker_id)
+
+		tables = []
+		for t in rawTables:
+			durability = t.profiletabledurability_set.prefetch_related("table__part").filter(char=self).first() or ProfileTableDurability.objects.create(char=self, table=t)
+
+			tables.append({
+				"id": t.item.id, "name": t.item.name, "icon": t.item.getIconUrl(),
+				"percent_durability_left": int(100 * (t.durability - durability.recipes_crafted) / t.durability +0.5) if t.durability else 0,
+				"durability_left": t.durability - durability.recipes_crafted,
+				"part": t.part.toDict() if t.part else None,
+				"owns_part": InventoryItem.objects.filter(char=self, item=t.part).exists(),
+			})
+
+		if tinker_id is not None: return tables[0]
 
 		# get & use order
 		order = json.loads(self.tableOrdering)
@@ -135,6 +148,29 @@ class Product(models.Model):
 	def __str__(self):
 		return "Rezept {} produziert {}x {}".format(self.recipe.id, self.num, self.item)
 
+class Table(models.Model):
+	class Meta:
+		verbose_name = "Werkstätte"
+		verbose_name_plural = "Werkstätten"
+
+	durability = models.PositiveSmallIntegerField(default=0, help_text="in #Rezepte")
+	part = models.ForeignKey(Tinker, on_delete=models.SET_NULL, null=True, related_name="part")
+
+	item = models.ForeignKey(Tinker, on_delete=models.CASCADE)
+
+	def __str__(self):
+		return "Werkstätte {}".format(self.item)
+
+class ProfileTableDurability(models.Model):
+	class Meta:
+		ordering = ["char", "table"]
+		unique_together = ("char", "table")
+
+	table = models.ForeignKey(Table, on_delete=models.CASCADE)
+	char = models.ForeignKey(Profile, on_delete=models.CASCADE)
+
+	recipes_crafted = models.PositiveIntegerField(default=0)	# max:table.duration. At that point broken until new part added and set to 0
+
 
 class Recipe(models.Model):
 
@@ -142,7 +178,7 @@ class Recipe(models.Model):
 		verbose_name = "Rezept"
 		verbose_name_plural = "Rezepte"
 
-	table = models.ForeignKey(Tinker, on_delete=models.CASCADE, null=True, blank=True)
+	table = models.ForeignKey(Table, on_delete=models.CASCADE, null=True, blank=True)
 	duration = models.DurationField('herstellungsdauer (hh:mm:ss)', default=timedelta(seconds=0), null=True, blank=True)
 
 	spezial = models.ManyToManyField(Spezialfertigkeit, blank=True)
@@ -155,13 +191,6 @@ class Recipe(models.Model):
 	@staticmethod
 	def getHandwerk():
 		return {"name": "Handwerk", "icon": "/static/crafting/img/Handwerk.png", "id": 0, "available": True, "link": None}
-
-
-	# get all used table instances from db in alpabetical order
-	@staticmethod
-	def getTables() -> QuerySet[Tinker]:
-		return Tinker.objects.filter(recipe__isnull=False).distinct().order_by("name")
-
 
 
 ############### Mining #################

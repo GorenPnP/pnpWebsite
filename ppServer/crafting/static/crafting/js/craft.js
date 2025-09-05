@@ -7,7 +7,7 @@ function displayFloat(f) {
 
 // helper function. Constructs HTML-recipelist out of recipe-data
 function constructRecipes(recipes, include_table=false) {
-	var html = "";
+	let html = "";
 
 	// opening container
 	recipes.forEach(recipe => {
@@ -138,7 +138,27 @@ function tableChange(id) {
 	document.querySelector("header .navbar-brand .topic").innerHTML = selected_tag.dataset.title;
 
 	post({ table: table_id }, data => {
-		document.querySelector(".recipes").innerHTML = constructRecipes(data.recipes, table_id === "fav")
+
+		// construct table part
+		let part_html = ""
+		if (data.part && data.durability_left === 0) {
+			part_html = `<div class="alert alert-danger" role="alert">
+					Bauteil "${data.part.name}" ist kaputt gegangen. Um die Werkstation weiter zu verwenden musst du es erst${!data.owns_part ? ' besorgen und' : ''} eneuern${!data.owns_part ? '.' : ':'}
+				</div>`;
+			
+			// has part?
+			if (data.owns_part) {
+				part_html += `<button class="btn btn-danger ingredient" onclick=repair_table(${table_id})>
+					<img src="${data.part.icon_url}" alt="${data.part.name}">
+					<span class="text">Bauteil ${data.part.name} erneuern</span>
+				</button>`;
+			}
+		}
+		document.querySelector(".recipes").innerHTML = part_html + constructRecipes(data.recipes, table_id === "fav")
+
+		// update durability on table in table list on the left
+		selected_tag.querySelector(".progressbar-inner").style.width = data.percent_durability_left + "%";
+		selected_tag.classList.toggle("broken",  data.durability_left === 0);
 
 		// disable recipes where necessary
 		updateRecipeStatus();
@@ -289,6 +309,13 @@ function search() {
 		// adapt recipe status
 		updateRecipeStatus();
 	})
+}
+
+
+function repair_table(table_id) {
+	post({ repair_table: table_id }, () => {
+		tableChange("tid-" + table_id);
+	});
 }
 
 

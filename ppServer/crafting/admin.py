@@ -82,7 +82,7 @@ class FavoriteRecipesInLineAdmin(admin.TabularInline):
 
     def get_formset(self, request, obj=None, **kwargs):
         formset = super().get_formset(request, obj, **kwargs)
-        queryset = formset.form.base_fields["recipe"].queryset.prefetch_related("table", "ingredient_set__item", "product_set__item")
+        queryset = formset.form.base_fields["recipe"].queryset.prefetch_related("table__item", "ingredient_set__item", "product_set__item")
         formset.form.base_fields["recipe"].queryset = queryset
         return formset
 
@@ -138,7 +138,7 @@ class RecipeAdmin(admin.ModelAdmin):
                 total_cost=Sum('cost'),
             ).values('total_cost')[:1]
 
-        return super().get_queryset(request).prefetch_related("ingredient_set__item", "product_set__item", "table").annotate(
+        return super().get_queryset(request).prefetch_related("ingredient_set__item", "product_set__item", "table__item").annotate(
             zutatennames = ConcatSubquery(Ingredient.objects.prefetch_related("item").filter(recipe=OuterRef("id")).values("item__name"), ", "),
             produktenames = ConcatSubquery(Product.objects.prefetch_related("item").filter(recipe=OuterRef("id")).values("item__name"), ", "),
             spezialnames = ConcatSubquery(Spezialfertigkeit.objects.filter(recipe=OuterRef("id")).values("titel"), ", "),
@@ -148,6 +148,16 @@ class RecipeAdmin(admin.ModelAdmin):
             profitable_flip = F("product_yield") - F("ingredient_cost"),
         )
 
+
+    def get_form(self, request, obj = ..., change = ..., **kwargs):
+        form = super().get_form(request, obj, change, **kwargs)
+        form.base_fields["table"].queryset = form.base_fields["table"].queryset.prefetch_related("item")
+
+        return form
+
+class TableAdmin(admin.ModelAdmin):
+    list_display = ["item", "durability", "part"]
+    fields = ["item", "durability", "part"]
 
 class RelCraftingAdmin(admin.ModelAdmin):
     list_display = ['spieler', 'char', 'profil', "num_fav_recipes"]
@@ -257,6 +267,7 @@ class MiningPerkAdmin(admin.ModelAdmin):
 admin.site.register(Profile, ProfileAdmin)
 admin.site.register(InventoryItem, InventoryAdmin)
 admin.site.register(Recipe, RecipeAdmin)
+admin.site.register(Table, TableAdmin)
 admin.site.register(RelCrafting, RelCraftingAdmin)
 
 admin.site.register(Region, RegionAdmin)

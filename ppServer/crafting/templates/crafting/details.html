@@ -28,9 +28,9 @@
 	</div>
 	<label for="overlay__table">Hergestellt an:</label><div id="overlay__table">
 		{% if object.table %}
-		<a class="ingredient" href="{% url 'shop:tinker' %}?name__icontains={{ object.table.name|urlencode }}">
-			<img src="{{ object.table.icon.url }}" alt="{{ object.table.name }}">
-			<span class="name">{{ object.table.name }}</span>
+		<a class="ingredient" href="{% url 'shop:tinker' %}?name__icontains={{ object.table.item.name|urlencode }}">
+			<img src="{{ object.table.item.icon.url }}" alt="{{ object.table.item.name }}">
+			<span class="name">{{ object.table.item.name }}</span>
 		</a>
 		{% else %}
 		<div class="ingredient">

@@ -79,7 +79,7 @@ def handle_overlay(json_dict: dict, item_qs: QuerySet[Tinker], profil:Profile) -
 		# get inventory item (has to exist, because clicked on it in inventory)
 		item = get_object_or_404(item_qs, id=id)
 		recipe = Recipe.objects\
-			.prefetch_related("ingredient_set__item", "spezial", "wissen")\
+			.prefetch_related("ingredient_set__item", "spezial", "wissen", "table__item")\
 			.filter(product__item=item)\
 			.annotate(product_num = Subquery(Product.objects.filter(item=item, recipe=OuterRef("pk")).values_list("num", flat=True)[:1]))\
 			.first()
@@ -117,7 +117,7 @@ def handle_overlay(json_dict: dict, item_qs: QuerySet[Tinker], profil:Profile) -
 
 		# iitem is not json-serializable, therefore mapping manually ...
 		missing_fields = {
-			"table": {"name": recipe.table.name, "icon": recipe.table.getIconUrl()} if recipe.table else Recipe.getHandwerk(),
+			"table": {"name": recipe.table.item.name, "icon": recipe.table.item.getIconUrl()} if recipe.table else Recipe.getHandwerk(),
 			"ingredients": [{"icon": i.item.getIconUrl(), "name": i.item.name, "num": i.num} for i in recipe.ingredient_set.all()],
 			"duration": duration(recipe.duration),
 			"spezial": [e.titel for e in recipe.spezial.all()],
@@ -234,7 +234,7 @@ class CraftingView(VerifiedAccountMixin, ProfileSetMixin, ListView):
 
 	def get_recipe_queryset(self, set_perk_filter=True) -> QuerySet[Recipe]:
 		owned_perk_items = Tinker.objects.exclude(miningperk=None).filter(inventoryitem__char=self.relCrafting.profil)
-		qs = Recipe.objects.prefetch_related("ingredient_set__item", "product_set__item", "table")\
+		qs = Recipe.objects.prefetch_related("ingredient_set__item", "product_set__item", "table__item")\
 			.annotate(
 				ingredient_exists = Exists(Ingredient.objects.filter(recipe=OuterRef("pk"))),
 				produces_perk = Exists(MiningPerk.objects.filter(item__in=OuterRef("product__item"))),
@@ -282,7 +282,8 @@ class CraftingView(VerifiedAccountMixin, ProfileSetMixin, ListView):
 			qs = self.get_recipe_queryset()
 			if restrict_to_fav:
 				qs = qs.filter(pk__in=self.relCrafting.favorite_recipes.values_list("id", flat=True))
-
+			elif table_id: # is not fav and not Handwerk
+				return JsonResponse({"recipes": construct_recipes(qs, self.inventory, table_id), **self.relCrafting.profil.getTables(table_id)})
 			return JsonResponse({"recipes": construct_recipes(qs, self.inventory, table_id)})
 
 
@@ -318,7 +319,7 @@ class CraftingView(VerifiedAccountMixin, ProfileSetMixin, ListView):
 			recipe = get_object_or_404(self.get_recipe_queryset(set_perk_filter=False), id=id)
 
 			# test if table owned
-			if recipe.table and recipe.table.id not in self.inventory.keys():
+			if recipe.table and recipe.table.item.id not in self.inventory.keys():
 				return JsonResponse({"message": "Tisch nicht vorhanden."}, status=418)
 			
 			# handle recipe that produces a perk:
@@ -326,6 +327,12 @@ class CraftingView(VerifiedAccountMixin, ProfileSetMixin, ListView):
 				num = 1
 				if recipe.produces_known_perk:
 					return JsonResponse({"message": "Den Perk hast du schon hergestellt."}, status=418)
+			
+			# test if table part has enough durability left
+			if recipe.table:
+				durability = recipe.table.durability - ProfileTableDurability.objects.get_or_create(char=self.relCrafting.profil, table=recipe.table)[0].recipes_crafted
+				if recipe.table.part and durability < num:
+					return JsonResponse({"message": "Mit dem Bauteil der Werkstätte kannst du "+ (f"nur noch {durability} Rezepte" if durability else "nichts mehr") + " herstellen."}, status=418)
 
 
 			# test if enough ingredients exist and collect them in 'ingredients'. Keys are tinker_id's
@@ -356,11 +363,13 @@ class CraftingView(VerifiedAccountMixin, ProfileSetMixin, ListView):
 
 
 			# add crafting time
-			if self.relCrafting.profil.craftingTime: self.relCrafting.profil.craftingTime += recipe.duration * num
-			else:						self.relCrafting.profil.craftingTime  = recipe.duration * num
+			if self.relCrafting.profil.craftingTime:	self.relCrafting.profil.craftingTime += recipe.duration * num
+			else:										self.relCrafting.profil.craftingTime  = recipe.duration * num
 
 			self.relCrafting.profil.save(update_fields=["craftingTime"])
 
+			# decrease table durability
+			ProfileTableDurability.objects.filter(char=self.relCrafting.profil, table=recipe.table).update(recipes_crafted=F("recipes_crafted") + num)
 
 			# save products
 			for t in recipe.product_set.all():
@@ -397,6 +406,32 @@ class CraftingView(VerifiedAccountMixin, ProfileSetMixin, ListView):
 				self.relCrafting.favorite_recipes.remove(recipe)
 
 			return JsonResponse({"num_favs": self.relCrafting.favorite_recipes.count()})
+		
+		if "repair_table" in json_dict.keys():
+			try:
+				table = get_object_or_404(Table.objects.prefetch_related("part"), item__id=int(json_dict["repair_table"]))
+			except:
+				return JsonResponse({"message": "Parameter nicht lesbar angekommen"}, status=418)
+
+			# test if part for reparation exists
+			iitem = InventoryItem.objects.filter(char=self.relCrafting.profil, item=table.part).first()
+			if not iitem or iitem.num < 1:
+				return JsonResponse({"message": "Du besitzt das Bauteil nicht"}, status=418)
+			
+			durability, _ = ProfileTableDurability.objects.get_or_create(char=self.relCrafting.profil, table=table)
+			# test if reparable
+			if durability.recipes_crafted < table.durability:
+				return JsonResponse({"message": "Die Werkstation ist nicht kaputt"}, status=418)
+			
+			# use part
+			iitem.num -= 1
+			iitem.save(update_fields=["num"])
+
+			# repair
+			durability.recipes_crafted = 0
+			durability.save(update_fields=["recipes_crafted"])
+
+			return JsonResponse({})
 
 
 class RecipeDetailsView(VerifiedAccountMixin, ProfileSetMixin, DetailView):
@@ -404,7 +439,7 @@ class RecipeDetailsView(VerifiedAccountMixin, ProfileSetMixin, DetailView):
 	template_name = "crafting/details.html"
 
 	def get_queryset(self):
-		return super().get_queryset().prefetch_related("table", "ingredient_set__item", "product_set__item").annotate(
+		return super().get_queryset().prefetch_related("table__item", "ingredient_set__item", "product_set__item").annotate(
 			spezial_names = ConcatSubquery(Spezialfertigkeit.objects.filter(recipe=self.kwargs["pk"]).values("titel"), ", "),
 			wissen_names = ConcatSubquery(Wissensfertigkeit.objects.filter(recipe=self.kwargs["pk"]).values("titel"), ", "),
 		)

@@ -19,13 +19,18 @@
 		</div>
 	{% for table in tables %}
 		<div
-			class="item reorder-container__element table{% if forloop.first %} selected{% endif %}{% if table.available %} available{% endif %}"
+			class="item reorder-container__element table{% if forloop.first %} selected{% endif %}{% if table.available %} available{% endif %}{% if table.durability_left == 0 %} broken{% endif %}"
 			id="tid-{% localize off %}{{ table.id }}{% endlocalize %}"
 			draggable="true"
 			onclick="tableChange('tid-{% localize off %}{{ table.id }}{% endlocalize %}')"
 			data-title="{{ table.name }}">
 
 			<img src="{{ table.icon }}" alt="{{ table.name }}">
+			{% if table.part %}
+			<div class="progressbar" role="progressbar" aria-label="Basic example" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+				<div class="progressbar-inner" style="width: {{ table.percent_durability_left }}%"></div>
+			</div>
+			{% endif %}
 		</div>
 	{% endfor %}
 </aside>

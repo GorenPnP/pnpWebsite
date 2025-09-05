@@ -36,10 +36,10 @@ class GetMinecraftRecipesView(View):
         # init zip archive. add all json files of recipes
         with zipfile.ZipFile("recipes.zip", mode="w", compression=zipfile.ZIP_DEFLATED) as zip_file:
 
-            for i, recipe in enumerate(Recipe.objects.all()):
+            for i, recipe in enumerate(Recipe.objects.prefetch_related("table__item").all()):
 
                 productName = re.sub('.*:', '', recipe.product_set.first().item.getMinecraftModId().replace("/", "_"))
-                tableName = re.sub('.*:', '', recipe.table.getMinecraftModId() if recipe.table else HANDWERK_ID)
+                tableName = re.sub('.*:', '', recipe.table.item.getMinecraftModId() if recipe.table else HANDWERK_ID)
 
                 dirPath = "recipes/{}".format(tableName)
                 filename = "{}/{}-{}.json".format(dirPath, i, productName)
@@ -48,7 +48,7 @@ class GetMinecraftRecipesView(View):
                 with open(filename, "w") as file:
                 
                     jsonRecipe = {
-                        "type": recipe.table.getMinecraftModId() if recipe.table else HANDWERK_ID,
+                        "type": recipe.table.item.getMinecraftModId() if recipe.table else HANDWERK_ID,
                         "ingredients": [{"item": p.item.getMinecraftModId(), "count": int(p.num)} for p in recipe.ingredient_set.all()],
                         "outputs": [{"item": p.item.getMinecraftModId(), "count": int(p.num)} for p in recipe.product_set.all()],
                         "processingTime": recipe.duration.seconds * timeFactor
