@@ -7,7 +7,7 @@ from .models import Card, Transaction
 
 def get_card(queryset=Card.objects.filter(active=True), **kwargs):
     cards = queryset.filter(**kwargs)
-    return cards[0] if len(cards) else None
+    return cards[0] if cards else None
 
 
 class CardWidget(forms.MultiWidget):

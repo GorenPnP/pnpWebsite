@@ -159,7 +159,7 @@ class IndexView(LevelUpMixin, DetailView):
 
         sub_btn_text = "Speichern & zur Charakterübersicht"
         if char.in_erstellung: sub_btn_text = "Charaktererstellung abschließen"
-        if len(stufenbelohnung): sub_btn_text = "verteilte Stufen speichern"
+        if stufenbelohnung: sub_btn_text = "verteilte Stufen speichern"
 
         return {
             **context,

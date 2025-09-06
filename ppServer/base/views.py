@@ -16,7 +16,7 @@ import polls.models as pollsm
 from quiz.models import SpielerModule
 
 
-def reviewable_shop():
+def reviewable_shop() -> list:
     models = [
         Alchemie,
         Ausrüstung_Technik,
@@ -95,7 +95,7 @@ class IndexView(VerifiedAccountMixin, TemplateView):
         ## shop review
         if self.request.spieler.is_spielleitung:
             shop = reviewable_shop()
-            if len(shop): context["hero_pages"].append("Shop review")
+            if shop: context["hero_pages"].append("Shop review")
 
         return context
 

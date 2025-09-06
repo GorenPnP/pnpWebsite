@@ -166,7 +166,7 @@ class RelEffect(AbstractEffect):
 
         fieldnames = [field.replace("_id", "") for field, val in self.__dict__.items() if "source_" in field and val]
         wrong_relations = [fieldname for fieldname in fieldnames if getattr(self, fieldname).char != self.target_char]
-        if len(wrong_relations):
+        if wrong_relations:
             raise ValidationError(f"Folgende Felder gehören nicht zum 'target_char': {', '.join(wrong_relations)}")
 
 

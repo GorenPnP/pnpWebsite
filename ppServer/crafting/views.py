@@ -260,7 +260,7 @@ class CraftingView(VerifiedAccountMixin, ProfileSetMixin, ListView):
 			topic = table_list[0]["name"],
 
 			tables = table_list,
-			recipes = construct_recipes(self.get_recipe_queryset(), self.inventory, table_list[0]["id"] if len(table_list) else 0),
+			recipes = construct_recipes(self.get_recipe_queryset(), self.inventory, table_list[0]["id"] if table_list else 0),
 			has_favorite_recipes = self.relCrafting.favorite_recipes.exists(),
 		)
 
@@ -328,7 +328,7 @@ class CraftingView(VerifiedAccountMixin, ProfileSetMixin, ListView):
 				if recipe.produces_known_perk:
 					return JsonResponse({"message": "Den Perk hast du schon hergestellt."}, status=418)
 			
-			durability, _ = ProfileTableDurability.objects.get_or_create(char=self.relCrafting.profil, table=recipe.table)
+			durability, _ = ProfileTableDurability.objects.get_or_create(char=self.relCrafting.profil, table=recipe.table) if recipe.table else (None, False)
 			# test if table part has enough durability left
 			if recipe.table and recipe.table.part and recipe.table.durability - durability.recipes_crafted < num:
 				return JsonResponse({"message": "Mit dem Bauteil der Werkstätte kannst du "+ (f"nur noch {recipe.table.durability - durability.recipes_crafted} Rezepte" if recipe.table.durability != durability.recipes_crafted else "nichts mehr") + " herstellen."}, status=418)
@@ -368,8 +368,9 @@ class CraftingView(VerifiedAccountMixin, ProfileSetMixin, ListView):
 			self.relCrafting.profil.save(update_fields=["craftingTime"])
 
 			# decrease table durability
-			durability.recipes_crafted += num
-			durability.save(update_fields=["recipes_crafted"])
+			if durability:
+				durability.recipes_crafted += num
+				durability.save(update_fields=["recipes_crafted"])
 
 			# save products
 			for t in recipe.product_set.all():

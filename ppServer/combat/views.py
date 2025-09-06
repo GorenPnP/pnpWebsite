@@ -50,7 +50,7 @@ class RegionEditorView(VerifiedAccountMixin, SpielleitungOnlyMixin, DetailView):
 	def get_formset(self, *data):
 		enemies = RegionEnemy.objects.values('enemy', "num")
 		SalaryFormSet = modelformset_factory(RegionEnemy, fields = ["enemy", "num"], extra=enemies.count()+3, can_delete=True)
-		if len(data):
+		if data:
 			return SalaryFormSet(*data, queryset=self.model.objects.none())
 
 		return SalaryFormSet(initial=enemies, queryset=self.model.objects.none())

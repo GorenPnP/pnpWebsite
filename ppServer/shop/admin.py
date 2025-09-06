@@ -106,10 +106,7 @@ class BaseAdmin(admin.ModelAdmin):
         return ", ".join(res) or self.get_empty_value_display()
 
     def billigste(self, obj):
-        offers = getattr(obj, self._firmashop_modelset()).all()
-        if not offers: return None
-
-        return sorted([o.getPrice() for o in offers])[0]
+        return obj.cheapest()
 
 
     def get_queryset(self, request: HttpRequest) -> QuerySet[Any]:
@@ -210,7 +207,7 @@ class Rituale_RunenAdmin(admin.ModelAdmin):
     shop_model = Rituale_Runen
     firma_shop_model = FirmaRituale_Runen
 
-    list_display = ('name', 'beschreibung', "ab_stufe", # 'billigste',
+    list_display = ('name', 'beschreibung', "ab_stufe", 'billigste',
                      'kategorie', 'info', "has_implementation")
     list_filter = ['kategorie', 'illegal', 'lizenz_benötigt', "frei_editierbar"]
     list_editable = ("has_implementation",)
@@ -225,6 +222,8 @@ class Rituale_RunenAdmin(admin.ModelAdmin):
         if obj.frei_editierbar: res.append("frei editierbar")
         return ", ".join(res) or self.get_empty_value_display()
     
+    def billigste(self, obj):
+        return obj.cheapest()
 
     def get_readonly_fields(self, request: HttpRequest, obj = ...):
         # spielleitung

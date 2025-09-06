@@ -160,7 +160,7 @@ class GenericSpF_wFView(LevelUpMixin, tables.SingleTableMixin, TemplateView):
 
 
         # all fine or not?
-        if len(messages.get_messages(request)):
+        if messages.get_messages(request):
             return redirect(request.build_absolute_uri())
 
         # apply them to db

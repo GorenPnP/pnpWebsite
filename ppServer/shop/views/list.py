@@ -60,13 +60,13 @@ def annotate_other(Model: models.Model, ignore_fields: list[str]) -> dict[str, a
         queryname = f"{field.name}_display"
 
         # prepare EACH FIELD used in "other" for concat later
-        other_concat_parts.append(Value(f"{field.verbose_name}: " if not len(other_concat_parts) else f",\n {field.verbose_name}: "))
+        other_concat_parts.append(Value(f"{field.verbose_name}: " if not other_concat_parts else f",\n {field.verbose_name}: "))
         other_concat_parts.append(queryname)
 
 
         choices = getattr(field, "choices", []) or []
         # use verbose text of choice/enum
-        if len(choices):
+        if choices:
             displays_of_fields_in_other[queryname] = display_value(choices, field.name)
 
         # translate boolean field values to german
@@ -85,7 +85,7 @@ def annotate_other(Model: models.Model, ignore_fields: list[str]) -> dict[str, a
     return {
         **displays_of_fields_in_other,
         "other": Concat(*other_concat_parts, output_field=TextField()),
-    } if len(displays_of_fields_in_other) else {"other": Value("")}
+    } if displays_of_fields_in_other else {"other": Value("")}
 
 
 class RenderableTable(GenericTable):
@@ -199,7 +199,7 @@ class FullShopTableView(VerifiedAccountMixin, ExportMixin, SingleTableMixin, Tem
         # construct filters from query params. use only ones concerning table cols, ignoring page, ordering, etc.
         filters = {}
         for key, values in self.request.GET.items():
-            if not len([col for col in self.regular_table_columns if key == col or key.startswith(f"{col}__")]) or not values or not len(values): continue
+            if not next([True for col in self.regular_table_columns if key == col or key.startswith(f"{col}__")], False) or not values or not len(values): continue
 
             # number_fields are "ab_stufe", "preis"
             filters[key] = int(values) if key.startswith("ab_stufe") or key.startswith("preis") else values

@@ -151,7 +151,7 @@ class TransactionView(VerifiedAccountMixin, UserPassesTestMixin, TemplateView):
                 # redirect to a new URL:
                 return redirect(reverse('cards:show', args=[self.kwargs["uuid"]]))
 
-        if len(errors):
+        if errors:
             return render(self.request, self.template_name, {
                 **self.get_context_data(),
                 'form': form,

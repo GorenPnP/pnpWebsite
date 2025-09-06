@@ -70,7 +70,7 @@ class GenericSkilltreeView(LevelUpMixin, tables.SingleTableMixin, TemplateView):
         char = self.get_character()
 
         skilltree_stufen = set([int(st) for st in request.POST.keys() if st.isnumeric()])
-        max_stufe = max(skilltree_stufen) if len(skilltree_stufen) else char.skilltree_stufe or 0
+        max_stufe = max(skilltree_stufen) if skilltree_stufen else char.skilltree_stufe or 0
         skilltree = GfsSkilltreeEntry.objects.prefetch_related("base").filter(gfs=char.gfs, base__stufe__gt=char.skilltree_stufe, base__stufe__lte=max_stufe)
 
         # check

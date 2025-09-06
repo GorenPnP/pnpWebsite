@@ -24,8 +24,8 @@ def stats_of(char: Charakter, form: Form):
         
         # .. is zauberplätze
         else:
-            val = val if val else {}
-            if not len(val.keys()):
+            val = val or {}
+            if not val:
                 result += f"<p><b>0</b> {field.label.replace(':', '')}</p>"
                 continue
 

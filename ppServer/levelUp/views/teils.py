@@ -15,7 +15,7 @@ from ..decorators import is_erstellung_done
 from ..mixins import LevelUpMixin
 
 
-def sort_teils(a, b):
+def sort_teils(a: dict, b: dict):
     if len(a["rel"]) and not len(b["rel"]): return -1
     if not len(a["rel"]) and len(b["rel"]): return 1
 

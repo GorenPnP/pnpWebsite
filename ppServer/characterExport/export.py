@@ -752,7 +752,7 @@ class CharakterExporter:
 
         for i, spezial in enumerate(spezial_qs):
             attr_wert = "+".join([self._position(attr) for attr in spezial.attr.split(" + ")]) + "-5"
-            fert_wert = "+".join([self._position(fert) for fert in spezial.ferts.split(" + ")]) if len(spezial.ferts) else "0"
+            fert_wert = "+".join([self._position(fert) for fert in spezial.ferts.split(" + ")]) if spezial.ferts else "0"
 
             spF_wF_ws.write(f"G{i+2}", spezial.titel, format_align_center_center)
             spF_wF_ws.write(f"H{i+2}", spezial.attr, format_wissen_attr)

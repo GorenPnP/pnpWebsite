@@ -805,16 +805,10 @@ def sell_relshop(request, relshop_model, pk):
     price = 0
     Model = apps.get_model('character', relshop_model)
     if issubclass(Model, RelShop):  # is not RelRamsch
-        FirmaShop = Model.item.field.related_model.firmen.through
-        function = "getPrice" if Model != RelRituale_Runen else f"getPriceStufe{res['stufe']}"
-
-        # get cheapest after Modifiers
-        prices = sorted([getattr(fs, function)() for fs in FirmaShop.objects.filter(item=res["item"]).prefetch_related("item", "firma")])
-        if len(prices):
-            price = int((prices[0] * .4) + .5)
-
-    # calc item stufe. Rituale_Runen already has it
-    price *= res["stufe"] if Model != RelRituale_Runen else 1
+        price = get_object_or_404(Model.objects.prefetch_related("item__firmen"), pk=pk).item.cheapest(stufe=res["stufe"]) or 0
+        
+        # 40% of cheapest price
+        price = int((price * .4) + .5)
     
     # receive money
     res["char"].geld += price

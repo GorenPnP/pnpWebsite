@@ -1006,13 +1006,13 @@ class RelTeil(models.Model):
         if self.teil.needs_engelsroboter and self.engelsroboter: addons.append(self.engelsroboter.name)
         if self.notizen: addons.append(self.notizen)
 
-        return ', '.join(addons) if len(addons) else ""
+        return ', '.join(addons) if addons else ""
 
     def __repr__(self):
         if self.will_create: return self.teil.titel + "(WILL CREATE)"
 
         addons = self.full_addons()
-        return self.teil.titel + (f" ({addons})" if len(addons) else "")
+        return self.teil.titel + (f" ({addons})" if addons else "")
 
 
 class RelVorteil(RelTeil):
@@ -1216,6 +1216,9 @@ class RelShop(models.Model):
 
     def __str__(self):
         return "{} ({})".format(self.item, self.anz)
+
+    def cheapest(self) -> int or None:
+        return self.item.cheapest(self.stufe or 1)
 
 
 class RelItem(RelShop):

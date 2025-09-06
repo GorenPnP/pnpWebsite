@@ -43,10 +43,10 @@ class Modifier(models.Model):
         )
 
     @classmethod
-    def getModifier(cls, firma, shopCategory):
+    def getModifier(cls, firma, shopCategory: "BaseShop"):
         # get Category letter of Shop-model
-        catName = shopCategory._meta.verbose_name_plural
-        catLetter = {cat: letter for letter, cat in enums.category_enum}.get(catName, '')
+        shopmodel_name = shopCategory._meta.verbose_name_plural
+        catLetter = next((letter for letter, cat in enums.category_enum if cat == shopmodel_name), '')
 
         allModifiers = Modifier.objects\
             .annotate(Count('firmen'), Count('kategorien'))\
@@ -221,6 +221,12 @@ class BaseShop(models.Model):
 
     def getIconUrl(self):
         return self.icon.url if self.icon else "/static/res/img/goren_logo.png"
+    
+    def cheapest(self, stufe=1) -> int or None:
+        offers = getattr(self, f"{self.firmen.through._meta.model_name}_set").all()
+        if not offers: return None
+
+        return sorted([o.getPrice() for o in offers])[0] * stufe
 
     @staticmethod
     def getShopDisplayFields():
@@ -352,6 +358,12 @@ class Rituale_Runen(BaseShop):
     @staticmethod
     def getShopDisplayFields():
         return super(Rituale_Runen, Rituale_Runen).getShopDisplayFields() + ["kategorie"]
+    
+    def cheapest(self, stufe=1) -> int:
+        offers = getattr(self, f"{self.firmen.through._meta.model_name}_set").all()
+        if not offers: return None
+
+        return sorted([getattr(o, "getPriceStufe{}".format(stufe))() for o in offers])[0]
 
 
 class Rüstungen(BaseShop):

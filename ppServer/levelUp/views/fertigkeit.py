@@ -102,7 +102,7 @@ class GenericFertigkeitView(LevelUpMixin, DynamicTableView):
                 messages.error(request, f"Bei {relgruppe.get_gruppe_display()} sind die FG der einzelnen Fertigkeiten nicht gleich")
                 return redirect(request.build_absolute_uri())
 
-            rel_fg = int(temp_fg[0]) if len(temp_fg) else 0  # getting array of (max. 3) identical because html contains 3 with similar "name" attrs
+            rel_fg = int(temp_fg[0]) if temp_fg else 0  # getting array of (max. 3) identical because html contains 3 with similar "name" attrs
             # TODO
             # if rel_fg > relattr.aktuell() - relattr.fg:
             #     messages.error(request, f"Bei {attr} sind die FG höher als erlaubt")
@@ -128,7 +128,7 @@ class GenericFertigkeitView(LevelUpMixin, DynamicTableView):
             messages.error(request, "Du hast zu wenig FG")
 
         #### all fine or not? ####
-        if len(messages.get_messages(request)):
+        if messages.get_messages(request):
             return redirect(request.build_absolute_uri())
 
         #### apply them to db ###
