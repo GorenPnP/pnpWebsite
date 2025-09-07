@@ -1,3 +1,4 @@
+import locale
 from typing import Any, Dict
 
 from django.apps import apps
@@ -7,6 +8,7 @@ from django.db import transaction
 from django.db.models import Value, F, CharField, OuterRef
 from django.db.models.functions import Concat
 from django.http import HttpResponseRedirect
+from django.middleware.csrf import get_token
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils.html import format_html
@@ -28,6 +30,7 @@ from ppServer.utils import ConcatSubquery
 from .forms import *
 from .models import *
 
+locale.setlocale(locale.LC_NUMERIC, "de_DE.utf8")
 
 class CharacterListView(VerifiedAccountMixin, TemplateView):
     template_name = "character/index.html"
@@ -69,6 +72,48 @@ class CharacterListView(VerifiedAccountMixin, TemplateView):
 
 
 class ShowView(VerifiedAccountMixin, DetailView):
+    class RenderShopUseTable(tables.Table):
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **{k: v for k, v in kwargs.items() if k != "csrf_token"})
+            self.csrf_token = kwargs["csrf_token"]
+
+        use = tables.Column(verbose_name="")
+
+        def _get(self, obj, key: str):
+            try:
+                return getattr(obj, key, obj[key])
+            except:
+                return obj.__dict__[key] 
+
+        def render_use(self, value, record):
+            if type(record) == dict:
+                relmodel_name = record["model"]
+                pk = record["pk"]
+                
+                RelModel = apps.get_model("character", relmodel_name)
+                if RelModel == RelRamsch: price = 0
+                else:
+                    FirmaShopModel = RelModel.item.field.related_model.firmen.through
+                    relitem = get_object_or_404(RelModel.objects.prefetch_related(f"item__{FirmaShopModel._meta.model_name}_set__firma"), pk=pk)
+                    price = relitem.cheapest() or 0
+            else:
+                RelModel = self.__class__.Meta.model
+                
+                relmodel_name = RelModel._meta.model_name
+                pk = record.pk
+                price = record.cheapest() or 0
+
+            href = reverse("character:remove_item", args=[relmodel_name, pk])
+            sell_btn = f'<button type="submit" class="btn btn-sm btn-warning" name="sell">verkaufen (je {int(price * 0.4+.5):n} Dr.)</button>'
+            return format_html(
+                f"""<form method="post" action="{href}">
+                    <input type="hidden" name="csrfmiddlewaretoken" value="{self.csrf_token}"/>
+                    <input type="number" class="form-control" style="width: 10ch" placeholder="Anzahl" aria-label="Anzahl" name="amount" value="1" min="1" max="{self._get(record, 'anz')}" step="1" required>
+                    <button type="submit" class="btn btn-sm btn-danger" name="use">verbrauchen</button>
+                    {sell_btn if price else ''}
+                </form>"""
+            )
+
     template_name = "character/show.html"
     model = Charakter
     queryset = Charakter.objects.prefetch_related(
@@ -457,26 +502,19 @@ class ShowView(VerifiedAccountMixin, DetailView):
         }
 
     def get_inventory(self, char):
-        class InventoryTable(tables.Table):
+        class InventoryTable(ShowView.RenderShopUseTable):
             class Meta:
                 model = RelShop
-                fields = ("anz", "item__name", "item__beschreibung", "notizen", "use")
+                fields = ("anz", "item__name", "stufe", "item__beschreibung", "notizen", "use")
                 orderable = False
                 attrs = {"class": "table table-dark table-striped table-hover"}
-
-            use = tables.Column(verbose_name="")
-
-            def render_use(self, value, record):
-                use_href = reverse("character:use_item", args=[record["model"], record["pk"]])
-                sell_href = reverse("character:sell_item", args=[record["model"], record["pk"]])
-                return format_html(f"<a class='btn btn-sm btn-danger' href='{use_href}'>1 verbrauchen</a><a class='btn btn-sm btn-warning' href='{sell_href}'>1 für 40% verkaufen</a>")
 
         # helper function to format all relshop items the same way
         to_dict = lambda qs, model: qs.all()\
             .annotate(use=Value("-"), model=Value(model))\
-            .values("pk", "anz", "item__name", "item__beschreibung", "notizen", "use", "model")
+            .values("pk", "anz", "item__name", "item__beschreibung", "notizen", "use", "model", "stufe")
 
-        qs = to_dict(char.relitem_set, "relitem").union(
+        qs = to_dict(char.relitem_set.all(), "relitem").union(
             to_dict(char.relmagazin_set.all(), "relmagazin"),
             to_dict(char.relpfeil_bolzen_set.all(), "relpfeil_bolzen"),
             to_dict(char.relmagische_ausrüstung_set.all(), "relmagische_ausrüstung"),
@@ -487,11 +525,11 @@ class ShowView(VerifiedAccountMixin, DetailView):
             to_dict(char.relalchemie_set.all(), "relalchemie"),
             to_dict(char.reltinker_set.all(), "reltinker"),
             to_dict(char.relbegleiter_set.all(), "relbegleiter"),
-            to_dict(char.relramsch_set.annotate(item__name=F("item"), item__beschreibung=Value("(selbst angelegt)"), notizen=Value("")), "relramsch"),
+            to_dict(char.relramsch_set.annotate(item__name=F("item"), item__beschreibung=Value("(selbst angelegt)"), notizen=Value(""), stufe=Value(None, output_field=models.IntegerField())), "relramsch"),
         )
 
         return {
-            "inventory__table": InventoryTable(qs),
+            "inventory__table": InventoryTable(qs.order_by("item__name", "stufe", "-anz"), csrf_token=get_token(self.request)),
             "ramsch_form": CreateRamschForm(initial={"char": char.pk}),
             "inventory__random_items": format_html(re.sub("\n", "<br>", char.sonstige_items, 0, re.MULTILINE))
         }
@@ -513,68 +551,45 @@ class ShowView(VerifiedAccountMixin, DetailView):
         }
 
     def get_ritual(self, char):
-        class RitualTable(tables.Table):
+        class RitualTable(ShowView.RenderShopUseTable):
             class Meta:
                 model = RelRituale_Runen
                 fields = ("anz", "item__name", "stufe", "item__beschreibung", "item__kategorie", "use")
                 orderable = False
                 attrs = {"class": "table table-dark table-striped table-hover"}
 
-            use = tables.Column(verbose_name="")
-
-            def render_use(self, value, record):
-                use_href = reverse("character:use_item", args=[self.Meta.model._meta.model_name, record.pk])
-                sell_href = reverse("character:sell_item", args=[self.Meta.model._meta.model_name, record.pk])
-                return format_html(f"<a class='btn btn-sm btn-danger' href='{use_href}'>1 verbrauchen</a><a class='btn btn-sm btn-warning' href='{sell_href}'>1 für 40% verkaufen</a>")
-
-
         return {
-            "ritual__table": RitualTable(char.relrituale_runen_set.annotate(use=Value("-")).all())
+            "ritual__table": RitualTable(char.relrituale_runen_set.prefetch_related("item__firmarituale_runen_set__firma").annotate(use=Value("-")).all(), csrf_token=get_token(self.request))
         }
 
     def get_nahkampf(self, char):
-        class WaffenTable(tables.Table):
+        class WaffenTable(ShowView.RenderShopUseTable):
             class Meta:
                 model = RelWaffen_Werkzeuge
                 fields = ("anz", "item__name", "item__bs", "item__zs", "item__dk", "item__schadensart", "notizen", "use")
                 orderable = False
                 attrs = {"class": "table table-dark table-striped table-hover"}
 
-            use = tables.Column(verbose_name="")
-
             def render_item__zs(self, value, record):
                 return f"{value} (ab {record.item.erfolge})"
 
-            def render_use(self, value, record):
-                use_href = reverse("character:use_item", args=[self.Meta.model._meta.model_name, record.pk])
-                sell_href = reverse("character:sell_item", args=[self.Meta.model._meta.model_name, record.pk])
-                return format_html(f"<a class='btn btn-sm btn-danger' href='{use_href}'>1 verbrauchen</a><a class='btn btn-sm btn-warning' href='{sell_href}'>1 für 40% verkaufen</a>")
-
         return {
-            "nahkampf__table": WaffenTable(char.relwaffen_werkzeuge_set.annotate(use = Value("-")).all())
+            "nahkampf__table": WaffenTable(char.relwaffen_werkzeuge_set.prefetch_related("item__firmawaffen_werkzeuge_set__firma").annotate(use = Value("-")).all(), csrf_token=get_token(self.request))
         }
 
     def get_fernkampf(self, char):
-        class SchusswaffenTable(tables.Table):
+        class SchusswaffenTable(ShowView.RenderShopUseTable):
             class Meta:
                 model = RelSchusswaffen
                 fields = ("anz", "item__name", "item__bs", "item__zs", "item__dk", "item__präzision", "item__schadensart", "notizen", "use")
                 orderable = False
                 attrs = {"class": "table table-dark table-striped table-hover"}
-            
-            use = tables.Column(verbose_name="")
 
             def render_item__zs(self, value, record):
                 return f"{value} (ab {record.item.erfolge})"
 
-            def render_use(self, value, record):
-                use_href = reverse("character:use_item", args=[self.Meta.model._meta.model_name, record.pk])
-                sell_href = reverse("character:sell_item", args=[self.Meta.model._meta.model_name, record.pk])
-                return format_html(f"<a class='btn btn-sm btn-danger' href='{use_href}'>1 verbrauchen</a><a class='btn btn-sm btn-warning' href='{sell_href}'>1 für 40% verkaufen</a>")
-
-
         return {
-            "fernkampf__table": SchusswaffenTable(char.relschusswaffen_set.annotate(use = Value("-")).all())
+            "fernkampf__table": SchusswaffenTable(char.relschusswaffen_set.prefetch_related("item__firmaschusswaffen_set__firma").annotate(use = Value("-")).all(), csrf_token=get_token(self.request))
         }
 
     def get_effekte(self, char):
@@ -740,11 +755,13 @@ def add_ramsch(request, pk):
     return redirect(reverse("character:show", args=[pk]))
 
 
-def _decrease_anz_relshop_by_1(request, relshop_model: str, rel_item_pk: int):
+def _decrease_anz_relshop(request, relshop_model: str, rel_item_pk: int):
     try:
         Model = apps.get_model('character', relshop_model)
         # assert model
         if not issubclass(Model, RelShop) and Model != RelRamsch: raise LookupError()
+
+        amount = int(request.POST.get("amount"))
     except LookupError:
         messages.error(request, "Anfrage fehlerhaft")
         return {"success": False, "redirect": redirect("character:index")}
@@ -763,67 +780,66 @@ def _decrease_anz_relshop_by_1(request, relshop_model: str, rel_item_pk: int):
         messages.error(request, "Item konnte nicht im Inventar gefunden werden.")
         return {"success": False, "redirect": redirect("character:index")}
 
+    if rel_shop.anz < amount:
+        messages.error(request, "Zu wenige Items im Inventar gefunden.")
+        return {"success": False, "redirect": redirect("character:index")}
+
     char = rel_shop.char
     item = rel_shop.item
     item_name = rel_shop.item.name if issubclass(Model, RelShop) else rel_shop.item
     stufe = rel_shop.stufe or 1 if issubclass(Model, RelShop) else 1
 
-    # use item
-    if rel_shop.anz == 1:
+    # remove item
+    if rel_shop.anz == amount:
         rel_shop.delete()
     else:
-        rel_shop.anz -= 1
+        rel_shop.anz -= amount
         rel_shop.save(update_fields=["anz"])
 
-    return {"success": True, "stufe": stufe, "char": char, "item_name": item_name, "item": item}
+    return {"success": True, "stufe": stufe, "amount": amount, "char": char, "item_name": item_name, "item": item}
 
 
+@require_POST
 @verified_account
-def use_relshop(request, relshop_model, pk):
-    res = _decrease_anz_relshop_by_1(request, relshop_model, pk)
+def remove_relshop(request, relshop_model, pk):
+    res = _decrease_anz_relshop(request, relshop_model, pk)
     if not res["success"]: return res["redirect"]
 
-    # log usage
-    Log.objects.create(
-        spieler=request.spieler.instance,
-        char=res["char"],
-        art="j", # Inventar-Item verbraucht
-        kosten="",
-        notizen=f"1x {res['item_name']}",
-    )
-
-    messages.success(request, f'Du hast von "{res["item_name"]}" 1 verbraucht')
-    return redirect(reverse("character:show", args=[res['char'].id]))
-
-
-@verified_account
-def sell_relshop(request, relshop_model, pk):
-    res = _decrease_anz_relshop_by_1(request, relshop_model, pk)
-    if not res["success"]: return res["redirect"]
-
-    # get sell price
-    price = 0
-    Model = apps.get_model('character', relshop_model)
-    if issubclass(Model, RelShop):  # is not RelRamsch
-        price = get_object_or_404(Model.objects.prefetch_related("item__firmen"), pk=pk).item.cheapest(stufe=res["stufe"]) or 0
+    if "sell" in request.POST:
+        # get sell price
+        price = 0
+        if issubclass(Model, RelShop):  # is not RelRamsch
+            Model = apps.get_model('character', relshop_model)
+            price = get_object_or_404(Model.objects.prefetch_related("item__firmen"), pk=pk).item.cheapest() or 0
+            
+            # 40% of cheapest price
+            price = int((price * .4) + .5) * res["amount"]
         
-        # 40% of cheapest price
-        price = int((price * .4) + .5)
-    
-    # receive money
-    res["char"].geld += price
-    res["char"].save(update_fields=["geld"])
+        # receive money
+        res["char"].geld += price
+        res["char"].save(update_fields=["geld"])
 
-    # log transaction
-    Log.objects.create(
-        spieler=request.spieler.instance,
-        char=res["char"],
-        art="w", # Inventar-Item verbraucht
-        kosten=f"Erlös: {price}",
-        notizen=f"1x {res['item_name']}",
-    )
+        # log transaction
+        Log.objects.create(
+            spieler=request.spieler.instance,
+            char=res["char"],
+            art="w", # Inventar-Item verbraucht
+            kosten=f"Erlös: {price:n} Drachmen",
+            notizen=f"{res['amount']}x {res['item_name']}",
+        )
+        messages.success(request, f'Du hast {res["amount"]} von "{res["item_name"]}" für {price:n} Dr. verkauft')
 
-    messages.success(request, f'Du hast von "{res["item_name"]}" 1 für {price} Dr. verkauft')
+    if "use" in request.POST:
+        # log usage
+        Log.objects.create(
+            spieler=request.spieler.instance,
+            char=res["char"],
+            art="j", # Inventar-Item verbraucht
+            kosten="",
+            notizen=f"{res['amount']}x {res['item_name']}",
+        )
+        messages.success(request, f'Du hast {res["amount"]} von "{res["item_name"]}" verbraucht')
+
     return redirect(reverse("character:show", args=[res["char"].id]))
 
 

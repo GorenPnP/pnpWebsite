@@ -199,7 +199,7 @@ class FullShopTableView(VerifiedAccountMixin, ExportMixin, SingleTableMixin, Tem
         # construct filters from query params. use only ones concerning table cols, ignoring page, ordering, etc.
         filters = {}
         for key, values in self.request.GET.items():
-            if not next([True for col in self.regular_table_columns if key == col or key.startswith(f"{col}__")], False) or not values or not len(values): continue
+            if not next((True for col in self.regular_table_columns if key == col or key.startswith(f"{col}__")), False) or not values or not len(values): continue
 
             # number_fields are "ab_stufe", "preis"
             filters[key] = int(values) if key.startswith("ab_stufe") or key.startswith("preis") else values

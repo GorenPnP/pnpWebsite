@@ -79,7 +79,7 @@ class GenericKlasseView(LevelUpMixin, TemplateView):
             return redirect(request.build_absolute_uri())
 
         # char cannot get stufenplan
-        if not next([True for kl in KlasseStufenplan.get_choosable_KlasseStufenplan(char) if kl.requirements_met and kl.pk == stufenplan_id], False):
+        if not next((True for kl in KlasseStufenplan.get_choosable_KlasseStufenplan(char) if kl.requirements_met and kl.pk == stufenplan_id), False):
             messages.error(request, "Du kannst die Klassenstufe nicht wählen")
             return redirect(request.build_absolute_uri())
 
