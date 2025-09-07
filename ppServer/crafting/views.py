@@ -242,7 +242,7 @@ class CraftingView(VerifiedAccountMixin, ProfileSetMixin, ListView):
 				is_fav = Exists(self.relCrafting.favorite_recipes.filter(id=OuterRef("pk"))),
 			)
 
-		if self.relCrafting.profil.restricted: qs = qs.filter(ingredient_exists=True)
+		if self.relCrafting.profil.restricted: qs = qs.filter(Q(ingredient_exists=True) | (~Q(table=None) & ~Q(table__part=None)))
 		if set_perk_filter: qs = qs.filter(produces_known_perk=False)
 
 		return qs.distinct()
@@ -329,9 +329,22 @@ class CraftingView(VerifiedAccountMixin, ProfileSetMixin, ListView):
 					return JsonResponse({"message": "Den Perk hast du schon hergestellt."}, status=418)
 			
 			durability, _ = ProfileTableDurability.objects.get_or_create(char=self.relCrafting.profil, table=recipe.table) if recipe.table else (None, False)
+			used_parts = 0
 			# test if table part has enough durability left
-			if recipe.table and recipe.table.part and recipe.table.durability - durability.recipes_crafted < num:
-				return JsonResponse({"message": "Mit dem Bauteil der Werkstätte kannst du "+ (f"nur noch {recipe.table.durability - durability.recipes_crafted} Rezepte" if recipe.table.durability != durability.recipes_crafted else "nichts mehr") + " herstellen."}, status=418)
+			# use part automatically if owned
+			if durability and recipe.table.part:
+				recipes_left = recipe.table.durability - durability.recipes_crafted
+				
+				# calc num of used parts
+				n = num - recipes_left
+				while n >= 0 and recipe.table.durability:
+					used_parts += 1
+					n -= recipe.table.durability
+
+				num_parts_owned = self.inventory[recipe.table.part.id] or 0
+				if used_parts > num_parts_owned:
+					max_num_recipes = recipes_left + num_parts_owned * recipe.table.durability
+					return JsonResponse({"message": "An dieser Werkstätte kannst du "+ (f"nur noch max. {max_num_recipes} Rezepte" if max_num_recipes else "nichts mehr") + " mit Bauteilen herstellen."}, status=418)
 
 
 			# test if enough ingredients exist and collect them in 'ingredients'. Keys are tinker_id's
@@ -368,8 +381,10 @@ class CraftingView(VerifiedAccountMixin, ProfileSetMixin, ListView):
 			self.relCrafting.profil.save(update_fields=["craftingTime"])
 
 			# decrease table durability
-			if durability:
-				durability.recipes_crafted += num
+			if durability and recipe.table.part:
+				InventoryItem.objects.filter(char=self.relCrafting.profil, item=recipe.table.part).update(num=F("num") - used_parts)
+
+				durability.recipes_crafted = (durability.recipes_crafted + num) % recipe.table.durability
 				durability.save(update_fields=["recipes_crafted"])
 
 			# save products
@@ -380,7 +395,10 @@ class CraftingView(VerifiedAccountMixin, ProfileSetMixin, ListView):
 
 			clean_inventory(self.relCrafting.profil)
 
-			return JsonResponse({})
+			return JsonResponse({
+				"used_parts": used_parts,
+				"part": recipe.table.part.toDict() if recipe.table and recipe.table.part else None,
+			})
 
 
 		# save new ordering of tables in profile model

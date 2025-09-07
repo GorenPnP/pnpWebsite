@@ -253,7 +253,7 @@ function craft({ currentTarget }) {
 	const num = document.querySelector(".craftNum." + id_class).value;
 	const id = /\d+/.exec(id_class)[0];
 
-	post({ craft: id, num}, _ => {
+	post({ craft: id, num}, data => {
 
 		// if crafted element was a table, enable it ...
 		document.querySelectorAll(".product." + id_class).forEach(product => {
@@ -276,6 +276,29 @@ function craft({ currentTarget }) {
 		});
 
 		reload_recipes();
+
+		// log used parts
+		if (data.used_parts && data.part) {
+			const dummy = document.createElement("div");
+			dummy.innerHTML = `
+			<div class="toast show" role="alert" aria-live="assertive" aria-atomic="true" data-bs-autohide="false">
+				<div class="d-flex">
+					<div class="toast-body text-dark">
+						<span>Werkstation-Reparatur mit <b>${data.used_parts}x</b> </span>
+						<div class="d-flex flex-column">
+							<img src="${data.part.icon_url}" alt="${data.part.name}">
+							<span class="name">${data.part.name}</span>
+						</div>
+					</div>
+					<button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+				</div>
+			</div>`;
+			const toast = dummy.children[0];
+			document.querySelector(".toast-container").appendChild(toast);
+
+			new bootstrap.Toast(dummy.children[0]);
+			toast.addEventListener("hidden.bs.toast", toast.remove);
+		}
 	}, error => {
 		alert(error.response.data.message);
 

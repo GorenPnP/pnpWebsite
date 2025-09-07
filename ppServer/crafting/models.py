@@ -64,7 +64,7 @@ class Profile(models.Model):
 			.order_by("item__name")
 		if tinker_id is not None: rawTables = rawTables.filter(item__id=tinker_id)
 
-		tables = []
+		tables = [Recipe.getHandwerk()]
 		for t in rawTables:
 			tables.append({
 				"id": t.item.id, "name": t.item.name, "icon": t.item.getIconUrl(),
@@ -74,22 +74,17 @@ class Profile(models.Model):
 				"owns_part": t.part.id in iitem_ids if t.part else False,
 			})
 
-		if tinker_id is not None: return tables[0]
+		if tinker_id is not None: return tables[-1]
 
 		# get & use order
 		order = self.tableOrdering
 		ordered_tables = []
 
 		# default alphabetical ordering but beginning with Handwerk
-		if not order:
-			return [Recipe.getHandwerk()] + tables
+		if not order: return tables
 
 		# sort by ids of ordering
 		for o in order:
-			if o == 0:
-				ordered_tables.append(Recipe.getHandwerk())
-				continue
-
 			table = next((t for t in tables if t["id"] == o), None)
 
 			# skip over in case a table is removed after saving ordering to db
@@ -157,8 +152,10 @@ class Table(models.Model):
 		verbose_name = "Werkstätte"
 		verbose_name_plural = "Werkstätten"
 
+		ordering = ("item", "part")
+
 	durability = models.PositiveSmallIntegerField(default=0, help_text="in #Rezepte")
-	part = models.ForeignKey(Tinker, on_delete=models.SET_NULL, null=True, related_name="part")
+	part = models.ForeignKey(Tinker, on_delete=models.SET_NULL, null=True, blank=True, related_name="part")
 
 	item = models.ForeignKey(Tinker, on_delete=models.CASCADE)
 
