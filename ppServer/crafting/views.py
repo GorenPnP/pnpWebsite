@@ -341,7 +341,7 @@ class CraftingView(VerifiedAccountMixin, ProfileSetMixin, ListView):
 					used_parts += 1
 					n -= recipe.table.durability
 
-				num_parts_owned = self.inventory[recipe.table.part.id] or 0
+				num_parts_owned = self.inventory[recipe.table.part.id] if recipe.table.part.id in self.inventory else 0
 				if used_parts > num_parts_owned:
 					max_num_recipes = recipes_left + num_parts_owned * recipe.table.durability
 					return JsonResponse({"message": "An dieser Werkstätte kannst du "+ (f"nur noch max. {max_num_recipes} Rezepte" if max_num_recipes else "nichts mehr") + " mit Bauteilen herstellen."}, status=418)

@@ -78,6 +78,13 @@
         border: medium none;
         border-spacing: 0;
 
+        * {
+            pointer-events: none;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
+        }
+
         img {
             height: 100%;
             width: 100%;

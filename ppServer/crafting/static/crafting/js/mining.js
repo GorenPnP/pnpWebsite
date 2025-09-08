@@ -408,3 +408,8 @@ setInterval(save_progress, 5 * min_in_ms);
 
 // prevent dragging of images
 document.querySelectorAll(".main-container img").forEach(img => img.ondragstart = () => false);
+
+// prevent contextmenu on hold on mobile
+document.querySelectorAll(".mining-btn, .mining-btn *").forEach(tag => {
+    tag.addEventListener("contextmenu", e => e.preventDefault());
+});
