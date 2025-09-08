@@ -1,6 +1,6 @@
 from datetime import timedelta
 
-from django.db import models
+from django.db import models, transaction
 from django.db.models import Subquery, OuterRef, F, Case, When
 from django.core.validators import MinValueValidator, MaxValueValidator
 
@@ -11,6 +11,33 @@ from shop.models import Tinker
 
 
 ############### Profiles & Inventory #################
+
+class RunningRealtimeRecipe(models.Model):
+	class Meta:
+		ordering = ["profil", "finished_at", "recipe", "num"]
+
+	recipe = models.ForeignKey("Recipe", on_delete=models.CASCADE)
+	profil = models.ForeignKey("Profile", on_delete=models.CASCADE)
+
+	num = models.PositiveIntegerField(validators=[MinValueValidator(1)])
+	started_at = models.DateTimeField(auto_now_add=True)
+	finished_at = models.DateTimeField()
+
+	def distribute_products_and_stop(self):
+		with transaction.atomic():
+
+			# update existing iitems
+			InventoryItem.objects\
+				.filter(char=self.profil, item__in=self.recipe.product_set.values_list("item_id", flat=True))\
+				.annotate(add = Subquery(Product.objects.filter(recipe=self.recipe, item=OuterRef("item")).values_list("num", flat=True)))\
+				.update(num=F("num") + (F("add") * self.num))
+			
+			# create new iitems
+			new_iitems = [InventoryItem(item=product.item, num=product.num*self.num, char=self.profil) for product in self.recipe.product_set.exclude(item__in=InventoryItem.objects.filter(char=self.profil).values_list("item_id", flat=True))]
+			if new_iitems: InventoryItem.objects.bulk_create(new_iitems)
+
+			# end realtime execution of recipe
+			self.delete()
 
 class RelCrafting(models.Model):
 	class Meta:

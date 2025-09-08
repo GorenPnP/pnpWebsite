@@ -16,11 +16,11 @@ class ProfileSetMixin(UserPassesTestMixin):
         spieler = self.request.spieler.instance
         if not spieler: return HttpResponseNotFound()
 
-        rel, _ = RelCrafting.objects.prefetch_related("profil").get_or_create(spieler=spieler)
+        rel, _ = RelCrafting.objects.prefetch_related("profil", "char").get_or_create(spieler=spieler)
         self.relCrafting = rel
 
         # no profile active? change that!
-        return self.relCrafting.profil is not None and self.relCrafting.char is not None
+        return self.relCrafting.profil and self.relCrafting.char
 
 
     def handle_no_permission(self):

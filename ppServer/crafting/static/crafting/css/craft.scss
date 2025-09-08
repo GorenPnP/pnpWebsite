@@ -1,6 +1,6 @@
 :root { --itemTile-size: 110px; }
 
-.main-container { padding-left: 5px; }
+.main-container { padding-left: 5px; padding-top: 0 !important; }
 
 .toast-container {
 	position: fixed;
@@ -9,6 +9,16 @@
 
 	.toast { display: block; }
 	.toast-body > * { display: inline-block; }
+}
+
+#running-recipes-label {
+	display: none;
+	margin-block: .5em;
+
+	&:has(+ ul li) { display: block; }
+}
+#after-header:has(.running-recipes-list li) .running-recipes-list + hr {
+	display: block !important;
 }
 
 // tables, in sidebar and search over the arrow

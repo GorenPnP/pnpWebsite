@@ -276,6 +276,7 @@ function craft({ currentTarget }) {
 		});
 
 		reload_recipes();
+		updateRunningRecipes();
 
 		// log used parts
 		if (data.used_parts && data.part) {
@@ -356,6 +357,33 @@ function repair_table(table_id) {
 }
 
 
+function updateRunningRecipes() {
+	post({ running_recipes: true }, ({ running_recipes }) => {
+
+		const html = running_recipes.map(r => {
+			const products = r.products.map(product => `<div>${product.num * r.num}x <img src="${product.icon_url}" alt="${product.name}"></div>`).join("");
+
+			const start = (new Date(r.started_at)).getTime();
+			const end = (new Date(r.finished_at)).getTime();
+			const curr = Date.now();
+			const percent = Math.round(100* (curr-start) / (end-start));
+			const transition = `transition: width 200ms linear`;
+			
+			const date_options = (new Date(r.finished_at)).getUTCDate() == (new Date(Date.now())).getUTCDate() ?
+				{hour: "2-digit", minute: "2-digit"} :
+				{ year: 'numeric', month: 'numeric', day: 'numeric', hour: "2-digit", minute: "2-digit" };
+			const end_date = (new Date(r.finished_at)).toLocaleString('de-DE', date_options)
+
+			return `<div class="d-flex flex-wrap gap-3">${products}</div>
+			<div class="progress" role="progressbar" aria-label="Basic example" aria-valuenow="${curr}" aria-valuemin="${start}" aria-valuemax="${end}">
+				<div class="progress-bar" style="width: ${percent}%; ${transition}">bis ${end_date}</div>
+			</div>`;
+		}).join("</li><li>");
+		document.querySelector(".running-recipes-list").innerHTML = html ? "<li>" + html + "</li>" : "";
+	}, err => console.error(err));
+}
+
+
 document.addEventListener("DOMContentLoaded", () => {
 
 	// load page content
@@ -380,5 +408,16 @@ document.addEventListener("DOMContentLoaded", () => {
 			// click (first) sibling btn
 			e.currentTarget.parentElement.querySelector(".btn").click();
 		}
-	}))
+	}));
+
+
+	// update currently crafting recipes and animate their progress
+	updateRunningRecipes();
+	setInterval(() => document.querySelectorAll(".running-recipes-list .progress").forEach(bar => {
+		const curr = Date.now();
+		bar.ariaValueNow = curr;
+
+		if (bar.ariaValueMax <= curr) updateRunningRecipes();
+		bar.querySelector(".progress-bar").style.width = 100* (curr - bar.ariaValueMin) / (bar.ariaValueMax - bar.ariaValueMin) + "%";
+	}), 1000);
 })

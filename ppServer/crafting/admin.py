@@ -159,6 +159,15 @@ class TableAdmin(admin.ModelAdmin):
     list_display = ["item", "durability", "part"]
     fields = ["item", "durability", "part"]
 
+class RunningRealtimeRecipeAdmin(admin.ModelAdmin):
+    list_display = ["profil", "recipe", "num", "started_at", "finished_at"]
+
+    def get_form(self, request, obj = ..., change = ..., **kwargs):
+        form = super().get_form(request, obj, change, **kwargs)
+        form.base_fields["recipe"].queryset = form.base_fields["recipe"].queryset.prefetch_related("table__item", "product_set__item")
+
+        return form
+
 class RelCraftingAdmin(admin.ModelAdmin):
     list_display = ['spieler', 'char', 'profil', "num_fav_recipes"]
     list_filter = ['profil']
@@ -266,6 +275,7 @@ class MiningPerkAdmin(admin.ModelAdmin):
 
 admin.site.register(Profile, ProfileAdmin)
 admin.site.register(InventoryItem, InventoryAdmin)
+admin.site.register(RunningRealtimeRecipe, RunningRealtimeRecipeAdmin)
 admin.site.register(Recipe, RecipeAdmin)
 admin.site.register(Table, TableAdmin)
 admin.site.register(RelCrafting, RelCraftingAdmin)

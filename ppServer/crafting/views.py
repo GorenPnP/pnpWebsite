@@ -1,5 +1,5 @@
 import json
-from datetime import timedelta
+from datetime import timedelta, datetime
 
 from django.contrib import messages
 from django.db.models import Subquery, F, Q, Exists, OuterRef, Case, When, Count
@@ -10,7 +10,6 @@ from django.shortcuts import redirect, get_object_or_404, reverse
 from django.views.generic import DetailView
 from django.views.generic.base import TemplateView
 from django.views.generic.list import ListView
-from django.utils.html import format_html
 
 from combat.models import Region as CombatRegion
 from ppServer.mixins import SpielleitungOnlyMixin, VerifiedAccountMixin
@@ -132,6 +131,9 @@ def handle_overlay(json_dict: dict, item_qs: QuerySet[Tinker], profil:Profile) -
 def clean_inventory(profile: Profile) -> None:
 	InventoryItem.objects.filter(char=profile, num=0).delete()
 
+def update_realtime_recipes(profil: Profile) -> None:
+	for finished_recipe in RunningRealtimeRecipe.objects.prefetch_related("profil", "recipe__product_set__item").filter(finished_at__lte=datetime.now(), profil=profil):
+		finished_recipe.distribute_products_and_stop()
 
 class IndexView(VerifiedAccountMixin, TemplateView):
 	template_name = "crafting/index.html"
@@ -178,16 +180,8 @@ class InventoryView(VerifiedAccountMixin, ProfileSetMixin, DetailView):
 	model = Profile
 	template_name = "crafting/inventory.html"
 
-	object = None
 	def get_object(self):
-		if self.object: return self.object
-		spieler = self.request.spieler.instance
-		if not spieler: return HttpResponseNotFound()
-
-		rel, _ = RelCrafting.objects.prefetch_related("profil").get_or_create(spieler=spieler)
-		self.object = rel.profil
-
-		return self.object
+		return self.relCrafting.profil
 	
 	def get_item_qs(self, filter_perks=False):
 		qs = Tinker.objects.annotate(
@@ -202,16 +196,16 @@ class InventoryView(VerifiedAccountMixin, ProfileSetMixin, DetailView):
 
 
 	def get_context_data(self, **kwargs):
-		self.object = self.get_object()
+		update_realtime_recipes(self.relCrafting.profil)
 
 		return super().get_context_data(
 			**kwargs,
-			topic = "Inventar von {}".format(self.object.name),
+			topic = "Inventar von {}".format(self.relCrafting.profil.name),
 			app_index = "Crafting",
 			app_index_url = reverse("crafting:craft"),
 
 			add_form = AddToInventoryForm(),
-			restricted_profile = self.object.restricted,
+			restricted_profile = self.relCrafting.profil.restricted,
 			items = self.get_item_qs(),
 			categories = sorted([val[1] for val in tinker_enum], key=lambda val: val.lower()),
 		)
@@ -248,6 +242,8 @@ class CraftingView(VerifiedAccountMixin, ProfileSetMixin, ListView):
 		return qs.distinct()
 
 	def get_context_data(self, **kwargs):
+		update_realtime_recipes(self.relCrafting.profil)
+
 		# collect current inventory
 		self.inventory = {i.item.id: i.num for i in self.get_queryset()}
 
@@ -267,6 +263,7 @@ class CraftingView(VerifiedAccountMixin, ProfileSetMixin, ListView):
 
 	def post(self, *args, **kwargs):
 		# collect current inventory
+		update_realtime_recipes(self.relCrafting.profil)
 		self.inventory = {i.item.id: i.num for i in self.get_queryset()}
 
 		json_dict = json.loads(self.request.body.decode("utf-8"))
@@ -367,11 +364,10 @@ class CraftingView(VerifiedAccountMixin, ProfileSetMixin, ListView):
 			for ni in InventoryItem.objects.filter(item__id__in=ingredients.keys(), char=self.relCrafting.profil):
 
 				# decrease ingredient amount
-				if ni.num == ingredients[ni.item.id]:
-					ni.delete()
-				else:
-					ni.num -= ingredients[ni.item.id]
-					ni.save(update_fields=["num"])
+				ni.num -= ingredients[ni.item.id]
+				ni.save(update_fields=["num"])
+
+			clean_inventory(self.relCrafting.profil)
 
 
 			# add crafting time
@@ -387,13 +383,9 @@ class CraftingView(VerifiedAccountMixin, ProfileSetMixin, ListView):
 				durability.recipes_crafted = (durability.recipes_crafted + num) % recipe.table.durability
 				durability.save(update_fields=["recipes_crafted"])
 
-			# save products
-			for t in recipe.product_set.all():
-				crafted, _ = InventoryItem.objects.get_or_create(char=self.relCrafting.profil, item=t.item)
-				crafted.num += t.num * num
-				crafted.save(update_fields=["num"])
+			# start crafting recipes
+			RunningRealtimeRecipe.objects.create(recipe=recipe, profil=self.relCrafting.profil, num=num, finished_at=datetime.now() + (recipe.duration * num))
 
-			clean_inventory(self.relCrafting.profil)
 
 			return JsonResponse({
 				"used_parts": used_parts,
@@ -452,6 +444,17 @@ class CraftingView(VerifiedAccountMixin, ProfileSetMixin, ListView):
 
 			return JsonResponse({})
 
+		if "running_recipes" in json_dict.keys():
+			recipe_dicts = []
+			for running_recipe in RunningRealtimeRecipe.objects.prefetch_related("recipe__product_set__item").filter(profil=self.relCrafting.profil):
+				recipe_dicts.append({
+					"products": [{**p.item.toDict(), "num": p.num} for p in running_recipe.recipe.product_set.all()],
+					"num": running_recipe.num,
+					"started_at": running_recipe.started_at,
+					"finished_at": running_recipe.finished_at,
+				})
+
+			return JsonResponse({ "running_recipes": recipe_dicts })
 
 class RecipeDetailsView(VerifiedAccountMixin, ProfileSetMixin, DetailView):
 	model = Recipe
@@ -523,6 +526,8 @@ class RegionListView(VerifiedAccountMixin, ProfileSetMixin, ListView):
 		)
 	
 	def get_context_data(self, **kwargs):
+		update_realtime_recipes(self.relCrafting.profil)
+
 		drops = {region.pk: Tinker.objects.filter(drop__block__blockchance__region=region).distinct() for region in self.get_queryset()}
 
 		return super().get_context_data(
@@ -582,6 +587,8 @@ class MiningView(VerifiedAccountMixin, ProfileSetMixin, DetailView):
 		return None
 
 	def get_context_data(self, **kwargs):
+		update_realtime_recipes(self.relCrafting.profil)
+
 		# collect mining blocks & their drops
 		pool = []
 		blocks = {}
