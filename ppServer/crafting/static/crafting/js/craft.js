@@ -376,7 +376,7 @@ function updateRunningRecipes() {
 
 			return `<div class="d-flex flex-wrap gap-3">${products}</div>
 			<div class="progress" role="progressbar" aria-label="Basic example" aria-valuenow="${curr}" aria-valuemin="${start}" aria-valuemax="${end}">
-				<div class="progress-bar" style="width: ${percent}%; ${transition}">bis ${end_date}</div>
+				<div class="progress-bar text-bg-warning overflow-visible" style="width: ${percent}%; ${transition}">bis ${end_date}</div>
 			</div>`;
 		}).join("</li><li>");
 		document.querySelector(".running-recipes-list").innerHTML = html ? "<li>" + html + "</li>" : "";
