@@ -14,14 +14,15 @@ from shop.models import Tinker
 
 class RunningRealtimeRecipe(models.Model):
 	class Meta:
-		ordering = ["profil", "finished_at", "recipe", "num"]
+		ordering = ["profil", "finishes_at", "recipe", "num"]
 
 	recipe = models.ForeignKey("Recipe", on_delete=models.CASCADE)
 	profil = models.ForeignKey("Profile", on_delete=models.CASCADE)
 
 	num = models.PositiveIntegerField(validators=[MinValueValidator(1)])
-	started_at = models.DateTimeField(auto_now_add=True)
-	finished_at = models.DateTimeField()
+	starts_at = models.DateTimeField(auto_now_add=True)
+	begins_at = models.DateTimeField()
+	finishes_at = models.DateTimeField()
 
 	def distribute_products_and_stop(self):
 		with transaction.atomic():

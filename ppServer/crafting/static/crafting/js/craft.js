@@ -1,12 +1,14 @@
+/** one of: ["table", "search", "fav"] */
+let currently_showing_recipes_of = "table";
+
 /*
 	HELPER FUNCTIONS
 */
-function displayFloat(f) {
-	return parseFloat(f)?.toFixed(1).toString().replace(".", ",").replace(",0", "")
-}
 
-// helper function. Constructs HTML-recipelist out of recipe-data
-function constructRecipes(recipes, include_table=false) {
+/** helper function. Constructs HTML-recipelist out of recipe-data */
+function construct_recipes(recipes) {
+	const displayFloat = (f) => parseFloat(f)?.toFixed(1).toString().replace(".", ",").replace(",0", "");
+
 	let html = "";
 
 	// opening container
@@ -36,7 +38,7 @@ function constructRecipes(recipes, include_table=false) {
 			`</div>
 			<div class="arrow-container">`;
 
-		if (include_table) {
+		if (currently_showing_recipes_of != "table") {
 			html_recipe += `<div class="table item table--arrow`;
 
 			if (!recipe.locked)
@@ -69,18 +71,18 @@ function constructRecipes(recipes, include_table=false) {
 
 		// closing container with crafting combo
 		html_recipe +=
-				  `</div>
+			`</div>
 				</div>
 
 				<div class="craft input-with-btn">
-					<input type="number" name="craftNum" class="craftNum id-${recipe.id}" min=1 value=1 ${recipe.produces_perk ? 'max=1 disabled' : ''} oninput="craftChange(event)">
+					<input type="number" name="craftNum" class="craftNum id-${recipe.id}" min=1 value=1 ${recipe.produces_perk ? 'max=1 disabled' : ''} oninput="calc_recipe_numbers(event)">
 					<button class="btn btn-primary id-${recipe.id}" onclick="craft(event)" data-locked="${recipe.locked }">Craft</button>
 				</div>
 
 				<a class="info" href="/crafting/details/${recipe.id}/">
 					<img src="/static/res/img/info.svg" alt="Info">
 				</a>
-				<button class="btn btn-outline-warning fav-btn" onclick="toggleFav(${recipe.id})">${recipe.is_fav ? '⭑' : '⭒'}</button>
+				<button class="btn btn-outline-warning fav-btn" onclick="toggle_Fav(${recipe.id})">${recipe.is_fav ? '⭑' : '⭒'}</button>
 			</div>`;
 
 		html += html_recipe;
@@ -90,12 +92,11 @@ function constructRecipes(recipes, include_table=false) {
 
 
 // helper function. Updates disabled-status of crafting for each recipe by triggering the onInput-eventhandler of .craftNum
-function updateRecipeStatus() {
+function update_all_recipe_numbers() {
 	const event = new Event('input');
 
-	document.querySelectorAll(".craftNum").forEach(num_input => {
-		num_input.dispatchEvent(event)
-	});
+	// trigger calc_recipe_numbers() on every recipes' number input
+	document.querySelectorAll(".craftNum").forEach(num_input => num_input.dispatchEvent(event));
 }
 
 
@@ -106,7 +107,7 @@ function updateRecipeStatus() {
 function drag_start_callback(element) {
 
 	// show table recipes
-	tableChange(element.id)
+	change_to_table(element.id);
 }
 
 function drag_end_callback() {
@@ -115,7 +116,7 @@ function drag_end_callback() {
 		.map(table => { return parseInt(/\d+/.exec(table.id)) })
 		.filter(table_id => typeof table_id === 'number');
 
-	post({ table_ordering: tables }, reaction, reaction, false)
+	post({ update_table_ordering: tables }, reaction, reaction, false)
 }
 
 /*
@@ -123,11 +124,12 @@ function drag_end_callback() {
 */
 
 // select a different table and show its recipes instead of the current ones
-function tableChange(id) {
+function change_to_table(id) {
 	const selected_tag = document.querySelector(`#${id}`);
 	const table_id = id.replace(/^tid\-/, "");
-
+	
 	location.hash = table_id;
+	currently_showing_recipes_of = table_id === "fav" ? "fav" : "table";
 
 	// markup for selection
 	document.querySelectorAll(".table.selected").forEach(table => table.classList.remove("selected"));
@@ -137,7 +139,7 @@ function tableChange(id) {
 	document.querySelector("title").innerHTML = selected_tag.dataset.title;
 	document.querySelector("header .navbar-brand .topic").innerHTML = selected_tag.dataset.title;
 
-	post({ table: table_id }, data => {
+	post({ search_recipes_by_table: table_id }, data => {
 
 		// update durability on table in table list on the left
 		if (data.part) {
@@ -160,34 +162,33 @@ function tableChange(id) {
 				</button>`;
 			}
 		}
-		document.querySelector(".recipes").innerHTML += constructRecipes(data.recipes, table_id === "fav");
+		document.querySelector(".recipes").innerHTML += construct_recipes(data.recipes);
 
 		// disable recipes where necessary
-		updateRecipeStatus();
+		update_all_recipe_numbers();
 	}, null)
 }
 
-function toggleFav(id) {
-	
-	post({ fav: id }, ({ num_favs }) => {
+function toggle_Fav(id) {
+	post({ fav: id }, () => {
 
 		// toggle pressed fav button
 		const fav_btn = document.querySelector(`.recipes .recipe-row.id-${id} .fav-btn`);
 		fav_btn.innerHTML = fav_btn.innerHTML === '⭒' ? '⭑' : '⭒';
 
-		// currently on fav-"table" and need to remove recipe from view
-		if (fav_btn.innerHTML === '⭒' && location.hash === "#fav") {
-			document.querySelector(`.recipes .recipe-row.id-${id}`).remove();
+		if (currently_showing_recipes_of === "fav") {
+			// currently on fav-"table" and need to remove recipe from view
+			change_to_table("tid-fav");
 		}
 
 		// update availability of fav-"table"
-		document.querySelector(`#tid-fav`).classList.toggle("available", num_favs > 0);
-	}, null)
+		update_tables();
+	}, null);
 }
 
 
 // adapt required amounts onInput-event of input-element[type:number]
-function craftChange({ currentTarget }) {
+function calc_recipe_numbers({ currentTarget }) {
 
 	// amount of product
 	const num = parseInt(currentTarget.value) || 0;
@@ -226,24 +227,64 @@ function craftChange({ currentTarget }) {
 		}
 	})
 
+	// check table availability
+	const table_available =
+		(currently_showing_recipes_of === "table" && document.querySelector(".tables .table.selected.available")) ||
+		row.querySelector(".table--arrow.available")
+
 	// disable btn?
-	row.querySelector(".btn").disabled = disable_btn;
+	row.querySelector(".btn").disabled = disable_btn || !table_available;
 }
 
+
+function update_tables() {
+	return new Promise((resolve, reject) => {
+
+		post({ fetch_tables: true }, ({ tables, has_favorite_recipes }) => {
+			const curr_table_id = location.hash.replace(/^#/, "");
+			const is_selected = (table_id) => currently_showing_recipes_of !== "search" && curr_table_id == table_id;
+	
+			const fav_table = `<div
+				class="item reorder-container__element table${is_selected('fav') ? ' selected' : ''}${has_favorite_recipes ? ' available' : ''}"
+				id="tid-fav"
+				draggable="false"
+				onclick="change_to_table('tid-fav')"
+				data-title="Favorisiert">⭑
+			</div>`;
+		
+			const other_tables = tables.map(table =>
+				`<div
+					class="item reorder-container__element table${is_selected(table.id) ? ' selected' : ''}${table.available ? ' available' : ''}${ table.part && table.durability_left == 0 ? ' broken' : ''}"
+					id="tid-${ table.id }"
+					draggable="true"
+					onclick="change_to_table('tid-${ table.id }')"
+					data-title="${ table.name }">
+	
+					<img src="${ table.icon }" alt="${ table.name }">` +
+					(table.part ?
+					`<div class="progressbar" role="progressbar" aria-label="Haltbarkeit" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+						<div class="progressbar-inner" style="width: ${ table.percent_durability_left }%"></div>
+					</div>` : '') +
+				`</div>`);
+			document.querySelector(".tables").innerHTML = [fav_table, ...other_tables].join("");
+
+			resolve();
+		}, reject);
+	});
+}
+
+function update_recipes() {
+	// reload by table
+	if (currently_showing_recipes_of !== "search") change_to_table(document.querySelector(".table.selected").id);
+
+	// reload by search term
+	else search();
+}
 
 // craft num of items
 function craft({ currentTarget }) {
 	if (currentTarget.disabled) return;
 
-	reload_recipes = () => {
-		const selected_table = document.querySelector(".table.selected");
-		
-		// reload by table
-		if (selected_table) tableChange(selected_table.id);
-
-		// reload by search term
-		else document.querySelector("#search-btn").dispatchEvent(new Event('click'));
-	};
 
 	// get common recipe_id
 	let id_class = "";
@@ -253,30 +294,10 @@ function craft({ currentTarget }) {
 	const num = document.querySelector(".craftNum." + id_class).value;
 	const id = /\d+/.exec(id_class)[0];
 
-	post({ craft: id, num}, data => {
-
-		// if crafted element was a table, enable it ...
-		document.querySelectorAll(".product." + id_class).forEach(product => {
-			let pid = -1;
-			product.classList.forEach(e => { if (e.startsWith("pid-")) pid = /\d+/.exec(e); })
-
-			let table = document.querySelector("#tid-" + pid);
-			table?.classList.add("available");
-
-			// ... and move it up
-			const first_unavailable_table = document.querySelector(".tables .table:not(.available)");
-			const tables = [...document.querySelector(".tables").children];
-			const table_index = tables.indexOf(table);
-			const space_before = tables.indexOf(first_unavailable_table);
-			if (table_index > space_before) {
-				table.remove();
-				document.querySelector(".tables").insertBefore(table, first_unavailable_table);
-				drag_end_callback();	// save new ordering to BE
-			}
-		});
-
-		reload_recipes();
-		updateRunningRecipes();
+	post({ craft: id, num }, async data => {
+		await update_running_recipes();
+		await update_tables();
+		update_recipes();
 
 		// log used parts
 		if (data.used_parts && data.part) {
@@ -300,10 +321,12 @@ function craft({ currentTarget }) {
 			new bootstrap.Toast(dummy.children[0]);
 			toast.addEventListener("hidden.bs.toast", toast.remove);
 		}
-	}, error => {
-		alert(error.response.data.message);
+	}, async error => {
+		alert(error);
 
-		reload_recipes();
+		await update_running_recipes();
+		await update_tables();
+		update_recipes();
 	})
 }
 
@@ -312,13 +335,13 @@ function craft({ currentTarget }) {
 // retrieve a list of entries
 
 // need to add
-// oninput="searchChange(event)"
+// oninput="update_search_itemname_options(event)"
 // on input again, temporarily disabled
-function searchChange({ currentTarget }) {
+function update_search_itemname_options({ currentTarget }) {
 	const text = currentTarget.value;
 
 	// post -> get fitting entries back
-	post({search: text}, data => {
+	post({fetch_itemnames: text}, data => {
 
 		// repopulate datalist of searchbar
 		document.querySelector("#item-search").innerHTML = data.res.map(name => `<option value="${name}">${name}</option>`).join("");
@@ -328,11 +351,12 @@ function searchChange({ currentTarget }) {
 
 // search submitted, retrieve recipes and display them. Unselect table in sidebar
 function search() {
-	var text = document.querySelector("#search-input").value;
+	const text = document.querySelector("#search-input").value;
 
-	post({ search_btn: text }, data => {
+	post({ search_recipes_by_name: text }, data => {
 
 		// reset table selection
+		currently_showing_recipes_of = "search";
 		document.querySelectorAll(".table.selected").forEach(table => table.classList.remove("selected"));
 
 		// set topic to search text
@@ -341,83 +365,116 @@ function search() {
 
 		// display recipes with search term as product and ingredient
 		document.querySelector(".recipes").innerHTML =
-			`<h1>ALS PRODUKT:</h1>${constructRecipes(data.as_product, true) || `<div>-</div>`}
-			<h1>ALS ZUTAT:</h1>${constructRecipes(data.as_ingredient, true) || `<div>-</div>`}`
+			`<h1>ALS PRODUKT:</h1>${construct_recipes(data.as_product) || `<div>-</div>`}
+			<h1>ALS ZUTAT:</h1>${construct_recipes(data.as_ingredient) || `<div>-</div>`}`
 
-		// adapt recipe status
-		updateRecipeStatus();
+		// disable recipes where necessary
+		update_all_recipe_numbers();
 	})
 }
 
 
 function repair_table(table_id) {
-	post({ repair_table: table_id }, () => {
-		tableChange("tid-" + table_id);
+	post({ repair_table: table_id }, async () => {
+		await update_tables();
+		update_recipes();
 	});
 }
 
 
-function updateRunningRecipes() {
-	post({ running_recipes: true }, ({ running_recipes }) => {
+function update_running_recipes() {
+	return new Promise((resolve, reject) => {
 
-		const html = running_recipes.map(r => {
-			const products = r.products.map(product => `<div>${product.num * r.num}x <img src="${product.icon_url}" alt="${product.name}"></div>`).join("");
+		post({ fetch_running_recipes: true }, ({ running_recipes, changed_table_order }) => {
+	
+			const html = running_recipes.map(r => {
+				const products = r.products.map(product => `<div>${product.num * r.num}x <img src="${product.icon_url}" alt="${product.name}"></div>`).join("");
+	
+				const curr = Date.now();
+				const begin = (new Date(r.begins_at)).getTime();
+				const start = Math.min(begin, Math.max(curr, (new Date(r.starts_at)).getTime()));
+				const end = (new Date(r.finishes_at)).getTime();
+				const wait_percent = curr < begin ? Math.round(100* (curr-start) / (begin-start)) : 100;
+				const work_percent = curr > begin ? Math.round(100* (curr-begin) / (end-begin)) : 0;
+				const transition = `transition: width 200ms linear`;
+				
+				const date_options = (new Date(r.finishes_at)).getUTCDate() == (new Date(Date.now())).getUTCDate() ?
+					{hour: "2-digit", minute: "2-digit"} :
+					{ year: 'numeric', month: 'numeric', day: 'numeric', hour: "2-digit", minute: "2-digit" };
+				const begin_date = (new Date(r.begins_at)).toLocaleString('de-DE', date_options);
+				const end_date = (new Date(r.finishes_at)).toLocaleString('de-DE', date_options);
+	
+				return `<div class="d-flex flex-wrap gap-3">${products}</div>
+						<div class="progress d-flex" style="gap: 1px; background: none;">
+							<div class="progress" role="progressbar" aria-label="warten" aria-valuenow="${Math.max(start, curr)}" aria-valuemin="${start}" aria-valuemax="${begin}" style="width: ${100*(begin-start) / (end-start)}%; border-radius: 0; ${transition}">
+								<div class="progress-bar text-bg-info overflow-visible" style="width: ${wait_percent}%; ${transition}">warten bis ${begin_date}</div>
+							</div>
+							<div class="progress" role="progressbar" aria-label="arbeiten" aria-valuenow="${Math.max(begin, curr)}" aria-valuemin="${begin}" aria-valuemax="${end}" style="width: ${100 - 100*(begin-start) / (end-start)}%; border-radius: 0">
+								<div class="progress-bar text-bg-warning overflow-visible" style="width: ${work_percent}%; ${transition}">bis ${end_date}</div>
+							</div>
+						</div>`;
+			}).join("</li><li>");
+			document.querySelector(".running-recipes-list").innerHTML = html ? "<li>" + html + "</li>" : "";
 
-			const start = (new Date(r.started_at)).getTime();
-			const end = (new Date(r.finished_at)).getTime();
-			const curr = Date.now();
-			const percent = Math.round(100* (curr-start) / (end-start));
-			const transition = `transition: width 200ms linear`;
-			
-			const date_options = (new Date(r.finished_at)).getUTCDate() == (new Date(Date.now())).getUTCDate() ?
-				{hour: "2-digit", minute: "2-digit"} :
-				{ year: 'numeric', month: 'numeric', day: 'numeric', hour: "2-digit", minute: "2-digit" };
-			const end_date = (new Date(r.finished_at)).toLocaleString('de-DE', date_options)
 
-			return `<div class="d-flex flex-wrap gap-3">${products}</div>
-			<div class="progress" role="progressbar" aria-label="Basic example" aria-valuenow="${curr}" aria-valuemin="${start}" aria-valuemax="${end}">
-				<div class="progress-bar text-bg-warning overflow-visible" style="width: ${percent}%; ${transition}">bis ${end_date}</div>
-			</div>`;
-		}).join("</li><li>");
-		document.querySelector(".running-recipes-list").innerHTML = html ? "<li>" + html + "</li>" : "";
-	}, err => console.error(err));
+			if (changed_table_order) {
+				update_tables().then(resolve);
+			} else {
+				resolve();
+			}
+		}, reject);
+	})
 }
 
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
 
 	// load page content
 
+	// update currently crafting recipes
+	await update_running_recipes();
+
+	// load all tables
+	await update_tables();
+
 	// get all recipes of the table whose table id is in the url-# or from the first table
-	tableChange(location.hash?.length ? `tid-${location.hash.substring(1)}` : document.querySelector(".table").id);
+	change_to_table(location.hash?.length ? `tid-${location.hash.substring(1)}` : document.querySelector(".table").id);
 
 
-	// initially disable recipes where necessary
-	updateRecipeStatus();
+// event handlers
+init_draggable_reorder();
 
 
+	// animate currently crafting recipes and craft when done
+	setInterval(() => document.querySelectorAll(".running-recipes-list .progress.d-flex").forEach(async progress => {
+		const [waitBar, workBar] = progress.querySelectorAll(".progress");
 
-	// event handlers
-	init_draggable_reorder();
+		const start = waitBar.ariaValueMin;
+		const begin = waitBar.ariaValueMax;
+		const end = workBar.ariaValueMax;
+		const curr = Date.now();
 
-	// send input data per btn event on keydown of enter key
-	document.querySelectorAll("input").forEach(el => el.addEventListener("keydown", (e) => {
-		// on keydown of enter, i.e. ascii-code 13
-		if (e.keyCode === 13) {
+		waitBar.ariaValueNow = Math.max(start, curr);
+		workBar.ariaValueNow = Math.max(begin, curr);
+
+		waitBar.querySelector(".progress-bar").style.width = (curr < begin ? Math.round(100* (curr-start) / (begin-start)) : 100) + "%";
+		workBar.querySelector(".progress-bar").style.width = (curr > begin ? Math.round(100* (curr-begin) / (end-begin)) : 0) + "%";
+
+		if (end <= curr) {
+			await update_running_recipes();
+			await update_tables();
+			update_recipes();
+		}
+	}), 1000);
+
+
+	// send input data per btn event on keydown of enter key (e.G. search, amount recipes)
+	document.addEventListener("keydown", e => {
+		// on enter ^= ascii-code 13
+		if (e.keyCode === 13 && e.target.tagName === "INPUT") {
 
 			// click (first) sibling btn
-			e.currentTarget.parentElement.querySelector(".btn").click();
+			e.target.parentElement.querySelector(".btn")?.click();
 		}
-	}));
-
-
-	// update currently crafting recipes and animate their progress
-	updateRunningRecipes();
-	setInterval(() => document.querySelectorAll(".running-recipes-list .progress").forEach(bar => {
-		const curr = Date.now();
-		bar.ariaValueNow = curr;
-
-		if (bar.ariaValueMax <= curr) updateRunningRecipes();
-		bar.querySelector(".progress-bar").style.width = 100* (curr - bar.ariaValueMin) / (bar.ariaValueMax - bar.ariaValueMin) + "%";
-	}), 1000);
-})
+	});
+});

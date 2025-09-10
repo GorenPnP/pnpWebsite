@@ -2,7 +2,7 @@ import json
 from datetime import timedelta, datetime
 
 from django.contrib import messages
-from django.db.models import Subquery, F, Q, Exists, OuterRef, Case, When, Count
+from django.db.models import Subquery, F, Q, Exists, OuterRef, Case, When, Count, Max
 from django.db.models.functions import Coalesce
 from django.http import HttpResponseNotFound
 from django.http.response import JsonResponse
@@ -131,9 +131,15 @@ def handle_overlay(json_dict: dict, item_qs: QuerySet[Tinker], profil:Profile) -
 def clean_inventory(profile: Profile) -> None:
 	InventoryItem.objects.filter(char=profile, num=0).delete()
 
-def update_realtime_recipes(profil: Profile) -> None:
-	for finished_recipe in RunningRealtimeRecipe.objects.prefetch_related("profil", "recipe__product_set__item").filter(finished_at__lte=datetime.now(), profil=profil):
+def update_realtime_recipes(profil: Profile) -> bool:
+	""" checks if realtime recipes have finished. Returns True if some have, False on None """
+	has_recipe = False
+
+	for finished_recipe in RunningRealtimeRecipe.objects.prefetch_related("profil", "recipe__product_set__item").filter(finishes_at__lte=datetime.now(), profil=profil):
 		finished_recipe.distribute_products_and_stop()
+		has_recipe = True
+
+	return has_recipe
 
 class IndexView(VerifiedAccountMixin, TemplateView):
 	template_name = "crafting/index.html"
@@ -254,25 +260,21 @@ class CraftingView(VerifiedAccountMixin, ProfileSetMixin, ListView):
 		return super().get_context_data(
 			**kwargs,
 			topic = table_list[0]["name"],
-
-			tables = table_list,
 			recipes = construct_recipes(self.get_recipe_queryset(), self.inventory, table_list[0]["id"] if table_list else 0),
-			has_favorite_recipes = self.relCrafting.favorite_recipes.exists(),
 		)
 
 
 	def post(self, *args, **kwargs):
 		# collect current inventory
-		update_realtime_recipes(self.relCrafting.profil)
 		self.inventory = {i.item.id: i.num for i in self.get_queryset()}
 
 		json_dict = json.loads(self.request.body.decode("utf-8"))
 
 		# table selection has changed, update the recipes
-		if "table" in json_dict.keys():
+		if "search_recipes_by_table" in json_dict.keys():
 			try:
-				restrict_to_fav = json_dict["table"] == "fav"
-				table_id = int(json_dict["table"]) if not restrict_to_fav else None
+				restrict_to_fav = json_dict["search_recipes_by_table"] == "fav"
+				table_id = int(json_dict["search_recipes_by_table"]) if not restrict_to_fav else None
 			except:
 				if not restrict_to_fav: return JsonResponse({"message": "Parameter nicht lesbar angekommen"}, status=418)
 
@@ -284,17 +286,17 @@ class CraftingView(VerifiedAccountMixin, ProfileSetMixin, ListView):
 			return JsonResponse({"recipes": construct_recipes(qs, self.inventory, table_id)})
 
 
-		# search for an item, return just names for autocomplete
-		if "search" in json_dict.keys():
+		# to search for an item by name, return just names for autocomplete
+		if "fetch_itemnames" in json_dict.keys():
 			visible_recipes = self.get_recipe_queryset()
 			all_items = Tinker.objects.filter(Q(ingredient__recipe__in=visible_recipes) | Q(prod__recipe__in=visible_recipes)).values_list("name", flat=True)
 
-			return JsonResponse({"res": list(all_items.filter(name__iregex=json_dict["search"]).distinct())})
+			return JsonResponse({"res": list(all_items.filter(name__iregex=json_dict["fetch_itemnames"]).distinct())})
 
 
 		# search for an item
-		if "search_btn" in json_dict.keys():
-			search = json_dict["search_btn"]
+		if "search_recipes_by_name" in json_dict.keys():
+			search = json_dict["search_recipes_by_name"]
 			recipe_qs = self.get_recipe_queryset()
 
 			return JsonResponse({
@@ -384,7 +386,13 @@ class CraftingView(VerifiedAccountMixin, ProfileSetMixin, ListView):
 				durability.save(update_fields=["recipes_crafted"])
 
 			# start crafting recipes
-			RunningRealtimeRecipe.objects.create(recipe=recipe, profil=self.relCrafting.profil, num=num, finished_at=datetime.now() + (recipe.duration * num))
+			now = datetime.now()
+			begins_at = RunningRealtimeRecipe.objects.filter(recipe__table=recipe.table, profil=self.relCrafting.profil).aggregate(Max("finishes_at", default=now))["finishes_at__max"]
+			RunningRealtimeRecipe.objects.create(
+				recipe=recipe, profil=self.relCrafting.profil, num=num,
+				begins_at=begins_at,
+				finishes_at=begins_at + (recipe.duration * num),
+			)
 
 
 			return JsonResponse({
@@ -394,9 +402,9 @@ class CraftingView(VerifiedAccountMixin, ProfileSetMixin, ListView):
 
 
 		# save new ordering of tables in profile model
-		if "table_ordering" in json_dict.keys():
+		if "update_table_ordering" in json_dict.keys():
 
-			self.relCrafting.profil.tableOrdering = [to for to in json_dict["table_ordering"] if to is not None]
+			self.relCrafting.profil.tableOrdering = [to for to in json_dict["update_table_ordering"] if to is not None]
 			self.relCrafting.profil.save(update_fields=["tableOrdering"])
 
 			return JsonResponse({})
@@ -416,7 +424,7 @@ class CraftingView(VerifiedAccountMixin, ProfileSetMixin, ListView):
 			else:
 				self.relCrafting.favorite_recipes.remove(recipe)
 
-			return JsonResponse({"num_favs": self.relCrafting.favorite_recipes.count()})
+			return JsonResponse({})
 		
 		if "repair_table" in json_dict.keys():
 			try:
@@ -444,17 +452,47 @@ class CraftingView(VerifiedAccountMixin, ProfileSetMixin, ListView):
 
 			return JsonResponse({})
 
-		if "running_recipes" in json_dict.keys():
+		if "fetch_running_recipes" in json_dict.keys():
+			changed_inventory = update_realtime_recipes(self.relCrafting.profil)
+
+			changed_table_order = False
+			# drag newly produced table up before unowned ones
+			if changed_inventory:
+				TO = self.relCrafting.profil.tableOrdering	# shorthand
+
+				new_tables = Tinker.objects.exclude(table=None).exclude(id__in=self.inventory.keys()).filter(inventoryitem__char=self.relCrafting.profil).values_list("id", flat=True)
+				if new_tables.exists():
+					owned_tables = Tinker.objects.exclude(table=None).filter(inventoryitem__char=self.relCrafting.profil).values_list("id", flat=True)
+					first_unowned_table_index = next((i for i, id in enumerate(TO) if id not in owned_tables and id != 0), None)
+					
+					# is there a space to be in front of?
+					if first_unowned_table_index is not None:
+
+						# only tables further back
+						for relocate_table in [id for id in new_tables if id not in TO or TO.index(id) > first_unowned_table_index][::-1]:
+							self.relCrafting.profil.tableOrdering.insert(first_unowned_table_index, relocate_table)
+						
+						self.relCrafting.profil.save(update_fields=["tableOrdering"])
+						changed_table_order = True
+
 			recipe_dicts = []
 			for running_recipe in RunningRealtimeRecipe.objects.prefetch_related("recipe__product_set__item").filter(profil=self.relCrafting.profil):
 				recipe_dicts.append({
 					"products": [{**p.item.toDict(), "num": p.num} for p in running_recipe.recipe.product_set.all()],
 					"num": running_recipe.num,
-					"started_at": running_recipe.started_at,
-					"finished_at": running_recipe.finished_at,
+					"starts_at": running_recipe.starts_at,
+					"begins_at": running_recipe.begins_at,
+					"finishes_at": running_recipe.finishes_at,
 				})
 
-			return JsonResponse({ "running_recipes": recipe_dicts })
+			return JsonResponse({ "running_recipes": recipe_dicts, "reload_tables": changed_table_order })
+
+		if "fetch_tables" in json_dict.keys():
+			# get all (used) table instances from db in alphabetical order
+			table_list = self.relCrafting.profil.getTables(self.inventory.keys())
+			for t in table_list: t["available"] = t["id"] in self.inventory.keys() or t["id"] == 0		# id == 0: special case for Handwerk (is always available)
+
+			return JsonResponse({"tables": table_list, "has_favorite_recipes": self.relCrafting.favorite_recipes.exists()})
 
 class RecipeDetailsView(VerifiedAccountMixin, ProfileSetMixin, DetailView):
 	model = Recipe

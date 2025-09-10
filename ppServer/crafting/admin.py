@@ -160,7 +160,7 @@ class TableAdmin(admin.ModelAdmin):
     fields = ["item", "durability", "part"]
 
 class RunningRealtimeRecipeAdmin(admin.ModelAdmin):
-    list_display = ["profil", "recipe", "num", "started_at", "finished_at"]
+    list_display = ["profil", "recipe", "num", "starts_at", "begins_at", "finishes_at"]
 
     def get_form(self, request, obj = ..., change = ..., **kwargs):
         form = super().get_form(request, obj, change, **kwargs)
