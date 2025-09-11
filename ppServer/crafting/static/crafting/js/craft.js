@@ -104,19 +104,28 @@ function update_all_recipe_numbers() {
 	callbacks triggered on dragging of tables
 */
 
-function drag_start_callback(element) {
+function init_table_reorder() {
 
-	// show table recipes
-	change_to_table(element.id);
-}
+	// the container
+	const tables = document.querySelector(".tables");
 
-function drag_end_callback() {
-	// save new ordering to db
-	var tables = [...document.querySelectorAll('.table')]
-		.map(table => { return parseInt(/\d+/.exec(table.id)) })
-		.filter(table_id => typeof table_id === 'number');
+	// use sortable.js for drag & drop of tables
+	const list = new Sortable(tables, {
+		animation: 150,
+		swapThreshold: 0.65,
+		filter: '#tid-fav',	// fav is not draggable (but tables can be dragged above?)
+		ghostClass: 'table--ghost',	// class a dragged table-duplicate has. For styling
+	});
 
-	post({ update_table_ordering: tables }, reaction, reaction, false)
+	// save new order to BE when user drops table
+	tables.addEventListener("end", function() {
+		table_ids = list.toArray()	// list of .table->data-id strings
+			.map(id => parseInt(id))
+			.filter(id => !isNaN(id));	// filter "fav" away
+		
+		post({ update_table_ordering: table_ids });
+	});
+
 }
 
 /*
@@ -245,20 +254,18 @@ function update_tables() {
 			const is_selected = (table_id) => currently_showing_recipes_of !== "search" && curr_table_id == table_id;
 	
 			const fav_table = `<div
-				class="item reorder-container__element table${is_selected('fav') ? ' selected' : ''}${has_favorite_recipes ? ' available' : ''}"
+				class="table${is_selected('fav') ? ' selected' : ''}${has_favorite_recipes ? ' available' : ''}"
 				id="tid-fav"
-				draggable="false"
 				onclick="change_to_table('tid-fav')"
-				data-title="Favorisiert">⭑
+				data-title="Favorisiert" data-id="">⭑
 			</div>`;
 		
 			const other_tables = tables.map(table =>
 				`<div
-					class="item reorder-container__element table${is_selected(table.id) ? ' selected' : ''}${table.available ? ' available' : ''}${ table.part && table.durability_left == 0 ? ' broken' : ''}"
+					class="table${is_selected(table.id) ? ' selected' : ''}${table.available ? ' available' : ''}${ table.part && table.durability_left == 0 ? ' broken' : ''}"
 					id="tid-${ table.id }"
-					draggable="true"
 					onclick="change_to_table('tid-${ table.id }')"
-					data-title="${ table.name }">
+					data-title="${ table.name }" data-id="${table.id}">
 	
 					<img src="${ table.icon }" alt="${ table.name }">` +
 					(table.part ?
@@ -440,9 +447,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 	// get all recipes of the table whose table id is in the url-# or from the first table
 	change_to_table(location.hash?.length ? `tid-${location.hash.substring(1)}` : document.querySelector(".table").id);
 
-
-// event handlers
-init_draggable_reorder();
+	// init_table_reorder
+	init_table_reorder();
 
 
 	// animate currently crafting recipes and craft when done

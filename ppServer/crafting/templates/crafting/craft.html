@@ -2,10 +2,10 @@
 {% load static l10n %}
 {% block extra-head %}
 <link rel="stylesheet"  type="text/css" href="{% static 'crafting/css/craft.css' %}">
-<script src="{% static 'base/js/draggable_reorder.js' %}"></script>
 <script src="{% static 'res/js/axios.min.js' %}" type='text/javascript'></script>
 <script src="{% static 'base/js/ajax.js' %}"></script>
 <script src="{% static 'crafting/js/craft.js' %}"></script>
+<script src="{% static 'res/js/sortable@1.15.2.min.js' %}" defer></script>
 {% endblock %}
 
 {% block asides %}
@@ -18,7 +18,7 @@
 {% endblock %}
 
 {% block main %}
-<aside class="tables reorder-container"></aside>
+<aside class="tables"></aside>
 
 <header class="head">
 	<div class="search input-with-btn">
