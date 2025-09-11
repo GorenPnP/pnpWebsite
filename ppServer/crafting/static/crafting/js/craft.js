@@ -175,7 +175,12 @@ function change_to_table(id) {
 
 		// disable recipes where necessary
 		update_all_recipe_numbers();
-	}, null)
+	}, async error => {
+		alert(error.response?.data?.message || error);
+
+		await update_tables();
+		update_recipes();
+	})
 }
 
 function toggle_Fav(id) {
@@ -192,7 +197,11 @@ function toggle_Fav(id) {
 
 		// update availability of fav-"table"
 		update_tables();
-	}, null);
+	}, error => {
+		alert(error.response?.data?.message || error);
+
+		update_recipes();
+	});
 }
 
 
@@ -329,7 +338,7 @@ function craft({ currentTarget }) {
 			toast.addEventListener("hidden.bs.toast", toast.remove);
 		}
 	}, async error => {
-		alert(error);
+		alert(error.response?.data?.message || error);
 
 		await update_running_recipes();
 		await update_tables();
@@ -383,6 +392,11 @@ function search() {
 
 function repair_table(table_id) {
 	post({ repair_table: table_id }, async () => {
+		await update_tables();
+		update_recipes();
+	}, async error => {
+		alert(error.response?.data?.message || error);
+
 		await update_tables();
 		update_recipes();
 	});

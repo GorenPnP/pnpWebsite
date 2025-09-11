@@ -86,6 +86,9 @@ class FavoriteRecipesInLineAdmin(admin.TabularInline):
         formset.form.base_fields["recipe"].queryset = queryset
         return formset
 
+class RelTableDurationInLineAdmin(admin.TabularInline):
+    model = ProfileTableDurability
+    extra = 1
 
 class RecipeAdmin(admin.ModelAdmin):
 
@@ -158,6 +161,8 @@ class RecipeAdmin(admin.ModelAdmin):
 class TableAdmin(admin.ModelAdmin):
     list_display = ["item", "durability", "part"]
     fields = ["item", "durability", "part"]
+
+    inlines = [RelTableDurationInLineAdmin]
 
 class RunningRealtimeRecipeAdmin(admin.ModelAdmin):
     list_display = ["profil", "recipe", "num", "starts_at", "begins_at", "finishes_at"]

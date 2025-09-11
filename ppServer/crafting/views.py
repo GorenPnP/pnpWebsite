@@ -1,4 +1,4 @@
-import json
+import json, math
 from datetime import timedelta, datetime
 
 from django.contrib import messages
@@ -330,21 +330,16 @@ class CraftingView(VerifiedAccountMixin, ProfileSetMixin, ListView):
 			durability, _ = ProfileTableDurability.objects.get_or_create(char=self.relCrafting.profil, table=recipe.table) if recipe.table else (None, False)
 			used_parts = 0
 			# test if table part has enough durability left
-			# use part automatically if owned
 			if durability and recipe.table.part:
 				recipes_left = recipe.table.durability - durability.recipes_crafted
-				
-				# calc num of used parts
-				n = num - recipes_left
-				while n >= 0 and recipe.table.durability:
-					used_parts += 1
-					n -= recipe.table.durability
 
+				# will craft <= recipes as available?
 				num_parts_owned = self.inventory[recipe.table.part.id] if recipe.table.part.id in self.inventory else 0
-				if used_parts > num_parts_owned:
-					max_num_recipes = recipes_left + num_parts_owned * recipe.table.durability
+				max_num_recipes = recipes_left + (num_parts_owned * recipe.table.durability)
+				if num > max_num_recipes:
 					return JsonResponse({"message": "An dieser Werkstätte kannst du "+ (f"nur noch max. {max_num_recipes} Rezepte" if max_num_recipes else "nichts mehr") + " mit Bauteilen herstellen."}, status=418)
 
+				used_parts = math.ceil((1.0 * num - recipes_left) / recipe.table.durability)
 
 			# test if enough ingredients exist and collect them in 'ingredients'. Keys are tinker_id's
 			ingredients = {}
@@ -380,10 +375,12 @@ class CraftingView(VerifiedAccountMixin, ProfileSetMixin, ListView):
 
 			# decrease table durability
 			if durability and recipe.table.part:
+				durability.recipes_crafted += num - (recipe.table.durability * used_parts)
+				durability.save(update_fields=["recipes_crafted"])
+
+				# .. and use part automatically if owned
 				InventoryItem.objects.filter(char=self.relCrafting.profil, item=recipe.table.part).update(num=F("num") - used_parts)
 
-				durability.recipes_crafted = (durability.recipes_crafted + num) % recipe.table.durability
-				durability.save(update_fields=["recipes_crafted"])
 
 			# start crafting recipes
 			now = datetime.now()
