@@ -170,7 +170,6 @@
     <aside id="inventory">
         <h2 class="d-flex justify-content-between mb-3">
             <a class="text-light" href="{% url 'crafting:inventory' %}">Inventar von {{ profil.name }}</a>
-            <a class="btn btn-outline-light" href="{% url 'crafting:index' %}?redirect={{ request.path|urlencode }}">wechseln</a>
         </h2>
     
         <div class="inventory-container">
