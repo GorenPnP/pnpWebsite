@@ -24,7 +24,9 @@ class RunningRealtimeRecipe(models.Model):
 	begins_at = models.DateTimeField()
 	finishes_at = models.DateTimeField()
 
-	def distribute_products_and_stop(self):
+	def distribute_products_and_stop(self) -> list["InventoryItem"]:
+		""" gives recipe's productsto Profile and deletes itself. Returns newly created InventoryItems (e.g. to decide if there was a table added) """
+
 		with transaction.atomic():
 
 			# update existing iitems
@@ -39,6 +41,8 @@ class RunningRealtimeRecipe(models.Model):
 
 			# end realtime execution of recipe
 			self.delete()
+
+			return new_iitems
 
 class RelCrafting(models.Model):
 	class Meta:

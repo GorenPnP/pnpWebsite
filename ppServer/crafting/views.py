@@ -1,5 +1,6 @@
 import json, math
 from datetime import timedelta, datetime
+from typing import OrderedDict
 
 from django.contrib import messages
 from django.db.models import Subquery, F, Q, Exists, OuterRef, Case, When, Count, Max
@@ -131,15 +132,14 @@ def handle_overlay(json_dict: dict, item_qs: QuerySet[Tinker], profil:Profile) -
 def clean_inventory(profile: Profile) -> None:
 	InventoryItem.objects.filter(char=profile, num=0).delete()
 
-def update_realtime_recipes(profil: Profile) -> bool:
-	""" checks if realtime recipes have finished. Returns True if some have, False on None """
-	has_recipe = False
+def update_realtime_recipes(profil: Profile) -> list[InventoryItem]:
+	""" checks if realtime recipes have finished. Returns List of newly created IncentoryItem instances """
+	new_iitems = []
 
 	for finished_recipe in RunningRealtimeRecipe.objects.prefetch_related("profil", "recipe__product_set__item").filter(finishes_at__lte=datetime.now(), profil=profil):
-		finished_recipe.distribute_products_and_stop()
-		has_recipe = True
+		new_iitems += finished_recipe.distribute_products_and_stop()
 
-	return has_recipe
+	return new_iitems
 
 class IndexView(VerifiedAccountMixin, TemplateView):
 	template_name = "crafting/index.html"
@@ -401,7 +401,8 @@ class CraftingView(VerifiedAccountMixin, ProfileSetMixin, ListView):
 		# save new ordering of tables in profile model
 		if "update_table_ordering" in json_dict.keys():
 
-			self.relCrafting.profil.tableOrdering = [to for to in json_dict["update_table_ordering"] if to is not None]
+			# remove duplicates and keep order at python >= 3.7
+			self.relCrafting.profil.tableOrdering = list(OrderedDict.fromkeys(json_dict["update_table_ordering"]))
 			self.relCrafting.profil.save(update_fields=["tableOrdering"])
 
 			return JsonResponse({})
@@ -455,22 +456,22 @@ class CraftingView(VerifiedAccountMixin, ProfileSetMixin, ListView):
 			changed_table_order = False
 			# drag newly produced table up before unowned ones
 			if changed_inventory:
-				TO = self.relCrafting.profil.tableOrdering	# shorthand
+				TO = [*self.relCrafting.profil.tableOrdering]	# shorthand and copy
 
-				new_tables = Tinker.objects.exclude(table=None).exclude(id__in=self.inventory.keys()).filter(inventoryitem__char=self.relCrafting.profil).values_list("id", flat=True)
+				new_tables = Tinker.objects.exclude(table=None).filter(id__in=[iitem.item.id for iitem in changed_inventory]).values_list("id", flat=True)
 				if new_tables.exists():
-					owned_tables = Tinker.objects.exclude(table=None).filter(inventoryitem__char=self.relCrafting.profil).values_list("id", flat=True)
+					new_tables = list(new_tables)
+
+					owned_tables = [*Tinker.objects.exclude(table=None).filter(inventoryitem__char=self.relCrafting.profil).values_list("id", flat=True), *new_tables]
 					first_unowned_table_index = next((i for i, id in enumerate(TO) if id not in owned_tables and id != 0), None)
 					
 					# is there a space to be in front of?
 					if first_unowned_table_index is not None:
-
-						# only tables further back
-						for relocate_table in [id for id in new_tables if id not in TO or TO.index(id) > first_unowned_table_index][::-1]:
-							self.relCrafting.profil.tableOrdering.insert(first_unowned_table_index, relocate_table)
-						
-						self.relCrafting.profil.save(update_fields=["tableOrdering"])
 						changed_table_order = True
+
+						# move tables from further back forwards. list(OrderedDict(...)) ensures uniqueness with first appereance since python 3.7
+						self.relCrafting.profil.tableOrdering = list(OrderedDict.fromkeys(TO[0:first_unowned_table_index] + new_tables + TO[first_unowned_table_index:]))
+						self.relCrafting.profil.save(update_fields=["tableOrdering"])
 
 			recipe_dicts = []
 			for running_recipe in RunningRealtimeRecipe.objects.prefetch_related("recipe__product_set__item").filter(profil=self.relCrafting.profil):

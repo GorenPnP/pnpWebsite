@@ -160,7 +160,7 @@ function change_to_table(id) {
 		document.querySelector(".recipes").innerHTML = "";
 		if (data.part && data.durability_left === 0) {
 			document.querySelector(".recipes").innerHTML = `<div class="alert alert-danger" role="alert">
-					Bauteil "${data.part.name}" ist kaputt gegangen. Um die Werkstation weiter zu verwenden musst du es erst${!data.owns_part ? ' besorgen und' : ''} eneuern${!data.owns_part ? '.' : ':'}
+					Bauteil "${data.part.name}" ist kaputt gegangen. Um die Werkstation weiter zu verwenden, musst du es erst${!data.owns_part ? ' besorgen und' : ''} erneuern${!data.owns_part ? '.' : ':'}
 				</div>`;
 			
 			// has part?
