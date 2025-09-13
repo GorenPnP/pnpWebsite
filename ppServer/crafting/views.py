@@ -3,6 +3,7 @@ from datetime import timedelta, datetime
 from typing import OrderedDict
 
 from django.contrib import messages
+from django.contrib.auth.hashers import make_password
 from django.db.models import Subquery, F, Q, Exists, OuterRef, Case, When, Count, Max
 from django.db.models.functions import Coalesce
 from django.http import HttpResponseNotFound
@@ -134,11 +135,19 @@ def clean_inventory(profile: Profile) -> None:
 
 def update_realtime_recipes(profil: Profile) -> list[InventoryItem]:
 	""" checks if realtime recipes have finished. Returns List of newly created IncentoryItem instances """
-	new_iitems = []
 
-	for finished_recipe in RunningRealtimeRecipe.objects.prefetch_related("profil", "recipe__product_set__item").filter(finishes_at__lte=datetime.now(), profil=profil):
+	# use this unique lock to set on finished recipes by atomic update. Prevents race conditions if update_realtime_recipes() is called multiple times in short succession.
+	lock = make_password(datetime.now().isoformat())
+
+	# mark finished recipes with lock. Stop here if none found.
+	if RunningRealtimeRecipe.objects.filter(finishes_at__lte=datetime.now(), profil=profil, lock=None).update(lock=lock) == 0: return []
+
+	# give products to profile's inventory and end the running, lock-marked recipes
+	new_iitems = []
+	for finished_recipe in RunningRealtimeRecipe.objects.prefetch_related("profil", "recipe__product_set__item").filter(lock=lock):
 		new_iitems += finished_recipe.distribute_products_and_stop()
 
+	# return all newly created iitems (e.g. to look for new tables)
 	return new_iitems
 
 class IndexView(VerifiedAccountMixin, TemplateView):
