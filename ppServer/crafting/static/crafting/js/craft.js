@@ -148,39 +148,45 @@ function change_to_table(id) {
 	document.querySelector("title").innerHTML = selected_tag.dataset.title;
 	document.querySelector("header .navbar-brand .topic").innerHTML = selected_tag.dataset.title;
 
-	post({ search_recipes_by_table: table_id }, data => {
+	return new Promise((resolve, reject) => {
+		post({ search_recipes_by_table: table_id }, data => {
 
-		// update durability on table in table list on the left
-		if (data.part) {
-			selected_tag.querySelector(".progressbar-inner").style.width = data.percent_durability_left + "%";
-			selected_tag.classList.toggle("broken",  data.durability_left === 0);
-		}
-
-		// construct table part
-		document.querySelector(".recipes").innerHTML = "";
-		if (data.part && data.durability_left === 0) {
-			document.querySelector(".recipes").innerHTML = `<div class="alert alert-danger" role="alert">
-					Bauteil "${data.part.name}" ist kaputt gegangen. Um die Werkstation weiter zu verwenden, musst du es erst${!data.owns_part ? ' besorgen und' : ''} erneuern${!data.owns_part ? '.' : ':'}
-				</div>`;
-			
-			// has part?
-			if (data.owns_part) {
-				document.querySelector(".recipes").innerHTML += `<button class="btn btn-danger ingredient" onclick="repair_table(${table_id})">
-					<img src="${data.part.icon_url}" alt="${data.part.name}">
-					<span class="text">Bauteil ${data.part.name} erneuern</span>
-				</button>`;
+			// update durability on table in table list on the left
+			if (data.part) {
+				selected_tag.querySelector(".progressbar-inner").style.width = data.percent_durability_left + "%";
+				selected_tag.classList.toggle("broken",  data.durability_left === 0);
 			}
-		}
-		document.querySelector(".recipes").innerHTML += construct_recipes(data.recipes);
 
-		// disable recipes where necessary
-		update_all_recipe_numbers();
-	}, async error => {
-		alert(error.response?.data?.message || error);
+			// construct table part
+			document.querySelector(".recipes").innerHTML = "";
+			if (data.part && data.durability_left === 0) {
+				document.querySelector(".recipes").innerHTML = `<div class="alert alert-danger" role="alert">
+						Bauteil "${data.part.name}" ist kaputt gegangen. Um die Werkstation weiter zu verwenden, musst du es erst${!data.owns_part ? ' besorgen und' : ''} erneuern${!data.owns_part ? '.' : ':'}
+					</div>`;
+				
+				// has part?
+				if (data.owns_part) {
+					document.querySelector(".recipes").innerHTML += `<button class="btn btn-danger ingredient" onclick="repair_table(${table_id})">
+						<img src="${data.part.icon_url}" alt="${data.part.name}">
+						<span class="text">Bauteil ${data.part.name} erneuern</span>
+					</button>`;
+				}
+			}
+			document.querySelector(".recipes").innerHTML += construct_recipes(data.recipes);
 
-		await update_tables();
-		update_recipes();
-	})
+			// disable recipes where necessary
+			update_all_recipe_numbers();
+
+			resolve();
+		}, async error => {
+			alert(error.response?.data?.message || error);
+
+			await update_tables();
+			await update_recipes();
+
+			resolve();
+		});
+	});
 }
 
 function toggle_Fav(id) {
@@ -291,10 +297,11 @@ function update_tables() {
 
 function update_recipes() {
 	// reload by table
-	if (currently_showing_recipes_of !== "search") change_to_table(document.querySelector(".table.selected").id);
+	if (currently_showing_recipes_of !== "search")
+		return change_to_table(document.querySelector(".table.selected").id);
 
 	// reload by search term
-	else search();
+	return search();
 }
 
 // craft num of items
@@ -313,7 +320,7 @@ function craft({ currentTarget }) {
 	post({ craft: id, num }, async data => {
 		await update_running_recipes();
 		await update_tables();
-		update_recipes();
+		await update_recipes();
 
 		// log used parts
 		if (data.used_parts && data.part) {
@@ -342,7 +349,7 @@ function craft({ currentTarget }) {
 
 		await update_running_recipes();
 		await update_tables();
-		update_recipes();
+		await update_recipes();
 	})
 }
 
@@ -369,37 +376,47 @@ function update_search_itemname_options({ currentTarget }) {
 function search() {
 	const text = document.querySelector("#search-input").value;
 
-	post({ search_recipes_by_name: text }, data => {
+	return new Promise((resolve, reject) => {
+		post({ search_recipes_by_name: text }, data => {
 
-		// reset table selection
-		currently_showing_recipes_of = "search";
-		document.querySelectorAll(".table.selected").forEach(table => table.classList.remove("selected"));
+			// reset table selection
+			currently_showing_recipes_of = "search";
+			document.querySelectorAll(".table.selected").forEach(table => table.classList.remove("selected"));
 
-		// set topic to search text
-		document.querySelector("title").innerHTML = `Suche nach '${text}'`;
-		document.querySelector("header .navbar-brand .topic").innerHTML = `Suche nach '${text}'`;
+			// set topic to search text
+			document.querySelector("title").innerHTML = `Suche nach '${text}'`;
+			document.querySelector("header .navbar-brand .topic").innerHTML = `Suche nach '${text}'`;
 
-		// display recipes with search term as product and ingredient
-		document.querySelector(".recipes").innerHTML =
-			`<h1>ALS PRODUKT:</h1>${construct_recipes(data.as_product) || `<div>-</div>`}
-			<h1>ALS ZUTAT:</h1>${construct_recipes(data.as_ingredient) || `<div>-</div>`}`
+			// display recipes with search term as product and ingredient
+			document.querySelector(".recipes").innerHTML =
+				`<h1>ALS PRODUKT:</h1>${construct_recipes(data.as_product) || `<div>-</div>`}
+				<h1>ALS ZUTAT:</h1>${construct_recipes(data.as_ingredient) || `<div>-</div>`}`
 
-		// disable recipes where necessary
-		update_all_recipe_numbers();
+			// disable recipes where necessary
+			update_all_recipe_numbers();
+
+			resolve();
+		}, reject);
 	})
 }
 
 
 function repair_table(table_id) {
-	post({ repair_table: table_id }, async () => {
-		await update_tables();
-		update_recipes();
-	}, async error => {
-		alert(error.response?.data?.message || error);
+	return new Promise((resolve, reject) => {
+		post({ repair_table: table_id }, async () => {
+			await update_tables();
+			await update_recipes();
 
-		await update_tables();
-		update_recipes();
-	});
+			resolve();
+		}, async error => {
+			alert(error.response?.data?.message || error);
+
+			await update_tables();
+			await update_recipes();
+
+			resolve();
+		});
+	})
 }
 
 
@@ -447,6 +464,41 @@ function update_running_recipes() {
 	})
 }
 
+async function draw_running_recipes_loop() {
+	let needs_reload = false;
+
+	document.querySelectorAll(".running-recipes-list .progress.d-flex").forEach(progress => {
+		const [waitBar, workBar] = progress.querySelectorAll(".progress");
+
+		const start = waitBar.ariaValueMin;
+		const begin = waitBar.ariaValueMax;
+		const end = workBar.ariaValueMax;
+		const curr = Date.now();
+
+		waitBar.ariaValueNow = Math.max(start, curr);
+		workBar.ariaValueNow = Math.max(begin, curr);
+
+		waitBar.querySelector(".progress-bar").style.width = (curr < begin ? Math.round(100* (curr-start) / (begin-start)) : 100) + "%";
+		workBar.querySelector(".progress-bar").style.width = (curr > begin ? Math.round(100* (curr-begin) / (end-begin)) : 0) + "%";
+
+		// reload once at the end if necessary
+		needs_reload = needs_reload || end <= curr;
+	});
+
+	// reload where necessary
+	if (needs_reload) {
+		await update_running_recipes();
+	}
+
+	setTimeout(draw_running_recipes_loop, 1000);
+
+	// reload the non-time critical rest later/here
+	if (needs_reload) {
+		await update_tables();
+		await update_recipes();
+	}
+}
+
 
 document.addEventListener("DOMContentLoaded", async () => {
 
@@ -466,27 +518,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
 	// animate currently crafting recipes and craft when done
-	setInterval(() => document.querySelectorAll(".running-recipes-list .progress.d-flex").forEach(async progress => {
-		const [waitBar, workBar] = progress.querySelectorAll(".progress");
-
-		const start = waitBar.ariaValueMin;
-		const begin = waitBar.ariaValueMax;
-		const end = workBar.ariaValueMax;
-		const curr = Date.now();
-
-		waitBar.ariaValueNow = Math.max(start, curr);
-		workBar.ariaValueNow = Math.max(begin, curr);
-
-		waitBar.querySelector(".progress-bar").style.width = (curr < begin ? Math.round(100* (curr-start) / (begin-start)) : 100) + "%";
-		workBar.querySelector(".progress-bar").style.width = (curr > begin ? Math.round(100* (curr-begin) / (end-begin)) : 0) + "%";
-
-		if (end <= curr) {
-			await update_running_recipes();
-			await update_tables();
-			update_recipes();
-		}
-	}), 1000);
-
+	draw_running_recipes_loop();
 
 	// send input data per btn event on keydown of enter key (e.G. search, amount recipes)
 	document.addEventListener("keydown", e => {

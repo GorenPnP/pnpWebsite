@@ -242,7 +242,7 @@ class CraftingView(VerifiedAccountMixin, ProfileSetMixin, ListView):
 		return InventoryItem.objects.prefetch_related("item").filter(char=self.relCrafting.profil)
 
 	def get_recipe_queryset(self, set_perk_filter=True) -> QuerySet[Recipe]:
-		owned_perk_items = Tinker.objects.exclude(miningperk=None).filter(inventoryitem__char=self.relCrafting.profil)
+		owned_perk_items = Tinker.objects.exclude(miningperk=None).filter(Q(inventoryitem__char=self.relCrafting.profil) | Q(prod__recipe__runningrealtimerecipe__profil=self.relCrafting.profil))
 		qs = Recipe.objects.prefetch_related("ingredient_set__item", "product_set__item", "table__item")\
 			.annotate(
 				ingredient_exists = Exists(Ingredient.objects.filter(recipe=OuterRef("pk"))),
