@@ -161,7 +161,7 @@ class RelEffectInLine(RelInlineAdmin):
             'source_vorteil__teil', 'source_vorteil__char',
             'source_nachteil__teil', 'source_nachteil__char',
             "source_talent__talent", "source_talent__char",
-            "source_gfsAbility__gfsability", "source_gfsAbility__char__eigentümer",
+            "source_gfsAbility__ability", "source_gfsAbility__char__eigentümer",
             "source_klasse__klasse", "source_klasse__char__eigentümer",
             "source_klasseAbility__ability", "source_klasseAbility__char",
             "source_shopBegleiter__item", "source_shopMagischeAusrüstung__item", "source_shopRüstung__item", "source_shopAusrüstungTechnik__item", "source_shopEinbauten__item"

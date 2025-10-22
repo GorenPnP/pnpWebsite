@@ -359,11 +359,11 @@ class Rituale_Runen(BaseShop):
     def getShopDisplayFields():
         return super(Rituale_Runen, Rituale_Runen).getShopDisplayFields() + ["kategorie"]
     
-    def cheapest(self, stufe=1) -> int:
+    def cheapest(self, stufe=1) -> int or None:
         offers = getattr(self, f"{self.firmen.through._meta.model_name}_set").all()
         if not offers: return None
 
-        return sorted([getattr(o, "getPriceStufe{}".format(stufe))() for o in offers])[0]
+        return sorted([getattr(o, "getPriceStufe{}".format(stufe), lambda: None)() for o in offers])[0]
 
 
 class Rüstungen(BaseShop):
