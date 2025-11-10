@@ -725,7 +725,7 @@ def delete_tag(request, pk):
 @require_POST
 def add_ramsch(request, pk):
     # assert user requesting to add an item
-    if not request.spieler.is_spielleitung and not Charakter.objects.filter(pk=pk, char__eigentümer=request.spieler.instance).exists():
+    if not request.spieler.is_spielleitung and not Charakter.objects.filter(pk=pk, eigentümer=request.spieler.instance).exists():
         messages.error(request, "Es ist nicht dein Charakter, dem du Items geben willst.")
         return redirect(reverse("character:show", args=[pk]))
 

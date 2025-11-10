@@ -76,7 +76,6 @@ class GenericSkilltreeView(LevelUpMixin, tables.SingleTableMixin, TemplateView):
         # check
 
         # lower than before?
-        print(char.skilltree_stufe, max_stufe)
         if char.skilltree_stufe > max_stufe:
             messages.error(request, "Die gewählte Stufe ist kleiner als die Jetzige.")
             return redirect(request.build_absolute_uri())

@@ -19,10 +19,12 @@ def is_personal_done(char: Charakter):
     return char is not None and char.name is not None and len(char.name) > 0 and char.persönlichkeit
 
 def is_klasse_done(char: Charakter):
-    return char is not None and char.ep_stufe_in_progress == char.relklasse_set.aggregate(stufen=Coalesce(Sum("stufe"), 0))["stufen"]
+    return char is not None and (char.larp or char.ep_stufe_in_progress == char.relklasse_set.aggregate(stufen=Coalesce(Sum("stufe"), 0))["stufen"])
 
-def is_ap_done(char: Charakter, max_ap: int = 0):
-    return char is not None and (char.ap is None or char.ap <= max_ap)
+def is_ap_done(char: Charakter):
+    max_savable_ap = 0 if char is not None and char.in_erstellung else 2
+
+    return char is not None and (char.ap is None or char.ap <= max_savable_ap)
 
 def is_ferts_done(char: Charakter):
     return char is not None and not char.fp and not char.fg
@@ -46,12 +48,10 @@ def is_done_entirely(char: Charakter) -> bool:
     return len(pending_areas(char)) == 0
 
 def pending_areas(char: Charakter) -> list:
-        max_ap = 0 if char.in_erstellung else 1
-
         res = []
 
         if not is_klasse_done(char): res.append("Klassen")
-        if not is_ap_done(char, max_ap): res.append("Attribute")
+        if not is_ap_done(char): res.append("Attribute")
         if not is_ferts_done(char): res.append("Fertigkeiten")
         if not is_zauber_done(char): res.append("Zauber")
         if not is_personal_done(char): res.append("persönliche Informationen")
