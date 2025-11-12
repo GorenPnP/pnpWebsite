@@ -44,4 +44,4 @@ django-prometheus==2.3.*
 
 crispy-bootstrap5==2024.*   # char nachtragen complex forms & formsets
 
-django-password-eye=1.1.*   # adds widget for password fields with eye-button to toggle visibility
+django-password-eye==1.1.*   # adds widget for password fields with eye-button to toggle visibility

@@ -1,5 +1,5 @@
 {% extends 'base/headed_main.html' %}
-{% load static %}
+{% load static crispy_forms_tags %}
 
 {% block extra-head %}
 <style>
@@ -51,15 +51,13 @@
 
 <form class="mt-5" method="post">
     {% csrf_token %}
-    {% for form in profile_forms %}
-    {{ form.as_p }}
-    {% endfor %}
+    {% for p_form in profile_forms %}{% crispy p_form %}{% endfor %}
 
     <button class="btn btn-primary" type="submit">Speichern</button>
 </form>
 <div class="mt-4">
     <a class="d-block mb-1" href="{% url 'auth:change_email' %}">Email ändern</a>
-    <a class="d-block mb-1" href="{% url 'admin:password_change' %}">Passwort ändern</a>
+    <a class="d-block mb-1" href="{% url 'auth:change_password' %}">Passwort ändern</a>
 </div>
 
 <h2 style="margin-top: 3em">Benachrichtigungen</h2>
