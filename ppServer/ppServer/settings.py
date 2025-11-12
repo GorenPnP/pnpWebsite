@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     'push_notifications',
     "crispy_forms",
     "crispy_bootstrap5",
+    "django_password_eye",
 
     # own apps
     'admin',   # replacement for 'django.contrib.admin'
