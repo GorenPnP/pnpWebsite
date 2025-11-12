@@ -1,5 +1,10 @@
 from django import forms
 
+from crispy_forms.layout import Layout, Div, Field
+from base.crispy_form_decorator import crispy
+
+
+@crispy(form_tag=False)
 class AuswertungForm(forms.Form):
 
     story = forms.CharField(label="Story", required=True)
@@ -11,6 +16,21 @@ class AuswertungForm(forms.Form):
     prestige = forms.IntegerField(initial=0, label="Prestige", required=True)
     verzehr = forms.IntegerField(initial=0, label="Verzehr", required=True)
 
+    def get_layout(self):
+        return Layout(
+            "story",
+            Div(
+                Field('ep', wrapper_class='col-12 col-sm'),
+                Field('sp', wrapper_class='col-12 col-sm'),
+                Field('geld', wrapper_class='col-12 col-sm'),
+            css_class='row'),
+            Div(
+                Field('rang', wrapper_class='col-12 col-sm'),
+                Field('prestige', wrapper_class='col-12 col-sm'),
+                Field('verzehr', wrapper_class='col-12 col-sm'),
+            css_class='row'),
+        )
+
 
 class ZauberplätzeWidget(forms.MultiWidget):
 
@@ -18,6 +38,7 @@ class ZauberplätzeWidget(forms.MultiWidget):
         self.MIN_STUFE = min_stufe
         self.MAX_STUFE = max_stufe
 
+        self.template_name="campaign/zauberplätze_widget.html"
         widgets = [forms.NumberInput for stufe in range(self.MIN_STUFE, self.MAX_STUFE+1)]
 
         super().__init__(widgets, *args, **kwargs)
@@ -37,6 +58,12 @@ class ZauberplätzeWidget(forms.MultiWidget):
 
         return result
 
+    def render(self, name, value, attrs={}, renderer=None):
+        attrs["class"] = getattr(attrs, "class", "") + " form-control" # bootstrapy
+        return super().render(name, value, attrs, renderer)
+
+
+@crispy(form_tag=False)
 class LarpAuswertungForm(forms.Form):
 
     story = forms.CharField(label="Story", required=True)
@@ -51,3 +78,26 @@ class LarpAuswertungForm(forms.Form):
     larp_rang = forms.IntegerField(initial=0, label="LARP-Ränge", required=True)
     prestige = forms.IntegerField(initial=0, label="Prestige", required=True)
     verzehr = forms.IntegerField(initial=0, label="Verzehr", required=True)
+
+    def get_layout(self):
+        return Layout(
+            "story",
+            Div(
+                Field('ap', wrapper_class='col-12 col-sm'),
+                Field('fp', wrapper_class='col-12 col-sm'),
+                Field('fg', wrapper_class='col-12 col-sm'),
+            css_class='row'),
+            Div(
+                Field('sp', wrapper_class='col-12 col-sm'),
+                Field('geld', wrapper_class='col-12 col-sm'),
+            css_class='row'),
+            "zauberplätze",
+            Div(
+                Field('rang', wrapper_class='col-12 col-sm'),
+                Field('larp_rang', wrapper_class='col-12 col-sm'),
+            css_class='row'),
+            Div(
+                Field('prestige', wrapper_class='col-12 col-sm'),
+                Field('verzehr', wrapper_class='col-12 col-sm'),
+            css_class='row'),
+        )

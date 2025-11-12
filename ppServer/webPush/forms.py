@@ -2,8 +2,11 @@ from django import forms
 from django.contrib.auth.models import User
 from django.db.models import Exists, OuterRef
 
-from push_notifications.models import WebPushDevice
+from crispy_forms.layout import Layout, Div, Field
+
+from base.crispy_form_decorator import crispy
 from character.models import Spieler
+from push_notifications.models import WebPushDevice
 
 from .models import *
 
@@ -34,11 +37,23 @@ class SendMessageForm(forms.Form):
     )
 
 
+@crispy(form_tag=False)
 class UserSettingsForm(forms.ModelForm):
     class Meta:
         model = User
         fields = ["username", "first_name", "last_name"]
+    
+    def get_layout(self):
+        return Layout(
+            "username",
+            Div(
+                Field('first_name', wrapper_class='col-12 col-sm'),
+                Field('last_name', wrapper_class='col-12 col-sm'),
+            css_class='row')
+        )
 
+
+@crispy(form_tag=False)
 class SpielerSettingsForm(forms.ModelForm):
     class Meta:
         model = Spieler
@@ -48,5 +63,4 @@ class SpielerSettingsForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
 
         self.fields["geburtstag"].help_text = "Datumsformat ist tt.mm.jjjj"
-            
 

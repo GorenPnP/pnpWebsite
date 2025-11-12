@@ -1,5 +1,7 @@
+from django.contrib import messages
 from django.contrib.auth import login
 from django.contrib.auth.models import Group, User
+from django.contrib.auth.views import PasswordChangeView
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.contrib.sites.shortcuts import get_current_site
 from django.core.mail import EmailMessage
@@ -75,6 +77,7 @@ def change_email(request):
         if form.is_valid():
             new_email = form.cleaned_data['email']
             if new_email == old_email:
+                messages.error(request, "Deine Eingabe ist bereits deine E-Mail. Wenn du sie ändern willst, musst du was Anderes eingeben.")
                 return redirect('auth:change_email')
 
             user = request.user
@@ -116,3 +119,9 @@ def activate(request, uidb64, token):
         return redirect('base:index')
     else:
         return HttpResponse('Aktivierungslink ist nicht korrekt!')
+    
+
+class ChangePasswordView(PasswordChangeView):
+    def form_valid(self, form):
+        messages.success(self.request, "Passwort erfolgreich geändert")
+        return super().form_valid(form)

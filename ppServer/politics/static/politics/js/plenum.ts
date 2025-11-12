@@ -1,17 +1,10 @@
+declare var bootstrap: any;
+
 // config
 const politician_diameter = 20;
 const overall_angle = 178;
 const initial_radius = 4*politician_diameter;
 
-interface Politician {
-    portrait: string,
-    name: string,
-    is_party_lead: boolean,
-    genere: string,
-    birthyear: number,
-
-    vote?: string,
-};
 interface Party {
     id: number,
     name: string,
@@ -27,10 +20,24 @@ interface PartyWithPercentage extends Party {
     start_percent: number,
     end_percent: number,
 }
-interface PoliticianWithPartyId extends Politician {
+interface PoliticianWithPartyId {
+    portrait: string,
+    name: string,
+    is_party_lead: boolean,
+    genere: string,
+    birthyear: number,
+
+    vote?: string,
     party: number;
 }
-interface PoliticianWithParty extends Politician {
+interface PoliticianWithParty {
+    portrait: string,
+    name: string,
+    is_party_lead: boolean,
+    genere: string,
+    birthyear: number,
+
+    vote?: string,
     party: Party;
 }
 
@@ -109,6 +116,9 @@ class Plenum {
             politicians = this.draw_row(current_row, politicians, parties, false);
             current_row++;
         }
+
+        // enable info of politicians in tooltips
+        [...this.plenum_tag.querySelectorAll('[data-bs-toggle="tooltip"]')].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
     }
 
     private draw_row(row_num: number, politicians_with_party: PoliticianWithParty[], parties: Party[], test=false): PoliticianWithParty[] {
@@ -211,10 +221,11 @@ class Plenum {
                 break;
         }
 
-        return `<button title="${politician_with_party.name || 'Name fehlt'} (${politician_with_party.genere || 'Genere fehlt'}) - ${politician_with_party.birthyear || 'Geburtsjahr fehlt'}"
+        const description = `<b>${politician_with_party.name || 'Name fehlt'}</b>, ${politician_with_party.party.abbreviation}<br>${politician_with_party.genere || 'Genere fehlt'}, ${politician_with_party.birthyear ? 'geb. ' + politician_with_party.birthyear : 'Geburtsjahr fehlt'}`;
+        return `<button
+            data-bs-toggle="tooltip" data-bs-html="true" data-bs-title="${description}" data-bs-custom-class="politician-tooltip"
             style="--color: ${ politician_with_party.party.textColor }; --bg-color: ${ politician_with_party.party.color }; left: calc(${this.horiz_center}px - var(--politician-size) / 2); top: calc(var(--politician-size) / -2); translate: ${x}px ${y}px; "
-            class="politician ${ politician_with_party.is_party_lead ? 'politician--lead' : ''}"
-            data-politician='${JSON.stringify(abbr_politician)}'>${svg}
+            class="politician ${ politician_with_party.is_party_lead ? 'politician--lead' : ''}">${svg}
         </button>`;
     }
 }
@@ -227,7 +238,7 @@ function init() {
     (cssRoot as any).style.setProperty('--politician-size', `${politician_diameter}px`);
     (cssRoot as any).style.setProperty('--politician-inner-size', `80%`);
 
-    // show/hide plenums in collapseables
+    // show/hide plenums in collapsibles
     document.querySelectorAll(".plenum-collapse").forEach(btn => btn.addEventListener("click", function(e) {
         const plenum = Plenum.getInstance(document.querySelector(`${(e.target as any).dataset.bsTarget} .plenum`)!);
         plenum.visible = !plenum.visible;

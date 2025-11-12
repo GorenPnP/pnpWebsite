@@ -24,15 +24,20 @@ class CardListView(VerifiedAccountMixin, ListView):
         return super().get_context_data(**kwargs, topic="Meine Karten")
 
 
-class CardDetailView(VerifiedAccountMixin, UserPassesTestMixin, DetailView):
-
-    model = Card
+class CardDetailView(VerifiedAccountMixin, UserPassesTestMixin, TemplateView):
     template_name = "cards/show.html"
+
+    object = None
+    def get_object(self):
+        if not self.object:
+            self.object = Card.objects.get(pk=self.kwargs["pk"])
+        return self.object
+        
 
     def test_func(self):
         object = self.get_object()
         return (
-            object.spieler == self.request.spieler.instance and
+            (self.request.spieler.is_spielleitung or object.spieler == self.request.spieler.instance) and
             object.active
         )
 
@@ -42,6 +47,7 @@ class CardDetailView(VerifiedAccountMixin, UserPassesTestMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
+        context["object"] = self.get_object()
         context["transactions"] = context["object"].get_transactions()
         context["topic"] = context["object"].name
         context["app_index"] = "Konten"

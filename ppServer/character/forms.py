@@ -3,13 +3,13 @@ import json
 from django import forms
 
 from crispy_forms.bootstrap import AppendedText, Tab, TabHolder, Container, InlineField
-from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Submit, HTML, Fieldset, ButtonHolder, LayoutObject, TEMPLATE_PACK
 
+from base.crispy_form_decorator import crispy
 from campaign.forms import ZauberplätzeWidget
 
 from .models import *
-from.form_utils import FormSet, PopulatedFormSet
+from .form_utils import FormSet, PopulatedFormSet
 
 
 AttributFormSet = PopulatedFormSet(Charakter, RelAttribut, "attribut", "attribut", ["attribut", "aktuellerWert", "aktuellerWert_bonus", "aktuellerWert_fix", "maxWert", "maxWert_fix"])
@@ -56,7 +56,7 @@ class Formset(LayoutObject):
         return formset.render(template_name="character/_formset.html")
 
 
-class CrispyZauberWidget(ZauberplätzeWidget):
+class CharacterZauberWidget(ZauberplätzeWidget):
     def decompress(self, value):
         value = json.loads(value) if value else {}
         return [value[str(i)] if str(i) in value else None for i in range(self.MIN_STUFE, self.MAX_STUFE+1)]
@@ -64,6 +64,8 @@ class CrispyZauberWidget(ZauberplätzeWidget):
     def value_from_datadict(self, data, files, name):
         return json.dumps(super().value_from_datadict(data, files, name))
 
+
+@crispy(form_method='post')
 class CharacterForm(forms.ModelForm):
     class Meta:
         model = Charakter
@@ -80,7 +82,7 @@ class CharacterForm(forms.ModelForm):
             "items", "waffenWerkzeuge", "magazine", "pfeile_bolzen", "schusswaffen", "magischeAusrüstung", "rituale_runen", "rüstungen", "ausrüstungTechnik", "fahrzeuge", "einbauten", "zauber", "vergessene_zauber", "begleiter", "engelsroboter",
         ]
 
-    zauberplätze = forms.JSONField(initial=dict, label="Zauberslots", required=False, widget=CrispyZauberWidget(attrs={'class': 'zauberplätze-input'}))
+    zauberplätze = forms.JSONField(initial=dict, label="Zauberslots", required=False, widget=CharacterZauberWidget(attrs={'class': 'zauberplätze-input'}))
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -90,9 +92,8 @@ class CharacterForm(forms.ModelForm):
             self.fields[fieldname].initial = 0 if fieldname in ["ap", "fp", "fg", "sp", "ip", "tp", "geld", "konzentration"] else None
             self.fields[fieldname].required = True
 
-        self.helper = FormHelper()
-        self.helper.form_method = 'post'
-        self.helper.layout = Layout(
+    def get_layout(self):
+        return Layout(
             TabHolder(
                 Tab(
                     'Persönliches',
@@ -288,13 +289,14 @@ class CharacterForm(forms.ModelForm):
         )
 
 
-
+@crispy(form_tag=False)
 class CreateTagForm(forms.ModelForm):
     class Meta:
         model = Tag
         fields = ["spieler", "name"]
 
 
+@crispy(form_tag=False)
 class CreateRamschForm(forms.ModelForm):
     class Meta:
         model = RelRamsch
@@ -304,8 +306,8 @@ class CreateRamschForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields["char"].widget = forms.HiddenInput()
 
-        self.helper = FormHelper()
-        self.helper.layout = Layout(
+    def get_layout(self):
+        return Layout(
             "char",
             Container(
                 "neues Item mitnehmen", # name of container, not a field

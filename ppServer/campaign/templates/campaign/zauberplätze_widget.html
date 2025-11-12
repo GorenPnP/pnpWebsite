@@ -1,0 +1,7 @@
+<!-- bootstrappy 5 + label for stufe -->
+{% spaceless %}{% for widget in widget.subwidgets %}
+<div class="mb-3">
+  <label for="{{ widget.id }}" class="form-label">Stufe {{ widget.name|cut:'zauberplätze_' }}</label>
+  {% include widget.template_name %}
+</div>
+{% endfor %}{% endspaceless %}

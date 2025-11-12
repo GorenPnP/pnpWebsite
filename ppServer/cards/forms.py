@@ -3,6 +3,8 @@ from django import forms
 from django.core import validators
 from django.core.exceptions import ValidationError
 
+from base.crispy_form_decorator import crispy
+
 from .models import Card, Transaction
 
 def get_card(queryset=Card.objects.filter(active=True), **kwargs):
@@ -92,6 +94,8 @@ class CardField(forms.ModelChoiceField):
             queryset=queryset
         )
 
+
+@crispy(form_tag=False)
 class AdminTransactionForm(forms.ModelForm):
 
     class Meta:
@@ -116,6 +120,7 @@ class AdminTransactionForm(forms.ModelForm):
         return cleaned_data
 
 
+@crispy(form_tag=False)
 class SpielerTransactionForm(forms.ModelForm):
 
     class Meta:

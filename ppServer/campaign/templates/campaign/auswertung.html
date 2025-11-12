@@ -1,5 +1,5 @@
 {% extends 'base/headed_main.html' %}
-{% load static levelUp.resources l10n campaign.auswertung %}
+{% load static levelUp.resources l10n campaign.auswertung crispy_forms_tags %}
 {% block extra-head %}
 <link rel="stylesheet" href="{% static 'auth/css/centered_form.css' %}">
 
@@ -16,7 +16,7 @@
 
     <form class='form' method="POST" class="input-group">
         {% csrf_token %}
-        {{ form.as_p }}
+        {% crispy form %}
 
         <button type="submit" class="btn btn-primary">OK</button>
     </form>

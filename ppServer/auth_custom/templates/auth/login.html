@@ -1,13 +1,13 @@
 {% extends 'base/main.html' %}
-{% load static %}
+{% load static crispy_forms_tags %}
 {% block title %}Anmelden{% endblock %}
 {% block extra-head %}<link rel="stylesheet" href="{% static 'auth/css/centered_form.css' %}">{% endblock %}
 {% block main %}
 <div class="text-container">
     <h1>Anmelden</h1>
-    <form class='form' method="POST" class="input-group">
+    <form class="form" method="POST">
         {% csrf_token %}
-        {{ form.as_p }}
+        {% crispy form %}
 
         <button type="submit" class="btn btn-primary">LOGIN</button>
     </form>

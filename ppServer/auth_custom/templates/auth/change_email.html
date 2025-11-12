@@ -1,5 +1,5 @@
 {% extends 'base/main.html' %}
-{% load static %}
+{% load static crispy_forms_tags %}
 {% block title %}Registrieren{% endblock %}
 {% block extra-head %}
 <link rel="stylesheet" href="{% static 'auth/css/centered_form.css' %}">{% endblock %}
@@ -8,7 +8,7 @@
 	<h1>Email ändern</h1>
 	<form class='form' method="POST">
 		{% csrf_token %}
-		{{ form.as_p }}
+		{% crispy form %}
 
 		<button id='submit' type="submit" class="btn btn-primary">OK</button>
 	</form>

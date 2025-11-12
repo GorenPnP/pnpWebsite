@@ -1,13 +1,13 @@
-from django.urls import path
-from django.contrib.auth.views import LoginView, LogoutView, PasswordResetCompleteView, PasswordResetConfirmView, PasswordResetDoneView, PasswordResetView
+from django.urls import path, reverse_lazy
+from django.contrib.auth.views import LoginView, LogoutView, PasswordResetCompleteView, PasswordResetConfirmView, PasswordResetDoneView, PasswordResetView, PasswordChangeView
 from django.views.generic.base import TemplateView
 
-from . import views
+from . import forms, views
 
 app_name = 'auth'
 
 urlpatterns = [
-    path('login/', LoginView.as_view(template_name='auth/login.html'), name="login"),
+    path('login/', LoginView.as_view(template_name='auth/login.html', form_class=forms.LoginForm), name="login"),
     path('logout/', LogoutView.as_view(next_page='base:index'), name='logout'),
 
     # signup with email confirmation
@@ -20,9 +20,12 @@ urlpatterns = [
     path('activate/<uidb64>/<token>/', views.activate, name='activate'),
 
     # forgot password
-    path('password_reset/', PasswordResetView.as_view(template_name='auth/password_reset.html', email_template_name = 'auth/email/password_reset_email.html', success_url='/auth/password_reset/done/'), name="reset_password"),
+    path('password_reset/', PasswordResetView.as_view(template_name='auth/password_reset.html', email_template_name = 'auth/email/password_reset_email.html', success_url='/auth/password_reset/done/', form_class=forms.CrispyPasswordResetForm), name="reset_password"),
     path('password_reset/done/', PasswordResetDoneView.as_view(template_name='auth/password_reset_done.html'), name="password_reset_done"),
-    path('password_reset/<uidb64>/<token>', PasswordResetConfirmView.as_view(template_name='auth/password_reset_confirm.html', success_url="/auth/password_reset/complete/"), name="password_reset_confirm_"),
-    path('password_reset/<uidb64>/<token>/', PasswordResetConfirmView.as_view(template_name='auth/password_reset_confirm.html', success_url="/auth/password_reset/complete/"), name="password_reset_confirm"),
+    path('password_reset/<uidb64>/<token>', PasswordResetConfirmView.as_view(template_name='auth/password_reset_confirm.html', success_url="/auth/password_reset/complete/", form_class=forms.ResetPasswordForm), name="password_reset_confirm_"),
+    path('password_reset/<uidb64>/<token>/', PasswordResetConfirmView.as_view(template_name='auth/password_reset_confirm.html', success_url="/auth/password_reset/complete/", form_class=forms.ResetPasswordForm), name="password_reset_confirm"),
     path('password_reset/complete/', PasswordResetCompleteView.as_view(template_name='auth/password_reset_complete.html'), name="password_reset_complete"),
+    
+    # change password
+    path('change_password/', views.ChangePasswordView.as_view(template_name='auth/change_password.html', success_url=reverse_lazy("web_push:settings"), form_class=forms.ChangePasswordForm), name='change_password'),
 ]

@@ -1,5 +1,5 @@
 {% extends 'base/headed_main.html' %}
-{% load static %}
+{% load static crispy_forms_tags %}
 {% block extra-head %}
     <link rel="stylesheet" href="{% static 'auth/css/centered_form.css' %}">
     <style>
@@ -17,7 +17,7 @@
 
     <form method="post">
         {% csrf_token %}
-        {{ form.as_p }}
+        {% crispy form %}
 
         {% for error in errors %}<p>{{ error }}</p>{% endfor %}
 

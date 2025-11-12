@@ -134,6 +134,9 @@ body {
 	}
 }
 
+// don't wrap eye of password field to the next line
+.django_password_eye { flex-wrap: nowrap; }
+
 // remove z-index of 3 to scroll behind footers
 .active > .page-link, .page-link.active { z-index: 0 !important; }
 

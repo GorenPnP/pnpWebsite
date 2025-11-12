@@ -12,7 +12,7 @@
 
     {% if view.filterset_class or view.filterset_fields %}
         {% bootstrap_form_errors filter.form %}
-        <button class="btn btn-primary btn-lg m-2" type="submit" form="filter-form">filter</button>
+        <button class="btn btn-primary btn-lg m-2" type="submit" form="filter-form">filtern</button>
         <input class="btn btn-outline-primary btn-lg m-2" type="button" form="filter-form" onclick="reset_filter()" value="reset">
     {% endif %}
 

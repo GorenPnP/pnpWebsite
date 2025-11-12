@@ -246,7 +246,7 @@ class Gfs(models.Model):
     wesen = models.ForeignKey(Wesen, on_delete=models.SET_NULL, blank=True, null=True)
     beschreibung = MarkdownField(rendered_field='beschreibung_rendered', validator=VALIDATOR_STANDARD)
     beschreibung_rendered = RenderedMarkdownField(null=True)
-    eigenschaften = models.ManyToManyField(GfsEigenschaft)
+    eigenschaften = models.ManyToManyField(GfsEigenschaft, blank=True)
 
     ap = models.PositiveIntegerField(default=0, validators=[MaxValueValidator(100)], verbose_name="AP-Kosten")
 

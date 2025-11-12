@@ -8,5 +8,5 @@ urlpatterns = [
     path('', CardListView.as_view(), name='index'),
     path('transaction/', sp_transaction, name='sp_transaction'),
     path('transaction/<slug:uuid>/', TransactionView.as_view(), name='transaction'),
-    path('<slug:pk>/', CardDetailView.as_view(), name='show'),          # has to be the last one since slug matches everything
+    path('<uuid:pk>/', CardDetailView.as_view(), name='show'),          # has to be the last one since slug matches everything
 ]

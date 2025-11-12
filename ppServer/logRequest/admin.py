@@ -1,10 +1,14 @@
 from django.contrib import admin
+from django.utils.html import format_html
 
 from .models import Request
 
 class RequestAdmin(admin.ModelAdmin):
-    list_display = ['zeit', 'methode', 'pfad', 'user', 'antwort', 'user_agent']
-    list_display_links = ["zeit", "pfad"]
+    list_display = ['zeit', 'methode', '_pfad', 'user', 'antwort', 'user_agent']
+    list_display_links = ["zeit"]
+
+    def _pfad(self, obj):
+        return format_html('<a href="{0}">{0}</a>'.format(obj.pfad))
 
     def has_add_permission(self, request):
         return False

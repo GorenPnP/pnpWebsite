@@ -42,7 +42,7 @@ class GfsFertigkeitInLine(admin.TabularInline):
         return False
 
     def get_queryset(self, request):
-        return super().get_queryset(request).prefetch_related('fertigkeit')
+        return super().get_queryset(request).prefetch_related('fertigkeit', 'gfs')
 
 
 class GfsVorteilInLine(admin.TabularInline):
@@ -59,6 +59,9 @@ class GfsWesenkraftInLine(admin.TabularInline):
     model = GfsWesenkraft
     extra = 1
 
+    def get_queryset(self, request):
+        return super().get_queryset(request).prefetch_related("wesenkraft", "gfs")
+
 
 class GfsZauberInLine(admin.TabularInline):
     model = GfsZauber
@@ -67,7 +70,20 @@ class GfsZauberInLine(admin.TabularInline):
 
 class GfsSkilltreeInLine(admin.TabularInline):
     model = GfsSkilltreeEntry
+    fields = ["base", "operation", "amount", "stufe", "text", "fertigkeit", "vorteil", "nachteil", "wesenkraft", "spezialfertigkeit", "wissensfertigkeit", "magische_ausrüstung"]
     extra = 1
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).prefetch_related("base", "gfs", "wesenkraft", "magische_ausrüstung", "vorteil", "nachteil",
+            "spezialfertigkeit__attr1", "spezialfertigkeit__attr2", "wissensfertigkeit__attr1", "wissensfertigkeit__attr2", "wissensfertigkeit__attr3")
+
+    def get_formset(self, request, obj=None, **kwargs):
+        formset = super().get_formset(request, obj, **kwargs)
+
+        formset.form.base_fields["spezialfertigkeit"].queryset = formset.form.base_fields["spezialfertigkeit"].queryset.prefetch_related("attr1", "attr2")
+        formset.form.base_fields["wissensfertigkeit"].queryset = formset.form.base_fields["wissensfertigkeit"].queryset.prefetch_related("attr1", "attr2", "attr3")
+
+        return formset
 
 
 class GfsStufenplanInLine(admin.TabularInline):
@@ -81,15 +97,14 @@ class GfsStufenplanInLine(admin.TabularInline):
 
 
 class GfsAdmin(admin.ModelAdmin):
-    # TODO change back
-    # list_display = ('icon_', 'titel', 'ap', 'difficulty', 'vorteil_', 'nachteil_', 'zauber_',
-    #                 "wesenschaden_waff_kampf", "wesenschaden_andere_gestalt", "wesenkraft_", "startmanifest",)
-    list_display = ('icon_', 'titel', '_beschreibung', 'eigenschaft_',)
+    list_display = ('icon_', 'titel', 'ap', 'difficulty', 'vorteil_', 'nachteil_', 'zauber_',
+                    "wesenschaden_waff_kampf", "wesenschaden_andere_gestalt", "wesenkraft_", "startmanifest",)
     list_filter = ["wesen", 'ap', 'startmanifest', "wesenschaden_waff_kampf"]
     search_fields = ('titel', 'ap')
 
     list_display_links = ["icon_", "titel"]
 
+    fields = ["icon", "titel", "wesen", "beschreibung", "eigenschaften", "ap", "wesenschaden_waff_kampf", "wesenschaden_andere_gestalt", "startmanifest", "difficulty"]
     inlines = [GfsImageInLine, GfsAttributInLine, GfsFertigkeitInLine,
                GfsVorteilInLine, GfsNachteilInLine,
                GfsWesenkraftInLine, GfsZauberInLine,
