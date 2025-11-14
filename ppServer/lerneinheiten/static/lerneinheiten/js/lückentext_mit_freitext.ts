@@ -20,7 +20,7 @@ answer_textarea.closest("p")!.classList.add("hidden");
 const element = document.querySelector<HTMLDivElement>(".markdown--lücken")!;
 let text = (element as any).dataset.text.replace(/<id:(\d+)>/gi, (full_match: string, gap_id: string) => {
     const value = JSON.parse(answer_textarea.innerHTML).gaps?.[gap_id] || "";
-    return `<input class="input-gap" data-gap_id="${gap_id}" value="${value}" form="form" required>`;
+    return `<input class="input-gap form-control d-inline" style="width: unset" data-gap_id="${gap_id}" value="${value}" form="form" required>`;
 });
 
 // display gap properly

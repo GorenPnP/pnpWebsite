@@ -42,6 +42,12 @@
     }
 }
 
+.enemies .enemy-row {
+    display: flex;
+    gap: .5em;
+    align-items: flex-end;
+}
+
 #save-btn {
     grid-column: 1 / -1;
     justify-self: center;

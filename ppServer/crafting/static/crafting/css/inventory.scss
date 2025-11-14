@@ -5,8 +5,9 @@
 .add-form {
 	display: flex;
 	justify-content: space-between;
-	align-items: center;
+	align-items: flex-end;
 	flex-wrap: wrap;
+	gap: .5em;
 
 	margin-inline: 3px;
 

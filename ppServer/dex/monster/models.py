@@ -132,7 +132,7 @@ class Attacke(models.Model):
         verbose_name_plural = "Attacken"
 
     name = models.CharField(max_length=128, unique=True)
-    damage = models.ManyToManyField(Dice, blank=True)
+    damage = models.ManyToManyField(Dice, blank=True, verbose_name="Schaden")
     description = models.TextField(verbose_name="Beschreibung")
     types = models.ManyToManyField(Typ, verbose_name="Typen")
 

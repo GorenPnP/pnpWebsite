@@ -1,5 +1,5 @@
 {% extends 'base/main.html' %}
-{% load static httpChat.chatroom_exclude_acc %}
+{% load static httpChat.chatroom_exclude_acc crispy_forms_tags %}
 
 {% block title %}{{ account.name }}{% endblock %}
 {% block extra-head %}
@@ -63,7 +63,7 @@
       <div class="modal-body">
         <form id="new-form" method="post">
             {% csrf_token %}
-            {{ new_chat_form.as_div }}
+            {% crispy new_chat_form %}
         </form>
       </div>
       <div class="modal-footer">
@@ -86,7 +86,7 @@
       <div class="modal-body">
         <form id="edit-form" method="post" enctype="multipart/form-data">
             {% csrf_token %}
-            {{ edit_account_form.as_div }}
+            {% crispy edit_account_form %}
         </form>
       </div>
       <div class="modal-footer">

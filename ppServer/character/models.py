@@ -643,7 +643,7 @@ class Charakter(models.Model):
         verbose_name_plural = "Charaktere"
         ordering = ["eigentümer", 'name']
 
-    image = ResizedImageField(size=[1024, 1024], null=True, blank=True)
+    image = ResizedImageField(size=[1024, 1024], null=True, blank=True, verbose_name="Bild")
 
     # settings
     in_erstellung = models.BooleanField(default=True)

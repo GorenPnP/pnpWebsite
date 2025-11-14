@@ -1,5 +1,5 @@
 {% extends 'base/headed_main.html' %}
-{% load static l10n crafting.duration %}
+{% load static l10n crafting.duration crispy_forms_tags %}
 {% block extra-head %}
 <link rel="stylesheet"  type="text/css" href="{% static 'crafting/css/inventory.css' %}">
 <script src="{% static 'res/js/axios.min.js' %}" type='text/javascript'></script>
@@ -88,6 +88,7 @@
 {% block main %}
 {% if not restricted_profile %}
 <form class="add-form" method="post">
+	{% csrf_token %}
 	{{ add_form.as_div }}
 
 	<button type="submit" class="btn btn-primary">Hinzufügen</button>

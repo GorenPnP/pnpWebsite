@@ -1,5 +1,5 @@
 {% extends './page_template.html' %}
-{% load static l10n %}
+{% load static l10n crispy_forms_tags %}
 
 {% block extra-head %}
     {{ block.super }}
@@ -7,13 +7,6 @@
     <!-- custom -->
     {{ object.solution.choice_ids|json_script:"solution" }}
     <script src="{% static 'lerneinheiten/js/multiple_choice.js' %}" defer></script>
-    <style>
-        .check {
-            display: grid;
-            grid-template-columns: auto 1fr;
-            gap: .5em;
-        }
-    </style>
 {% endblock %}
 
 {% block content %}
@@ -22,13 +15,15 @@
 
     <form id="form" method="post">
         {% csrf_token %}
-        {{ form.as_p }}
+        {% crispy form %}
 
-        <fieldset class="check">
+        <fieldset>
             {% for choice in object.content.choices %}
                 {% localize off %}
-                <input type="checkbox" id="choice-{{ choice.id }}" name="{{ choice.id }}" form="form">
-                <label for="choice-{{ choice.id }}">{{ choice.label }}</label>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="choice-{{ choice.id }}" name="{{ choice.id }}" form="form">
+                    <label class="form-check-label" for="choice-{{ choice.id }}">{{ choice.label }}</label>
+                </div>
                 {% endlocalize %}
             {% endfor %}
         </fieldset>

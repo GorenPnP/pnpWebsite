@@ -7,13 +7,6 @@
     <!-- custom -->
     {{ object.solution.choice_id|json_script:"solution" }}
     <script src="{% static 'lerneinheiten/js/single_choice.js' %}" defer></script>
-    <style>
-        .radio {
-            display: grid;
-            grid-template-columns: auto 1fr;
-            gap: .5em;
-        }
-    </style>
 {% endblock %}
 
 {% block content %}
@@ -24,11 +17,13 @@
         {% csrf_token %}
         {{ form.as_p }}
 
-        <fieldset class="radio">
+        <fieldset>
             {% for choice in object.content.choices %}
                 {% localize off %}
-                <input type="radio" id="choice-{{ choice.id }}" name="choices" value="{{ choice.id }}" form="form" required>
-                <label for="choice-{{ choice.id }}">{{ choice.label }}</label>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" id="choice-{{ choice.id }}" name="choices" value="{{ choice.id }}" form="form" required>
+                    <label class="form-check-label" for="choice-{{ choice.id }}">{{ choice.label }}</label>
+                </div>
                 {% endlocalize %}
             {% endfor %}
         </fieldset>

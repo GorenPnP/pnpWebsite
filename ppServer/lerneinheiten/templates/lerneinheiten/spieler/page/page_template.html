@@ -1,5 +1,5 @@
 {% extends 'base/headed_main.html' %}
-{% load static %}
+{% load static crispy_forms_tags %}
 
 {% block extra-head %}
     {{ block.super }}
@@ -25,7 +25,7 @@
 
         <form action="{% url 'lerneinheiten:inquiry_form' object.id %}" method="post">
             {% csrf_token %}
-            {{ inquiry_form.as_p }}
+            {% crispy inquiry_form %}
     
             <button class="btn btn-primary">Speichern</button>
         </form>

@@ -1,5 +1,5 @@
 {% extends 'base/headed_main.html' %}
-{% load static dex.dice l10n %}
+{% load static dex.dice l10n crispy_forms_tags %}
 
 {% block extra-head %}
 <link rel="stylesheet" href="{% static 'dex/monster/css/monster_detail.css' %}">
@@ -175,7 +175,7 @@
           <div class="modal-body">
             <form method="post" id="catch-form">
               {% csrf_token %}
-              {{ form.as_p }}
+              {% crispy form %}
             </form>
           </div>
           <div class="modal-footer">

@@ -1,21 +1,15 @@
 import json
 
 from django.contrib import messages
-from django.db.models import F, OuterRef, Subquery
-from django.db.utils import IntegrityError
-from django.forms import modelformset_factory
-from django.http.response import JsonResponse
-from django.shortcuts import render, get_object_or_404, reverse, redirect
+from django.shortcuts import render, reverse, redirect
 from django.views.generic import DetailView
-from django.views.generic.base import TemplateView
 from django.views.generic.list import ListView
-from django.utils.html import format_html
 
 from crafting.mixins import ProfileSetMixin
 from crafting.models import InventoryItem
 from ppServer.mixins import VerifiedAccountMixin, SpielleitungOnlyMixin
 
-from .forms import RegionEditorForm
+from .forms import *
 from .models import *
 
 
@@ -44,17 +38,6 @@ class RegionEditorView(VerifiedAccountMixin, SpielleitungOnlyMixin, DetailView):
 	template_name = "combat/region_editor.html"
 	model = Region
 
-	def get_form(self, *data):
-		return RegionEditorForm(*data, instance=self.object)
-	
-	def get_formset(self, *data):
-		enemies = RegionEnemy.objects.values('enemy', "num")
-		SalaryFormSet = modelformset_factory(RegionEnemy, fields = ["enemy", "num"], extra=enemies.count()+3, can_delete=True)
-		if data:
-			return SalaryFormSet(*data, queryset=self.model.objects.none())
-
-		return SalaryFormSet(initial=enemies, queryset=self.model.objects.none())
-
 	def get_context_data(self, **kwargs):
 		return super().get_context_data(
 			**kwargs,
@@ -65,24 +48,25 @@ class RegionEditorView(VerifiedAccountMixin, SpielleitungOnlyMixin, DetailView):
 			grid_size = Region.GRID_SIZE,
 			types = list(CellType.objects.annotate_sprite(self.object).values("pk", "name", "sprite", "use_default_sprite")),
 			empty_type_pk = CellType.objects.filter(is_default_sprite=True).values_list("pk", flat=True).first(),
-			form = self.get_form(),
-			formset = self.get_formset(),
+			form = RegionEditorForm(instance=self.object),
+			enemy_formset = get_EnemyFormset(self.object)(initial=RegionEnemy.objects.filter(region=self.object).values("enemy", "num"), queryset=self.model.objects.none()),
+			enemy_formset_helper = EnemyFormsetHelper(),
 		)
 	
 	def post(self, *args, **kwargs):
 		self.object = self.get_object()
 
-		form = self.get_form(self.request.POST, self.request.FILES)
-		formset = self.get_formset(self.request.POST, self.request.FILES)
+		form = RegionEditorForm(self.request.POST, self.request.FILES, instance=self.object)
+		enemy_formset = get_EnemyFormset(self.object)(self.request.POST, self.request.FILES, queryset=self.model.objects.none())
 		form.full_clean()
 
-		if form.is_valid() and formset.is_valid():
+		if form.is_valid() and enemy_formset.is_valid():
 
 			# save (grid of) region
 			self.object = form.save()
 
 			# save enemies (with region)
-			for regionenemy in formset.save(commit=False):
+			for regionenemy in enemy_formset.save(commit=False):
 				regionenemy.region = self.object
 				regionenemy.save()
 

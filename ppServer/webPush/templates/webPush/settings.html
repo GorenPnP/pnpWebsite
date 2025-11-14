@@ -73,7 +73,7 @@
     <p>Welche Themen möchtest du mit deinen Geräten abonnieren?</p>
     <form method="post" action="{% url 'web_push:push_settings' %}">
         {% csrf_token %}
-        {{ form.as_p }}
+        {% crispy form %}
         <button type="submit" class="btn btn-primary">Themen speichern</button>
     </form>
 </div>

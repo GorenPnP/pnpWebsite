@@ -3,3 +3,6 @@
 
 // overwrite style from base/css/main.scss
 a.btn { color: var(--bs-btn-color); }
+
+
+.modal { --bs-modal-zindex: 10000; }

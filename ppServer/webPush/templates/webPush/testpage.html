@@ -1,5 +1,5 @@
 {% extends 'base/main.html' %}
-{% load static %}
+{% load static crispy_forms_tags %}
 
 {% block extra-head %}
 <style>
@@ -12,21 +12,20 @@
 {% endblock %}
 
 {% block main %}
-<div class="container">
-    <div class="row">
-        <div class="col d-flex flex-column">
-            <button class="btn btn-primary" onclick="registerForWebPush(true)">dieses Gerät registrieren</button>
-        </div>
-
-        <form class="col d-flex flex-column" method="post">
-            <h2>neue Nachricht</h2>
-
+<ul>
+    <li>
+        <h2>Gerät registrieren</h2>
+        <p>Dieses Gerät für den gerade aktiven Account ({{ request.spieler.instance.name }}) registrieren?</p>
+        <button class="btn btn-primary mb-5" onclick="registerForWebPush(true)">dieses Gerät registrieren</button>
+    </li>
+    <li>
+        <h2>neue Nachricht</h2>
+        <form method="post">
             {% csrf_token %}
-            {{ form.as_p }}
+            {% crispy form %}
+
             <button type="submit" class="btn btn-primary">Nachricht senden</button>
         </form>
-    </div>
-</div>
-
-
+    </li>
+</ul>
 {% endblock %}

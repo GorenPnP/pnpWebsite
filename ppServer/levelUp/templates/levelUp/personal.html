@@ -1,13 +1,16 @@
 {% extends 'base/headed_main.html' %}
-{% load static %}
+{% load static crispy_forms_tags %}
 {% block extra-head %}
 <link rel="stylesheet" href="{% static 'auth/css/centered_form.css' %}">
-<style>textarea { width: 100%; }</style>
+<style>
+legend { margin-top: 1em; }
+textarea { width: 100%; }
+</style>
 {% endblock %}
 {% block main %}
 <form class='form' id="personal-form" method="POST" enctype='multipart/form-data'>
     {% csrf_token %}
-    {{ form.as_p }}
+    {% crispy form %}
 
     <div class="d-flex gap-3 mt-2 mb-5">
         <a class="btn btn-outline-light" href="{% url 'admin:character_religion_add' %}">neue Religion</a>

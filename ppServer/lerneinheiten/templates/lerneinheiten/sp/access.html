@@ -5,6 +5,7 @@
 {{ spieler_einheiten|json_script:"spieler_einheiten" }}
 <style>
     #einheiten_list { width: fit-content; }
+    .form-select { width: unset; }
 </style>
 <script src="{% static 'lerneinheiten/js/access.js' %}" defer></script>
 {% endblock %}
@@ -13,8 +14,8 @@
 <form method="POST" id="form">
     {% csrf_token %}
     
-    <label for="spieler-select">Spieler:</label>
-    <select id="spieler-select" name="spieler" required>
+    <label class="mb-1" for="spieler-select">Spieler*:</label>
+    <select class="form-select" id="spieler-select" name="spieler" required>
         <option selected disabled value="">---------</option>
         {% for spieler in object_list %}
         <option value="{{ spieler.pk }}">{{ spieler.name }}</option>
@@ -22,8 +23,9 @@
     </select>
 
     <input name="einheiten" hidden>
-    
-    <ul class="list-group" id="einheiten_list">
+
+    <label for="einheiten_list" class="mt-3 mb-1">Einheiten:</label>
+    <ul class="list-group m-0" id="einheiten_list">
         {% for einheit in einheiten %}
         <li class="list-group-item">
             <input type="checkbox" id="einheit-{{ einheit.pk }}" class="form-check-input me-1">

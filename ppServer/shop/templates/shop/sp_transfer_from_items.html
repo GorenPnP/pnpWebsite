@@ -1,10 +1,10 @@
 {% extends 'base/headed_main.html' %}
-{% load static %}
+{% load static crispy_forms_tags %}
 
 {% block main %}
 <form method="post">
     {% csrf_token %}
-    {{ form.as_p }}
+    {% crispy form %}
     <button type="submit" class="btn btn-primary">Speichern</button>
 </form>
 {% endblock %}

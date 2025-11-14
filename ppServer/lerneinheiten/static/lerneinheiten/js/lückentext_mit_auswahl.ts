@@ -30,7 +30,7 @@ answer_textarea.closest("p")!.classList.add("hidden");
  */
 function gap_replacement(full_match: string, gap_id: string): string {
     const value = JSON.parse(answer_textarea.value).gaps?.[gap_id] || "";      // TODO
-    return `<select data-gap_id="${gap_id}" form="form" required><option value="" disabled selected>--------</option></select>`;
+    return `<select data-gap_id="${gap_id}" class="form-select d-inline" style="width: unset" form="form" required><option value="" disabled selected>--------</option></select>`;
 }
 
 // render md to html for text

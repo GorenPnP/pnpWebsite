@@ -2,6 +2,10 @@ from django import forms
 from django.db.models import Count
 from django.forms.widgets import Input, CheckboxSelectMultiple
 
+from crispy_forms.layout import Layout, Fieldset
+
+from base.crispy_form_decorator import crispy
+
 from .models import *
 
 class ColorWidget(Input):
@@ -27,11 +31,13 @@ class TeamForm(forms.Form):
     textfarbe = forms.CharField(widget=ColorWidget(), required=True)
 
 
+@crispy(form_tag=False)
 class SpielerMonsterForm(forms.ModelForm):
     class Meta:
         model = SpielerMonster
         fields = ["name", "rang"]
 
+@crispy(form_tag=False)
 class SpSpielerMonsterForm(forms.ModelForm):
     class Meta:
         model = SpielerMonster
@@ -39,12 +45,14 @@ class SpSpielerMonsterForm(forms.ModelForm):
 
     keep_attacks = forms.BooleanField(label="Attacken übernehmen", required=False)
 
+@crispy(form_tag=False)
 class SpielerMonsterNameForm(forms.ModelForm):
     class Meta:
         model = SpielerMonster
         fields = ["name"]
 
 
+@crispy(form_tag=False)
 class ProposeAttackForm(forms.ModelForm):
     class Meta:
         model = Attacke
@@ -56,3 +64,12 @@ class ProposeAttackForm(forms.ModelForm):
             "damage": forms.CheckboxSelectMultiple(),
             "types": forms.CheckboxSelectMultiple(),
         }
+
+    def get_layout(self):
+        return Layout(
+            "name", "damage", "types",
+            Fieldset("Effekt?", "macht_schaden", "macht_effekt"),
+            Fieldset("Schadensart", "angriff_nahkampf", "angriff_fernkampf", "angriff_magie"),
+            Fieldset("Verteidigung", "verteidigung_geistig", "verteidigung_körperlich"),
+            "description", "cost"
+        )

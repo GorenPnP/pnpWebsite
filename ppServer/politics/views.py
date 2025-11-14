@@ -12,6 +12,7 @@ from django.views.generic.list import ListView
 from django.urls import reverse
 from django.utils.translation import gettext as _
 
+from base.crispy_form_decorator import crispy
 from ppServer.mixins import SpielleitungOnlyMixin, VerifiedAccountMixin
 
 from .models import *
@@ -20,6 +21,7 @@ class AdminDuplicatePoliticiansFormview(VerifiedAccountMixin, SpielleitungOnlyMi
     template_name = "politics/admin/action_duplicate_politicians.html"
     model = Politician
 
+    @crispy(form_tag=False)
     class DuplicationForm(forms.Form):
         times = forms.IntegerField(min_value=1, max_value=1000, initial=1, required=True, label="Wie oft sollen sie vervielfacht werden?")
 
@@ -55,6 +57,7 @@ class VoteOnLegalActFormview(VerifiedAccountMixin, SpielleitungOnlyMixin, Detail
     template_name = "politics/admin/vote_on_legalAct.html"
     model = LegalAct
 
+    @crispy(form_tag=False)
     class LegalActForm(forms.ModelForm):
         class Meta:
             model = LegalAct

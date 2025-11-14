@@ -27,12 +27,12 @@ class AffektivitätView(LevelUpMixin, tables.SingleTableMixin, TemplateView):
 
         def render_wert(self, value, record):
             id = record.id
-            return format_html(f"<input type='number' form='form' name='wert-{id}' value='{value}' min='-200' max='200' class='input'>")
+            return format_html(f"<input type='number' form='form' name='wert-{id}' value='{value}' min='-200' max='200' class='input form-control'>")
 
         def render_notiz(self, value, record):
             id = record.id
             value = record.notizen
-            return format_html(f"<textarea form='form' name='notizen-{id}'>{value}</textarea>")
+            return format_html(f"<textarea class='form-control' form='form' name='notizen-{id}'>{value}</textarea>")
 
 
     template_name = "levelUp/affektivität.html"

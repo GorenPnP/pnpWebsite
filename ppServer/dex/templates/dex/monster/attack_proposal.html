@@ -1,5 +1,5 @@
 {% extends 'base/headed_main.html' %}
-{% load static %}
+{% load static crispy_forms_tags %}
 
 {% block extra-head %}
 <link rel="stylesheet" href="{% static 'dex/monster/css/attack_proposal.css' %}">
@@ -12,18 +12,7 @@
     <h2 class="mb-4">{% if is_create %}Neue Attacke{% else %}Attacke bearbeiten{% endif %}</h2>
 
     {% csrf_token %}
-    {{ form.non_field_errors }}
-    
-    {% for field in form %}
-    <div class="fieldWrapper">
-        <div class="text-danger">{{ field.errors }}</div>
-        <div class="label-container">{{ field.label_tag }}</div>
-        {{ field }}
-        {% if field.help_text %}
-        <p class="help">{{ field.help_text|safe }}</p>
-        {% endif %}
-    </div>
-    {% endfor %}
+    {% crispy form %}
 
     <button class="btn btn-success mt-4" type="submit">Speichern</button>
 </form>

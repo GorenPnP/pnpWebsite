@@ -1,5 +1,5 @@
 {% extends 'base/headed_main.html' %}
-{% load static %}
+{% load static crispy_forms_tags %}
 
 {% block extra-head %}
     <link rel="stylesheet" href="{% static 'httpChat/css/list.css' %}">
@@ -43,7 +43,7 @@
       <div class="modal-body">
         <form id="new-form" method="post" enctype="multipart/form-data">
             {% csrf_token %}
-            {{ form.as_div }}
+            {% crispy form %}
         </form>
       </div>
       <div class="modal-footer">

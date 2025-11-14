@@ -1,5 +1,5 @@
 {% extends 'base/headed_main.html' %}
-{% load static %}
+{% load static crispy_forms_tags %}
 
 {% block extra-head %}
 <!-- Easy MDE for text editor -->
@@ -16,7 +16,7 @@
 {% block main %}
 <form id="form" method="post" enctype="multipart/form-data">
     {% csrf_token %}
-    {{ form.as_p }}
+    {% crispy form %}
 </form>
 
 {% block content %}{% endblock %}

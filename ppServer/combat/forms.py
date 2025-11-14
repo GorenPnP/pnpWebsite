@@ -1,8 +1,10 @@
 from django import forms
-from django.forms import ValidationError
+from django.forms import ValidationError, modelformset_factory
 
+from crispy_forms.helper import FormHelper
+from crispy_forms.layout import Layout, Div, Field
 
-from .models import Region, CellType
+from .models import Region, CellType, RegionEnemy
 
 class RegionEditorForm(forms.ModelForm):
     class Meta:
@@ -34,3 +36,20 @@ class RegionEditorForm(forms.ModelForm):
                 raise ValidationError(f"Grid enthält nicht-konforme Zelle {cell}")
 
         return self.cleaned_data["grid"]
+
+
+def get_EnemyFormset(region: Region):
+    return modelformset_factory(RegionEnemy, fields = ["enemy", "num"], extra=RegionEnemy.objects.filter(region=region).count()+3, can_delete=True)
+
+class EnemyFormsetHelper(FormHelper):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.form_tag = False
+        self.layout = Layout(
+            Div(
+                Field('enemy'),
+                Field('num'),
+                Field('DELETE'),
+            css_class='enemy-row'),
+        )

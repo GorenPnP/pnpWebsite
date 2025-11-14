@@ -1,5 +1,5 @@
 {% extends 'base/headed_main.html' %}
-{% load static dex.dice dex.boobles dex.calc_monster_stats l10n %}
+{% load static dex.dice dex.boobles dex.calc_monster_stats l10n crispy_forms_tags %}
 
 {% block extra-head %}
 <link rel="stylesheet" href="{% static 'dex/monster/css/monster_farm_detail.css' %}">
@@ -36,7 +36,7 @@
       <div class="card-text">
         <form method="post">
           {% csrf_token %}
-          {{ form.as_p }}
+          {% crispy form %}
           <p><button class="btn btn-dark">Speichern</button></p>
         </form>
         <hr>
@@ -277,7 +277,7 @@
             {% csrf_token %}
             <p>
               <label for="id_team">Team: </label>
-              <select id="id_team" name="team_id" required>
+              <select id="id_team" name="team_id" class="form-select" required>
                 <option value="" selected>---------</option>
                 {% for team in other_teams %}
                 <option value="{{ team.id }}">{{ team.name }}</option>

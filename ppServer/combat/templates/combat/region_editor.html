@@ -41,11 +41,8 @@
 
     <p>
         <h3>Gegner</h3>
-        {{ formset.management_form }}
-        <div class="d-flex flex-column">
-            {% for form in formset %}
-            <div class="d-flex gap-3">{{ form.as_div }}</div>
-            {% endfor %}
+        <div class="enemies">
+            {% crispy enemy_formset enemy_formset_helper %}
         </div>
     </p>
 

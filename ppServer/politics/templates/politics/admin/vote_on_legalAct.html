@@ -1,5 +1,5 @@
 {% extends "admin/change_form.html" %}
-{% load admin_urls static i18n django_bootstrap5 %}
+{% load admin_urls static i18n django_bootstrap5 crispy_forms_tags %}
 
 {% block extrahead %}
 	{{ block.super }}
@@ -21,7 +21,7 @@
 {% endblock %}
 
 {% block field_sets %}
-{{ form.as_p }}
+{% crispy form %}
 {% endblock %}
 
 {% block after_related_objects %}{{ block.super }}

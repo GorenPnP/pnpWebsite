@@ -1,5 +1,5 @@
 {% extends './page_template.html' %}
-{% load static %}
+{% load static crispy_forms_tags %}
 
 {% block extra-head %}
     {{ block.super }}
@@ -14,7 +14,7 @@
 
     <form id="form" method="post">
         {% csrf_token %}
-        {{ form.as_p }}
+        {% crispy form %}
 
         <button type="submit" class="btn btn-primary mt-3">Speichern</button>
         <button type="button" class="btn btn-outline-light mt-3 mx-3"

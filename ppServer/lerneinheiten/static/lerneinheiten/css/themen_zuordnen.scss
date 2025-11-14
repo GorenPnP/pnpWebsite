@@ -26,6 +26,7 @@ main {
         flex: fit-content 1 0;
         background-color: var(--bs-gray-700);
         width: 100%;
+        border-radius: var(--border-radius);
         
         overflow: hidden;
 
@@ -38,18 +39,13 @@ main {
             max-width: 400px;
 
             padding: .5em;
-            border-radius: var(--border-radius);
             border: 1px solid var(--bs-light);
 
             margin-block: .5em 2em;
 
             &:not(:has(> *)):before { content: "alle verteilt 👌"; }
         }
-        &:not(#remaining-items) {
-            border-radius: 0;
-
-            &:not(:has(> *)):before { content: "ziehe Items hier hin"; }
-        }
+        &:not(#remaining-items):not(:has(> *)):before { content: "ziehe Items hier hin"; }
 
         &:hover, &:focus {
             background-color: var(--bs-gray-800);

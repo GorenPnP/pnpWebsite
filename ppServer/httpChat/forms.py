@@ -1,17 +1,11 @@
 from django import forms
 from django.db.models import Count
 
-from markdownfield.forms import MarkdownFormField
-from markdownfield.widgets import MDEWidget
+from base.crispy_form_decorator import crispy
 
-from .models import Account, Chatroom, Message
+from .models import Account, Chatroom
 
-class MessageForm(forms.Form):
-    # text = MarkdownFormField(widget=MDEWidget)
-    text = forms.CharField(widget=MDEWidget)
-
-
-
+@crispy(form_tag=False)
 class AccountForm(forms.ModelForm):
     class Meta:
         model = Account
@@ -21,8 +15,8 @@ class AccountForm(forms.ModelForm):
 class M2MSelect(forms.SelectMultiple):
     allow_multiple_selected = False
 
+@crispy(form_tag=False)
 class ChatroomForm(forms.ModelForm):
-
 
     class Meta:
         model = Chatroom
@@ -45,5 +39,3 @@ class ChatroomForm(forms.ModelForm):
             qs = qs.exclude(chatroom__in=private_chatrooms)
 
         self.fields['accounts'].queryset = qs
-
-

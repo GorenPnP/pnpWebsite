@@ -3,8 +3,10 @@ from django import forms
 from django.contrib import messages
 from django.shortcuts import render, redirect
 
+from base.crispy_form_decorator import crispy
 from base.views import reviewable_shop
 from ppServer.decorators import spielleitung_only, verified_account
+
 from ..models import *
 
 
@@ -24,6 +26,7 @@ def review_items(request):
 @spielleitung_only()
 def transfer_items(request):
 
+    @crispy(form_tag=False)
     class TransferForm(forms.Form):
         action_enum = [
             ('Alchemie', 'Drogen zu Alchemie'),

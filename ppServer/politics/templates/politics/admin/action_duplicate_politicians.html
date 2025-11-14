@@ -1,5 +1,5 @@
 {% extends "admin/base_site.html" %}
-{% load admin_urls static i18n %}
+{% load admin_urls static i18n crispy_forms_tags %}
 
 {% block extrahead %}
 	{{ block.super }}
@@ -23,7 +23,7 @@
 <div class="text-container">
 	<form class='form' method="POST">
 		{% csrf_token %}
-		{{ form.as_p }}
+		{% crispy form %}
 
 		<input type="submit" value="OKAY">
 	</form>

@@ -17,16 +17,18 @@ class RegisterWebPushDeviceForm(forms.ModelForm):
         fields = ["registration_id", "p256dh", "auth", ] # "browser", "application_id", "name", "user", "active",
 
 
+@crispy(form_tag=False)
 class PushSettingsForm(forms.ModelForm):
     class Meta:
         model = PushSettings
         fields = ["chat", "news", "polls", "quiz", "changelog", "politics"]
 
 
+@crispy(form_tag=False)
 class SendMessageForm(forms.Form):
 
-    title = forms.CharField(help_text="optionaler Titel der Nachricht", required=False)
-    message = forms.CharField(widget=forms.widgets.Textarea, required=True)
+    title = forms.CharField(help_text="optionaler Titel der Nachricht", required=False, label="Titel")
+    message = forms.CharField(widget=forms.widgets.Textarea, required=True, label="Nachricht")
     tag = forms.ChoiceField(required=False, choices=tuple((i.value, i.name) for i in PushTag), help_text="Der Browser ersetzt die letzte Nachricht mit dem Tag durch diese, anstatt beide Nachrichten gleichzeitig anzuzeigen")
 
     recipients = forms.ModelMultipleChoiceField(
@@ -35,6 +37,15 @@ class SendMessageForm(forms.Form):
         label="Nachricht senden an",
         required=True,
     )
+
+    def get_layout(self):
+        return Layout(
+            Div(
+                Field('title', wrapper_class='col-12 col-sm-8'),
+                Field('tag', wrapper_class='col-12 col-sm-4'),
+            css_class='row'),
+            "message", "recipients",
+        )
 
 
 @crispy(form_tag=False)

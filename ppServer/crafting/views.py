@@ -227,11 +227,31 @@ class InventoryView(VerifiedAccountMixin, ProfileSetMixin, DetailView):
 
 	def post(self, *args, **kwargs):
 
-		json_dict = json.loads(self.request.body.decode("utf-8"))
+		try:
+			profil = self.relCrafting.profil
+			if profil.restricted: raise AssertionError("restricted profile")
 
-		# gather all the details of one item to display them OR buy/sell items
-		if "details" in json_dict.keys() or "item_id" in json_dict:
-			return handle_overlay(json_dict, self.get_item_qs(), self.relCrafting.profil)
+			# add num of items and save
+			amount = int(self.request.POST["amount"])
+			item_id = int(self.request.POST["item"])
+			item = get_object_or_404(Tinker, id=item_id)
+
+			iitem, _ = InventoryItem.objects.get_or_create(char=profil, item=item)
+			iitem.num += amount
+			iitem.save(update_fields=["num"])
+			messages.success(self.request, f"{amount}x {item.name} hinzugefügt")
+
+			return redirect("crafting:inventory")
+			
+		except:
+			try:
+				json_dict = json.loads(self.request.body.decode("utf-8"))
+			except:
+				return JsonResponse({"message": "Konnte Parameter nicht lesbar empfangen"}, status=418)
+
+			# gather all the details of one item to display them OR buy/sell items
+			if "details" in json_dict.keys() or "item_id" in json_dict:
+				return handle_overlay(json_dict, self.get_item_qs(), self.relCrafting.profil)
 
 
 class CraftingView(VerifiedAccountMixin, ProfileSetMixin, ListView):

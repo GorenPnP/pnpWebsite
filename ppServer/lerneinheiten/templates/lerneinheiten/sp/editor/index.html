@@ -1,5 +1,5 @@
 {% extends 'base/headed_main.html' %}
-{% load static %}
+{% load static crispy_forms_tags %}
 
 {% block extra-head %}
     <style>
@@ -31,6 +31,7 @@
                 aspect-ratio: 1;
                 border-radius: 1000px;
             }
+            .modal { --bs-modal-zindex: 10000; }
         }
     </style>
     <script src="{% static 'res/js/sortable@1.15.2.min.js' %}"></script>
@@ -111,7 +112,7 @@
             <div class="modal-body">
                 <form action="{% url 'lerneinheiten:edit_einheit' form_obj.id %}" method="post" id="edit-einheit-{{ form_obj.id }}-form">
                     {% csrf_token %}
-                    {{ form_obj.form.as_p }}
+                    {% crispy form_obj.form %}
                 </form>
             </div>
             <div class="modal-footer">
@@ -135,7 +136,7 @@
             <div class="modal-body">
                 <form action="{% url 'lerneinheiten:new_einheit' %}" method="post" id="new-einheit-form">
                     {% csrf_token %}
-                    {{ new_einheit_form.as_p }}
+                    {% crispy new_einheit_form %}
                 </form>
             </div>
             <div class="modal-footer">
@@ -158,7 +159,7 @@
             <div class="modal-body">
                 <form action="{% url 'lerneinheiten:new_page' %}" method="post" id="new-page-{{ form_obj.id }}-form">
                     {% csrf_token %}
-                    {{ form_obj.form.as_p }}
+                    {% crispy form_obj.form %}
                 </form>
             </div>
             <div class="modal-footer">

@@ -1,5 +1,5 @@
 {% extends 'base/headed_main.html' %}
-{% load static %}
+{% load static crispy_forms_tags %}
 
 {% block extra-head %}
     <link rel="stylesheet" href="{% static 'planner/css/index.css' %}">
@@ -33,7 +33,7 @@
             <h2>Ich möchte am <span class="long_date"></span> teilnehmen</h2>
             <form method="post" action="">
                 {% csrf_token %}
-                {{ form.as_p }}
+                {% crispy form %}
                 <input type="date" id="id_date" name="date" hidden>
 
                 <input type="submit" value="Teilnehmen" class="btn btn-primary">
