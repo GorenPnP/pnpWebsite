@@ -1,6 +1,7 @@
 from django import forms
 
-from crispy_forms.layout import Layout, Div, Field, Fieldset
+from crispy_forms.bootstrap import AppendedText
+from crispy_forms.layout import Layout, Div, Field, Fieldset, Submit
 
 from base.crispy_form_decorator import crispy
 from character.models import Affektivität, Charakter
@@ -78,3 +79,37 @@ class AffektivitätForm(forms.ModelForm):
     class Meta:
         model = Affektivität
         fields = ["name", "wert", "notizen"]
+
+
+@crispy(form_tag=False)
+class KonzentrationForm(forms.ModelForm):
+    class Meta:
+        model = Charakter
+        fields = ["konzentration"]
+
+    konzentration = forms.IntegerField(initial=0, required=True, help_text="je 2 Konzentration kosten 1 SP", step_size=2)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.fields["konzentration"].widget.attrs["min"] = self.instance.konzentration
+        self.fields["konzentration"].min_value = self.instance.konzentration
+
+        # self.helper is coming from @crispy decorator
+        self.helper.layout = Layout(
+            AppendedText('konzentration', f'aktuell: {self.instance.konzentration or 0}', form="form"),
+        )
+    
+    def clean_konzentration(self):
+
+        if "konzentration" not in self.cleaned_data:
+            raise forms.ValidationError("Konzentration ist nicht da")
+
+        konz_aktuell =  self.instance.konzentration or 0
+        if self.cleaned_data["konzentration"] < konz_aktuell:
+            raise forms.ValidationError("Konzentration kann nicht kleiner werden")
+
+        if (self.cleaned_data["konzentration"] - konz_aktuell) % 2:
+            raise forms.ValidationError("Konzentration hat keinen Zuwachs einer geraden Zahl")
+
+        return self.cleaned_data["konzentration"]

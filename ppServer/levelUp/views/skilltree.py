@@ -11,6 +11,7 @@ from base.abstract_views import GenericTable
 from character.models import GfsSkilltreeEntry, SkilltreeBase
 
 from ..decorators import is_erstellung_done
+from ..forms import KonzentrationForm
 from ..mixins import LevelUpMixin
 
 
@@ -62,8 +63,9 @@ class GenericSkilltreeView(LevelUpMixin, tables.SingleTableMixin, TemplateView):
     
     def get_context_data(self, *args, **kwargs):
         return super().get_context_data(*args, **kwargs,
+            konzentration_form = KonzentrationForm(instance=self.get_character()),
             table = self.Table(self.get_table_data()),
-            topic = "Skilltree"
+            topic = "Skilltree & Konz."
         )
 
     def post(self, request, *args, **kwargs):
@@ -74,6 +76,17 @@ class GenericSkilltreeView(LevelUpMixin, tables.SingleTableMixin, TemplateView):
         skilltree = GfsSkilltreeEntry.objects.prefetch_related("base").filter(gfs=char.gfs, base__stufe__gt=char.skilltree_stufe, base__stufe__lte=max_stufe)
 
         # check
+
+        # can spend SP on konz. and happened correctly?
+        konzentration_form = None
+        if char.konzentration_fix is None:
+            char_konz = char.konzentration or 0
+            konzentration_form = KonzentrationForm(request.POST, instance=char)
+            konzentration_form.full_clean()
+
+            if not konzentration_form.is_valid():
+                messages.error(request, format_html(f"Die eingegebene Konzentration ist fehlerhaft: {konzentration_form.errors['konzentration']}"))
+                return redirect(request.build_absolute_uri())
 
         # lower than before?
         if char.skilltree_stufe > max_stufe:
@@ -88,6 +101,7 @@ class GenericSkilltreeView(LevelUpMixin, tables.SingleTableMixin, TemplateView):
 
         # affordable?
         sp_cost = SkilltreeBase.objects.filter(stufe__in=skilltree_stufen).aggregate(sp=Sum("sp"))["sp"] or 0
+        sp_cost += (konzentration_form.cleaned_data["konzentration"] - (char_konz)) / 2 if konzentration_form else 0
         if char.sp < sp_cost:
             messages.error(request, f"So viele SP hast du gar nicht")
             return redirect(request.build_absolute_uri())
@@ -99,6 +113,7 @@ class GenericSkilltreeView(LevelUpMixin, tables.SingleTableMixin, TemplateView):
 
         # collect values
         for s in skilltree: s.apply_to(char)
+        if konzentration_form: konzentration_form.save()
 
         # return response
         messages.success(request, "Erfolgreich gespeichert")

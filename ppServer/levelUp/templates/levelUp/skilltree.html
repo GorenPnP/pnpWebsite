@@ -1,10 +1,14 @@
 {% extends 'base/dynamic-table.html' %}
-{% load static levelUp.resources l10n %}
+{% load static levelUp.resources l10n crispy_forms_tags %}
 {% block extra-head %}
 <style>
+    #div_id_konzentration .input-group {
+        flex-wrap: nowrap;
+        width: fit-content;
+    }
+
     table {
         max-width: 700px;
-        margin-inline: auto;
     }
 </style>
 
@@ -14,6 +18,19 @@
 
 {% block asides %}
     {% resources %}<span id="sp_pool"><b>{{ char.sp }}</b></span> SP{% endresources %}
+{% endblock %}
+
+{% block before_table %}
+<h2>Konzentration</h2>
+
+{% if char.konzentration_fix is None %}
+{% crispy konzentration_form %}
+{% else %}
+<p>Du kannst hier nix kaufen, deine Konzentration ist fix auf {{ char.konzentration_fix }}. </p>
+{% endif %}
+
+
+<h2 class="mt-5">Skilltree</h2>
 {% endblock %}
 
 {% block after_table %}

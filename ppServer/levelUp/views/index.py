@@ -106,7 +106,7 @@ class IndexView(LevelUpMixin, DetailView):
 
         # Skilltree
         if not char.larp:
-            rows.append({"done": None, "link": self._get_url("skilltree", char), "text": "<b>Skilltree</b>", "werte": f"{char.sp} SP"})
+            rows.append({"done": None, "link": self._get_url("skilltree", char), "text": "<b>Skilltree & Konzentration</b>", "werte": f"{char.sp} SP"})
         # Teile
         rows.append({"done": char.ip >= 0, "link": self._get_url("vorteile", char), "text": "<b>Vorteile</b>", "werte": f"{char.ip} IP"})
         rows.append({"done": char.ip >= 0, "link": self._get_url("nachteile", char), "text": "<b>Nachteile</b>", "werte": f"{char.ip} IP"})
