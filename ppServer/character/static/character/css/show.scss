@@ -27,6 +27,23 @@
 }
 
 
+/* compromise ongoing story in favor of nav offcanvas */
+
+.character-resources.aside--story .offcanvas.offcanvas-end,
+.character-resources.aside--story .character-resources-trigger { --bg-rgb: 111, 66, 193; }
+
+@media (max-width: 767px) {
+    .aside--story { z-index: 9999 !important; }
+    .aside--story .offcanvas.offcanvas-end { max-height: calc(100vh - 8rem - 10px); }
+
+    .aside--story .character-resources-trigger,
+    .aside--story .offcanvas.offcanvas-end
+    {
+        top: 4rem !important;
+    }
+}
+
+
 .nav-pills-light {
     --bs-nav-pills-link-active-bg: var(--bs-light);
     --bs-nav-pills-link-active-color: var(--bs-dark);

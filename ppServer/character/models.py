@@ -1764,3 +1764,18 @@ class RelRamsch(models.Model):
 
     def __str__(self):
         return "{} ({})".format(self.item, self.anz)
+
+
+class CurrentStory(models.Model):
+    class Meta:
+        ordering = ['char']
+
+    char = models.OneToOneField(Charakter, on_delete=models.CASCADE)
+
+    titel = models.TextField(null=True, blank=True)
+    notes = models.TextField(null=True, blank=True, verbose_name="Notizen")
+    
+    mana = models.SmallIntegerField(null=True, blank=True)
+    konz = models.SmallIntegerField(null=True, blank=True, verbose_name="Konzentration")
+    gHP = models.SmallIntegerField(null=True, blank=True, verbose_name="geistige HP")
+    kHP = models.SmallIntegerField(null=True, blank=True, verbose_name="körperliche HP")

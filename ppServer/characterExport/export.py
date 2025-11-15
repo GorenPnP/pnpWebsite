@@ -870,7 +870,7 @@ class CharakterExporter:
         
     def _history_ws(self, wb):
         # history
-        history_ws = wb.add_worksheet("History & Debug")
+        history_ws = wb.add_worksheet("Historie & Debug")
         history_ws.write("A1", json.dumps(self.char.processing_notes))
 
         history_ws.write_row("A3", ["Spieler", "Art", "Notizen", "Kosten", "Timestamp"])

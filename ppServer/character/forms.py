@@ -3,7 +3,8 @@ import json
 from django import forms
 
 from crispy_forms.bootstrap import AppendedText, Tab, TabHolder, Container, InlineField
-from crispy_forms.layout import Layout, Submit, HTML, Fieldset, ButtonHolder, LayoutObject, TEMPLATE_PACK
+from crispy_forms.layout import Layout, Submit, HTML, Fieldset, ButtonHolder, LayoutObject, TEMPLATE_PACK, Div
+from django.urls import reverse
 
 from base.crispy_form_decorator import crispy
 from campaign.forms import ZauberplätzeWidget
@@ -320,4 +321,51 @@ class CreateRamschForm(forms.ModelForm):
 
                 css_class="row g-3"
             )
+        )
+
+
+@crispy(form_tag=False)
+class StoryNotesForm(forms.ModelForm):
+    class Meta:
+        model = CurrentStory
+        fields = ["char", "titel", "notes", "mana", "konz", "gHP", "kHP"]
+        widgets = {"char": forms.HiddenInput(), "titel": forms.TextInput()}
+
+
+    def get_layout(self):
+        char = self.instance.char
+
+        return Layout(
+            "char", "titel", "notes",
+            Div(
+                AppendedText("mana", f"von xxx Mana", wrapper_class='col-12 col-sm'),
+                AppendedText("konz", f"von {char.konzentration if char.konzentration_fix is None else char.konzentration_fix}", wrapper_class='col-12 col-sm'),
+            css_class='row'),
+            Div(
+                AppendedText("gHP", f"von xxx", wrapper_class='col-12 col-sm'),
+                AppendedText("kHP", f"von xxx", wrapper_class='col-12 col-sm'),
+            css_class='row'),
+        )
+
+
+@crispy
+class SpendMoneyForm(forms.Form):
+    char = forms.ModelChoiceField(Charakter.objects.all(), required=True, disabled=True, widget=forms.widgets.HiddenInput())
+    amount = forms.IntegerField(min_value=0, required=True, label="Betrag")
+    purpose = forms.CharField(required=True, label="Verwendungszweck", max_length=128)
+    add_to_inventory = forms.BooleanField(initial=False, required=False, label="ins Inventar eintragen")
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        char = get_object_or_404(Charakter, pk=kwargs["initial"]["char"])
+
+        self.fields["amount"].max_value = char.geld
+        self.fields["amount"].widget.attrs["max"] = char.geld
+
+        self.helper.form_action=reverse("character:spend_money", args=[char.pk])
+        self.helper.layout = Layout(
+            AppendedText("amount", f"Dr. von {char.geld:n} Dr."),
+            "purpose", "add_to_inventory",
+            Submit("submit", "Geld ausgeben", css_class="btn btn-primary")
         )

@@ -7,7 +7,7 @@ from django.contrib.auth.mixins import UserPassesTestMixin
 from django.db import transaction
 from django.db.models import Value, F, CharField, OuterRef
 from django.db.models.functions import Concat
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, JsonResponse
 from django.middleware.csrf import get_token
 from django.shortcuts import redirect, render
 from django.urls import reverse
@@ -139,14 +139,17 @@ class ShowView(VerifiedAccountMixin, DetailView):
         char = context["object"]
         self._rel_attribute = {rel.attribut.titel: rel for rel in char.relattribut_set.all()}
         self._gruppen_fg = {rel.gruppe: rel.fg for rel in char.relgruppe_set.all()}
+        curr_story, _ = CurrentStory.objects.get_or_create(char=char)
 
         return {
             **context,
             "topic":  char.name,
             "app_index": "Charaktere",
             "app_index_url": reverse("character:index"),
-            "plus": "History",
+            "plus": "Historie",
             "plus_url": reverse("character:history", args=[char.id]),
+            "story_notes_form": StoryNotesForm(instance=curr_story),
+            "spend_money_form": SpendMoneyForm(initial={"char": char.pk}),
 
             **self.get_personal(char),
             **self.get_resources(char),
@@ -660,7 +663,7 @@ class HistoryView(VerifiedAccountMixin, tables.SingleTableMixin, TemplateView):
 
         return super().get_context_data(
             **kwargs,
-            topic = "History",
+            topic = "Historie",
             app_index=char.name,
             app_index_url=reverse("character:show", args=[char.id]),
             priotable=char.processing_notes["priotable"] if "priotable" in char.processing_notes else None,
@@ -755,6 +758,78 @@ def add_ramsch(request, pk):
     return redirect(reverse("character:show", args=[pk]))
 
 
+@verified_account
+@require_POST
+def spend_money(request, pk):
+    char = get_object_or_404(Charakter, pk=pk)
+
+    # assert user requesting to add an item
+    if not request.spieler.is_spielleitung and char.eigentümer != request.spieler.instance:
+        messages.error(request, "Es ist nicht dein Charakter, dessen Geld du ausgeben willst.")
+        return redirect(reverse("character:show", args=[pk]))
+
+    # validate incoming data
+    try:
+        form = SpendMoneyForm(request.POST, initial={"char": char.pk})
+        form.full_clean()
+        if not form.is_valid(): raise ValueError("form is not valid")
+        if form.cleaned_data["char"].pk != pk: raise ValueError("pk on form is different")
+    except:
+        messages.error(request, "Anfrage fehlerhaft")
+        return redirect(reverse("character:show", args=[pk]))
+    
+    # spend money
+    form.cleaned_data["char"].geld -= form.cleaned_data["amount"]
+    form.cleaned_data["char"].save(update_fields=["geld"])
+
+    # add ramsch
+    if form.cleaned_data["add_to_inventory"]:
+        RelRamsch.objects.create(char=form.cleaned_data["char"], anz=1, item=form.cleaned_data["purpose"])
+
+    # log
+    Log.objects.create(
+        spieler=request.spieler.instance,
+        char=form.cleaned_data["char"],
+        art="e", # Geld ausgegeben
+        kosten=f"{form.cleaned_data['amount']} Dr.",
+        notizen=form.cleaned_data["purpose"],
+    )
+
+    messages.success(request, f"{form.cleaned_data['amount']} Dr. für {form.cleaned_data['purpose']} ausgegeben")
+    return redirect(reverse("character:show", args=[pk]))
+
+
+@verified_account
+@require_POST
+def remove_sp(request, pk):
+    # assert user requesting to add an item
+    char = get_object_or_404(Charakter, pk=pk)
+    if not request.spieler.is_spielleitung and char.eigentümer != request.spieler.instance:
+        messages.error(request, "Es ist nicht dein Charakter, dessen SP du ausgeben willst.")
+        return redirect(reverse("character:show", args=[pk]))
+
+    # has SP?
+    if char.sp_fix is not None or char.sp < 1:
+        messages.error(request, "Keine SP vorhanden")
+        return redirect(reverse("character:show", args=[pk]))
+    
+    # spend SP
+    char.sp -= 1
+    char.save(update_fields=["sp"])
+
+    # log
+    Log.objects.create(
+        spieler=request.spieler.instance,
+        char=char,
+        art="k", # SP ausgegeben
+        kosten=f"1 SP",
+        notizen="in einer Story",
+    )
+
+    messages.success(request, f"1 SP ausgegeben")
+    return redirect(reverse("character:show", args=[pk]))
+
+
 def _decrease_anz_relshop(request, relshop_model: str, rel_item_pk: int):
     try:
         Model = apps.get_model('character', relshop_model)
@@ -842,6 +917,23 @@ def remove_relshop(request, relshop_model, pk):
 
     return redirect(reverse("character:show", args=[res["char"].id]))
 
+
+@require_POST
+@verified_account
+def save_story_notes(request, pk):
+    # assert user requesting to add an item
+    char = get_object_or_404(Charakter, pk=pk)
+    if not request.spieler.is_spielleitung and char.eigentümer != request.spieler.instance:
+        return JsonResponse({"message": "Es ist nicht dein Charakter, dessen Notizen du speichern willst."}, status=418)
+
+    form = StoryNotesForm(request.POST, instance=char.currentstory)
+    form.full_clean()
+    if not form.is_valid():
+        return JsonResponse({"message": "Notizen speichern ist fehlgeschlagen."}, status=418)
+
+    form.save()
+
+    return JsonResponse({}, status=200)
 
 class CreateCharacterView(UserPassesTestMixin, CreateView):
     # permission
