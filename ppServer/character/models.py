@@ -676,6 +676,8 @@ class Charakter(models.Model):
     augenfarbe = models.CharField(max_length=100, default="", blank=True)
 
     # currencies
+    geld = models.IntegerField(default=0)
+    _geld = models.IntegerField(default=0)
     ap = models.PositiveIntegerField(null=True, blank=True)
     fp = models.PositiveIntegerField(null=True, blank=True)
     fg = models.PositiveIntegerField(null=True, blank=True)
