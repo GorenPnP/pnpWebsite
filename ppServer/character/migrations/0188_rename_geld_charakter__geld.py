@@ -7,7 +7,7 @@ def add_cards_for_all_chars(apps, schema_editor):
     Card = apps.get_model('cards', 'Card')
 
     Card.objects.bulk_create(
-        [Card(char=char, money=char._geld, active=True) for char in Charakter.objects.all()]
+        [Card(char=char, money=char.geld, active=True) for char in Charakter.objects.all()]
     )
         
 
@@ -15,13 +15,9 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('character', '0187_alter_currentstory_notes'),
+        ('cards', '0005_alter_card_char')
     ]
 
     operations = [
-        migrations.RenameField(
-            model_name='charakter',
-            old_name='geld',
-            new_name='_geld',
-        ),
         migrations.RunPython(add_cards_for_all_chars)
     ]

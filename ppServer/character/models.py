@@ -676,6 +676,7 @@ class Charakter(models.Model):
     augenfarbe = models.CharField(max_length=100, default="", blank=True)
 
     # currencies
+    geld = models.IntegerField(default=0)
     ap = models.PositiveIntegerField(null=True, blank=True)
     fp = models.PositiveIntegerField(null=True, blank=True)
     fg = models.PositiveIntegerField(null=True, blank=True)
@@ -768,9 +769,9 @@ class Charakter(models.Model):
     affektivitäten = models.ManyToManyField("Affektivität", blank=True)
     tags = models.ManyToManyField(Tag, blank=True)
 
-    @property
-    def geld(self):
-        return self.card.money if self.card else None
+    # @property
+    # def geld(self):
+    #     return self.card.money if self.card else None
 
     def __str__(self):
         return "{} ({})".format(self.name, self.eigentümer)

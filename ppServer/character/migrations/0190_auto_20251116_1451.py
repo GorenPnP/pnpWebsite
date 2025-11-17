@@ -9,7 +9,7 @@ def make_all_relzauber_learned(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('character', '0190_relzauber_learned'),
+        ('character', '0189_relzauber_learned'),
     ]
 
     operations = [

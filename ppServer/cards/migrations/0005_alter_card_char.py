@@ -7,7 +7,6 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('character', '0189_remove_charakter__geld'),
         ('cards', '0004_card_card_distributed_to_player_card_char_and_more'),
     ]
 
