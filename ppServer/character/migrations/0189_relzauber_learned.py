@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('character', '0189_remove_charakter__geld'),
+        ('character', '0188_rename_geld_charakter__geld'),
     ]
 
     operations = [
