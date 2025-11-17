@@ -1,9 +1,11 @@
 {% extends 'base/dynamic-table.html' %}
 
+{% block extra-head %}<style>h2:not(:first-of-type) { margin-top: 2em; }</style>{% endblock %}
+
 {% block before_table %}
 
 {% if priotable%}
-<h2>Priotable</h2>
+<h2 class="mb-2">Priotable</h2>
 <div class="table-container table-responsive">
     <table class="table table-dark table-striped table-hover">
         <thead>
@@ -18,5 +20,25 @@
 </div>
 {% endif %}
 
-<h2>Historie</h2>
+<h2 class="mb-2">Historie</h2>
+{% endblock %}
+
+{% block after_table %}
+
+{% if transactions %}
+<h2 class="mb-2">Kontobewegungen <a class="btn btn-primary" href="{% url 'cards:show' card.pk %}">zum Konto</a></h2>
+
+<div class="table-container table-responsive">
+    <table class="table table-dark table-striped table-hover">
+        <thead>
+            <tr><th>Betrag</th><th>an/von Person</th><th>Grund</th><th>Zeitpunkt</th></tr>
+        </thead>
+        <tbody>
+            {% for t in transactions %}
+            <tr><td>{{ t.diff }} Dr.</td><td>{{ t.card|default_if_none:'-' }}</td><td>{{ t.reason }}</td><td>{{ t.timestamp }}</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
 {% endblock %}

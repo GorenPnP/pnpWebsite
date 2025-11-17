@@ -8,19 +8,23 @@ from base.crispy_form_decorator import crispy
 from .models import Card, Transaction
 
 def get_card(queryset=Card.objects.filter(active=True), **kwargs):
-    cards = queryset.filter(**kwargs)
-    return cards[0] if cards else None
+    try:
+        return queryset.get(**kwargs)
+    except:
+        return None
+
 
 
 class CardWidget(forms.MultiWidget):
     def __init__(self, attrs={}, *args, **kwargs):
         self.queryset = kwargs["queryset"]
 
-        choices = [(None, kwargs["empty_label"])] + [(c.__dict__[kwargs["to_field_name"]], c.name) for c in self.queryset]
+        choices = [(None, kwargs["empty_label"])] + [(c.__dict__[kwargs["to_field_name"]], c.__str__()) for c in self.queryset]
         widgets = [
             forms.Select(attrs=attrs, choices=choices),
             forms.NumberInput(attrs=attrs.update(placeholder="Karte scannen"))
         ]
+        self.has_invalid_choice = False
 
         super().__init__(widgets, attrs)
 
@@ -29,30 +33,34 @@ class CardWidget(forms.MultiWidget):
         if value is None: return [None, None]
 
         try:
-            # is syntactically valid card_id?
+            # is syntactically valid card.pk?
             uuid.UUID(value)
-            # then return shit
-            card = get_card(self.queryset, id=value)
-            return [card if card else None, value]
-        except: pass
+            # then get card by its pk (which is a uuid)
+            card = get_card(self.queryset, pk=value)
+            return [card, value]
+        except:
+            # get card by card_id (type of int, not uuid)
+            card = get_card(self.queryset, card_id=value)
+            return [card, value]
 
-        card = get_card(self.queryset, card_id=value)
-        return [card, card.card_id] if card else [None, None]
 
-
-    def value_from_datadict(self, data, files, name):
-        card, card_id = super().value_from_datadict(data, files, name)
+    def value_from_datadict(self, data, files, name) -> Card or None:
+        data = super().value_from_datadict(data, files, name)
+        card_pk = uuid.UUID(data[0]) if data[0] else None
+        card_id = int(data[1]) if data[1] else None
         
         # none given
-        if not card and not card_id: return None
+        if not card_pk and not card_id: return None
 
-        # one given
-        if card and not card_id: return card
-        if not card and card_id: return get_card(self.queryset, card_id=card_id)
+        # get card
+        card = None
+        if   card_pk and not card_id: card = get_card(self.queryset, pk=card_pk)
+        elif not card_pk and card_id: card = get_card(self.queryset, card_id=card_id)
+        elif card_pk and card_id: card = get_card(self.queryset, pk=card_pk, card_id=card_id)
 
-        # both given -> check if they reference the same card 
-        card_obj = get_card(self.queryset, id=card)
-        return card if card_obj.card_id == int(card_id) else None
+        # check if they reference a card
+        self.has_invalid_choice = card is None
+        return card
 
 
 class CardField(forms.ModelChoiceField):
@@ -73,6 +81,11 @@ class CardField(forms.ModelChoiceField):
 
 
     def validate(self, value) -> None:
+
+        # widget.has_invalid_choice set in CardWidget.value_from_datadict()
+        if self.widget.has_invalid_choice:
+            raise ValidationError(self.error_messages["invalid_choice"], code="invalid_choice")
+
         super().validate(value)
 
         if self.validate_required and value in validators.EMPTY_VALUES:
@@ -85,7 +98,7 @@ class CardField(forms.ModelChoiceField):
         data.pop("_queryset")
         data.pop("widget")
 
-        queryset = Card.objects.filter(active=True)
+        queryset = Card.objects.prefetch_related("spieler", "char__eigentümer").filter(active=True)
         if exclude_uuid:
             queryset.exclude(id=exclude_uuid)
 

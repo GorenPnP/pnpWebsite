@@ -12,6 +12,7 @@ from django.views.generic.base import TemplateView
 from django.urls import reverse
 from django.utils.decorators import method_decorator
 
+from cards.models import Card, Transaction
 from ppServer.mixins import VerifiedAccountMixin
 
 from base.abstract_views import DynamicTableView
@@ -80,14 +81,15 @@ class GfsFormView(VerifiedAccountMixin, TemplateView):
             char.ap = 120
             char.fp = 20
             char.fg = 2
-            char.geld = 5000
             char.sp = 0
             char.ip = 0
             char.zauberplätze = {}
             char.ep_stufe = 0
             char.ep_stufe_in_progress = 0
             char.beruf = get_object_or_404(Beruf, titel="Schüler")
-            char.save(update_fields=["ap", "fp", "fg", "geld", "sp", "ip", "zauberplätze", "beruf", "ep_stufe", "ep_stufe_in_progress"])
+            char.save(update_fields=["ap", "fp", "fg", "sp", "ip", "zauberplätze", "beruf", "ep_stufe", "ep_stufe_in_progress"])
+            card = Card.objects.create(char=char, money=5000, active=True)
+            Transaction.objects.create(receiver=card, amount=card.money, reason="LARP-Startkapital")
 
         else:
             # some fields
@@ -171,7 +173,7 @@ class GfsFormView(VerifiedAccountMixin, TemplateView):
 
             # Zauber
             RelZauber.objects.bulk_create([
-                RelZauber(char=char, item=gfs_zauber.item, tier=gfs_zauber.tier)
+                RelZauber(char=char, item=gfs_zauber.item, tier=gfs_zauber.tier, learned=True)
                 for gfs_zauber in GfsZauber.objects.filter(gfs=char.gfs)
             ])
 
@@ -304,7 +306,8 @@ class PriotableFormView(LevelUpMixin, DetailView):
 
         # drachmen & spF_wF
         prio = getattr(chosen_fields, "drachmen")
-        char.geld = prio.drachmen
+        card = Card.objects.create(char=char, money=prio.drachmen, active=True)
+        Transaction.objects.create(receiver=card, amount=card.money, reason="Startkapital")
         char.spF_wF = prio.spF_wF
         char.wp = prio.spF_wF * self.WP_FACTOR
         fields.append({"prio": prio.priority, "text":  f"{prio.drachmen} Drachmen, {prio.spF_wF} Sp-Fert/W-Fert"})
@@ -338,7 +341,7 @@ class PriotableFormView(LevelUpMixin, DetailView):
             for ability in reward.klasse.base_abilities.all():
                 RelKlasseAbility.objects.create(char=char, ability=ability)
 
-        char.save(update_fields=["ip", "sp", "konzentration", "fp", "fg", "zauberplätze", "geld", "spF_wF", "wp", "ap", "tp", "processing_notes"])
+        char.save(update_fields=["ip", "sp", "konzentration", "fp", "fg", "zauberplätze", "spF_wF", "wp", "ap", "tp", "processing_notes"])
 
         if not char.processing_notes["creation_larp"] and char.ep:
             char.init_stufenhub()

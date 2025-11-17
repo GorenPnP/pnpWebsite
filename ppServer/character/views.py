@@ -1,11 +1,11 @@
-import locale
+import locale, re
 from typing import Any, Dict
 
 from django.apps import apps
 from django.contrib import messages
 from django.contrib.auth.mixins import UserPassesTestMixin
 from django.db import transaction
-from django.db.models import Value, F, CharField, OuterRef
+from django.db.models import Value, F, CharField, OuterRef, Case, When
 from django.db.models.functions import Concat
 from django.http import HttpResponseRedirect, JsonResponse
 from django.middleware.csrf import get_token
@@ -20,6 +20,7 @@ from django.views.generic.edit import CreateView
 import django_tables2 as tables
 
 from base.abstract_views import GenericTable
+from cards.models import Card, Transaction
 from effect.models import RelEffect
 from log.create_log import render_number
 from log.models import Log
@@ -123,7 +124,7 @@ class ShowView(VerifiedAccountMixin, DetailView):
         "relzauber_set__item", "relrituale_runen_set__item", "relschusswaffen_set__item", "relwaffen_werkzeuge_set__item",
         "relmagazin_set__item", "relpfeil_bolzen_set__item", "relmagische_ausrüstung_set__item", "relrüstung_set__item",
         "relausrüstung_technik_set__item", "relfahrzeug_set__item", "releinbauten_set__item", "relalchemie_set__item",
-        "reltinker_set__item", "relbegleiter_set__item", "relramsch_set",
+        "reltinker_set__item", "relbegleiter_set__item", "relramsch_set", "card"
     )
 
     def get(self, request, *args, **kwargs):
@@ -149,7 +150,7 @@ class ShowView(VerifiedAccountMixin, DetailView):
             "plus": "Historie",
             "plus_url": reverse("character:history", args=[char.id]),
             "story_notes_form": StoryNotesForm(instance=curr_story),
-            "spend_money_form": SpendMoneyForm(initial={"char": char.pk}),
+            "spend_money_form": SpendMoneyForm(sender_card=char.card),
 
             **self.get_personal(char),
             **self.get_resources(char),
@@ -200,7 +201,7 @@ class ShowView(VerifiedAccountMixin, DetailView):
 
     def get_resources(self, char):
         fields = [
-            ["Geld", f"{render_number(char.geld)} Drachmen"],
+            ["Geld", format_html(f"{render_number(char.geld)} Drachmen (<a class='text-white' href='{reverse('cards:show', args=[char.card.pk])}'>alle Transaktionen -></a>)")],
             ["SP", char.sp],
             ["IP", char.ip],
             ["TP", char.tp],
@@ -541,7 +542,7 @@ class ShowView(VerifiedAccountMixin, DetailView):
         class ZauberTable(tables.Table):
             class Meta:
                 model = RelZauber
-                fields = ("item__name", "tier", "item__beschreibung", "item__manaverbrauch", "item__astralschaden", "item__verteidigung", "item__schadensart")
+                fields = ("item__name", "tier", "learned", "item__beschreibung", "item__manaverbrauch", "item__astralschaden", "item__verteidigung", "item__schadensart")
                 orderable = False
                 attrs = {"class": "table table-dark table-striped table-hover"}
 
@@ -655,18 +656,29 @@ class HistoryView(VerifiedAccountMixin, tables.SingleTableMixin, TemplateView):
     
     def get_table_data(self):
         char = get_object_or_404(Charakter, pk=self.kwargs["pk"])
-        return Log.objects.filter(char=char, art__in=("s", "u", "i", "j", "l", "q", "w"))
+        return Log.objects.prefetch_related("spieler").filter(char=char, art__in=("s", "u", "i", "j", "l", "q", "w"))
     
 
     def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
-        char = get_object_or_404(Charakter, pk=self.kwargs["pk"])
+        char = get_object_or_404(Charakter.objects.prefetch_related("card"), pk=self.kwargs["pk"])
 
         return super().get_context_data(
             **kwargs,
             topic = "Historie",
             app_index=char.name,
             app_index_url=reverse("character:show", args=[char.id]),
+            
             priotable=char.processing_notes["priotable"] if "priotable" in char.processing_notes else None,
+
+            card=char.card,
+            transactions = char.card.get_transactions().annotate(
+                card_uuid=Case(When(sender=char.card, then=F("receiver")), default=F("sender")),
+                
+                card_name=Subquery(Card.objects.filter(pk=OuterRef("card_uuid")).values("name")[:1]),
+                card=Case(When(card_name=None, then=Subquery(Card.objects.filter(pk=OuterRef("card_uuid")).values("char__name")[:1])), default=F("card_name")),
+
+                diff=Case(When(sender=char.card, then=Value(-1) * F("amount")), default=F("amount"), output_field=models.IntegerField()),
+            )
         )
 
 
@@ -761,7 +773,7 @@ def add_ramsch(request, pk):
 @verified_account
 @require_POST
 def spend_money(request, pk):
-    char = get_object_or_404(Charakter, pk=pk)
+    char = get_object_or_404(Charakter.objects.prefetch_related("eigentümer", "card__char__eigentümer", "card__spieler"), pk=pk)
 
     # assert user requesting to add an item
     if not request.spieler.is_spielleitung and char.eigentümer != request.spieler.instance:
@@ -770,32 +782,50 @@ def spend_money(request, pk):
 
     # validate incoming data
     try:
-        form = SpendMoneyForm(request.POST, initial={"char": char.pk})
+        form = SpendMoneyForm(request.POST, sender_card=char.card)
         form.full_clean()
+
         if not form.is_valid(): raise ValueError("form is not valid")
-        if form.cleaned_data["char"].pk != pk: raise ValueError("pk on form is different")
+        if form.cleaned_data["sender"].char.pk != pk: raise ValueError("pk on form is different")
     except:
-        messages.error(request, "Anfrage fehlerhaft")
+        messages.error(request, format_html(f"Geld ausgeben hat nicht geklappt {form.errors if form else ''}"))
         return redirect(reverse("character:show", args=[pk]))
     
     # spend money
-    form.cleaned_data["char"].geld -= form.cleaned_data["amount"]
-    form.cleaned_data["char"].save(update_fields=["geld"])
+    card = form.cleaned_data["sender"]
+    card.money -= form.cleaned_data["amount"]
+    card.save(update_fields=["money"])
+
+    # receiver gets money
+    if form.cleaned_data["receiver"] is not None:
+        form.cleaned_data["receiver"].money += form.cleaned_data["amount"]
+        form.cleaned_data["receiver"].save(update_fields=["money"])
+
+    # create Transaction
+    form.save()
 
     # add ramsch
     if form.cleaned_data["add_to_inventory"]:
-        RelRamsch.objects.create(char=form.cleaned_data["char"], anz=1, item=form.cleaned_data["purpose"])
+        RelRamsch.objects.create(char=char, anz=1, item=form.cleaned_data["reason"])
 
     # log
     Log.objects.create(
         spieler=request.spieler.instance,
-        char=form.cleaned_data["char"],
+        char=char,
         art="e", # Geld ausgegeben
         kosten=f"{form.cleaned_data['amount']} Dr.",
-        notizen=form.cleaned_data["purpose"],
+        notizen=form.cleaned_data["reason"] + (f' an {form.cleaned_data["receiver"]}' if form.cleaned_data["receiver"] else ''),
     )
+    if form.cleaned_data["receiver"] and form.cleaned_data["receiver"].char:
+        Log.objects.create(
+            spieler=request.spieler.instance,
+            char=form.cleaned_data["receiver"].char,
+            art="g", # Geld bekommen
+            kosten=f"{form.cleaned_data['amount']} Dr.",
+            notizen=f'{form.cleaned_data["reason"]} von {card}',
+        )
 
-    messages.success(request, f"{form.cleaned_data['amount']} Dr. für {form.cleaned_data['purpose']} ausgegeben")
+    messages.success(request, f"{form.cleaned_data['amount']:n} Dr. für {form.cleaned_data['reason']} ausgegeben")
     return redirect(reverse("character:show", args=[pk]))
 
 
@@ -891,8 +921,11 @@ def remove_relshop(request, relshop_model, pk):
             price = int((price * .4) + .5) * res["amount"]
         
         # receive money
-        res["char"].geld += price
-        res["char"].save(update_fields=["geld"])
+        card = res["char"].card
+        card.money += price
+        card.save(update_fields=["money"])
+
+        Transaction.objects.create(receiver=card, amount=price, reason=f"verkaufe {res['amount']}x {res['item_name']}")
 
         # log transaction
         Log.objects.create(
@@ -1038,6 +1071,8 @@ class CreateCharacterView(UserPassesTestMixin, CreateView):
             for formset in context.values():
                 formset.instance = self.object
                 formset.save()
+            card = Card.objects.create(char=self.object, money=form.cleaned_data["geld"], active=True)
+            Transaction.objects.create(receiver=card, amount=card.money, reason="Nachtrag Kapital")
 
             del self.object.processing_notes["effect_signals"]
             # add missing Attribute, Fertigkeiten, Gruppen. Would be called automatically,

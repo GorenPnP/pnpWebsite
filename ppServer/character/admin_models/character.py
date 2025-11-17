@@ -6,8 +6,9 @@ from django.forms.widgets import Widget as Widget
 from django.http.request import HttpRequest
 from django.utils.html import format_html
 
-from ppServer.utils import get_filter
+from cards.models import Card
 from effect.models import RelEffect
+from ppServer.utils import get_filter
 
 from ..models import *
 
@@ -33,6 +34,10 @@ class ReadonlyRelInlineAdmin(RelInlineAdmin):
     def has_delete_permission(self, request, obj=None):
         return False
 
+
+class CardInLine(ReadonlyRelInlineAdmin):
+    model = Card
+    fields = ["money"]
 
 class RelKlasseInline(RelInlineAdmin):
     model = RelKlasse
@@ -239,7 +244,7 @@ class RelEinbautenInLine(RelShopInLine):
 
 
 class RelZauberInLine(RelShopInLine):
-    fields = fields = ["anz", "item", "tier", "notizen"]
+    fields = fields = ["anz", "item", "tier", "learned", "notizen"]
     model = RelZauber
 
 
@@ -284,11 +289,12 @@ class CharakterAdmin(admin.ModelAdmin):
                               "manaoverflow_bonus", "nat_regeneration_bonus", "immunsystem_bonus"]}),
         ('Rüstung', {'fields': ['natürlicher_schadenswiderstand_rüstung', 'natSchaWi_pro_erfolg_rüstung', 'rüstung_haltbarkeit']}),
         ('Kampagne', {'fields': ["ep", 'ep_stufe', 'ep_stufe_in_progress', "skilltree_stufe", "processing_notes"]}),
-        ('Währungen', {'fields': ['ap', 'fp', 'fg', 'sp', "sp_fix", 'ip', 'tp', 'spF_wF', 'wp', 'zauberplätze', "geld", 'konzentration', "konzentration_fix", "prestige", "verzehr", "glück", "sanität", "limit_k_fix", "limit_g_fix", "limit_m_fix"]}),
+        ('Währungen', {'fields': ['ap', 'fp', 'fg', 'sp', "sp_fix", 'ip', 'tp', 'spF_wF', 'wp', 'zauberplätze', 'konzentration', "konzentration_fix", "prestige", "verzehr", "glück", "sanität", "limit_k_fix", "limit_g_fix", "limit_m_fix"]}),
         ('Geschreibsel', {'fields': ['notizen', 'persönlicheZiele', 'sonstige_items']}),
     ]
 
     inlines = [
+        CardInLine,
         RelKlasseInline,
         RelWesenkraftInLine,
         RelAttributInline,

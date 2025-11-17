@@ -8,7 +8,8 @@ from django.shortcuts import redirect, get_object_or_404
 from django.views.generic.base import TemplateView
 from django.utils.decorators import method_decorator
 
-from character.models import Charakter, RelAttribut, RelVorteil, get_tier_cost_with_sp, RelZauber
+from cards.models import Card, Transaction
+from character.models import Charakter, RelAttribut, RelVorteil, Spieler, get_tier_cost_with_sp, RelZauber
 from shop.models import Firma, FirmaZauber, Modifier, Zauber
 
 from ..decorators import is_erstellung_done
@@ -42,7 +43,7 @@ class GenericZauberView(LevelUpMixin, TemplateView):
         char_stufe_limit = max(char.ep_stufe_in_progress, 5 if char.magieamateur_exists else 0, 10 if char.magiegelehrter_exists else 0)
         max_stufe = min(zauberplatz_stufe_limit, char_stufe_limit)
 
-        own_zauber = char.relzauber_set.prefetch_related("item").all().annotate(
+        own_zauber = char.relzauber_set.filter(learned=True).prefetch_related("item").all().annotate(
             querystring=Concat(Value('?name__icontains='), Replace("item__name", Value(" "), Value("+")), output_field=CharField()),
         ).order_by("item__name")
 
@@ -78,7 +79,7 @@ class GenericZauberView(LevelUpMixin, TemplateView):
             zauber = get_object_or_404(Zauber, id=zauber_id)
             
             # checks
-            if RelZauber.objects.filter(char=char, item=zauber).exists():
+            if RelZauber.objects.filter(char=char, item=zauber, learned=True).exists():
                 messages.error(request, f"Den Zauber {zauber.name} kennst du bereits.")
                 return redirect(request.build_absolute_uri())
 
@@ -88,7 +89,9 @@ class GenericZauberView(LevelUpMixin, TemplateView):
                 return redirect(request.build_absolute_uri())
             
             firmen_modifiers = self._get_price_modifiers()
-            price = min([firmen_modifiers[t.firma.pk](t.preis) for t in FirmaZauber.objects.prefetch_related("firma").filter(item=zauber)])
+            firma_prices = {t.firma.name: firmen_modifiers[t.firma.pk](t.preis) for t in FirmaZauber.objects.prefetch_related("firma").filter(item=zauber)}
+            price = min(firma_prices.values())
+            firma_name = [k for k, v in firma_prices.items() if v == price][0]
             if not char.in_erstellung and char.geld < price:
                 messages.error(request, f"Du hast nicht genug Geld für {zauber.name}.")
                 return redirect(request.build_absolute_uri())
@@ -99,11 +102,20 @@ class GenericZauberView(LevelUpMixin, TemplateView):
             char.zauberplätze[str(min_stufe_of_slots)] -= 1
             if char.zauberplätze[str(min_stufe_of_slots)] == 0:
                 del char.zauberplätze[str(min_stufe_of_slots)]
-            # geld
-            if not char.in_erstellung: char.geld -= price
-            char.save(update_fields=["zauberplätze", "geld"])
+            char.save(update_fields=["zauberplätze"])
 
-            RelZauber.objects.create(char=char, item=zauber)
+            # geld
+            if not char.in_erstellung:
+                char.card.money -= price
+                char.card.save(update_fields=["money"])
+
+                spielleitung_spieler = get_object_or_404(Spieler, name__startswith="spielleit")
+                receiver_card, _ = Card.objects.get_or_create(name=firma_name, spieler=spielleitung_spieler)
+
+                Transaction.objects.create(sender=char.card, receiver=receiver_card, amount=price, reason=f"Zauber '{zauber.name}' erworben/gelernt")
+
+            # TODO or update if exists as unlearned?
+            RelZauber.objects.create(char=char, item=zauber, learned=True)
             return redirect(request.build_absolute_uri())
 
         if operation == "update":
@@ -111,7 +123,7 @@ class GenericZauberView(LevelUpMixin, TemplateView):
             rel_zauber_ids = [int(id) for id in request.POST.keys() if id.isnumeric()]
 
             new_tiers = {id: int(request.POST.get(str(id))) for id in rel_zauber_ids}
-            rel_zauber = RelZauber.objects.filter(char=char, id__in=rel_zauber_ids)
+            rel_zauber = RelZauber.objects.filter(char=char, id__in=rel_zauber_ids, learned=True)
 
 
             # PERFORM CHECKS

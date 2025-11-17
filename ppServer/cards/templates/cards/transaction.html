@@ -12,9 +12,10 @@
     <h1>{{ sender.name|default:"neue Transaktion"}}</h1>
 
     {% if sender %}
-        <a href="{% url 'cards:show' sender.pk %}">Zur Kontoübersicht</a>
+        <a class="text-white d-block mb-5" href="{% url 'cards:show' sender.pk %}">Zur Kontoübersicht</a>
     {% endif %}
 
+    <h2>Geld versenden</h2>
     <form method="post">
         {% csrf_token %}
         {% crispy form %}

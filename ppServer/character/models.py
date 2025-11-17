@@ -1,4 +1,4 @@
-import re, sys
+import sys
 from datetime import date
 from sentry_sdk import capture_message
 
@@ -686,7 +686,6 @@ class Charakter(models.Model):
     spF_wF = models.IntegerField(null=True, blank=True)
     wp = models.IntegerField(null=True, blank=True)
     zauberplätze = models.JSONField(default=dict, null=False, blank=True) # {"0": 2, "2": 1}
-    geld = models.IntegerField(default=0)
     konzentration = models.PositiveSmallIntegerField(null=True, blank=True)
     konzentration_fix = models.SmallIntegerField(default=None, null=True, blank=True)
     prestige = models.PositiveIntegerField(default=0)
@@ -768,6 +767,10 @@ class Charakter(models.Model):
 
     affektivitäten = models.ManyToManyField("Affektivität", blank=True)
     tags = models.ManyToManyField(Tag, blank=True)
+
+    @property
+    def geld(self):
+        return self.card.money if self.card else None
 
     def __str__(self):
         return "{} ({})".format(self.name, self.eigentümer)
@@ -1309,6 +1312,8 @@ class RelZauber(RelShop):
 
     item = models.ForeignKey(Zauber, on_delete=models.CASCADE)
     tier = models.PositiveSmallIntegerField(default=0, validators=[MaxValueValidator(7)])
+
+    learned = models.BooleanField(default=False)
 
     def __str__(self):
         return "{}".format(self.item)

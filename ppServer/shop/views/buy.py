@@ -7,6 +7,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.views.generic import DetailView
 from django.urls import reverse
 
+from cards.models import Card, Transaction
 from character.models import *
 from log.create_log import logShop
 from ppServer.mixins import VerifiedAccountMixin
@@ -173,8 +174,11 @@ class BuyView(VerifiedAccountMixin, DetailView):
                 self.relshop_model.objects.create(char=char, item=item, anz=num_items)
 
         # pay
-        char.geld -= debt
-        char.save(update_fields=["geld"])
+        char.card.money -= debt
+        char.card.save(update_fields=["money"])
+        spielleitung_spieler = get_object_or_404(Spieler, name__startswith="spielleit")
+        firma_card = None if extra else Card.objects.get_or_create(name=firma_shop.firma.name, spieler=spielleitung_spieler)[0]
+        Transaction.objects.create(sender=char.card, receiver=firma_card, amount=debt, reason=f"kaufe {num_items}x {item.name}{' Stufe '+stufe if item.stufenabhängig else ''}")
 
         # log
         log_dict = {

@@ -3,11 +3,13 @@ import json
 from django import forms
 
 from crispy_forms.bootstrap import AppendedText, Tab, TabHolder, Container, InlineField
-from crispy_forms.layout import Layout, Submit, HTML, Fieldset, ButtonHolder, LayoutObject, TEMPLATE_PACK, Div
+from crispy_forms.layout import Layout, Submit, HTML, Fieldset, ButtonHolder, LayoutObject, TEMPLATE_PACK, Div, Field
 from django.urls import reverse
 
 from base.crispy_form_decorator import crispy
 from campaign.forms import ZauberplätzeWidget
+from cards.forms import CardField
+from cards.models import Card, Transaction
 
 from .models import *
 from .form_utils import FormSet, PopulatedFormSet
@@ -40,7 +42,7 @@ ShopRüstungFormSet = FormSet(Charakter, RelRüstung, "rüstung", shop_fields)
 ShopAusrüstungTechnikFormSet = FormSet(Charakter, RelAusrüstung_Technik, "ausr_technik", [*shop_fields, "selbst_eingebaut"])
 ShopFahrzeugFormSet = FormSet(Charakter, RelFahrzeug, "fahrzeug", shop_fields)
 ShopEinbautenFormSet = FormSet(Charakter, RelEinbauten, "einbauten", shop_fields)
-ShopZauberFormSet = FormSet(Charakter, RelZauber, "zauber", [*shop_fields, "tier"])
+ShopZauberFormSet = FormSet(Charakter, RelZauber, "zauber", [*shop_fields, "tier", "learned"])
 ShopVergesseneZauberFormSet = FormSet(Charakter, RelVergessenerZauber, "verg_zauber", shop_fields)
 ShopBegleiterFormSet = FormSet(Charakter, RelBegleiter, "begleiter", shop_fields)
 ShopEngelsroboterFormSet = FormSet(Charakter, RelEngelsroboter, "engelsroboter", shop_fields)
@@ -73,7 +75,7 @@ class CharacterForm(forms.ModelForm):
         fields = [
             "image", "name", "gewicht", "größe", "alter", "geschlecht", "sexualität", "beruf", "präf_arm", "religion", "hautfarbe", "haarfarbe", "augenfarbe", "gfs", "persönlichkeit",
             "manifest", "manifest_fix", "sonstiger_manifestverlust", "notizen_sonstiger_manifestverlust",
-            "ap", "fp", "fg", "sp", "sp_fix", "ip", "tp", "zauberplätze", "geld", "konzentration", "konzentration_fix", "prestige", "verzehr", "glück", "sanität", "limit_k_fix", "limit_g_fix", "limit_m_fix",
+            "ap", "fp", "fg", "sp", "sp_fix", "ip", "tp", "zauberplätze", "konzentration", "konzentration_fix", "prestige", "verzehr", "glück", "sanität", "limit_k_fix", "limit_g_fix", "limit_m_fix",
             "ep", "ep_stufe", "skilltree_stufe",
             "HPplus_geistig", "HPplus", "HPplus_fix", "rang",
             "wesenschaden_waff_kampf", "wesenschaden_andere_gestalt", "crit_attack", "crit_defense", "initiative_bonus", "reaktion_bonus", "natürlicher_schadenswiderstand_bonus", "natürlicher_schadenswiderstand_rüstung", "natSchaWi_pro_erfolg_bonus", "natSchaWi_pro_erfolg_rüstung", "rüstung_haltbarkeit", "astralwiderstand_bonus", "astralwiderstand_pro_erfolg_bonus", "manaoverflow_bonus", "nat_regeneration_bonus", "immunsystem_bonus",
@@ -83,6 +85,8 @@ class CharacterForm(forms.ModelForm):
             "items", "waffenWerkzeuge", "magazine", "pfeile_bolzen", "schusswaffen", "magischeAusrüstung", "rituale_runen", "rüstungen", "ausrüstungTechnik", "fahrzeuge", "einbauten", "zauber", "vergessene_zauber", "begleiter", "engelsroboter",
         ]
 
+    # field for char.card.money
+    geld = forms.IntegerField(initial=0, label="Geld in Dr.", required=True, min_value=0)
     zauberplätze = forms.JSONField(initial=dict, label="Zauberslots", required=False, widget=CharacterZauberWidget(attrs={'class': 'zauberplätze-input'}))
 
     def __init__(self, *args, **kwargs):
@@ -143,7 +147,7 @@ class CharacterForm(forms.ModelForm):
                     ),
                     Fieldset(
                         "Ingame",
-                        "geld", "konzentration", "konzentration_fix", "prestige", "verzehr", "glück", "sanität",
+                        AppendedText('geld', 'Dr.'), "konzentration", "konzentration_fix", "prestige", "verzehr", "glück", "sanität",
                     ),
                     Fieldset(
                         "Manifest",
@@ -349,23 +353,28 @@ class StoryNotesForm(forms.ModelForm):
 
 
 @crispy
-class SpendMoneyForm(forms.Form):
-    char = forms.ModelChoiceField(Charakter.objects.all(), required=True, disabled=True, widget=forms.widgets.HiddenInput())
-    amount = forms.IntegerField(min_value=0, required=True, label="Betrag")
-    purpose = forms.CharField(required=True, label="Verwendungszweck", max_length=128)
-    add_to_inventory = forms.BooleanField(initial=False, required=False, label="ins Inventar eintragen")
+class SpendMoneyForm(forms.ModelForm):
+    class Meta:
+        model = Transaction
+        fields = ["sender", "receiver", "amount", "reason"]
+        widgets = {"sender": forms.HiddenInput()}
 
-    def __init__(self, *args, **kwargs):
+    add_to_inventory = forms.BooleanField(initial=False, required=False, label="Verwendungszweck als Item ins Inventar eintragen")
+
+    def __init__(self, *args, sender_card: Card, **kwargs):
         super().__init__(*args, **kwargs)
 
-        char = get_object_or_404(Charakter, pk=kwargs["initial"]["char"])
+        self.fields["sender"].required = True
+        self.fields["sender"].initial = sender_card.pk
+        self.fields["receiver"] = CardField.get_from_default(self.fields["receiver"], exclude_uuid=sender_card.pk)
+        
+        self.fields["amount"].max_value = sender_card.money
+        self.fields["amount"].widget.attrs["max"] = sender_card.money
 
-        self.fields["amount"].max_value = char.geld
-        self.fields["amount"].widget.attrs["max"] = char.geld
-
-        self.helper.form_action=reverse("character:spend_money", args=[char.pk])
+        self.helper.form_action=reverse("character:spend_money", args=[sender_card.char.pk])
         self.helper.layout = Layout(
-            AppendedText("amount", f"Dr. von {char.geld:n} Dr."),
-            "purpose", "add_to_inventory",
-            Submit("submit", "Geld ausgeben", css_class="btn btn-primary")
+            AppendedText("amount", f"Dr. von {sender_card.money:n} Dr."),
+            Field("receiver", wrapper_class="legend_is_label"),
+            "reason", "add_to_inventory",
+            Submit("submit", "Geld ausgeben", css_class="btn btn-primary"), "sender"
         )

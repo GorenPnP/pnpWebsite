@@ -1,5 +1,9 @@
+import math
+
 from django.db import models
 from django.forms import ValidationError
+
+from cards.models import Transaction
 
 
 class AbstractEffect(models.Model):
@@ -25,7 +29,7 @@ class AbstractEffect(models.Model):
         ("character.Charakter.sp", "Charakter: SP"),
         ("character.Charakter.sp_fix", "Charakter: SP fix"),
 
-        ("character.Charakter.geld", "Charakter: Geld"),
+        ("cards.Card.money", "Charakter: Geld"),
         ("character.Charakter. Konto", "Charakter: neuer Kontostand (-> Geld)"),
         ("character.Charakter.prestige", "Charakter: Prestige"),
         ("character.Charakter.verzehr", "Charakter: Verzehr"),
@@ -104,7 +108,7 @@ class AbstractEffect(models.Model):
             if getattr(self, "target_attribut", None):
                 raise ValidationError("Attribut unnötigerweise ausgewählt")
 
-        elif "character.Charakter" in self.target_fieldname and (getattr(self, "target_attribut", None) or getattr(self, "target_fertigkeit", None)):
+        elif ("character.Charakter" in self.target_fieldname or "cards.Card" in self.target_fieldname) and (getattr(self, "target_attribut", None) or getattr(self, "target_fertigkeit", None)):
             raise ValidationError("Attribut oder Fertigkeit unnötigerweise ausgewählt")
 
 
@@ -190,13 +194,24 @@ class RelEffect(AbstractEffect):
             target = getattr(self, "target_attribut")
         elif Model == "character.RelFertigkeit":
             target = getattr(self, "target_fertigkeit")
+        elif Model == "cards.Card":
+            target = getattr(self, "target_char").card
         else:
             target = getattr(self, "target_char")
 
         # set change
         if self.target_fieldname == "character.Charakter. Konto":
-            setattr(target, "geld", self.wertaenderung)
-            target.save(update_fields=["geld"])
+            diff = self.wertaenderung - target.card.money
+            target.card.money = self.wertaenderung
+            target.card.save(update_fields=["money"])
+
+            Transaction.objects.create(
+                sender=target.card if diff < 0 else None,
+                receiver=target.card if diff >= 0 else None,
+                amount=math.fabs(diff),
+                reason=f"Aktiver Effekt von {', '.join([getattr(self, field.replace('_id', '')).__str__() for field, val in self.__dict__.items() if 'source_' in field and val])} setzt das Konto auf {self.wertaenderung:n} Dr.",
+            )
+
         elif self.target_fieldname.rsplit("_", 1)[-1] == "fix":
             setattr(target, field, self.wertaenderung)
             target.save(update_fields=[field])
@@ -210,6 +225,15 @@ class RelEffect(AbstractEffect):
                 target.save(update_fields=[field, "notizen_sonstiger_manifestverlust"])
             else:
                 target.save(update_fields=[field])
+
+        # additional 'logging' for money transaction
+        if self.target_fieldname == "cards.Card.money":
+            Transaction.objects.create(
+                sender=target if self.wertaenderung < 0 else None,
+                receiver=target if self.wertaenderung >= 0 else None,
+                amount=math.fabs(self.wertaenderung),
+                reason=f"Aktiver Effekt von {', '.join([getattr(self, field.replace('_id', '')).__str__() for field, val in self.__dict__.items() if 'source_' in field and val])}",
+            )
 
         # set is_active (& save)
         self.is_active = True
@@ -225,13 +249,24 @@ class RelEffect(AbstractEffect):
             target = getattr(self, "target_attribut")
         elif Model == "character.RelFertigkeit":
             target = getattr(self, "target_fertigkeit")
+        elif Model == "cards.Card":
+            target = getattr(self, "target_char").card
         else:
             target = getattr(self, "target_char")
 
         # set change
         if self.target_fieldname == "character.Charakter. Konto":
-            setattr(target, "geld", 0)
-            target.save(update_fields=["geld"])
+            diff = -1 * target.card.money
+            target.card.money = 0
+            target.card.save(update_fields=["money"])
+
+            Transaction.objects.create(
+                sender=target.card if diff < 0 else None,
+                receiver=target.card if diff >= 0 else None,
+                amount=math.fabs(diff),
+                reason=f"Deaktivieren des Effekts von {', '.join([getattr(self, field.replace('_id', '')).__str__() for field, val in self.__dict__.items() if 'source_' in field and val])} setzt das Konto auf 0 Dr.",
+            )
+
         elif self.target_fieldname.rsplit("_", 1)[-1] == "fix":
             setattr(target, field, None)
             target.save(update_fields=[field])
@@ -245,6 +280,15 @@ class RelEffect(AbstractEffect):
                 target.save(update_fields=[field, "notizen_sonstiger_manifestverlust"])
             else:
                 target.save(update_fields=[field])
+
+        # additional 'logging' for money transaction
+        if self.target_fieldname == "cards.Card.money":
+            Transaction.objects.create(
+                sender=target if self.wertaenderung > 0 else None,
+                receiver=target if self.wertaenderung <= 0 else None,
+                amount=math.fabs(self.wertaenderung),
+                reason=f"Deaktivieren des Effekts von {', '.join([getattr(self, field.replace('_id', '')).__str__() for field, val in self.__dict__.items() if 'source_' in field and val])}",
+            )
 
         # set is_active (& save)
         self.is_active = False

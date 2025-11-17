@@ -21,7 +21,7 @@ class CardListView(VerifiedAccountMixin, ListView):
         return self.model.objects.filter(spieler=self.request.spieler.instance, active=True)
     
     def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
-        return super().get_context_data(**kwargs, topic="Meine Karten")
+        return super().get_context_data(**kwargs, topic="Meine Konten")
 
 
 class CardDetailView(VerifiedAccountMixin, UserPassesTestMixin, TemplateView):
@@ -30,14 +30,14 @@ class CardDetailView(VerifiedAccountMixin, UserPassesTestMixin, TemplateView):
     object = None
     def get_object(self):
         if not self.object:
-            self.object = Card.objects.get(pk=self.kwargs["pk"])
+            self.object = Card.objects.prefetch_related("spieler", "char__eigentümer").get(pk=self.kwargs["pk"])
         return self.object
         
 
     def test_func(self):
         object = self.get_object()
         return (
-            (self.request.spieler.is_spielleitung or object.spieler == self.request.spieler.instance) and
+            (self.request.spieler.is_spielleitung or object.account_owner == self.request.spieler.instance) and
             object.active
         )
 
@@ -45,15 +45,15 @@ class CardDetailView(VerifiedAccountMixin, UserPassesTestMixin, TemplateView):
         return HttpResponseNotFound()
 
     def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-
-        context["object"] = self.get_object()
-        context["transactions"] = context["object"].get_transactions()
-        context["topic"] = context["object"].name
-        context["app_index"] = "Konten"
-        context["app_index_url"] = reverse("cards:index")
-
-        return context
+        object = self.get_object()
+        return {
+            **super().get_context_data(**kwargs),
+            "object": self.get_object(),
+            "transactions": object.get_transactions(),
+            "topic": object.account_name,
+            "app_index": "Konten",
+            "app_index_url": reverse("cards:index"),
+        }
 
 
 @verified_account
@@ -95,18 +95,24 @@ def sp_transaction(request):
     return render(request, 'cards/transaction.html', {'form': form, "errors": errors, "topic": "Neue Transaktion"})
 
 
+@verified_account
+def redirect_transactions(request, card_id: int):
+    card = get_object_or_404(Card.objects.prefetch_related("spieler", "char__eigentümer"), card_id=card_id)
+    return redirect(reverse("cards:transaction", args=[card.id]))
+
+
 class TransactionView(VerifiedAccountMixin, UserPassesTestMixin, TemplateView):
     template_name = 'cards/transaction.html'
 
     def get_sender(self):
-        return get_object_or_404(Card, id=self.kwargs["uuid"])
+        return get_object_or_404(Card.objects.prefetch_related("spieler", "char__eigentümer"), id=self.kwargs["uuid"])
 
     def test_func(self):
         sender = self.get_sender()
 
         return sender.active and (
             self.request.spieler.is_spielleitung or
-            sender.spieler == self.request.spieler.instance
+            sender.account_owner == self.request.spieler.instance
         )
 
     def handle_no_permission(self):
