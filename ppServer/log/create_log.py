@@ -1,7 +1,10 @@
 from .models import Log
 
 def render_number(num: int) -> str:
-    return f"{num:,}".replace(",", ".")
+    try:
+        return f"{num:,}".replace(",", ".")
+    except:
+        return num
 
 
 def logShop(spieler, char, item):

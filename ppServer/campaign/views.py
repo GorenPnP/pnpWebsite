@@ -7,6 +7,7 @@ from django.views.generic import DetailView
 from django.views.generic.list import ListView
 from django.urls import reverse
 
+from cards.models import Transaction
 from character.models import Charakter
 from log.create_log import logAuswertung
 from ppServer.mixins import SpielleitungOnlyMixin, VerifiedAccountMixin
@@ -56,25 +57,30 @@ class AuswertungView(VerifiedAccountMixin, SpielleitungOnlyMixin, DetailView):
         return super().get(request, *args, **kwargs)
 
     def post(self, request, *args, **kwargs):
-        object = self.get_object()
+        object = self.get_object(queryset=self.model.objects.prefetch_related("card"))
         form = LarpAuswertungForm(request.POST) if object.larp else AuswertungForm(request.POST)
         form.full_clean()
         if form.is_valid():
             fields = {**form.cleaned_data}
-            story = fields["story"]
-            del fields["story"]
+            story = fields.pop("story")
 
-            if "zauberplätze" in fields and fields["zauberplätze"]:
-                for stufe, amount in fields["zauberplätze"].items():
+            # apply geld
+            geld = fields.pop("geld")
+            if geld:
+                object.card.money += geld
+                object.card.save(update_fields=["money"])
+                Transaction.objects.create(receiver=object.card, amount=geld, reason=f"Storybelohnung '{story}'")
+
+            # apply zauberplätze
+            zauberplätze = fields.pop("zauberplätze", None)
+            if zauberplätze:
+                for stufe, amount in zauberplätze.items():
                     if not object.zauberplätze: object.zauberplätze = {}
 
                     old_val = object.zauberplätze[stufe] if hasattr(object.zauberplätze, stufe) else 0
                     object.zauberplätze[stufe] = old_val + amount
 
                 object.save(update_fields=["zauberplätze"])
-            
-            # del "zauberplätze" from fields:
-            fields.pop("zauberplätze", None)
 
             # apply all other/numeric fields
             for k, v in fields.items():
@@ -82,7 +88,9 @@ class AuswertungView(VerifiedAccountMixin, SpielleitungOnlyMixin, DetailView):
                 setattr(object, k, old_value + v)
 
             object.save(update_fields=fields)
-            logAuswertung(object.eigentümer, object, story, fields)
+
+            zauberplatz_log = ", ".join([f"{amount}x Stufe {stufe}" for stufe, amount in zauberplätze.items() if amount])
+            logAuswertung(object.eigentümer, object, story, {**fields, "geld": geld, "zauber": zauberplatz_log})
 
             # check ep for new stufe
             object.init_stufenhub()
