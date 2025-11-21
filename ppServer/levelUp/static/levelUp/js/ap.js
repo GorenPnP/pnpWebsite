@@ -29,7 +29,7 @@ function ap_spent() {
 function calc_ap_pool() {
     const ap = initial_ap - ap_spent();
     document.querySelector("#ap_pool").innerHTML = ap;
-    document.querySelector('[type="submit"]').disabled = ap < 0;
+    document.querySelector('#form [type="submit"]').disabled = ap < 0;
 }
 
 function update_result(tr_tag) {
