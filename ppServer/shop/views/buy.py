@@ -178,7 +178,7 @@ class BuyView(VerifiedAccountMixin, DetailView):
         char.card.save(update_fields=["money"])
         spielleitung_spieler = get_object_or_404(Spieler, name__startswith="spielleit")
         firma_card = None if extra else Card.objects.get_or_create(name=firma_shop.firma.name, spieler=spielleitung_spieler)[0]
-        Transaction.objects.create(sender=char.card, receiver=firma_card, amount=debt, reason=f"kaufe {num_items}x {item.name}{' Stufe '+stufe if item.stufenabhängig else ''}")
+        Transaction.objects.create(sender=char.card, receiver=firma_card, amount=debt, reason=f"kaufe {num_items}x {item.name}{' Stufe {}'.format(stufe) if item.stufenabhängig else ''}")
 
         # log
         log_dict = {
