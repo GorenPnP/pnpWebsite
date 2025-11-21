@@ -142,13 +142,13 @@ class KlasseStufenplan(models.Model):
         fert = {rel.fertigkeit.titel: attrs[rel.fertigkeit.attribut.titel] + fg[rel.fertigkeit.gruppe] + rel.fp + rel.fp_bonus for rel in char.relfertigkeit_set.prefetch_related("fertigkeit__attribut").all()}
         
         AsWi = attrs["MA"] + attrs["WK"] + char.astralwiderstand_bonus
-        if char.no_MA_NO_MG:
+        if char.no_MA_MG:
             AsWi += 4
         elif char.no_MA:
             AsWi = f'{attrs["WK"] + char.astralwiderstand_bonus} + Pool Angriffsfertigkeit'
 
         gHP = attrs["WK"]*5 + char.HPplus_geistig + math.ceil(char.larp_rang / 20)
-        if char.no_MA_NO_MG: gHP += 20
+        if char.no_MA_MG: gHP += 20
 
         calc_vals = {
             "Initiative": attrs["SCH"]*2 + attrs["WK"] + attrs["GES"] + char.initiative_bonus,
