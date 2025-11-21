@@ -72,8 +72,8 @@ class AuswertungView(VerifiedAccountMixin, SpielleitungOnlyMixin, DetailView):
                 Transaction.objects.create(receiver=object.card, amount=geld, reason=f"Storybelohnung '{story}'")
 
             # apply zauberplätze
-            zauberplätze = fields.pop("zauberplätze", None)
-            if zauberplätze:
+            zauberplätze = fields.pop("zauberplätze", dict())
+            if zauberplätze.keys():
                 for stufe, amount in zauberplätze.items():
                     if not object.zauberplätze: object.zauberplätze = {}
 
