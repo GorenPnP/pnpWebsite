@@ -1,9 +1,9 @@
 {% extends 'base/dynamic-table.html' %}
-{% load static levelUp.resources l10n %}
+{% load static levelUp.resources l10n crispy_forms_tags %}
 
 {% block extra-head %}
 <style>
-    table, p.note {
+    table, .note {
         max-width: 700px;
         margin-inline: auto;
     }
@@ -20,6 +20,13 @@
 
 {% block after_table %}
 <p class="note mt-4">Den aktuellen Wert zu erhöhen kostet 1 AP, das Maximum 2 AP. Wenn von 0 auf 1 erhöht wird, kostet es noch 1 AP mehr.</p>
+
+<div class="note mt-5">
+    <h2>Sonderfall Magie und Managetik</h2>
+    <p>s. weitere Vorteile <a class="text-white" href="{% url 'wiki:rule_detail' 13 %}" target="_blank">in den Regeln</a>.</p>
+
+    {% crispy denial_form %}
+</div>
 
 <div class="fixed-bottom">
     <form id="form" method="post" class="d-flex justify-content-center sticky-footer">

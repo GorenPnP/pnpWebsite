@@ -63,7 +63,7 @@ class GenericFertigkeitView(LevelUpMixin, DynamicTableView):
             entry["fg"] = gruppen[entry["gruppe_id"]]["fg"]
             entry["fg_temp"] = gruppen[entry["gruppe_id"]]["fg_temp"]
             entry["fp_limit"] = aktuell - entry["fp"]
-            entry["attribut"] = format_html(f"{entry['attribut']} (<span class='attr_sum'>{aktuell}</span>)")
+            entry["attribut"] = format_html(f"{'MG' if entry['attribut'] == 'MA' and char.no_MA and not char.no_MA_MG else entry['attribut']} (<span class='attr_sum'>{aktuell}</span>)")
 
             entry["pool"] = sum([aktuell, entry["fg"], entry["fg_temp"], entry["fp"], entry["fp_temp"], entry["fp_bonus"]])
             entry["gruppe"] = [name for token, name in enums.gruppen_enum if token == entry["gruppe_id"]][0]

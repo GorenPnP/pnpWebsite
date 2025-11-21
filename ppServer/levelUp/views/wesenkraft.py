@@ -91,7 +91,7 @@ class GenericWesenkraftView(LevelUpMixin, TemplateView):
 
             # char has enough AP/MA.aktuellerWert to pay for
             if ap_available < ap_to_pay:
-                messages.error(request, "Du hast zu wenig AP / Magie")
+                messages.error(request, "Du hast zu wenig AP / MA / MG")
                 return redirect(request.build_absolute_uri())
 
             # pay AP
@@ -100,7 +100,7 @@ class GenericWesenkraftView(LevelUpMixin, TemplateView):
             char.ap -= ap_diff
             char.save(update_fields=["ap"])
 
-            # pay MA
+            # pay MA/MG
             ap_diff = min(rel_ma.aktuellerWert_temp, ap_to_pay)
             ap_to_pay -= ap_diff
             rel_ma.aktuellerWert_temp -= ap_diff

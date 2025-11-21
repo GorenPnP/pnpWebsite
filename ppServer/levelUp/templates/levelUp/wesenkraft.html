@@ -41,7 +41,7 @@
 {% resources %}
     <!-- Resources -->
     <p class="mb-0">{{char.sp}} SP <b class="pay-tier" id="pay-tier-with-sp"></b></p>
-    <p class="mb-0">{{char.ap}} AP / {{MA_aktuell}} MA <b class="pay-tier" id="pay-tier-with-ap"></b></p>
+    <p class="mb-0">{{char.ap}} AP / {{MA_aktuell}} MA/MG <b class="pay-tier" id="pay-tier-with-ap"></b></p>
 
     <a class="text-light mt-3 d-block" href="{% url 'wiki:wesenkraft' %}" target="_blank">alle Wesenkräfte angucken</a>
 {% endresources %}
@@ -90,7 +90,7 @@
         <label for="payment-method" class="fw-bold mb-1">Bezahle Tiers mit</label>
         <select id="payment-method" class="form-select w-auto mb-3" name="payment_method" required>
             <option value="sp">SP</option>
-            <option value="ap">AP / MA-Attribut</option>
+            <option value="ap">AP / MA/MG-Attribut</option>
         </select>
 
     </form>

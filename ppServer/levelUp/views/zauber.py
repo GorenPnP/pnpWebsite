@@ -1,6 +1,7 @@
 from typing import Callable
 
 from django.contrib import messages
+from django.contrib.auth.mixins import UserPassesTestMixin
 from django.db.models import Sum, Value, CharField, Exists, OuterRef
 from django.db.models.functions import Concat, Replace
 from django.http import HttpRequest, HttpResponse
@@ -18,9 +19,15 @@ from ..views import get_required_aktuellerWert
 
 
 @method_decorator([is_erstellung_done], name="dispatch")
-class GenericZauberView(LevelUpMixin, TemplateView):
+class GenericZauberView(LevelUpMixin, UserPassesTestMixin, TemplateView):
 
     template_name = "levelUp/zauber.html"
+
+    def test_func(self) -> bool:
+        if not super().test_func(): return False
+
+        char = self.get_character()
+        return not char.no_MA and not char.no_MA_MG
 
     def _get_price_modifiers(self) -> dict[int, Callable[[float], float]]:
         ''' get price modifiers for Zauber by firma.pk

@@ -1,19 +1,24 @@
 import sys
 
 from django.db import models
-from django.db.models import F, Sum, Value, Case, When
+from django.db.models import F, Value, Case, When
 from django.contrib import messages
 from django.http.request import HttpRequest
 from django.http.response import HttpResponse
-from django.shortcuts import redirect
+from django.shortcuts import get_object_or_404, redirect
+from django.urls import reverse
 from django.utils.decorators import method_decorator
+from django.utils.html import format_html
+from django.views.decorators.http import require_POST
 
 from django_tables2.columns import TemplateColumn
 
 from base.abstract_views import DynamicTableView, GenericTable
-from character.models import RelAttribut
+from character.models import Charakter, RelAttribut
+from ppServer.decorators import verified_account
 
 from ..decorators import is_erstellung_done
+from ..forms import MA_MGDenialForm
 from ..mixins import LevelUpMixin
 from ..views import get_required_aktuellerWert
 
@@ -36,6 +41,8 @@ class GenericAttributView(LevelUpMixin, DynamicTableView):
         max_ap = TemplateColumn(template_name="levelUp/_number_input.html", extra_context={"add_field": "max_base", "bonus_field": None, "input_field": "max_temp", "max_field": "max_limit", "base_name": BASE_MAX, "base_class": BASE_MAX, "dataset_id": "dataset_id", "text": None, "disabled": "is_max_fix"})
 
         def render_attribut__titel(self, value, record):
+            if value == "MA" and record.char.no_MA and not record.char.no_MA_MG:
+                return "MG (Managetik)"
             return f"{value} ({record.attribut.beschreibung})"
 
         def render_result(self, value, record):
@@ -82,6 +89,8 @@ class GenericAttributView(LevelUpMixin, DynamicTableView):
         return super().get_context_data(*args, **kwargs,
             INITIAL_AP_PENALTY_AKTUELL=self.INITIAL_AP_PENALTY_AKTUELL,
             INITIAL_AP_PENALTY_MAX=self.INITIAL_AP_PENALTY_MAX,
+
+            denial_form = MA_MGDenialForm(instance=self.char),
         )
 
     def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
@@ -146,3 +155,30 @@ class GenericAttributView(LevelUpMixin, DynamicTableView):
         messages.success(request, "Erfolgreich gespeichert")
         return redirect(request.build_absolute_uri())
 
+
+@require_POST
+@verified_account
+def deny_MA_MG(request, pk):
+    char = get_object_or_404(Charakter, pk=pk)
+
+    if not request.spieler.is_spielleitung and (not hasattr(char, "eigentümer") or char.eigentümer != request.spieler.instance):
+        messages.error(request, "Das darfst du nicht für den Charakter entscheiden")
+        return redirect(reverse("levelUp:attribute", args=[char.pk]))
+    
+    old_no_MA = char.no_MA
+
+    form = MA_MGDenialForm(request.POST, instance=char)
+    form.full_clean()
+    if not form.is_valid():
+        messages.error(request, format_html(f"Ein Fehler ist aufgetreten{form.errors}"))
+        return redirect(reverse("levelUp:attribute", args=[char.pk]))
+    
+    if form.cleaned_data["no_MA_MG"]:
+        RelAttribut.objects.filter(char=char, attribut__titel="MA").update(aktuellerWert=0, maxWert=0, aktuellerWert_fix=0, maxWert_fix=0)
+
+    elif form.cleaned_data["no_MA"] and not old_no_MA:
+        RelAttribut.objects.filter(char=char, attribut__titel="MA").update(aktuellerWert=0, maxWert=1)
+
+    form.save()
+    messages.success(request, "Verzicht erfolgreich gespeichert")
+    return redirect(reverse("levelUp:attribute", args=[char.pk]))

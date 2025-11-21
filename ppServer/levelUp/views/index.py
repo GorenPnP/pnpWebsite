@@ -34,7 +34,7 @@ class IndexView(LevelUpMixin, DetailView):
         MA_aktuell = rel_ma.aktuell() - get_required_aktuellerWert(char, 'MA') if rel_ma.aktuellerWert_fix is None else 0
         wesenkr_werte = "<br>".join([
             f"{char.sp} SP",
-            f"{char.ap} AP / {MA_aktuell} MA"
+            f"{char.ap} AP / {MA_aktuell} MA/MG"
         ])
 
         if not char.zauberplätze:
@@ -111,7 +111,7 @@ class IndexView(LevelUpMixin, DetailView):
         rows.append({"done": char.ip >= 0, "link": self._get_url("vorteile", char), "text": "<b>Vorteile</b>", "werte": f"{char.ip} IP"})
         rows.append({"done": char.ip >= 0, "link": self._get_url("nachteile", char), "text": "<b>Nachteile</b>", "werte": f"{char.ip} IP"})
         # Zauber
-        if char.zauberplätze.keys() or char.zauber.exists():
+        if not char.no_MA and not char.no_MA_MG and (char.zauberplätze.keys() or char.zauber.exists()):
             rows.append({"done": is_zauber_done(char), "link": self._get_url("zauber", char), "text": "<b>Zauber</b>", "werte": zauber_werte})
         # Spezis & Wissis
         if char.spF_wF or char.wp or char.spezialfertigkeiten.exists() or char.wissensfertigkeiten.exists() or char.sp:

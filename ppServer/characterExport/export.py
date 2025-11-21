@@ -140,7 +140,7 @@ class CharakterExporter:
             ROW += 1
             self._POSITION[attr["titel"]] = f"Werte!N{ROW}"
 
-            werte_ws.write(f"K{ROW}", attr["titel"], format_attr)
+            werte_ws.write(f"K{ROW}", "MG" if attr["titel"] == "MA" and self.char.no_MA and not self.char.no_MA_MG else attr["titel"], format_attr)
             werte_ws.write(f"L{ROW}", attr["basis"] if attr["basis_fix"] is None else attr["basis_fix"], format_attr_basis)
             werte_ws.write(f"M{ROW}", attr["bonus"] if attr["basis_fix"] is None else 0, format_attr_bonus)
             werte_ws.write(f"N{ROW}", f'=$L{ROW} + $M{ROW}', format_attr_sum)
@@ -182,7 +182,7 @@ class CharakterExporter:
             self._POSITION[fert["fertigkeit__titel"]] = f"F{ROW}"
 
             werte_ws.write(f"A{ROW}", fert["fertigkeit__titel"], format_titel if fert["fertigkeit__impro_possible"] else format_titel_expert)
-            werte_ws.write(f"B{ROW}", fert["attribut"], format_attribut)
+            werte_ws.write(f"B{ROW}", "MG" if fert["attribut"] == "MA" and self.char.no_MA and not self.char.no_MA_MG else fert["attribut"], format_attribut)
             werte_ws.write(f"C{ROW}", fert["fp"], format_fp)
             werte_ws.write(f"E{ROW}", fert["fp_bonus"], format_fp_bonus)
             werte_ws.write(f"F{ROW}", f"={self._position(fert['attribut'])} + C{ROW} + D{ROW - i%3} + E{ROW}", format_pool)
@@ -259,7 +259,12 @@ class CharakterExporter:
 
         ROW += 1
         werte_ws.write(f"I{ROW}", "Astral-WI", format_asWi_topic)
-        werte_ws.write(f"J{ROW}", f"={self._position('MA')}+{self._position('WK')}"+(f"+{self.char.astralwiderstand_bonus}" if self.char.astralwiderstand_bonus else ""), format_asWi)
+        if self.char.no_MA_MG:
+            werte_ws.write(f"J{ROW}", f"={self._position('WK')}"+(f"+4+{self.char.astralwiderstand_bonus}" if self.char.astralwiderstand_bonus else ""), format_asWi)
+        elif self.char.no_MA:
+            werte_ws.write(f"J{ROW}", f"={self._position('WK')}"+(f"+{self.char.astralwiderstand_bonus}" if self.char.astralwiderstand_bonus else ""), format_asWi)
+        else:
+            werte_ws.write(f"J{ROW}", f"={self._position('MA')}+{self._position('WK')}"+(f"+{self.char.astralwiderstand_bonus}" if self.char.astralwiderstand_bonus else ""), format_asWi)
         
         ROW += 1
         werte_ws.write(f"I{ROW}", "HP / Erfolg", format_asWi_topic)
@@ -506,7 +511,7 @@ class CharakterExporter:
         
         ROW += 1
         werte_ws.write(f"I{ROW}", "G HP Bonus", format_align_center_center)
-        werte_ws.write(f"J{ROW}", self.char.HPplus_geistig + math.ceil(self.char.larp_rang/20), format_hp)
+        werte_ws.write(f"J{ROW}", self.char.HPplus_geistig + math.ceil(self.char.larp_rang/20) + (10 if self.char.no_MA_MG else 0), format_hp)
         
         ROW += 1
         self._POSITION["gHP"] = f"Werte!J{ROW}"
@@ -537,7 +542,7 @@ class CharakterExporter:
         werte_ws.merge_range("P6:R6", "Prestige", format_prestige_titel)
         werte_ws.merge_range("P7:R8", self.char.prestige, format_prestige)
         werte_ws.merge_range("P10:R10", "Hat MG?", format_prestige_titel)
-        werte_ws.merge_range("P11:R12", 0, format_prestige)
+        werte_ws.merge_range("P11:R12", 1 if self.char.no_MA and not self.char.no_MA_MG else 0, format_prestige)
         werte_ws.merge_range("P13:R13", "0 = nein, 1 = ja")
 
         return werte_ws
@@ -660,6 +665,10 @@ class CharakterExporter:
             werte_ws.merge_range(f"F{ROW}:H{ROW}", aff[3] if aff is not None else None, format_border_right)
         # Notizen
         notizen = [self.char.sonstige_items, self.char.notizen]
+        if self.char.no_MA_MG:
+            notizen.append(f"Verzichtet für immer auf Magie und Managetik.")
+        elif self.char.no_MA:
+            notizen.append(f"Kann Managetik nutzen und verzichtet für immer auf Magie.")
         if self.char.wesenschaden_waff_kampf:
             notizen.append(f"+{self.char.wesenschaden_waff_kampf} HP im waffenlosen Kampf")
         if self.char.wesenschaden_andere_gestalt:

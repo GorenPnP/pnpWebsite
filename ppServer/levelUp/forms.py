@@ -2,6 +2,7 @@ from django import forms
 
 from crispy_forms.bootstrap import AppendedText
 from crispy_forms.layout import Layout, Div, Field, Fieldset, Submit
+from django.urls import reverse
 
 from base.crispy_form_decorator import crispy
 from character.models import Affektivität, Charakter
@@ -79,6 +80,36 @@ class AffektivitätForm(forms.ModelForm):
     class Meta:
         model = Affektivität
         fields = ["name", "wert", "notizen"]
+
+
+@crispy(extra_inputs=[Submit("save", "Ich verzichte", css_class="btn btn-danger")])
+class MA_MGDenialForm(forms.ModelForm):
+    class Meta:
+        model = Charakter
+        fields = ["no_MA", "no_MA_MG"]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.helper.form_action=reverse("levelUp:attribute_deny", args=[self.instance.pk])
+
+        if self.instance.no_MA_MG:
+            self.fields["no_MA"].widget = forms.HiddenInput()
+            self.fields["no_MA"].disabled = True
+            self.fields["no_MA_MG"].disabled = True
+
+        elif self.instance.no_MA:
+            self.fields["no_MA"].disabled = True
+
+    def clean_no_MA(self):
+        if "no_MA" not in self.cleaned_data or not self.cleaned_data["no_MA"] and self.instance.no_MA:
+            raise forms.ValidationError("Du hast für immer auf Magie verzichtet und kannst sie nicht wiederbekommen")
+        return self.cleaned_data["no_MA"]
+
+    def clean_no_MA_MG(self):
+        if "no_MA_MG" not in self.cleaned_data or not self.cleaned_data["no_MA_MG"] and self.instance.no_MA_MG:
+            raise forms.ValidationError("Du hast für immer auf Magie und Managetik verzichtet und kannst sie nicht wiederbekommen")
+        return self.cleaned_data["no_MA_MG"]
 
 
 @crispy(form_tag=False)

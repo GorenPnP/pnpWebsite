@@ -30,7 +30,7 @@ def is_ferts_done(char: Charakter):
     return char is not None and not char.fp and not char.fg
 
 def is_zauber_done(char: Charakter):
-    return char is not None and len(char.zauberplätze.keys()) == 0
+    return char is not None and (char.no_MA or char.no_MA_MG or len(char.zauberplätze.keys()) == 0)
 
 def is_teil_done(char: Charakter):
     return char is not None and char.ip >= 0 and\

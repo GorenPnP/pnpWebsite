@@ -176,6 +176,11 @@ class ShowView(VerifiedAccountMixin, DetailView):
 
     def get_personal(self, char):
         gfs = f"<a class='text-white' href='{reverse('wiki:stufenplan', args=[char.gfs.id])}'>{char.gfs.titel}</a>" if char.gfs is not None else '-'
+
+        further_notes = ""
+        if char.no_MA_MG: further_notes = Charakter.no_MA_MG.field.verbose_name + "\n\n"
+        elif char.no_MA: further_notes = Charakter.no_MA.field.verbose_name + "\n\n"
+        
         fields = [
                 ["Name", char.name],
                 ["Gfs (Stufe)", format_html(f"{gfs} ({char.skilltree_stufe})")],
@@ -192,7 +197,7 @@ class ShowView(VerifiedAccountMixin, DetailView):
                 ["Sexualität", char.sexualität],
                 ["präferierter Arm", char.präf_arm],
                 ["Beruf", char.beruf.titel if char.beruf else ""],
-                ["Notizen", format_html(re.sub("\n", "<br>", char.notizen, 0, re.MULTILINE))],
+                ["Notizen", format_html(re.sub("\n", "<br>", further_notes + char.notizen, 0, re.MULTILINE))],
                 ["persönliche Ziele", format_html(re.sub("\n", "<br>", char.persönlicheZiele, 0, re.MULTILINE))],
         ]
         return {
@@ -226,13 +231,17 @@ class ShowView(VerifiedAccountMixin, DetailView):
 
         num = lambda n: "{0:.1f}".format(n) if type(n) is float else n
 
+        AsWi = num(attrs["MA"] + attrs["WK"] + char.astralwiderstand_bonus)
+        if char.no_MA_MG: AsWi = num(attrs["WK"] + char.astralwiderstand_bonus + 4)
+        elif char.no_MA: AsWi = f'{num(attrs["WK"] + char.astralwiderstand_bonus)} + Pool Angriffsfertigkeit'
+
         return {
             "calculated__fields": [
                 ["Limits (k | g | m)", f'{num((attrs["SCH"] + attrs["ST"] + attrs["VER"] + attrs["GES"]) / 2) if char.limit_k_fix is None else char.limit_k_fix} | {num((attrs["IN"] + attrs["WK"] + attrs["UM"]) / 2) if char.limit_g_fix is None else char.limit_g_fix} | {num((attrs["MA"] + attrs["WK"]) / 2) if char.limit_m_fix is None else char.limit_m_fix}'],
                 ["Initiative", num(attrs["SCH"]*2 + attrs["WK"] + attrs["GES"] + char.initiative_bonus)],
                 ["Manaoverflow", num((attrs["WK"] + MA_raw)*3 + char.manaoverflow_bonus)],
 
-                ["Astral-Widerstand", num(attrs["MA"] + attrs["WK"] + char.astralwiderstand_bonus)],
+                ["Astral-Widerstand", AsWi],
                 ["Astrale Schadensverhinderung", f'{1+ num(math.floor(min(attrs["WK"], MA_raw) / 6)) + char.astralwiderstand_pro_erfolg_bonus}HP / Erfolg'],
                 ["Reaktion", num(attrs["SCH"] + attrs["GES"] + char.reaktion_bonus)],
                 ["nat. Schadenswiderstand", num(attrs["ST"] + attrs["VER"] + char.natürlicher_schadenswiderstand_bonus)],
@@ -265,6 +274,8 @@ class ShowView(VerifiedAccountMixin, DetailView):
                 attrs = {"class": "table table-dark table-striped table-hover"}
 
             def render_attribut__titel(self, value, record):
+                if value == "MA" and not record.char.no_MA_MG and record.char.no_MA:
+                    return "Managetik (MG)"
                 return f"{record.attribut.beschreibung} ({value})"
 
             def render_aktuellerWert(self, value, record):
@@ -291,6 +302,11 @@ class ShowView(VerifiedAccountMixin, DetailView):
                         ("impro_possible" if record["impro_possible"] else " ") +
                         ("fert_impossible" if not record["impro_possible"] and record["fp"] == 0 else " ")
                 }
+
+            def render_fertigkeit__attribut__titel(self, value):
+                if value == "MA" and char.no_MA and not char.no_MA_MG:
+                    return "MG"
+                return value
 
             def render_fg(self, value):
                 return format_html(f"<i>{value}</i>")
@@ -332,7 +348,7 @@ class ShowView(VerifiedAccountMixin, DetailView):
         ]
         ghp = [
             self._rel_attribute["WK"].aktuell() * 5,
-            char.HPplus_geistig,
+            char.HPplus_geistig + (10 if char.no_MA_MG else 0),
             math.ceil(char.larp_rang / 20),
         ]
 

@@ -2,7 +2,7 @@ from django.urls import path
 
 from .views.index import IndexView
 from .views.klasse import GenericKlasseView
-from .views.attribut import GenericAttributView
+from .views.attribut import GenericAttributView, deny_MA_MG
 from .views.fertigkeit import GenericFertigkeitView
 from .views.zauber import GenericZauberView
 from .views.personal import GenericPersonalView
@@ -20,6 +20,7 @@ urlpatterns = [
     path('<int:pk>/', IndexView.as_view(), name='index'),
 	path('<int:pk>/klasse/', GenericKlasseView.as_view(), name='klasse'),
 	path('<int:pk>/attribute/', GenericAttributView.as_view(), name='attribute'),
+	path('<int:pk>/attribute/deny/', deny_MA_MG, name='attribute_deny'),
 	path('<int:pk>/fertigkeiten/', GenericFertigkeitView.as_view(), name='fertigkeiten'),
 	path('<int:pk>/zauber/', GenericZauberView.as_view(), name='zauber'),
 	path('<int:pk>/personal/', GenericPersonalView.as_view(), name='personal'),

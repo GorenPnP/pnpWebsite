@@ -140,14 +140,24 @@ class KlasseStufenplan(models.Model):
         attrs = {rel.attribut.titel: rel.aktuellerWert + rel.aktuellerWert_bonus if rel.aktuellerWert_fix is None else rel.aktuellerWert_fix for rel in char.relattribut_set.prefetch_related("attribut").all()}
         fg = { rel.gruppe: rel.fg for rel in char.relgruppe_set.all() }
         fert = {rel.fertigkeit.titel: attrs[rel.fertigkeit.attribut.titel] + fg[rel.fertigkeit.gruppe] + rel.fp + rel.fp_bonus for rel in char.relfertigkeit_set.prefetch_related("fertigkeit__attribut").all()}
+        
+        AsWi = attrs["MA"] + attrs["WK"] + char.astralwiderstand_bonus
+        if char.no_MA_NO_MG:
+            AsWi += 4
+        elif char.no_MA:
+            AsWi = f'{attrs["WK"] + char.astralwiderstand_bonus} + Pool Angriffsfertigkeit'
+
+        gHP = attrs["WK"]*5 + char.HPplus_geistig + math.ceil(char.larp_rang / 20)
+        if char.no_MA_NO_MG: gHP += 20
+
         calc_vals = {
             "Initiative": attrs["SCH"]*2 + attrs["WK"] + attrs["GES"] + char.initiative_bonus,
-            "Astral-Widerstand": attrs["MA"] + attrs["WK"] + char.astralwiderstand_bonus,
+            "Astral-Widerstand": AsWi,
             "Reaktion": attrs["SCH"] + attrs["GES"] + char.reaktion_bonus,
             "nat. Schadenswiderstand": attrs["ST"] + attrs["VER"] + char.natürlicher_schadenswiderstand_bonus,
             "Intuition": (attrs["IN"] + 2*attrs["SCH"]) / 2,
             "körperliche HP": attrs["ST"]*5 + math.floor(char.rang / 10) + (char.HPplus_fix if char.HPplus_fix is not None else char.HPplus) + (math.floor(char.larp_rang / 20) if char.larp else char.ep_stufe*2),
-            "geistige HP": attrs["WK"]*5 + char.HPplus_geistig + math.ceil(char.larp_rang / 20),
+            "geistige HP": gHP,
         }
         fields = { **attrs, **fert, **calc_vals }
 
@@ -648,6 +658,8 @@ class Charakter(models.Model):
     # settings
     in_erstellung = models.BooleanField(default=True)
     reduced_rewards_until_klasse_stufe = models.PositiveSmallIntegerField(default=0)
+    no_MA = models.BooleanField(default=False, verbose_name="Managetik können, aber für immer auf Magie verzichten")
+    no_MA_MG = models.BooleanField(default=False, verbose_name="Für immer auf Magie und Managetik verzichten")
     larp = models.BooleanField(default=False)
     eigentümer = models.ForeignKey(Spieler, on_delete=models.CASCADE, null=True, blank=True)
     gfs = models.ForeignKey(Gfs, on_delete=models.SET_NULL, null=True, blank=True)
@@ -1056,7 +1068,9 @@ class RelAttribut(models.Model):
     maxWert_fix = models.PositiveIntegerField(null=True, blank=True)
 
     def __str__(self):
-        return "'{}' von '{}'".format(self.attribut.__str__(), self.char.__str__())
+        if self.attribut.titel == "MA" and self.char.no_MA and not self.char.no_MA_MG:
+            return f"'MG' von {self.char}"
+        return f"'{self.attribut}' von '{self.char}'"
 
     def aktuell(self) -> int: return self.aktuellerWert + self.aktuellerWert_temp + self.aktuellerWert_bonus if self.aktuellerWert_fix is None else self.aktuellerWert_fix
     def max(self) -> int: return self.maxWert + self.maxWert_temp if self.maxWert_fix is None else self.maxWert_fix

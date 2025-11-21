@@ -1,5 +1,5 @@
 from django.db.models import Q
-from django.db.models.signals import pre_save, post_save, pre_delete, post_delete
+from django.db.models.signals import pre_delete
 from django.dispatch import receiver
 
 from .models import Card
