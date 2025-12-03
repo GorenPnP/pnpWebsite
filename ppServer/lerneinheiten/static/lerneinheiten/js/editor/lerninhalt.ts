@@ -231,7 +231,7 @@ class ImageBox extends Box {
     }
 }
 class VideoBox extends Box {
-    private static default_iframe = '<iframe width="880" height="495" src="https://www.youtube.com/embed/D0UnqGm_miA" title="Dummy Video For Website" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>';
+    private static default_iframe = '<iframe src="https://www.youtube.com/embed/wDchsz8nmbo" title="1 Minute Sample Video" frameborder="0" referrerpolicy="strict-origin-when-cross-origin"></iframe>';
 
     // changed on setting new iframe in editor
     private iframe: string = "";

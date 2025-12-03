@@ -27,10 +27,10 @@
     {% if use_highlight_js %}
         <script>
             hljs.initHighlightingOnLoad();
-            $(document).ready(function(){
-                $('.md-content div.toc ul').attr("class", "cta-links");
-                $('.md-content div.toc ul li a').attr("class", "default-fa");
-                $('.md-content table').attr("class", "table table-bordered table-hover table-striped table-mobile tablesorter tablesorter-default");
+            document.addEventListener("DOMContentLoaded", () => {
+                document.querySelectorAll('.md-content div.toc ul').forEach(tag => tag.classList.add("cta-links"));
+                document.querySelectorAll('.md-content div.toc ul li a').forEach(tag => tag.classList.add("default-fa"));
+                document.querySelectorAll('.md-content table').forEach(tag => tag.classList.add("table table-bordered table-hover table-striped table-mobile tablesorter tablesorter-default"));
             });
         </script>
     {% endif %}
