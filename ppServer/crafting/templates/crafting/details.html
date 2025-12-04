@@ -18,7 +18,7 @@
 	<label for="overlay__wissen">Wissensfertigkeiten:</label><div id="overlay__wissen">{{ object.wissen_names|default:"-" }}</div>
 	<label for="overlay__table">Zutaten:</label><div id="overlay__ingredients">
 		{% for ingredient in object.ingredient_set.all %}
-			<a class="ingredient" href="{% url 'shop:tinker' %}?name__icontains={{ ingredient.item.name|urlencode }}">
+			<a class="ingredient" href="{% url 'shop:tinker_list' %}?name__icontains={{ ingredient.item.name|urlencode }}">
 				<img src="{{ ingredient.item.icon.url }}" alt="{{ ingredient.item.name }}">
 				<span class="num">{{ ingredient.num|floatformat:-1 }}</span>
 				<span class="name">{{ ingredient.item.name }}</span>
@@ -28,7 +28,7 @@
 	</div>
 	<label for="overlay__table">Hergestellt an:</label><div id="overlay__table">
 		{% if object.table %}
-		<a class="ingredient" href="{% url 'shop:tinker' %}?name__icontains={{ object.table.item.name|urlencode }}">
+		<a class="ingredient" href="{% url 'shop:tinker_list' %}?name__icontains={{ object.table.item.name|urlencode }}">
 			<img src="{{ object.table.item.icon.url }}" alt="{{ object.table.item.name }}">
 			<span class="name">{{ object.table.item.name }}</span>
 		</a>
@@ -41,7 +41,7 @@
 	</div>
 	<label for="overlay__table">Produkte:</label><div id="overlay__table">
 		{% for product in object.product_set.all %}
-			<a class="ingredient" href="{% url 'shop:tinker' %}?name__icontains={{ product.item.name|urlencode }}">
+			<a class="ingredient" href="{% url 'shop:tinker_list' %}?name__icontains={{ product.item.name|urlencode }}">
 				<img src="{{ product.item.icon.url }}" alt="{{ product.item.name }}">
 				<span class="num">{{ product.num|floatformat:-1 }}</span>
 				<span class="name">{{ product.item.name }}</span>

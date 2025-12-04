@@ -1,13 +1,20 @@
 from django import forms
 
+from django.apps import apps
 from django.contrib import messages
+from django.http import Http404
 from django.shortcuts import render, redirect
+from django.urls import reverse
+
+from crispy_forms.helper import FormHelper
+from crispy_forms.layout import Field, Layout, Div, Submit, Button
 
 from base.crispy_form_decorator import crispy
 from base.views import reviewable_shop
 from ppServer.decorators import spielleitung_only, verified_account
 
 from ..models import *
+from .list import model_list
 
 
 @verified_account
@@ -92,4 +99,51 @@ def transfer_items(request):
 
 @verified_account
 def index(request):
-    return render(request, "shop/index.html", {"topic": "Shop"})
+    return render(request, "shop/index.html", {
+        "topic": "Shop",
+        "links": [{"link": reverse(f'shop:{m._meta.model_name}_list'), "text": m._meta.verbose_name_plural} for m in model_list],
+    })
+
+
+@verified_account
+def propose_item(request, model: str):
+    Model = apps.get_model('shop', model)
+    if Model not in model_list: return Http404()
+
+    ModelForm = forms.modelform_factory(model=Model, exclude=["firmen", "frei_editierbar", "has_implementation", "minecraft_mod_id", "wooble_buy_price", "wooble_sell_price"])
+    form = ModelForm()
+
+    if request.method == 'POST':
+        form = ModelForm(request.POST)
+        form.full_clean()
+        if form.is_valid():
+            item = form.save()
+            messages.success(request, "Vorschlag wurde eingereicht")
+            return redirect(f"shop:{Model._meta.model_name}_list")
+
+        messages.error(request, "Beim Speichern sind Fehler aufgetreten")
+
+
+    form.helper = FormHelper()
+    form.helper.layout = Layout(
+        Div(
+            Field('icon', wrapper_class='col-12 col-md-4'),
+            Field('name', wrapper_class='col-12 col-md-8'),
+        css_class='row align-items-center'),
+        "beschreibung",
+        Div(
+            Field('ab_stufe', wrapper_class='col-12 col-sm-3'),
+            Field('illegal', wrapper_class='col-12 col-sm-3'),
+            Field('lizenz_benötigt', wrapper_class='col-12 col-sm-3'),
+            Field('stufenabhängig', wrapper_class='col-12 col-sm-3'),
+        css_class='row align-items-center'),
+        *[field for field in form.fields.keys() if field not in ["icon", "name", "beschreibung", "illegal", "lizenz_benötigt", "stufenabhängig", "ab_stufe"]],
+        Submit("submit", "Item vorschlagen"),
+        Button("", "Zurück", css_class="btn btn-outline-light ms-3", onclick="history.back()")
+    )
+    return render(request, "shop/propose.html", {
+        "topic": "neues Item",
+        "app_index": Model._meta.verbose_name_plural,
+        "app_index_url": reverse(f"shop:{Model._meta.model_name}_list"),
+        "form": form,
+    })

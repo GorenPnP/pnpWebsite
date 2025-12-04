@@ -63,7 +63,7 @@
 {% block asides %}
 {% resources %}
     <!-- Resources -->
-    <a class="text-white mb-3 d-block" href="{% url 'shop:zauber' %}" target="_blank">alle Zauber angucken</a>
+    <a class="text-white mb-3 d-block" href="{% url 'shop:zauber_list' %}" target="_blank">alle Zauber angucken</a>
 
     <div class="fw-bold">Zauberslots <b class="pay-tier" id="pay-tier-with-slots"></b></div>
     <ul aria-label="Zauberslots">
@@ -101,7 +101,7 @@
                     {% for rel in own_zauber %}
                     <li class="card text-bg-dark my-4">
                         <div class="card-body">
-                            <a class="card-title h5" href="{% url 'shop:zauber' %}{{ rel.querystring }}" target="_blank">
+                            <a class="card-title h5" href="{% url 'shop:zauber_list' %}{{ rel.querystring }}" target="_blank">
                                 <img src="{% if rel.item.icon %}{{ rel.item.icon.url }}{% else %}{% static 'res/img/goren_logo.svg' %}{% endif %}" class="zauber-icon">
                                 {{ rel.item.name }}
                             </a>
@@ -158,7 +158,7 @@
                         <label for="zauber-{% localize off %}{{ z.zauber.id }}{% endlocalize %}">
                             <div class="card text-bg-dark{% if not char.in_erstellung and z.geld > char.geld %} text-muted{% endif %}">
                                 <div class="card-body">
-                                    <a class="card-title h5" href="{% url 'shop:zauber' %}{{ z.zauber.querystring }}" target="_blank">
+                                    <a class="card-title h5" href="{% url 'shop:zauber_list' %}{{ z.zauber.querystring }}" target="_blank">
                                         <img src="{% if z.zauber.icon %}{{ z.zauber.icon.url }}{% else %}{% static 'res/img/goren_logo.svg' %}{% endif %}" class="zauber-icon">
                                         {{ z.zauber.name }}
                                     </a>

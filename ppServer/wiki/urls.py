@@ -24,7 +24,9 @@ urlpatterns = [
     path('wesenkraft/', views.WesenkraftTableView.as_view(), name='wesenkraft'),
 
     path('berufe/', views.BerufTableView.as_view(), name='berufe'),
+    path('berufe/add', views.BerufAddView.as_view(), name='beruf_add'),
     path('religionen/', views.ReligionTableView.as_view(), name='religionen'),
+    path('religionen/add', views.ReligionAddView.as_view(), name='religion_add'),
 
     path('geburtstage/', views.GeburtstageView.as_view(), name='geburtstage'),
 

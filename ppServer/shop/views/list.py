@@ -108,7 +108,7 @@ class RenderableTable(GenericTable):
 
     def render_name(self, value, record):
         try:
-            url = reverse("shop:buy_{}".format(self._get(record, "model_name")), args=[self._get(record, "id")])
+            url = reverse(f'shop:buy_{self._get(record, "model_name")}', args=[self._get(record, "id")])
             return format_html(f"<a href='{url}'>{value}</a>")
         except:
             return value
@@ -272,7 +272,7 @@ class ShopTableView(VerifiedAccountMixin, DynamicTableView):
 
     def get_plus_url(self):
         if not self.model: return super().get_plus_url()
-        return reverse("admin:{}_{}_add".format(self.model._meta.app_label, self.model._meta.model_name))
+        return reverse("shop:propose", args=[self.model._meta.model_name])
 
     def get_table_class(self):
         """

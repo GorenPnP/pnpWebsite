@@ -1,0 +1,10 @@
+{% extends 'base/headed_main.html' %}
+{% load crispy_forms_tags %}
+
+{% block main %}
+<h2>Neuen Beruf anlegen</h2>
+
+<form method="post" action="{{ request.build_absolute_uri }}">
+    {% crispy form %}
+</form>
+{% endblock %}

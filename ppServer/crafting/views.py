@@ -93,7 +93,7 @@ def handle_overlay(json_dict: dict, item_qs: QuerySet[Tinker], profil:Profile) -
 
 		data = {
 			"id": item.id,
-			"link": "{}?name__icontains={}".format(reverse("shop:tinker"), item.name.replace(" ", "+")),
+			"link": f'{reverse("shop:tinker_list")}?name__icontains={item.name.replace(" ", "+")}',
 			"name": item.name,
 			"table": {"name": "", "icon": ""},
 			"ingredients": [],

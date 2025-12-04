@@ -1,5 +1,6 @@
 from datetime import date
 from typing import Any, Dict
+from urllib.parse import urlencode
 
 from django.db.models import F, Subquery, OuterRef, Min, ExpressionWrapper, Q, Value
 from django.db.models.fields import BooleanField, CharField
@@ -22,6 +23,7 @@ from ppServer.mixins import VerifiedAccountMixin
 from ppServer.decorators import verified_account
 from ppServer.utils import ConcatSubquery
 
+from .forms import *
 from .models import *
 
 
@@ -474,7 +476,34 @@ class ReligionTableView(VerifiedAccountMixin, DynamicTableView):
     app_index = "Wiki"
     app_index_url = "wiki:index"
     plus = "+ Religion"
-    plus_url = "admin:character_religion_add"
+
+    def get_plus_url(self):
+        return reverse("wiki:religion_add") + "?" + urlencode({"next": reverse("wiki:religionen")})
+
+
+class ReligionAddView(VerifiedAccountMixin, TemplateView):
+    template_name = "wiki/religion_add.html"
+
+    def get_context_data(self, **kwargs):
+        return super().get_context_data(
+            **kwargs,
+            app_index = "Religionen",
+            app_index_url = reverse("wiki:religionen"),
+            form=ReligionForm(),
+        )
+
+    def post(self, *args, **kwargs):
+        form = ReligionForm(self.request.POST)
+        form.full_clean()
+        if form.is_valid():
+            religion = form.save()
+            messages.success(self.request, f"Neugründung von '{religion.titel}' abgeschlossen")
+            return redirect(self.request.GET.get("next", reverse("wiki:religionen")))
+        
+        messages.error(self.request, format_html(f"Beim Speichern der neuen Religion ist ein Fehler aufgetreten"))
+        context = self.get_context_data()
+        context["form"] = form
+        return render(self.request, self.template_name, context)
 
 
 class BerufTableView(VerifiedAccountMixin, DynamicTableView):
@@ -488,7 +517,33 @@ class BerufTableView(VerifiedAccountMixin, DynamicTableView):
     app_index = "Wiki"
     app_index_url = "wiki:index"
     plus = "+ Beruf"
-    plus_url = "admin:character_beruf_add"
+
+    def get_plus_url(self):
+        return reverse("wiki:beruf_add") + "?" + urlencode({"next": reverse("wiki:berufe")})
+
+class BerufAddView(VerifiedAccountMixin, TemplateView):
+    template_name = "wiki/beruf_add.html"
+
+    def get_context_data(self, **kwargs):
+        return super().get_context_data(
+            **kwargs,
+            app_index = "Berufe",
+            app_index_url = reverse("wiki:berufe"),
+            form=BerufForm(),
+        )
+
+    def post(self, *args, **kwargs):
+        form = BerufForm(self.request.POST)
+        form.full_clean()
+        if form.is_valid():
+            beruf = form.save()
+            messages.success(self.request, f"'{beruf.titel}' erfolgreich angelegt")
+            return redirect(self.request.GET.get("next", reverse("wiki:berufe")))
+        
+        messages.error(self.request, format_html(f"Beim Speichern des neuen Berufs ist ein Fehler aufgetreten"))
+        context = self.get_context_data()
+        context["form"] = form
+        return render(self.request, self.template_name, context)
 
 
 class GeburtstageView(VerifiedAccountMixin, TemplateView):

@@ -1,36 +1,16 @@
 {% extends 'base/headed_main.html' %}
 {% load static %}
-{% block extra-head %}
-<style>
-    main ul li { margin-block: 1em; }
-</style>
-{% endblock %}
 
 {% block main %}
-
 <section class="shop-overview list-container">
     <a class="text-light" href="{% url 'shop:all' %}" style="display: block; margin-bottom: 3em">ganzer Shop</a>
 
     <h2>Kategorien</h2>
 
     <ul>
-        <li><a class="text-light" href="{% url 'shop:items' %}">Items</a></li>
-        <li><a class="text-light" href="{% url 'shop:waffen_werkzeuge' %}">Waffen & Werkzeuge</a></li>
-        <li><a class="text-light" href="{% url 'shop:magazine' %}">Magazine</a></li>
-        <li><a class="text-light" href="{% url 'shop:pfeile_bolzen' %}">Pfeile & Bolzen</a></li>
-        <li><a class="text-light" href="{% url 'shop:schusswaffen' %}">Schusswaffen</a></li>
-        <li><a class="text-light" href="{% url 'shop:magische_ausrüstung' %}">Magische Ausrüstung</a></li>
-        <li><a class="text-light" href="{% url 'shop:rituale_runen' %}">Rituale & Runen</a></li>
-        <li><a class="text-light" href="{% url 'shop:rüstungen' %}">Rüstungen</a></li>
-        <li><a class="text-light" href="{% url 'shop:ausr_technik' %}">Ausrüstung & Technik</a></li>
-        <li><a class="text-light" href="{% url 'shop:fahrzeuge' %}">Fahrzeuge</a></li>
-        <li><a class="text-light" href="{% url 'shop:einbauten' %}">Einbauten</a></li>
-        <li><a class="text-light" href="{% url 'shop:zauber' %}">Zauber</a></li>
-        <li><a class="text-light" href="{% url 'shop:vergessene_zauber' %}">Vergessene Zauber</a></li>
-        <li><a class="text-light" href="{% url 'shop:alchemie' %}">Alchemie</a></li>
-        <li><a class="text-light" href="{% url 'shop:begleiter' %}">Begleiter</a></li>
-        <li><a class="text-light" href="{% url 'shop:engelsroboter' %}">Engelsroboter</a></li>
-        <li><a class="text-light" href="{% url 'shop:tinker' %}">Für Selbstständige</a></li>
+        {% for link in links %}
+        <li class="my-3"><a class="text-light" href="{{ link.link }}">{{ link.text }}</a></li>
+        {% endfor %}
     </ul>
 </section>
 {% endblock %}
