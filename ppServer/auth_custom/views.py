@@ -36,9 +36,6 @@ def signup(request):
         if form.is_valid():
             user = form.save(commit=False)
 
-            if User.objects.filter(email = user.email).exists():
-                return redirect('auth:signup_done')
-
             # give user spieler permissions
             user.is_active = False
             user.save()

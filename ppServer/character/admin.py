@@ -47,7 +47,7 @@ class SpielerAdmin(admin.ModelAdmin):
     list_display = ["_name", "geburtstag"]
 
     def _name(self, obj):
-        return obj.get_real_name()
+        return obj.__str__()
 
 
 class TagAdmin(admin.ModelAdmin):

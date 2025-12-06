@@ -200,7 +200,7 @@ class CharakterExporter:
         werte_ws.merge_range("A1:A2", 'Charakter:', format_titel)
         werte_ws.merge_range("B1:D2", self.char.name if self.char.name else "<NO NAME>", format_content)
         werte_ws.merge_range("E1:F2", "Spieler:", format_titel)
-        werte_ws.merge_range("G1:H2", self.char.eigentümer.get_real_name() if self.char.eigentümer else None, format_content)
+        werte_ws.merge_range("G1:H2", self.char.eigentümer.__str__() if self.char.eigentümer else None, format_content)
 
         return werte_ws
 

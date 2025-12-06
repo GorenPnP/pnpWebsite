@@ -23,7 +23,7 @@
         <tbody>
             {% for s in spieler %}
             <tr class="odd even{% if s.next_party %} highlight{% endif %}">
-                <td>{{ s.get_real_name }}</td>
+                <td>{{ s }}</td>
                 <td>{{ s.geburtstag|date }}</td>
             </tr>
             {% empty %}

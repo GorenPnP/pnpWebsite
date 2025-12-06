@@ -77,9 +77,6 @@ class SpModulesView(VerifiedAccountMixin, SpielleitungOnlyMixin, DynamicTableVie
                 spent = f"✔ {'LARP' if record.spent_reward_larp else 'PnP'}"
             return format_html(f"<div class='title'><img class='logo' src='{record.module.icon.img.url}'><span class='module'>{value}</span><span class='spent'>{spent}</span></div>")
 
-        def render_spieler(self, value, record):
-            return record.spieler.get_real_name()
-
         def render_achieved_points(self, value, record):
             max_points = record.module.max_points
             [score, score_class] = get_grade_score(value, max_points)

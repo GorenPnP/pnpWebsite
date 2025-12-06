@@ -19,10 +19,10 @@
 	{% for message in messages %}
 		<div
 			class="message
-				{% if message.author.get_real_name == own_name %}message--own{% else %}message--foreign{% endif %}"
+				{% if message.author.__str__ == own_name %}message--own{% else %}message--foreign{% endif %}"
 		>
-			{% if message.author.get_real_name != own_name %}
-				<span class="message__author">{{ message.author.get_real_name }}</span>
+			{% if message.author.__str__ != own_name %}
+				<span class="message__author">{{ message.author }}</span>
 			{% endif %}
 			{{ message.text }}
 		</div>

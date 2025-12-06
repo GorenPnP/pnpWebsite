@@ -16,4 +16,4 @@ class Message(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return "{} ({})".format(self.text[:50], self.author.get_real_name())
+        return "{} ({})".format(self.text[:50], self.author)

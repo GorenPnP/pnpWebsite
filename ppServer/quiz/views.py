@@ -94,7 +94,7 @@ def index(request, spieler_id=None):
 
         context = {
             "timetable": timetable,
-            "topic": "{}'s Quiz".format(spieler.get_real_name()) if spielleitung_service else "Quiz",
+            "topic": "{}'s Quiz".format(spieler) if spielleitung_service else "Quiz",
             "akt_punktzahl": get_object_or_404(models.RelQuiz, spieler=spieler).quiz_points_achieved,
             "button_states": ["opened", "corrected"]
         }

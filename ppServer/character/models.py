@@ -57,9 +57,6 @@ class Spieler(models.Model):
 
     def __str__(self):
         """ shown e.g. in dropdown as foreign key """
-        return self.get_real_name()
-
-    def get_real_name(self):
         return self.user.get_full_name() or self.user.username
 
 

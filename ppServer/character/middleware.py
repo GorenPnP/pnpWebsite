@@ -1,3 +1,4 @@
+from django.http import HttpRequest
 from .models import Spieler
 
 class RequestSpieler:
@@ -12,12 +13,12 @@ class SpielerMiddleware:
     def __init__(self, get_response):
         self.get_response = get_response
 
-    def __call__(self, request):
+    def __call__(self, request: HttpRequest):
         request.spieler = RequestSpieler()
 
         if request.user.is_authenticated:
-            request.spieler.instance = request.user.spieler
-            request.spieler.groups = request.user.groups.values_list("name", flat=True)
+            request.spieler.instance, _ = Spieler.objects.prefetch_related("user__groups").get_or_create(user=request.user)
+            request.spieler.groups = [group.name for group in request.spieler.instance.user.groups.all()]
             request.spieler.is_spielleitung = "Spielleitung" in request.spieler.groups
 
         return self.get_response(request)

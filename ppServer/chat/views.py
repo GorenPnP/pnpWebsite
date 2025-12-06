@@ -41,8 +41,8 @@ def index(request):
             return JsonResponse(
                 {
                     "messages":
-                        [{"author": m.author.get_real_name(), "text": m.text, "created_at": m.created_at.isoformat()} for m in messages],
-                    "own_name": spieler.get_real_name(),
+                        [{"author": m.author.__str__(), "text": m.text, "created_at": m.created_at.isoformat()} for m in messages],
+                    "own_name": spieler.__str__(),
                     "spielleitung": request.spieler.is_spielleitung
                 }
             )
@@ -56,7 +56,7 @@ def sp_index_get(request):
     context = {
         "topic": "Spielleitung-Chat",
         "messages": Message.objects.all(),
-        "own_name": request.spieler.instance.get_real_name(),
+        "own_name": request.spieler.instance.__str__(),
         "app_index": "Chats",
         "app_index_url": reverse("chat:index")
     }
