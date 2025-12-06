@@ -43,8 +43,11 @@ class KlasseStufenplanInLine(admin.TabularInline):
 
 
 class SpielerAdmin(admin.ModelAdmin):
-    fields = ["name", "geburtstag", "language"]
-    list_display = ["name", "geburtstag"]
+    fields = ["_name", "geburtstag", "language"]
+    list_display = ["_name", "geburtstag"]
+
+    def _name(self, obj):
+        return obj.get_real_name()
 
 
 class TagAdmin(admin.ModelAdmin):

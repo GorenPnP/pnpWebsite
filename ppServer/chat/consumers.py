@@ -11,14 +11,9 @@ class ChatRoomConsumer(AsyncWebsocketConsumer):
     def _db_is_spielleitung(self, user):
         return user.groups.filter(name__iexact="Spielleitung").exists()
 
-    @database_sync_to_async
-    def _db_get_spieler(self, user):
-        return Spieler.objects.get(name=self.user.username)
-
-
     async def connect(self):
         self.user = self.scope["user"]
-        self.spieler = await self._db_get_spieler(self.user)
+        self.spieler = self.user.spieler
         self.is_spielleitung = await self._db_is_spielleitung(self.user)
 
         self.room_name = self.scope['url_route']['kwargs']['room_name']

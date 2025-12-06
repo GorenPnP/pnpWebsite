@@ -130,8 +130,8 @@ class AccessPageView(VerifiedAccountMixin, SpielleitungOnlyMixin, ListView):
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         spieler_qs = Spieler.objects.prefetch_related("spielereinheit_set__einheit")\
             .filter(
-                Exists(User.objects.filter(username=OuterRef("name"), groups__name="LARP-ler")),
-                Exists(SpielerEinheit.objects.filter(spieler=OuterRef("pk")))
+                Exists(SpielerEinheit.objects.filter(spieler=OuterRef("pk"))),
+                user__groups__name="LARP-ler",
             )
 
         return super().get_context_data(

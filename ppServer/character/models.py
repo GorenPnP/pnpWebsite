@@ -35,7 +35,7 @@ def get_tier_cost_with_sp() -> dict:
 class Spieler(models.Model):
 
     class Meta:
-        ordering = ['name']
+        ordering = ['user']
         verbose_name_plural = "Spieler"
 
     LANGUAGE_ENUM = [
@@ -44,19 +44,23 @@ class Spieler(models.Model):
         ('e', 'Hochelfisch'),
     ]
 
-    user = models.OneToOneField(User, on_delete=models.CASCADE, blank=False, null=True)
-    name = models.CharField(max_length=200, default='default')
+    user = models.OneToOneField(User, on_delete=models.CASCADE, blank=False, null=False)
     geburtstag = models.DateField(null=True, blank=True)
 
     language = models.CharField(max_length=1, choices=LANGUAGE_ENUM, default=LANGUAGE_ENUM[0][0], verbose_name="Sprache")
 
+    class PreloadUserManager(models.Manager):
+        def get_queryset(self) -> QuerySet:
+            """ adds 'user' field """
+            return super().get_queryset().prefetch_related("user")
+    objects = PreloadUserManager()
+
     def __str__(self):
         """ shown e.g. in dropdown as foreign key """
-        return self.name
+        return self.get_real_name()
 
     def get_real_name(self):
-        user = get_object_or_404(get_user_model(), username=self.name)
-        return user.get_full_name() or user.username
+        return self.user.get_full_name() or self.user.username
 
 
 class Wesenkraft(models.Model):

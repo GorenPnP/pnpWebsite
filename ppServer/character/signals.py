@@ -1,5 +1,5 @@
 from django.contrib.auth import get_user_model
-from django.db.models.signals import post_save, post_delete
+from django.db.models.signals import post_save
 from django.dispatch import receiver
 
 from .models import *
@@ -10,13 +10,7 @@ User = get_user_model
 @receiver(post_save, sender=User)
 def create_spieler(sender, **kwargs):
     if kwargs['created']:
-        Spieler.objects.get_or_create(name=kwargs['instance'].username)
-
-
-@receiver(post_delete, sender=User)
-def delete_spieler(sender, **kwargs):
-    Spieler.objects.filter(name=kwargs['instance'].username).delete()
-
+        Spieler.objects.get_or_create(user=kwargs['instance'])
 
 @receiver(post_save, sender=Gfs)
 def init_gfs(sender, **kwargs):
