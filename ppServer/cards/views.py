@@ -77,11 +77,13 @@ def sp_transaction(request):
             else:
                 # process the data in form.cleaned_data as required
 
-                form.cleaned_data["sender"].money -= form.cleaned_data["amount"]
-                form.cleaned_data["sender"].save(update_fields=["money"])
+                if form.cleaned_data["sender"]:
+                    form.cleaned_data["sender"].money -= form.cleaned_data["amount"]
+                    form.cleaned_data["sender"].save(update_fields=["money"])
 
-                form.cleaned_data["receiver"].money += form.cleaned_data["amount"]
-                form.cleaned_data["receiver"].save(update_fields=["money"])
+                if form.cleaned_data["receiver"]:
+                    form.cleaned_data["receiver"].money += form.cleaned_data["amount"]
+                    form.cleaned_data["receiver"].save(update_fields=["money"])
 
                 form.save()
 
