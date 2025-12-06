@@ -1,5 +1,5 @@
-from django.contrib.auth.models import User
-from django.db.models.signals import post_save, pre_save
+from django.contrib.auth import get_user_model
+from django.db.models.signals import pre_save
 from django.dispatch import receiver
 
 from webPush.models import PushSettings, PushTag
@@ -17,5 +17,5 @@ def send_webpush(sender, instance, **kwargs):
     if old_instance and old_instance.published: return
 
     # notify users
-    users = User.objects.all()
+    users = get_user_model().objects.all()
     PushSettings.send_message(users, "Neuer Zeitungsartikel", instance.titel, PushTag.news)

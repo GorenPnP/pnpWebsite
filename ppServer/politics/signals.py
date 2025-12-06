@@ -1,4 +1,4 @@
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 
@@ -17,7 +17,7 @@ def send_webpush(sender, instance, **kwargs):
     if old_instance and old_instance.voting_done: return
 
     # notify users
-    users = User.objects.all()
+    users = get_user_model().objects.all()
     PushSettings.send_message(users, "Neues Gesetzesabstimmung", instance.__str__(), PushTag.politics)
 
 

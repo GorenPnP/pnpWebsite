@@ -1,5 +1,5 @@
 from django import forms
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from django.db.models import Exists, OuterRef
 
 from crispy_forms.layout import Layout, Div, Field
@@ -10,6 +10,7 @@ from push_notifications.models import WebPushDevice
 
 from .models import *
 
+User = get_user_model()
 
 class RegisterWebPushDeviceForm(forms.ModelForm):
     class Meta:

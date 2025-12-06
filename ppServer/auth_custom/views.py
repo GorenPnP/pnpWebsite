@@ -1,6 +1,6 @@
 from django.contrib import messages
-from django.contrib.auth import login
-from django.contrib.auth.models import Group, User
+from django.contrib.auth import login, get_user_model
+from django.contrib.auth.models import Group
 from django.contrib.auth.views import PasswordChangeView
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.contrib.sites.shortcuts import get_current_site
@@ -16,6 +16,7 @@ from ppServer.decorators import verified_account
 
 from .forms import ChangeEmailForm, SignupForm
 
+User = get_user_model()
 
 class TokenGenerator(PasswordResetTokenGenerator):
     def _make_hash_value(self, user, timestamp):

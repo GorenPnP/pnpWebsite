@@ -2,7 +2,7 @@ import json
 from typing import Any
 
 from django.contrib import messages
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from django.db.models import OuterRef, Exists
 from django.db.models.query import QuerySet
 from django.http.response import JsonResponse
@@ -16,6 +16,8 @@ from ppServer.mixins import SpielleitungOnlyMixin, VerifiedAccountMixin
 
 from .forms import *
 from .models import *
+
+User = get_user_model()
 
 class EditorIndexView(VerifiedAccountMixin, SpielleitungOnlyMixin, ListView):
     model = Einheit

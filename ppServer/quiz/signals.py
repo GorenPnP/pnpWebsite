@@ -1,4 +1,4 @@
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from django.db.models.signals import post_delete, pre_delete, pre_save, post_save
 from django.dispatch import receiver
 
@@ -6,6 +6,7 @@ from character.models import Spieler
 from webPush.models import *
 from .models import Image, File, ModuleQuestion, RelQuiz, SpielerQuestion, SpielerSession, Module, module_state, Question, SpielerModule
 
+User = get_user_model()
 
 # to save the old picture-name in answer_note, before changed (against cheating)
 @receiver(pre_save, sender=Image)

@@ -2,7 +2,7 @@ import sys
 from datetime import date
 from sentry_sdk import capture_message
 
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models import Max, Sum, Subquery, OuterRef, F, Q, Exists, Value
@@ -52,11 +52,8 @@ class Spieler(models.Model):
         return self.name
 
     def get_real_name(self):
-        user = get_object_or_404(User, username=self.name)
-        name = user.first_name
-        if user.last_name:
-            name += " " + user.last_name
-        return name if name else user.username
+        user = get_object_or_404(get_user_model(), username=self.name)
+        return user.get_full_name() or user.username
 
 
 class Wesenkraft(models.Model):

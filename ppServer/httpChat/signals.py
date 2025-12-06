@@ -1,4 +1,4 @@
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from django.db.models import OuterRef, Exists
 from django.db.models.signals import post_save
 from django.db.models.functions import Coalesce
@@ -33,7 +33,7 @@ def send_webpush(sender, instance, **kwargs):
 
 
     # send notification about unread messages
-    for user in User.objects.filter(username__in=spieler_dict.keys()):
+    for user in get_user_model().objects.filter(username__in=spieler_dict.keys()):
 
         accounts = Account.objects.prefetch_related("spieler").filter(spieler__name=user.username)
 

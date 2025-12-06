@@ -1,11 +1,13 @@
 import enum, json
 from typing import Iterable
 
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from django.db import models
 from django.urls import reverse
 
 from push_notifications.models import WebPushDevice
+
+User = get_user_model()
 
 class PushTag(enum.Enum):
     chat = "chat"

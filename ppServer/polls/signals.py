@@ -1,4 +1,4 @@
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
@@ -15,5 +15,5 @@ def send_webpush(sender, instance, **kwargs):
     text = instance.text[:50]
     if len(instance.text) > 50: text += "..."
 
-    users = User.objects.all()
+    users = get_user_model().objects.all()
     PushSettings.send_message(users, "Neue Umfrage", f"{text} (ab {instance.pub_date:%d.%m.%Y %H:%M} verfügbar)", PushTag.polls)

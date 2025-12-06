@@ -1,6 +1,7 @@
 from django.contrib import admin
+from django.contrib.auth import get_user_model
 from django.contrib.auth.admin import UserAdmin
-from django.contrib.auth.models import User, Group
+from django.contrib.auth.models import Group
 
 from django.db.models import OuterRef
 
@@ -24,5 +25,6 @@ class CustomUserAdmin(UserAdmin):
     admin.boolean = True
 
 # Re-register UserAdmin
+User = get_user_model()
 admin.site.unregister(User)
 admin.site.register(User, CustomUserAdmin)
