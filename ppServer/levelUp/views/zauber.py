@@ -116,7 +116,7 @@ class GenericZauberView(LevelUpMixin, UserPassesTestMixin, TemplateView):
                 char.card.money -= price
                 char.card.save(update_fields=["money"])
 
-                spielleitung_spieler = get_object_or_404(Spieler, name__startswith="spielleit")
+                spielleitung_spieler = get_object_or_404(Spieler, user__username__startswith="spielleit")
                 receiver_card, _ = Card.objects.get_or_create(name=firma_name, spieler=spielleitung_spieler)
 
                 Transaction.objects.create(sender=char.card, receiver=receiver_card, amount=price, reason=f"Zauber '{zauber.name}' erworben/gelernt")
