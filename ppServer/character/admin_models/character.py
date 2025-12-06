@@ -331,8 +331,8 @@ class CharakterAdmin(admin.ModelAdmin):
 
     list_display = ['image_', 'name', 'eigentümer', "gfs", "ep_stufe", "larp", "in_erstellung"]
 
-    list_filter = ['in_erstellung', 'larp', get_filter(Spieler, "name", ['eigentümer__name'])]
-    search_fields = ['name', 'eigentümer__name']
+    list_filter = ['in_erstellung', 'larp']
+    search_fields = ['name', 'eigentümer']
     list_display_links = ["name"]
 
     save_on_top = True

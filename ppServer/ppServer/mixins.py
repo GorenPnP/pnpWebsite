@@ -9,11 +9,7 @@ from polls.models import Question, QuestionSpieler
 
 
 class VerifiedAccountMixin(LoginRequiredMixin):
-
-    def dispatch(self, request, *args, **kwargs):
-        if not request.user.is_authenticated or not self.request.spieler.is_verified:
-            return self.handle_no_permission()
-        return super().dispatch(request, *args, **kwargs)
+    pass
 
 
 class SpielleitungOnlyMixin(UserPassesTestMixin):

@@ -43,9 +43,6 @@ def signup(request):
             user.is_active = False
             user.save()
 
-            my_group = Group.objects.get(name='Spieler') 
-            my_group.user_set.add(user)
-
             # send email
             current_site = get_current_site(request)
             mail_subject = 'Account bestätigen'

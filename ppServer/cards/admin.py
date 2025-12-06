@@ -9,7 +9,7 @@ from .models import *
 class CardAdmin(admin.ModelAdmin):
 
     list_display = ('account_name', 'account_owner', 'money', 'pay', 'active', 'has_char', 'id', "card_id")
-    search_fields = ['char__name', 'char__eigentümer__name', 'name', 'spieler__name', 'id', "card_id"]
+    search_fields = ['char__name', 'char__eigentümer', 'name', 'spieler__name', 'id', "card_id"]
     list_filter = ['active']
 
     def get_queryset(self, request):
@@ -27,8 +27,8 @@ class TransactionAdmin(admin.ModelAdmin):
     change_list_template = "cards/admin/change_list_transaction.html"
 
     list_display = ('sender', 'receiver', 'amount', 'reason', 'timestamp')
-    search_fields = ['sender__id', "sender__card_id", 'sender__name', "sender__spieler__name", "sender__char__name", "sender__char__eigentümer__name",
-                     "receiver__id", "receiver__card_id", 'receiver__name', "receiver__spieler__name", "receiver__char__name", "receiver__char__eigentümer__name",
+    search_fields = ['sender__id', "sender__card_id", 'sender__name', "sender__spieler__name", "sender__char__name", "sender__char__eigentümer",
+                     "receiver__id", "receiver__card_id", 'receiver__name', "receiver__spieler__name", "receiver__char__name", "receiver__char__eigentümer",
                      'amount', 'reason']
 
     def get_queryset(self, request):

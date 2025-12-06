@@ -3,9 +3,7 @@ from .models import Spieler
 class RequestSpieler:
     instance: Spieler = None
 
-    is_verified: bool = False
     is_spielleitung: bool = False
-
     groups: list[str] = []
 
 
@@ -20,7 +18,6 @@ class SpielerMiddleware:
         if request.user.is_authenticated:
             request.spieler.instance = request.user.spieler
             request.spieler.groups = request.user.groups.values_list("name", flat=True)
-            request.spieler.is_verified = len(request.spieler.groups) > 0
             request.spieler.is_spielleitung = "Spielleitung" in request.spieler.groups
 
         return self.get_response(request)
