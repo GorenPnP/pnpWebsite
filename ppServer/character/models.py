@@ -19,6 +19,8 @@ from shop.models import *
 
 from . import enums
 
+User = get_user_model()
+
 def get_tier_cost_with_sp() -> dict:
     return {
         1: 1,
@@ -42,6 +44,7 @@ class Spieler(models.Model):
         ('e', 'Hochelfisch'),
     ]
 
+    user = models.OneToOneField(User, on_delete=models.CASCADE, blank=False, null=True)
     name = models.CharField(max_length=200, default='default')
     geburtstag = models.DateField(null=True, blank=True)
 

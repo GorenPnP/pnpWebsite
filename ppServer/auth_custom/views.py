@@ -41,7 +41,6 @@ def signup(request):
 
             # give user spieler permissions
             user.is_active = False
-            user.is_staff = True
             user.save()
 
             my_group = Group.objects.get(name='Spieler') 
