@@ -74,7 +74,7 @@ class ChatRoomConsumer(AsyncWebsocketConsumer):
         }))
 
         # multiple windows of same user open? cut all connections to THIS CHAT on logout
-        if username == self.spieler.name:
+        if username == self.spieler.user.username:
             self.close()
             self.disconnect(None)
 

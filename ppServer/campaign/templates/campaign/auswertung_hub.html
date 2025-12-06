@@ -37,7 +37,7 @@
 
         <label for="char-{% localize off %}{{ c.id }}{% endlocalize %}">
             <b>{{ c.name|default:"&#60;no name&#62;" }}{% if c.larp %} (LARP){% endif %} </b>
-            <small>von {{ c.eigentümer.name|default:"?" }}</small>
+            <small>von {{ c.eigentümer|default:"?" }}</small>
         </label>
     </li>
     {% empty %}

@@ -51,4 +51,4 @@ class Log(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True, blank=True, null=True)
 
     def __str__(self):
-        return "In Kategorie {} für {} von {} geändert".format(self.get_art_display(), self.char.name, self.spieler.name)
+        return "In Kategorie {} für {} von {} geändert".format(self.get_art_display(), self.char.name, self.spieler)

@@ -18,7 +18,7 @@
     <select class="form-select" id="spieler-select" name="spieler" required>
         <option selected disabled value="">---------</option>
         {% for spieler in object_list %}
-        <option value="{{ spieler.pk }}">{{ spieler.name }}</option>
+        <option value="{{ spieler.pk }}">{{ spieler }}</option>
         {% endfor %}
     </select>
 

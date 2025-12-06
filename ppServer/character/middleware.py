@@ -17,7 +17,7 @@ class SpielerMiddleware:
         request.spieler = RequestSpieler()
 
         if request.user.is_authenticated:
-            request.spieler.instance, _ = Spieler.objects.prefetch_related("user__groups").get_or_create(user=request.user)
+            request.spieler.instance = Spieler.objects.prefetch_related("user__groups").get(user=request.user)
             request.spieler.groups = [group.name for group in request.spieler.instance.user.groups.all()]
             request.spieler.is_spielleitung = "Spielleitung" in request.spieler.groups
 

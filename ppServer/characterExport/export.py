@@ -884,6 +884,6 @@ class CharakterExporter:
 
         history_ws.write_row("A3", ["Spieler", "Art", "Notizen", "Kosten", "Timestamp"])
         for i, log in enumerate(Log.objects.prefetch_related("spieler").filter(char=self.char, art__in=("s", "u", "i"))):
-            history_ws.write_row(f"A{4+i}", [log.spieler.name if log.spieler else "", log.get_art_display(), log.notizen, log.kosten, log.timestamp.__str__()])
+            history_ws.write_row(f"A{4+i}", [log.spieler.__str__() if log.spieler else "", log.get_art_display(), log.notizen, log.kosten, log.timestamp.__str__()])
 
         return history_ws

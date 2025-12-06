@@ -266,10 +266,9 @@ def send_pushies_on_update_of_spielermodule_state(sender, instance, **kwargs):
 
     # message to spieler [opened, corrected]
     if new_state in [2, 4]:
-        users = User.objects.filter(username=instance.spieler.name)
         title = "Quiz: neues Modul freigegeben!" if new_state == 2 else "Quiz: Modul korrigiert"
 
-        return PushSettings.send_message(users, title, message, PushTag.quiz)
+        return PushSettings.send_message([instance.spieler.user], title, message, PushTag.quiz)
     
     # message to spielleitung [answered, seen]
     if new_state in [3, 5]:

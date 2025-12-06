@@ -23,7 +23,7 @@
             <tr>
                 <td>{% if forloop.first %}{{ forloop.parentloop.counter }}{% endif %}</td>
                 <td class="punkte">{{ relQuiz.quiz_points_achieved|floatformat:"-2" }}</td>
-                <td class="name">{{ relQuiz.spieler.name }}</td>
+                <td class="name">{{ relQuiz.spieler }}</td>
             </tr>
             {% endfor %}
             {% endfor %}

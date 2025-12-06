@@ -164,7 +164,7 @@ def sp_correct(request, id, question_index=0):
 
         num_questions = len(sqs)
         context = {
-            "topic": "{} ({})".format(sp_mo.module.title, sp_mo.spieler.name),
+            "topic": "{} ({})".format(sp_mo.module.title, sp_mo.spieler),
             "achieved_points": spq.achieved_points,
             "question": spq.question, "spieler_question": spq,
             "answers": answers, "checked_answers": checked_answers, "corrected_answers": corrected_answers,
@@ -261,7 +261,7 @@ def old_answer(request, sp_mo_id, question_id, question_index):    # id of curre
     corrected_answers = json.loads(old_spq.correct_mc) if old_spq.correct_mc else []
 
     context = {
-        "topic": "{} ({})".format(sp_mo.module.title, sp_mo.spieler.name),
+        "topic": "{} ({})".format(sp_mo.module.title, sp_mo.spieler),
         "question": old_spq.question, "spieler_question": old_spq,
         "answers": answers, "checked_answers": checked_answers, "corrected_answers": corrected_answers,
         "start_num_questions": old_session.questions.count(), "num_question": question_index + 1,

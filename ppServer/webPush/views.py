@@ -41,9 +41,7 @@ class SettingView(VerifiedAccountMixin, TemplateView):
 		user_form.full_clean()
 		if spieler_form.is_valid() and user_form.is_valid():
 			user_form.save()
-			spieler = spieler_form.save(commit=False)
-			spieler.name = user_form.cleaned_data["username"]
-			spieler.save()
+			spieler_form.save()
 			messages.success(request, "Dein Profil wurde gespeichert")
 			return redirect("web_push:settings")
 

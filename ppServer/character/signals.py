@@ -4,17 +4,16 @@ from django.dispatch import receiver
 
 from .models import *
 
-User = get_user_model
+User = get_user_model()
 
 
 @receiver(post_save, sender=User)
-def create_spieler(sender, **kwargs):
-    if kwargs['created']:
-        Spieler.objects.get_or_create(user=kwargs['instance'])
+def create_spieler(created: bool, instance, **kwargs):
+    if created:
+        Spieler.objects.get_or_create(user=instance)
 
 @receiver(post_save, sender=Gfs)
-def init_gfs(sender, **kwargs):
-    instance = kwargs['instance']
+def init_gfs(sender, instance: Gfs, **kwargs):
 
     for a in Attribut.objects.all():
         GfsAttribut.objects.get_or_create(gfs=instance, attribut=a)
@@ -27,7 +26,7 @@ def init_gfs(sender, **kwargs):
 
 
 @receiver(post_save, sender=Charakter)
-def init_character(sender, instance, created: bool, **kwargs):
+def init_character(sender, instance: Charakter, created: bool, **kwargs):
     if created and "creation" in instance.processing_notes and "nachgetragen" in instance.processing_notes["creation"]: return
 
     RelAttribut.objects.bulk_create([
@@ -46,10 +45,8 @@ def init_character(sender, instance, created: bool, **kwargs):
 
 
 @receiver(post_save, sender=Attribut)
-def add_attr(sender, **kwargs):
-    if kwargs['created']:
-        instance = kwargs['instance']
-
+def add_attr(sender, created: bool, instance: Attribut, **kwargs):
+    if created:
         for char in Charakter.objects.all():
             RelAttribut.objects.get_or_create(char=char, attribut=instance)
 
@@ -58,10 +55,8 @@ def add_attr(sender, **kwargs):
 
 
 @receiver(post_save, sender=Fertigkeit)
-def add_fert(sender, **kwargs):
-    if kwargs['created']:
-        instance = kwargs['instance']
-
+def add_fert(sender, created: bool, instance: Fertigkeit, **kwargs):
+    if created:
         for char in Charakter.objects.all():
             RelFertigkeit.objects.get_or_create(char=char, fertigkeit=instance)
 

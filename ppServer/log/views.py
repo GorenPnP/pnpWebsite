@@ -38,7 +38,7 @@ class AdminLogView(VerifiedAccountMixin, SpielleitungOnlyMixin, DynamicTableView
     table_class = Table
 
     def get_queryset(self):
-        return super().get_queryset().exclude(user__username=self.request.spieler.instance.name).filter(content_type__app_label="character", content_type__model="charakter")
+        return super().get_queryset().exclude(user=self.request.user).filter(content_type__app_label="character", content_type__model="charakter")
     
     def get_app_index(self): return None
     def get_app_index_url(self): return None

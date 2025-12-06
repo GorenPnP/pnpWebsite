@@ -31,7 +31,7 @@ class MonsterIndexView(VerifiedAccountMixin, ListView):
             app_index_url = reverse("dex:index"),
             topic = "Monsterdex",
             types = Typ.objects.all(),
-            spieler = get_object_or_404(Spieler, name=self.request.user.username)
+            spieler = self.request.spieler.instance,
         )
     
     def get_queryset(self) -> QuerySet[Any]:
@@ -85,7 +85,7 @@ class MonsterDetailView(VerifiedAccountMixin, DetailView):
             **kwargs,
             app_index = "Monster",
             app_index_url = reverse("dex:monster_index"),
-            spieler = get_object_or_404(Spieler, name=self.request.user.username)
+            spieler = self.request.spieler.instance,
         )
         self.object = context["object"]
         context["topic"] = self.object.name
@@ -108,14 +108,14 @@ class MonsterDetailView(VerifiedAccountMixin, DetailView):
     def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
         response = super().get(request, *args, **kwargs)    # let self.get_context_data() set self.object to perform the query only once
 
-        spieler = get_object_or_404(Spieler, name=self.request.user.username)
-        if  not self.object.visible.filter(name=spieler.name).exists():
+        spieler = self.request.spieler.instance
+        if not self.object.visible.filter(id=spieler.id).exists():
             return redirect("dex:monster_index")
 
         return response
 
     def post(self, request, **kwargs):
-        spieler = get_object_or_404(Spieler, name=self.request.user.username)
+        spieler = self.request.spieler.instance
         monster = self.get_object()
         if not monster.visible.filter(id=spieler.id).exists():
             messages.error(request, "Huch! Das Monster kennst du noch gar nicht.")
@@ -182,7 +182,7 @@ class MonsterFähigkeitView(VerifiedAccountMixin, ListView):
             app_index = "Allesdex",
             app_index_url = reverse("dex:index"),
             topic = "Fähigkeiten",
-            spieler = get_object_or_404(Spieler, name=self.request.user.username),
+            spieler = self.request.spieler.instance,
         )
 
     def get_queryset(self) -> QuerySet[Any]:
@@ -212,13 +212,13 @@ class MonsterFarmView(VerifiedAccountMixin, ListView):
             app_index_url = reverse("dex:index"),
             topic = "Monster-Farm",
             types = Typ.objects.all(),
-            spieler = get_object_or_404(Spieler, name=self.request.user.username)
+            spieler = self.request.spieler.instance,
         )
     
     def get_queryset(self) -> QuerySet[Any]:
         return super().get_queryset()\
             .prefetch_related(Prefetch("monster", Monster.objects.load_card()))\
-            .filter(spieler__name=self.request.user.username)
+            .filter(spieler=self.request.spieler.instance)
 
 
 class MonsterFarmDetailView(VerifiedAccountMixin, DetailView):
@@ -230,7 +230,7 @@ class MonsterFarmDetailView(VerifiedAccountMixin, DetailView):
             **kwargs,
             app_index = "Farm",
             app_index_url = reverse("dex:monster_farm"),
-            spieler = get_object_or_404(Spieler, name=self.request.user.username),
+            spieler = self.request.spieler.instance,
             types = Typ.objects.all(),
             all_stats = [(stat, label) for stat, label in RangStat.StatType if stat in ["N", "F", "MA", "VER_G", "VER_K"]],
         )
@@ -268,18 +268,18 @@ class MonsterFarmDetailView(VerifiedAccountMixin, DetailView):
         response = super().get(request, *args, **kwargs)    # let self.get_context_data() set self.object to perform the query only once
         
         # authorization
-        spieler = get_object_or_404(Spieler, name=self.request.user.username)
+        spieler = self.request.spieler.instance
         get_object_or_404(self.model, spieler=spieler, pk=pk)
-        if  not self.object.monster.visible.filter(name=spieler.name).exists():
+        if not self.object.monster.visible.filter(id=spieler.id).exists():
             return redirect("dex:monster_farm")
 
         return response
     
     def post(self, request, pk: int, *args, **kwargs):
         # authorization
-        spieler = get_object_or_404(Spieler, name=self.request.user.username)
+        spieler = self.request.spieler.instance
         object = get_object_or_404(self.model, spieler=spieler, pk=pk)
-        if not object.monster.visible.filter(name=spieler.name).exists():
+        if not object.monster.visible.filter(id=spieler.id).exists():
             return redirect("dex:monster_farm")
 
         # work
@@ -314,7 +314,7 @@ class MonsterFarmLevelupView(VerifiedAccountMixin, DetailView):
             **kwargs,
             app_index = "Farm",
             app_index_url = reverse("dex:monster_farm"),
-            spieler = get_object_or_404(Spieler, name=self.request.user.username)
+            spieler = self.request.spieler.instance,
         )
         self.object = context["object"]
         context["topic"] = (self.object.name or self.object.monster.name) + " - Level up"
@@ -364,9 +364,9 @@ class MonsterFarmLevelupView(VerifiedAccountMixin, DetailView):
         response = super().get(request, *args, **kwargs)    # let self.get_context_data() set self.object to perform the query only once
 
         # authorization
-        spieler = get_object_or_404(Spieler, name=self.request.user.username)
+        spieler = self.request.spieler.instance
         get_object_or_404(self.model, spieler=spieler, pk=pk)
-        if not self.object.monster.visible.filter(name=spieler.name).exists():
+        if not self.object.monster.visible.filter(id=spieler.id).exists():
             return redirect("dex:monster_farm")
         
         if self.object.rangstat_set.filter(trained=True).count() != RangStat.AMOUNT_TRAINED:
@@ -377,9 +377,9 @@ class MonsterFarmLevelupView(VerifiedAccountMixin, DetailView):
     
     def post(self, request, pk: int, *args, **kwargs):
         # authorization
-        spieler = get_object_or_404(Spieler, name=self.request.user.username)
+        spieler = request.spieler.instance
         object = get_object_or_404(self.model, spieler=spieler, pk=pk)
-        if not object.monster.visible.filter(name=spieler.name).exists():
+        if not object.monster.visible.filter(id=spieler.id).exists():
             return redirect("dex:monster_farm")
         
         if object.rangstat_set.filter(trained=True).count() != RangStat.AMOUNT_TRAINED:
@@ -425,7 +425,7 @@ class MonsterTeamView(VerifiedAccountMixin, ListView):
             app_index = "Allesdex",
             app_index_url = reverse("dex:index"),
             topic = "Monster-Teams",
-            spieler = get_object_or_404(Spieler, name=self.request.user.username),
+            spieler = self.request.spieler.instance,
             form = TeamForm()
         )
 
@@ -450,7 +450,7 @@ class MonsterTeamView(VerifiedAccountMixin, ListView):
                 Prefetch("monster__monster", Monster.objects.load_card()),
                 "monster__monster__attacken__types"
             )\
-            .filter(spieler__name=self.request.user.username)\
+            .filter(spieler=self.request.spieler.instance)\
             .annotate(
 
                 # stats
@@ -465,7 +465,7 @@ class MonsterTeamView(VerifiedAccountMixin, ListView):
             )
     
     def post(self, request, **kwargs):
-        spieler = get_object_or_404(Spieler, name=request.user.username)
+        spieler = request.spieler.instance
         form = TeamForm(request.POST)
         form.full_clean()
         if form.is_valid():
@@ -486,7 +486,7 @@ class MonsterTeamDetailView(VerifiedAccountMixin, DetailView):
             **kwargs,
             app_index = "Monster-Teams",
             app_index_url = reverse("dex:monster_team"),
-            spieler = get_object_or_404(Spieler, name=self.request.user.username)
+            spieler = self.request.spieler.instance,
         )
         context["topic"] = context["object"].name
         context["own_monsters"] = SpielerMonster.objects.filter(spieler=context["spieler"]).exclude(id__in=context["object"].monster.values_list("id", flat=True))
@@ -500,7 +500,7 @@ class MonsterTeamDetailView(VerifiedAccountMixin, DetailView):
     def get_queryset(self) -> QuerySet[Any]:
         return super().get_queryset()\
             .prefetch_related("monster")\
-            .filter(spieler__name=self.request.user.username)
+            .filter(spieler=self.request.spieler.instance)
     
     def post(self, request, **kwargs):
         form = TeamForm(request.POST)
@@ -521,8 +521,8 @@ class MonsterTeamDetailView(VerifiedAccountMixin, DetailView):
 @require_POST
 @verified_account
 def add_monster_to_team(request, pk):
-    team = get_object_or_404(MonsterTeam, pk=pk, spieler__name=request.user.username)
-    monster = get_object_or_404(SpielerMonster, pk=request.POST.get("monster_id"), spieler__name=request.user.username)
+    team = get_object_or_404(MonsterTeam, pk=pk, spieler=request.spieler.instance)
+    monster = get_object_or_404(SpielerMonster, pk=request.POST.get("monster_id"), spieler=request.spieler.instance)
     team.monster.add(monster)
     messages.success(request, f"{monster.name or monster.monster.name} ist {team.name} beigetreten")
     
@@ -532,7 +532,7 @@ def add_monster_to_team(request, pk):
 @require_POST
 @verified_account
 def delete_monster_from_team(request, pk):
-    team = get_object_or_404(MonsterTeam, pk=pk, spieler__name=request.user.username)
+    team = get_object_or_404(MonsterTeam, pk=pk, spieler=request.spieler.instance)
     monster = get_object_or_404(SpielerMonster, pk=request.POST.get("monster_id"))
     team.monster.remove(monster)
     messages.success(request, f"{monster.name or monster.monster.name} ist aus {team.name} ausgetreten")
@@ -543,7 +543,7 @@ def delete_monster_from_team(request, pk):
 @require_POST
 @verified_account
 def add_team_to_spielermonster(request, pk):
-    sp_mo = get_object_or_404(SpielerMonster, pk=pk, spieler__name=request.user.username)
+    sp_mo = get_object_or_404(SpielerMonster, pk=pk, spieler=request.spieler.instance)
     team = get_object_or_404(MonsterTeam, pk=request.POST.get("team_id"))
     sp_mo.monsterteam_set.add(team)
     messages.success(request, f"{sp_mo.name or sp_mo.monster.name} ist {team.name} beigetreten")
@@ -554,7 +554,7 @@ def add_team_to_spielermonster(request, pk):
 @require_POST
 @verified_account
 def delete_spielermonster(request):
-    sp_mo = get_object_or_404(SpielerMonster, pk=request.POST.get("monster_id"), spieler__name=request.user.username)
+    sp_mo = get_object_or_404(SpielerMonster, pk=request.POST.get("monster_id"), spieler=request.spieler.instance)
     SpielerMonster.objects.filter(pk=sp_mo.pk).delete()
 
     messages.success(request, format_html(f"{sp_mo.name or sp_mo.monster.name} ist frei!"))
@@ -565,7 +565,7 @@ def delete_spielermonster(request):
 @require_POST
 @verified_account
 def set_training_of_spielermonster(request, pk):
-    sp_mo = get_object_or_404(SpielerMonster, pk=pk, spieler__name=request.user.username)
+    sp_mo = get_object_or_404(SpielerMonster, pk=pk, spieler=request.spieler.instance)
     all_stats = [stat for stat, _ in RangStat.StatType]
     stats = [stat.strip() for stat in request.POST.get("stat").split(" ")]
     stats = set([stat for stat in stats if stat in all_stats])
@@ -589,7 +589,7 @@ def set_training_of_spielermonster(request, pk):
 @require_POST
 @verified_account
 def add_attack_to_spielermonster(request, pk):
-    sp_mo = get_object_or_404(SpielerMonster, pk=pk, spieler__name=request.user.username)
+    sp_mo = get_object_or_404(SpielerMonster, pk=pk, spieler=request.spieler.instance)
 
     attack = None
     try:
@@ -618,7 +618,7 @@ def add_attack_to_spielermonster(request, pk):
 def delete_attack_from_spielermonster(request, pk):
 
     # get stuff
-    sp_mo = get_object_or_404(SpielerMonster, pk=pk, spieler__name=request.user.username)
+    sp_mo = get_object_or_404(SpielerMonster, pk=pk, spieler=request.spieler.instance)
     sp_mo_attack = get_object_or_404(SpielerMonsterAttack, spieler_monster=sp_mo, attacke__id=request.POST.get("attack_id"))
     
     # remove attack
@@ -638,7 +638,7 @@ def delete_attack_from_spielermonster(request, pk):
 def evolve_spielermonster(request, pk):
 
     # get stuff
-    sp_mo = get_object_or_404(SpielerMonster, pk=pk, spieler__name=request.user.username)
+    sp_mo = get_object_or_404(SpielerMonster, pk=pk, spieler=request.spieler.instance)
     monster = get_object_or_404(Monster, pk=request.POST.get("monster_id"))
     
     # check valid evolution?
@@ -686,11 +686,11 @@ class AttackProposalView(VerifiedAccountMixin, ListView):
         return context
     
     def get_queryset(self) -> QuerySet[Any]:
-        spieler = get_object_or_404(Spieler, name=self.request.user.username)
+        spieler = self.request.spieler.instance
         return self.model.objects.load_card().filter(author=spieler, draft=True)
 
     def post(self, request, pk: int = None, *args, **kwargs):
-        spieler = get_object_or_404(Spieler, name=self.request.user.username)
+        spieler = request.spieler.instance
         if pk is not None:
             obj = get_object_or_404(Attacke, pk=pk, author=spieler)
             form = ProposeAttackForm(request.POST, instance=obj)

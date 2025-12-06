@@ -164,7 +164,7 @@ class ModuleAdmin(admin.ModelAdmin):
 class SpielerModuleAdmin(admin.ModelAdmin):
     list_display = ["spieler", "module", "state", "optional", "spent_reward", "spent_reward_larp", "_reward", "achieved_points"]
     list_filter = ["spieler", "module", ModelStateFilter]
-    search_fields = ["spieler__name", "module__title", "state"]
+    search_fields = ["spieler__user__username", "module__title", "state"]
     list_editable = ["spent_reward", "spent_reward_larp"]
 
     exclude = ["sessions"]
@@ -179,7 +179,7 @@ class SpielerModuleAdmin(admin.ModelAdmin):
 class SpielerSessionAdmin(admin.ModelAdmin):
     list_display = ["spielerModule", "current_question", "started"]
     list_filter = ["spielerModule__spieler", "spielerModule__module"]
-    search_fields = ["spielerModule__spieler__name", "spielerModule__module__title"]
+    search_fields = ["spielerModule__spieler__user__username", "spielerModule__module__title"]
 
     exclude = ["questions"]
     readonly_fields = ["spielerModule"]
@@ -192,7 +192,7 @@ class SpielerSessionAdmin(admin.ModelAdmin):
 class SpielerQuestionAdmin(admin.ModelAdmin):
     list_display = ["spieler", "question", "achieved_points"]
     list_filter = ["spieler", "question"]
-    search_fields = ["question__text", "question__topic__titel", "question__topic__subject__titel", "spieler__name"]
+    search_fields = ["question__text", "question__topic__titel", "question__topic__subject__titel", "spieler__user__username"]
 
     fieldsets = [
         ("Basis", {'fields': ["question", "spieler",  "achieved_points", "in_module"]}),

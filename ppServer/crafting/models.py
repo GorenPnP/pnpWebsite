@@ -60,7 +60,7 @@ class RelCrafting(models.Model):
 	favorite_recipes = models.ManyToManyField("Recipe")
 
 	def __str__(self):
-		return "{} aktiv mit {}".format(self.spieler.name if self.spieler else "-", self.profil.name if self.profil else "-")
+		return "{} aktiv mit {}".format(self.spieler.__str__() if self.spieler else "-", self.profil.name if self.profil else "-")
 
 
 class Profile(models.Model):

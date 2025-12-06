@@ -88,7 +88,7 @@
 							{% for c in charaktere %}
 							<div class="form-check">
 								<input class="form-check-input" type="checkbox" id="tag-{{tag.id}}-char-{{ c.id }}" name="tag-{{tag.id}}-char-{{ c.id }}" {% if c|hasTag:tag %}checked{% endif %}>
-								<label class="form-check-label" for="tag-{{tag.id}}-char-{{ c.id }}">{{ c.name|default:'&#60;no name&#62;' }}{% if c.larp %} (LARP){% endif %}{% if request.spieler.is_spielleitung %} <small><i> von {{ c.eigentümer.name|default:"?" }}</i></small>{% endif %}</label>
+								<label class="form-check-label" for="tag-{{tag.id}}-char-{{ c.id }}">{{ c.name|default:'&#60;no name&#62;' }}{% if c.larp %} (LARP){% endif %}{% if request.spieler.is_spielleitung %} <small><i> von {{ c.eigentümer|default:"?" }}</i></small>{% endif %}</label>
 							</div>
 							{% endfor %}
 						</form>
@@ -115,7 +115,7 @@
 			</div>
 			
 			<a href="{% url 'character:show' c.id %}" class="col-12 col-md char-name text-dark text-center text-md-start text-decoration-none">
-				<p><span class="h4 text-decoration-underline">{{ c.name|default:"&#60;no name&#62;" }}{% if c.larp %} (LARP){% endif %}</span> {% if request.spieler.is_spielleitung %}<small> von {{ c.eigentümer.name|default:"?" }}</small>{% endif %}</p>
+				<p><span class="h4 text-decoration-underline">{{ c.name|default:"&#60;no name&#62;" }}{% if c.larp %} (LARP){% endif %}</span> {% if request.spieler.is_spielleitung %}<small> von {{ c.eigentümer|default:"?" }}</small>{% endif %}</p>
 				<p>{{ c.persönlicheZiele|default:""|linebreaks }}</p>
 				
 				{% if c.tags.count %}

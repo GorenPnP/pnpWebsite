@@ -281,7 +281,7 @@ def review(request, id):
         corrected_answers = json.loads(spq.correct_mc) if spq.correct_mc else []
 
         context = {
-            "topic": "{} ({})".format(sp_mo.module.title, sp_mo.spieler.name),
+            "topic": "{} ({})".format(sp_mo.module.title, sp_mo.spieler),
             "question": spq.question, "spieler_question": spq,
             "answers": answers, "checked_answers": checked_answers, "corrected_answers": corrected_answers,
             "start_num_questions": current_session.questions.count(), "num_question": current_session.current_question + 1,

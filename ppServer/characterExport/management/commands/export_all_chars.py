@@ -37,7 +37,7 @@ class Command(BaseCommand):
             for char in Charakter.objects.all().prefetch_related("eigentümer"):
                 file_response = CharakterExporter(char).export()
 
-                owner = char.eigentümer.name if char.eigentümer is not None else 'NO_OWNER'
+                owner = char.eigentümer.__str__() if char.eigentümer is not None else 'NO_OWNER'
                 name = char.name if char.name is not None else 'NO_NAME'
                 filename = f"{owner.replace('/', '_').replace('.', '_')} - {name.replace('/', '_').replace('.', '_')}.xlsx"
                 path = os.path.join(full_path[2], filename)
