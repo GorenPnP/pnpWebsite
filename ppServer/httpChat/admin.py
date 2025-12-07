@@ -26,7 +26,7 @@ class AccountAdmin(admin.ModelAdmin):
     exclude = ["slug"]
 
     def _avatar(self, obj):
-        return format_html('<img src="{0}" style="max-width: 32px; max-height:32px; border-radius:50%" />'.format(obj.avatar.url)) if obj.avatar else self.get_empty_value_display()
+        return format_html('<img src="{0}" style="max-width: 32px; max-height:32px; border-radius:50%" loading="lazy" />'.format(obj.avatar.url)) if obj.avatar else self.get_empty_value_display()
 
     def get_queryset(self, request: HttpRequest) -> QuerySet[Any]:
         return super().get_queryset(request).prefetch_related("spieler")

@@ -104,7 +104,7 @@ class RenderableTable(GenericTable):
         instance = Model.objects.get(id=self._get(record, "id"))
 
         # use python model .objects.get().getIconUrl()
-        return format_html("<img src='{url}'>", url=instance.getIconUrl())
+        return format_html("<img src='{url}' loading='lazy'>", url=instance.getIconUrl())
 
     def render_name(self, value, record):
         try:

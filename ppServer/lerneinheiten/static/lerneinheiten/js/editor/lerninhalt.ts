@@ -185,7 +185,7 @@ class ImageBox extends Box {
     }
     private update_internal_state(src: string = "") {
         this.src = src;
-        this.html_string = `<div id="box-${this.id}" class="${this.direction} box--image"><img src="${this.src || ImageBox.default_src}"></div>`;
+        this.html_string = `<div id="box-${this.id}" class="${this.direction} box--image"><img src="${this.src || ImageBox.default_src}" loading="lazy"></div>`;
     }
 
     public init_editor(): void {

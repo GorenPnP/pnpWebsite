@@ -19,7 +19,7 @@
 <ul class="list-group">
 {% for account in accounts %}
     <li class="list-group-item d-flex justify-content-between align-items-center">
-        <img src="{{ account.get_avatar_url }}" class="rounded-circle border border-primary" style="height: 47px; aspect-ratio: 1">
+        <img src="{{ account.get_avatar_url }}" class="rounded-circle border border-primary" style="height: 47px; aspect-ratio: 1" loading="lazy">
         <a href="{% url 'httpchat:account_chats' account.slug %}" class="ms-2 me-auto fw-bold text-dark">
             {{ account.name }}
         </a>

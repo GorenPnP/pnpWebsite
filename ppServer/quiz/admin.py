@@ -150,7 +150,7 @@ class ModuleAdmin(admin.ModelAdmin):
         return obj.prerequesitenames or self.get_empty_value_display()
 
     def icon_(self, obj):
-        return format_html('<img src="{0}" style="max-width: 32px; max-height:32px;" />'.format(obj.icon.img.url)) if obj.icon else "-"
+        return format_html('<img src="{0}" style="max-width: 32px; max-height:32px;" loading="lazy" />'.format(obj.icon.img.url)) if obj.icon else "-"
     
     def get_queryset(self, request: HttpRequest) -> QuerySet[Any]:
         return super().get_queryset(request).prefetch_related("icon").annotate(

@@ -36,7 +36,7 @@
             <div class="carousel-inner">
                 {% for img in gfs.gfsimage_set.all %}
                 <div class="carousel-item {% if forloop.first %}active{% endif %}">
-                    <img src="{{ img.img.url }}" class="d-block w-100">
+                    <img src="{{ img.img.url }}" class="d-block w-100" loading="lazy">
 
                     {% if img.text %}<div class="carousel-caption d-none d-md-block">{{ img.text }}</div>{% endif %}
                 </div>

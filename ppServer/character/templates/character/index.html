@@ -111,7 +111,7 @@
 		<div class="row"  style="gap: 20px 7px">
 
 			<div class="col-12 col-md-2 d-flex justify-content-center align-items-start">
-				<img src="{% if c.image %}{{ c.image.url }}{% else %}{% static 'res/img/goren_logo.png' %}{% endif %}" style="width: 64px; aspect-ratio: 1; border-radius: 50%;">
+				<img src="{% if c.image %}{{ c.image.url }}{% else %}{% static 'res/img/goren_logo.png' %}{% endif %}" style="width: 64px; aspect-ratio: 1; border-radius: 50%;" loading="lazy">
 			</div>
 			
 			<a href="{% url 'character:show' c.id %}" class="col-12 col-md char-name text-dark text-center text-md-start text-decoration-none">

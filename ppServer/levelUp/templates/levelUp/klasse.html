@@ -97,7 +97,7 @@
                     <div class="card text-bg-dark{% if not rel.requirements_met %} text-muted{% endif %}">
                         <div class="card-body">
                             <a class="card-title h5" href="{% url 'wiki:klasse' rel.klasse.pk %}" target="_blank">
-                                <img src="{% if rel.klasse.icon %}{{ rel.klasse.icon.url }}{% else %}{% static 'res/img/goren_logo.svg' %}{% endif %}" class="klasse-icon">
+                                <img src="{% if rel.klasse.icon %}{{ rel.klasse.icon.url }}{% else %}{% static 'res/img/goren_logo.svg' %}{% endif %}" class="klasse-icon" loading="lazy">
                                 {{ rel.klasse.titel }} Stufe {{ rel.stufe }}
                             </a>
                             {% if rel.stufe == rel.min_stufe or not rel.requirements_met %}<div class="card-subtitle mt-2 mb-3 text-muted">Voraussetzung: {{ rel.klasse.requirement }}</div>{% endif %}

@@ -29,7 +29,7 @@
 
 	<section class="question">
 			<div class="imgs">
-					{% for e in question.images.all %}<a href="{{ e.img.url }}" class="img"><img src="{{ e.img.url }}"></a>{% endfor %}
+					{% for e in question.images.all %}<a href="{{ e.img.url }}" class="img"><img src="{{ e.img.url }}" loading="lazy"></a>{% endfor %}
 			</div>
 
 			<span class="text">{{ question.text }}</span>
@@ -48,7 +48,7 @@
 									<div class="checkbox checkbox--correction{% localize off %}{% if a.id in checked_answers %} checked{% endif %}{% if a.id in corrected_answers %} wrong-answer{% endif %}{% endlocalize %}"
 											id="{% localize off %}{{ a.id }}{% endlocalize %}">
 									</div>
-									{% if a.img %}<div class="img"><img src="{{ a.img.img.url }}"></div>{% endif %}
+									{% if a.img %}<div class="img"><img src="{{ a.img.img.url }}" loading="lazy"></div>{% endif %}
 									{% if a.text %}<div class="text">{{ a.text }}</div>{% endif %}
 							</div>
 							{% endfor %}
@@ -64,7 +64,7 @@
 						{% if spieler_question.answer_img %}
 							<div class="upload">
 									<label for="img">Bild:</label>
-									<a href="{{ spieler_question.answer_img.img.url }}" class="img"><img src="{{ spieler_question.answer_img.img.url }}" alt="{{ spieler_question.answer_img.name }}" /></a>
+									<a href="{{ spieler_question.answer_img.img.url }}" class="img"><img src="{{ spieler_question.answer_img.img.url }}" alt="{{ spieler_question.answer_img.name }}" loading="lazy" /></a>
 							</div>
 						{% endif %}
 
@@ -88,7 +88,7 @@
 							{% if spieler_question.correct_img %}
 								<div class="upload">
 									<label for="img">Bild:</label>
-									<a href="{{ spieler_question.correct_img.img.url }}" class="img"><img src="{{ spieler_question.correct_img.img.url }}" alt="{{ spieler_question.correct_img.name }}" /></a>
+									<a href="{{ spieler_question.correct_img.img.url }}" class="img"><img src="{{ spieler_question.correct_img.img.url }}" alt="{{ spieler_question.correct_img.name }}" loading="lazy" /></a>
 								</div>
 							{% endif %}
 

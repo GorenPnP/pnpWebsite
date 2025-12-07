@@ -127,7 +127,7 @@
             <div class="grid">
                 {% for i in tools %}
                 <div class="item tool" data-drop-id="{% localize off %}{{ i.item.id }}{% endlocalize %}" data-speed="{% localize off %}{{ i.speed }}{% endlocalize %}" title="{{ i.item.name }}" data-type="{{ i.is_type }}">
-                    <img src="{{ i.item.icon_url }}" alt="{{ i.item.name }}">
+                    <img src="{{ i.item.icon_url }}" alt="{{ i.item.name }}" loading="lazy">
                     <span class="num">{{ i.speed|floatformat }}</span>
                 </div>
                 {% empty %}
@@ -155,7 +155,7 @@
                     {% endwith %}
                     {% endwith %}
                     
-                    <img src="{{ i.item.getIconUrl }}" alt="{{ i.item.name }}">
+                    <img src="{{ i.item.getIconUrl }}" alt="{{ i.item.name }}" loading="lazy">
                     <div class="num d-flex justify-content-between">
                         {% with i.item.miningperk.effect_increment|dict_key_sum_until:i.num as effect %}
                         <span class="num__effect text-success" data-effect="{{ effect }}">{{ effect|floatformat }}</span>
@@ -186,7 +186,7 @@
                 <div class="grid grid--current-inv">
                     {% for i in items %}
                         <div class="item" data-drop-id="{% localize off %}{{ i.item.id }}{% endlocalize %}" onclick="openDetails({% localize off %}{{ i.item.id }}{% endlocalize %})">
-                            <img src="{{ i.item.getIconUrl }}" alt="{{ i.item.name }}">
+                            <img src="{{ i.item.getIconUrl }}" alt="{{ i.item.name }}" loading="lazy">
                             <span class="num">{{ i.num|floatformat }}</span>
                         </div>
                     {% endfor %}

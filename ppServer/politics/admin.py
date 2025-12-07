@@ -56,7 +56,7 @@ class PoliticianAdmin(admin.ModelAdmin):
 
     def _portrait(self, obj):
         if not obj.portrait or not obj.portrait.url: return self.get_empty_value_display()
-        return format_html('<img src="{0}" style="max-width: 32px; max-height:32px;" />'.format(obj.portrait.url))
+        return format_html('<img src="{0}" style="max-width: 32px; max-height:32px;" loading="lazy" />'.format(obj.portrait.url))
 
     @admin.action(description="Ausgewählte duplizieren")
     def duplicate_selected(self, request, queryset):

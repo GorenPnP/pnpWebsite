@@ -29,7 +29,7 @@
         <li class="list-group-item d-flex justify-content-between align-items-center">
             <div class="avatar-container">
               {% for url in chat|get_avatar_urls:account %}
-                  <img src="{{ url }}" class="rounded-circle border border-primary" style="height: 47px; aspect-ratio: 1">
+                  <img src="{{ url }}" class="rounded-circle border border-primary" style="height: 47px; aspect-ratio: 1" loading="lazy">
               {% endfor %}
             </div>
             <a href="{% url 'httpchat:chatroom' account.slug chat.id %}" class="ms-2 me-auto text-dark">

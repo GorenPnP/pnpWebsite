@@ -57,8 +57,8 @@
         <div class="markdown" data-text="{{ object.solution.text|default:'' }}"></div>
 
         <div class="solution-img-container">
-            <img class="drawn" src="{{ object.solution.drawn|default:'' }}">
-            <img class="bg" src="{{ object.solution.bg|default:'' }}">
+            <img class="drawn" src="{{ object.solution.drawn|default:'' }}" loading="lazy">
+            <img class="bg" src="{{ object.solution.bg|default:'' }}" loading="lazy">
         </div>
     </aside>
 {% endblock %}

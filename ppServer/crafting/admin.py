@@ -102,14 +102,14 @@ class RecipeAdmin(admin.ModelAdmin):
     inlines = [SpezialInLineAdmin, WissenInLineAdmin, IngredientInLineAdmin, ProductInLineAdmin]
 
     def icons_produkte(self, obj):
-        html = format_html("".join(['<img src="{0}" style="max-width: 32px; max-height:32px;" />'.format(p.item.getIconUrl()) for p in obj.product_set.all()]))
+        html = format_html("".join(['<img src="{0}" style="max-width: 32px; max-height:32px;" loading="lazy" />'.format(p.item.getIconUrl()) for p in obj.product_set.all()]))
         return html or self.get_empty_value_display()
 
     def produkte(self, obj):
         return obj.produktenames or self.get_empty_value_display()
 
     def icons_zutaten(self, obj):
-        html = format_html("".join(['<img src="{0}" style="max-width: 32px; max-height:32px;" />'.format(p.item.getIconUrl()) for p in obj.ingredient_set.all()]))
+        html = format_html("".join(['<img src="{0}" style="max-width: 32px; max-height:32px;" loading="lazy" />'.format(p.item.getIconUrl()) for p in obj.ingredient_set.all()]))
         return html or self.get_empty_value_display()
 
     def zutaten(self, obj):
@@ -209,7 +209,7 @@ class RegionAdmin(admin.ModelAdmin):
     inlines = [PermanentlyNeedsTinkerInLineAdmin, RegionBlockChanceInLineAdmin]
 
     def _icon(self, obj):
-        return format_html('<img src="{0}" style="max-width: 32px; max-height:32px;" />'.format(obj.icon.url)) if obj.icon else self.get_empty_value_display()
+        return format_html('<img src="{0}" style="max-width: 32px; max-height:32px;" loading="lazy" />'.format(obj.icon.url)) if obj.icon else self.get_empty_value_display()
 
 
 class BlockDropInLineAdmin(admin.TabularInline):
@@ -237,7 +237,7 @@ class BlockAdmin(admin.ModelAdmin):
         return super().get_queryset(request).prefetch_related("effective_tool")
 
     def _icon(self, obj):
-        return format_html('<img src="{0}" style="max-width: 32px; max-height:32px;" />'.format(obj.icon.url)) if obj.icon else self.get_empty_value_display()
+        return format_html('<img src="{0}" style="max-width: 32px; max-height:32px;" loading="lazy" />'.format(obj.icon.url)) if obj.icon else self.get_empty_value_display()
 
     def _tool_types(self, obj):
         return ", ".join(obj.effective_tool.values_list("name", flat=True))
@@ -255,7 +255,7 @@ class ToolAdmin(admin.ModelAdmin):
         return super().get_queryset(request).prefetch_related("is_type")
 
     def _icon(self, obj):
-        return format_html('<img src="{0}" style="max-width: 32px; max-height:32px;" />'.format(obj.item.icon.url)) if obj.item and obj.item.icon else self.get_empty_value_display()
+        return format_html('<img src="{0}" style="max-width: 32px; max-height:32px;" loading="lazy" />'.format(obj.item.icon.url)) if obj.item and obj.item.icon else self.get_empty_value_display()
 
     def name(self, obj):
         return obj.item.name if obj.item else self.get_empty_value_display()
@@ -272,7 +272,7 @@ class MiningPerkAdmin(admin.ModelAdmin):
         return super().get_queryset(request).prefetch_related("item", "tool_type")
     
     def _item(self, obj):
-        return format_html('<img src="{}" style="max-width: 32px; max-height:32px;" />{}'.format(obj.item.getIconUrl(), obj.item.name))
+        return format_html('<img src="{}" style="max-width: 32px; max-height:32px;" loading="lazy" />{}'.format(obj.item.getIconUrl(), obj.item.name))
 
     def _tool_type(self, obj):
         return ", ".join(obj.tool_type.values_list("name", flat=True))

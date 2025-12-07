@@ -231,7 +231,7 @@ function mining_update_drops() {
         if (!element) {
             const dummy = document.createElement("div");
             dummy.innerHTML = `<div class=item data-drop-id="${item.id}" onclick="openDetails(${item.id})">
-                <img src="${item.icon_url}" alt="${item.name}">
+                <img src="${item.icon_url}" alt="${item.name}" loading="lazy">
                 <span class="num">0</span>
             </div>`;
             element = dummy.firstChild;
@@ -275,7 +275,7 @@ function save_progress(on_success=() => {}, on_error=() => {}) {
                 if (!element) {
                     const dummy = document.createElement("div");
                     dummy.innerHTML = `<div class="item" data-drop-id="${item.id}" onclick="openDetails(${item.id})">
-                        <img src="${item.icon_url}" alt="${item.name}">
+                        <img src="${item.icon_url}" alt="${item.name}" loading="lazy">
                         <span class="num">0</span>
                     </div>`;
                     element = dummy.firstChild;

@@ -101,7 +101,7 @@
 		<p>Crafting Time: {{ object.craftingTime|duration|default:'-' }}</p>
 
 		<div class="form-check">
-			<input class="form-check-input" type="checkbox" id="checkbox--show-all" checked>
+			<input class="form-check-input" type="checkbox" id="checkbox--show-all">
 			<label class="form-check-label" for="checkbox--show-all">Alle anzeigen</label>
 		</div>
 
@@ -136,7 +136,7 @@
 			{% for i in items %}
 			{% if i.get_kategorie_display == category %}
 			<div class="item item--visible {% if not i.owned %}item--unowned{% endif %}" data-name="{{ i.name }}" onclick="openDetails({% localize off %}{{ i.id }}{% endlocalize %})">
-				<img src="{{ i.getIconUrl }}" alt="{{ i.name }}">
+				<img src="{{ i.getIconUrl }}" alt="{{ i.name }}" loading="lazy">
 				{% if i.num %}<span class="num">{{ i.num|floatformat }}</span>{% endif %}
 			</div>
 			{% endif %}

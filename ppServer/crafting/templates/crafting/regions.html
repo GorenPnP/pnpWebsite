@@ -30,12 +30,12 @@
         <a href="{% url 'crafting:mining' region.pk %}" class="text-dark d-flex flex-wrap align-items-center justify-content-between w-100">
 
             <div>
-                <img src="{{ region.icon.url }}" class="rounded-circle border border-primary" style="height: 50px; aspect-ratio: 1">
+                <img src="{{ region.icon.url }}" class="rounded-circle border border-primary" style="height: 50px; aspect-ratio: 1" loading="lazy">
                 <span class="mx-2 fw-bold">{{ region.name }}</span>
             </div>
             <span>
             {% for item in drops|dict_key:region.pk %}
-                <img class="drop" src="{{ item.icon.url }}" alt="{{ item.name }}" style="height: 27px; aspect-ratio: 1;">
+                <img class="drop" src="{{ item.icon.url }}" alt="{{ item.name }}" style="height: 27px; aspect-ratio: 1;" loading="lazy">
             {% endfor %}
             </span>
         </a>
@@ -44,7 +44,7 @@
             {% csrf_token %}
             <input type="number" value="{{ region.pk }}" name="region_id" hidden>
             <div>
-                <img src="{{ region.icon.url }}" class="rounded-circle border border-primary" style="height: 50px; aspect-ratio: 1">
+                <img src="{{ region.icon.url }}" class="rounded-circle border border-primary" style="height: 50px; aspect-ratio: 1" loading="lazy">
                 <span class="mx-2 fw-bold">{{ region.name }}</span>
             </div>
             
@@ -52,14 +52,14 @@
             <span>
                 <span class="text-danger d-block">Fehlende Items, Zugang benötigt:</span>
                 {% for item in region.permanently_needs.all %}
-                    <img class="drop" src="{{ item.icon.url }}" alt="{{ item.name }}" style="height: 27px; aspect-ratio: 1;" title="{{ item.name }}">
+                    <img class="drop" src="{{ item.icon.url }}" alt="{{ item.name }}" style="height: 27px; aspect-ratio: 1;" title="{{ item.name }}" loading="lazy">
                 {% endfor %}
             </span>
             {% endif %}
 
             <span>
                 {% for item in drops|dict_key:region.pk %}
-                <img class="drop" src="{{ item.icon.url }}" alt="{{ item.name }}" style="height: 27px; aspect-ratio: 1;" title="{{ item.name }}">
+                <img class="drop" src="{{ item.icon.url }}" alt="{{ item.name }}" style="height: 27px; aspect-ratio: 1;" title="{{ item.name }}" loading="lazy">
                 {% endfor %}
             </span>
         </form>
@@ -85,12 +85,12 @@
         <a href="{% url 'combat:fight' region.id %}" class="text-dark d-flex flex-wrap align-items-center justify-content-between w-100">
 
             <div>
-                <img src="{% static 'res/img/goren_logo.svg' %}" class="rounded-circle border border-primary" style="height: 50px; aspect-ratio: 1">
+                <img src="{% static 'res/img/goren_logo.svg' %}" class="rounded-circle border border-primary" style="height: 50px; aspect-ratio: 1" loading="lazy">
                 <span class="mx-2 fw-bold">{{ region.name }}</span>
             </div>
             <span>
                 {% for item in region.enemies.all %}
-                <img class="drop" src="{{ item.sprite.url }}" alt="{{ item.name }}" style="height: 27px; aspect-ratio: 1;" title="{{ item.name }}">
+                <img class="drop" src="{{ item.sprite.url }}" alt="{{ item.name }}" style="height: 27px; aspect-ratio: 1;" title="{{ item.name }}" loading="lazy">
                 {% endfor %}
             </span>
         </a>

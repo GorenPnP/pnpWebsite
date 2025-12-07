@@ -22,7 +22,7 @@ function construct_recipes(recipes) {
 		recipe.ingredients.forEach(i =>
 			html_recipe +=
 				`<div class="ingredient">
-						<img src="${i.icon}" alt="${i.name}">
+						<img src="${i.icon}" alt="${i.name}" loading="lazy">
 
 						<div class="text">
 							<span class="inum">
@@ -45,7 +45,7 @@ function construct_recipes(recipes) {
 				html_recipe += ` available`;
 
 			html_recipe += `">
-				<img src = "${recipe.table.icon}" alt = "${recipe.table.name}" >
+				<img src = "${recipe.table.icon}" alt = "${recipe.table.name}" loading="lazy">
 			</div>
 			<span class="name name--table">${recipe.table.name}</span>`;
 		}
@@ -60,7 +60,7 @@ function construct_recipes(recipes) {
 		recipe.products.forEach(p =>
 			html_recipe +=
 			`<div class="product pid-${ p.id } id-${recipe.id}">
-							<img src="${p.icon}" alt="${p.name}">
+							<img src="${p.icon}" alt="${p.name}" loading="lazy">
 
 							<div class="text">
 								<span class="pnum" data-default=${p.num}>${displayFloat(p.num)}</span>
@@ -80,7 +80,7 @@ function construct_recipes(recipes) {
 				</div>
 
 				<a class="info" href="/crafting/details/${recipe.id}/">
-					<img src="/static/res/img/info.svg" alt="Info">
+					<img src="/static/res/img/info.svg" alt="Info" loading="lazy">
 				</a>
 				<button class="btn btn-outline-warning fav-btn" onclick="toggle_Fav(${recipe.id})">${recipe.is_fav ? '⭑' : '⭒'}</button>
 			</div>`;
@@ -167,7 +167,7 @@ function change_to_table(id) {
 				// has part?
 				if (data.owns_part) {
 					document.querySelector(".recipes").innerHTML += `<button class="btn btn-danger ingredient" onclick="repair_table(${table_id})">
-						<img src="${data.part.icon_url}" alt="${data.part.name}">
+						<img src="${data.part.icon_url}" alt="${data.part.name}" loading="lazy">
 						<span class="text">Bauteil ${data.part.name} erneuern</span>
 					</button>`;
 				}
@@ -282,7 +282,7 @@ function update_tables() {
 					onclick="change_to_table('tid-${ table.id }')"
 					data-title="${ table.name }" data-id="${table.id}">
 	
-					<img src="${ table.icon }" alt="${ table.name }">` +
+					<img src="${ table.icon }" alt="${ table.name }" loading="lazy">` +
 					(table.part ?
 					`<div class="progressbar" role="progressbar" aria-label="Haltbarkeit" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
 						<div class="progressbar-inner" style="width: ${ table.percent_durability_left }%"></div>
@@ -331,7 +331,7 @@ function craft({ currentTarget }) {
 					<div class="toast-body text-dark">
 						<span>Werkstation-Reparatur mit <b>${data.used_parts}x</b> </span>
 						<div class="d-flex flex-column">
-							<img src="${data.part.icon_url}" alt="${data.part.name}">
+							<img src="${data.part.icon_url}" alt="${data.part.name}" loading="lazy">
 							<span class="name">${data.part.name}</span>
 						</div>
 					</div>
@@ -426,7 +426,7 @@ function update_running_recipes() {
 		post({ fetch_running_recipes: true }, ({ running_recipes, changed_table_order }) => {
 	
 			const html = running_recipes.map(r => {
-				const products = r.products.map(product => `<div>${product.num * r.num}x <img src="${product.icon_url}" alt="${product.name}"></div>`).join("");
+				const products = r.products.map(product => `<div>${product.num * r.num}x <img src="${product.icon_url}" alt="${product.name}" loading="lazy"></div>`).join("");
 	
 				const curr = Date.now();
 				const begin = (new Date(r.begins_at)).getTime();

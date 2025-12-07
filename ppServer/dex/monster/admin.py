@@ -69,7 +69,7 @@ class MonsterAdmin(admin.ModelAdmin):
         return self.model.objects.with_rang()
 
     def image_(self, obj):
-        return format_html(f"<img src='{obj.image.url}' style='max-width: 32px; max-height:32px;'>") if obj.image else "-"
+        return format_html(f"<img src='{obj.image.url}' style='max-width: 32px; max-height:32px;' loading='lazy'>") if obj.image else "-"
     def name_(self, obj):
         return f"#{obj.number} {obj.name}"
     def types_(self, obj):

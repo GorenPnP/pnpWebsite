@@ -120,7 +120,7 @@ class GfsAdmin(admin.ModelAdmin):
         )
 
     def icon_(self, obj):
-        return format_html(f'<img src="{obj.icon.url}" style="max-width: 32px; max-height:32px;" />' if obj.icon else self.get_empty_value_display())
+        return format_html(f'<img src="{obj.icon.url}" style="max-width: 32px; max-height:32px;" loading="lazy" />' if obj.icon else self.get_empty_value_display())
 
     @admin.display(ordering="eigenschaftnames")
     def eigenschaft_(self, obj):

@@ -2,7 +2,7 @@
     {% include "django/forms/widgets/input.html" %}
 
     <div class="monster-label-container">
-        <img class="monster-image" src="{{ widget.value.instance.image.url }}">
+        <img class="monster-image" src="{{ widget.value.instance.image.url }}" loading="lazy">
         <div class="name-row">
             <span>{{ widget.value.instance.name }}</span>
             <small><i>({{ widget.value.instance.num_attacken|default:"0" }} Attacken)</i></small>

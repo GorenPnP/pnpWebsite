@@ -82,7 +82,7 @@ class KlasseListView(VerifiedAccountMixin, DynamicTableView):
             attrs = GenericTable.Meta.attrs
 
         def render_icon(self, value, record):
-            return format_html(f'<img src="{value.url}" style="max-width: 64px; max-height 64px;" />')
+            return format_html(f'<img src="{value.url}" style="max-width: 64px; max-height 64px;" loading="lazy" />')
         
         def render_titel(self, value, record):
             url = reverse("wiki:klasse", args=[record.id])
@@ -179,7 +179,7 @@ class GfsView(VerifiedAccountMixin, DynamicTableView):
         N = AttrColumn(field="N")
 
         def render_icon(self, value, record):
-            return format_html(f'<img src="{value.url}" style="max-width: 64px; max-height 64px;" />')
+            return format_html(f'<img src="{value.url}" style="max-width: 64px; max-height 64px;" loading="lazy" />')
         
         def render_titel(self, value, record):
             url = reverse("wiki:stufenplan", args=[record.id])

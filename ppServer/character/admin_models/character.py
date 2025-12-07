@@ -342,7 +342,7 @@ class CharakterAdmin(admin.ModelAdmin):
 
 
     def image_(self, obj):
-        return format_html(f"<img src='{obj.image.url}' style='max-width: 32px; max-height:32px;'>") if obj.image else "-"
+        return format_html(f"<img src='{obj.image.url}' style='max-width: 32px; max-height:32px;' loading='lazy'>") if obj.image else "-"
     
     def get_queryset(self, request) -> QuerySet[Any]:
         return super().get_queryset(request).prefetch_related('eigentümer', "gfs", "tags")

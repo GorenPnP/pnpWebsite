@@ -36,7 +36,7 @@ table thead tr th {
     <div class="row mb-5">
 
         <!-- logo image -->
-        <img src="{% if object.icon %}{{ object.icon.url }}{% else %}{% static 'res/img/goren_logo.svg' %}{% endif %}" class="col-12 col-sm image-container">
+        <img src="{% if object.icon %}{{ object.icon.url }}{% else %}{% static 'res/img/goren_logo.svg' %}{% endif %}" class="col-12 col-sm image-container" loading="lazy">
 
         <!-- description -->
         <div class="col-12 col-sm">

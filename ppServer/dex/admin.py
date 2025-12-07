@@ -28,7 +28,7 @@ class PflanzenAdmin(admin.ModelAdmin):
 
     def images_(self, obj):
         pf_imgs = obj.parapflanzenimage_set.filter(is_vorschau=True)
-        return format_html("".join([f"<img src='{pf_img.image.url}' style='max-width: 32px; max-height:32px;'>" for pf_img in pf_imgs]) or self.get_empty_value_display())
+        return format_html("".join([f"<img src='{pf_img.image.url}' style='max-width: 32px; max-height:32px;' loading='lazy'>" for pf_img in pf_imgs]) or self.get_empty_value_display())
     
     def get_queryset(self, request: HttpRequest) -> QuerySet[Any]:
         return super().get_queryset(request).prefetch_related("parapflanzenimage_set")
@@ -50,7 +50,7 @@ class TierAdmin(admin.ModelAdmin):
     inlines = [TierFertigkeitInLineAdmin]
 
     def image_(self, obj):
-        return format_html(f"<img src='{obj.image.url}' style='max-width: 32px; max-height:32px;'>") if obj.image else self.get_empty_value_display()
+        return format_html(f"<img src='{obj.image.url}' style='max-width: 32px; max-height:32px;' loading='lazy'>") if obj.image else self.get_empty_value_display()
 
 
 class GeschöpfFertigkeitInLineAdmin(admin.TabularInline):
@@ -69,7 +69,7 @@ class GeschöpfAdmin(admin.ModelAdmin):
     inlines = [GeschöpfFertigkeitInLineAdmin]
 
     def image_(self, obj):
-        return format_html(f"<img src='{obj.image.url}' style='max-width: 32px; max-height:32px;'>") if obj.image else self.get_empty_value_display()
+        return format_html(f"<img src='{obj.image.url}' style='max-width: 32px; max-height:32px;' loading='lazy'>") if obj.image else self.get_empty_value_display()
     def klassierung(self, obj):
         return f"{obj.gefahrenklasse}{obj.verwahrungsklasse}"
     def schadensWI_(self, obj):

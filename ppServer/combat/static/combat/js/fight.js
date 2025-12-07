@@ -17,7 +17,7 @@ function exit() {
     // update loot display
     document.querySelector("#loot-display").innerHTML = Object.values(Loot.acquired_loot)
         .sort((a, b) => a.item.name <= b.item.name ? -1 : 1)
-        .map(loot => `<div class="item"><img src="${loot.item.icon_url}">${loot.num}x ${loot.item.name}</div>`)
+        .map(loot => `<div class="item"><img src="${loot.item.icon_url}" loading="lazy">${loot.num}x ${loot.item.name}</div>`)
         .join("");
 
     // loot in form

@@ -44,7 +44,7 @@ class PotionAdmin(admin.ModelAdmin):
         return super().get_queryset(request).prefetch_related("item")
 
     def _sprite(self, obj):
-        return format_html(f'<img src="{obj.item.icon.url}" style="max-width: 32px; max-height:32px;" />') if obj.item else self.get_empty_value_display()
+        return format_html(f'<img src="{obj.item.icon.url}" style="max-width: 32px; max-height:32px;" loading="lazy" />') if obj.item else self.get_empty_value_display()
 
     def _name(self, obj):
         return obj.item.name
@@ -57,7 +57,7 @@ class EnemyAdmin(admin.ModelAdmin):
     inlines = [EnemyLootInLineAdmin, RegionEnemyInLineAdmin]
 
     def _sprite(self, obj):
-        return format_html(f'<img src="{obj.sprite.url}" style="max-width: 32px; max-height:32px;" />') if obj.sprite else self.get_empty_value_display()
+        return format_html(f'<img src="{obj.sprite.url}" style="max-width: 32px; max-height:32px;" loading="lazy" />') if obj.sprite else self.get_empty_value_display()
 
     def _weapons(self, obj):
         return ", ".join(weapon.__str__() for weapon in obj.weapons.all()) or self.get_empty_value_display()
@@ -73,7 +73,7 @@ class EnemyAdmin(admin.ModelAdmin):
 #         )
 
 #     def _sprite(self, obj):
-#         return format_html(f'<img src="{obj.item.icon.url}" style="max-width: 32px; max-height:32px;" />') if obj.item else self.get_empty_value_display()
+#         return format_html(f'<img src="{obj.item.icon.url}" style="max-width: 32px; max-height:32px;" loading="lazy" />') if obj.item else self.get_empty_value_display()
 
 #     def _name(self, obj):
 #         return obj.item.name
@@ -103,7 +103,7 @@ class WeaponAdmin(admin.ModelAdmin):
         )
 
     def _icon(self, obj):
-        return format_html(f'<img src="{obj.item.icon.url}" style="max-width: 32px; max-height:32px;" />') if obj.item else self.get_empty_value_display()
+        return format_html(f'<img src="{obj.item.icon.url}" style="max-width: 32px; max-height:32px;" loading="lazy" />') if obj.item else self.get_empty_value_display()
 
     @admin.display(ordering="max_range")
     def _range(self, obj):

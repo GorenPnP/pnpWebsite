@@ -24,7 +24,7 @@
 
 <section class="question">
     <div class="imgs">
-        {% for e in question.images.all %}<a href="{{ e.img.url }}" class="img"><img src="{{ e.img.url }}"></a>{% endfor %}
+        {% for e in question.images.all %}<a href="{{ e.img.url }}" class="img"><img src="{{ e.img.url }}" loading="lazy"></a>{% endfor %}
     </div>
 
     <span class="text">{{ question.text }}</span>
@@ -45,7 +45,7 @@
                 {% for a in answers %}
                 <div class="choice">
                     <div class="checkbox" id="{% localize off %}{{ a.id }}{% endlocalize %}" onclick="toggleCheckbox({% localize off %}{{ a.id }}{% endlocalize %})"></div>
-                    {% if a.img %}<div class="img" onclick="toggleCheckbox({% localize off %}{{ a.id }}{% endlocalize %})"><img src="{{ a.img.img.url }}"></div>{% endif %}
+                    {% if a.img %}<div class="img" onclick="toggleCheckbox({% localize off %}{{ a.id }}{% endlocalize %})"><img src="{{ a.img.img.url }}" loading="lazy"></div>{% endif %}
                     {% if a.text %}<div class="text" onclick="toggleCheckbox({% localize off %}{{ a.id }}{% endlocalize %})">{{ a.text }}</div>{% endif %}
                 </div>
                 {% endfor %}

@@ -102,7 +102,7 @@
                     <li class="card text-bg-dark my-4">
                         <div class="card-body">
                             <a class="card-title h5" href="{% url 'shop:zauber_list' %}{{ rel.querystring }}" target="_blank">
-                                <img src="{% if rel.item.icon %}{{ rel.item.icon.url }}{% else %}{% static 'res/img/goren_logo.svg' %}{% endif %}" class="zauber-icon">
+                                <img src="{% if rel.item.icon %}{{ rel.item.icon.url }}{% else %}{% static 'res/img/goren_logo.svg' %}{% endif %}" class="zauber-icon" loading="lazy">
                                 {{ rel.item.name }}
                             </a>
                             <div class="card-subtitle mt-2 mb-3 text-muted">
@@ -159,7 +159,7 @@
                             <div class="card text-bg-dark{% if not char.in_erstellung and z.geld > char.geld %} text-muted{% endif %}">
                                 <div class="card-body">
                                     <a class="card-title h5" href="{% url 'shop:zauber_list' %}{{ z.zauber.querystring }}" target="_blank">
-                                        <img src="{% if z.zauber.icon %}{{ z.zauber.icon.url }}{% else %}{% static 'res/img/goren_logo.svg' %}{% endif %}" class="zauber-icon">
+                                        <img src="{% if z.zauber.icon %}{{ z.zauber.icon.url }}{% else %}{% static 'res/img/goren_logo.svg' %}{% endif %}" class="zauber-icon" loading="lazy">
                                         {{ z.zauber.name }}
                                     </a>
                                     {% if not char.in_erstellung %}<div class="card-subtitle mt-2 mb-3 text-muted"><span class="geld">{{ z.geld }}</span> Drachmen</div>{% endif %}

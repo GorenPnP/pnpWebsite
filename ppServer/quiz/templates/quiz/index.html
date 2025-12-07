@@ -20,7 +20,7 @@
                 <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#accordion-{{ forloop.counter0 }}" aria-expanded="false" aria-controls="accordion-{{ forloop.counter0 }}">
                     
                     <!-- HEAD -->
-                    {% if module.icon %}<img src="{{ module.icon }}" class="icon" height=32 width=32 aria-hidden="true"/>{% else %}<span></span>{% endif %}
+                    {% if module.icon %}<img src="{{ module.icon }}" class="icon" height=32 width=32 aria-hidden="true" loading="lazy"/>{% else %}<span></span>{% endif %}
                     
                     <span class="titel">{{ module.titel }}</span>
 

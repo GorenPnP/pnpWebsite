@@ -344,7 +344,7 @@ class TinkerAdmin(BaseAdmin):
         )
 
     def icon_(self, obj):
-        return format_html('<img src="{0}" style="max-width: 32px; max-height:32px;" />'.format(obj.icon.url)) if obj.icon else "-"
+        return format_html('<img src="{0}" style="max-width: 32px; max-height:32px;" loading="lazy" />'.format(obj.icon.url)) if obj.icon else "-"
     icon_.allow_tags = True
 
     @admin.display(ordering="profitable_flip", description="Flip (Verkaufspreis - Kaufpreis)")

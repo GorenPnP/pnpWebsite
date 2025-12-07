@@ -33,7 +33,7 @@
                 <!-- rules -->
                 {% if page == "Regeln" %}
                 <div class="carousel-item carousel-item-light h-100{% if not forloop.counter0 %} active{% endif %}">
-                    <img src="{% static 'res/img/hero-rules.jpg' %}" class="d-block w-100" style="object-position: bottom right;">
+                    <img src="{% static 'res/img/hero-rules.jpg' %}" class="d-block w-100" style="object-position: bottom right;" loading="lazy">
                     <div class="carousel-caption h-100 d-flex flex-column justify-content-center" style="padding-inline: 10%">
                         <h2>Regeln</h2>
                         <p>... für Einsteiger und Profis</p>
@@ -45,7 +45,7 @@
                 <!-- fun fact -->
                 {% if page == "Fun Fact" %}
                 <div class="carousel-item carousel-item-light h-100{% if not forloop.counter0 %} active{% endif %}">
-                    <img src="{% static 'res/img/hero-nature.jpg' %}" class="d-block w-100">
+                    <img src="{% static 'res/img/hero-nature.jpg' %}" class="d-block w-100" loading="lazy">
                     <div class="carousel-caption h-100 d-flex flex-column justify-content-center" style="padding-inline: 10%">
                         <h2>Fun Fact:</h2>
                         <p>{{ todays_fact.text }}</p>
@@ -56,7 +56,7 @@
                 <!-- Umfrage -->
                 {% if page == "Umfrage" %}
                 <div class="carousel-item w-100 h-100{% if not forloop.counter0 %} active{% endif %}">
-                    <img src="{% static 'res/img/img-pencil-panorama.png' %}" style="object-position: left center;">
+                    <img src="{% static 'res/img/img-pencil-panorama.png' %}" style="object-position: left center;" loading="lazy">
                     <div class="carousel-caption h-100 d-flex flex-column justify-content-center align-items-center text-light">
                         <h2>Umfrage</h2>
                         <p>Nach deiner Meinung ist gefragt! Mach jetzt mit! Es dauert auch nur wenige Minuten.</p>
@@ -69,7 +69,7 @@
                 {% if page == "Quiz" %}
                 <div class="carousel-item w-100 h-100 bg-quiz{% if not forloop.counter0 %} active{% endif %}">
                     <div class="hero--quiz h-100">
-                        <img src="{% static 'res/img/hero-bulb-hand-cut.png' %}">
+                        <img src="{% static 'res/img/hero-bulb-hand-cut.png' %}" loading="lazy">
                         <div class="hero--quiz__text d-flex flex-column justify-content-center align-items-center text-light ">
                             <h2>Goren PnP Quiz</h2>
                             <p>Du hast noch Fragen offen (wieder anzugucken)</p>
@@ -82,7 +82,7 @@
                 <!-- Schmiedesystem -->
                 {% if page == "Schmiedesystem" %}
                 <div class="carousel-item w-100 h-100{% if not forloop.counter0 %} active{% endif %}">
-                    <img src="{% static 'res/img/hero-crafting.jpg' %}" style="filter: grayscale(80%) brightness(55%)">
+                    <img src="{% static 'res/img/hero-crafting.jpg' %}" style="filter: grayscale(80%) brightness(55%)"  loading="lazy">
                     <div class="carousel-caption h-100 d-flex flex-column justify-content-center align-items-center text-light">
                         <h2>Crafting</h2>
                         <p>NEU! Das generalüberholte Schmiedesystem!1</p>
@@ -93,7 +93,7 @@
 
                 {% if page == "Shop review" %}
                 <div class="carousel-item w-100 h-100{% if not forloop.counter0 %} active{% endif %}">
-                    <img src="{% static 'res/img/hero-coal.png' %}">
+                    <img src="{% static 'res/img/hero-coal.png' %}" loading="lazy">
                     <div class="carousel-caption h-100 d-flex flex-column justify-content-center align-items-center text-light">
                         <h2>Neue Items sind da!</h2>
                         <p>Jemand hat dem Shop Neues hinzugefügt. Bitte mal angucken!</p>

@@ -18,7 +18,7 @@
 
 {% if config.type == "image" %}
 <div class="{{ direction }} box--image">
-    <img src="{{ config.src|escape }}">
+    <img src="{{ config.src|escape }}" loading="lazy" >
 </div>
 <div class="link print-only"><a href="https://{{ request.META.HTTP_HOST }}{{ config.src }}">Bild hier</a></div>
 {% endif %}

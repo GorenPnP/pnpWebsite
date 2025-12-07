@@ -14,7 +14,7 @@
     <span class="monster__img shadow h-100">
         {% if spieler in monster.visible.all and monster.image %}
         <button class="open-modal-btn border-0 w-100 h-100" type="button" data-bs-toggle="modal" data-bs-target="#monster-modal-{{ id|default:monster.id }}" aria-label="Monsterbild im Fullscreen öffnen">
-            <img class="object-fit-cover w-100 h-100" src="{{ monster.image.url }}" alt="{{ monster.description }}">
+            <img class="object-fit-cover w-100 h-100" src="{{ monster.image.url }}" alt="{{ monster.description }}" loading="lazy">
         </button>
         {% endif %}
     </span>
@@ -33,7 +33,7 @@
     <div class="modal-dialog modal-fullscreen-sm-down">
         <div class="modal-content">
             <div class="modal-body">
-                <img class="img-fluid object-fit-cover" src="{{ monster.image.url }}" alt="{{ monster.description }}">
+                <img class="img-fluid object-fit-cover" src="{{ monster.image.url }}" alt="{{ monster.description }}" loading="lazy">
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Schließen</button>

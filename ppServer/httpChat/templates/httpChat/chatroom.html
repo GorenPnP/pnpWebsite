@@ -44,7 +44,7 @@
 
 						<div class="avatar-container">
 							{% for url in chatroom|get_avatar_urls:account %}
-								<img src="{{ url }}" alt="Logo" class="rounded-circle border border-primary d-inline-block align-text-top" style="height: 47px; aspect-ratio: 1">
+								<img src="{{ url }}" alt="Logo" class="rounded-circle border border-primary d-inline-block align-text-top" style="height: 47px; aspect-ratio: 1" loading="lazy">
 							{% endfor %}
 						</div>
 					</div>
