@@ -17,7 +17,7 @@ class Command(BaseCommand):
 
             transaction_balance = F("received") - F("spent"),
             difference = F("money") - F("transaction_balance"),
-        ).exclude(char=None).exclude(difference=0)]
+        ).exclude(char=None).exclude(difference=0).order_by("char__eigentümer", "char__name")]
 
         # log results
         if len(cards):
