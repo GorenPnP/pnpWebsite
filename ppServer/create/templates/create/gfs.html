@@ -94,7 +94,7 @@
     <div class="d-flex align-items-start gap-3 flex-wrap">
         <button type="submit" class="btn btn-lg btn-primary" id="submit-char-btn">Weiter</button>
 
-        {% if request.spieler.is_spielleitung or "trägt seine chars ein" in request.spieler.groups %}
+        {% if perms.character.copies_chars %}
         <a class="btn btn-outline-primary" href="{% url 'character:create' %}">bestehenden Charakter übertragen</b></a></li>
         {% endif %}
     </div>

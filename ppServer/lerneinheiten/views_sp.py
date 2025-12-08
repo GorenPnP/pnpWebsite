@@ -11,6 +11,7 @@ from django.views.decorators.http import require_POST
 from django.views.generic import DetailView
 from django.views.generic.list import ListView
 
+from character.models import CustomPermission
 from ppServer.decorators import spielleitung_only, verified_account
 from ppServer.mixins import SpielleitungOnlyMixin, VerifiedAccountMixin
 
@@ -131,7 +132,7 @@ class AccessPageView(VerifiedAccountMixin, SpielleitungOnlyMixin, ListView):
         spieler_qs = Spieler.objects.prefetch_related("spielereinheit_set__einheit")\
             .filter(
                 Exists(SpielerEinheit.objects.filter(spieler=OuterRef("pk"))),
-                user__groups__name="LARP-ler",
+                user__in=self.larp_users,
             )
 
         return super().get_context_data(
@@ -140,14 +141,13 @@ class AccessPageView(VerifiedAccountMixin, SpielleitungOnlyMixin, ListView):
             app_index = "LARP",
             app_index_url = reverse("lerneinheiten:index"),
             einheiten = Einheit.objects.all(),
-            spieler_einheiten = {spieler.pk: list(spieler.spielereinheit_set.values_list("einheit__pk", flat=True)) for spieler in spieler_qs}
+            spieler_einheiten = {spieler.pk: [*spieler.spielereinheit_set.values_list("einheit__pk", flat=True)] for spieler in spieler_qs},
         )
 
     def get_queryset(self) -> QuerySet[Any]:
+        self.larp_users = [user for user in User.objects.all() if user.has_perm(CustomPermission.LARP.value)]
         return super().get_queryset()\
-            .filter(
-                Exists(User.objects.filter(username=OuterRef("name"), groups__name="LARP-ler")),
-            )\
+            .filter(user__in=self.larp_users)\
             .prefetch_related("spielereinheit_set__einheit")
 
     def post(self, request, **kwargs):

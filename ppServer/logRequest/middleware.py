@@ -1,6 +1,7 @@
 from django.core.exceptions import DisallowedHost
 from django.http import HttpResponseBadRequest
 
+from character.models import CustomPermission
 from ppServer.settings import DEBUG
 
 from .models import Request
@@ -23,7 +24,7 @@ class RequestMiddleware:
             request.scope["path"].startswith(self.path_blacklist) or\
             self.favicon_filename in request.scope["path"] or\
             ip in self.ip_blacklist or\
-            request.spieler.is_spielleitung:
+            request.user.has_perm(CustomPermission.SPIELLEITUNG.value):
 
             return self.get_response(request)
 

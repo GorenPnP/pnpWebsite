@@ -2,17 +2,15 @@ import locale, json, re
 from datetime import date, datetime, timedelta, timezone
 
 from django.contrib import messages
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, redirect
 from django.views.decorators.http import require_GET, require_POST
 from django.views.generic.base import TemplateView
 
 from planner.views import days, get_1st_day_of_next_month, get_month
-from ppServer.decorators import verified_account
-from ppServer.mixins import VerifiedAccountMixin
+from ppServer.decorators import verified_account, TODOperson_only
+from ppServer.mixins import VerifiedAccountMixin, TODOPersonMixin
 
 from .forms import CreateCategoryForm, CreateIntervalForm
-from .decorators import TODOperson_only
-from .mixins import *
 from .models import *
 
 class CalendarOverview(VerifiedAccountMixin, TODOPersonMixin, TemplateView):
@@ -51,7 +49,7 @@ class CalendarOverview(VerifiedAccountMixin, TODOPersonMixin, TemplateView):
 
 @require_POST
 @verified_account
-@TODOperson_only("base:index")
+@TODOperson_only()
 def add_interval_to_category(request, pk):
     locale.setlocale(locale.LC_TIME, "de_DE.utf8")
     to_datetime = lambda iso: datetime(*[int(n) for n in re.split(r'[-T:]', iso)], tzinfo=timezone.utc)
@@ -72,7 +70,7 @@ def add_interval_to_category(request, pk):
 
 @require_POST
 @verified_account
-@TODOperson_only("base:index")
+@TODOperson_only()
 def add_day_interval(request):
     locale.setlocale(locale.LC_TIME, "de_DE.utf8")
 
@@ -91,7 +89,7 @@ def add_day_interval(request):
 
 @require_POST
 @verified_account
-@TODOperson_only("base:index")
+@TODOperson_only()
 def add_category(request):
     form = CreateCategoryForm(request.POST)
     form.full_clean()
@@ -104,7 +102,7 @@ def add_category(request):
 
 @require_GET
 @verified_account
-@TODOperson_only("base:index")
+@TODOperson_only()
 def delete_category(request, pk):
     Category.objects.filter(pk=pk).delete()
     messages.success(request, "Kategorie wurde gelöscht")
@@ -114,7 +112,7 @@ def delete_category(request, pk):
 
 @require_GET
 @verified_account
-@TODOperson_only("base:index")
+@TODOperson_only()
 def delete_interval(request, pk, day):
     to_datetime = lambda iso: datetime(*[int(n) for n in re.split(r'[-T:]', iso)], tzinfo=timezone.utc)
 

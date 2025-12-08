@@ -4,7 +4,6 @@
 {% block content %}
 <div id="content-main">
 
-  {% if request.spieler.is_spielleitung %}
   <div class="app-shortcuts module">
       <table>
         <caption>
@@ -42,7 +41,6 @@
           </tr>
       </table>
     </div>
-    {% endif %}
 
     {% include "admin/app_list.html" with app_list=app_list show_changelinks=True %}
 </div>

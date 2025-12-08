@@ -6,7 +6,7 @@ from django.urls import reverse
 
 from ppServer.mixins import VerifiedAccountMixin
 
-from character.models import Charakter
+from character.models import Charakter, CustomPermission
 
 
 class LevelUpMixin(VerifiedAccountMixin, UserPassesTestMixin):
@@ -16,10 +16,10 @@ class LevelUpMixin(VerifiedAccountMixin, UserPassesTestMixin):
     def test_func(self) -> bool:
         char = self.get_character()
 
-        if self.request.spieler.is_spielleitung: return True
+        if self.request.user.has_perm(CustomPermission.SPIELLEITUNG.value): return True
         if not hasattr(char, "eigentümer"): return False
 
-        spieler = self.request.spieler.instance
+        spieler = self.request.spieler
         return spieler and char.eigentümer == spieler
     
 
@@ -50,7 +50,7 @@ class LevelUpMixin(VerifiedAccountMixin, UserPassesTestMixin):
     
     def get(self, request, *args, **kwargs):
         char = self.get_character()
-        is_eigentümer = self.request.spieler.instance == char.eigentümer
+        is_eigentümer = self.request.spieler == char.eigentümer
         if not is_eigentümer:
             messages.warning(self.request, "Dir gehört der Charakter nicht, als Spielleitung kannst du ihn aber bearbeiten")
 

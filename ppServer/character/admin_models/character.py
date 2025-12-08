@@ -174,7 +174,7 @@ class RelEffectInLine(RelInlineAdmin):
         return qs.filter(target_char__id=related_char_id) if related_char_id else qs
 
     def get_readonly_fields(self, request: HttpRequest, obj):
-        if request.spieler.is_spielleitung:
+        if request.user.has_perm(CustomPermission.SPIELLEITUNG.value):
             return filter(lambda item: item not in ['wertaenderung', 'is_active'], self.fields)
         else:
             return self.fields
@@ -336,10 +336,6 @@ class CharakterAdmin(admin.ModelAdmin):
     list_display_links = ["name"]
 
     save_on_top = True
-
-    def has_module_permission(self, request):
-        return request.spieler.is_spielleitung
-
 
     def image_(self, obj):
         return format_html(f"<img src='{obj.image.url}' style='max-width: 32px; max-height:32px;' loading='lazy'>") if obj.image else "-"

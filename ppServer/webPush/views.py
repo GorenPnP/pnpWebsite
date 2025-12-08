@@ -28,13 +28,13 @@ class SettingView(VerifiedAccountMixin, TemplateView):
 	def get(self, request):
 		context = {
 			"topic": "Einstellungen",
-			"profile_forms": [UserSettingsForm(instance=self.request.user), SpielerSettingsForm(instance=self.request.spieler.instance)],
+			"profile_forms": [UserSettingsForm(instance=self.request.user), SpielerSettingsForm(instance=self.request.spieler)],
 			"form": PushSettingsForm(instance=self.get_object()),
 		}
 		return render(request, self.template_name, context)
 	
 	def post(self, request):
-		spieler_form = SpielerSettingsForm(request.POST, instance=request.spieler.instance)
+		spieler_form = SpielerSettingsForm(request.POST, instance=request.spieler)
 		user_form = UserSettingsForm(request.POST, instance=request.user)
 
 		spieler_form.full_clean()

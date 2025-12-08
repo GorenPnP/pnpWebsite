@@ -7,14 +7,9 @@ from character.models import Spieler
 
 class ChatRoomConsumer(AsyncWebsocketConsumer):
 
-    @database_sync_to_async
-    def _db_is_spielleitung(self, user):
-        return user.groups.filter(name__iexact="Spielleitung").exists()
-
     async def connect(self):
         self.user = self.scope["user"]
         self.spieler = self.user.spieler
-        self.is_spielleitung = await self._db_is_spielleitung(self.user)
 
         self.room_name = self.scope['url_route']['kwargs']['room_name']
         self.room_group_name = 'chat_{}'.format(self.room_name)

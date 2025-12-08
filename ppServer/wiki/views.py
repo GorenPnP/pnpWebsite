@@ -556,7 +556,7 @@ class GeburtstageView(VerifiedAccountMixin, TemplateView):
             "app_index_url": reverse("wiki:index"),
         }
 
-        if not request.spieler.instance.geburtstag:
+        if not request.spieler.geburtstag:
             messages.error(request, "Dein Geburtstag fehlt noch. Teile ihn uns mit, damit du die Liste aller Geburtstage sehen kannst!")
             return render(request, self.template_name, context)
         

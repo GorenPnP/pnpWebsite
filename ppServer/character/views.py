@@ -3,7 +3,6 @@ from typing import Any, Dict
 
 from django.apps import apps
 from django.contrib import messages
-from django.contrib.auth.mixins import UserPassesTestMixin
 from django.db import transaction
 from django.db.models import Value, F, CharField, OuterRef, Case, When
 from django.db.models.functions import Concat
@@ -25,7 +24,7 @@ from effect.models import RelEffect
 from log.create_log import render_number
 from log.models import Log
 from ppServer.decorators import verified_account
-from ppServer.mixins import VerifiedAccountMixin
+from ppServer.mixins import VerifiedAccountMixin, CopiesCharsMixin
 from ppServer.utils import ConcatSubquery
 
 from .forms import *
@@ -39,13 +38,13 @@ class CharacterListView(VerifiedAccountMixin, TemplateView):
     def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
 
         char_qs = Charakter.objects.prefetch_related("eigentümer", "tags").filter(in_erstellung=False).order_by('name')
-        if not self.request.spieler.is_spielleitung:
-            char_qs = char_qs.filter(eigentümer=self.request.spieler.instance)
+        if not self.request.user.has_perm(CustomPermission.SPIELLEITUNG.value):
+            char_qs = char_qs.filter(eigentümer=self.request.spieler)
 
         return {
             'charaktere': char_qs,
             "num_all_chars": char_qs.count(),
-            "tags": Tag.objects.filter(spieler=self.request.spieler.instance).annotate(num=Count("charakter")).order_by("name"),
+            "tags": Tag.objects.filter(spieler=self.request.spieler).annotate(num=Count("charakter")).order_by("name"),
             'topic': "Charaktere",
             "plus": "+ Charakter",
             "plus_url": reverse('create:gfs'),
@@ -55,13 +54,13 @@ class CharacterListView(VerifiedAccountMixin, TemplateView):
         tagname = self.request.GET["tag"] if "tag" in self.request.GET else None
         context = self.get_context_data(**kwargs)
 
-        if tagname and Tag.objects.filter(name=tagname, spieler=self.request.spieler.instance).exists():
+        if tagname and Tag.objects.filter(name=tagname, spieler=self.request.spieler).exists():
             context["charaktere"] = context["charaktere"].filter(tags__name=tagname)
 
         return self.render_to_response(context)
     
     def post(self, *args, **kwargs):
-        create_tag_form = CreateTagForm({"name": self.request.POST.get("name"), "spieler": self.request.spieler.instance})
+        create_tag_form = CreateTagForm({"name": self.request.POST.get("name"), "spieler": self.request.spieler})
         create_tag_form.full_clean()
         if create_tag_form.is_valid():
             create_tag_form.save()
@@ -128,7 +127,7 @@ class ShowView(VerifiedAccountMixin, DetailView):
     )
 
     def get(self, request, *args, **kwargs):
-        if not self.request.spieler.is_spielleitung and not Charakter.objects.filter(pk=kwargs["pk"], eigentümer=self.request.spieler.instance).exists():
+        if not self.request.user.has_perm(CustomPermission.SPIELLEITUNG.value) and not Charakter.objects.filter(pk=kwargs["pk"], eigentümer=self.request.spieler).exists():
             return redirect("character:index")
         
         return super().get(request, *args, **kwargs)
@@ -703,7 +702,7 @@ class HistoryView(VerifiedAccountMixin, tables.SingleTableMixin, TemplateView):
 def delete_char(request, pk):
     # assert user requesting delete a character
     qs = Charakter.objects.filter(pk=pk)
-    if not request.spieler.is_spielleitung: qs = qs.filter(char__eigentümer=request.spieler.instance)
+    if not request.user.has_perm(CustomPermission.SPIELLEITUNG.value): qs = qs.filter(char__eigentümer=request.spieler)
     char = qs.first()
     
     # cannot find char
@@ -721,7 +720,7 @@ def delete_char(request, pk):
 def edit_tag(request, pk):
 
     # assert user requesting to edit the chars of a tag
-    tag = Tag.objects.filter(pk=pk, spieler=request.spieler.instance).first()
+    tag = Tag.objects.filter(pk=pk, spieler=request.spieler).first()
     if not tag:
         messages.error(request, "Das ist nicht dein Tag.")
         return redirect("character:index")
@@ -729,7 +728,7 @@ def edit_tag(request, pk):
     # get all selected chars for the tag
     char_ids = [int(k.replace(f"tag-{tag.id}-char-", "")) for k, v in request.POST.items() if v == "on" and re.match(f"^tag\-{tag.id}\-char\-\d+$", k)]
     chars = Charakter.objects.filter(id__in=char_ids)
-    if not request.spieler.is_spielleitung: chars = chars.filter(eigentümer=request.spieler.instance)
+    if not request.user.has_perm(CustomPermission.SPIELLEITUNG.value): chars = chars.filter(eigentümer=request.spieler)
     
     # set chars to db
     tag.charakter_set.set(chars)
@@ -742,8 +741,8 @@ def edit_tag(request, pk):
 def delete_tag(request, pk):
 
     # assert user requesting to edit the chars of a tag
-    tag = Tag.objects.filter(pk=pk, spieler=request.spieler.instance).first()
-    num_tags_and_chars_deleted = Tag.objects.filter(pk=pk, spieler=request.spieler.instance).delete()[0]
+    tag = Tag.objects.filter(pk=pk, spieler=request.spieler).first()
+    num_tags_and_chars_deleted = Tag.objects.filter(pk=pk, spieler=request.spieler).delete()[0]
     if num_tags_and_chars_deleted == 0:
         messages.error(request, "Der Tag existiert nicht.")
         return redirect("character:index")
@@ -756,7 +755,7 @@ def delete_tag(request, pk):
 @require_POST
 def add_ramsch(request, pk):
     # assert user requesting to add an item
-    if not request.spieler.is_spielleitung and not Charakter.objects.filter(pk=pk, eigentümer=request.spieler.instance).exists():
+    if not request.user.has_perm(CustomPermission.SPIELLEITUNG.value) and not Charakter.objects.filter(pk=pk, eigentümer=request.spieler).exists():
         messages.error(request, "Es ist nicht dein Charakter, dem du Items geben willst.")
         return redirect(reverse("character:show", args=[pk]))
 
@@ -775,7 +774,7 @@ def add_ramsch(request, pk):
 
     # log creation
     Log.objects.create(
-        spieler=request.spieler.instance,
+        spieler=request.spieler,
         char=relramsch_item.char,
         art="q", # Inventar-Item angelegt
         kosten="",
@@ -792,7 +791,7 @@ def spend_money(request, pk):
     char = get_object_or_404(Charakter.objects.prefetch_related("eigentümer", "card__char__eigentümer", "card__spieler"), pk=pk)
 
     # assert user requesting to add an item
-    if not request.spieler.is_spielleitung and char.eigentümer != request.spieler.instance:
+    if not request.user.has_perm(CustomPermission.SPIELLEITUNG.value) and char.eigentümer != request.spieler:
         messages.error(request, "Es ist nicht dein Charakter, dessen Geld du ausgeben willst.")
         return redirect(reverse("character:show", args=[pk]))
 
@@ -826,7 +825,7 @@ def spend_money(request, pk):
 
     # log
     Log.objects.create(
-        spieler=request.spieler.instance,
+        spieler=request.spieler,
         char=char,
         art="e", # Geld ausgegeben
         kosten=f"{form.cleaned_data['amount']} Dr.",
@@ -834,7 +833,7 @@ def spend_money(request, pk):
     )
     if form.cleaned_data["receiver"] and form.cleaned_data["receiver"].char:
         Log.objects.create(
-            spieler=request.spieler.instance,
+            spieler=request.spieler,
             char=form.cleaned_data["receiver"].char,
             art="g", # Geld bekommen
             kosten=f"{form.cleaned_data['amount']} Dr.",
@@ -850,7 +849,7 @@ def spend_money(request, pk):
 def remove_sp(request, pk):
     # assert user requesting to add an item
     char = get_object_or_404(Charakter, pk=pk)
-    if not request.spieler.is_spielleitung and char.eigentümer != request.spieler.instance:
+    if not request.user.has_perm(CustomPermission.SPIELLEITUNG.value) and char.eigentümer != request.spieler:
         messages.error(request, "Es ist nicht dein Charakter, dessen SP du ausgeben willst.")
         return redirect(reverse("character:show", args=[pk]))
 
@@ -865,7 +864,7 @@ def remove_sp(request, pk):
 
     # log
     Log.objects.create(
-        spieler=request.spieler.instance,
+        spieler=request.spieler,
         char=char,
         art="k", # SP ausgegeben
         kosten=f"1 SP",
@@ -888,7 +887,7 @@ def _decrease_anz_relshop(request, relshop_model: str, rel_item_pk: int):
         return {"success": False, "redirect": redirect("character:index")}
 
     # assert user requesting to use an item
-    if not request.spieler.is_spielleitung and not Model.objects.filter(pk=rel_item_pk, char__eigentümer=request.spieler.instance).exists():
+    if not request.user.has_perm(CustomPermission.SPIELLEITUNG.value) and not Model.objects.filter(pk=rel_item_pk, char__eigentümer=request.spieler).exists():
         messages.error(request, "Es ist nicht dein Charakter, von dem du Items benutzen willst.")
         return redirect("character:index")
 
@@ -945,7 +944,7 @@ def remove_relshop(request, relshop_model, pk):
 
         # log transaction
         Log.objects.create(
-            spieler=request.spieler.instance,
+            spieler=request.spieler,
             char=res["char"],
             art="w", # Inventar-Item verbraucht
             kosten=f"Erlös: {price:n} Drachmen",
@@ -956,7 +955,7 @@ def remove_relshop(request, relshop_model, pk):
     if "use" in request.POST:
         # log usage
         Log.objects.create(
-            spieler=request.spieler.instance,
+            spieler=request.spieler,
             char=res["char"],
             art="j", # Inventar-Item verbraucht
             kosten="",
@@ -972,7 +971,7 @@ def remove_relshop(request, relshop_model, pk):
 def save_story_notes(request, pk):
     # assert user requesting to add an item
     char = get_object_or_404(Charakter, pk=pk)
-    if not request.spieler.is_spielleitung and char.eigentümer != request.spieler.instance:
+    if not request.user.has_perm(CustomPermission.SPIELLEITUNG.value) and char.eigentümer != request.spieler:
         return JsonResponse({"message": "Es ist nicht dein Charakter, dessen Notizen du speichern willst."}, status=418)
 
     form = StoryNotesForm(request.POST, instance=char.currentstory)
@@ -984,15 +983,8 @@ def save_story_notes(request, pk):
 
     return JsonResponse({}, status=200)
 
-class CreateCharacterView(UserPassesTestMixin, CreateView):
-    # permission
-    def test_func(self):
-        """ is_spielleitung or adds chars """
-        return self.request.spieler.is_spielleitung or "trägt seine chars ein" in self.request.spieler.groups
-
-    def handle_no_permission(self):
-        return redirect("character:index")
-    # /permission
+class CreateCharacterView(VerifiedAccountMixin, CopiesCharsMixin, CreateView):
+    redirect_to = "character:index"
 
     model = Charakter
     template_name = "character/create_character.html"
@@ -1075,7 +1067,7 @@ class CreateCharacterView(UserPassesTestMixin, CreateView):
             messages.success(self.request, "Charakter ist nun übernommen")
             # create char in db
             self.object = form.save(commit=False)
-            self.object.eigentümer = self.request.spieler.instance
+            self.object.eigentümer = self.request.spieler
             self.object.in_erstellung = False
             self.object.ep_stufe_in_progress = self.object.ep_stufe
             self.object.processing_notes = {

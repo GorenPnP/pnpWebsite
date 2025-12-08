@@ -14,7 +14,7 @@ from django.views.decorators.http import require_POST
 from django_tables2.columns import TemplateColumn
 
 from base.abstract_views import DynamicTableView, GenericTable
-from character.models import Charakter, RelAttribut
+from character.models import Charakter, CustomPermission, RelAttribut
 from ppServer.decorators import verified_account
 
 from ..decorators import is_erstellung_done
@@ -161,7 +161,7 @@ class GenericAttributView(LevelUpMixin, DynamicTableView):
 def deny_MA_MG(request, pk):
     char = get_object_or_404(Charakter, pk=pk)
 
-    if not request.spieler.is_spielleitung and (not hasattr(char, "eigentümer") or char.eigentümer != request.spieler.instance):
+    if not request.user.has_perm(CustomPermission.SPIELLEITUNG.value) and (not hasattr(char, "eigentümer") or char.eigentümer != request.spieler):
         messages.error(request, "Das darfst du nicht für den Charakter entscheiden")
         return redirect(reverse("levelUp:attribute", args=[char.pk]))
     

@@ -2,10 +2,10 @@ from typing import Any, Dict
 from django.contrib.auth.mixins import UserPassesTestMixin
 from django.http import HttpResponseNotFound
 from django.shortcuts import render, redirect, reverse, get_object_or_404
-from django.views.generic import DetailView
 from django.views.generic.base import TemplateView
 from django.views.generic.list import ListView
 
+from character.models import CustomPermission
 from ppServer.decorators import spielleitung_only, verified_account
 from ppServer.mixins import VerifiedAccountMixin
 
@@ -18,7 +18,7 @@ class CardListView(VerifiedAccountMixin, ListView):
     # paginate_by = 100  # if pagination is desired
 
     def get_queryset(self):
-        return self.model.objects.filter(spieler=self.request.spieler.instance, active=True)
+        return self.model.objects.filter(spieler=self.request.spieler, active=True)
     
     def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
         return super().get_context_data(**kwargs, topic="Meine Konten")
@@ -37,7 +37,7 @@ class CardDetailView(VerifiedAccountMixin, UserPassesTestMixin, TemplateView):
     def test_func(self):
         object = self.get_object()
         return (
-            (self.request.spieler.is_spielleitung or object.account_owner == self.request.spieler.instance) and
+            (self.request.user.has_perm(CustomPermission.SPIELLEITUNG.value) or object.account_owner == self.request.spieler) and
             object.active
         )
 
@@ -113,8 +113,8 @@ class TransactionView(VerifiedAccountMixin, UserPassesTestMixin, TemplateView):
         sender = self.get_sender()
 
         return sender.active and (
-            self.request.spieler.is_spielleitung or
-            sender.account_owner == self.request.spieler.instance
+            self.request.user.has_perm(CustomPermission.SPIELLEITUNG.value) or
+            sender.account_owner == self.request.spieler
         )
 
     def handle_no_permission(self):

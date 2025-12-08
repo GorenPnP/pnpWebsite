@@ -45,7 +45,7 @@ class GfsFormView(VerifiedAccountMixin, TemplateView):
         context = {
             "gfs": Gfs.objects.all(),
             "klassen": Klasse.objects.all(),
-            "old_scetches": Charakter.objects.filter(eigentümer=request.spieler.instance, in_erstellung=True),
+            "old_scetches": Charakter.objects.filter(eigentümer=request.spieler, in_erstellung=True),
             "topic": "Charakter erstellen",
             "app_index": "Charaktere",
             "app_index_url": reverse("character:index"),
@@ -66,7 +66,7 @@ class GfsFormView(VerifiedAccountMixin, TemplateView):
         if sum(klassenstufen.values()) != stufe:
             return JsonResponse({"message": "Charakter-Stufe stimmt nicht mit der Summe der Klassenstufen überein"}, status=418)
 
-        spieler = request.spieler.instance
+        spieler = request.spieler
         if not spieler: return HttpResponseNotFound()
         gfs = get_object_or_404(Gfs, id=gfs_id)
 
@@ -181,7 +181,7 @@ class GfsFormView(VerifiedAccountMixin, TemplateView):
             for klasse in Klasse.objects.filter(pk__in=klassenstufen.keys()):
                 RelKlasse.objects.create(char=char, klasse=klasse, stufe=klassenstufen[klasse.id])
                 # klasse logging
-                Log.objects.create(art="l", spieler=request.spieler.instance, char=char, kosten=f"Charaktererstellung", notizen=f"{klasse.titel} bis Stufe {klassenstufen[klasse.id]}")
+                Log.objects.create(art="l", spieler=request.spieler, char=char, kosten=f"Charaktererstellung", notizen=f"{klasse.titel} bis Stufe {klassenstufen[klasse.id]}")
                 # note: values of chosen Klassen will be distributed in Prio.post() due to crotocal values for priotable
 
         return redirect(reverse("create:prio", args=[char.id]))

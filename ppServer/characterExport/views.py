@@ -13,7 +13,7 @@ from django.views.generic import DetailView
 from ppServer.decorators import spielleitung_only, verified_account
 from ppServer.mixins import VerifiedAccountMixin
 from ppServer.settings import STATIC_ROOT
-from character.models import Charakter
+from character.models import Charakter, CustomPermission
 
 from .export import CharakterExporter
 
@@ -22,7 +22,7 @@ class CharacterExportView(VerifiedAccountMixin, UserPassesTestMixin, DetailView)
     model = Charakter
 
     def test_func(self):
-        return self.request.spieler.is_spielleitung or Charakter.objects.filter(pk=self.kwargs["pk"], eigentümer=self.request.spieler.instance).exists()
+        return self.request.user.has_perm(CustomPermission.SPIELLEITUNG.value) or Charakter.objects.filter(pk=self.kwargs["pk"], eigentümer=self.request.spieler).exists()
 
     def handle_no_permission(self):
         return redirect("character:index")

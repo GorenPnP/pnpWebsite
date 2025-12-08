@@ -38,7 +38,7 @@ class GeschöpfDetailView(VerifiedAccountMixin, DetailView):
         )
         context["topic"] = f"#{context['object'].number} {context['object'].name}"
 
-        spieler = self.request.spieler.instance
+        spieler = self.request.spieler
         if not spieler: return HttpResponseNotFound()
 
         context["visible"] = context["object"].visible.filter(id=spieler.id).exists()
@@ -61,7 +61,7 @@ class ParaPflanzeIndexView(VerifiedAccountMixin, ListView):
         )
     
     def get_queryset(self) -> QuerySet[Any]:
-        spieler = self.request.spieler.instance
+        spieler = self.request.spieler
         return super().get_queryset().prefetch_related("visible").annotate(display=Exists(ParaPflanze.objects.filter(pk=OuterRef("pk"), visible=spieler)))
 
 class ParaPflanzeDetailView(VerifiedAccountMixin, DetailView):
@@ -76,7 +76,7 @@ class ParaPflanzeDetailView(VerifiedAccountMixin, DetailView):
         )
         context["topic"] = context['object'].name
 
-        spieler = self.request.spieler.instance
+        spieler = self.request.spieler
         context["visible"] = spieler and context["object"].visible.filter(id=spieler.id).exists()
         return context
 
@@ -103,7 +103,7 @@ class ParaTierIndexView(VerifiedAccountMixin, ListView):
         )
 
     def get_queryset(self) -> QuerySet[Any]:
-        spieler = self.request.spieler.instance
+        spieler = self.request.spieler
         return super().get_queryset().prefetch_related("visible").annotate(display=Exists(ParaTier.objects.filter(pk=OuterRef("pk"), visible=spieler)))
 
 
@@ -119,7 +119,7 @@ class ParaTierDetailView(VerifiedAccountMixin, DetailView):
         )
         context["topic"] = context['object'].name
 
-        spieler = self.request.spieler.instance
+        spieler = self.request.spieler
         context["visible"] = spieler and context["object"].visible.filter(id=spieler.id).exists()
         return context
 

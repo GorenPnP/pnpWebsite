@@ -1,24 +1,16 @@
 from django.http import HttpRequest
 from .models import Spieler
 
-class RequestSpieler:
-    instance: Spieler = None
-
-    is_spielleitung: bool = False
-    groups: list[str] = []
-
 
 class SpielerMiddleware:
-    """ adds spieler object & permission information to each request """
+    """ adds spieler object to each request """
     def __init__(self, get_response):
         self.get_response = get_response
 
     def __call__(self, request: HttpRequest):
-        request.spieler = RequestSpieler()
+        request.spieler = None
 
         if request.user.is_authenticated:
-            request.spieler.instance = Spieler.objects.prefetch_related("user__groups").get(user=request.user)
-            request.spieler.groups = [group.name for group in request.spieler.instance.user.groups.all()]
-            request.spieler.is_spielleitung = "Spielleitung" in request.spieler.groups
+            request.spieler = Spieler.objects.prefetch_related("user").get(user=request.user)
 
         return self.get_response(request)

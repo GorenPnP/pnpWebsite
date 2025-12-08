@@ -5,6 +5,7 @@ from django.http.response import JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
 
+from character.models import CustomPermission
 from ppServer.decorators import verified_account, spielleitung_only
 
 from .models import Message
@@ -21,7 +22,7 @@ def index(request):
     if request.method == "POST":
 
         json_dict = json.loads(request.body.decode("utf-8"))
-        spieler = request.spieler.instance
+        spieler = request.spieler
         if not spieler: return HttpResponseNotFound()
 
         # typed a new message, need to save it
@@ -43,7 +44,7 @@ def index(request):
                     "messages":
                         [{"author": m.author.__str__(), "text": m.text, "created_at": m.created_at.isoformat()} for m in messages],
                     "own_name": spieler.__str__(),
-                    "spielleitung": request.spieler.is_spielleitung
+                    "spielleitung": request.user.has_perm(CustomPermission.SPIELLEITUNG.value)
                 }
             )
 
@@ -56,7 +57,7 @@ def sp_index_get(request):
     context = {
         "topic": "Spielleitung-Chat",
         "messages": Message.objects.all(),
-        "own_name": request.spieler.instance.__str__(),
+        "own_name": request.spieler.__str__(),
         "app_index": "Chats",
         "app_index_url": reverse("chat:index")
     }

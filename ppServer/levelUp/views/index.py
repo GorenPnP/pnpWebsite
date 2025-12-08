@@ -165,7 +165,7 @@ class IndexView(LevelUpMixin, DetailView):
             **context,
             "topic": "Hub",
             "rows": self.build_table(char),
-            "is_done": char.eigentümer is not None and self.request.spieler.instance == char.eigentümer and is_done_entirely(char), # is eigentümer & done
+            "is_done": char.eigentümer is not None and self.request.spieler == char.eigentümer and is_done_entirely(char), # is eigentümer & done
             "pending_areas": ", ".join(pending_areas(char)),
             "stufenbelohnung": stufenbelohnung,
             "app_index": char.name,
@@ -194,7 +194,7 @@ class IndexView(LevelUpMixin, DetailView):
             return redirect(request.build_absolute_uri())
         
         # not eigentümer
-        if char.eigentümer and self.request.spieler.instance != char.eigentümer:
+        if char.eigentümer and self.request.spieler != char.eigentümer:
             messages.error(request, "Du bist nicht Eigentümer des Charakters und kannst deshalb die Verteilung nicht beenden.")
             return redirect(request.build_absolute_uri())
         

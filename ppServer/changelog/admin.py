@@ -11,8 +11,4 @@ class ChangelogAdmin(admin.ModelAdmin):
     def _text(self, obj):
         return format_html(obj.text_rendered)
 
-    
-    def has_module_permission(self, request: HttpRequest) -> bool:
-        return request.spieler.is_spielleitung
-
 admin.site.register(Changelog, ChangelogAdmin)

@@ -1,4 +1,4 @@
-import sys
+import enum, sys
 from datetime import date
 from sentry_sdk import capture_message
 
@@ -8,7 +8,7 @@ from django.db import models
 from django.db.models import Max, Sum, Subquery, OuterRef, F, Q, Exists, Value
 from django.db.models.functions import Coalesce
 from django.db.models.query import QuerySet
-from django.shortcuts import get_object_or_404
+from django.utils.translation import gettext as _
 
 from django_resized import ResizedImageField
 from markdownfield.models import MarkdownField, RenderedMarkdownField
@@ -20,6 +20,15 @@ from shop.models import *
 from . import enums
 
 User = get_user_model()
+
+class CustomPermission(enum.Enum):
+    """ not used in templates in favor of easier, literal 'perms.character.is_Spielleitung', ... """
+
+    SPIELLEITUNG = "character.is_Spielleitung"
+    LARP = "character.is_LARPler"
+    COPY_CHARS = "character.copies_chars"
+    SEES_CALENDAR = "character.sees_TODOcalendar"
+
 
 def get_tier_cost_with_sp() -> dict:
     return {
@@ -37,6 +46,12 @@ class Spieler(models.Model):
     class Meta:
         ordering = ['user']
         verbose_name_plural = "Spieler"
+        permissions = [
+            (CustomPermission.LARP.value.split(".")[-1], _("nimmt am LARP teil")),
+            (CustomPermission.SPIELLEITUNG.value.split(".")[-1], _("leitet PnP-Runden und übernimmt Admin-Zeugs")),
+            (CustomPermission.COPY_CHARS.value.split(".")[-1], _("überträgt alte Charaktere ohne Erstellung")),
+            (CustomPermission.SEES_CALENDAR.value.split(".")[-1], _("sieht Lilly's Kalender")),
+        ]
 
     LANGUAGE_ENUM = [
         ('g', 'Gemeinsprache'),

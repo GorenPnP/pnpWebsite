@@ -33,7 +33,7 @@
 		
 		<!-- fonts -->
 		<link rel="stylesheet" href="{% static 'base/css/fonts.css' %}" type="text/css">
-		{% if request.spieler.instance.language == 'd' %}
+		{% if request.spieler.language == 'd' %}
 		<!-- language dämonisch -->
 		<style>
 			:root {
@@ -42,7 +42,7 @@
 			}
 		</style>
 		{% endif %}
-		{% if request.spieler.instance.language == 'e' %}
+		{% if request.spieler.language == 'e' %}
 		<!-- language hochelfisch -->
 		<style>
 			:root {

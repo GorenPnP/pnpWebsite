@@ -43,7 +43,7 @@ class PollView(VerifiedAccountMixin, PollAllowedMixin, DetailView):
 
 
         # save to db
-        spieler = request.spieler.instance
+        spieler = request.spieler
         if not spieler: return HttpResponseNotFound
 
         question.spieler_voted.add(spieler)

@@ -4,7 +4,7 @@ from math import floor
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse
 
-from character.models import Spieler
+from character.models import CustomPermission, Spieler
 from ppServer.decorators import verified_account
 
 from . import models
@@ -69,11 +69,11 @@ def mw_from_grade_list(grade_list):
 @verified_account
 def index(request, spieler_id=None):
 
-    # for Phillip's wish to see everyone's timetable
-    spielleitung_service = spieler_id is not None and request.spieler.is_spielleitung
+    # for Floofy's wish to see everyone's timetable
+    spielleitung_service = spieler_id is not None and request.user.has_perm(CustomPermission.SPIELLEITUNG.value)
 
     # usual case if not spielleitung_service (as in: BB). Or not.
-    spieler = get_object_or_404(Spieler, id=spieler_id) if spielleitung_service else request.spieler.instance
+    spieler = get_object_or_404(Spieler, id=spieler_id) if spielleitung_service else request.spieler
 
     if request.method == "GET":
 
@@ -126,7 +126,7 @@ def index(request, spieler_id=None):
 
 @verified_account
 def question(request):
-    spieler = request.spieler.instance
+    spieler = request.spieler
     rel = get_object_or_404(models.RelQuiz, spieler=spieler)
 
     if request.method == "GET":
@@ -201,7 +201,7 @@ def question(request):
 @verified_account
 def session_done(request):
 
-    spieler = request.spieler.instance
+    spieler = request.spieler
     rel = get_object_or_404(models.RelQuiz, spieler=spieler)
     if not rel.current_session: return redirect("quiz:index")
 
@@ -244,7 +244,7 @@ def score_board(request):
 
 @verified_account
 def review(request, id):
-    spieler = request.spieler.instance
+    spieler = request.spieler
     sp_mo = get_object_or_404(models.SpielerModule, id=id, spieler=spieler)
 
     # no module for player selected
@@ -301,7 +301,7 @@ def review(request, id):
 
 @verified_account
 def review_done(request):
-    spieler = request.spieler.instance
+    spieler = request.spieler
     rel = get_object_or_404(models.RelQuiz, spieler=spieler)
     if not rel.current_session:
         return redirect("quiz:index")

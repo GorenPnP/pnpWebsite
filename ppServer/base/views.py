@@ -5,6 +5,7 @@ from django.shortcuts import reverse
 from django.views.generic.base import TemplateView
 
 from changelog.models import Changelog
+from character.models import CustomPermission
 from ppServer.mixins import VerifiedAccountMixin
 from shop.models import Alchemie, Ausrüstung_Technik, Begleiter, Einbauten, Engelsroboter, Fahrzeug, Item, Magazin, Magische_Ausrüstung, Pfeil_Bolzen,\
                         Rituale_Runen, Rüstungen, Schusswaffen, Tinker, VergessenerZauber, Waffen_Werkzeuge, Zauber
@@ -66,12 +67,12 @@ class IndexView(VerifiedAccountMixin, TemplateView):
     def get_heros(self):
         #### collect topics for hero ####
 
-        spieler = self.request.spieler.instance
+        spieler = self.request.spieler
 
         context = { "hero_pages": ["Fun Fact", "Regeln"], }
 
         ## polls
-        if not self.request.spieler.is_spielleitung:
+        if not self.request.user.has_perm(CustomPermission.SPIELLEITUNG.value):
             now = datetime.now()
 
             # all currently open polls, which haven't been answered by the player
@@ -93,7 +94,7 @@ class IndexView(VerifiedAccountMixin, TemplateView):
         context["hero_pages"].append("Schmiedesystem")
 
         ## shop review
-        if self.request.spieler.is_spielleitung:
+        if self.request.user.has_perm(CustomPermission.SPIELLEITUNG.value):
             shop = reviewable_shop()
             if shop: context["hero_pages"].append("Shop review")
 

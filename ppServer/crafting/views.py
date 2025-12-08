@@ -154,7 +154,7 @@ class IndexView(VerifiedAccountMixin, TemplateView):
 	template_name = "crafting/index.html"
 
 	def get_context_data(self, **kwargs):
-		relProfil, _ = RelCrafting.objects.get_or_create(spieler=self.request.spieler.instance)
+		relProfil, _ = RelCrafting.objects.get_or_create(spieler=self.request.spieler)
 
 		return super().get_context_data(
 			**kwargs,
@@ -164,13 +164,13 @@ class IndexView(VerifiedAccountMixin, TemplateView):
 
 			relProfil = relProfil,
 			profiles = Profile.objects.all(),
-			chars = Charakter.objects.filter(eigentümer=self.request.spieler.instance, in_erstellung=False)
+			chars = Charakter.objects.filter(eigentümer=self.request.spieler, in_erstellung=False)
 		)
 	
 	def post(self, *args, **kwargs):
 
 		name = self.request.POST.get("name")
-		spieler = self.request.spieler.instance
+		spieler = self.request.spieler
 		if not spieler: return HttpResponseNotFound()
 		char = get_object_or_404(Charakter.objects.filter(eigentümer=spieler, in_erstellung=False), pk=self.request.POST.get("char"))
 

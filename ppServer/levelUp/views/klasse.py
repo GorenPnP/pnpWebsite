@@ -119,6 +119,6 @@ class GenericKlasseView(LevelUpMixin, TemplateView):
 
 
         # LOG & RETURN
-        Log.objects.create(art="l", spieler=request.spieler.instance, char=char, kosten=f"Charakter Stufe {stufen_already_spent+1}", notizen=f"{stufenplan.klasse.titel} Stufe {stufenplan.stufe}")
+        Log.objects.create(art="l", spieler=request.spieler, char=char, kosten=f"Charakter Stufe {stufen_already_spent+1}", notizen=f"{stufenplan.klasse.titel} Stufe {stufenplan.stufe}")
         messages.success(request, f"{stufenplan.klasse.titel}-Klassenstufe erfolgreich gespeichert")
         return redirect(request.build_absolute_uri())

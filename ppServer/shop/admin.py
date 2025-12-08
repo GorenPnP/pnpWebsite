@@ -7,6 +7,7 @@ from django.db.models.query import QuerySet
 from django.http.request import HttpRequest
 from django.utils.html import format_html
 
+from character.models import CustomPermission
 from ppServer.utils import ConcatSubquery
 
 from .models import *
@@ -114,7 +115,7 @@ class BaseAdmin(admin.ModelAdmin):
 
     def get_readonly_fields(self, request: HttpRequest, obj = ...):
         # spielleitung
-        if request.spieler.is_spielleitung:
+        if request.user.has_perm(CustomPermission.SPIELLEITUNG.value):
             return super().get_readonly_fields(request, obj)
         
         # spieler (create OR frei_editierbar)
@@ -227,7 +228,7 @@ class Rituale_RunenAdmin(admin.ModelAdmin):
 
     def get_readonly_fields(self, request: HttpRequest, obj = ...):
         # spielleitung
-        if request.spieler.is_spielleitung:
+        if request.user.has_perm(CustomPermission.SPIELLEITUNG.value):
             return super().get_readonly_fields(request, obj)
         
         # spieler (create OR frei_editierbar)

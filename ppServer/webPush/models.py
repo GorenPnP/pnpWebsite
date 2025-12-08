@@ -5,6 +5,7 @@ from django.contrib.auth import get_user_model
 from django.db import models
 from django.urls import reverse
 
+from character.models import CustomPermission
 from push_notifications.models import WebPushDevice
 
 User = get_user_model()
@@ -62,7 +63,7 @@ class PushSettings(models.Model):
 
         # spielleitung-only tags
         if tag in [PushTag.quiz_control.value]:
-            recipients = recipients.filter(groups__name="Spielleitung")
+            recipients = [user for user in recipients if user.has_perm(CustomPermission.SPIELLEITUNG.value)]
 
         # get filtered recipients
         filters = {"user__in": recipients}

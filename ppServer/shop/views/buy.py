@@ -34,7 +34,7 @@ class BuyView(VerifiedAccountMixin, DetailView):
         charaktere = Charakter.objects.all()
 
         # characters to buy stuff for
-        if not request.spieler.is_spielleitung:
+        if not request.user.has_perm(CustomPermission.SPIELLEITUNG.value):
             if self.shop_model._meta.model_name == "zauber":
                 charaktere = charaktere.annotate(
                         # mind. 5 bei Zaubern:
@@ -61,12 +61,12 @@ class BuyView(VerifiedAccountMixin, DetailView):
                     max_shopstufe=Case(When(Q(basarflipper_exists=True) & Q(ep_stufe_in_progress__lt=3), then=3), default=F("ep_stufe_in_progress"), output_field=PositiveIntegerField()), #F("ep_stufe_in_progress"),
                 )
 
-            charaktere = charaktere.filter(eigentümer=request.spieler.instance, max_shopstufe__gte=item.ab_stufe)
+            charaktere = charaktere.filter(eigentümer=request.spieler, max_shopstufe__gte=item.ab_stufe)
 
         context = {
             "charaktere": charaktere.order_by('name'),
             "entries": firma_shop_entries,
-            "extra_preis_field": request.spieler.is_spielleitung,
+            "extra_preis_field": request.user.has_perm(CustomPermission.SPIELLEITUNG.value),
             "st": item.stufenabhängig,
             "topic": item.name,
             "app_index": "Shop",
@@ -98,9 +98,9 @@ class BuyView(VerifiedAccountMixin, DetailView):
             return redirect(request.build_absolute_uri())
 
         # check if spieler may modify char
-        spieler = request.spieler.instance
+        spieler = request.spieler
         char = get_object_or_404(Charakter, id=char_id)
-        if char.eigentümer != spieler and not request.spieler.is_spielleitung:
+        if char.eigentümer != spieler and not request.user.has_perm(CustomPermission.SPIELLEITUNG.value):
             messages.error(request, "Keine Erlaubnis einzukaufen")
             return redirect(request.build_absolute_uri())
 

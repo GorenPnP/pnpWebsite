@@ -12,6 +12,7 @@ from django.views.generic.base import TemplateView
 from django.views.generic.list import ListView
 from django.urls import reverse
 
+from character.models import CustomPermission
 from ppServer.decorators import verified_account
 from ppServer.mixins import VerifiedAccountMixin
 from ppServer.utils import AvgSubquery
@@ -31,7 +32,7 @@ class MonsterIndexView(VerifiedAccountMixin, ListView):
             app_index_url = reverse("dex:index"),
             topic = "Monsterdex",
             types = Typ.objects.all(),
-            spieler = self.request.spieler.instance,
+            spieler = self.request.spieler,
         )
     
     def get_queryset(self) -> QuerySet[Any]:
@@ -43,7 +44,7 @@ class MonsterDetailView(VerifiedAccountMixin, DetailView):
     template_name = "dex/monster/monster_detail.html"
 
     def _create_form(self, **kwargs):
-        if self.request.spieler.is_spielleitung:
+        if self.request.user.has_perm(CustomPermission.SPIELLEITUNG.value):
             return SpSpielerMonsterForm(**kwargs)
         else:
             return SpielerMonsterForm(**kwargs)
@@ -85,7 +86,7 @@ class MonsterDetailView(VerifiedAccountMixin, DetailView):
             **kwargs,
             app_index = "Monster",
             app_index_url = reverse("dex:monster_index"),
-            spieler = self.request.spieler.instance,
+            spieler = self.request.spieler,
         )
         self.object = context["object"]
         context["topic"] = self.object.name
@@ -108,14 +109,14 @@ class MonsterDetailView(VerifiedAccountMixin, DetailView):
     def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
         response = super().get(request, *args, **kwargs)    # let self.get_context_data() set self.object to perform the query only once
 
-        spieler = self.request.spieler.instance
+        spieler = self.request.spieler
         if not self.object.visible.filter(id=spieler.id).exists():
             return redirect("dex:monster_index")
 
         return response
 
     def post(self, request, **kwargs):
-        spieler = self.request.spieler.instance
+        spieler = self.request.spieler
         monster = self.get_object()
         if not monster.visible.filter(id=spieler.id).exists():
             messages.error(request, "Huch! Das Monster kennst du noch gar nicht.")
@@ -131,7 +132,7 @@ class MonsterDetailView(VerifiedAccountMixin, DetailView):
             obj.spieler = spieler
             if obj.name == monster.name: obj.name = None
             obj.save()
-            self._skill_spmo(obj, self.request.spieler.is_spielleitung and "keep_attacks" in form.cleaned_data and form.cleaned_data["keep_attacks"])
+            self._skill_spmo(obj, self.request.user.has_perm(CustomPermission.SPIELLEITUNG.value) and "keep_attacks" in form.cleaned_data and form.cleaned_data["keep_attacks"])
 
             messages.success(request, format_html(f"<b>{obj.name or monster.name}</b> ist in deiner <a class='text-light' href='{reverse('dex:monster_farm')}'>Monster-Farm</a> eingetroffen."))
         else:
@@ -182,7 +183,7 @@ class MonsterFähigkeitView(VerifiedAccountMixin, ListView):
             app_index = "Allesdex",
             app_index_url = reverse("dex:index"),
             topic = "Fähigkeiten",
-            spieler = self.request.spieler.instance,
+            spieler = self.request.spieler,
         )
 
     def get_queryset(self) -> QuerySet[Any]:
@@ -212,13 +213,13 @@ class MonsterFarmView(VerifiedAccountMixin, ListView):
             app_index_url = reverse("dex:index"),
             topic = "Monster-Farm",
             types = Typ.objects.all(),
-            spieler = self.request.spieler.instance,
+            spieler = self.request.spieler,
         )
     
     def get_queryset(self) -> QuerySet[Any]:
         return super().get_queryset()\
             .prefetch_related(Prefetch("monster", Monster.objects.load_card()))\
-            .filter(spieler=self.request.spieler.instance)
+            .filter(spieler=self.request.spieler)
 
 
 class MonsterFarmDetailView(VerifiedAccountMixin, DetailView):
@@ -230,7 +231,7 @@ class MonsterFarmDetailView(VerifiedAccountMixin, DetailView):
             **kwargs,
             app_index = "Farm",
             app_index_url = reverse("dex:monster_farm"),
-            spieler = self.request.spieler.instance,
+            spieler = self.request.spieler,
             types = Typ.objects.all(),
             all_stats = [(stat, label) for stat, label in RangStat.StatType if stat in ["N", "F", "MA", "VER_G", "VER_K"]],
         )
@@ -268,7 +269,7 @@ class MonsterFarmDetailView(VerifiedAccountMixin, DetailView):
         response = super().get(request, *args, **kwargs)    # let self.get_context_data() set self.object to perform the query only once
         
         # authorization
-        spieler = self.request.spieler.instance
+        spieler = self.request.spieler
         get_object_or_404(self.model, spieler=spieler, pk=pk)
         if not self.object.monster.visible.filter(id=spieler.id).exists():
             return redirect("dex:monster_farm")
@@ -277,7 +278,7 @@ class MonsterFarmDetailView(VerifiedAccountMixin, DetailView):
     
     def post(self, request, pk: int, *args, **kwargs):
         # authorization
-        spieler = self.request.spieler.instance
+        spieler = self.request.spieler
         object = get_object_or_404(self.model, spieler=spieler, pk=pk)
         if not object.monster.visible.filter(id=spieler.id).exists():
             return redirect("dex:monster_farm")
@@ -314,7 +315,7 @@ class MonsterFarmLevelupView(VerifiedAccountMixin, DetailView):
             **kwargs,
             app_index = "Farm",
             app_index_url = reverse("dex:monster_farm"),
-            spieler = self.request.spieler.instance,
+            spieler = self.request.spieler,
         )
         self.object = context["object"]
         context["topic"] = (self.object.name or self.object.monster.name) + " - Level up"
@@ -364,7 +365,7 @@ class MonsterFarmLevelupView(VerifiedAccountMixin, DetailView):
         response = super().get(request, *args, **kwargs)    # let self.get_context_data() set self.object to perform the query only once
 
         # authorization
-        spieler = self.request.spieler.instance
+        spieler = self.request.spieler
         get_object_or_404(self.model, spieler=spieler, pk=pk)
         if not self.object.monster.visible.filter(id=spieler.id).exists():
             return redirect("dex:monster_farm")
@@ -377,7 +378,7 @@ class MonsterFarmLevelupView(VerifiedAccountMixin, DetailView):
     
     def post(self, request, pk: int, *args, **kwargs):
         # authorization
-        spieler = request.spieler.instance
+        spieler = request.spieler
         object = get_object_or_404(self.model, spieler=spieler, pk=pk)
         if not object.monster.visible.filter(id=spieler.id).exists():
             return redirect("dex:monster_farm")
@@ -425,7 +426,7 @@ class MonsterTeamView(VerifiedAccountMixin, ListView):
             app_index = "Allesdex",
             app_index_url = reverse("dex:index"),
             topic = "Monster-Teams",
-            spieler = self.request.spieler.instance,
+            spieler = self.request.spieler,
             form = TeamForm()
         )
 
@@ -450,7 +451,7 @@ class MonsterTeamView(VerifiedAccountMixin, ListView):
                 Prefetch("monster__monster", Monster.objects.load_card()),
                 "monster__monster__attacken__types"
             )\
-            .filter(spieler=self.request.spieler.instance)\
+            .filter(spieler=self.request.spieler)\
             .annotate(
 
                 # stats
@@ -465,7 +466,7 @@ class MonsterTeamView(VerifiedAccountMixin, ListView):
             )
     
     def post(self, request, **kwargs):
-        spieler = request.spieler.instance
+        spieler = request.spieler
         form = TeamForm(request.POST)
         form.full_clean()
         if form.is_valid():
@@ -486,7 +487,7 @@ class MonsterTeamDetailView(VerifiedAccountMixin, DetailView):
             **kwargs,
             app_index = "Monster-Teams",
             app_index_url = reverse("dex:monster_team"),
-            spieler = self.request.spieler.instance,
+            spieler = self.request.spieler,
         )
         context["topic"] = context["object"].name
         context["own_monsters"] = SpielerMonster.objects.filter(spieler=context["spieler"]).exclude(id__in=context["object"].monster.values_list("id", flat=True))
@@ -500,7 +501,7 @@ class MonsterTeamDetailView(VerifiedAccountMixin, DetailView):
     def get_queryset(self) -> QuerySet[Any]:
         return super().get_queryset()\
             .prefetch_related("monster")\
-            .filter(spieler=self.request.spieler.instance)
+            .filter(spieler=self.request.spieler)
     
     def post(self, request, **kwargs):
         form = TeamForm(request.POST)
@@ -521,8 +522,8 @@ class MonsterTeamDetailView(VerifiedAccountMixin, DetailView):
 @require_POST
 @verified_account
 def add_monster_to_team(request, pk):
-    team = get_object_or_404(MonsterTeam, pk=pk, spieler=request.spieler.instance)
-    monster = get_object_or_404(SpielerMonster, pk=request.POST.get("monster_id"), spieler=request.spieler.instance)
+    team = get_object_or_404(MonsterTeam, pk=pk, spieler=request.spieler)
+    monster = get_object_or_404(SpielerMonster, pk=request.POST.get("monster_id"), spieler=request.spieler)
     team.monster.add(monster)
     messages.success(request, f"{monster.name or monster.monster.name} ist {team.name} beigetreten")
     
@@ -532,7 +533,7 @@ def add_monster_to_team(request, pk):
 @require_POST
 @verified_account
 def delete_monster_from_team(request, pk):
-    team = get_object_or_404(MonsterTeam, pk=pk, spieler=request.spieler.instance)
+    team = get_object_or_404(MonsterTeam, pk=pk, spieler=request.spieler)
     monster = get_object_or_404(SpielerMonster, pk=request.POST.get("monster_id"))
     team.monster.remove(monster)
     messages.success(request, f"{monster.name or monster.monster.name} ist aus {team.name} ausgetreten")
@@ -543,7 +544,7 @@ def delete_monster_from_team(request, pk):
 @require_POST
 @verified_account
 def add_team_to_spielermonster(request, pk):
-    sp_mo = get_object_or_404(SpielerMonster, pk=pk, spieler=request.spieler.instance)
+    sp_mo = get_object_or_404(SpielerMonster, pk=pk, spieler=request.spieler)
     team = get_object_or_404(MonsterTeam, pk=request.POST.get("team_id"))
     sp_mo.monsterteam_set.add(team)
     messages.success(request, f"{sp_mo.name or sp_mo.monster.name} ist {team.name} beigetreten")
@@ -554,7 +555,7 @@ def add_team_to_spielermonster(request, pk):
 @require_POST
 @verified_account
 def delete_spielermonster(request):
-    sp_mo = get_object_or_404(SpielerMonster, pk=request.POST.get("monster_id"), spieler=request.spieler.instance)
+    sp_mo = get_object_or_404(SpielerMonster, pk=request.POST.get("monster_id"), spieler=request.spieler)
     SpielerMonster.objects.filter(pk=sp_mo.pk).delete()
 
     messages.success(request, format_html(f"{sp_mo.name or sp_mo.monster.name} ist frei!"))
@@ -565,7 +566,7 @@ def delete_spielermonster(request):
 @require_POST
 @verified_account
 def set_training_of_spielermonster(request, pk):
-    sp_mo = get_object_or_404(SpielerMonster, pk=pk, spieler=request.spieler.instance)
+    sp_mo = get_object_or_404(SpielerMonster, pk=pk, spieler=request.spieler)
     all_stats = [stat for stat, _ in RangStat.StatType]
     stats = [stat.strip() for stat in request.POST.get("stat").split(" ")]
     stats = set([stat for stat in stats if stat in all_stats])
@@ -589,7 +590,7 @@ def set_training_of_spielermonster(request, pk):
 @require_POST
 @verified_account
 def add_attack_to_spielermonster(request, pk):
-    sp_mo = get_object_or_404(SpielerMonster, pk=pk, spieler=request.spieler.instance)
+    sp_mo = get_object_or_404(SpielerMonster, pk=pk, spieler=request.spieler)
 
     attack = None
     try:
@@ -618,7 +619,7 @@ def add_attack_to_spielermonster(request, pk):
 def delete_attack_from_spielermonster(request, pk):
 
     # get stuff
-    sp_mo = get_object_or_404(SpielerMonster, pk=pk, spieler=request.spieler.instance)
+    sp_mo = get_object_or_404(SpielerMonster, pk=pk, spieler=request.spieler)
     sp_mo_attack = get_object_or_404(SpielerMonsterAttack, spieler_monster=sp_mo, attacke__id=request.POST.get("attack_id"))
     
     # remove attack
@@ -638,7 +639,7 @@ def delete_attack_from_spielermonster(request, pk):
 def evolve_spielermonster(request, pk):
 
     # get stuff
-    sp_mo = get_object_or_404(SpielerMonster, pk=pk, spieler=request.spieler.instance)
+    sp_mo = get_object_or_404(SpielerMonster, pk=pk, spieler=request.spieler)
     monster = get_object_or_404(Monster, pk=request.POST.get("monster_id"))
     
     # check valid evolution?
@@ -677,7 +678,7 @@ class AttackProposalView(VerifiedAccountMixin, ListView):
             all_stats=[(stat, label) for stat, label in RangStat.StatType if stat in ["N", "F", "MA", "VER_G", "VER_K"]],
         )
         if not context["is_create"]:
-            spieler = self.request.spieler.instance
+            spieler = self.request.spieler
             if not spieler: HttpResponseNotFound()
 
             obj = get_object_or_404(Attacke, pk=self.kwargs["pk"], author=spieler, draft=True)
@@ -686,11 +687,11 @@ class AttackProposalView(VerifiedAccountMixin, ListView):
         return context
     
     def get_queryset(self) -> QuerySet[Any]:
-        spieler = self.request.spieler.instance
+        spieler = self.request.spieler
         return self.model.objects.load_card().filter(author=spieler, draft=True)
 
     def post(self, request, pk: int = None, *args, **kwargs):
-        spieler = request.spieler.instance
+        spieler = request.spieler
         if pk is not None:
             obj = get_object_or_404(Attacke, pk=pk, author=spieler)
             form = ProposeAttackForm(request.POST, instance=obj)

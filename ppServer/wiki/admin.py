@@ -29,9 +29,4 @@ class RuleAdmin(admin.ModelAdmin):
         })},
     }
 
-    
-    def has_module_permission(self, request: HttpRequest) -> bool:
-        return request.spieler.is_spielleitung
-
-
 admin.site.register(Rule, RuleAdmin)

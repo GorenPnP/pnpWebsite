@@ -31,7 +31,7 @@ class IndexView(VerifiedAccountMixin, LARPlerOnlyMixin, ListView):
     def get_queryset(self) -> QuerySet[Any]:
         return super().get_queryset()\
             .prefetch_related("page_set", "fach")\
-            .filter(Exists(SpielerEinheit.objects.filter(spieler=self.request.spieler.instance, einheit=OuterRef("pk"))))
+            .filter(Exists(SpielerEinheit.objects.filter(spieler=self.request.spieler, einheit=OuterRef("pk"))))
 
 
 class PageView(VerifiedAccountMixin, LARPlerOnlyMixin, UserPassesTestMixin, DetailView):
@@ -43,7 +43,7 @@ class PageView(VerifiedAccountMixin, LARPlerOnlyMixin, UserPassesTestMixin, Deta
 
 
     def test_func(self) -> Optional[bool]:
-        return SpielerEinheit.objects.filter(spieler=self.request.spieler.instance, einheit__page__id=self.kwargs["pk"]).exists()
+        return SpielerEinheit.objects.filter(spieler=self.request.spieler, einheit__page__id=self.kwargs["pk"]).exists()
 
     def handle_no_permission(self):
         return redirect("lerneinheiten:index")
@@ -59,18 +59,18 @@ class PageView(VerifiedAccountMixin, LARPlerOnlyMixin, UserPassesTestMixin, Deta
         context["topic"] = context["object"].__str__()
 
         # add spieler's answer
-        sp_page = SpielerPage.objects.filter(spieler=self.request.spieler.instance, page=context["object"]).first()
+        sp_page = SpielerPage.objects.filter(spieler=self.request.spieler, page=context["object"]).first()
         context["form"] = SpielerPageForm(instance=sp_page)
 
         # add inquiry form
-        inquiry = context["object"].inquiry_set.filter(spieler=self.request.spieler.instance).first()
+        inquiry = context["object"].inquiry_set.filter(spieler=self.request.spieler).first()
         context["inquiry"] = inquiry
         if inquiry is not None:
             context["inquiry_form"] = InquiryForm(instance=inquiry)
         else:
             context["inquiry_form"] = InquiryForm(initial = {
                 "page": context["object"],
-                "spieler": self.request.spieler.instance,
+                "spieler": self.request.spieler,
             })
 
         return context
@@ -80,7 +80,7 @@ class PageView(VerifiedAccountMixin, LARPlerOnlyMixin, UserPassesTestMixin, Deta
     
     def post(self, request, *args, **kwargs):
         page = self.get_object()
-        sp_page = SpielerPage.objects.filter(spieler=request.spieler.instance, page=page).first()
+        sp_page = SpielerPage.objects.filter(spieler=request.spieler, page=page).first()
 
         # zeichnen
         requestPOST = request.POST
@@ -107,7 +107,7 @@ class PageView(VerifiedAccountMixin, LARPlerOnlyMixin, UserPassesTestMixin, Deta
         form.full_clean()
         if form.is_valid():
             object = form.save(commit=False)
-            object.spieler = request.spieler.instance
+            object.spieler = request.spieler
             object.page = page
             object.save()
 
@@ -130,7 +130,7 @@ class PageView(VerifiedAccountMixin, LARPlerOnlyMixin, UserPassesTestMixin, Deta
 @verified_account
 @LARPler_only()
 def inquiry_form(request, page_id: int):
-    form = InquiryForm(request.POST, instance=Inquiry.objects.filter(page__id=page_id, spieler=request.spieler.instance).first())
+    form = InquiryForm(request.POST, instance=Inquiry.objects.filter(page__id=page_id, spieler=request.spieler).first())
 
     form.full_clean()
     if form.is_valid():
