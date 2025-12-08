@@ -1,0 +1,14 @@
+{% extends 'base/headed_main.html' %}
+{% load static %}
+
+{% block main %}
+<section class="list-container">
+    <h2>Klassen</h2>
+
+    <ul>
+        {% for klasse in object_list %}
+        <li class="my-1"><a class="text-light" href="{% url 'wiki:klasse' klasse.pk %}">{{ klasse.titel }}</a></li>
+        {% endfor %}
+    </ul>
+</section>
+{% endblock %}

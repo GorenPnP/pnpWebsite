@@ -99,9 +99,7 @@ class Klasse(models.Model):
         verbose_name_plural = "Klassen"
 
     requirement = models.CharField(max_length=128, null=True, blank=True, help_text="Wird auch halbwegs zur Berechnung benutzt, also bitte nicht selbstständig ändern!")
-    icon = ResizedImageField(size=[1024, 1024], null=True, blank=True)
     titel = models.CharField(max_length=30, null=False, default="")
-    beschreibung = models.TextField()
     base_abilities = models.ManyToManyField("KlasseAbility")
 
     def __str__(self):

@@ -73,28 +73,16 @@ class TalentView(VerifiedAccountMixin, DynamicTableView):
     app_index = "Wiki"
     app_index_url = "wiki:index"
 
-class KlasseListView(VerifiedAccountMixin, DynamicTableView):
-    class Table(GenericTable):
-
-        class Meta:
-            model = Klasse
-            fields = ["icon", "titel", "beschreibung"]
-            attrs = GenericTable.Meta.attrs
-
-        def render_icon(self, value, record):
-            return format_html(f'<img src="{value.url}" style="max-width: 64px; max-height 64px;" loading="lazy" />')
-        
-        def render_titel(self, value, record):
-            url = reverse("wiki:klasse", args=[record.id])
-            return format_html("<a href='{url}'>{name}</a>", url=url, name=value)
-
+class KlasseListView(VerifiedAccountMixin, ListView):
     model = Klasse
-    table_class = Table
-    filterset_fields = {"titel": ["icontains"], "beschreibung": ["icontains"]}
-    template_name = "base/dynamic-table.html"
+    template_name = "wiki/klasse_list.html"
 
-    app_index = "Wiki"
-    app_index_url = "wiki:index"
+    def get_context_data(self, **kwargs):
+        return super().get_context_data(
+            **kwargs,
+            app_index = "Wiki",
+            app_index_url = "wiki:index",
+        )
 
 class KlasseDetailView(VerifiedAccountMixin, DetailView):
 
