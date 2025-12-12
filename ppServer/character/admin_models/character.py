@@ -1,6 +1,6 @@
 from typing import Any
 
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.db.models.query import QuerySet
 from django.forms.widgets import Widget as Widget
 from django.http.request import HttpRequest
@@ -33,11 +33,6 @@ class ReadonlyRelInlineAdmin(RelInlineAdmin):
 
     def has_delete_permission(self, request, obj=None):
         return False
-
-
-class CardInLine(ReadonlyRelInlineAdmin):
-    model = Card
-    fields = ["money"]
 
 class RelKlasseInline(RelInlineAdmin):
     model = RelKlasse
@@ -294,7 +289,6 @@ class CharakterAdmin(admin.ModelAdmin):
     ]
 
     inlines = [
-        CardInLine,
         RelKlasseInline,
         RelWesenkraftInLine,
         RelAttributInline,
@@ -342,3 +336,7 @@ class CharakterAdmin(admin.ModelAdmin):
     
     def get_queryset(self, request) -> QuerySet[Any]:
         return super().get_queryset(request).prefetch_related('eigentümer', "gfs", "tags")
+
+    def get_form(self, request, obj = ..., change = ..., **kwargs):
+        messages.info(request, format_html(f'Geld ändern geht über <a href="https://{request.get_host()}/cards/transaction" target="_blank">-&gt;Transaktionen</a>'))
+        return super().get_form(request, obj, change, **kwargs)
