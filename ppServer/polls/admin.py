@@ -1,5 +1,4 @@
 from django.contrib import admin
-from django.utils.timezone import now
 
 from .models import Question, Choice, QuestionSpieler
 

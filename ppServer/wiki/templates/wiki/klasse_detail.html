@@ -35,17 +35,13 @@ table thead tr th {
 <section class="general container">
     <div class="row mb-5">
 
-        <!-- logo image -->
-        <img src="{% if object.icon %}{{ object.icon.url }}{% else %}{% static 'res/img/goren_logo.svg' %}{% endif %}" class="col-12 col-sm image-container" loading="lazy">
+        <h1 class="mb-4">{{ object.titel }}</h1>
 
         <!-- description -->
         <div class="col-12 col-sm">
             <h2 class="title">Voraussetzung</h2>
             <p class="description__text">{{ object.requirement|default:"-" }}</p>
-            {% if object.beschreibung %}
-            <h2 class="title">Beschreibung</h2>
-            <p class="description__text">{{ object.beschreibung|default:"-"|linebreaks }}</p>
-            {% endif %}
+
             <h2 class="title">Basisfähigkeiten</h2>
             <p class="description__text">
                 <ul>
