@@ -1,16 +1,18 @@
-from django.urls import path
+from django.urls import path, register_converter
 
-from .views.index import index, review_items, transfer_items, propose_item
-from .views import buy as buyViews
+from .converter import *
+from .views.index import index, review_items, transfer_items, propose_item, model_list
+from .views.buy import BuyView
 from .views import list as listViews
 
 app_name = 'shop'
+register_converter(get_ModelNameConverter(app_name, model_list), "model")
 
 urlpatterns = [
     path('', index, name='index'),
     path('review/', review_items, name='review_items'),
     path('transfer-items/', transfer_items, name='transfer_items'),
-    path('propose/<slug:model>/', propose_item, name="propose"),
+    path('propose/<model:model>/', propose_item, name="propose"),
 
     path('all/', listViews.FullShopTableView.as_view(), name='all'),
 
@@ -32,20 +34,5 @@ urlpatterns = [
     path('begleiter/', listViews.BegleiterTableView.as_view(), name='begleiter_list'),
     path('engelsroboter/', listViews.EngelsroboterTableView.as_view(), name='engelsroboter_list'),
 
-    path('buy_item/<int:id>/', buyViews.ItemBuyView.as_view(), name="buy_item"),
-    path('buy_waffen_werkzeuge/<int:id>/', buyViews.Waffen_WerkzeugeBuyView.as_view(), name="buy_waffen_werkzeuge"),
-    path('buy_magazin/<int:id>/', buyViews.MagazinBuyView.as_view(), name="buy_magazin"),
-    path('buy_pfeile_bolzen/<int:id>/', buyViews.Pfeil_BolzenBuyView.as_view(), name="buy_pfeil_bolzen"),
-    path('buy_schusswaffen/<int:id>/', buyViews.SchusswaffenBuyView.as_view(), name="buy_schusswaffen"),
-    path('buy_magische_ausrüstung/<int:id>/', buyViews.Magische_AusrüstungBuyView.as_view(), name="buy_magische_ausrüstung"),
-    path('buy_rituale_runen/<int:id>/', buyViews.Rituale_RunenBuyView.as_view(), name='buy_rituale_runen'),
-    path('buy_ruestungen/<int:id>/', buyViews.RüstungBuyView.as_view(), name="buy_rüstungen"),
-    path('buy_ausruestung_technik/<int:id>/', buyViews.Ausrüstung_TechnikBuyView.as_view(), name="buy_ausrüstung_technik"),
-    path('buy_fahrzeuge/<int:id>/', buyViews.FahrzeugBuyView.as_view(), name="buy_fahrzeug"),
-    path('buy_einbauten/<int:id>/', buyViews.EinbautenBuyView.as_view(), name="buy_einbauten"),
-    path('buy_zauber/<int:id>/', buyViews.ZauberBuyView.as_view(), name="buy_zauber"),
-    path('buy_vergessener_zauber/<int:id>/', buyViews.VergessenerZauberBuyView.as_view(), name="buy_vergessenerzauber"),
-    path('buy_alchemie/<int:id>/', buyViews.AlchemieBuyView.as_view(), name="buy_alchemie"),
-    path('buy_begleiter/<int:id>/', buyViews.BegleiterBuyView.as_view(), name="buy_begleiter"),
-    path('buy_engelsroboter/<int:id>/', buyViews.EngelsroboterBuyView.as_view(), name="buy_engelsroboter"),
+    path('buy_<model:model>/<int:id>/', BuyView.as_view(), name="buy"),
 ]

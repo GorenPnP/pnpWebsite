@@ -1,6 +1,6 @@
 from django import forms
 
-from django.apps import apps
+from django.db.models import Model
 from django.contrib import messages
 from django.http import Http404
 from django.shortcuts import render, redirect
@@ -106,11 +106,10 @@ def index(request):
 
 
 @verified_account
-def propose_item(request, model: str):
-    Model = apps.get_model('shop', model)
-    if Model not in model_list: return Http404()
+def propose_item(request, model: Model):
+    if model not in model_list: return Http404()
 
-    ModelForm = forms.modelform_factory(model=Model, exclude=["firmen", "frei_editierbar", "has_implementation", "minecraft_mod_id", "wooble_buy_price", "wooble_sell_price"])
+    ModelForm = forms.modelform_factory(model=model, exclude=["firmen", "frei_editierbar", "has_implementation", "minecraft_mod_id", "wooble_buy_price", "wooble_sell_price"])
     form = ModelForm()
 
     if request.method == 'POST':
@@ -119,7 +118,7 @@ def propose_item(request, model: str):
         if form.is_valid():
             item = form.save()
             messages.success(request, "Vorschlag wurde eingereicht")
-            return redirect(f"shop:{Model._meta.model_name}_list")
+            return redirect(f"shop:{model._meta.model_name}_list")
 
         messages.error(request, "Beim Speichern sind Fehler aufgetreten")
 

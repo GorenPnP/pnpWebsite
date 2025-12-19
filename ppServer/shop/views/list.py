@@ -23,6 +23,8 @@ from ppServer.utils import ConcatSubquery, display_value
 
 from ..models import *
 
+model_list = [m for m in apps.get_app_config("shop").get_models() if not m._meta.abstract and m._meta.model_name not in ["modifier", "shopcategory"] and not  m._meta.model_name.startswith("firma")]
+
 
 def annotate_price(Model: models.Model) -> dict[str, any]:
     
@@ -108,7 +110,7 @@ class RenderableTable(GenericTable):
 
     def render_name(self, value, record):
         try:
-            url = reverse(f'shop:buy_{self._get(record, "model_name")}', args=[self._get(record, "id")])
+            url = reverse(f'shop:buy', args=[apps.get_model("shop", self._get(record, "model_name")), self._get(record, "id")])
             return format_html(f"<a href='{url}'>{value}</a>")
         except:
             return value
@@ -134,27 +136,6 @@ class RenderableTable(GenericTable):
 ########################################################################
 ######################### all at once ##################################
 ########################################################################
-
-model_list = [
-    Item,
-    Waffen_Werkzeuge,
-    Magazin,
-    Pfeil_Bolzen,
-    Schusswaffen,
-    Magische_Ausrüstung,
-    Rituale_Runen,
-    Rüstungen,
-    Ausrüstung_Technik,
-    Fahrzeug,
-    Einbauten,
-    Zauber,
-    VergessenerZauber,
-    Alchemie,
-    Tinker,
-    Begleiter,
-    Engelsroboter,
-]
-
 
 class FullShopTableView(VerifiedAccountMixin, ExportMixin, SingleTableMixin, TemplateView):
     class Table(RenderableTable):
@@ -272,7 +253,7 @@ class ShopTableView(VerifiedAccountMixin, DynamicTableView):
 
     def get_plus_url(self):
         if not self.model: return super().get_plus_url()
-        return reverse("shop:propose", args=[self.model._meta.model_name])
+        return reverse("shop:propose", args=[self.model])
 
     def get_table_class(self):
         """

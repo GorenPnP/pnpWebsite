@@ -16,17 +16,20 @@ from ..models import *
 
 
 class BuyView(VerifiedAccountMixin, DetailView):
-    class Meta:
-        abstract = True
 
-    template_name = "shop/buy_shop.html"
+    def set_shopmodels(self):
+        self.shop_model = self.kwargs["model"]
+        self.relshop_model = self.shop_model.charakter_set.through
+        self.firmashop_model = self.shop_model.firmen.through
+        self.relfirmashop_model = self.firmashop_model.__dict__[f"relfirma{self.shop_model._meta.model_name}_set"].field.model
 
-    shop_model = None
-    relshop_model = None
-    firmashop_model = None
-    relfirmashop_model = None
+    def get_template_names(self):
+        print(self.kwargs['model']._meta.model_name)
+        return [f"shop/buy_{self.kwargs['model']._meta.model_name}.html", "shop/buy_shop.html"]
 
-    def get(self, request, id=int, *args, **kwargs):
+
+    def get(self, request, id: int, *args, **kwargs):
+        self.set_shopmodels()
 
         firma_shop_entries = self.firmashop_model.objects.filter(item=id)
         item = get_object_or_404(self.shop_model, id=id)
@@ -75,9 +78,11 @@ class BuyView(VerifiedAccountMixin, DetailView):
 
         # for redirect eventually
         context["text"] = "Für dieses Item gibt es keinen Verkäufer."
-        return render(request, self.template_name, context)
+        return render(request, self.get_template_names(), context)
     
-    def post(self, request, id: int):
+    def post(self, request, id: int, *args, **kwargs):
+        self.set_shopmodels()
+
         # def buy_item_post(rit_run=False):
         item = self.shop_model.objects.get(id=id)
 
@@ -189,107 +194,3 @@ class BuyView(VerifiedAccountMixin, DetailView):
 
         messages.success(request, f"{char.name} hat {debt} Dr. für {num_items} Item(s) ausgegeben.")
         return redirect(request.build_absolute_uri())
-
-
-
-
-
-
-# specific buy_shop
-class ItemBuyView(BuyView):
-    shop_model = Item
-    relshop_model = RelItem
-    firmashop_model = FirmaItem
-    relfirmashop_model = RelFirmaItem
-
-class Waffen_WerkzeugeBuyView(BuyView):
-    shop_model = Waffen_Werkzeuge
-    relshop_model = RelWaffen_Werkzeuge
-    firmashop_model = FirmaWaffen_Werkzeuge
-    relfirmashop_model = RelFirmaWaffen_Werkzeuge
-
-class MagazinBuyView(BuyView):
-    shop_model = Magazin
-    relshop_model = RelMagazin
-    firmashop_model = FirmaMagazin
-    relfirmashop_model = RelFirmaMagazin
-
-class Pfeil_BolzenBuyView(BuyView):
-    shop_model = Pfeil_Bolzen
-    relshop_model = RelPfeil_Bolzen
-    firmashop_model = FirmaPfeil_Bolzen
-    relfirmashop_model = RelFirmaPfeil_Bolzen
-
-class SchusswaffenBuyView(BuyView):
-    shop_model = Schusswaffen
-    relshop_model = RelSchusswaffen
-    firmashop_model = FirmaSchusswaffen
-    relfirmashop_model = RelFirmaSchusswaffen
-
-class Rituale_RunenBuyView(BuyView):
-    shop_model = Rituale_Runen
-    relshop_model = RelRituale_Runen
-    firmashop_model = FirmaRituale_Runen
-    relfirmashop_model = RelFirmaRituale_Runen
-
-    template_name = "shop/buy_rituale_runen.html"
-
-class Magische_AusrüstungBuyView(BuyView):
-    shop_model = Magische_Ausrüstung
-    relshop_model = RelMagische_Ausrüstung
-    firmashop_model = FirmaMagische_Ausrüstung
-    relfirmashop_model = RelFirmaMagische_Ausrüstung
-
-class RüstungBuyView(BuyView):
-    shop_model = Rüstungen
-    relshop_model = RelRüstung
-    firmashop_model = FirmaRüstungen
-    relfirmashop_model = RelFirmaRüstung
-
-class Ausrüstung_TechnikBuyView(BuyView):
-    shop_model = Ausrüstung_Technik
-    relshop_model = RelAusrüstung_Technik
-    firmashop_model = FirmaAusrüstung_Technik
-    relfirmashop_model = RelFirmaAusrüstung_Technik
-
-class FahrzeugBuyView(BuyView):
-    shop_model = Fahrzeug
-    relshop_model = RelFahrzeug
-    firmashop_model = FirmaFahrzeug
-    relfirmashop_model = RelFirmaFahrzeug
-
-class EinbautenBuyView(BuyView):
-    shop_model = Einbauten
-    relshop_model = RelEinbauten
-    firmashop_model = FirmaEinbauten
-    relfirmashop_model = RelFirmaEinbauten
-
-class ZauberBuyView(BuyView):
-    shop_model = Zauber
-    relshop_model = RelZauber
-    firmashop_model = FirmaZauber
-    relfirmashop_model = RelFirmaZauber
-
-class VergessenerZauberBuyView(BuyView):
-    shop_model = VergessenerZauber
-    relshop_model = RelVergessenerZauber
-    firmashop_model = FirmaVergessenerZauber
-    relfirmashop_model = RelFirmaVergessenerZauber
-
-class AlchemieBuyView(BuyView):
-    shop_model = Alchemie
-    relshop_model = RelAlchemie
-    firmashop_model = FirmaAlchemie
-    relfirmashop_model = RelFirmaAlchemie
-
-class BegleiterBuyView(BuyView):
-    shop_model = Begleiter
-    relshop_model = RelBegleiter
-    firmashop_model = FirmaBegleiter
-    relfirmashop_model = RelFirmaBegleiter
-
-class EngelsroboterBuyView(BuyView):
-    shop_model = Engelsroboter
-    relshop_model = RelEngelsroboter
-    firmashop_model = FirmaEngelsroboter
-    relfirmashop_model = RelFirmaEngelsroboter
