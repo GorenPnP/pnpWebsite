@@ -23,7 +23,7 @@ from ppServer.utils import ConcatSubquery, display_value
 
 from ..models import *
 
-model_list = [m for m in apps.get_app_config("shop").get_models() if not m._meta.abstract and m._meta.model_name not in ["modifier", "shopcategory"] and not  m._meta.model_name.startswith("firma")]
+shopmodel_list = [m for m in apps.get_app_config("shop").get_models() if not m._meta.abstract and m._meta.model_name not in ["modifier", "shopcategory"] and not  m._meta.model_name.startswith("firma")]
 
 
 def annotate_price(Model: models.Model) -> dict[str, any]:
@@ -167,7 +167,7 @@ class FullShopTableView(VerifiedAccountMixin, ExportMixin, SingleTableMixin, Tem
             topic="ganzer Shop",
             app_index="Shop",
             app_index_url=reverse("shop:index"),
-            model_choices=[('', '--------'), *[(Model._meta.model_name, Model._meta.verbose_name) for Model in model_list]], # for filter of "art"
+            model_choices=[('', '--------'), *[(Model._meta.model_name, Model._meta.verbose_name) for Model in shopmodel_list]], # for filter of "art"
         )
 
     def get_table_data(self):
@@ -188,7 +188,7 @@ class FullShopTableView(VerifiedAccountMixin, ExportMixin, SingleTableMixin, Tem
 
         # get filtered objects
         objects = []
-        for Model in model_list:
+        for Model in shopmodel_list:
 
             # construct base queryset without frei_editierbare instances, apply user-filters and return objects as dicts in list
             objects += Model.objects\
@@ -378,8 +378,8 @@ class RitualeRunenTableView(ShopTableView):
     table_fields = ("icon", "name", "beschreibung", "ab_stufe", "stufe_1", "stufe_2", "stufe_3", "stufe_4", "stufe_5")
 
 
-class RüstungenTableView(ShopTableView):
-    model = Rüstungen
+class RüstungTableView(ShopTableView):
+    model = Rüstung
     filterset_fields = {
         **shop_filter_fields,
         "schutz": ["gte"],

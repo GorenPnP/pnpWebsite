@@ -782,7 +782,7 @@ class Charakter(models.Model):
     schusswaffen = models.ManyToManyField(Schusswaffen, through='character.RelSchusswaffen', blank=True)
     magischeAusrüstung = models.ManyToManyField(Magische_Ausrüstung, through='character.RelMagische_Ausrüstung', blank=True)
     rituale_runen = models.ManyToManyField(Rituale_Runen, through='character.RelRituale_Runen', blank=True)
-    rüstungen = models.ManyToManyField(Rüstungen, through='character.RelRüstung', blank=True)
+    rüstungen = models.ManyToManyField(Rüstung, through='character.RelRüstung', blank=True)
     ausrüstungTechnik = models.ManyToManyField(Ausrüstung_Technik, through='character.RelAusrüstung_Technik', blank=True)
     fahrzeuge = models.ManyToManyField(Fahrzeug, through='character.RelFahrzeug', blank=True)
     einbauten = models.ManyToManyField(Einbauten, through='character.RelEinbauten', blank=True)
@@ -1305,7 +1305,7 @@ class RelRüstung(RelShop):
         verbose_name = "Rüstung"
         verbose_name_plural = "Rüstungen"
 
-    item = models.ForeignKey(Rüstungen, on_delete=models.CASCADE)
+    item = models.ForeignKey(Rüstung, on_delete=models.CASCADE)
 
 
 class RelAusrüstung_Technik(RelShop):
@@ -1466,7 +1466,7 @@ class RelFirmaRüstung(RelFirmaShop):
         verbose_name = "Rüstung Verfügbarkeit"
         verbose_name_plural = "Rüstungen Verfügbarkeiten"
 
-    firma_shop = models.ForeignKey(FirmaRüstungen, on_delete=models.CASCADE)
+    firma_shop = models.ForeignKey(FirmaRüstung, on_delete=models.CASCADE)
 
 
 class RelFirmaAusrüstung_Technik(RelFirmaShop):

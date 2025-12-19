@@ -131,7 +131,7 @@ class Effect(AbstractEffect):
 
     source_shopBegleiter = models.ForeignKey("shop.Begleiter", on_delete=models.CASCADE, null=True, blank=True)
     source_shopMagischeAusrüstung = models.ForeignKey("shop.Magische_Ausrüstung", on_delete=models.CASCADE, null=True, blank=True)
-    source_shopRüstung = models.ForeignKey("shop.Rüstungen", on_delete=models.CASCADE, null=True, blank=True)
+    source_shopRüstung = models.ForeignKey("shop.Rüstung", on_delete=models.CASCADE, null=True, blank=True)
     source_shopAusrüstungTechnik = models.ForeignKey("shop.Ausrüstung_Technik", on_delete=models.CASCADE, null=True, blank=True)
     source_shopEinbauten = models.ForeignKey("shop.Einbauten", on_delete=models.CASCADE, null=True, blank=True)
 

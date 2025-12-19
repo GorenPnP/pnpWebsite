@@ -159,8 +159,8 @@ class FirmaRituale_Runen(models.Model):
     def getPriceStufe5(self):
         return Modifier.getModifier(self.firma, self.item.__class__)(self.stufe_5)
 
-class FirmaRüstungen(FirmaShop):
-    item = models.ForeignKey('Rüstungen', on_delete=models.CASCADE)
+class FirmaRüstung(FirmaShop):
+    item = models.ForeignKey('Rüstung', on_delete=models.CASCADE)
 
 
 class FirmaAusrüstung_Technik(FirmaShop):
@@ -231,7 +231,7 @@ class BaseShop(models.Model):
     @staticmethod
     def getShopDisplayFields():
         return [
-            "name", "beschreibung", "icon", "ab_stufe", "preis",    # preis needs to be added sepatately by firmen->preis/stufe_1
+            "name", "beschreibung", "icon", "ab_stufe", "preis",    # preis needs to be added separately by firmen->preis/stufe_1
             "illegal", "lizenz_benötigt",
         ]
 
@@ -366,7 +366,7 @@ class Rituale_Runen(BaseShop):
         return sorted([getattr(o, "getPriceStufe{}".format(stufe), lambda: None)() for o in offers])[0]
 
 
-class Rüstungen(BaseShop):
+class Rüstung(BaseShop):
     class Meta:
         verbose_name = "Rüstung"
         verbose_name_plural = "Rüstungen"
@@ -377,11 +377,11 @@ class Rüstungen(BaseShop):
     härte = models.PositiveIntegerField(default=0)
     haltbarkeit = models.PositiveIntegerField(default=0)
 
-    firmen = models.ManyToManyField('Firma', through='FirmaRüstungen', blank=True)
+    firmen = models.ManyToManyField('Firma', through='FirmaRüstung', blank=True)
 
     @staticmethod
     def getShopDisplayFields():
-        return super(Rüstungen, Rüstungen).getShopDisplayFields() + ["schutz", "härte", "haltbarkeit"]
+        return super(Rüstung, Rüstung).getShopDisplayFields() + ["schutz", "härte", "haltbarkeit"]
 
 
 class Ausrüstung_Technik(BaseShop):
@@ -418,7 +418,7 @@ class Fahrzeug(BaseShop):
 
     @staticmethod
     def getShopDisplayFields():
-        return super(Fahrzeug, Fahrzeug).getShopDisplayFields() + ["schnelligkeit", "rüstunge", "erfolge", "kategorie"]
+        return super(Fahrzeug, Fahrzeug).getShopDisplayFields() + ["schnelligkeit", "rüstung", "erfolge", "kategorie"]
 
 
 class Einbauten(BaseShop):

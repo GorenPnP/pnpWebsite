@@ -56,8 +56,8 @@ class FirmaRituale_RunenInLine(FirmaShopInLine):
     model = FirmaRituale_Runen
 
 
-class FirmaRüstungenInLine(FirmaShopInLine):
-    model = FirmaRüstungen
+class FirmaRüstungInLine(FirmaShopInLine):
+    model = FirmaRüstung
 
 
 class FirmaAusrüstung_TechnikInLine(FirmaShopInLine):
@@ -239,16 +239,16 @@ class Rituale_RunenAdmin(admin.ModelAdmin):
         return [field.name for field in self.opts.local_fields if field.name != "icon"]
 
 
-class RüstungenAdmin(BaseAdmin):
+class RüstungAdmin(BaseAdmin):
 
-    shop_model = Rüstungen
-    firma_shop_model = FirmaRüstungen
+    shop_model = Rüstung
+    firma_shop_model = FirmaRüstung
 
     list_display = ('name', 'beschreibung', "ab_stufe", 'schutz', 'härte', 'haltbarkeit', 'billigste',
                     'info', "has_implementation")
     list_filter = ['schutz', 'härte', 'haltbarkeit', 'illegal', 'lizenz_benötigt', "frei_editierbar"]
 
-    inlines = [FirmaRüstungenInLine]
+    inlines = [FirmaRüstungInLine]
 
 
 class Ausrüstung_TechnikAdmin(BaseAdmin):
@@ -420,7 +420,7 @@ admin.site.register(Pfeil_Bolzen, Pfeil_BolzenAdmin)
 admin.site.register(Schusswaffen, SchusswaffenAdmin)
 admin.site.register(Magische_Ausrüstung, Magische_AusrüstungAdmin)
 admin.site.register(Rituale_Runen, Rituale_RunenAdmin)
-admin.site.register(Rüstungen, RüstungenAdmin)
+admin.site.register(Rüstung, RüstungAdmin)
 admin.site.register(Ausrüstung_Technik, Ausrüstung_TechnikAdmin)
 admin.site.register(Fahrzeug, FahrzeugAdmin)
 admin.site.register(Einbauten, EinbautenAdmin)

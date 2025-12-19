@@ -7,9 +7,8 @@ from django.views.generic.base import TemplateView
 from changelog.models import Changelog
 from character.models import CustomPermission
 from ppServer.mixins import VerifiedAccountMixin
-from shop.models import Alchemie, Ausrüstung_Technik, Begleiter, Einbauten, Engelsroboter, Fahrzeug, Item, Magazin, Magische_Ausrüstung, Pfeil_Bolzen,\
-                        Rituale_Runen, Rüstungen, Schusswaffen, Tinker, VergessenerZauber, Waffen_Werkzeuge, Zauber
 from news.models import News
+from shop.views.list import shopmodel_list
 from todays_fact.models import History
 
 # clashing Question-models, so in separate namespaces
@@ -18,28 +17,9 @@ from quiz.models import SpielerModule
 
 
 def reviewable_shop() -> list:
-    models = [
-        Alchemie,
-        Ausrüstung_Technik,
-        Begleiter,
-        Einbauten,
-        Engelsroboter,
-        Fahrzeug,
-        Item,
-        Magazin,
-        Magische_Ausrüstung,
-        Pfeil_Bolzen,
-        Rituale_Runen,
-        Rüstungen,
-        Schusswaffen,
-        Tinker,
-        VergessenerZauber,
-        Waffen_Werkzeuge,
-        Zauber,
-    ]
 
     spielleitung_notes = []
-    for m in models:
+    for m in shopmodel_list:
         for i in m.objects.filter(frei_editierbar=True):
             spielleitung_notes.append({"titel": i.name, "model": m,
                                     "url": reverse('admin:shop_{}_change'.format(m.__name__.lower()), args=(i.id,))})

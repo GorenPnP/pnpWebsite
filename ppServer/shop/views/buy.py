@@ -19,12 +19,11 @@ class BuyView(VerifiedAccountMixin, DetailView):
 
     def set_shopmodels(self):
         self.shop_model = self.kwargs["model"]
-        self.relshop_model = self.shop_model.charakter_set.through
+        self.relshop_model = self.shop_model.__dict__[f"rel{self.shop_model._meta.model_name}_set"].field.model
         self.firmashop_model = self.shop_model.firmen.through
         self.relfirmashop_model = self.firmashop_model.__dict__[f"relfirma{self.shop_model._meta.model_name}_set"].field.model
 
     def get_template_names(self):
-        print(self.kwargs['model']._meta.model_name)
         return [f"shop/buy_{self.kwargs['model']._meta.model_name}.html", "shop/buy_shop.html"]
 
 

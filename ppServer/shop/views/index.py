@@ -14,7 +14,7 @@ from base.views import reviewable_shop
 from ppServer.decorators import spielleitung_only, verified_account
 
 from ..models import *
-from .list import model_list
+from .list import shopmodel_list
 
 
 @verified_account
@@ -101,13 +101,13 @@ def transfer_items(request):
 def index(request):
     return render(request, "shop/index.html", {
         "topic": "Shop",
-        "links": [{"link": reverse(f'shop:{m._meta.model_name}_list'), "text": m._meta.verbose_name_plural} for m in model_list],
+        "links": [{"link": reverse(f'shop:{m._meta.model_name}_list'), "text": m._meta.verbose_name_plural} for m in shopmodel_list],
     })
 
 
 @verified_account
 def propose_item(request, model: Model):
-    if model not in model_list: return Http404()
+    if model not in shopmodel_list: return Http404()
 
     ModelForm = forms.modelform_factory(model=model, exclude=["firmen", "frei_editierbar", "has_implementation", "minecraft_mod_id", "wooble_buy_price", "wooble_sell_price"])
     form = ModelForm()
