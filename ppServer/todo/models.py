@@ -18,7 +18,7 @@ class TimeInterval(models.Model):
         ordering = ["start", "end", "category"]
         constraints = [
             models.CheckConstraint(
-                check=models.Q(start__lte=models.F("end")), name="ends_not_earlier_than_start"
+                condition=models.Q(start__lte=models.F("end")), name="ends_not_earlier_than_start"
             ),
         ]
 

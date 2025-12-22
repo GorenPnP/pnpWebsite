@@ -33,6 +33,6 @@ class Migration(migrations.Migration):
         ),
         migrations.AddConstraint(
             model_name='timeinterval',
-            constraint=models.CheckConstraint(check=models.Q(('start__lte', models.F('end'))), name='ends_not_earlier_than_start'),
+            constraint=models.CheckConstraint(condition=models.Q(('start__lte', models.F('end'))), name='ends_not_earlier_than_start'),
         ),
     ]

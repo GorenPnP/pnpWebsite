@@ -1,47 +1,47 @@
-Django==4.2.*						# need django for django. Makes sense, right?
+Django==5.2.*                   # need django for django. Makes sense, right?
 
 # necessary shit
-django-dbbackup==4.0.*                 # db + media backup utility
-tzdata==2022.*                         # used to let django organize time zones
-Pillow==9.4.*				    # image library
-django-resized==1.0.*           # aloow model field to automatically resize an image
-psycopg2-binary==2.9.*			# for postgresql usage
-six==1.16.*                     # generate token for email confirmation on signup
+django-dbbackup==5.1.*          # db + media backup utility
+tzdata==2025.*                  # used to let django organize time zones
+Pillow==12.*				    # image library
+django-resized==1.0.*           # allow model field to automatically resize an image
+psycopg[binary,pool]==3.3.*			        # for postgresql usage
+six==1.17.*                     # generate token for email confirmation on signup
 
 # production env
-channels[daphne]==4.0.*                # ws channels; daphne: prod env for (sync django &) async django channels (via ws)
-Twisted[tls,http2]==22.10.*              # needed for HTTP/2 support of daphne
+channels[daphne]==4.3.*             # ws channels; daphne: prod env for (sync django &) async django channels (via ws) !
+Twisted[tls,http2]==25.5.*         # needed for HTTP/2 support of daphne !
 
 # logging/debug
-sentry-sdk[django]==1.*                # sentry-integration
-django-debug-toolbar==3.8.*            # debug shit when in debug mode (not prod)
+sentry-sdk[django]==2.*             # sentry-integration
+django-debug-toolbar==6.1.*         # debug shit when in debug mode (not prod)
 
-django-bootstrap5==22.*     # styling :)
+django-bootstrap5==25.*     # styling :)
 
 # tables
-tablib==3.3.*               # export table
-django-filter==22.*         # filter queryset-data (for tables)
-django-tables2==2.5.*       # add table-templates
+tablib==3.9.*               # export table
+django-filter==25.1         # filter queryset-data (for tables)
+django-tables2==2.8.*       # add table-templates
 
-django-markdownfield==0.10.* # markdown-modelfield with EasyMD-Richtexteditor & render to html
+django-markdownfield==0.11.*    # markdown-modelfield with EasyMD-Richtexteditor & render to html
 
-XlsxWriter==3.1.*           # Export (characters) to xlsx
+XlsxWriter==3.2.*               # Export (characters) to xlsx
 
 
 django-markdown-view==0.0.* # complete view + template for a .md file
 
 # django model color field
-django-colorfield==0.11.*
+django-colorfield==0.14.*
 
 # py-vapid==1.9.*   # only needed to generate a keypair for web-pushies
-pywebpush==2.0.*                        # dependency of django-push-notifications[WP]
-django-push-notifications[WP]==3.2.*    # send web-pushies
+pywebpush==2.1.*                        # dependency of django-push-notifications[WP]
+django-push-notifications[WP]==3.3.*    # send web-pushies
 
 
-django_redis==5.4.*
-django-prometheus==2.3.*
+django_redis==6.0.*
+django-prometheus==2.4.*
 
 
-crispy-bootstrap5==2024.*   # char nachtragen complex forms & formsets
+crispy-bootstrap5==2025.*   # char nachtragen complex forms & formsets
 
 django-password-eye==1.1.*   # adds widget for password fields with eye-button to toggle visibility

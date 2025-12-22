@@ -6,7 +6,6 @@ from character.models import Spieler
 from webPush.models import *
 from .models import Image, File, ModuleQuestion, RelQuiz, SpielerQuestion, SpielerSession, Module, module_state, Question, SpielerModule
 
-User = get_user_model()
 
 # to save the old picture-name in answer_note, before changed (against cheating)
 @receiver(pre_save, sender=Image)
@@ -275,4 +274,5 @@ def send_pushies_on_update_of_spielermodule_state(sender, instance, **kwargs):
         title = "Quiz: Modul beantwortet" if new_state == 3 else "Quiz: Modul angesehen"
         message = f"{instance.spieler} hat {message} " + ("beantwortet" if new_state == 3 else "angesehen")
 
+        User = get_user_model()
         return PushSettings.send_message(User.objects.all(), title, message, PushTag.quiz_control)

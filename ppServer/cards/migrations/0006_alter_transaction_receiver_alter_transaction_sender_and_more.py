@@ -23,6 +23,6 @@ class Migration(migrations.Migration):
         ),
         migrations.AddConstraint(
             model_name='transaction',
-            constraint=models.CheckConstraint(check=models.Q(models.Q(('sender', None), _negated=True), models.Q(('receiver', None), _negated=True), _connector='OR'), name='at least one of sender or receiver set', violation_error_message='Mindestens einer von Sender und Empfänger muss gesetzt sein'),
+            constraint=models.CheckConstraint(condition=models.Q(models.Q(('sender', None), _negated=True), models.Q(('receiver', None), _negated=True), _connector='OR'), name='at least one of sender or receiver set', violation_error_message='Mindestens einer von Sender und Empfänger muss gesetzt sein'),
         ),
     ]

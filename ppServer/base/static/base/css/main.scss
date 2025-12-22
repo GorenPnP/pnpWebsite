@@ -18,6 +18,20 @@ body {
 	background-color: var(--background-color--main);
 	--bs-body-color: var(--bs-light);
 }
+input, textarea, select, option {
+	--bs-body-color: var(--bs-dark);
+}
+.form-text, .text-muted {
+	color: var(--bs-body-color);
+	--bs-secondary-color: var(--bs-body-color);
+	opacity: .6;
+}
+.dropdown-menu, .input-group-text {
+	--bs-body-color: var(--bs-dark);
+}
+.list-group-item {
+	--bs-list-group-color: var(--bs-dark);
+}
 .modal {
 	--bs-modal-color: var(--bs-dark);
 }

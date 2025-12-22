@@ -13,7 +13,6 @@ from base.crispy_form_decorator import crispy
 
 from django_password_eye.widgets import PasswordEyeWidget
 
-User = get_user_model()
 
 @crispy(form_tag=False)
 class LoginForm(AuthenticationForm):
@@ -26,13 +25,13 @@ class LoginForm(AuthenticationForm):
 @crispy(form_tag=False)
 class SignupForm(UserCreationForm):
     class Meta:
-        model = User
+        model = get_user_model()
         fields = ('username', 'email', 'password1', 'password2')
 
     email = forms.EmailField(max_length=200, validators=[EmailValidator], required=True)
 
     def clean_email(self):
-        if self.cleaned_data["email"] and User.objects.filter(email=self.cleaned_data["email"]).exists():
+        if self.cleaned_data["email"] and self.model.objects.filter(email=self.cleaned_data["email"]).exists():
             raise forms.ValidationError("Die E-Mail ist bereits vergeben")
         return self.cleaned_data["email"]
 
@@ -40,7 +39,7 @@ class SignupForm(UserCreationForm):
 @crispy(form_tag=False)
 class ChangeEmailForm(forms.ModelForm):
     class Meta:
-        model = User
+        model = get_user_model()
         fields = ('email',)
 
     email = forms.EmailField(max_length=200, validators=[EmailValidator], required=True)

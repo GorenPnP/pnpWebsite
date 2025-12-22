@@ -150,16 +150,29 @@ DATABASES = {
         'USER': os.environ.get('DATABASE_USER'),
         'PASSWORD': os.environ.get('DATABASE_PASSWORD'),
         'HOST': os.environ.get('DATABASE_HOST'),
-        'PORT': os.environ.get('DATABASE_PORT')
+        'PORT': os.environ.get('DATABASE_PORT'),
+        'CONN_MAX_AGE': 0,
     }
+}
+
+# storages, see https://docs.djangoproject.com/en/4.2/ref/settings/#storages
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+    },
 }
 
 
 ###################################################
 # dbbackup config
-DBBACKUP_STORAGE = 'django.core.files.storage.FileSystemStorage'
-DBBACKUP_STORAGE_OPTIONS = {
-    'location': os.path.join(BASE_DIR, 'backups')
+STORAGES['dbbackup'] = {
+    'BACKEND': 'django.core.files.storage.FileSystemStorage',
+    'OPTIONS': {
+        'location': os.path.join(BASE_DIR, 'backups'),
+    },
 }
 DBBACKUP_FILENAME_TEMPLATE = 'postgres_{datetime}.{extension}'
 DBBACKUP_MEDIA_FILENAME_TEMPLATE = 'media_{datetime}.{extension}'

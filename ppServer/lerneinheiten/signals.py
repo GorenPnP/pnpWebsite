@@ -4,6 +4,7 @@ from django.dispatch import receiver
 
 from .models import Page
 
+
 # set default number for pages on page creation
 @receiver(pre_save, sender=Page)
 def set_to_last_number_on_create(sender, instance, **kwargs):

@@ -1,12 +1,12 @@
 from django.contrib.auth import get_user_model
 from django.contrib.auth.backends import ModelBackend
 
-User = get_user_model()
 
 class EmailOrUsernameBackend(ModelBackend):
     """ allows to use the user's email as username during login """
     
     def authenticate(self, request, username=None, password=None, **kwargs):
+        User = get_user_model()
 
         # try getting value from kwargs, e.g. by key 'email'
         if username is None: username = kwargs.get(User.USERNAME_FIELD)

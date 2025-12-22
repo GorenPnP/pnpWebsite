@@ -18,7 +18,6 @@ from ppServer.mixins import SpielleitungOnlyMixin, VerifiedAccountMixin
 from .forms import *
 from .models import *
 
-User = get_user_model()
 
 class EditorIndexView(VerifiedAccountMixin, SpielleitungOnlyMixin, ListView):
     model = Einheit
@@ -145,7 +144,7 @@ class AccessPageView(VerifiedAccountMixin, SpielleitungOnlyMixin, ListView):
         )
 
     def get_queryset(self) -> QuerySet[Any]:
-        self.larp_users = [user for user in User.objects.all() if user.has_perm(CustomPermission.LARP.value)]
+        self.larp_users = [user for user in get_user_model().objects.all() if user.has_perm(CustomPermission.LARP.value)]
         return super().get_queryset()\
             .filter(user__in=self.larp_users)\
             .prefetch_related("spielereinheit_set__einheit")

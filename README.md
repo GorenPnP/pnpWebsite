@@ -196,3 +196,7 @@ https://cloud.google.com/sdk/docs/install?hl=de#deb
   ```
 - restart docker systemprocess `sudo systemctl restart docker`
 - restart all containers `docker-compose ... up --force-recreate`
+
+
+# Test if ready for Production, including security
+`python manage.py check --deploy`

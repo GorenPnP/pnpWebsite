@@ -15,19 +15,19 @@ class Card(models.Model):
         constraints = [
             # name <> char
             models.CheckConstraint(
-                check=(Q(name=None) & ~Q(char=None)) | (~Q(name=None) & Q(char=None)),
+                condition=(Q(name=None) & ~Q(char=None)) | (~Q(name=None) & Q(char=None)),
                 name="either name or char set",
                 violation_error_message="Entweder Name oder Charakter muss angegeben sein"
             ),
             # name ++ spieler
             models.CheckConstraint(
-                check=(Q(name=None) & Q(spieler=None)) | (~Q(name=None) & ~Q(spieler=None)),
+                condition=(Q(name=None) & Q(spieler=None)) | (~Q(name=None) & ~Q(spieler=None)),
                 name="spieler set exactly when name is set",
                 violation_error_message="Entweder Charakter oder Name mit Spieler muss angegeben sein"
             ),
             # char has to have active=True
             models.CheckConstraint(
-                check=Q(char=None) | Q(active=True),
+                condition=Q(char=None) | Q(active=True),
                 name="char's account needs to stay active",
                 violation_error_message="Bankaccount eines Charakters muss aktiv sein"
             ),
@@ -74,7 +74,7 @@ class Transaction(models.Model):
         constraints = [
             # at least one of sender or receiver is set
             models.CheckConstraint(
-                check=~Q(sender=None) | ~Q(receiver=None),
+                condition=~Q(sender=None) | ~Q(receiver=None),
                 name="at least one of sender or receiver set",
                 violation_error_message="Mindestens einer von Sender und Empfänger muss gesetzt sein"
             ),

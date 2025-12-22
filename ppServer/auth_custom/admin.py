@@ -25,6 +25,5 @@ class CustomUserAdmin(UserAdmin):
     admin.boolean = True
 
 # Re-register UserAdmin
-User = get_user_model()
-admin.site.unregister(User)
-admin.site.register(User, CustomUserAdmin)
+admin.site.unregister(get_user_model())
+admin.site.register(get_user_model(), CustomUserAdmin)

@@ -3,7 +3,6 @@ from datetime import datetime
 from django.contrib.auth import get_user_model
 from django.db import models
 
-User = get_user_model()
 
 class Tag(models.Model):
 
@@ -19,6 +18,8 @@ class Tag(models.Model):
 
 
 class Day(models.Model):
+
+    User = get_user_model()
 
     class Meta:
         verbose_name = "Terminabsprache"
@@ -131,7 +132,7 @@ class Proposal(models.Model):
 
     day = models.ForeignKey(Day, on_delete=models.CASCADE)
 
-    player = models.ForeignKey(User, on_delete=models.CASCADE)
+    player = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
     order = models.PositiveSmallIntegerField()
 
     start = models.TimeField(default=default_time)

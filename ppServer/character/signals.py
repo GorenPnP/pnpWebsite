@@ -4,10 +4,8 @@ from django.dispatch import receiver
 
 from .models import *
 
-User = get_user_model()
 
-
-@receiver(post_save, sender=User)
+@receiver(post_save, sender=get_user_model())
 def create_spieler(created: bool, instance, **kwargs):
     if created:
         Spieler.objects.get_or_create(user=instance)

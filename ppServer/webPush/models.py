@@ -8,7 +8,6 @@ from django.urls import reverse
 from character.models import CustomPermission
 from push_notifications.models import WebPushDevice
 
-User = get_user_model()
 
 class PushTag(enum.Enum):
     chat = "chat"
@@ -22,6 +21,8 @@ class PushTag(enum.Enum):
     other = None
 
 class PushSettings(models.Model):
+
+    User = get_user_model()
 
     class Meta:
         ordering = ["user"]

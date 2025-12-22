@@ -19,7 +19,6 @@ from shop.models import *
 
 from . import enums
 
-User = get_user_model()
 
 class CustomPermission(enum.Enum):
     """ not used in templates in favor of easier, literal 'perms.character.is_Spielleitung', ... """
@@ -59,7 +58,7 @@ class Spieler(models.Model):
         ('e', 'Hochelfisch'),
     ]
 
-    user = models.OneToOneField(User, on_delete=models.CASCADE, blank=False, null=False)
+    user = models.OneToOneField(get_user_model(), on_delete=models.CASCADE, blank=False, null=False)
     geburtstag = models.DateField(null=True, blank=True)
 
     language = models.CharField(max_length=1, choices=LANGUAGE_ENUM, default=LANGUAGE_ENUM[0][0], verbose_name="Sprache")

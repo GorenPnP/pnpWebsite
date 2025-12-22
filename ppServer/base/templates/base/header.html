@@ -79,7 +79,10 @@
 				{% block collapsible-nav-links-end %}
 
 					<li class="nav-item">
-						<a class="btn btn-outline-light p-2" href="{% url 'auth:logout' %}">Logout</a>
+						<form method="post" action="{% url 'auth:logout' %}">
+							{% csrf_token %}
+							<button type="submit" class="btn btn-outline-light p-2">Logout</button>
+						</form>
 					</li>
 				{% endblock %}
 				</ul>

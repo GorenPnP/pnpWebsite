@@ -4,6 +4,7 @@ from django.dispatch import receiver
 from .models import Modifier, ShopCategory, Tinker
 from . import enums
 
+
 @receiver(post_save, sender=Modifier)
 def populate_categories(sender, *args, **kwargs):
     allCategories = [k.kategorie for k in ShopCategory.objects.all()]

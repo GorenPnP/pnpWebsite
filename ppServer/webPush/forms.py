@@ -10,7 +10,6 @@ from push_notifications.models import WebPushDevice
 
 from .models import *
 
-User = get_user_model()
 
 class RegisterWebPushDeviceForm(forms.ModelForm):
     class Meta:
@@ -33,7 +32,7 @@ class SendMessageForm(forms.Form):
     tag = forms.ChoiceField(required=False, choices=tuple((i.value, i.name) for i in PushTag), help_text="Der Browser ersetzt die letzte Nachricht mit dem Tag durch diese, anstatt beide Nachrichten gleichzeitig anzuzeigen")
 
     recipients = forms.ModelMultipleChoiceField(
-        queryset=User.objects.annotate(keep=Exists(WebPushDevice.objects.filter(user__pk=OuterRef("pk")))).filter(keep=True),
+        queryset=get_user_model().objects.annotate(keep=Exists(WebPushDevice.objects.filter(user__pk=OuterRef("pk")))).filter(keep=True),
         widget=forms.widgets.CheckboxSelectMultiple,
         label="Nachricht senden an",
         required=True,
@@ -52,7 +51,7 @@ class SendMessageForm(forms.Form):
 @crispy(form_tag=False)
 class UserSettingsForm(forms.ModelForm):
     class Meta:
-        model = User
+        model = get_user_model()
         fields = ["username", "first_name", "last_name"]
     
     def get_layout(self):

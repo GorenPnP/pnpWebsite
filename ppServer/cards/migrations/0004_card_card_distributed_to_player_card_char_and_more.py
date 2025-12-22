@@ -34,14 +34,14 @@ class Migration(migrations.Migration):
         ),
         migrations.AddConstraint(
             model_name='card',
-            constraint=models.CheckConstraint(check=models.Q(models.Q(('name', None), models.Q(('char', None), _negated=True)), models.Q(models.Q(('name', None), _negated=True), ('char', None)), _connector='OR'), name='either name or char set', violation_error_message='Entweder Name oder Charakter muss angegeben sein'),
+            constraint=models.CheckConstraint(condition=models.Q(models.Q(('name', None), models.Q(('char', None), _negated=True)), models.Q(models.Q(('name', None), _negated=True), ('char', None)), _connector='OR'), name='either name or char set', violation_error_message='Entweder Name oder Charakter muss angegeben sein'),
         ),
         migrations.AddConstraint(
             model_name='card',
-            constraint=models.CheckConstraint(check=models.Q(models.Q(('name', None), ('spieler', None)), models.Q(models.Q(('name', None), _negated=True), models.Q(('spieler', None), _negated=True)), _connector='OR'), name='spieler set exactly when name is set', violation_error_message='Entweder Charakter oder Name mit Spieler muss angegeben sein'),
+            constraint=models.CheckConstraint(condition=models.Q(models.Q(('name', None), ('spieler', None)), models.Q(models.Q(('name', None), _negated=True), models.Q(('spieler', None), _negated=True)), _connector='OR'), name='spieler set exactly when name is set', violation_error_message='Entweder Charakter oder Name mit Spieler muss angegeben sein'),
         ),
         migrations.AddConstraint(
             model_name='card',
-            constraint=models.CheckConstraint(check=models.Q(('char', None), ('active', True), _connector='OR'), name="char's account needs to stay active", violation_error_message='Bankaccount eines Charakters muss aktiv sein'),
+            constraint=models.CheckConstraint(condition=models.Q(('char', None), ('active', True), _connector='OR'), name="char's account needs to stay active", violation_error_message='Bankaccount eines Charakters muss aktiv sein'),
         ),
     ]

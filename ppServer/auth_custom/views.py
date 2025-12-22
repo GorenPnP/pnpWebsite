@@ -16,7 +16,6 @@ from ppServer.decorators import verified_account
 
 from .forms import ChangeEmailForm, SignupForm
 
-User = get_user_model()
 
 class TokenGenerator(PasswordResetTokenGenerator):
     def _make_hash_value(self, user, timestamp):
@@ -97,6 +96,8 @@ def change_email(request):
 
 
 def activate(request, uidb64, token):
+    User = get_user_model()
+
     try:
         uid = force_str(urlsafe_base64_decode(uidb64))
         user = User.objects.get(pk=uid)
