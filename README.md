@@ -200,3 +200,29 @@ https://cloud.google.com/sdk/docs/install?hl=de#deb
 
 # Test if ready for Production, including security
 `python manage.py check --deploy`
+
+
+
+# update all containers, including db version on prod
+
+## create db backup and copy to server
+- `docker exec pnp-web python3 manage.py dbbackup`
+- `docker cp pnp-web:/home/ppServer/web/backups/. ./postgresbackup/`
+
+## rm all containers to start fresh
+- stop all containers `docker compose -f docker-compose.prod.yml down`
+- rm all containers & images `docker container prune` `docker image prune -a`
+
+## rm postgres volume
+- `docker volume ls`
+- `docker volume remove pnpwebsite_postgres_data`
+- `docker volume ls`
+
+## update postgres
+- change port settings for the db-service. Replace `expose: -5432` to `ports: -5432:5432` in docker-compose.prod.yml 
+- start db again `docker-compose -f docker-compose.prod.yml up -d db`
+- apply backup `pg_restore -U admin -d goren_db -1 postgresbackup/*.psql.bin`
+- enter db password when prompted
+- change port settings back. Replace `ports: -5432:5432` to `expose: -5432` in docker-compose.prod.yml 
+- restart everything `docker-compose -f docker-compose.prod.yml up -d`
+- `rm -rf ./postgresbackup`

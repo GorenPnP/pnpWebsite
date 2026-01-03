@@ -1,0 +1,13 @@
+{% extends 'base/main.html' %}
+{% load static %}
+{% block title %}Registrieren{% endblock %}
+{% block extra-head %}
+<link rel="stylesheet" href="{% static 'auth/css/centered_form.css' %}">{% endblock %}
+{% block main %}
+<div class="text-container">
+	<h1>Registrieren</h1>
+	<p>Eine Email ist auf dem Weg zu dir. Klicke auf den darin enthaltenen Link um Registrierung abzuschließen.</p>
+
+	<p>Möglicherweise ist sie im Spam-Ordner gelandet, also schau auch dort nach.</p>
+</div>
+{% endblock %}

@@ -1,0 +1,5 @@
+{% autoescape off %}
+Hi {{ user.username }},
+Klicke auf den Link um deine Email zu verifizieren und dich damit zu registrieren.
+http://{{ domain }}{% url 'auth:activate' uidb64=uid token=token %}
+{% endautoescape %}

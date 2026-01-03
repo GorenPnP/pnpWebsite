@@ -1,55 +1,74 @@
 # pull official base image
-FROM ubuntu:22.04
+FROM dhi.io/python:3.14-alpine3.22-dev AS builder
 
-# create the app user
-RUN adduser --force-badname ppServer
+
+##### folder structure ######
 
 # create the appropriate directories
-ENV APP_HOME=/home/ppServer/web
-
-RUN mkdir $APP_HOME
-RUN [ -d $APP_HOME/static ] || mkdir $APP_HOME/static
-RUN [ -d $APP_HOME/media ] || mkdir $APP_HOME/media
-
-WORKDIR $APP_HOME
-
-# set Europe/Berlin as timezone. (install tzdata later with apt-get)
-RUN ln -fs /usr/share/zoneinfo/Europe/Berlin /etc/localtime
+WORKDIR /var
+ENV PATH="/var/deps/bin:$PATH"
 
 
-# add repo for postgresql-client 15
-RUN apt-get update && apt-get install -y dirmngr ca-certificates software-properties-common gnupg gnupg2 apt-transport-https curl
-RUN curl -fSsL https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor | tee /usr/share/keyrings/postgresql.gpg > /dev/null
-RUN echo deb [arch=amd64,arm64,ppc64el signed-by=/usr/share/keyrings/postgresql.gpg] http://apt.postgresql.org/pub/repos/apt/ jammy-pgdg main | tee -a /etc/apt/sources.list.d/postgresql.list
+##### PIP ######
 
-# add repo for nodejs/npm
-RUN apt-get update && apt-get install -y curl
-RUN curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor | tee /usr/share/keyrings/nodejs.gpg > /dev/null
-RUN echo deb [signed-by=/usr/share/keyrings/nodejs.gpg] https://deb.nodesource.com/node_18.x nodistro main | tee /etc/apt/sources.list.d/nodesource.list
-
-# dependencies:
-# - python3-pip for pip3
-# - netcat for nc in entrypoint.sh
-# - postgresql-client-15 for dbbackup
-# - tzdata for correct time zome (especially in chat)
-RUN apt-get update && apt-get upgrade -y
-RUN apt-get install -y postgresql-client-15 nodejs python3-pip netcat tzdata language-pack-de-base
-
-# copy project
-COPY . .
-
-# install dependencies
-RUN pip3 install -r requirements.txt
-
-# install shit via npm
-RUN npm update npm && npm i opencollective && npm i
+RUN python -m venv ./deps
+COPY requirements.txt ./
+RUN pip install --no-cache-dir -r requirements.txt
 
 
-# # chown all the files to the app user
-# RUN chown -R ppServer:ppServer $APP_HOME
+##### NPM ######
 
-# # change to the app user
-# USER ppServer
+# install
+RUN apk add --update npm
 
-# run entrypoint.prod.sh
-ENTRYPOINT ["/home/ppServer/web/entrypoint.prod.sh"]
+# Copy config
+COPY package.json ./
+
+# install tools
+RUN npm install --no-package-lock
+
+# copy project to work on
+COPY backend www/
+RUN [ -d ./www/static ] || mkdir ./www/static
+RUN [ -d ./www/media ] || mkdir ./www/media
+
+##### -> SASS ######
+RUN npx sass ./www --update --no-source-map
+
+# ##### -> TS ######
+
+# Copy config
+COPY tsconfig.json ./
+RUN npx tsc --project ./ || true
+
+
+
+# Runtime stage
+FROM dhi.io/python:3.14-alpine3.22 AS runtime
+
+# Set environment variables for Python
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+ENV PATH="/var/deps/bin:$PATH"
+
+USER nonroot:nonroot
+
+# COPY --from=builder /usr/share/zoneinfo/Europe/Berlin /usr/share/zoneinfo/Europe/Berlin
+# RUN ln -sf /usr/share/zoneinfo/Europe/Berlin /etc/localtime
+
+# Set the working directory in the container
+WORKDIR /var/www
+
+
+# Install Python packages from the build-stage wheels
+COPY --from=builder --chown=nonroot:nonroot /var/deps /var/deps/
+
+
+# copy all application files
+COPY --from=builder --chown=nonroot:nonroot /var/www /var/www/
+
+
+# Set the entrypoint to start the application
+COPY --chown=nonroot:nonroot entrypoint.*.py gunicorn.conf.py ./
+ENTRYPOINT ["python"]
+CMD ["entrypoint.prod.py"]

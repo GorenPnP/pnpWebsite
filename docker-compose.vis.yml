@@ -1,11 +1,9 @@
-version: '3.7'
-
 services:
 
   # MONITORING
 
   node-exporter:
-    image: prom/node-exporter:latest
+    image: dhi.io/node-exporter:1-debian13
     container_name: node-exporter
     volumes:
       - /proc:/host/proc:ro
@@ -52,7 +50,7 @@ services:
 
 
   cadvisor-redis:
-    image: redis:latest 
+    image: dhi.io/redis:8-debian13 
     container_name: cadvisor-redis 
     ports: 
       - 6379:6379 
@@ -66,7 +64,7 @@ services:
 
 
   prometheus:
-    image: prom/prometheus:latest
+    image: dhi.io/prometheus:3-debian13
     container_name: prometheus
     user: 1000:1000
     expose:
@@ -92,7 +90,7 @@ services:
   # LOGGING
 
   promtail:
-    image: grafana/promtail:latest
+    image: dhi.io/promtail:3-debian13
     container_name: promtail
     volumes:
       - /var/log:/var/log:ro
@@ -111,7 +109,7 @@ services:
         max-size: "10m"
 
   loki:
-    image: grafana/loki:latest
+    image: dhi.io/loki:3-debian13
     container_name: loki
     ports:
       - 3100:3100
@@ -133,7 +131,7 @@ services:
   # GRAFANA
 
   grafana:
-    image: grafana/grafana-oss:latest
+    image: dhi.io/grafana:12-debian13
     container_name: grafana
     user: 1000:1000
     networks:

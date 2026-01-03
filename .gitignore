@@ -1,7 +1,7 @@
 # django components
-media/
+ppServer/backend/media/
 # generated static folder (but also the one next to settings.py, should it exist)
-ppServer/static/
+ppServer/backend/static/
 
 __pycache__/
 
@@ -13,11 +13,11 @@ __pycache__/
 *.css**
 *.sass.map
 *.scss.map
-!ppServer/base/static/res/css/*.css
-ppserver/time_space/static/time_space/**/*.js
-ppServer/lerneinheiten/static/lerneinheiten/**/*.js
-ppserver/politics/static/politics/**/*.js
-ppServer/base/static/res/js/paint_canvas/*.js
+!ppServer/backend/base/static/res/css/*.css
+ppserver/backend/time_space/static/time_space/**/*.js
+ppServer/backend/lerneinheiten/static/lerneinheiten/**/*.js
+ppserver/backend/politics/static/politics/**/*.js
+ppServer/backend/base/static/res/js/paint_canvas/*.js
 
 # IDEs
 .idea
@@ -28,8 +28,8 @@ backups/
 certbot/cloudflare.ini
 /log/
 node_modules/
-ppServer/venv/
-ppServer/webPush/certs/
+venv/
+ppServer/backend/webPush/certs/
 
 grafana/data/
 prometheus/data/

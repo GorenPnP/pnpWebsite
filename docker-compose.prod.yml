@@ -1,6 +1,30 @@
-version: '3.7'
-
 services:
+
+  db:
+    container_name: pnp-db
+    image: dhi.io/postgres:18-alpine3.22
+    restart: unless-stopped
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    networks:
+      - goren
+    expose:
+      - 5432
+    env_file:
+      - ./.env.prod.db
+    logging:
+      driver: "json-file"
+      options:
+        max-file: "5"
+        max-size: "10m"
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "5432"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
 
   # CORE
 
@@ -10,10 +34,9 @@ services:
     build:
       context: ./ppServer
       dockerfile: Dockerfile.prod
-    command: daphne -b 0.0.0.0 -p 8000 ppServer.asgi:application # gunicorn ppServer.wsgi:application --bind 0.0.0.0:8000 --workers=3
     volumes:
-      - static_volume:/home/ppServer/web/static
-      - media_volume:/home/ppServer/web/media
+      - static_volume:/var/www/static
+      - media_volume:/var/www/media
     networks:
       - goren
       - nginx
@@ -29,34 +52,15 @@ services:
     security_opt:
       - no-new-privileges:true
     depends_on:
-      - db
-
-  db:
-    container_name: pnp-db
-    image: postgres:15-alpine
-    restart: unless-stopped
-    volumes:
-      - postgres_data:/var/lib/postgresql/data/
-    networks:
-      - goren
-    expose:
-      - 5432
-    env_file:
-      - ./.env.prod.db
-    logging:
-      driver: "json-file"
-      options:
-        max-file: "5"
-        max-size: "10m"
-    security_opt:
-      - no-new-privileges:true
+      db:
+        condition: service_healthy
 
 
   # WEBSERVER
 
   nginx:
     container_name: pnp-webserver
-    image: nginx:latest
+    image: dhi.io/nginx:1-alpine3.21-dev
     restart: unless-stopped
     networks:
       - nginx
@@ -64,11 +68,11 @@ services:
       - 80:80
       - 443:443
     volumes:
-      - /home/debian/pnpWebsite/nginx:/etc/nginx:ro
-      - /home/debian/pnpWebsite/log/nginx:/var/log/nginx/
+      - ./nginx:/etc/nginx:ro
+      - ./log/nginx:/var/log/nginx/
 
-      - static_volume:/home/ppServer/web/static:ro
-      - media_volume:/home/ppServer/web/media:ro
+      - static_volume:/var/www/static:ro
+      - media_volume:/var/www/media:ro
 
       - /etc/letsencrypt:/etc/letsencrypt:ro
     security_opt:
