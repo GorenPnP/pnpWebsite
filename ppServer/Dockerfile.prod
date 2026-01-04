@@ -29,8 +29,6 @@ RUN npm install --no-package-lock
 
 # copy project to work on
 COPY backend www/
-RUN [ -d ./www/static ] || mkdir ./www/static
-RUN [ -d ./www/media ] || mkdir ./www/media
 
 ##### -> SASS ######
 RUN npx sass ./www --update --no-source-map
