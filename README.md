@@ -14,13 +14,13 @@ Domain purchased from [GoDaddy](https://dcc.godaddy.com/control/goren-pnp.de/dns
 
 Nameserver from [Cloudflare](https://dash.cloudflare.com/354217e3b0c6583d323ac8fe5cdde94a/goren-pnp.de)
 
-SSL-Cert from LetsEncrypt for goren-pnp.de (auto-renew because of nginx-proxy-letsencrypt, see docker-compose.prod.yml)
+SSL-Cert from LetsEncrypt for goren-pnp.de on machine, not dockerized
 
 Hosted on [OVH Cloud](https://www.ovh.com/manager/dedicated/#/vps/vps-fbeb6d68.vps.ovh.net/dashboard)
 
 [Sentry-monitoring](https://sentry.io/organizations/i-org/issues/?project=6128752)
 
-## Dependencies for Django Backend (outdated, should update to Django 4)
+## Dependencies for Django Backend (outdated, should update to Django 5)
 
 Update via `pip freeze > .\requirements.txt`
 
@@ -217,6 +217,7 @@ https://cloud.google.com/sdk/docs/install?hl=de#deb
 - `docker volume ls`
 - `docker volume remove pnpwebsite_postgres_data`
 - `docker volume ls`
+- remove static & media volumes as well, just in case the user in django's Dockerfile changed and the new one will not have the correct permissions
 
 ## update postgres
 - change port settings for the db-service. Replace `expose: -5432` to `ports: -5432:5432` in docker-compose.prod.yml 

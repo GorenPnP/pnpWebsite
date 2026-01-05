@@ -350,9 +350,3 @@ PUSH_NOTIFICATION_KEY = os.environ.get('PUSH_NOTIFICATION_KEY')
 # PROMETHEUS
 PROMETHEUS_EXPORT_MIGRATIONS = os.environ.get("PROMETHEUS_EXPORT_MIGRATIONS", True)
 # PROMETHEUS_METRIC_NAMESPACE='local'
-
-CACHES = {
-    "default": {
-        "BACKEND": "django_prometheus.cache.backends.redis.RedisCache",
-    }
-}

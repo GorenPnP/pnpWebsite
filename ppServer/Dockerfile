@@ -1,40 +1,70 @@
 # pull official base image
-FROM ubuntu:20.04
+FROM dhi.io/python:3.14-alpine3.22-dev AS builder
 
-# set work directory
-WORKDIR /usr/src/ppServer
 
-# set environment variables
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV PYTHONUNBUFFERED 1
+##### folder structure ######
 
-# set Europe/Berlin as timezone. (install tzdata later with apt-get)
-RUN ln -fs /usr/share/zoneinfo/Europe/Berlin /etc/localtime
+# create the appropriate directories
+WORKDIR /var
+ENV PATH="/var/deps/bin:$PATH"
 
-# dependencies:
-# - python3-pip for pip3
-# - netcat for nc in entrypoint.sh
-# - postgresql-client-12 for dbbackup
-# - curl for nodejs for npm
-RUN apt-get update && apt-get install -y python3-pip netcat postgresql-client-12 curl tzdata language-pack-de-base
 
-# exec install script for npm v14 by curl
-RUN curl -sL https://deb.nodesource.com/setup_14.x | bash
-# and install nodejs for npm
-RUN apt-get install -y nodejs
+##### PIP ######
 
-# install dependencies
-COPY ./requirements.txt .
-RUN pip3 install -r requirements.txt
+RUN python -m venv ./deps
+COPY requirements.txt ./
+RUN pip install --no-cache-dir -r requirements.txt
 
-# copy entrypoint.sh
-COPY ./entrypoint.sh .
 
-# copy project
-COPY . .
+##### NPM ######
 
-# install shit via npm
-RUN npm update npm && npm i
+# install
+RUN apk add --update npm
 
-# run entrypoint.sh
-ENTRYPOINT ["/usr/src/ppServer/entrypoint.sh"]
+# Copy config
+COPY package.json ./
+
+# install tools
+RUN npm install --no-package-lock
+
+# copy project to work on
+COPY backend www/
+
+##### -> SASS ######
+RUN npx sass ./www --update --no-source-map
+
+# ##### -> TS ######
+
+# Copy config
+COPY tsconfig.json ./
+RUN npx tsc --project ./ || true
+
+
+
+# Runtime stage
+FROM dhi.io/python:3.14-alpine3.22 AS runtime
+LABEL version="5.2"
+
+# Set environment variables for Python
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+ENV PATH="/var/deps/bin:$PATH"
+
+USER nonroot:nonroot
+
+# Set the working directory in the container
+WORKDIR /var/www
+
+
+# Install Python packages from the build-stage wheels
+COPY --from=builder --chown=nonroot:nonroot /var/deps /var/deps/
+
+
+# copy all application files
+COPY --from=builder --chown=nonroot:nonroot /var/www /var/www/
+
+
+# Set the entrypoint to start the application
+COPY --chown=nonroot:nonroot entrypoint.*.py gunicorn.conf.py ./
+ENTRYPOINT ["python"]
+CMD ["entrypoint.prod.py"]

@@ -33,3 +33,6 @@ ppServer/backend/webPush/certs/
 
 grafana/data/
 prometheus/data/
+
+# only used locally for dev
+ppServer/backend/entrypoint.dev.py

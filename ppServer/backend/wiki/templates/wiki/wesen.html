@@ -58,7 +58,7 @@
                     <a class="card text-decoration-none" href="{% url 'wiki:stufenplan' gfs.id %}">
                         <img src="{% if gfs.gfsimage_set.count %}{{ gfs.gfsimage_set.first.img.url }}{% else %}{% static 'res/img/goren_logo.svg' %}{% endif %}" class="card-img-top" loading="lazy">
                         <div class="card-body">
-                          <p class="card-text">{{ gfs.titel }}</p>
+                          <p class="card-text text-dark">{{ gfs.titel }}</p>
                         </div>
                     </a>
                     {% endfor %}

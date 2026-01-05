@@ -1,5 +1,4 @@
 services:
-
   db:
     container_name: pnp-db
     image: dhi.io/postgres:18-alpine3.22
@@ -10,15 +9,10 @@ services:
       - goren
     expose:
       - 5432
+    ports:
+      - 5432:5432
     env_file:
-      - ./.env.prod.db
-    logging:
-      driver: "json-file"
-      options:
-        max-file: "5"
-        max-size: "10m"
-    security_opt:
-      - no-new-privileges:true
+      - ./.env.dev.db
     healthcheck:
       test: ["CMD", "nc", "-z", "localhost", "5432"]
       interval: 10s
@@ -26,36 +20,25 @@ services:
       retries: 5
 
 
-  # CORE
-
   web:
     container_name: pnp-web
     restart: unless-stopped
     build:
       context: ./ppServer
+      dockerfile: Dockerfile.dev    
     volumes:
-      - static_volume:/var/www/static
-      - media_volume:/var/www/media
+      - ./ppServer/backend:/var/www
     networks:
       - goren
       - nginx
     expose:
       - 8000
     env_file:
-      - ./.env.prod
-    logging:
-      driver: "json-file"
-      options:
-        max-file: "5"
-        max-size: "10m"
-    security_opt:
-      - no-new-privileges:true
+      - ./.env.dev
     depends_on:
       db:
         condition: service_healthy
 
-
-  # WEBSERVER
 
   nginx:
     container_name: pnp-webserver
@@ -67,28 +50,16 @@ services:
       - 80:80
       - 443:443
     volumes:
-      - ./nginx:/etc/nginx:ro
+      - ./nginx_dev:/etc/nginx:ro
       - ./log/nginx:/var/log/nginx/
-
-      - static_volume:/var/www/static:ro
-      - media_volume:/var/www/media:ro
-
-      - /etc/letsencrypt:/etc/letsencrypt:ro
-    security_opt:
-      - no-new-privileges:true
-    logging:
-      driver: "json-file"
-      options:
-        max-file: "5"
-        max-size: "10m"
-
+    environment:
+      - TZ=Europe/Berlin
 
 volumes:
   postgres_data:
-  static_volume:
-  media_volume:
+  django_src_volume:
 
 
 networks:
-  nginx:
   goren:
+  nginx:

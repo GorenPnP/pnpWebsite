@@ -16,33 +16,34 @@ COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
 
-##### NPM ######
+# ##### NPM ######
 
-# install
-RUN apk add --update npm
+# # install
+# RUN apk add --update npm
 
-# Copy config
-COPY package.json ./
+# # Copy config
+# COPY package.json ./
 
-# install tools
-RUN npm install --no-package-lock
+# # install tools
+# RUN npm install --no-package-lock
 
-# copy project to work on
-COPY backend www/
+# # copy project to work on
+# COPY backend www/
 
-##### -> SASS ######
-RUN npx sass ./www --update --no-source-map
+# ##### -> SASS ######
+# RUN npx sass ./www --update --no-source-map
 
-# ##### -> TS ######
+# # ##### -> TS ######
 
-# Copy config
-COPY tsconfig.json ./
-RUN npx tsc --project ./ || true
+# # Copy config
+# COPY tsconfig.json ./
+# RUN npx tsc --project ./ || true
 
 
 
 # Runtime stage
 FROM dhi.io/python:3.14-alpine3.22 AS runtime
+LABEL version="5.2"
 
 # Set environment variables for Python
 ENV PYTHONDONTWRITEBYTECODE=1
@@ -50,9 +51,6 @@ ENV PYTHONUNBUFFERED=1
 ENV PATH="/var/deps/bin:$PATH"
 
 USER nonroot:nonroot
-
-# COPY --from=builder /usr/share/zoneinfo/Europe/Berlin /usr/share/zoneinfo/Europe/Berlin
-# RUN ln -sf /usr/share/zoneinfo/Europe/Berlin /etc/localtime
 
 # Set the working directory in the container
 WORKDIR /var/www
@@ -63,10 +61,11 @@ COPY --from=builder --chown=nonroot:nonroot /var/deps /var/deps/
 
 
 # copy all application files
-COPY --from=builder --chown=nonroot:nonroot /var/www /var/www/
+# COPY --from=builder --chown=nonroot:nonroot /var/www /var/www/
+COPY ./backend ./
 
 
 # Set the entrypoint to start the application
-COPY --chown=nonroot:nonroot entrypoint.*.py gunicorn.conf.py ./
+# COPY --chown=nonroot:nonroot entrypoint.*.py gunicorn.conf.py ./
 ENTRYPOINT ["python"]
-CMD ["entrypoint.prod.py"]
+CMD ["entrypoint.dev.py"]
