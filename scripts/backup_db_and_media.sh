@@ -2,38 +2,37 @@
 
 BASEPATH_CONTAINER="/var/www"
 BASEPATH_HOST="/home/debian/pnpWebsite"
-
 DATE="$(date +%y-%m-%d)"
 
-
-# prepare dump disk locations
-docker exec pnp-web mkdir -p ./backups/
-
-mkdir -p $BASEPATH_HOST/backups/$DATE/media
-chown -R debian:debian $BASEPATH_HOST/backups
-
-# move to base path on actual machine (in docker container already set by default, because of the last WORKDIR in corresponding Dockerfile)
+# move to base path on actual machine
 cd $BASEPATH_HOST
+mkdir -p ./backups/$DATE/media
+
+docker build --tag 'do_backup' -f ./ppServer/Dockerfile.backup ./ppServer
+
 
 # stop routing to ensure consistent backup data
 docker container stop pnp-webserver
 
-# backup db
-docker exec pnp-web python manage.py dbbackup
-docker cp pnp-web:$BASEPATH_CONTAINER/backups/. ./backups/$DATE/
+# do db backup
+docker run \
+    --name do_backup \
+    --env-file ./.env.prod \
+    --network=pnpwebsite_goren \
+    do_backup
+docker cp do_backup:$BASEPATH_CONTAINER/backups/. ./backups/$DATE/
+docker rm do_backup
 
 # backup media
-docker cp pnp-web:$BASEPATH_CONTAINER/media/.  ./backups/$DATE/media
+docker cp pnp-web:$BASEPATH_CONTAINER/media/.  ./backups/$DATE/media/
 
 # re-enable routing, rest can be done in parallel
 docker container start pnp-webserver
 
+
 # compress backup
 cd ./backups
 tar -czf $DATE.tar.gz $DATE/
-
-# remove original backups inside docker-container
-docker exec pnp-web rm -rf ./backups
 
 # remove all files (type f) modified longer than 30 days ago under ./backups
 rm -rf ./$DATE
