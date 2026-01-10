@@ -28,7 +28,7 @@ services:
       - ./ppServer/backend:/var/www
     networks:
       - goren_nginx
-      - pnpwebsite_prometheus_django
+      - visual_prometheus_django
       - goren_internal
     expose:
       - 8000
@@ -45,7 +45,7 @@ services:
     restart: unless-stopped
     networks:
       - goren_nginx
-      - pnpwebsite_grafana_nginx
+      - visual_grafana_nginx
     ports:
       - 80:80
       # - 443:443
@@ -63,7 +63,7 @@ volumes:
 networks:
   goren_internal: # db, web
   goren_nginx:    # web, nginx
-  pnpwebsite_prometheus_django: # web
+  visual_prometheus_django: # web
     external: true
-  pnpwebsite_grafana_nginx: # nginx
+  visual_grafana_nginx: # nginx
     external: true

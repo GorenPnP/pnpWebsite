@@ -13,7 +13,7 @@ services:
     env_file:
       - ./.env.prod.db
     logging:
-      driver: "json-file"
+      driver: "loki"
       options:
         max-file: "5"
         max-size: "10m"
@@ -38,14 +38,14 @@ services:
       - media_volume:/var/www/media
     networks:
       - goren_nginx
-      - pnpwebsite_prometheus_django
+      - visual_prometheus_django
       - goren_internal
     expose:
       - 8000
     env_file:
       - ./.env.prod
     logging:
-      driver: "json-file"
+      driver: "loki"
       options:
         max-file: "5"
         max-size: "10m"
@@ -64,7 +64,7 @@ services:
     restart: unless-stopped
     networks:
       - goren_nginx
-      - pnpwebsite_grafana_nginx
+      - visual_grafana_nginx
     ports:
       - 80:80
       - 443:443
@@ -79,7 +79,7 @@ services:
     security_opt:
       - no-new-privileges:true
     logging:
-      driver: "json-file"
+      driver: "loki"
       options:
         max-file: "5"
         max-size: "10m"
@@ -94,7 +94,7 @@ volumes:
 networks:
   goren_internal: # db, web
   goren_nginx:    # web, nginx
-  pnpwebsite_prometheus_django: # web
+  visual_prometheus_django: # web
     external: true
-  pnpwebsite_grafana_nginx: # nginx
+  visual_grafana_nginx: # nginx
     external: true

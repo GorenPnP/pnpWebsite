@@ -22,7 +22,7 @@ services:
     security_opt:
       - no-new-privileges:true
     logging:
-      driver: "json-file"
+      driver: "loki"
       options:
         max-file: "5"
         max-size: "10m"
@@ -42,7 +42,7 @@ services:
       - /sys:/sys:ro 
       - /var/lib/docker/:/var/lib/docker:ro 
     logging:
-      driver: "json-file"
+      driver: "loki"
       options:
         max-file: "5"
         max-size: "10m"
@@ -58,7 +58,7 @@ services:
     networks: 
       - cadvisor_internal
     logging:
-      driver: "json-file"
+      driver: "loki"
       options:
         max-file: "5"
         max-size: "10m"
@@ -83,7 +83,7 @@ services:
     security_opt:
       - no-new-privileges:true
     logging:
-      driver: "json-file"
+      driver: "loki"
       options:
         max-file: "5"
         max-size: "10m"
@@ -107,7 +107,7 @@ services:
     security_opt:
       - no-new-privileges:true
     logging:
-      driver: "json-file"
+      driver: "loki"
       options:
         max-file: "5"
         max-size: "10m"
@@ -129,7 +129,7 @@ services:
     security_opt:
       - no-new-privileges:true
     logging:
-      driver: "json-file"
+      driver: "loki"
       options:
         max-file: "5"
         max-size: "10m"
@@ -154,7 +154,7 @@ services:
     security_opt:
       - no-new-privileges:true
     logging:
-      driver: "json-file"
+      driver: "loki"
       options:
         max-file: "5"
         max-size: "10m"
