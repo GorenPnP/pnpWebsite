@@ -13,7 +13,7 @@ rule_files:
   - "django.rules"
 
 
-# A scrape configuration containing exactly one endpoint to scrape:
+# A scrape configuration containing endpoints to scrape:
 # Here it's Prometheus itself.
 scrape_configs:
 
@@ -31,6 +31,14 @@ scrape_configs:
     metrics_path: '/prometheus/metrics'
     static_configs:
       - targets: ['pnp-web:8000']
+
+  # The job name is added as a label `job=<job_name>` to any timeseries scraped from this config.
+  - job_name: 'loki'
+    # Override the global default and scrape targets from this job every 5 seconds.
+    scrape_interval: 5s
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['loki:3100']
 
   # job for node_exporter (host metrics)
   - job_name: 'node-exporter'

@@ -14,10 +14,10 @@ services:
       - '--path.rootfs=/rootfs'
       - '--path.sysfs=/host/sys'
       - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc) ($$|/)'
-    ports:
-      - 9100:9100
+    expose:
+      - 9100
     networks:
-      - monitoring
+      - prometheus_nodeexporter
     restart: unless-stopped
     security_opt:
       - no-new-privileges:true
@@ -31,10 +31,11 @@ services:
   cadvisor:
     image: gcr.io/cadvisor/cadvisor:latest
     container_name: cadvisor
-    ports:
-      - 8080:8080
+    expose:
+      - 8080
     networks:
-      - monitoring
+      - prometheus_cadvisor
+      - cadvisor_internal
     volumes: 
       - /:/rootfs:ro 
       - /var/run:/var/run:rw 
@@ -52,10 +53,10 @@ services:
   cadvisor-redis:
     image: dhi.io/redis:8-debian13 
     container_name: cadvisor-redis 
-    ports: 
-      - 6379:6379 
+    expose:
+      - 6379 
     networks: 
-      - monitoring
+      - cadvisor_internal
     logging:
       driver: "json-file"
       options:
@@ -66,16 +67,18 @@ services:
   prometheus:
     image: dhi.io/prometheus:3-debian13
     container_name: prometheus
-    user: 1000:1000
     expose:
       - 9090
-    command: "--config.file=/etc/prometheus/prometheus.yaml"
     volumes:
-      - ./prometheus/config/prometheus.yaml:/etc/prometheus/prometheus.yaml:ro
+      - ./prometheus/config/prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - ./prometheus/config/django.rules:/etc/prometheus/django.rules:ro
-      - ./prometheus/data:/prometheus
+      - prometheus_data:/var/prometheus
     networks:
-      - monitoring
+      - grafana_prometheus
+      - prometheus_nodeexporter
+      - prometheus_cadvisor
+      - prometheus_loki
+      - prometheus_django
     restart: unless-stopped
     security_opt:
       - no-new-privileges:true
@@ -86,19 +89,20 @@ services:
         max-size: "10m"
 
 
-
   # LOGGING
 
   promtail:
     image: dhi.io/promtail:3-debian13
     container_name: promtail
+    expose:
+      - 9080
     volumes:
-      - /var/log:/var/log:ro
-      - /var/lib/docker/containers:/var/lib/docker/containers:ro
-      - ./promtail/config.yaml:/etc/promtail/config.yaml:ro
-    command: -config.file=/etc/promtail/config.yaml
+      - /var/log:/var/log:ro  # reads logs from host
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro  # reads docker logs
+      - ./promtail/config.yml:/etc/promtail/config.yml:ro
+    command: -config.file=/etc/promtail/config.yml
     networks:
-      - logging
+      - promtail_loki
     restart: unless-stopped
     security_opt:
       - no-new-privileges:true
@@ -111,13 +115,16 @@ services:
   loki:
     image: dhi.io/loki:3-debian13
     container_name: loki
-    ports:
-      - 3100:3100
+    expose:
+      - 3100
     volumes:
       - ./loki/config.yaml:/etc/loki/config.yaml:ro
+      - loki_data:/loki
     command: -config.file=/etc/loki/config.yaml
     networks:
-      - logging
+      - prometheus_loki
+      - grafana_loki
+      - promtail_loki
     restart: unless-stopped
     security_opt:
       - no-new-privileges:true
@@ -133,15 +140,16 @@ services:
   grafana:
     image: dhi.io/grafana:12-debian13
     container_name: grafana
-    user: 1000:1000
     networks:
-      - logging
-      - monitoring
-      - pnpwebsite_nginx
+      - grafana_prometheus
+      - grafana_loki
+      - grafana_nginx
     expose:
       - 3000
     volumes:
-      - ./grafana/data:/var/lib/grafana
+      - grafana_data:/var/lib/grafana
+      - ./log/grafana:/var/log/grafana
+      - ./grafana/grafana.yml:/etc/grafana/provisioning/datasources/prometheus.yml:ro # add prometheus as datasource
     restart: unless-stopped
     security_opt:
       - no-new-privileges:true
@@ -152,8 +160,20 @@ services:
         max-size: "10m"
 
 
+volumes:
+  loki_data:
+  prometheus_data:
+  grafana_data:
+
 networks:
-  logging:
-  monitoring:
-  pnpwebsite_nginx:
-    external: true
+  cadvisor_internal:  # cadvisor, cadvisor-redis
+  promtail_loki:
+  prometheus_nodeexporter:
+  prometheus_loki:
+  prometheus_django:
+  prometheus_cadvisor:
+
+  # grafana connections
+  grafana_prometheus: # prometheus, grafana
+  grafana_loki: # loki, grafana
+  grafana_nginx: # grafana, external nginx

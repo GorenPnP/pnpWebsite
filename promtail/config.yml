@@ -8,8 +8,9 @@ positions:
 clients:
   - url: http://loki:3100/loki/api/v1/push
 
-# host system
 scrape_configs:
+
+# host system
 - job_name: system
   static_configs:
   - targets:
@@ -17,7 +18,6 @@ scrape_configs:
     labels:
       job: varlogs
       __path__: /var/log/*log
-
 
 # docker logs
 - job_name: docker
