@@ -13,7 +13,7 @@ services:
     env_file:
       - ./.env.prod.db
     logging:
-      driver: "loki"
+      driver: "json-file"
       options:
         max-file: "5"
         max-size: "10m"
@@ -45,7 +45,7 @@ services:
     env_file:
       - ./.env.prod
     logging:
-      driver: "loki"
+      driver: "json-file"
       options:
         max-file: "5"
         max-size: "10m"
@@ -79,7 +79,7 @@ services:
     security_opt:
       - no-new-privileges:true
     logging:
-      driver: "loki"
+      driver: "json-file"
       options:
         max-file: "5"
         max-size: "10m"
