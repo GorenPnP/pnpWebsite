@@ -12,7 +12,7 @@ docker build --tag 'do_backup' -f ./ppServer/Dockerfile.backup ./ppServer
 
 
 # stop routing to ensure consistent backup data
-docker container stop pnp-webserver
+docker container stop nginx
 
 # do db backup
 docker run \
@@ -24,10 +24,10 @@ docker cp do_backup:$BASEPATH_CONTAINER/backups/. ./backups/$DATE/
 docker rm do_backup
 
 # backup media
-docker cp pnp-web:$BASEPATH_CONTAINER/media/.  ./backups/$DATE/media/
+docker cp django:$BASEPATH_CONTAINER/media/.  ./backups/$DATE/media/
 
 # re-enable routing, rest can be done in parallel
-docker container start pnp-webserver
+docker container start nginx
 
 
 # compress backup

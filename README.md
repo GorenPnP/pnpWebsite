@@ -165,8 +165,8 @@ protect against ssh bruteforce attacks with [fail2ban](https://wiki.ubuntuusers.
 ### on prod
 
 **create db backup and copy container -> prod-server**
-- `docker exec pnp-web python manage.py dbbackup`
-- `docker cp pnp-web:/home/ppServer/web/backups/. ./postgresbackup/`
+- `docker exec django python manage.py dbbackup`
+- `docker cp django:/home/ppServer/web/backups/. ./postgresbackup/`
 
 **rm all containers to start fresh**
 - stop all containers `docker compose -f docker-compose.prod.yml down && docker compose -f docker-compose.vis.yml down`

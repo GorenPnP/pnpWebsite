@@ -10,13 +10,13 @@ x-logging:
 services:
 
   db:
-    container_name: pnp-db
+    container_name: postgres
     image: dhi.io/postgres:18-alpine3.22
     restart: unless-stopped
     volumes:
       - postgres_data:/var/lib/postgresql
     networks:
-      - goren_internal
+      - django_internal
     expose:
       - 5432
     env_file:
@@ -31,10 +31,8 @@ services:
       retries: 5
 
 
-  # CORE
-
-  web:
-    container_name: pnp-web
+  django:
+    container_name: django
     restart: unless-stopped
     build:
       context: ./ppServer
@@ -42,9 +40,9 @@ services:
       - static_volume:/var/www/static
       - media_volume:/var/www/media
     networks:
-      - goren_nginx
+      - django_nginx
       - visual_prometheus_django
-      - goren_internal
+      - django_internal
     expose:
       - 8000
     env_file:
@@ -57,14 +55,12 @@ services:
         condition: service_healthy
 
 
-  # WEBSERVER
-
   nginx:
-    container_name: pnp-webserver
+    container_name: nginx
     image: dhi.io/nginx:1-alpine3.21-dev
     restart: unless-stopped
     networks:
-      - goren_nginx
+      - django_nginx
       - visual_grafana_nginx
     ports:
       - 80:80
@@ -88,9 +84,9 @@ volumes:
 
 
 networks:
-  goren_internal: # db, web
-  goren_nginx:    # web, nginx
-  visual_prometheus_django: # web
+  django_internal: # db, django
+  django_nginx:    # django, nginx
+  visual_prometheus_django: # django
     external: true
   visual_grafana_nginx: # nginx
     external: true

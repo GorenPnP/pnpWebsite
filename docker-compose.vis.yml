@@ -133,8 +133,7 @@ services:
       - 3000
     volumes:
       - grafana_data:/var/lib/grafana
-      - ./log/grafana:/var/log/grafana
-      - ./grafana/grafana.yml:/etc/grafana/provisioning/datasources/prometheus.yml:ro # add prometheus as datasource
+      - ./grafana/datasources.yml:/etc/grafana/provisioning/datasources/prometheus.yml:ro # add prometheus & loki as datasource
     restart: unless-stopped
     security_opt:
       - no-new-privileges:true
