@@ -86,7 +86,7 @@ services:
   promtail:
     image: dhi.io/promtail:3-debian13
     container_name: promtail
-    user: "0"
+    user: "0" # TODO change? docker logs containers as root, so promtail needs root to read them
     expose:
       - 9080
     volumes:
