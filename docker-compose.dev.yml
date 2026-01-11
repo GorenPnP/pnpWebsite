@@ -51,7 +51,6 @@ services:
       # - 443:443
     volumes:
       - ./nginx_dev:/etc/nginx:ro
-      - /var/log/nginx:/var/log/nginx/
     environment:
       - TZ=Europe/Berlin
 

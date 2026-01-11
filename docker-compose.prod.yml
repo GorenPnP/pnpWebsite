@@ -71,7 +71,6 @@ services:
       - 443:443
     volumes:
       - ./nginx:/etc/nginx:ro
-      - /var/log/nginx:/var/log/nginx/
 
       - static_volume:/var/www/static:ro
       - media_volume:/var/www/media:ro
