@@ -84,10 +84,9 @@ services:
   # LOGGING
 
   promtail:
-    build:
-      context: ./promtail
+    image: dhi.io/promtail:3-debian13
     container_name: promtail
-    # user: "0"
+    user: "0"
     expose:
       - 9080
     volumes:
