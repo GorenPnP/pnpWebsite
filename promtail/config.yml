@@ -22,28 +22,32 @@ scrape_configs:
 # docker logs
 - job_name: docker
   pipeline_stages:
-    - docker: {}
+  - json:
+      expressions:
+        log: log
+        stream: stream
+        time: time
+        tag: attrs.tag
+        compose_project: attrs."com.docker.compose.project"
+        compose_service: attrs."com.docker.compose.service"
+  - regex:
+      expression: "^/var/lib/docker/containers/(?P<container_id>.{12}).+/.+-json.log$"
+      source: filename
+  - timestamp:
+      format: RFC3339Nano
+      source: time
+  - labels:
+      stream:
+      container_id:
+      tag:
+      compose_project:
+      compose_service:
+  - output:
+      source: log
   static_configs:
-    - labels:
+  - targets:
+      - localhost
+    labels:
       job: docker
       __path__: /var/lib/docker/containers/*/*-json.log
-  relabel_configs:
-    - source_labels: [__meta_docker_container_name]
-      target_label: container
-    - source_labels: [__meta_docker_container_image]
-      target_label: image
 
-
-- job_name: journal
-  journal:
-    labels:
-      job: journal
-  relabel_configs:
-    # services
-    - source_labels:
-        - __journal__systemd_unit
-      target_label: unit
-    # docker containers
-    - source_labels:
-        - __journal_container_name
-      target_label: container  # use whatever label you like
