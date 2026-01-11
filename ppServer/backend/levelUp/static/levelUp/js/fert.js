@@ -20,7 +20,7 @@ function calc_fp_fg_pools() {
     const fg = initial_fg - fg_spent();
     document.querySelector("#fg_pool").innerHTML = fg;
 
-    document.querySelector('[type="submit"]').disabled = fp < 0 || fg < 0;
+    document.querySelector('.fert-submit-btn').disabled = fp < 0 || fg < 0;
 }
 
 function update_result(tr_tag) {
