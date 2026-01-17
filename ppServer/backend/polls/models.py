@@ -58,4 +58,4 @@ class QuestionSpieler(models.Model):
     spieler = models.ForeignKey(Spieler, on_delete=models.CASCADE)
 
     def __str__(self):
-        return self.spieler.name + " hat abgestimmt"
+        return f"{self.spieler} hat abgestimmt"
