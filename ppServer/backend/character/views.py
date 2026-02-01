@@ -183,10 +183,9 @@ class ShowView(VerifiedAccountMixin, DetailView):
         fields = [
                 ["Name", char.name],
                 ["Gfs (Stufe)", format_html(f"{gfs} ({char.skilltree_stufe})")],
-                ["Klassen (Stufe)", ", ".join([f"{rel.klasse.titel} ({rel.stufe})" for rel in char.relklasse_set.all()]) or "-"],
                 ["Persönlichkeit", char.persönlichkeit.titel if char.persönlichkeit else "-"],
                 ["Geschlecht", char.geschlecht],
-                ["Alter", char.alter],
+                ["Alter", f"{char.alter} Jahr{'e' if char.alter != 1 else ''}"],
                 ["Größe", f"{char.größe} cm"],
                 ["Gewicht", f"{char.gewicht} kg"],
                 ["Religion", char.religion.titel if char.religion else ""],
@@ -199,6 +198,9 @@ class ShowView(VerifiedAccountMixin, DetailView):
                 ["Notizen", format_html(re.sub("\n", "<br>", further_notes + char.notizen, 0, re.MULTILINE))],
                 ["persönliche Ziele", format_html(re.sub("\n", "<br>", char.persönlicheZiele, 0, re.MULTILINE))],
         ]
+        if not char.larp:
+            fields.insert(2, ["Klassen (Stufe)", ", ".join([f"{rel.klasse.titel} ({rel.stufe})" for rel in char.relklasse_set.all()]) or "-"])
+
         return {
             "personal__fields": [[k, v if v else "-"] for k, v in fields]
         }
