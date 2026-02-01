@@ -114,7 +114,7 @@ class CharakterExporter:
 
         ws, cell = pos.split("!")
         alpha = re.search("[A-Z]+", cell)[0]
-        num = int(re.search("\d+", cell)[0])
+        num = int(re.search(r"\d+", cell)[0])
 
         return {"ws": ws, "alpha": alpha, "num": num}
 
@@ -284,7 +284,7 @@ class CharakterExporter:
         werte_ws.write(f"I{ROW}", "Magisch", format_limit_titel)
         werte_ws.write(f"J{ROW}", f"=({self._position('MA')}+{self._position('WK')})/2" if self.char.limit_m_fix is None else self.char.limit_m_fix, format_limit)
 
-        ROW = max(ROW+1, int(re.search("\d+$", self._position("attr_labels")).group(0)))
+        ROW = max(ROW+1, int(re.search(r"\d+$", self._position("attr_labels")).group(0)))
 
         # Vor- & Nachteile
         ROW+1

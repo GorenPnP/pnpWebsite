@@ -46,7 +46,7 @@ class Dice(models.Model):
             returns resulting string.
         """
         pool = {}
-        for dice in [d for d in dices if re.match("^\d+W\d+$", d)]:
+        for dice in [d for d in dices if re.match(r"^\d+W\d+$", d)]:
             [amount, type] = dice.split("W")
             pool[type] = int(amount) if type not in pool else pool[type] + int(amount)
         return separator.join([f"{pool[type]}W{type}" for type in sorted(pool.keys(), key=lambda x: int(x), reverse=True)])

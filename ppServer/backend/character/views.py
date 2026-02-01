@@ -728,7 +728,7 @@ def edit_tag(request, pk):
         return redirect("character:index")
     
     # get all selected chars for the tag
-    char_ids = [int(k.replace(f"tag-{tag.id}-char-", "")) for k, v in request.POST.items() if v == "on" and re.match(f"^tag\-{tag.id}\-char\-\d+$", k)]
+    char_ids = [int(k.replace(f"tag-{tag.id}-char-", "")) for k, v in request.POST.items() if v == "on" and re.match(fr"^tag\-{tag.id}\-char\-\d+$", k)]
     chars = Charakter.objects.filter(id__in=char_ids)
     if not request.user.has_perm(CustomPermission.SPIELLEITUNG.value): chars = chars.filter(eigentümer=request.spieler)
     

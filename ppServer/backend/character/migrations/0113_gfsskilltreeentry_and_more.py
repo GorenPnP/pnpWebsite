@@ -10,7 +10,7 @@ def fill_skilltree(apps, schema_editor):
 
     entries = list(SkilltreeEntryGfs.objects.all())
     for s in entries:
-        matches = re.match("^\+?(?P<amount>\d+)\W+(?P<kind>[\w-]+)$", s.text)
+        matches = re.match(r"^\+?(?P<amount>\d+)\W+(?P<kind>[\w-]+)$", s.text)
 
         if matches:
             amount = int(matches.group("amount"))

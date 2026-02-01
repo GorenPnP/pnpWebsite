@@ -15,8 +15,8 @@ def resources(parser, token):
     {% endresources %}
     """
 
-    endings = ["\.svg", "\.png"]
-    match = re.search(f" icon=[\"']static/(?P<icon>([a-zA-Z0-9_\- ]+/)+[a-zA-Z0-9_\- ]*(({')|('.join(endings)})))[\"']", token.contents)
+    endings = [r"\.svg", r"\.png"]
+    match = re.search(fr" icon=[\"']static/(?P<icon>([a-zA-Z0-9_\- ]+/)+[a-zA-Z0-9_\- ]*(({')|('.join(endings)})))[\"']", token.contents)
     icon = match.group("icon") if match else "res/img/icon questionmark.svg"
 
     nodelist = parser.parse(('endresources',))

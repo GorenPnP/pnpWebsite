@@ -1,7 +1,7 @@
 import re
 from django import template
 
-numeric_test = re.compile("^\d+$")
+numeric_test = re.compile(r"^\d+$")
 register = template.Library()
 
 @register.filter

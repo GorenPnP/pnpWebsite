@@ -35,7 +35,7 @@ def annotate_price(Model: models.Model) -> dict[str, any]:
         }
     
     # Rituale/Runen
-    stufen: list[int] = sorted([int(k.replace("stufe_", "")) for k in Model.firmen.rel.through.__dict__.keys() if re.match("^stufe_\d+$", k)])
+    stufen: list[int] = sorted([int(k.replace("stufe_", "")) for k in Model.firmen.rel.through.__dict__.keys() if re.match(r"^stufe_\d+$", k)])
     if stufen:
         annotations = {
             "preis": Min(f'firma{Model._meta.model_name}__stufe_{stufen[0]}'),

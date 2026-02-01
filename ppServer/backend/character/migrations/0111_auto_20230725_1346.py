@@ -11,7 +11,7 @@ def fill_skilltree(apps, schema_editor):
     entries = list(Skilltree.objects.all())
     for s in entries:
         for part in s.text.split(","):
-            matches = re.match("^[+](?P<amount>\d+)\W+(?P<kind>\w+)$", part)
+            matches = re.match(r"^[+](?P<amount>\d+)\W+(?P<kind>\w+)$", part)
 
             if matches:
                 amount = int(matches.group("amount"))
