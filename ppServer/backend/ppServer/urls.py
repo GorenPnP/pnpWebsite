@@ -19,6 +19,9 @@ from django.contrib import admin
 from django.views.generic.base import TemplateView, RedirectView
 from django.urls import include, path
 
+from debug_toolbar.toolbar import debug_toolbar_urls
+
+
 class LegalActUpdateRedirectView(RedirectView):
     permanent = True
     query_string = True
@@ -65,7 +68,6 @@ urlpatterns = [
 
     path('robots.txt', TemplateView.as_view(template_name="base/robots.txt")),
     path('sw.js', TemplateView.as_view(template_name="webPush/service_worker.js", content_type='application/javascript'), name='sw.js'),
-    path('__debug__/', include('debug_toolbar.urls')),
     path("prometheus/", include("django_prometheus.urls")),
 
     path('', include("base.urls")),
@@ -73,5 +75,7 @@ urlpatterns = [
 
 handler404 = TemplateView.as_view(template_name='base/error_404.html')
 
-urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
-urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+if settings.DEBUG:
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    urlpatterns += debug_toolbar_urls()

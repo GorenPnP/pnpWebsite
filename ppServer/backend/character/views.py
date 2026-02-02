@@ -211,7 +211,7 @@ class ShowView(VerifiedAccountMixin, DetailView):
             ["SP", char.sp],
             ["IP", char.ip],
             ["TP", char.tp],
-            ["EP (Stufe)", f"{render_number(char.ep)} ({char.ep_stufe})"],
+            [f"{'LARP-' if char.larp else ''}Ränge", render_number(char.larp_rang if char.larp else char.rang)],
             ["Prestige", render_number(char.prestige)],
             ["Verzehr", render_number(char.verzehr)],
             ["Manifest", char.manifest - char.sonstiger_manifestverlust if char.manifest_fix is None else char.manifest_fix],
@@ -219,6 +219,9 @@ class ShowView(VerifiedAccountMixin, DetailView):
             ["Krit-Angriff", char.crit_attack],
             ["Krit-Verteidigung", char.crit_defense],
         ]
+        if not char.larp:
+            fields.insert(4, ["EP (Stufe)", f"{render_number(char.ep)} ({char.ep_stufe})"])
+
         return {
             "resources__fields": [[k, v if v else 0] for k, v in fields]
         }

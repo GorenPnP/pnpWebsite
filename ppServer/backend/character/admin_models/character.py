@@ -8,6 +8,7 @@ from django.utils.html import format_html
 
 from cards.models import Card
 from effect.models import RelEffect
+from effect.signals import apply_effect_on_rel_relation
 from ppServer.utils import get_filter
 
 from ..models import *
@@ -338,5 +339,16 @@ class CharakterAdmin(admin.ModelAdmin):
         return super().get_queryset(request).prefetch_related('eigentümer', "gfs", "tags")
 
     def get_form(self, request, obj = ..., change = ..., **kwargs):
-        messages.info(request, format_html(f'Geld ändern geht über <a href="https://{request.get_host()}/cards/transaction" target="_blank">-&gt;Transaktionen</a>'))
+        if change and request.method == "GET":
+            messages.info(request, format_html(f'Geld ändern geht über <a href="https://{request.get_host()}/cards/transaction" target="_blank">-&gt;Transaktionen</a>'))
+
         return super().get_form(request, obj, change, **kwargs)
+    
+    def save_formset(self, request, form, formset, change):
+        res = super().save_formset(request, form, formset, change)
+
+        # call signal for applying effects manually
+        for instance in formset.new_objects:
+            apply_effect_on_rel_relation(formset.model, instance, True)
+
+        return res
