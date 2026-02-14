@@ -373,8 +373,8 @@ class Rüstung(BaseShop):
 
         ordering = ['name']
 
-    schutz = models.PositiveIntegerField(default=0)
-    härte = models.PositiveIntegerField(default=0)
+    schutz = models.CharField(default="0", max_length=64)
+    härte = models.CharField(default="0", max_length=64)
     haltbarkeit = models.PositiveIntegerField(default=0)
 
     firmen = models.ManyToManyField('Firma', through='FirmaRüstung', blank=True)

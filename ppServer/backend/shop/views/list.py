@@ -382,8 +382,8 @@ class RüstungTableView(ShopTableView):
     model = Rüstung
     filterset_fields = {
         **shop_filter_fields,
-        "schutz": ["gte"],
-        "härte": ["gte"],
+        "schutz": ["icontains"],
+        "härte": ["icontains"],
         "haltbarkeit": ["gte"]
     }
     table_fields = ("icon", "name", "beschreibung", "ab_stufe", "schutz", "härte", "haltbarkeit",  "preis")
