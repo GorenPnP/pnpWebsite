@@ -66,7 +66,8 @@ class AbstractEffect(models.Model):
         ("character.Charakter.immunsystem_bonus", "Charakter: Immunsystem-Bonus"),
     ]
 
-    wertaenderung = models.DecimalField(decimal_places=2, max_digits=15, null=False, blank=False, verbose_name="Wertänderung")
+    wertaenderung = models.DecimalField(decimal_places=2, max_digits=15, null=False, blank=True, verbose_name="Wertänderung")
+    wertaenderung_str = models.CharField(max_length=32, null=False, blank=True, verbose_name="Wertänderung (str)")
     target_fieldname = models.CharField(choices=target_fieldname_enum)
 
 
@@ -78,7 +79,7 @@ class AbstractEffect(models.Model):
         elif "character.RelFertigkeit" in self.target_fieldname and getattr(self, "target_fertigkeit", None):
             addition = self.target_fertigkeit.__str__()
 
-        return f"{self.wertaenderung} {self.get_target_fieldname_display()}{' (' + addition + ')' if addition else ''}"
+        return f"{self.wertaenderung_str or self.wertaenderung} {self.get_target_fieldname_display()}{' (' + addition + ')' if addition else ''}"
 
 
     def clean(self) -> None:
@@ -108,6 +109,14 @@ class AbstractEffect(models.Model):
 
         elif ("character.Charakter" in self.target_fieldname or "cards.Card" in self.target_fieldname) and (getattr(self, "target_attribut", None) or getattr(self, "target_fertigkeit", None)):
             raise ValidationError("Attribut oder Fertigkeit unnötigerweise ausgewählt")
+        
+        if self.target_fieldname in ["character.Charakter.natürlicher_schadenswiderstand_bonus_str", "character.Charakter.astralwiderstand_bonus_str"]:
+            if self.wertaenderung:
+                raise ValidationError("wertänderung unnötigerweise ausgewählt bei string-Feld")
+        else:
+            if self.wertaenderung_str:
+                raise ValidationError("wertänderung_str unnötigerweise ausgewählt bei number-Feld")
+
 
 
 
@@ -213,6 +222,9 @@ class RelEffect(AbstractEffect):
         elif self.target_fieldname.rsplit("_", 1)[-1] == "fix":
             setattr(target, field, self.wertaenderung)
             target.save(update_fields=[field])
+        elif self.target_fieldname in ["character.Charakter.natürlicher_schadenswiderstand_bonus_str", "character.Charakter.astralwiderstand_bonus_str"]:
+            target[field] = f'{target[field]} + {self.wertaenderung_str}' if target[field] else self.wertaenderung_str
+            target.save(update_fields=[field])
         else:
             setattr(target, field, (getattr(target, field, 0) or 0) + self.wertaenderung)
 
@@ -267,6 +279,10 @@ class RelEffect(AbstractEffect):
 
         elif self.target_fieldname.rsplit("_", 1)[-1] == "fix":
             setattr(target, field, None)
+            target.save(update_fields=[field])
+        elif self.target_fieldname in ["character.Charakter.natürlicher_schadenswiderstand_bonus_str", "character.Charakter.astralwiderstand_bonus_str"]:
+            parts = (target[field] or "").split(" + ").remove(self.wertaenderung_str)
+            target[field] = " + ".join(parts)
             target.save(update_fields=[field])
         else:
             setattr(target, field, (getattr(target, field, 0) or 0) - self.wertaenderung)
