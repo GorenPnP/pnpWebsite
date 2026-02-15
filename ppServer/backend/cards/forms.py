@@ -99,7 +99,7 @@ class CardField(forms.ModelChoiceField):
         data.pop("_queryset")
         data.pop("widget")
 
-        queryset = Card.objects.prefetch_related("spieler", "char__eigentümer").filter(active=True)
+        queryset = Card.objects.prefetch_related("spieler", "char__eigentümer", "account_owner__user").filter(active=True)
         if exclude_uuid:
             queryset.exclude(id=exclude_uuid)
 

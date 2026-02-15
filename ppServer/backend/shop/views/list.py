@@ -49,8 +49,7 @@ def annotate_price(Model: models.Model) -> dict[str, any]:
 
     return {}
 
-def annotate_other(Model: models.Model, ignore_fields: list[str]) -> dict[str, any]:
-    other_fieldnames = [fieldname for fieldname in Model.getShopDisplayFields() if fieldname not in ignore_fields]
+def annotate_other(Model: models.Model, other_fieldnames: list[str]) -> dict[str, any]:
 
     # get all fields displayed on "other"
     other_fields = [field for field in Model._meta.get_fields() if field.name in other_fieldnames]
@@ -130,8 +129,14 @@ class RenderableTable(GenericTable):
         # build dict; convert "kategory: some stuff,\ntimes: 3" => {kategory: "some stuff", "times": "3"}
         values = {v.split(": ")[0].strip(): v.split(": ")[1].strip() for v in value.split(',\n')}
 
+        # join manifestverlust
+        if "manifestverlust str" in values:
+            if values["manifestverlust str"]:
+                values["manifestverlust"] = f"{values["manifestverlust"]} + {values["manifestverlust str"]}" if "manifestverlust" in values else values["manifestverlust str"]
+            del values["manifestverlust str"]
+
         # format cell content
-        return format_html("<ul><li>" + '</li><li>'.join(f'<em>{k}</em>: {v}' for k, v in values.items()) + "</li></ul>")
+        return format_html("<ul><li>" + '</li><li>'.join(f'<em>{k}</em>: {v}' for k, v in values.items() if v) + "</li></ul>")
 
 ########################################################################
 ######################### all at once ##################################
@@ -198,7 +203,7 @@ class FullShopTableView(VerifiedAccountMixin, ExportMixin, SingleTableMixin, Tem
                     art=Value(Model._meta.model_name),
                     art_display=Value(Model._meta.verbose_name),
                     **annotate_price(Model),
-                    **annotate_other(Model, self.regular_table_columns),
+                    **annotate_other(Model, [f for f in Model.getShopDisplayFields() if f not in self.regular_table_columns]),
                 )\
                 .filter(frei_editierbar=False, **filters)\
                 .values()
@@ -239,7 +244,7 @@ class ShopTableView(VerifiedAccountMixin, DynamicTableView):
         return super().get_queryset().filter(frei_editierbar=False).prefetch_related("firmen").annotate(
             model_name=Value(self.model._meta.model_name),  # needed to render links at "name" cells
             **annotate_price(self.model),
-            **annotate_other(self.model, self.get_table_class().base_columns.keys()),
+            **annotate_other(self.model, [f for f in self.model.getShopDisplayFields() if f not in self.get_table_class().base_columns.keys()]),
         ).order_by("name")
 
     def get_topic(self):

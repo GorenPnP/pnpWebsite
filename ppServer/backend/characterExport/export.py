@@ -830,16 +830,30 @@ class CharakterExporter:
         # money center
         geld_ws.merge_range("C1:D1", "Ausgaben", format_fert_heading)
         geld_ws.merge_range("E1:F1", "Einnahmen", format_fert_heading)
-        geld_ws.write("E2", self.char.geld, format_money_received)
-        geld_ws.write("F2", "aktuelles Guthaben", format_money_reason)
+
+        index_received = 2
+        index_spent = 2
+        for t in [*self.char.card.get_transactions()][::-1]:
+            if t.sender == self.char.card:
+                geld_ws.write(f"C{index_spent}", t.amount, format_money_spent)
+                geld_ws.write(f"D{index_spent}", f"{t.receiver}: {t.reason}" if t.receiver else (t.reason or "-"), format_money_reason)
+                index_spent += 1
+            else:
+                geld_ws.write(f"E{index_received}", t.amount, format_money_received)
+                geld_ws.write(f"F{index_received}", f"{t.sender}: {t.reason}" if t.sender else (t.reason or "-"), format_money_reason)
+                index_received += 1
+
         geld_ws.write("B1", None, format_border_bottom)
         for i in range(0, 1000):
             geld_ws.write(f"B{2+i}", i+1, format_border_left_right)
-            geld_ws.write(f"C{2+i}", None, format_money_spent)
-            geld_ws.write(f"D{2+i}", None, format_money_reason)
-            if i:
-                geld_ws.write(f"E{2+i}", None, format_money_received)
-                geld_ws.write(f"F{2+i}", None, format_money_reason)
+            
+        for i in range(index_spent, 1000):
+            geld_ws.write(f"C{i}", None, format_money_spent)
+            geld_ws.write(f"D{i}", None, format_money_reason)
+
+        for i in range(index_received, 1000):
+            geld_ws.write(f"E{i}", None, format_money_received)
+            geld_ws.write(f"F{i}", None, format_money_reason)
 
         return geld_ws
 

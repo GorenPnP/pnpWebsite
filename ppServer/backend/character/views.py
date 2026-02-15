@@ -1,4 +1,5 @@
 import locale, re
+from collections import OrderedDict
 from typing import Any, Dict
 
 from django.apps import apps
@@ -26,6 +27,7 @@ from log.models import Log
 from ppServer.decorators import verified_account
 from ppServer.mixins import VerifiedAccountMixin, CopiesCharsMixin
 from ppServer.utils import ConcatSubquery
+from shop.views.list import shopmodel_list, RenderableTable, annotate_other
 
 from .forms import *
 from .models import *
@@ -72,47 +74,94 @@ class CharacterListView(VerifiedAccountMixin, TemplateView):
 
 
 class ShowView(VerifiedAccountMixin, DetailView):
-    class RenderShopUseTable(tables.Table):
-        def __init__(self, *args, **kwargs):
-            super().__init__(*args, **{k: v for k, v in kwargs.items() if k != "csrf_token"})
-            self.csrf_token = kwargs["csrf_token"]
+    
+    class ItemTable(RenderableTable):
+        class Meta(RenderableTable.Meta):
+            orderable = False
 
-        use = tables.Column(verbose_name="")
+        def __init__(self, *args, csrf_token: str, **kwargs):
+            super().__init__(*args, **kwargs)
 
-        def _get(self, obj, key: str):
-            try:
-                return getattr(obj, key, obj[key])
-            except:
-                return obj.__dict__[key] 
+            self.csrf_token = csrf_token
+
+
+        def render_item__icon(self, value, record):
+            Model = apps.get_model('shop', record["model_name"])
+            instance = Model.objects.get(pk=self._get(record, "item__pk"))
+
+            # use python model .objects.get().getIconUrl()
+            return format_html("<img src='{url}' loading='lazy'>", url=instance.getIconUrl())
+        
+        def render_item__beschreibung(self, value):
+            return self.render_beschreibung(value)
+        
+        def render_art(self, value):
+            return value
+
+        def render_other(self, value):
+            value = value.replace("item__", "")
+            return super().render_other(value)
 
         def render_use(self, value, record):
-            if type(record) == dict:
-                relmodel_name = record["model"]
-                pk = record["pk"]
-                
-                RelModel = apps.get_model("character", relmodel_name)
-                if RelModel == RelRamsch: price = 0
-                else:
-                    FirmaShopModel = RelModel.item.field.related_model.firmen.through
-                    relitem = get_object_or_404(RelModel.objects.prefetch_related(f"item__{FirmaShopModel._meta.model_name}_set__firma"), pk=pk)
-                    price = relitem.cheapest() or 0
+            relmodel_name = f"Rel{record['model_name']}"
+            pk = record["pk"]
+            
+            RelModel = apps.get_model("character", relmodel_name)
+            if RelModel == RelRamsch: price = 0
             else:
-                RelModel = self.__class__.Meta.model
-                
-                relmodel_name = RelModel._meta.model_name
-                pk = record.pk
-                price = record.cheapest() or 0
+                FirmaShopModel = RelModel.item.field.related_model.firmen.through
+                relitem = get_object_or_404(RelModel.objects.prefetch_related(f"item__{FirmaShopModel._meta.model_name}_set__firma"), pk=pk)
+                price = relitem.cheapest() or 0
 
             href = reverse("character:remove_item", args=[relmodel_name, pk])
             sell_btn = f'<button type="submit" class="btn btn-sm btn-warning" name="sell">verkaufen (je {int(price * 0.4+.5):n} Dr.)</button>'
             return format_html(
                 f"""<form method="post" action="{href}">
                     <input type="hidden" name="csrfmiddlewaretoken" value="{self.csrf_token}"/>
-                    <input type="number" class="form-control" style="width: 10ch" placeholder="Anzahl" aria-label="Anzahl" name="amount" value="1" min="1" max="{self._get(record, 'anz')}" step="1" required>
+                    <input type="number" class="form-control" style="width: 10ch" placeholder="Anzahl" aria-label="Anzahl" name="amount" value="1" min="1" max="{record['anz']}" step="1" required>
                     <button type="submit" class="btn btn-sm btn-danger" name="use">verbrauchen</button>
                     {sell_btn if price else ''}
                 </form>"""
             )
+        
+        @staticmethod
+        def get_queryset(char: Charakter, RelShopQS: QuerySet[models.Model], field_names: list[str]) -> list:
+            try:
+                Shop = apps.get_model("shop", RelShopQS.model._meta.model_name[3:])
+            except:
+
+                # RelRamsch
+                return RelShopQS\
+                    .filter(char=char)\
+                    .annotate(
+                        model_name=Value("Ramsch"),
+                        art=Value(RelShopQS.model._meta.verbose_name),
+                        
+                        item__pk=F("pk"),
+                        item__icon=Value(""),
+                        item__name=F("item"),
+                        stufe=Value(None, output_field=models.IntegerField()),
+                        item__beschreibung=Value("(selbst angelegt)"),
+                        other=Value(""),
+                        notizen=Value("-"),
+                        use=Value("-"),
+                    )\
+                    .values(*field_names, "pk", "model_name", "art", "item__pk")
+
+            # normal RelShop-case
+
+            other_fields = [f for f in Shop.getShopDisplayFields() if f not in ["preis", "ab_stufe"] and f"item__{f}" not in field_names]
+
+            return RelShopQS\
+                .filter(char=char, item__frei_editierbar=False)\
+                .annotate(
+                    model_name=Value(Shop._meta.model_name),
+                    art=Value(Shop._meta.verbose_name),
+                    use=Value("-"),
+                    other=Subquery(Shop.objects.filter(pk=OuterRef("item__pk")).annotate(**annotate_other(Shop, other_fields)).values_list("other", flat=True)),
+                )\
+                .values(*field_names, "pk", "model_name", "art", "item__pk")
+
 
     template_name = "character/show.html"
     model = Charakter
@@ -167,8 +216,7 @@ class ShowView(VerifiedAccountMixin, DetailView):
             **self.get_inventory(char),
             **self.get_zauber(char),
             **self.get_ritual(char),
-            **self.get_nahkampf(char),
-            **self.get_fernkampf(char),
+            **self.get_nah_fernkampf(char),
             **self.get_effekte(char),
         }
     
@@ -520,94 +568,120 @@ class ShowView(VerifiedAccountMixin, DetailView):
         }
 
     def get_inventory(self, char):
-        class InventoryTable(ShowView.RenderShopUseTable):
-            class Meta:
-                model = RelShop
-                fields = ("anz", "item__name", "stufe", "item__beschreibung", "notizen", "use")
-                orderable = False
-                attrs = {"class": "table table-dark table-striped table-hover"}
 
-        # helper function to format all relshop items the same way
-        to_dict = lambda qs, model: qs.all()\
-            .annotate(use=Value("-"), model=Value(model))\
-            .values("pk", "anz", "item__name", "item__beschreibung", "notizen", "use", "model", "stufe")
-
-        qs = to_dict(char.relitem_set.all(), "relitem").union(
-            to_dict(char.relmagazin_set.all(), "relmagazin"),
-            to_dict(char.relpfeil_bolzen_set.all(), "relpfeil_bolzen"),
-            to_dict(char.relmagische_ausrüstung_set.all(), "relmagische_ausrüstung"),
-            to_dict(char.relrüstung_set.all(), "relrüstung"),
-            to_dict(char.relausrüstung_technik_set.all(), "relausrüstung_technik"),
-            to_dict(char.relfahrzeug_set.all(), "relfahrzeug"),
-            to_dict(char.releinbauten_set.all(), "releinbauten"),
-            to_dict(char.relalchemie_set.all(), "relalchemie"),
-            to_dict(char.reltinker_set.all(), "reltinker"),
-            to_dict(char.relbegleiter_set.all(), "relbegleiter"),
-            to_dict(char.relramsch_set.annotate(item__name=F("item"), item__beschreibung=Value("(selbst angelegt)"), notizen=Value(""), stufe=Value(None, output_field=models.IntegerField())), "relramsch"),
+        table_fields = OrderedDict(
+            anz = tables.Column(),
+            item__icon = tables.Column(verbose_name=""),
+            item__name = tables.Column(verbose_name="Name"),
+            stufe = tables.Column(),
+            item__beschreibung = tables.Column(verbose_name="Beschreibung"),
+            art = tables.Column(),
+            other = tables.Column(verbose_name=""),
+            notizen = tables.Column(),
+            use = tables.Column(verbose_name=""),
         )
 
+        objects = []
+
+        # Misc Shop items
+        for Model in [m for m in shopmodel_list if m not in [Waffen_Werkzeuge, Schusswaffen, Zauber, Rituale_Runen]]:
+            RelModel = apps.get_model("character", f"Rel{Model._meta.model_name}")
+            objects += ShowView.ItemTable.get_queryset(char, RelModel.objects.prefetch_related("item__firmen"), table_fields.keys())
+
+        # RelRamsch
+        objects += ShowView.ItemTable.get_queryset(char, char.relramsch_set, table_fields.keys())
+            
         return {
-            "inventory__table": InventoryTable(qs.order_by("item__name", "stufe", "-anz"), csrf_token=get_token(self.request)),
+            "inventory__table": ShowView.ItemTable(
+                sorted(objects, key=lambda o: o["item__name"].lower()),
+                extra_columns = [(k, v) for k, v in table_fields.items()],
+                csrf_token=get_token(self.request)
+            ),
             "ramsch_form": CreateRamschForm(initial={"char": char.pk}),
             "inventory__random_items": format_html(re.sub("\n", "<br>", char.sonstige_items, 0, re.MULTILINE))
         }
 
     def get_zauber(self, char):
-        class ZauberTable(tables.Table):
-            class Meta:
-                model = RelZauber
-                fields = ("item__name", "tier", "learned", "item__beschreibung", "item__manaverbrauch", "item__astralschaden", "item__verteidigung", "item__schadensart")
-                orderable = False
-                attrs = {"class": "table table-dark table-striped table-hover"}
+        class ZauberTable(ShowView.ItemTable):
+            class Meta(ShowView.ItemTable.Meta): pass
 
             def render_item__beschreibung(self, value):
                 regex = "Tier [0IVX]+:"
                 return format_html(re.sub(regex, lambda match: f"<br><b>{match.group(0)}</b>", value))
+            
+            def render_learned(self, value):
+                return "✔" if value else "✖"
+
+
+        table_fields = OrderedDict(
+            learned = tables.Column(verbose_name="gelernt"),
+            item__icon = tables.Column(verbose_name=""),
+            item__name = tables.Column(),
+            tier = tables.Column(),
+            item__beschreibung = tables.Column(),
+            item__manaverbrauch = tables.Column(),
+            item__astralschaden = tables.Column(),
+            other = tables.Column(verbose_name=""),
+            notizen = tables.Column(),
+        )
 
         return {
-            "zauber__table": ZauberTable(char.relzauber_set.all())
+            "zauber__table": ZauberTable(
+                ZauberTable.get_queryset(char, char.relzauber_set.prefetch_related("item__firmen"), table_fields.keys()),
+                extra_columns = [(k, v) for k, v in table_fields.items()],
+                csrf_token=get_token(self.request),
+            )
         }
 
     def get_ritual(self, char):
-        class RitualTable(ShowView.RenderShopUseTable):
-            class Meta:
-                model = RelRituale_Runen
-                fields = ("anz", "item__name", "stufe", "item__beschreibung", "item__kategorie", "use")
-                orderable = False
-                attrs = {"class": "table table-dark table-striped table-hover"}
+        table_fields = OrderedDict(
+            anz = tables.Column(),
+            item__icon = tables.Column(verbose_name=""),
+            item__name = tables.Column(verbose_name="Name"),
+            stufe = tables.Column(),
+            item__beschreibung = tables.Column(verbose_name="Beschreibung"),
+            other = tables.Column(verbose_name=""),
+            notizen = tables.Column(),
+            use = tables.Column(verbose_name=""),
+        )
 
         return {
-            "ritual__table": RitualTable(char.relrituale_runen_set.prefetch_related("item__firmarituale_runen_set__firma").annotate(use=Value("-")).all(), csrf_token=get_token(self.request))
+            "ritual__table": ShowView.ItemTable(
+                ShowView.ItemTable.get_queryset(char, char.relrituale_runen_set.prefetch_related("item__firmen"), table_fields.keys()),
+                extra_columns = [(k, v) for k, v in table_fields.items()],
+                csrf_token=get_token(self.request),
+            )
         }
 
-    def get_nahkampf(self, char):
-        class WaffenTable(ShowView.RenderShopUseTable):
-            class Meta:
-                model = RelWaffen_Werkzeuge
-                fields = ("anz", "item__name", "item__bs", "item__zs", "item__dk", "item__schadensart", "notizen", "use")
-                orderable = False
-                attrs = {"class": "table table-dark table-striped table-hover"}
+    def get_nah_fernkampf(self, char):
+        class WaffenTable(ShowView.ItemTable):
+            class Meta(ShowView.ItemTable.Meta): pass
 
             def render_item__zs(self, value, record):
                 return f"{value} (ab {record.item.erfolge})"
 
-        return {
-            "nahkampf__table": WaffenTable(char.relwaffen_werkzeuge_set.prefetch_related("item__firmawaffen_werkzeuge_set__firma").annotate(use = Value("-")).all(), csrf_token=get_token(self.request))
-        }
-
-    def get_fernkampf(self, char):
-        class SchusswaffenTable(ShowView.RenderShopUseTable):
-            class Meta:
-                model = RelSchusswaffen
-                fields = ("anz", "item__name", "item__bs", "item__zs", "item__dk", "item__präzision", "item__schadensart", "notizen", "use")
-                orderable = False
-                attrs = {"class": "table table-dark table-striped table-hover"}
-
-            def render_item__zs(self, value, record):
-                return f"{value} (ab {record.item.erfolge})"
+        table_fields = OrderedDict(
+            anz = tables.Column(),
+            item__icon = tables.Column(verbose_name=""),
+            item__name = tables.Column(verbose_name="Name"),
+            stufe = tables.Column(),
+            item__beschreibung = tables.Column(verbose_name="Beschreibung"),
+            other = tables.Column(verbose_name=""),
+            notizen = tables.Column(),
+            use = tables.Column(verbose_name=""),
+        )
 
         return {
-            "fernkampf__table": SchusswaffenTable(char.relschusswaffen_set.prefetch_related("item__firmaschusswaffen_set__firma").annotate(use = Value("-")).all(), csrf_token=get_token(self.request))
+            "nahkampf__table": WaffenTable(
+                ShowView.ItemTable.get_queryset(char, char.relwaffen_werkzeuge_set.prefetch_related("item__firmen"), table_fields.keys()),
+                extra_columns = [(k, v) for k, v in table_fields.items()],
+                csrf_token=get_token(self.request)
+            ),
+            "fernkampf__table": WaffenTable(
+                ShowView.ItemTable.get_queryset(char, char.relschusswaffen_set.prefetch_related("item__firmen"), table_fields.keys()),
+                extra_columns = [(k, v) for k, v in table_fields.items()],
+                csrf_token=get_token(self.request)
+            )
         }
 
     def get_effekte(self, char):
@@ -927,9 +1001,9 @@ def remove_relshop(request, relshop_model, pk):
     if "sell" in request.POST:
         # get sell price
         price = 0
+        Model = apps.get_model('character', relshop_model)
         if issubclass(Model, RelShop):  # is not RelRamsch
-            Model = apps.get_model('character', relshop_model)
-            price = get_object_or_404(Model.objects.prefetch_related("item__firmen"), pk=pk).item.cheapest() or 0
+            price = res["item"].cheapest(res["stufe"]) or 0
             
             # 40% of cheapest price
             price = int((price * .4) + .5) * res["amount"]
