@@ -154,21 +154,20 @@ class KlasseStufenplan(models.Model):
         fg = { rel.gruppe: rel.fg for rel in char.relgruppe_set.all() }
         fert = {rel.fertigkeit.titel: attrs[rel.fertigkeit.attribut.titel] + fg[rel.fertigkeit.gruppe] + rel.fp + rel.fp_bonus for rel in char.relfertigkeit_set.prefetch_related("fertigkeit__attribut").all()}
         
-        AsWi = attrs["MA"] + attrs["WK"] + char.astralwiderstand_bonus
+        astrale_reaktion = attrs["MA"] + attrs["WK"] + char.astralwiderstand_bonus
         if char.no_MA_MG:
-            AsWi += 4
+            astrale_reaktion += 4
         elif char.no_MA:
-            AsWi = f'{attrs["WK"] + char.astralwiderstand_bonus} + Pool Angriffsfertigkeit'
+            astrale_reaktion = attrs["WK"] + char.astralwiderstand_bonus
 
         gHP = attrs["WK"]*5 + char.HPplus_geistig + math.ceil(char.larp_rang / 20)
         if char.no_MA_MG: gHP += 20
 
         calc_vals = {
             "Initiative": attrs["SCH"]*2 + attrs["WK"] + attrs["GES"] + char.initiative_bonus,
-            "Astral-Widerstand": AsWi,
-            "Reaktion": attrs["SCH"] + attrs["GES"] + char.reaktion_bonus,
-            "nat. Schadenswiderstand": attrs["ST"] + attrs["VER"] + char.natürlicher_schadenswiderstand_bonus,
-            "Intuition": (attrs["IN"] + 2*attrs["SCH"]) / 2,
+            "astrale Reaktion": astrale_reaktion,
+            "physische Reaktion": attrs["SCH"] + attrs["GES"] + char.reaktion_bonus,
+            "physischer Widerstand": attrs["ST"] + attrs["VER"] + char.natürlicher_schadenswiderstand_bonus, # ignored string/dice component
             "körperliche HP": attrs["ST"]*5 + math.floor(char.rang / 10) + (char.HPplus_fix if char.HPplus_fix is not None else char.HPplus) + (math.floor(char.larp_rang / 20) if char.larp else char.ep_stufe*2),
             "geistige HP": gHP,
         }
@@ -273,6 +272,7 @@ class Gfs(models.Model):
 
     ap = models.PositiveIntegerField(default=0, validators=[MaxValueValidator(100)], verbose_name="AP-Kosten")
 
+    base_movement_speed = models.FloatField(default=3, null=False, blank=True, verbose_name="Grundbewegungsrate")
     wesenschaden_waff_kampf = models.IntegerField("BS", default=0)
     wesenschaden_andere_gestalt = models.IntegerField(
         "BS andere Gestalt", blank=True, null=True)
@@ -596,7 +596,6 @@ class Fertigkeit(models.Model):
     gruppe = models.CharField(max_length=1, choices=enums.gruppen_enum, null=True)
 
     impro_possible = models.BooleanField(default=True)
-    limit = models.CharField(choices=enums.limit_enum, max_length=20, default=enums.limit_enum[0])
 
     def __str__(self):
         return self.titel
@@ -740,19 +739,18 @@ class Charakter(models.Model):
     initiative_bonus = models.SmallIntegerField(default=0)
     reaktion_bonus = models.SmallIntegerField(default=0)
     natürlicher_schadenswiderstand_bonus = models.SmallIntegerField(default=0)
-    natürlicher_schadenswiderstand_rüstung = models.SmallIntegerField(default=0)
-    natSchaWi_pro_erfolg_bonus = models.SmallIntegerField(default=0)
-    natSchaWi_pro_erfolg_rüstung = models.SmallIntegerField(default=0)
-    rüstung_haltbarkeit = models.SmallIntegerField(default=0)
+    natürlicher_schadenswiderstand_bonus_str = models.CharField(max_length=128, default="", null=False, blank=True)
     astralwiderstand_bonus = models.SmallIntegerField(default=0)
-    astralwiderstand_pro_erfolg_bonus = models.SmallIntegerField(default=0)
+    astralwiderstand_bonus_str = models.CharField(max_length=128, default="", null=False, blank=True)
     manaoverflow_bonus = models.SmallIntegerField(default=0)
     nat_regeneration_bonus = models.SmallIntegerField(default=0)
     immunsystem_bonus = models.SmallIntegerField(default=0)
 
-    limit_k_fix = models.DecimalField(max_digits=5, decimal_places=2, default=None, null=True, blank=True)
-    limit_g_fix = models.DecimalField(max_digits=5, decimal_places=2, default=None, null=True, blank=True)
-    limit_m_fix = models.DecimalField(max_digits=5, decimal_places=2, default=None, null=True, blank=True)
+    # movement speed
+    speed_laufen_bonus = models.FloatField(default=0)
+    speed_schwimmen_bonus = models.FloatField(default=0)
+    speed_fliegen_bonus = models.FloatField(default=0)
+    speed_astral_bonus = models.FloatField(default=0)
 
     # Geschreibsel
     notizen = models.TextField(blank=True, null=True)

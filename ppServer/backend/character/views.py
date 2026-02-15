@@ -239,25 +239,22 @@ class ShowView(VerifiedAccountMixin, DetailView):
         if char.no_MA_MG: AsWi = num(attrs["WK"] + char.astralwiderstand_bonus + 4)
         elif char.no_MA: AsWi = f'{num(attrs["WK"] + char.astralwiderstand_bonus)} + Pool Angriffsfertigkeit'
 
+        SchaWi = num(attrs["ST"] + attrs["VER"] + char.natürlicher_schadenswiderstand_bonus)
+        if char.natürlicher_schadenswiderstand_bonus_str: SchaWi = f'{SchaWi} + {char.natürlicher_schadenswiderstand_bonus_str}'
+
         return {
             "calculated__fields": [
-                ["Limits (k | g | m)", f'{num((attrs["SCH"] + attrs["ST"] + attrs["VER"] + attrs["GES"]) / 2) if char.limit_k_fix is None else char.limit_k_fix} | {num((attrs["IN"] + attrs["WK"] + attrs["UM"]) / 2) if char.limit_g_fix is None else char.limit_g_fix} | {num((attrs["MA"] + attrs["WK"]) / 2) if char.limit_m_fix is None else char.limit_m_fix}'],
                 ["Initiative", num(attrs["SCH"]*2 + attrs["WK"] + attrs["GES"] + char.initiative_bonus)],
                 ["Manaoverflow", num((attrs["WK"] + MA_raw)*3 + char.manaoverflow_bonus)],
 
-                ["Astral-Widerstand", AsWi],
-                ["Astrale Schadensverhinderung", f'{1+ num(math.floor(min(attrs["WK"], MA_raw) / 6)) + char.astralwiderstand_pro_erfolg_bonus}HP / Erfolg'],
-                ["Reaktion", num(attrs["SCH"] + attrs["GES"] + char.reaktion_bonus)],
-                ["nat. Schadenswiderstand", num(attrs["ST"] + attrs["VER"] + char.natürlicher_schadenswiderstand_bonus)],
-                ["Schadenswiderstand Rüstung", char.natürlicher_schadenswiderstand_rüstung],
-                ["nat. Schadensverhinderung", f'{1+ num(math.floor(min(attrs["ST"], attrs["VER"]) / 6) + char.natSchaWi_pro_erfolg_bonus)}HP / Erfolg'],
-                ["Schadensverhinderung Rüstung", f'{char.natSchaWi_pro_erfolg_rüstung}HP / Erfolg'],
-                ["Haltbarkeit der Rüstung", char.rüstung_haltbarkeit],
-                ["Intuition", num((attrs["IN"] + 2*attrs["SCH"]) / 2)],
-                ["Geh-/ Lauf-/ Sprintrate", f'{num(attrs["SCH"]*2)} | {num(attrs["SCH"]*4)} | {num(attrs["SCH"]*4 + ferts["Laufen"])} m / 6sek'],
-                ["Bewegung Astral", f'{num(2*attrs["MA"]*(attrs["WK"] + attrs["SCH"]))}m / 6sek'],
-                ["Schwimmen", f'{num(attrs["SCH"]*2/3 + ferts["Schwimmen"]/5)}m / 6sek'],
-                ["Tauchen", f'{num(attrs["SCH"]*2/5 + ferts["Schwimmen"]/5)}m / 6sek'],
+                ["physische Reaktion", num(attrs["SCH"] + attrs["GES"] + char.reaktion_bonus)],
+                ["physischer Widerstand", f"{SchaWi} HP"],
+                ["astrale Reaktion", AsWi],
+                ["astraler Widerstand", f"{AsWi} + {char.astralwiderstand_bonus_str} HP" if char.astralwiderstand_bonus_str else f"{AsWi} HP"],
+                ["Bewegung Laufen", f'{num(char.gfs.base_movement_speed + attrs["SCH"] + char.speed_laufen_bonus)}m'],
+                ["Bewegung Schwimmen", f'{num(char.gfs.base_movement_speed + attrs["SCH"] + char.speed_schwimmen_bonus)}m'],
+                ["Bewegung Fliegen", f'{num(char.gfs.base_movement_speed + attrs["SCH"] + char.speed_fliegen_bonus)}m'],
+                ["Bewegung Astral", f'{num(char.gfs.base_movement_speed + attrs["SCH"] + char.speed_astral_bonus)}m'],
                 ["Tragfähigkeit", f'{num(attrs["ST"]*3 + attrs["GES"])}kg'],
                 ["Heben", f'{num(attrs["ST"]*4 + attrs["N"])}kg / Erfolg'],
                 ["Ersticken", f'nach {num(attrs["ST"]*3 + attrs["VER"]*3)} sek'],
@@ -298,7 +295,7 @@ class ShowView(VerifiedAccountMixin, DetailView):
         class FertTable(tables.Table):
             class Meta:
                 model = RelFertigkeit
-                fields = ("fertigkeit__titel", "fertigkeit__attribut__titel", "fp", "fg", "fp_bonus", "pool", "fertigkeit__limit","fertigkeit__gruppe")
+                fields = ("fertigkeit__titel", "fertigkeit__attribut__titel", "fp", "fg", "fp_bonus", "pool","fertigkeit__gruppe")
                 orderable = False
                 attrs = {"class": "table table-dark table-striped table-hover"}
                 row_attrs = {
@@ -321,9 +318,6 @@ class ShowView(VerifiedAccountMixin, DetailView):
             def render_pool(self, value, record):
                 return format_html(f"<b>{value}</b>") if record["impro_possible"] or record["fp"] else "-"
 
-            def render_fertigkeit__limit(self, value):
-                return [name for token, name in enums.limit_enum if token == value][0]
-
             def render_fertigkeit__gruppe(self, value):
                 return [name for token, name in enums.gruppen_enum if token == value][0]
 
@@ -331,7 +325,7 @@ class ShowView(VerifiedAccountMixin, DetailView):
             fg=Value(1),
             pool=Value(1),
             impro_possible=F("fertigkeit__impro_possible"),
-        ).values("fertigkeit__titel", "fertigkeit__attribut__titel", "fp", "fg", "fp_bonus", "pool", "fertigkeit__limit", "fertigkeit__gruppe", "impro_possible")
+        ).values("fertigkeit__titel", "fertigkeit__attribut__titel", "fp", "fg", "fp_bonus", "pool", "fertigkeit__gruppe", "impro_possible")
 
         for fert in qs_fert:
             fert["fg"] = self._gruppen_fg[fert["fertigkeit__gruppe"]]

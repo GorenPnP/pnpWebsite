@@ -74,8 +74,9 @@ class CharakterExporter:
         # for ws in wb.worksheets(): ws.autofit()
         werte_ws.set_column("A:A", 25)
         werte_ws.set_column("B:B", 12)
-        werte_ws.set_column("C:G", 6)
-        werte_ws.set_column("H:H", 14)
+        werte_ws.set_column("C:F", 6)
+        werte_ws.set_column("G:G", 14)
+        werte_ws.set_column("H:H", 6)
         werte_ws.set_column("I:I", 20)
         werte_ws.set_column("J:J", 5)
         werte_ws.set_column("K:K", 10)
@@ -163,21 +164,26 @@ class CharakterExporter:
         format_fg =         wb.add_format({'align': 'center', "valign": "vcenter", "border": 1, "font_size": 16, 'bold': True, "bg_color": self.COLOR["yellow-pastel"]})
         format_fp_bonus =   wb.add_format({'align': 'center', "valign": "vcenter", "border": 1, "font_size": 12, "bold": True, "bg_color": self.COLOR["green-pastel"]})
         format_pool =       wb.add_format({'align': 'center', "valign": "vcenter", "border": 1, "font_size": 14, 'bold': True, "bg_color": self.COLOR["lavender-pastel"]})
-        format_limit =      wb.add_format({'align': 'center', "valign": "vcenter", "border": 1, "font_size": 12, 'bold': True})
         format_gruppe =     wb.add_format({'align': 'center', "valign": "vcenter", "border": 1, "font_size": 10, 'bold': True})
         
-        # Fertigkeiten
+        # Fertigkeiten & Klassen
         ROW = 3
+        klassen = {k.klasse.titel: k.stufe for k in self.char.relklasse_set.prefetch_related("klasse").all()}
 
-        werte_ws.write_row(f"A{ROW}", ["Fertigkeit", "Attribut", "FP", "FG", "Bonus", "Pool", "Limit", "FG-Name"], format_heading)
+        werte_ws.write_row(f"A{ROW}", ["Fertigkeit", "Attribut", "FP", "FG", "Bonus", "Pool", "FG-Klassenname", "Klassenstufe"], format_heading)
         gruppen = {rel.gruppe: rel for rel in self.char.relgruppe_set.all()}
-        for i, fert in enumerate(self.char.relfertigkeit_set.values("fertigkeit__titel", "fertigkeit__impro_possible", "fertigkeit__limit", "fp", "fp_bonus", "fertigkeit__gruppe", attribut=F("fertigkeit__attribut__titel"))):
+        for i, fert in enumerate(self.char.relfertigkeit_set.values("fertigkeit__titel", "fertigkeit__impro_possible", "fp", "fp_bonus", "fertigkeit__gruppe", attribut=F("fertigkeit__attribut__titel"))):
             ROW += 1
+            
+            # Klassen
             is_first_of_gruppe = i % 3 == 0
             if is_first_of_gruppe:
                 relgruppe = gruppen[fert["fertigkeit__gruppe"]]
+                klasse_name = relgruppe.get_gruppe_display()
+
                 werte_ws.merge_range(f"D{ROW}:D{ROW+2}", relgruppe.fg, format_fg)
-                werte_ws.merge_range(f"H{ROW}:H{ROW+2}", relgruppe.get_gruppe_display(), format_gruppe)
+                werte_ws.merge_range(f"G{ROW}:G{ROW+2}", klasse_name, format_gruppe)
+                werte_ws.merge_range(f"H{ROW}:H{ROW+2}", klassen[klasse_name] if klasse_name in klassen else 0, format_gruppe)
 
             self._POSITION[fert["fertigkeit__titel"]] = f"F{ROW}"
 
@@ -186,7 +192,6 @@ class CharakterExporter:
             werte_ws.write(f"C{ROW}", fert["fp"], format_fp)
             werte_ws.write(f"E{ROW}", fert["fp_bonus"], format_fp_bonus)
             werte_ws.write(f"F{ROW}", f"={self._position(fert['attribut'])} + C{ROW} + D{ROW - i%3} + E{ROW}", format_pool)
-            werte_ws.write(f"G{ROW}", fert["fertigkeit__limit"], format_limit)
 
         return werte_ws, ROW+1
 
@@ -215,13 +220,7 @@ class CharakterExporter:
         format_gsh =                wb.add_format({'align': 'center', "valign": "vcenter", 'bold': True, "right": 1})
         format_ini_titel =          wb.add_format({'align': 'center', "valign": "vcenter", 'bold': True, "bg_color": self.COLOR["orange-yellow"], "left": 1})
         format_ini =                wb.add_format({'align': 'center', "valign": "vcenter", 'bold': True, "bg_color": self.COLOR["orange-yellow"]})
-        format_asWi_topic =         wb.add_format({'align': 'center', "valign": "vcenter", 'bold': True, 'italic': True, 'underline': True, "font_size": 10, "border": 1, "bg_color": self.COLOR["lavender-pastel"]})
-        format_asWi =               wb.add_format({'align': 'center', "valign": "vcenter", 'bold': True, "border": 1, "font_size": 16, "bg_color": self.COLOR["lavender-pastel"]})
-        format_limit_topic__first = wb.add_format({'align': 'center', "valign": "vcenter", 'bold': True, 'italic': True, 'underline': True, "font_size": 12, "bg_color": self.COLOR["grau 3"], "left": 1})
-        format_limit_topic__last =  wb.add_format({'align': 'center', "valign": "vcenter", 'bold': True, 'italic': True, 'underline': True, "font_size": 12, "bg_color": self.COLOR["grau 3"]})
-        format_limit_titel =        wb.add_format({'align': 'center', "valign": "vcenter", 'bold': True, "bg_color": self.COLOR["grau 3"], "left": 1})
-        format_limit =              wb.add_format({'align': 'center', "valign": "vcenter", 'bold': True, "bg_color": self.COLOR["grau 3"], "font_color": self.COLOR["red-font"], "font_size": 14, 'underline': True})
-        
+
         format_teil_titel =         wb.add_format({'align': 'center', "valign": "vcenter", 'bold': True, "border": 1, "font_size": 12})
         format_vorteil =            wb.add_format({'text_wrap': True, "border": 1, 'align': 'left', "valign": "top", "bg_color": self.COLOR["green"]})
         format_nachteil =           wb.add_format({'text_wrap': True, "border": 1, 'align': 'left', "valign": "top", "bg_color": self.COLOR["red"]})
@@ -257,37 +256,10 @@ class CharakterExporter:
         werte_ws.write(f"I{ROW}", "Initiative", format_ini_titel)
         werte_ws.write(f"J{ROW}", f"=2*{self._position('SCH')}+{self._position('WK')}+{self._position('GES')}"+(f"+{self.char.initiative_bonus}" if self.char.initiative_bonus else ""), format_ini)
 
-        ROW += 1
-        werte_ws.write(f"I{ROW}", "Astral-WI", format_asWi_topic)
-        if self.char.no_MA_MG:
-            werte_ws.write(f"J{ROW}", f"={self._position('WK')}"+(f"+4+{self.char.astralwiderstand_bonus}" if self.char.astralwiderstand_bonus else ""), format_asWi)
-        elif self.char.no_MA:
-            werte_ws.write(f"J{ROW}", f"={self._position('WK')}"+(f"+{self.char.astralwiderstand_bonus}" if self.char.astralwiderstand_bonus else ""), format_asWi)
-        else:
-            werte_ws.write(f"J{ROW}", f"={self._position('MA')}+{self._position('WK')}"+(f"+{self.char.astralwiderstand_bonus}" if self.char.astralwiderstand_bonus else ""), format_asWi)
-        
-        ROW += 1
-        werte_ws.write(f"I{ROW}", "HP / Erfolg", format_asWi_topic)
-        werte_ws.write(f"J{ROW}", f"=FLOOR(MIN({self._position('WK')},{self._position('MA')})/6,1)+1+{self.char.astralwiderstand_pro_erfolg_bonus}", format_asWi)
-        
-        ROW += 2
-        werte_ws.write(f"I{ROW}", "Limits", format_limit_topic__first)
-        werte_ws.write(f"J{ROW}", None, format_limit_topic__last)
-        
-        ROW += 1
-        werte_ws.write(f"I{ROW}", "Körperlich", format_limit_titel)
-        werte_ws.write(f"J{ROW}", f"=({self._position('SCH')}+{self._position('ST')}+{self._position('VER')}+{self._position('GES')})/2" if self.char.limit_k_fix is None else self.char.limit_k_fix, format_limit)
-        ROW += 1
-        werte_ws.write(f"I{ROW}", "Geistig", format_limit_titel)
-        werte_ws.write(f"J{ROW}", f"=({self._position('UM')}+{self._position('WK')}+{self._position('IN')})/2" if self.char.limit_g_fix is None else self.char.limit_g_fix, format_limit)
-        ROW += 1
-        werte_ws.write(f"I{ROW}", "Magisch", format_limit_titel)
-        werte_ws.write(f"J{ROW}", f"=({self._position('MA')}+{self._position('WK')})/2" if self.char.limit_m_fix is None else self.char.limit_m_fix, format_limit)
-
         ROW = max(ROW+1, int(re.search(r"\d+$", self._position("attr_labels")).group(0)))
 
         # Vor- & Nachteile
-        ROW+1
+        ROW += 1
         werte_ws.merge_range(f"I{ROW}:I{ROW+2}", "Vorteile", format_teil_titel)
         werte_ws.merge_range(f"J{ROW}:R{ROW+2}", ", ".join([rel.__repr__() for rel in self.char.relvorteil_set.prefetch_related("teil").order_by("teil__titel").filter(will_create=False)]), format_vorteil)
 
@@ -382,59 +354,56 @@ class CharakterExporter:
         format_colorful =            wb.add_format({'align': 'center', "valign": "vcenter", 'bold': True, "right": 1})
 
         # colorful dice
-        werte_ws.merge_range(f"M{ROW}:O{ROW}", "Reaktion", format_colorful_titel_emph)
+        werte_ws.merge_range(f"M{ROW}:O{ROW}", "physische Reaktion", format_colorful_titel_emph)
         werte_ws.merge_range(f"P{ROW}:R{ROW}", f"={self._position('SCH')}+{self._position('GES')}"+(f"+{self.char.reaktion_bonus}" if self.char.reaktion_bonus else ""), format_colorful)
         werte_ws.write(f"S{ROW}", "SCH+GES")
-        
-        ROW += 1
-        werte_ws.merge_range(f"M{ROW}:O{ROW}", "nat. Schadenswiderstand", format_colorful_titel_emph)
-        werte_ws.write(f"P{ROW}", f"={self._position('ST')}+{self._position('VER')}"+(f"+{self.char.natürlicher_schadenswiderstand_bonus}" if self.char.natürlicher_schadenswiderstand_bonus else ""), format_colorful)
-        werte_ws.write(f"Q{ROW}", f"=FLOOR(MIN({self._position('ST')},{self._position('VER')})/6,1)+1+{self.char.natSchaWi_pro_erfolg_bonus}")
-        werte_ws.write(f"R{ROW}", "HP", format_colorful)
-        werte_ws.write(f"S{ROW}", f"ST+VER (xHP pro Erfolg, normal 1)")
-        ROW += 1
-        werte_ws.merge_range(f"M{ROW}:O{ROW}", "Rüstung Schutz | Stärke", format_colorful_titel)
-        werte_ws.write(f"P{ROW}", self.char.natürlicher_schadenswiderstand_rüstung, format_colorful)
-        werte_ws.write(f"Q{ROW}", self.char.natSchaWi_pro_erfolg_rüstung)
-        werte_ws.write(f"R{ROW}", "HP", format_colorful)
-        werte_ws.write(f"S{ROW}", "s. Rüstung")
-        ROW += 1
-        werte_ws.merge_range(f"M{ROW}:O{ROW}", "SchaWI gesamt pro Erfolg", format_colorful_titel_emph)
-        werte_ws.write(f"P{ROW}", f"=P{ROW-2}+P{ROW-1}", format_colorful)
-        werte_ws.write(f"Q{ROW}", f"=Q{ROW-2}+Q{ROW-1}")
-        werte_ws.write(f"R{ROW}", "HP", format_colorful)
-        werte_ws.write(f"S{ROW}", "SchaWI + Schutz + 1")
-        
-        ROW += 1
-        werte_ws.merge_range(f"M{ROW}:O{ROW}", "Haltbarkeit der Rüstung", format_colorful_titel)
-        werte_ws.merge_range(f"P{ROW}:R{ROW}", self.char.rüstung_haltbarkeit, format_colorful)
-        werte_ws.write(f"S{ROW}", "s. Rüstung")
 
         ROW += 1
-        werte_ws.merge_range(f"M{ROW}:O{ROW}", "Intuition", format_colorful_titel)
-        werte_ws.merge_range(f"P{ROW}:R{ROW}", f"=({self._position('IN')}+2*{self._position('SCH')})/2", format_colorful)
-        werte_ws.write(f"S{ROW}", "(IN+2*SCH)/2")
-        
+        werte_ws.merge_range(f"M{ROW}:O{ROW}", "physischer Widerstand", format_colorful_titel_emph)
+        werte_ws.merge_range(f"P{ROW}:Q{ROW}", f"={self._position('ST')}+{self._position('VER')}"+(f"+{self.char.natürlicher_schadenswiderstand_bonus}" or ""), format_colorful)
+        werte_ws.write(f"R{ROW}", self.char.natürlicher_schadenswiderstand_bonus_str, format_colorful)
+        werte_ws.write(f"S{ROW}", f"ST+VER")
+
         ROW += 1
-        werte_ws.merge_range(f"M{ROW}:O{ROW}", "Geh-/Lauf- und Sprintrate", format_colorful_titel)
-        werte_ws.write_row(f"P{ROW}", [f"={self._position('SCH')}*2", f"={self._position('SCH')}*4", f"={self._position('SCH')}*4+{self._position('Laufen')}"], format_colorful)
-        werte_ws.write(f"S{ROW}", "SCH*2, SCH*4, SCH*4 + Laufen")
-        
+        werte_ws.merge_range(f"M{ROW}:O{ROW}", "astrale Reaktion", format_colorful_titel_emph)
+        if self.char.no_MA_MG:
+            werte_ws.merge_range(f"P{ROW}:R{ROW}", f"={self._position('WK')}+4"+(f"+{self.char.astralwiderstand_bonus}" if self.char.astralwiderstand_bonus else ""), format_colorful)
+            werte_ws.write(f"S{ROW}", "WK+4")
+            werte_ws.write(f"S{ROW+1}", "WK+4")
+        elif self.char.no_MA:
+            werte_ws.merge_range(f"P{ROW}:R{ROW}", f"={self._position('WK')}"+(f"+{self.char.astralwiderstand_bonus}" if self.char.astralwiderstand_bonus else ""), format_colorful)
+            werte_ws.write(f"S{ROW}", "WK")
+            werte_ws.write(f"S{ROW+1}", "WK")
+        else:
+            werte_ws.merge_range(f"P{ROW}:R{ROW}", f"={self._position('MA')}+{self._position('WK')}"+(f"+{self.char.astralwiderstand_bonus}" if self.char.astralwiderstand_bonus else ""), format_colorful)
+            werte_ws.write(f"S{ROW}", "MA+WK")
+            werte_ws.write(f"S{ROW+1}", "MA+WK")
+
         ROW += 1
-        werte_ws.merge_range(f"M{ROW}:O{ROW}", "Bewegung Astral (in m/6sek)", format_colorful_titel)
-        werte_ws.merge_range(f"P{ROW}:R{ROW}", f"=2*{self._position('MA')}*({self._position('WK')}+{self._position('SCH')})", format_colorful)
-        werte_ws.write(f"S{ROW}", "2*MA*(WK+SCH)")
-        
+        werte_ws.merge_range(f"M{ROW}:O{ROW}", "astraler Widerstand", format_colorful_titel_emph)
+        werte_ws.merge_range(f"P{ROW}:Q{ROW}", f"=P{ROW-1}", format_colorful)
+        werte_ws.write(f"R{ROW}", self.char.astralwiderstand_bonus_str, format_colorful)
+
         ROW += 1
-        werte_ws.merge_range(f"M{ROW}:O{ROW}", "Schwimmen (in m/6sek)", format_colorful_titel)
-        werte_ws.merge_range(f"P{ROW}:R{ROW}", f"={self._position('SCH')}*2/3+{self._position('Schwimmen')}/5", format_colorful)
-        werte_ws.write(f"S{ROW}", "Gehrate/3+Schwimmen/5")
-        
+        werte_ws.merge_range(f"M{ROW}:O{ROW}", "Bewegungsrate Laufen (in m)", format_colorful_titel)
+        werte_ws.merge_range(f"P{ROW}:R{ROW}", f"={self.char.gfs.base_movement_speed}+{self._position('SCH')}+{self.char.speed_laufen_bonus}", format_colorful)
+        werte_ws.write(f"S{ROW}", "Gfs-Basiswert + SCH + Bonus")
+
         ROW += 1
-        werte_ws.merge_range(f"M{ROW}:O{ROW}", "Tauchen (in m/6sek)", format_colorful_titel)
-        werte_ws.merge_range(f"P{ROW}:R{ROW}", f"={self._position('SCH')}*2/5+{self._position('Schwimmen')}/5", format_colorful)
-        werte_ws.write(f"S{ROW}", "Gehrate/5+Schwimmen/5")
-        
+        werte_ws.merge_range(f"M{ROW}:O{ROW}", "Bewegungsrate Schwimmen (in m)", format_colorful_titel)
+        werte_ws.merge_range(f"P{ROW}:R{ROW}", f"={self.char.gfs.base_movement_speed}+{self._position('SCH')}+{self.char.speed_schwimmen_bonus}", format_colorful)
+        werte_ws.write(f"S{ROW}", "Gfs-Basiswert + SCH + Bonus")
+
+        ROW += 1
+        werte_ws.merge_range(f"M{ROW}:O{ROW}", "Bewegungsrate Fliegen (in m)", format_colorful_titel)
+        werte_ws.merge_range(f"P{ROW}:R{ROW}", f"={self.char.gfs.base_movement_speed}+{self._position('SCH')}+{self.char.speed_fliegen_bonus}", format_colorful)
+        werte_ws.write(f"S{ROW}", "Gfs-Basiswert + SCH + Bonus")
+
+        ROW += 1
+        werte_ws.merge_range(f"M{ROW}:O{ROW}", "Bewegungsrate Astral (in m)", format_colorful_titel)
+        werte_ws.merge_range(f"P{ROW}:R{ROW}", f"={self.char.gfs.base_movement_speed}+{self._position('SCH')}+{self.char.speed_astral_bonus}", format_colorful)
+        werte_ws.write(f"S{ROW}", "Gfs-Basiswert + SCH + Bonus")
+
         ROW += 1
         werte_ws.merge_range(f"M{ROW}:O{ROW}", "Tragfähigkeit", format_colorful_titel)
         werte_ws.merge_range(f"P{ROW}:R{ROW}", f"={self._position('ST')}*3+{self._position('GES')}", format_colorful)

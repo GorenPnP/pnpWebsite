@@ -75,10 +75,10 @@ class CharacterForm(forms.ModelForm):
         fields = [
             "image", "name", "gewicht", "größe", "alter", "geschlecht", "sexualität", "beruf", "präf_arm", "religion", "hautfarbe", "haarfarbe", "augenfarbe", "gfs", "persönlichkeit",
             "manifest", "manifest_fix", "sonstiger_manifestverlust", "notizen_sonstiger_manifestverlust",
-            "ap", "fp", "fg", "sp", "sp_fix", "ip", "tp", "zauberplätze", "konzentration", "konzentration_fix", "prestige", "verzehr", "glück", "sanität", "limit_k_fix", "limit_g_fix", "limit_m_fix",
+            "ap", "fp", "fg", "sp", "sp_fix", "ip", "tp", "zauberplätze", "konzentration", "konzentration_fix", "prestige", "verzehr", "glück", "sanität",
             "ep", "ep_stufe", "skilltree_stufe",
             "HPplus_geistig", "HPplus", "HPplus_fix", "rang",
-            "wesenschaden_waff_kampf", "wesenschaden_andere_gestalt", "crit_attack", "crit_defense", "initiative_bonus", "reaktion_bonus", "natürlicher_schadenswiderstand_bonus", "natürlicher_schadenswiderstand_rüstung", "natSchaWi_pro_erfolg_bonus", "natSchaWi_pro_erfolg_rüstung", "rüstung_haltbarkeit", "astralwiderstand_bonus", "astralwiderstand_pro_erfolg_bonus", "manaoverflow_bonus", "nat_regeneration_bonus", "immunsystem_bonus",
+            "wesenschaden_waff_kampf", "wesenschaden_andere_gestalt", "crit_attack", "crit_defense", "initiative_bonus", "reaktion_bonus", "natürlicher_schadenswiderstand_bonus", "natürlicher_schadenswiderstand_bonus_str", "astralwiderstand_bonus", "astralwiderstand_bonus_str", "manaoverflow_bonus", "nat_regeneration_bonus", "immunsystem_bonus",
     	    "notizen", "persönlicheZiele", "sonstige_items", "affektivitäten",
             "klassen", "klassen_fähigkeiten", "vorteile", "nachteile", "talente", "wesenkräfte",
             "attribute", "fertigkeiten","gruppen", "spezialfertigkeiten", "wissensfertigkeiten", "gfs_fähigkeiten",
@@ -162,7 +162,7 @@ class CharacterForm(forms.ModelForm):
                     ),
                     Fieldset(
                         "Schaden verhindern",
-                        "crit_defense", "natürlicher_schadenswiderstand_rüstung", "natSchaWi_pro_erfolg_rüstung", "rüstung_haltbarkeit",
+                        "crit_defense",
                     ),
                     Fieldset(
                         "HP",
@@ -170,7 +170,7 @@ class CharacterForm(forms.ModelForm):
                     ),
                     Fieldset(
                         "Boni",
-                        "initiative_bonus", "reaktion_bonus", "natürlicher_schadenswiderstand_bonus", "natSchaWi_pro_erfolg_bonus", "astralwiderstand_bonus", "astralwiderstand_pro_erfolg_bonus", "manaoverflow_bonus", "nat_regeneration_bonus", "immunsystem_bonus"
+                        "initiative_bonus", "reaktion_bonus", "natürlicher_schadenswiderstand_bonus", "natürlicher_schadenswiderstand_bonus_str", "astralwiderstand_bonus", "astralwiderstand_bonus_str", "manaoverflow_bonus", "nat_regeneration_bonus", "immunsystem_bonus"
                     ),
                 ),
                 Tab(
@@ -186,10 +186,6 @@ class CharacterForm(forms.ModelForm):
                     Fieldset(
                         "FG",
                         Formset("gruppen"),
-                    ),
-                    Fieldset(
-                        "Limits",
-                        "limit_k_fix", "limit_g_fix", "limit_m_fix",
                     ),
                 ),
                 Tab(

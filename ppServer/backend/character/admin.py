@@ -78,9 +78,9 @@ class AttributAdmin(admin.ModelAdmin):
 
 class FertigkeitAdmin(admin.ModelAdmin):
 
-    list_display = ('titel', 'attribut', 'gruppe', 'impro_possible', 'limit', 'beschreibung')
-    search_fields = ['titel', 'attribut__titel', 'limit']
-    list_filter = ['attribut', 'gruppe', 'impro_possible', 'limit']
+    list_display = ('titel', 'attribut', 'gruppe', 'impro_possible', 'beschreibung')
+    search_fields = ['titel', 'attribut__titel']
+    list_filter = ['attribut', 'gruppe', 'impro_possible']
 
     def get_queryset(self, request):
         return super().get_queryset(request).prefetch_related('attribut')

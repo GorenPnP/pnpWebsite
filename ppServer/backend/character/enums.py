@@ -1,12 +1,3 @@
-""" enum for <code>Fertigkeit</code>"""
-limit_enum = [
-    ('-', 'keins'),
-    ('g', 'geistig'),
-    ('k', 'körperlich'),
-    ('m', 'magisch')
-]
-
-
 """ enum for SkilltreeEntry"""
 skilltreeentry_enum = [
     ('a', 'AP'),

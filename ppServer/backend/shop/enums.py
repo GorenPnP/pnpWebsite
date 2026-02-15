@@ -121,8 +121,8 @@ zauber_enum = [
 ]
 zauberverteidigung_enum = [
     ('n', 'kein Ziel gewählt'),
-    ('a', 'Astralwiderstand'),
-    ('r', 'Reaktion'),
+    ('a', 'astral'),
+    ('r', 'physisch'),
 ]
 
 
