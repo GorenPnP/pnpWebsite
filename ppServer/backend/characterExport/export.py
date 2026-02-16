@@ -387,22 +387,22 @@ class CharakterExporter:
         ROW += 1
         werte_ws.merge_range(f"M{ROW}:O{ROW}", "Bewegungsrate Laufen (in m)", format_colorful_titel)
         werte_ws.merge_range(f"P{ROW}:R{ROW}", f"={self.char.gfs.base_movement_speed}+{self._position('SCH')}+{self.char.speed_laufen_bonus}", format_colorful)
-        werte_ws.write(f"S{ROW}", "Gfs-Basiswert + SCH + Bonus")
+        werte_ws.write(f"S{ROW}", "(Gfs-Basiswert + SCH + Bonus")
 
         ROW += 1
         werte_ws.merge_range(f"M{ROW}:O{ROW}", "Bewegungsrate Schwimmen (in m)", format_colorful_titel)
-        werte_ws.merge_range(f"P{ROW}:R{ROW}", f"={self.char.gfs.base_movement_speed}+{self._position('SCH')}+{self.char.speed_schwimmen_bonus}", format_colorful)
-        werte_ws.write(f"S{ROW}", "Gfs-Basiswert + SCH + Bonus")
+        werte_ws.merge_range(f"P{ROW}:R{ROW}", f"=({self.char.gfs.base_movement_speed}+{self._position('SCH')})/2+{self.char.speed_schwimmen_bonus}", format_colorful)
+        werte_ws.write(f"S{ROW}", "(Gfs-Basiswert + SCH)/2 + Bonus")
 
         ROW += 1
         werte_ws.merge_range(f"M{ROW}:O{ROW}", "Bewegungsrate Fliegen (in m)", format_colorful_titel)
-        werte_ws.merge_range(f"P{ROW}:R{ROW}", f"={self.char.gfs.base_movement_speed}+{self._position('SCH')}+{self.char.speed_fliegen_bonus}", format_colorful)
-        werte_ws.write(f"S{ROW}", "Gfs-Basiswert + SCH + Bonus")
+        werte_ws.merge_range(f"P{ROW}:R{ROW}", f"=({self.char.gfs.base_movement_speed}+{self._position('SCH')})*2+{self.char.speed_fliegen_bonus}", format_colorful)
+        werte_ws.write(f"S{ROW}", "(Gfs-Basiswert + SCH)*2 + Bonus")
 
         ROW += 1
         werte_ws.merge_range(f"M{ROW}:O{ROW}", "Bewegungsrate Astral (in m)", format_colorful_titel)
-        werte_ws.merge_range(f"P{ROW}:R{ROW}", f"={self.char.gfs.base_movement_speed}+{self._position('SCH')}+{self.char.speed_astral_bonus}", format_colorful)
-        werte_ws.write(f"S{ROW}", "Gfs-Basiswert + SCH + Bonus")
+        werte_ws.merge_range(f"P{ROW}:R{ROW}", f"=({self.char.gfs.base_movement_speed}+{self._position('SCH')})*4+{self.char.speed_astral_bonus}", format_colorful)
+        werte_ws.write(f"S{ROW}", "(Gfs-Basiswert + SCH)*4 + Bonus")
 
         ROW += 1
         werte_ws.merge_range(f"M{ROW}:O{ROW}", "Tragfähigkeit", format_colorful_titel)
