@@ -2,7 +2,7 @@ from typing import Callable
 
 from django.contrib import messages
 from django.contrib.auth.mixins import UserPassesTestMixin
-from django.db.models import Sum, Value, CharField, Exists, OuterRef
+from django.db.models import Sum, Value, CharField, Exists, OuterRef, Max
 from django.db.models.functions import Concat, Replace
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import redirect, get_object_or_404
@@ -47,7 +47,7 @@ class GenericZauberView(LevelUpMixin, UserPassesTestMixin, TemplateView):
         zauberplätze = char.zauberplätze if char.zauberplätze else {}
 
         zauberplatz_stufe_limit = max([int(k) for k in zauberplätze.keys()], default=-1)
-        char_stufe_limit = max(char.ep_stufe_in_progress, 5 if char.magieamateur_exists else 0, 10 if char.magiegelehrter_exists else 0)
+        char_stufe_limit = max(char.ep_stufe_in_progress, 5 if char.magieamateur_exists else 0, 10 if char.magiegelehrter_exists else 0) if not char.larp else Zauber.objects.aggregate(Max("ab_stufe", default=-1))["ab_stufe__max"]
         max_stufe = min(zauberplatz_stufe_limit, char_stufe_limit)
 
         own_zauber = char.relzauber_set.filter(learned=True).prefetch_related("item").all().annotate(
