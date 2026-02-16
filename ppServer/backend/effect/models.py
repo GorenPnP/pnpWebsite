@@ -46,7 +46,6 @@ class AbstractEffect(models.Model):
         ("character.Charakter.HPplus", "Charakter: kHP plus"),
         ("character.Charakter.HPplus_fix", "Charakter: kHP plus fix"),
         ("character.Charakter.HPplus_geistig", "Charakter: gHP plus"),
-        ("character.Charakter.rang", "Charakter: Rang"),
 
         ("character.Charakter.crit_attack", "Charakter: Crit-Angriff"),
         ("character.Charakter.crit_defense", "Charakter: Crit-Verteidigung"),

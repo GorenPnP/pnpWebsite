@@ -160,7 +160,8 @@ class KlasseStufenplan(models.Model):
         elif char.no_MA:
             astrale_reaktion = attrs["WK"] + char.astralwiderstand_bonus
 
-        gHP = attrs["WK"]*5 + char.HPplus_geistig + math.ceil(char.larp_rang / 20)
+        HPstufe = math.floor(char.larp_rang / 20) if char.larp else char.ep_stufe*2
+        gHP = attrs["WK"]*5 + char.HPplus_geistig + HPstufe
         if char.no_MA_MG: gHP += 20
 
         calc_vals = {
@@ -168,7 +169,7 @@ class KlasseStufenplan(models.Model):
             "astrale Reaktion": astrale_reaktion,
             "physische Reaktion": attrs["SCH"] + attrs["GES"] + char.reaktion_bonus,
             "physischer Widerstand": attrs["ST"] + attrs["VER"] + char.natürlicher_schadenswiderstand_bonus, # ignored string/dice component
-            "körperliche HP": attrs["ST"]*5 + math.floor(char.rang / 10) + (char.HPplus_fix if char.HPplus_fix is not None else char.HPplus) + (math.floor(char.larp_rang / 20) if char.larp else char.ep_stufe*2),
+            "körperliche HP": attrs["ST"]*5 + (char.HPplus_fix if char.HPplus_fix is not None else char.HPplus) + HPstufe,
             "geistige HP": gHP,
         }
         fields = { **attrs, **fert, **calc_vals }
@@ -728,7 +729,6 @@ class Charakter(models.Model):
     HPplus_geistig = models.IntegerField(default=0)
     HPplus = models.IntegerField(default=0)
     HPplus_fix = models.IntegerField(default=None, null=True, blank=True)
-    rang = models.PositiveIntegerField(default=0)
     larp_rang = models.PositiveIntegerField(default=0)
 
     # kampf

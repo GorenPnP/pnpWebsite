@@ -16,7 +16,6 @@ kind_enum = [
     ("c", "mehr CP"),
     ("b", "mehr EP"),
     ("p", "mehr SP"),
-    ("r", "mehr Rang"),
     ("e", "weniger Geld"),
     ("k", "weniger SP"),
 

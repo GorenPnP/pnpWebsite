@@ -259,7 +259,7 @@ class ShowView(VerifiedAccountMixin, DetailView):
             ["SP", char.sp],
             ["IP", char.ip],
             ["TP", char.tp],
-            [f"{'LARP-' if char.larp else ''}Ränge", render_number(char.larp_rang if char.larp else char.rang)],
+            ### add here ###
             ["Prestige", render_number(char.prestige)],
             ["Verzehr", render_number(char.verzehr)],
             ["Manifest", char.manifest - char.sonstiger_manifestverlust if char.manifest_fix is None else char.manifest_fix],
@@ -267,7 +267,9 @@ class ShowView(VerifiedAccountMixin, DetailView):
             ["Krit-Angriff", char.crit_attack],
             ["Krit-Verteidigung", char.crit_defense],
         ]
-        if not char.larp:
+        if char.larp:
+            fields.insert(4, ["LARP-Ränge", render_number(char.larp_rang)])
+        else:
             fields.insert(4, ["EP (Stufe)", f"{render_number(char.ep)} ({char.ep_stufe})"])
 
         return {
@@ -389,29 +391,26 @@ class ShowView(VerifiedAccountMixin, DetailView):
         khp = [
             self._rel_attribute["ST"].aktuell() * 5,
             math.floor(char.larp_rang / 20) if char.larp else char.ep_stufe * 2,
-            math.floor(char.rang / 10),
             char.HPplus_fix if char.HPplus_fix is not None else char.HPplus,
         ]
         ghp = [
             self._rel_attribute["WK"].aktuell() * 5,
+            math.floor(char.larp_rang / 20) if char.larp else char.ep_stufe * 2,
             char.HPplus_geistig + (10 if char.no_MA_MG else 0),
-            math.ceil(char.larp_rang / 20),
         ]
 
         fields_khp = [
             ["HP durch Stärke", khp[0]],
             ["HP durch LARP-Ränge" if char.larp else "HP durch Stufe", khp[1]],
-            ["HP durch Ränge", khp[2]],
-            ["HP-Bonus", khp[3]],
+            ["HP-Bonus", khp[2]],
             [format_html("<b>Körperliche HP</b>"), format_html(f"<b>{sum(khp)}</b>")],
         ]
         fields_ghp = [
             ["HP durch Willenskraft", ghp[0]],
-            ["HP-Bonus", ghp[1]],
+            ["HP durch LARP-Ränge" if char.larp else "HP durch Stufe", khp[1]],
+            ["HP-Bonus", ghp[2]],
             [format_html("<b>geistige HP</b>"), format_html(f"<b>{sum(ghp)}</b>")],
         ]
-        if char.larp:
-            fields_ghp.insert(1, ["HP durch LARP-Ränge", ghp[2]])
 
         return {
             "hp__k_fields": fields_khp,

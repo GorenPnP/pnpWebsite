@@ -77,7 +77,7 @@ class CharacterForm(forms.ModelForm):
             "manifest", "manifest_fix", "sonstiger_manifestverlust", "notizen_sonstiger_manifestverlust",
             "ap", "fp", "fg", "sp", "sp_fix", "ip", "tp", "zauberplätze", "konzentration", "konzentration_fix", "prestige", "verzehr", "glück", "sanität",
             "ep", "ep_stufe", "skilltree_stufe",
-            "HPplus_geistig", "HPplus", "HPplus_fix", "rang",
+            "HPplus_geistig", "HPplus", "HPplus_fix",
             "wesenschaden_waff_kampf", "wesenschaden_andere_gestalt", "crit_attack", "crit_defense", "initiative_bonus", "reaktion_bonus", "natürlicher_schadenswiderstand_bonus", "natürlicher_schadenswiderstand_bonus_str", "astralwiderstand_bonus", "astralwiderstand_bonus_str", "manaoverflow_bonus", "nat_regeneration_bonus", "immunsystem_bonus",
     	    "notizen", "persönlicheZiele", "sonstige_items", "affektivitäten",
             "klassen", "klassen_fähigkeiten", "vorteile", "nachteile", "talente", "wesenkräfte",
@@ -166,7 +166,7 @@ class CharacterForm(forms.ModelForm):
                     ),
                     Fieldset(
                         "HP",
-                        "rang", "HPplus", "HPplus_fix", "HPplus_geistig"
+                        "HPplus", "HPplus_fix", "HPplus_geistig"
                     ),
                     Fieldset(
                         "Boni",
