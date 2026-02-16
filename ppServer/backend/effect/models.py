@@ -65,8 +65,8 @@ class AbstractEffect(models.Model):
         ("character.Charakter.immunsystem_bonus", "Charakter: Immunsystem-Bonus"),
     ]
 
-    wertaenderung = models.DecimalField(decimal_places=2, max_digits=15, null=False, blank=True, verbose_name="Wertänderung")
-    wertaenderung_str = models.CharField(max_length=32, null=False, blank=True, verbose_name="Wertänderung (str)")
+    wertaenderung = models.DecimalField(decimal_places=2, max_digits=15, null=True, blank=True, verbose_name="Wertänderung")
+    wertaenderung_str = models.CharField(max_length=32, null=True, blank=True, verbose_name="Wertänderung (str)")
     target_fieldname = models.CharField(choices=target_fieldname_enum)
 
 
@@ -222,7 +222,7 @@ class RelEffect(AbstractEffect):
             setattr(target, field, self.wertaenderung)
             target.save(update_fields=[field])
         elif self.target_fieldname in ["character.Charakter.natürlicher_schadenswiderstand_bonus_str", "character.Charakter.astralwiderstand_bonus_str"]:
-            target[field] = f'{target[field]} + {self.wertaenderung_str}' if target[field] else self.wertaenderung_str
+            setattr(target, field, f'{getattr(target, field)} + {self.wertaenderung_str}' if getattr(target, field, False) else self.wertaenderung_str)
             target.save(update_fields=[field])
         else:
             setattr(target, field, (getattr(target, field, 0) or 0) + self.wertaenderung)
@@ -280,8 +280,9 @@ class RelEffect(AbstractEffect):
             setattr(target, field, None)
             target.save(update_fields=[field])
         elif self.target_fieldname in ["character.Charakter.natürlicher_schadenswiderstand_bonus_str", "character.Charakter.astralwiderstand_bonus_str"]:
-            parts = (target[field] or "").split(" + ").remove(self.wertaenderung_str)
-            target[field] = " + ".join(parts)
+            parts = (getattr(target, field, "") or "").split(" + ")
+            parts.remove(self.wertaenderung_str)
+            setattr(target, field, " + ".join(parts))
             target.save(update_fields=[field])
         else:
             setattr(target, field, (getattr(target, field, 0) or 0) - self.wertaenderung)

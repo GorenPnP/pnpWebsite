@@ -147,7 +147,7 @@ class RelTalentInLine(RelInlineAdmin):
 class RelEffectInLine(RelInlineAdmin):
     model = RelEffect
     fields = [
-        "wertaenderung", "target_fieldname", "target_attribut", "target_fertigkeit", "source_vorteil", "source_nachteil",
+        "wertaenderung", "wertaenderung_str", "target_fieldname", "target_attribut", "target_fertigkeit", "source_vorteil", "source_nachteil",
         "source_talent", "source_gfsAbility", "source_klasse", "source_klasseAbility", "source_shopBegleiter",
         "source_shopMagischeAusrüstung", "source_shopRüstung", "source_shopAusrüstungTechnik", "source_shopEinbauten", "is_active"
     ]
@@ -171,7 +171,7 @@ class RelEffectInLine(RelInlineAdmin):
 
     def get_readonly_fields(self, request: HttpRequest, obj):
         if request.user.has_perm(CustomPermission.SPIELLEITUNG.value):
-            return filter(lambda item: item not in ['wertaenderung', 'is_active'], self.fields)
+            return filter(lambda item: item not in ['wertaenderung', "wertaenderung_str", 'is_active'], self.fields)
         else:
             return self.fields
         
@@ -342,12 +342,3 @@ class CharakterAdmin(admin.ModelAdmin):
             messages.info(request, format_html(f'Geld ändern geht über <a href="https://{request.get_host()}/cards/transaction" target="_blank">-&gt;Transaktionen</a>'))
 
         return super().get_form(request, obj, change, **kwargs)
-    
-    def save_formset(self, request, form, formset, change):
-        res = super().save_formset(request, form, formset, change)
-
-        # call signal for applying effects manually
-        for instance in formset.new_objects:
-            apply_effect_on_rel_relation(formset.model, instance, True)
-
-        return res

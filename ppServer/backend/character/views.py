@@ -687,9 +687,12 @@ class ShowView(VerifiedAccountMixin, DetailView):
         class EffectTable(tables.Table):
             class Meta:
                 model = RelEffect
-                fields = ("wertaenderung", "fieldname", "source")
+                fields = ("wert", "fieldname", "source")
                 orderable = False
                 attrs = {"class": "table table-dark table-striped table-hover"}
+
+            def render_wert(self, value, record):
+                return record.wertaenderung_str or record.wertaenderung
 
             def render_fieldname(self, value, record):
                 display = record.get_target_fieldname_display()
@@ -722,6 +725,7 @@ class ShowView(VerifiedAccountMixin, DetailView):
                         "source_shopEinbauten__char", "source_shopEinbauten__item",
                     )\
                     .annotate(
+                        wert=Value(" "),
                         fieldname=Value(" "),
                         source=Value(" "),
                     ).all()

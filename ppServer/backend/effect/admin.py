@@ -4,7 +4,7 @@ from .models import *
 
 
 class EffectAdmin(admin.ModelAdmin):
-    list_display = ["target_fieldname", "wertaenderung", "has_custom_implementation", "target", "source"]
+    list_display = ["target_fieldname", "wert", "has_custom_implementation", "target", "source"]
     list_filter = ["has_custom_implementation", "target_fieldname", "target_attribut", "target_fertigkeit",
     ]
     search_fields = [
@@ -24,6 +24,9 @@ class EffectAdmin(admin.ModelAdmin):
         "source_shopAusrüstungTechnik__name",
         "source_shopEinbauten__name",
     ]
+
+    def wert(self, obj):
+        return obj.wertaenderung_str or obj.wertaenderung
 
     def target(self, obj):
         targets = [getattr(obj, "target_attribut", None), getattr(obj, "target_fertigkeit", None)]
