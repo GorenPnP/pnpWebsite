@@ -355,7 +355,7 @@ class CharakterExporter:
 
         # colorful dice
         werte_ws.merge_range(f"M{ROW}:O{ROW}", "physische Reaktion", format_colorful_titel_emph)
-        werte_ws.merge_range(f"P{ROW}:R{ROW}", f"={self._position('SCH')}+{self._position('GES')}"+(f"+{self.char.reaktion_bonus}" if self.char.reaktion_bonus else ""), format_colorful)
+        werte_ws.merge_range(f"P{ROW}:R{ROW}", f"={self._position('SCH')}+{self._position('GES')}"+(f"+{self.char.physische_reaktion_bonus}" if self.char.physische_reaktion_bonus else ""), format_colorful)
         werte_ws.write(f"S{ROW}", "SCH+GES")
 
         ROW += 1

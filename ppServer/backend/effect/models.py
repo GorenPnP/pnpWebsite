@@ -55,7 +55,7 @@ class AbstractEffect(models.Model):
         ("character.Charakter.konzentration", "Charakter: Konzentration"),
         ("character.Charakter.konzentration_fix", "Charakter: Konzentration fix"),
         ("character.Charakter.initiative_bonus", "Charakter: Initiative-Bonus"),
-        ("character.Charakter.reaktion_bonus", "Charakter: physische Reaktion-Bonus"),
+        ("character.Charakter.physische_reaktion_bonus", "Charakter: physische Reaktion-Bonus"),
         ("character.Charakter.physischer_widerstand_bonus", "Charakter: physischer Widerstand-Bonus"),
         ("character.Charakter.physischer_widerstand_bonus_str", "Charakter: physischer Widerstand-Bonus Text"),
         ("character.Charakter.astraler_widerstand_bonus", "Charakter: astraler Widerstand-Bonus"),

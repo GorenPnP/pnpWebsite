@@ -167,7 +167,7 @@ class KlasseStufenplan(models.Model):
         calc_vals = {
             "Initiative": attrs["SCH"]*2 + attrs["WK"] + attrs["GES"] + char.initiative_bonus,
             "astrale Reaktion": astrale_reaktion,
-            "physische Reaktion": attrs["SCH"] + attrs["GES"] + char.reaktion_bonus,
+            "physische Reaktion": attrs["SCH"] + attrs["GES"] + char.physische_reaktion_bonus,
             "physischer Widerstand": attrs["ST"] + attrs["VER"] + char.physischer_widerstand_bonus, # ignored string/dice component
             "körperliche HP": attrs["ST"]*5 + (char.HPplus_fix if char.HPplus_fix is not None else char.HPplus) + HPstufe,
             "geistige HP": gHP,
@@ -737,7 +737,7 @@ class Charakter(models.Model):
     crit_attack = models.PositiveSmallIntegerField(default=0)
     crit_defense = models.PositiveSmallIntegerField(default=0)
     initiative_bonus = models.SmallIntegerField(default=0)
-    reaktion_bonus = models.SmallIntegerField(default=0)
+    physische_reaktion_bonus = models.SmallIntegerField(default=0)
     physischer_widerstand_bonus = models.SmallIntegerField(default=0)
     physischer_widerstand_bonus_str = models.CharField(max_length=128, default="", null=False, blank=True)
     astraler_widerstand_bonus = models.SmallIntegerField(default=0)
@@ -1601,7 +1601,7 @@ class GfsSkilltreeEntry(models.Model):
         try:
 
             # AP, FP, FG, SP, IP, TP, Crit-Angriff, Crit-Verteidigung, körperliche HP, geistige HP, HP Schaden waff. Kampf,
-            # Initiative fix, Reaktion, physischer & astraler Widerstand
+            # Initiative fix, physische Reaktion, physischer & astraler Widerstand
             if self.operation in ["a", "f", "F", "p", "i", "t", "A", "V", "K", "G", "k", "I", "r", "N", "T"]:
                 return f"+{self.amount} {self.get_operation_display()}"
 
@@ -1696,10 +1696,10 @@ class GfsSkilltreeEntry(models.Model):
             char.initiative_bonus += self.amount
             char.save(update_fields=["initiative_bonus"])
             return
-        # Reaktion
+        # physische Reaktion
         if self.operation == "r":
-            char.reaktion_bonus += self.amount
-            char.save(update_fields=["reaktion_bonus"])
+            char.physische_reaktion_bonus += self.amount
+            char.save(update_fields=["physische_reaktion_bonus"])
             return
         # physischer Widerstand
         if self.operation == "N":

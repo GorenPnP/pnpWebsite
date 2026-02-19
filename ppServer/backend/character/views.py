@@ -297,7 +297,7 @@ class ShowView(VerifiedAccountMixin, DetailView):
                 ["Initiative", num(attrs["SCH"]*2 + attrs["WK"] + attrs["GES"] + char.initiative_bonus)],
                 ["Manaoverflow", num((attrs["WK"] + MA_raw)*3 + char.manaoverflow_bonus)],
 
-                ["physische Reaktion", num(attrs["SCH"] + attrs["GES"] + char.reaktion_bonus)],
+                ["physische Reaktion", num(attrs["SCH"] + attrs["GES"] + char.physische_reaktion_bonus)],
                 ["physischer Widerstand", f"{SchaWi} HP"],
                 ["astrale Reaktion", AsWi],
                 ["astraler Widerstand", f"{AsWi} + {char.astraler_widerstand_bonus_str} HP" if char.astraler_widerstand_bonus_str else f"{AsWi} HP"],

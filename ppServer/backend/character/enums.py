@@ -28,7 +28,7 @@ skilltreeentry_enum = [
     ('k', 'HP Schaden waff. Kampf'),
 
     ('I', 'Initiative fix'),
-    ('r', 'Reaktion'),
+    ('r', 'physische Reaktion'),
     ('N', 'physischer Widerstand'),
     ('T', 'astraler Widerstand'),
 
