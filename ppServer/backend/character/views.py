@@ -285,12 +285,12 @@ class ShowView(VerifiedAccountMixin, DetailView):
 
         num = lambda n: "{0:.1f}".format(n) if type(n) is float else n
 
-        AsWi = num(attrs["MA"] + attrs["WK"] + char.astralwiderstand_bonus)
-        if char.no_MA_MG: AsWi = num(attrs["WK"] + char.astralwiderstand_bonus + 4)
-        elif char.no_MA: AsWi = f'{num(attrs["WK"] + char.astralwiderstand_bonus)} + Pool Angriffsfertigkeit'
+        AsWi = num(attrs["MA"] + attrs["WK"] + char.astraler_widerstand_bonus)
+        if char.no_MA_MG: AsWi = num(attrs["WK"] + char.astraler_widerstand_bonus + 4)
+        elif char.no_MA: AsWi = f'{num(attrs["WK"] + char.astraler_widerstand_bonus)} + Pool Angriffsfertigkeit'
 
-        SchaWi = num(attrs["ST"] + attrs["VER"] + char.natürlicher_schadenswiderstand_bonus)
-        if char.natürlicher_schadenswiderstand_bonus_str: SchaWi = f'{SchaWi} + {char.natürlicher_schadenswiderstand_bonus_str}'
+        SchaWi = num(attrs["ST"] + attrs["VER"] + char.physischer_widerstand_bonus)
+        if char.physischer_widerstand_bonus_str: SchaWi = f'{SchaWi} + {char.physischer_widerstand_bonus_str}'
 
         return {
             "calculated__fields": [
@@ -300,7 +300,7 @@ class ShowView(VerifiedAccountMixin, DetailView):
                 ["physische Reaktion", num(attrs["SCH"] + attrs["GES"] + char.reaktion_bonus)],
                 ["physischer Widerstand", f"{SchaWi} HP"],
                 ["astrale Reaktion", AsWi],
-                ["astraler Widerstand", f"{AsWi} + {char.astralwiderstand_bonus_str} HP" if char.astralwiderstand_bonus_str else f"{AsWi} HP"],
+                ["astraler Widerstand", f"{AsWi} + {char.astraler_widerstand_bonus_str} HP" if char.astraler_widerstand_bonus_str else f"{AsWi} HP"],
                 ["Bewegung Laufen", f'{num(char.gfs.base_movement_speed + attrs["SCH"] + char.speed_laufen_bonus)}m'],
                 ["Bewegung Schwimmen", f'{num((char.gfs.base_movement_speed + attrs["SCH"])/2 + char.speed_schwimmen_bonus)}m'],
                 ["Bewegung Fliegen", f'{num((char.gfs.base_movement_speed + attrs["SCH"])*2 + char.speed_fliegen_bonus)}m'],

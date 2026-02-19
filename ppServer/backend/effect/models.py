@@ -55,11 +55,11 @@ class AbstractEffect(models.Model):
         ("character.Charakter.konzentration", "Charakter: Konzentration"),
         ("character.Charakter.konzentration_fix", "Charakter: Konzentration fix"),
         ("character.Charakter.initiative_bonus", "Charakter: Initiative-Bonus"),
-        ("character.Charakter.reaktion_bonus", "Charakter: Reaktionsbonus"),
-        ("character.Charakter.natürlicher_schadenswiderstand_bonus", "Charakter: nat. SchaWi-Bonus"),
-        ("character.Charakter.natürlicher_schadenswiderstand_bonus_str", "Charakter: nat. SchaWi-Bonus Text"),
-        ("character.Charakter.astralwiderstand_bonus", "Charakter: AsWi-Bonus"),
-        ("character.Charakter.astralwiderstand_bonus_str", "Charakter: AsWi-Bonus Text"),
+        ("character.Charakter.reaktion_bonus", "Charakter: physische Reaktion-Bonus"),
+        ("character.Charakter.physischer_widerstand_bonus", "Charakter: physischer Widerstand-Bonus"),
+        ("character.Charakter.physischer_widerstand_bonus_str", "Charakter: physischer Widerstand-Bonus Text"),
+        ("character.Charakter.astraler_widerstand_bonus", "Charakter: astraler Widerstand-Bonus"),
+        ("character.Charakter.astraler_widerstand_bonus_str", "Charakter: astraler Widerstand-Bonus Text"),
         ("character.Charakter.manaoverflow_bonus", "Charakter: Manaoverflow-Bonus"),
         ("character.Charakter.nat_regeneration_bonus", "Charakter: nat. Regeneration-Bonus"),
         ("character.Charakter.immunsystem_bonus", "Charakter: Immunsystem-Bonus"),
@@ -109,7 +109,7 @@ class AbstractEffect(models.Model):
         elif ("character.Charakter" in self.target_fieldname or "cards.Card" in self.target_fieldname) and (getattr(self, "target_attribut", None) or getattr(self, "target_fertigkeit", None)):
             raise ValidationError("Attribut oder Fertigkeit unnötigerweise ausgewählt")
         
-        if self.target_fieldname in ["character.Charakter.natürlicher_schadenswiderstand_bonus_str", "character.Charakter.astralwiderstand_bonus_str"]:
+        if self.target_fieldname in ["character.Charakter.physischer_widerstand_bonus_str", "character.Charakter.astraler_widerstand_bonus_str"]:
             if self.wertaenderung:
                 raise ValidationError("wertänderung unnötigerweise ausgewählt bei string-Feld")
         else:
@@ -221,7 +221,7 @@ class RelEffect(AbstractEffect):
         elif self.target_fieldname.rsplit("_", 1)[-1] == "fix":
             setattr(target, field, self.wertaenderung)
             target.save(update_fields=[field])
-        elif self.target_fieldname in ["character.Charakter.natürlicher_schadenswiderstand_bonus_str", "character.Charakter.astralwiderstand_bonus_str"]:
+        elif self.target_fieldname in ["character.Charakter.physischer_widerstand_bonus_str", "character.Charakter.astraler_widerstand_bonus_str"]:
             setattr(target, field, f'{getattr(target, field)} + {self.wertaenderung_str}' if getattr(target, field, False) else self.wertaenderung_str)
             target.save(update_fields=[field])
         else:
@@ -279,7 +279,7 @@ class RelEffect(AbstractEffect):
         elif self.target_fieldname.rsplit("_", 1)[-1] == "fix":
             setattr(target, field, None)
             target.save(update_fields=[field])
-        elif self.target_fieldname in ["character.Charakter.natürlicher_schadenswiderstand_bonus_str", "character.Charakter.astralwiderstand_bonus_str"]:
+        elif self.target_fieldname in ["character.Charakter.physischer_widerstand_bonus_str", "character.Charakter.astraler_widerstand_bonus_str"]:
             parts = (getattr(target, field, "") or "").split(" + ")
             parts.remove(self.wertaenderung_str)
             setattr(target, field, " + ".join(parts))

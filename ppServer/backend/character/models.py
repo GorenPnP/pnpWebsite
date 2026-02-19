@@ -154,11 +154,11 @@ class KlasseStufenplan(models.Model):
         fg = { rel.gruppe: rel.fg for rel in char.relgruppe_set.all() }
         fert = {rel.fertigkeit.titel: attrs[rel.fertigkeit.attribut.titel] + fg[rel.fertigkeit.gruppe] + rel.fp + rel.fp_bonus for rel in char.relfertigkeit_set.prefetch_related("fertigkeit__attribut").all()}
         
-        astrale_reaktion = attrs["MA"] + attrs["WK"] + char.astralwiderstand_bonus
+        astrale_reaktion = attrs["MA"] + attrs["WK"] + char.astraler_widerstand_bonus
         if char.no_MA_MG:
             astrale_reaktion += 4
         elif char.no_MA:
-            astrale_reaktion = attrs["WK"] + char.astralwiderstand_bonus
+            astrale_reaktion = attrs["WK"] + char.astraler_widerstand_bonus
 
         HPstufe = math.floor(char.larp_rang / 20) if char.larp else char.ep_stufe*2
         gHP = attrs["WK"]*5 + char.HPplus_geistig + HPstufe
@@ -168,7 +168,7 @@ class KlasseStufenplan(models.Model):
             "Initiative": attrs["SCH"]*2 + attrs["WK"] + attrs["GES"] + char.initiative_bonus,
             "astrale Reaktion": astrale_reaktion,
             "physische Reaktion": attrs["SCH"] + attrs["GES"] + char.reaktion_bonus,
-            "physischer Widerstand": attrs["ST"] + attrs["VER"] + char.natürlicher_schadenswiderstand_bonus, # ignored string/dice component
+            "physischer Widerstand": attrs["ST"] + attrs["VER"] + char.physischer_widerstand_bonus, # ignored string/dice component
             "körperliche HP": attrs["ST"]*5 + (char.HPplus_fix if char.HPplus_fix is not None else char.HPplus) + HPstufe,
             "geistige HP": gHP,
         }
@@ -738,10 +738,10 @@ class Charakter(models.Model):
     crit_defense = models.PositiveSmallIntegerField(default=0)
     initiative_bonus = models.SmallIntegerField(default=0)
     reaktion_bonus = models.SmallIntegerField(default=0)
-    natürlicher_schadenswiderstand_bonus = models.SmallIntegerField(default=0)
-    natürlicher_schadenswiderstand_bonus_str = models.CharField(max_length=128, default="", null=False, blank=True)
-    astralwiderstand_bonus = models.SmallIntegerField(default=0)
-    astralwiderstand_bonus_str = models.CharField(max_length=128, default="", null=False, blank=True)
+    physischer_widerstand_bonus = models.SmallIntegerField(default=0)
+    physischer_widerstand_bonus_str = models.CharField(max_length=128, default="", null=False, blank=True)
+    astraler_widerstand_bonus = models.SmallIntegerField(default=0)
+    astraler_widerstand_bonus_str = models.CharField(max_length=128, default="", null=False, blank=True)
     manaoverflow_bonus = models.SmallIntegerField(default=0)
     nat_regeneration_bonus = models.SmallIntegerField(default=0)
     immunsystem_bonus = models.SmallIntegerField(default=0)
@@ -1601,7 +1601,7 @@ class GfsSkilltreeEntry(models.Model):
         try:
 
             # AP, FP, FG, SP, IP, TP, Crit-Angriff, Crit-Verteidigung, körperliche HP, geistige HP, HP Schaden waff. Kampf,
-            # Initiative fix, Reaktion, natürlicher Schadenswiderstand, Astral-Widerstand
+            # Initiative fix, Reaktion, physischer & astraler Widerstand
             if self.operation in ["a", "f", "F", "p", "i", "t", "A", "V", "K", "G", "k", "I", "r", "N", "T"]:
                 return f"+{self.amount} {self.get_operation_display()}"
 
@@ -1701,15 +1701,15 @@ class GfsSkilltreeEntry(models.Model):
             char.reaktion_bonus += self.amount
             char.save(update_fields=["reaktion_bonus"])
             return
-        # natürlicher Schadenswiderstand
+        # physischer Widerstand
         if self.operation == "N":
-            char.natürlicher_schadenswiderstand_bonus += self.amount
-            char.save(update_fields=["natürlicher_schadenswiderstand_bonus"])
+            char.physischer_widerstand_bonus += self.amount
+            char.save(update_fields=["physischer_widerstand_bonus"])
             return
-        # Astral-Widerstand
+        # astraler Widerstand
         if self.operation == "T":
-            char.astralwiderstand_bonus += self.amount
-            char.save(update_fields=["astralwiderstand_bonus"])
+            char.astraler_widerstand_bonus += self.amount
+            char.save(update_fields=["astraler_widerstand_bonus"])
             return
 
         # Roleplay-Text

@@ -29,8 +29,8 @@ skilltreeentry_enum = [
 
     ('I', 'Initiative fix'),
     ('r', 'Reaktion'),
-    ('N', 'natürlicher Schadenswiderstand'),
-    ('T', 'Astral-Widerstand'),
+    ('N', 'physischer Widerstand'),
+    ('T', 'astraler Widerstand'),
 
     ('h', 'magisches Item'),
 

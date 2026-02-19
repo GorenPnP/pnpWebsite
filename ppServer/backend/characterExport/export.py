@@ -360,29 +360,29 @@ class CharakterExporter:
 
         ROW += 1
         werte_ws.merge_range(f"M{ROW}:O{ROW}", "physischer Widerstand", format_colorful_titel_emph)
-        werte_ws.merge_range(f"P{ROW}:Q{ROW}", f"={self._position('ST')}+{self._position('VER')}"+(f"+{self.char.natürlicher_schadenswiderstand_bonus}" or ""), format_colorful)
-        werte_ws.write(f"R{ROW}", self.char.natürlicher_schadenswiderstand_bonus_str, format_colorful)
+        werte_ws.merge_range(f"P{ROW}:Q{ROW}", f"={self._position('ST')}+{self._position('VER')}"+(f"+{self.char.physischer_widerstand_bonus}" or ""), format_colorful)
+        werte_ws.write(f"R{ROW}", self.char.physischer_widerstand_bonus_str, format_colorful)
         werte_ws.write(f"S{ROW}", f"ST+VER")
 
         ROW += 1
         werte_ws.merge_range(f"M{ROW}:O{ROW}", "astrale Reaktion", format_colorful_titel_emph)
         if self.char.no_MA_MG:
-            werte_ws.merge_range(f"P{ROW}:R{ROW}", f"={self._position('WK')}+4"+(f"+{self.char.astralwiderstand_bonus}" if self.char.astralwiderstand_bonus else ""), format_colorful)
+            werte_ws.merge_range(f"P{ROW}:R{ROW}", f"={self._position('WK')}+4"+(f"+{self.char.astraler_widerstand_bonus}" if self.char.astraler_widerstand_bonus else ""), format_colorful)
             werte_ws.write(f"S{ROW}", "WK+4")
             werte_ws.write(f"S{ROW+1}", "WK+4")
         elif self.char.no_MA:
-            werte_ws.merge_range(f"P{ROW}:R{ROW}", f"={self._position('WK')}"+(f"+{self.char.astralwiderstand_bonus}" if self.char.astralwiderstand_bonus else ""), format_colorful)
+            werte_ws.merge_range(f"P{ROW}:R{ROW}", f"={self._position('WK')}"+(f"+{self.char.astraler_widerstand_bonus}" if self.char.astraler_widerstand_bonus else ""), format_colorful)
             werte_ws.write(f"S{ROW}", "WK")
             werte_ws.write(f"S{ROW+1}", "WK")
         else:
-            werte_ws.merge_range(f"P{ROW}:R{ROW}", f"={self._position('MA')}+{self._position('WK')}"+(f"+{self.char.astralwiderstand_bonus}" if self.char.astralwiderstand_bonus else ""), format_colorful)
+            werte_ws.merge_range(f"P{ROW}:R{ROW}", f"={self._position('MA')}+{self._position('WK')}"+(f"+{self.char.astraler_widerstand_bonus}" if self.char.astraler_widerstand_bonus else ""), format_colorful)
             werte_ws.write(f"S{ROW}", "MA+WK")
             werte_ws.write(f"S{ROW+1}", "MA+WK")
 
         ROW += 1
         werte_ws.merge_range(f"M{ROW}:O{ROW}", "astraler Widerstand", format_colorful_titel_emph)
         werte_ws.merge_range(f"P{ROW}:Q{ROW}", f"=P{ROW-1}", format_colorful)
-        werte_ws.write(f"R{ROW}", self.char.astralwiderstand_bonus_str, format_colorful)
+        werte_ws.write(f"R{ROW}", self.char.astraler_widerstand_bonus_str, format_colorful)
 
         ROW += 1
         werte_ws.merge_range(f"M{ROW}:O{ROW}", "Bewegungsrate Laufen (in m)", format_colorful_titel)

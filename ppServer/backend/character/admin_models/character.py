@@ -280,7 +280,7 @@ class CharakterAdmin(admin.ModelAdmin):
         ("Manifest", {"fields": ["manifest", "sonstiger_manifestverlust", "notizen_sonstiger_manifestverlust", "manifest_fix"]}),
         ('HP', {'fields': ['larp_rang', 'HPplus', 'HPplus_fix', 'HPplus_geistig']}),
         ('Kampf', {'fields': ['wesenschaden_waff_kampf', 'wesenschaden_andere_gestalt', 'crit_attack', 'crit_defense',
-                              'initiative_bonus', 'reaktion_bonus', 'natürlicher_schadenswiderstand_bonus', 'natürlicher_schadenswiderstand_bonus_str', 'astralwiderstand_bonus', 'astralwiderstand_bonus_str',
+                              'initiative_bonus', 'reaktion_bonus', 'physischer_widerstand_bonus', 'physischer_widerstand_bonus_str', 'astraler_widerstand_bonus', 'astraler_widerstand_bonus_str',
                               "manaoverflow_bonus", "nat_regeneration_bonus", "immunsystem_bonus"]}),
         ('Kampagne', {'fields': ["ep", 'ep_stufe', 'ep_stufe_in_progress', "skilltree_stufe", "processing_notes"]}),
         ('Währungen', {'fields': ['ap', 'fp', 'fg', 'sp', "sp_fix", 'ip', 'tp', 'spF_wF', 'wp', 'zauberplätze', 'konzentration', "konzentration_fix", "prestige", "verzehr", "glück", "sanität"]}),
