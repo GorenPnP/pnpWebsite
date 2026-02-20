@@ -58,7 +58,7 @@ class AbstractEffect(models.Model):
         ("character.Charakter.physische_reaktion_bonus", "Charakter: physische Reaktion-Bonus"),
         ("character.Charakter.physischer_widerstand_bonus", "Charakter: physischer Widerstand-Bonus"),
         ("character.Charakter.physischer_widerstand_bonus_str", "Charakter: physischer Widerstand-Bonus Text"),
-        ("character.Charakter.astraler_widerstand_bonus", "Charakter: astraler Widerstand-Bonus"),
+        ("character.Charakter.astrale_reaktion_bonus", "Charakter: astrale Reaktion-Bonus"),
         ("character.Charakter.astraler_widerstand_bonus_str", "Charakter: astraler Widerstand-Bonus Text"),
         ("character.Charakter.manaoverflow_bonus", "Charakter: Manaoverflow-Bonus"),
         ("character.Charakter.nat_regeneration_bonus", "Charakter: nat. Regeneration-Bonus"),

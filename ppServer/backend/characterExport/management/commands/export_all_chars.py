@@ -38,7 +38,7 @@ class Command(BaseCommand):
                 file_response = CharakterExporter(char).export()
 
                 owner = char.eigentümer.__str__() if char.eigentümer is not None else 'NO_OWNER'
-                name = char.name if char.name is not None else 'NO_NAME'
+                name = (char.name or 'NO_NAME').replace('"', '').replace("'", '')
                 filename = f"{owner.replace('/', '_').replace('.', '_')} - {name.replace('/', '_').replace('.', '_')}.xlsx"
                 path = os.path.join(full_path[2], filename)
 

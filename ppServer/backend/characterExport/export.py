@@ -42,7 +42,7 @@ class CharakterExporter:
 
         # prepare response & xlsx-workbook
         self.response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-        self.response['Content-Disposition'] = f"attachment; filename={self.char.name}.xlsx"
+        self.response['Content-Disposition'] = f"attachment; filename={(self.char.name or 'NO_NAME').replace('"', '').replace("'", '')}.xlsx"
         wb = xlsxwriter.Workbook(self.response, {'in_memory': True, "default_format_properties": {
             "font_name": "Arial",
             "font_size": 10,
@@ -360,29 +360,27 @@ class CharakterExporter:
 
         ROW += 1
         werte_ws.merge_range(f"M{ROW}:O{ROW}", "physischer Widerstand", format_colorful_titel_emph)
-        werte_ws.merge_range(f"P{ROW}:Q{ROW}", f"={self._position('ST')}+{self._position('VER')}"+(f"+{self.char.physischer_widerstand_bonus}" or ""), format_colorful)
+        werte_ws.merge_range(f"P{ROW}:Q{ROW}", f"={self._position('VER')}"+(f"+{self.char.physischer_widerstand_bonus}" or ""), format_colorful)
         werte_ws.write(f"R{ROW}", self.char.physischer_widerstand_bonus_str, format_colorful)
-        werte_ws.write(f"S{ROW}", f"ST+VER")
+        werte_ws.write(f"S{ROW}", f"VER")
 
         ROW += 1
         werte_ws.merge_range(f"M{ROW}:O{ROW}", "astrale Reaktion", format_colorful_titel_emph)
         if self.char.no_MA_MG:
-            werte_ws.merge_range(f"P{ROW}:R{ROW}", f"={self._position('WK')}+4"+(f"+{self.char.astraler_widerstand_bonus}" if self.char.astraler_widerstand_bonus else ""), format_colorful)
+            werte_ws.merge_range(f"P{ROW}:R{ROW}", f"={self._position('WK')}+4"+(f"+{self.char.astrale_reaktion_bonus}" if self.char.astrale_reaktion_bonus else ""), format_colorful)
             werte_ws.write(f"S{ROW}", "WK+4")
-            werte_ws.write(f"S{ROW+1}", "WK+4")
         elif self.char.no_MA:
-            werte_ws.merge_range(f"P{ROW}:R{ROW}", f"={self._position('WK')}"+(f"+{self.char.astraler_widerstand_bonus}" if self.char.astraler_widerstand_bonus else ""), format_colorful)
+            werte_ws.merge_range(f"P{ROW}:R{ROW}", f"={self._position('WK')}"+(f"+{self.char.astrale_reaktion_bonus}" if self.char.astrale_reaktion_bonus else ""), format_colorful)
             werte_ws.write(f"S{ROW}", "WK")
-            werte_ws.write(f"S{ROW+1}", "WK")
         else:
-            werte_ws.merge_range(f"P{ROW}:R{ROW}", f"={self._position('MA')}+{self._position('WK')}"+(f"+{self.char.astraler_widerstand_bonus}" if self.char.astraler_widerstand_bonus else ""), format_colorful)
+            werte_ws.merge_range(f"P{ROW}:R{ROW}", f"={self._position('MA')}+{self._position('WK')}"+(f"+{self.char.astrale_reaktion_bonus}" if self.char.astrale_reaktion_bonus else ""), format_colorful)
             werte_ws.write(f"S{ROW}", "MA+WK")
-            werte_ws.write(f"S{ROW+1}", "MA+WK")
 
         ROW += 1
         werte_ws.merge_range(f"M{ROW}:O{ROW}", "astraler Widerstand", format_colorful_titel_emph)
-        werte_ws.merge_range(f"P{ROW}:Q{ROW}", f"=P{ROW-1}", format_colorful)
+        werte_ws.merge_range(f"P{ROW}:Q{ROW}", f"={self._position('WK')}", format_colorful)
         werte_ws.write(f"R{ROW}", self.char.astraler_widerstand_bonus_str, format_colorful)
+        werte_ws.write(f"S{ROW}", "WK")
 
         ROW += 1
         werte_ws.merge_range(f"M{ROW}:O{ROW}", "Bewegungsrate Laufen (in m)", format_colorful_titel)
@@ -465,7 +463,7 @@ class CharakterExporter:
         
         # HP
         werte_ws.write(f"I{ROW}", "K HP Bonus", format_align_border_top)
-        werte_ws.write(f"J{ROW}", (self.char.HPplus_fix if self.char.HPplus_fix is not None else self.char.HPplus)+(math.floor(self.char.larp_rang/20) if self.char.larp else self._position('ep_stufe')*2), format_hp)
+        werte_ws.write(f"J{ROW}", f"={(self.char.HPplus_fix if self.char.HPplus_fix is not None else self.char.HPplus) or 0}+{math.floor(self.char.larp_rang/20) if self.char.larp else self._position('ep_stufe')*2}", format_hp)
         
         ROW += 1
         self._POSITION["kHP"] = f"Werte!J{ROW}"

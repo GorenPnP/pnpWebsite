@@ -280,17 +280,17 @@ class ShowView(VerifiedAccountMixin, DetailView):
         MA_relattr = self._rel_attribute["MA"]
         MA_raw = MA_relattr.aktuellerWert if MA_relattr.aktuellerWert_fix is None else MA_relattr.aktuellerWert_fix
         attrs = { attr_name: rel.aktuell() for attr_name, rel in self._rel_attribute.items() }
-        fg = { rel.gruppe: rel.fg for rel in RelGruppe.objects.filter(char=char) }
-        ferts = { rel.fertigkeit.titel: rel.fp + rel.fp_bonus + attrs[rel.fertigkeit.attribut.titel] + fg[rel.fertigkeit.gruppe] for rel in char.relfertigkeit_set.all() }
 
         num = lambda n: "{0:.1f}".format(n) if type(n) is float else n
 
-        AsWi = num(attrs["MA"] + attrs["WK"] + char.astraler_widerstand_bonus)
-        if char.no_MA_MG: AsWi = num(attrs["WK"] + char.astraler_widerstand_bonus + 4)
-        elif char.no_MA: AsWi = f'{num(attrs["WK"] + char.astraler_widerstand_bonus)} + Pool Angriffsfertigkeit'
+        astrale_reaktion = f'{attrs["MA"] + attrs["WK"]}'
+        if char.no_MA_MG: astrale_reaktion = f'{attrs["WK"] + 4}'
+        elif char.no_MA: astrale_reaktion = f'{attrs["WK"]} + Pool Angriffsfertigkeit'
+        if  char.astrale_reaktion_bonus: astrale_reaktion += f" + {char.astrale_reaktion_bonus}"
 
-        SchaWi = num(attrs["ST"] + attrs["VER"] + char.physischer_widerstand_bonus)
-        if char.physischer_widerstand_bonus_str: SchaWi = f'{SchaWi} + {char.physischer_widerstand_bonus_str}'
+        physischer_widerstand = f'{attrs["VER"]}'
+        if char.physischer_widerstand_bonus: physischer_widerstand += f" + {char.physischer_widerstand_bonus}"
+        if char.physischer_widerstand_bonus_str: physischer_widerstand += f' + {char.physischer_widerstand_bonus_str}'
 
         return {
             "calculated__fields": [
@@ -298,9 +298,9 @@ class ShowView(VerifiedAccountMixin, DetailView):
                 ["Manaoverflow", num((attrs["WK"] + MA_raw)*3 + char.manaoverflow_bonus)],
 
                 ["physische Reaktion", num(attrs["SCH"] + attrs["GES"] + char.physische_reaktion_bonus)],
-                ["physischer Widerstand", f"{SchaWi} HP"],
-                ["astrale Reaktion", AsWi],
-                ["astraler Widerstand", f"{AsWi} + {char.astraler_widerstand_bonus_str} HP" if char.astraler_widerstand_bonus_str else f"{AsWi} HP"],
+                ["physischer Widerstand", f"{physischer_widerstand} HP"],
+                ["astrale Reaktion", astrale_reaktion],
+                ["astraler Widerstand", f"{attrs["WK"]} + {char.astraler_widerstand_bonus_str} HP" if char.astraler_widerstand_bonus_str else f"{attrs["WK"]} HP"],
                 ["Bewegung Laufen", f'{num(char.gfs.base_movement_speed + attrs["SCH"] + char.speed_laufen_bonus)}m'],
                 ["Bewegung Schwimmen", f'{num((char.gfs.base_movement_speed + attrs["SCH"])/2 + char.speed_schwimmen_bonus)}m'],
                 ["Bewegung Fliegen", f'{num((char.gfs.base_movement_speed + attrs["SCH"])*2 + char.speed_fliegen_bonus)}m'],

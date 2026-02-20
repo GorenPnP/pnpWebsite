@@ -30,7 +30,7 @@ skilltreeentry_enum = [
     ('I', 'Initiative fix'),
     ('r', 'physische Reaktion'),
     ('N', 'physischer Widerstand'),
-    ('T', 'astraler Widerstand'),
+    ('T', 'astrale Reaktion'),
 
     ('h', 'magisches Item'),
 

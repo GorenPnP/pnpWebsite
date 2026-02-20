@@ -154,11 +154,11 @@ class KlasseStufenplan(models.Model):
         fg = { rel.gruppe: rel.fg for rel in char.relgruppe_set.all() }
         fert = {rel.fertigkeit.titel: attrs[rel.fertigkeit.attribut.titel] + fg[rel.fertigkeit.gruppe] + rel.fp + rel.fp_bonus for rel in char.relfertigkeit_set.prefetch_related("fertigkeit__attribut").all()}
         
-        astrale_reaktion = attrs["MA"] + attrs["WK"] + char.astraler_widerstand_bonus
+        astrale_reaktion = attrs["MA"] + attrs["WK"] + char.astrale_reaktion_bonus
         if char.no_MA_MG:
             astrale_reaktion += 4
         elif char.no_MA:
-            astrale_reaktion = attrs["WK"] + char.astraler_widerstand_bonus
+            astrale_reaktion = attrs["WK"] + char.astrale_reaktion_bonus
 
         HPstufe = math.floor(char.larp_rang / 20) if char.larp else char.ep_stufe*2
         gHP = attrs["WK"]*5 + char.HPplus_geistig + HPstufe
@@ -740,7 +740,7 @@ class Charakter(models.Model):
     physische_reaktion_bonus = models.SmallIntegerField(default=0)
     physischer_widerstand_bonus = models.SmallIntegerField(default=0)
     physischer_widerstand_bonus_str = models.CharField(max_length=128, default="", null=False, blank=True)
-    astraler_widerstand_bonus = models.SmallIntegerField(default=0)
+    astrale_reaktion_bonus = models.SmallIntegerField(default=0)
     astraler_widerstand_bonus_str = models.CharField(max_length=128, default="", null=False, blank=True)
     manaoverflow_bonus = models.SmallIntegerField(default=0)
     nat_regeneration_bonus = models.SmallIntegerField(default=0)
@@ -1601,7 +1601,7 @@ class GfsSkilltreeEntry(models.Model):
         try:
 
             # AP, FP, FG, SP, IP, TP, Crit-Angriff, Crit-Verteidigung, körperliche HP, geistige HP, HP Schaden waff. Kampf,
-            # Initiative fix, physische Reaktion, physischer & astraler Widerstand
+            # Initiative fix, physische & astrale Reaktion, physischer Widerstand
             if self.operation in ["a", "f", "F", "p", "i", "t", "A", "V", "K", "G", "k", "I", "r", "N", "T"]:
                 return f"+{self.amount} {self.get_operation_display()}"
 
@@ -1706,10 +1706,10 @@ class GfsSkilltreeEntry(models.Model):
             char.physischer_widerstand_bonus += self.amount
             char.save(update_fields=["physischer_widerstand_bonus"])
             return
-        # astraler Widerstand
+        # astrale Reaktion
         if self.operation == "T":
-            char.astraler_widerstand_bonus += self.amount
-            char.save(update_fields=["astraler_widerstand_bonus"])
+            char.astrale_reaktion_bonus += self.amount
+            char.save(update_fields=["astrale_reaktion_bonus"])
             return
 
         # Roleplay-Text
