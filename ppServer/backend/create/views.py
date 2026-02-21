@@ -127,14 +127,8 @@ class GfsFormView(VerifiedAccountMixin, TemplateView):
 
             # Wesenkräfte
             RelWesenkraft.objects.bulk_create([
-                RelWesenkraft(
-                    char=char, wesenkraft=gfs_wesenkr.wesenkraft,
-                    tier=1 if gfs_wesenkr.tier_up else 0
-                )
-
-                for gfs_wesenkr in GfsWesenkraft.objects.prefetch_related("wesenkraft").annotate(
-                    tier_up = Exists(Wesenkraft.objects.filter(pk=OuterRef("wesenkraft"), skilled_gfs=gfs)),
-                ).filter(gfs=char.gfs)
+                RelWesenkraft(char=char, wesenkraft=gfs_wesenkr.wesenkraft)
+                for gfs_wesenkr in GfsWesenkraft.objects.prefetch_related("wesenkraft").filter(gfs=char.gfs)
             ])
 
             # Vorteile

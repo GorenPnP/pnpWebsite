@@ -429,13 +429,8 @@ class WesenkraftTableView(VerifiedAccountMixin, DynamicTableView):
     class Table(GenericTable):
         class Meta:
             model = Wesenkraft
-            fields = ["titel", "probe", "manaverbrauch", "wirkung", "skilled_gfs"]
+            fields = ["titel", "probe", "manaverbrauch", "wirkung"]
             attrs = GenericTable.Meta.attrs
-
-
-        def render_skilled_gfs(self, value, record):
-            return ("startet bei Tier 1: ") + ", ".join([gfs.titel for gfs in record.skilled_gfs.all()])
-
 
     model = Wesenkraft
     table_class = Table
@@ -444,14 +439,13 @@ class WesenkraftTableView(VerifiedAccountMixin, DynamicTableView):
         "probe": ["icontains"],
         "manaverbrauch": ["icontains"],
         "wirkung": ["icontains"],
-        "skilled_gfs": ["exact"]
     }
 
     app_index = "Wiki"
     app_index_url = "wiki:index"
 
     def get_queryset(self):
-        return super().get_queryset().prefetch_related("skilled_gfs__wesen")
+        return super().get_queryset()
 
 
 class ReligionTableView(VerifiedAccountMixin, DynamicTableView):

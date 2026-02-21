@@ -43,7 +43,6 @@ ShopAusrüstungTechnikFormSet = FormSet(Charakter, RelAusrüstung_Technik, "ausr
 ShopFahrzeugFormSet = FormSet(Charakter, RelFahrzeug, "fahrzeug", shop_fields)
 ShopEinbautenFormSet = FormSet(Charakter, RelEinbauten, "einbauten", shop_fields)
 ShopZauberFormSet = FormSet(Charakter, RelZauber, "zauber", [*shop_fields, "tier", "learned"])
-ShopVergesseneZauberFormSet = FormSet(Charakter, RelVergessenerZauber, "verg_zauber", shop_fields)
 ShopBegleiterFormSet = FormSet(Charakter, RelBegleiter, "begleiter", shop_fields)
 ShopEngelsroboterFormSet = FormSet(Charakter, RelEngelsroboter, "engelsroboter", shop_fields)
 
@@ -82,7 +81,7 @@ class CharacterForm(forms.ModelForm):
     	    "notizen", "persönlicheZiele", "sonstige_items", "affektivitäten",
             "klassen", "klassen_fähigkeiten", "vorteile", "nachteile", "talente", "wesenkräfte",
             "attribute", "fertigkeiten","gruppen", "spezialfertigkeiten", "wissensfertigkeiten", "gfs_fähigkeiten",
-            "items", "waffenWerkzeuge", "magazine", "pfeile_bolzen", "schusswaffen", "magischeAusrüstung", "rituale_runen", "rüstungen", "ausrüstungTechnik", "fahrzeuge", "einbauten", "zauber", "vergessene_zauber", "begleiter", "engelsroboter",
+            "items", "waffenWerkzeuge", "magazine", "pfeile_bolzen", "schusswaffen", "magischeAusrüstung", "rituale_runen", "rüstungen", "ausrüstungTechnik", "fahrzeuge", "einbauten", "zauber", "begleiter", "engelsroboter",
         ]
 
     # field for char.card.money
@@ -266,10 +265,6 @@ class CharacterForm(forms.ModelForm):
                     Fieldset(
                         "Zauber",
                         Formset("zauber"),
-                    ),
-                    Fieldset(
-                        "Vergessene Zauber",
-                        Formset("vergessene_zauber"),
                     ),
                     Fieldset(
                         "Begleiter",

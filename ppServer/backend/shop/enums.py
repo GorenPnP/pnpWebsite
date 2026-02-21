@@ -11,7 +11,6 @@ category_enum = [
     ('f', 'Fahrzeuge'),
     ('e', 'Einbauten'),
     ('z', 'Zauber'),
-    ('v', 'vergessene Zauber'),
     ('l', 'Alchemie'),
     ('b', 'Begleiter'),
     ('t', 'für Selbstständige')

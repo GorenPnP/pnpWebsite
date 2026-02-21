@@ -1096,7 +1096,6 @@ class CreateCharacterView(VerifiedAccountMixin, CopiesCharsMixin, CreateView):
             "fahrzeuge": ShopFahrzeugFormSet,
             "einbauten": ShopEinbautenFormSet,
             "zauber": ShopZauberFormSet,
-            "vergessene_zauber": ShopVergesseneZauberFormSet,
             "begleiter": ShopBegleiterFormSet,
             "engelsroboter": ShopEngelsroboterFormSet,
 

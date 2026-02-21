@@ -29,7 +29,6 @@ urlpatterns = [
     path('fahrzeuge/', listViews.FahrzeugTableView.as_view(), name='fahrzeug_list'),
     path('einbauten/', listViews.EinbautenTableView.as_view(), name='einbauten_list'),
     path('zauber/', listViews.ZauberTableView.as_view(), name='zauber_list'),
-    path('vergessene_zauber/', listViews.VergessenerZauberTableView.as_view(), name='vergessenerzauber_list'),
     path('alchemie/', listViews.AlchemieTableView.as_view(), name='alchemie_list'),
     path('tinker/', listViews.TinkerTableView.as_view(), name='tinker_list'),
     path('begleiter/', listViews.BegleiterTableView.as_view(), name='begleiter_list'),

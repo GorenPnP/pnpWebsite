@@ -11,11 +11,6 @@ from .admin_models.gfs import *
 from .models import *
 
 
-class WesenkraftZusatzWesenspInLine(admin.TabularInline):
-    model = Wesenkraft.skilled_gfs.through
-    extra = 1
-
-
 class SpezialAusgleichInLine(admin.TabularInline):
     model = Spezialfertigkeit.ausgleich.through
     extra = 1
@@ -89,10 +84,10 @@ class FertigkeitAdmin(admin.ModelAdmin):
 class WesenkraftAdmin(admin.ModelAdmin):
 
     fields = ['titel', 'probe', 'wirkung', 'manaverbrauch']
-    inlines = [WesenkraftZusatzWesenspInLine, GfsWesenkraftInLine]
+    inlines = [GfsWesenkraftInLine]
 
     list_display = ['titel', 'probe', 'manaverbrauch', 'wirkung', 'start_gfs_']
-    search_fields = ['titel', 'skilled_gfs']
+    search_fields = ['titel']
 
     @admin.display(ordering="start_gfsnames")
     def start_gfs_(self, obj):

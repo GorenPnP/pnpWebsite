@@ -179,10 +179,6 @@ class FirmaZauber(FirmaShop):
     item = models.ForeignKey('Zauber', on_delete=models.CASCADE)
 
 
-class FirmaVergessenerZauber(FirmaShop):
-    item = models.ForeignKey('VergessenerZauber', on_delete=models.CASCADE)
-
-
 class FirmaAlchemie(FirmaShop):
     item = models.ForeignKey('Alchemie', on_delete=models.CASCADE)
 
@@ -445,7 +441,7 @@ class Zauber(BaseShop):
 
     astralschaden = models.CharField(max_length=100, default='', null=True, blank=True)
     manaverbrauch = models.CharField(max_length=100, default='', null=True, blank=True)
-    verteidigung = models.CharField(max_length=1, choices=enums.zauberverteidigung_enum, default=enums.zauberverteidigung_enum[0][0])
+    verteidigung = models.CharField(max_length=1, choices=enums.zauberverteidigung_enum, default=enums.zauberverteidigung_enum[0][0], verbose_name="Reaktion")
 
     schadensart = models.CharField(max_length=1, choices=enums.schadensart_enum, null=True, blank=True)
     kategorie = models.CharField(choices=enums.zauber_enum, max_length=2, null=True, blank=True)
@@ -455,25 +451,6 @@ class Zauber(BaseShop):
     @staticmethod
     def getShopDisplayFields():
         return super(Zauber, Zauber).getShopDisplayFields() + ["astralschaden", "manaverbrauch", "verteidigung", "schadensart", "kategorie"]
-
-
-class VergessenerZauber(BaseShop):
-    class Meta:
-        verbose_name = "vergessener Zauber"
-        verbose_name_plural = "vergessene Zauber"
-
-        ordering = ['name']
-
-    schaden = models.CharField(max_length=100, default='', null=True, blank=True)
-    astralschaden = models.CharField(max_length=100, default='', null=True, blank=True)
-    manaverbrauch = models.CharField(max_length=100, default='', null=True, blank=True)
-
-    firmen = models.ManyToManyField('Firma', through='FirmaVergessenerZauber', blank=True)
-
-    @staticmethod
-    def getShopDisplayFields():
-        return super(VergessenerZauber, VergessenerZauber).getShopDisplayFields() + ["astralschaden", "manaverbrauch", "verteidigung", "schadensart"]
-
 
 class Alchemie(BaseShop):
     class Meta:

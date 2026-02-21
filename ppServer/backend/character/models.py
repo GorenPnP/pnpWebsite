@@ -85,8 +85,6 @@ class Wesenkraft(models.Model):
     wirkung = models.TextField(null=False, default="")
     manaverbrauch = models.CharField(max_length=100, null=True, blank=True, default="")
 
-    skilled_gfs = models.ManyToManyField("Gfs", blank=True, related_name="skilled_gfs")
-
     def __str__(self):
         return self.titel
 
@@ -784,7 +782,6 @@ class Charakter(models.Model):
     fahrzeuge = models.ManyToManyField(Fahrzeug, through='character.RelFahrzeug', blank=True)
     einbauten = models.ManyToManyField(Einbauten, through='character.RelEinbauten', blank=True)
     zauber = models.ManyToManyField(Zauber, through='character.RelZauber', blank=True)
-    vergessene_zauber = models.ManyToManyField(VergessenerZauber, through='character.RelVergessenerZauber', blank=True)
     begleiter = models.ManyToManyField(Begleiter, through='character.RelBegleiter', blank=True)
     engelsroboter = models.ManyToManyField(Engelsroboter, through='character.RelEngelsroboter', blank=True)
 
@@ -890,7 +887,7 @@ class Charakter(models.Model):
                 wesenkräfte.append(wk)
 
         for w in wesenkräfte:
-            _, created = RelWesenkraft.objects.get_or_create(char=self, wesenkraft=w, defaults={"tier": 1 if w.skilled_gfs.filter(id=self.gfs.id).exists() else 0})
+            _, created = RelWesenkraft.objects.get_or_create(char=self, wesenkraft=w, defaults={"tier": 0})
             if not created:
                 # log that wesenkraft already existed
                 capture_message(f"Wesenkraft {w.titel} war bei {self.name} ({self.gfs.titel}) im EP-Tree Stufe {self.ep_stufe+1} - {self.ep_stufe_in_progress}", level='info')
@@ -1344,17 +1341,6 @@ class RelZauber(RelShop):
         return "{}".format(self.item)
 
 
-class RelVergessenerZauber(RelShop):
-    class Meta:
-        verbose_name = "vergessener Zauber"
-        verbose_name_plural = "vergessene Zauber"
-
-    item = models.ForeignKey(VergessenerZauber, on_delete=models.CASCADE)
-
-    def __str__(self):
-        return "{}".format(self.item)
-
-
 class RelAlchemie(RelShop):
     class Meta:
         verbose_name = "Alchemie"
@@ -1496,17 +1482,6 @@ class RelFirmaZauber(RelFirmaShop):
         verbose_name_plural = "Zauber Verfügbarkeiten"
 
     firma_shop = models.ForeignKey(FirmaZauber, on_delete=models.CASCADE)
-
-    def __str__(self):
-        return "{}".format(self.firma_shop)
-
-
-class RelFirmaVergessenerZauber(RelFirmaShop):
-    class Meta:
-        verbose_name = "vergessener Zauber Verfügbarkeit"
-        verbose_name_plural = "vergessener Zauber Verfügbarkeiten"
-
-    firma_shop = models.ForeignKey(FirmaVergessenerZauber, on_delete=models.CASCADE)
 
     def __str__(self):
         return "{}".format(self.firma_shop)
@@ -1744,7 +1719,7 @@ class GfsSkilltreeEntry(models.Model):
 
         # neu! Wesenkraft
         if self.operation == "e":
-            RelWesenkraft.objects.get_or_create(char=char, wesenkraft=self.wesenkraft, defaults={"tier": 1 if self.wesenkraft.skilled_gfs.filter(id=self.gfs).exists() else 0})
+            RelWesenkraft.objects.get_or_create(char=char, wesenkraft=self.wesenkraft)
             return
         # neu! Spezi
         if self.operation == "s":

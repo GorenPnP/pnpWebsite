@@ -429,17 +429,6 @@ class ZauberTableView(ShopTableView):
     table_fields = ("icon", "name", "beschreibung", "ab_stufe", "astralschaden", "manaverbrauch", "verteidigung", "schadensart", "kategorie", "preis")
 
 
-class VergessenerZauberTableView(ShopTableView):
-    model = VergessenerZauber
-    filterset_fields = {
-        **shop_filter_fields,
-        "schaden": ["icontains"],
-        "astralschaden": ["icontains"],
-        "manaverbrauch": ["icontains"]
-    }
-    table_fields = ("icon", "name", "beschreibung", "ab_stufe", "schaden", "astralschaden", "manaverbrauch", "preis")
-
-
 class AlchemieTableView(ShopTableView):
     model = Alchemie
     filterset_fields = shop_filter_fields
