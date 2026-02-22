@@ -61,8 +61,11 @@ class Card(models.Model):
         return f"{self.account_name} ({self.account_owner})"
 
     def get_transactions(self):
-        return (Transaction.objects.filter(sender=self) | Transaction.objects.filter(receiver=self)).order_by("-timestamp")
-
+        return Transaction.objects.filter(Q(sender=self) | Q(receiver=self)).order_by("-timestamp")
+    
+    def delete(self, using = ..., keep_parents = ...):
+        if self.card_distributed_to_player:
+            raise ValueError(f"{self._meta.object_name} kann nicht gelöscht werden. Sammle die physische Karte erst wieder vom Spieler ein.")
 
 
 class Transaction(models.Model):

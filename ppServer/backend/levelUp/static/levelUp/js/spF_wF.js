@@ -70,7 +70,7 @@ function calc_pools() {
     }
     
     // disable submit button?
-    document.querySelector("[type=submit]").disabled = fert > initial || wp > initial_wp || (wp === 0 && fert === 0);
+    document.querySelector("#form [type=submit]").disabled = fert > initial || wp > initial_wp || (wp === 0 && fert === 0);
 }
 
 function highlight_rows() {
@@ -91,7 +91,7 @@ function highlight_rows() {
 
 document.addEventListener("DOMContentLoaded", function () {
 
-    // start on min value for spF
+    // start on min value
     document.querySelectorAll(".spezial-input").forEach(input => {
         // save val
         input.dataset.old = input.value;

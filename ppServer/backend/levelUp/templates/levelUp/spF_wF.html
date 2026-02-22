@@ -26,12 +26,12 @@
 {% block asides %}{{ block.super }}
     {% resources %}
         {% if char.in_erstellung or char.spF_wF > 0 %}<p id="fert_calc"></p>{% endif %}
-        {% if char.in_erstellung or char.wp > 0 %}<p id="wp_calc"></p>{% endif %}
         <p id="sp_calc"></p>
+        {% if char.in_erstellung or char.wp > 0 %}<hr><p id="wp_calc"></p>{% endif %}
 
         <label for="payment-method" class="h5 mt-3 mb-2">Neue kaufen mit:</label>
         <select id="payment-method" name="payment_method" class="form-select" form="form">
-            {% if char.spF_wF > 0 %}<option value="points">übrigen Fertigkeiten</option>{% endif %}
+            {% if char.in_erstellung or char.spF_wF > 0 %}<option value="points">übrigen Fertigkeiten</option>{% endif %}
             <option value="sp">SP</option>
         </select>
     {% endresources %}

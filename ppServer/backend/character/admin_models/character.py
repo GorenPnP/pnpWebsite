@@ -6,10 +6,7 @@ from django.forms.widgets import Widget as Widget
 from django.http.request import HttpRequest
 from django.utils.html import format_html
 
-from cards.models import Card
 from effect.models import RelEffect
-from effect.signals import apply_effect_on_rel_relation
-from ppServer.utils import get_filter
 
 from ..models import *
 
@@ -337,3 +334,17 @@ class CharakterAdmin(admin.ModelAdmin):
             messages.info(request, format_html(f'Geld ändern geht über <a href="https://{request.get_host()}/cards/transaction" target="_blank">-&gt;Transaktionen</a>'))
 
         return super().get_form(request, obj, change, **kwargs)
+
+    def delete_model(self, request, obj):
+        # rm RelEffects before Card in case some change money on delete/deactivate
+        obj.releffect_set.all().delete()
+        # rm card and its now pointless transactions
+        obj.card.delete()
+
+        return super().delete_model(request, obj)
+
+    # use signals on deletion not available on bulk delete
+    def delete_queryset(self, request, queryset):
+        """Given a queryset, delete it from the database."""
+
+        for char in queryset: self.delete_model(request, char)
