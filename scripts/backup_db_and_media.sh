@@ -18,7 +18,7 @@ docker container stop nginx
 docker run \
     --name do_backup \
     --env-file ./.env.prod \
-    --network=pnpwebsite_goren \
+    --network=pnpwebsite_django_internal \
     do_backup
 docker cp do_backup:$BASEPATH_CONTAINER/backups/. ./backups/$DATE/
 docker rm do_backup
