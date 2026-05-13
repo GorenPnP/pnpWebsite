@@ -3,10 +3,13 @@
 BASEPATH_CONTAINER="/var/www"
 BASEPATH_HOST="/home/debian/pnpWebsite"
 DATE="$(date +%y-%m-%d)"
+UPLOAD_PATH="https://nextcloud.vanessa-steinbruegge.de/remote.php/dav/files/backup_goren/Shared/Goren/$DATE"
+NEXTCLOUD_AUTH=""
 
 # move to base path on actual machine
 cd $BASEPATH_HOST
 mkdir -p ./backups/$DATE/media
+curl -u $NEXTCLOUD_AUTH -X MKCOL $UPLOAD_PATH
 
 docker build --tag 'do_backup' -f ./ppServer/Dockerfile.backup ./ppServer
 
@@ -18,25 +21,25 @@ docker container stop nginx
 docker run \
     --name do_backup \
     --env-file ./.env.prod \
+    --volumes-from django \
     --network=pnpwebsite_django_internal \
     do_backup
 docker cp do_backup:$BASEPATH_CONTAINER/backups/. ./backups/$DATE/
 docker rm do_backup
 
-# backup media
-docker cp django:$BASEPATH_CONTAINER/media/.  ./backups/$DATE/media/
-
 # re-enable routing, rest can be done in parallel
 docker container start nginx
 
 
-# compress backup
-cd ./backups
-tar -czf $DATE.tar.gz $DATE/
-
 # remove all files (type f) modified longer than 30 days ago under ./backups
-rm -rf ./$DATE
-find . -type f -mtime +30 -delete
+find $BASEPATH_HOST/backups -type f -mtime +30 -delete
 
-# copy backup over to google  cloud storage bucket
-gcloud storage cp $BASEPATH_HOST/backups/$DATE.tar.gz gs://backup-goren-pnp.appspot.com/backups
+# upload backup to nextcloud
+cd $BASEPATH_HOST/backups/$DATE
+
+# upload db dump
+PSQL_FILENAME=$(find ./*.psql.bin -maxdepth 1 -type f -iname *.psql.bin -exec basename {} \;)
+curl -u $NEXTCLOUD_AUTH -T $PSQL_FILENAME "$UPLOAD_PATH/$PSQL_FILENAME"
+
+# upload media
+#curl -u $NEXTCLOUD_AUTH -T media.tar.gz "$UPLOAD_PATH/media.tar.gz"

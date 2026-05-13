@@ -110,7 +110,7 @@ protect against ssh bruteforce attacks with [fail2ban](https://wiki.ubuntuusers.
     ```
   - exit shell
   - run `py manage.py migrate`
-  - `pg_restore  -U admin -d goren_db -1 .\backups\*.psql.bin` (will prompt for password)
+  - execute `pg_restore  -U admin -d goren_db -1 .\backups\*.psql.bin` in postgres-container after copying the backup file (will prompt for password)
 
 ### Restore media
 - download (latest) backup from [Google Cloud](https://console.cloud.google.com/storage/browser/backup-goren-pnp.appspot.com/backups?hl=de&project=backup-goren-pnp&pageState=(%22StorageObjectListTable%22:(%22f%22:%22%255B%255D%22))&prefix=&forceOnObjectsSortingFiltering=false)
