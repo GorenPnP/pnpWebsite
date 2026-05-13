@@ -15,7 +15,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # copy project to work on
 COPY backend ./
+COPY backup.sh .
 
 # run db backup
-ENTRYPOINT ["python", "manage.py"]
-CMD ["dbbackup"]
+ENTRYPOINT ["/bin/sh", "./backup.sh"]
+CMD []
