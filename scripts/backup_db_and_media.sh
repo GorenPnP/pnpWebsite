@@ -4,7 +4,7 @@ BASEPATH_CONTAINER="/var/www"
 BASEPATH_HOST="/home/debian/pnpWebsite"
 DATE="$(date +%y-%m-%d)"
 UPLOAD_PATH="https://nextcloud.vanessa-steinbruegge.de/remote.php/dav/files/backup_goren/Shared/Goren/$DATE"
-NEXTCLOUD_AUTH="backup_goren:4AqFd-YmNCp-CfQpz-BQ45b-cqGaQ"
+NEXTCLOUD_AUTH=""
 
 # move to base path on actual machine
 cd $BASEPATH_HOST
@@ -21,21 +21,11 @@ docker container stop nginx
 docker run \
     --name do_backup \
     --env-file ./.env.prod \
+    --volumes-from django \
     --network=pnpwebsite_django_internal \
     do_backup
 docker cp do_backup:$BASEPATH_CONTAINER/backups/. ./backups/$DATE/
 docker rm do_backup
-
-
-# # do media backup
-# docker run \
-#     --name media_backup \
-#     --volumes-from django \
-#     -w $BASEPATH_CONTAINER \
-#     --entrypoint tar \
-#     python:3.14-alpine \
-#     -czf media.tar.gz media/ # args for entrypoint
-# docker cp media_backup:$BASEPATH_CONTAINER/media.tar.gz ./backups/$DATE/media.tar.gz
 
 # re-enable routing, rest can be done in parallel
 docker container start nginx
@@ -43,9 +33,6 @@ docker container start nginx
 
 # remove all files (type f) modified longer than 30 days ago under ./backups
 find $BASEPATH_HOST/backups -type f -mtime +30 -delete
-# # cleanup media
-# docker exec media_backup rm $BASEPATH_CONTAINER/media.tar.gz
-# docker rm media_backup
 
 # upload backup to nextcloud
 cd $BASEPATH_HOST/backups/$DATE
@@ -55,4 +42,4 @@ PSQL_FILENAME=$(find ./*.psql.bin -maxdepth 1 -type f -iname *.psql.bin -exec ba
 curl -u $NEXTCLOUD_AUTH -T $PSQL_FILENAME "$UPLOAD_PATH/$PSQL_FILENAME"
 
 # upload media
-curl -u $NEXTCLOUD_AUTH -T media.tar.gz "$UPLOAD_PATH/media.tar.gz"
+#curl -u $NEXTCLOUD_AUTH -T media.tar.gz "$UPLOAD_PATH/media.tar.gz"
