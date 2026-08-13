@@ -7,6 +7,7 @@ from django.http.request import HttpRequest
 from django.utils.html import format_html
 
 from effect.models import RelEffect
+from cards.signals import deactivate_releffects_before_deleting_card_of_char
 
 from ..models import *
 
@@ -336,10 +337,9 @@ class CharakterAdmin(admin.ModelAdmin):
         return super().get_form(request, obj, change, **kwargs)
 
     def delete_model(self, request, obj):
-        # rm RelEffects before Card in case some change money on delete/deactivate
-        obj.releffect_set.all().delete()
-        # rm card and its now pointless transactions
-        obj.card.delete()
+        if obj.card:
+            # deactivate RelEffects before Card in case some change money on delete/deactivate
+            deactivate_releffects_before_deleting_card_of_char(Charakter, obj)
 
         return super().delete_model(request, obj)
 

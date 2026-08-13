@@ -310,7 +310,7 @@
                     <label for="input--name" class="form-label">Willst du den Charakter wirklich löschen?</label>
                     <div class="input-group">
                         <span class="input-group-text" id="basic-addon1">{{ object.name }}</span>
-                        <input type="text" class="form-control" id="input--name" pattern="{{ object.name }}" aria-describedby="basic-addon1 basic-addon2" required>
+                        <input type="text" class="form-control" id="input--name" pattern="{{ regex_escaped_name }}" placeholder="{{ object.name }}" aria-describedby="basic-addon1 basic-addon2" required>
                     </div>
                     <div class="form-text" id="basic-addon2">Gebe den Namen ein</div>
                 </div>

@@ -112,11 +112,11 @@ def apply_effect_on_rel_relation(sender, instance, created, **kwargs):
                     target_fertigkeit=RelFertigkeit.objects.get(char=instance.char, fertigkeit=effect.target_fertigkeit) if getattr(effect, "target_fertigkeit", None) else None,
                 )
 
-            # wertaenderung = 2* min(item-Stufe, 5)
+            # wertaenderung = min(item-Stufe, 5)
             if sender == RelEinbauten and effect.source_shopEinbauten.name == "Panzerimplantate":
                 instance.releffect_set.create(
                     target_fieldname=effect.target_fieldname,
-                    wertaenderung=2* min(instance.stufe, 5),
+                    wertaenderung=min(instance.stufe, 5),
                     wertaenderung_str=effect.wertaenderung_str,
                     target_char=instance.char,
                     target_attribut=RelAttribut.objects.get(char=instance.char, attribut=effect.target_attribut) if getattr(effect, "target_attribut", None) else None,

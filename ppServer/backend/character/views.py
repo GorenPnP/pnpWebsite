@@ -7,6 +7,7 @@ from django.contrib import messages
 from django.db import transaction
 from django.db.models import Value, F, CharField, OuterRef, Case, When
 from django.db.models.functions import Concat
+from django.db.utils import IntegrityError
 from django.http import HttpResponseRedirect, JsonResponse
 from django.middleware.csrf import get_token
 from django.shortcuts import redirect, render
@@ -199,6 +200,7 @@ class ShowView(VerifiedAccountMixin, DetailView):
             "plus_url": reverse("character:history", args=[char.id]),
             "story_notes_form": StoryNotesForm(instance=curr_story),
             "spend_money_form": SpendMoneyForm(sender_card=char.card),
+            "regex_escaped_name": re.escape(char.name),
 
             **self.get_personal(char),
             **self.get_resources(char),
@@ -778,7 +780,7 @@ class HistoryView(VerifiedAccountMixin, tables.SingleTableMixin, TemplateView):
 def delete_char(request, pk):
     # assert user requesting delete a character
     qs = Charakter.objects.filter(pk=pk)
-    if not request.user.has_perm(CustomPermission.SPIELLEITUNG.value): qs = qs.filter(char__eigentümer=request.spieler)
+    if not request.user.has_perm(CustomPermission.SPIELLEITUNG.value): qs = qs.filter(eigentümer=request.spieler)
     char = qs.first()
     
     # cannot find char
@@ -786,8 +788,12 @@ def delete_char(request, pk):
         messages.error(request, "Es ist nicht dein Charakter, den du löschen willst oder er existiert gar nicht.")
     # delete char
     else:
-        messages.success(request, f"{char.name} ist gelöscht.")
-        char.delete()
+        try:
+            char.delete()
+            messages.success(request, f"{char.name} wurde gelöscht.")
+        except IntegrityError as err:
+            caught_constraint = err.__str__().split('\n')[0].split('violates check constraint')[-1]
+            messages.error(request, f"{char.name} wurde nicht gelöscht. Es gab Probleme mit {caught_constraint}. Das passiert häufig, wenn zurzeit aktive Effekte nicht deaktiviert werden können (z.B. Attribut plötzlich negativ o.Ä.).")
 
     return redirect("character:index")
 

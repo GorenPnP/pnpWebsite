@@ -5,7 +5,7 @@ django-dbbackup==5.1.*          # db + media backup utility
 tzdata==2025.*                  # used to let django organize time zones
 Pillow==12.*				    # image library
 django-resized==1.0.*           # allow model field to automatically resize an image
-psycopg[binary,pool]==3.3.*			        # for postgresql usage
+psycopg[binary,pool]==3.3.*		# for postgresql usage
 six==1.17.*                     # generate token for email confirmation on signup
 
 # production env
