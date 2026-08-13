@@ -19,6 +19,7 @@ from ..mixins import LevelUpMixin
 class GenericFertigkeitView(LevelUpMixin, DynamicTableView):
 
     class Table(GenericTable):
+        orderable = False
 
         class Meta:
             model = RelFertigkeit

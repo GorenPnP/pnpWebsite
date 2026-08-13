@@ -42,7 +42,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 
 # Runtime stage
-FROM dhi.io/python:3.14-alpine3.22 AS runtime
+FROM dhi.io/python:3.14-alpine3.22-dev AS runtime
 LABEL version="5.2"
 
 # Set environment variables for Python
