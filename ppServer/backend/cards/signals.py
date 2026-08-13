@@ -11,7 +11,7 @@ from .models import Card
 # Solution: trigger deactivation manually and delete Transactions afterwards to force the correct order of things.
 @receiver(pre_delete, sender=Charakter)
 def deactivate_releffects_before_deleting_card_of_char(sender, instance, **kwargs):
-    if instance.card:
+    if hasattr(instance, "card"):
         for releffect in instance.releffect_set.filter(is_active=True): releffect.deactivate(False)
         delete_transactions_when_deleting_card(Card, instance.card)
 

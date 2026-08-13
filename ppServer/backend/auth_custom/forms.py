@@ -31,7 +31,7 @@ class SignupForm(UserCreationForm):
     email = forms.EmailField(max_length=200, validators=[EmailValidator], required=True)
 
     def clean_email(self):
-        if self.cleaned_data["email"] and self.model.objects.filter(email=self.cleaned_data["email"]).exists():
+        if self.cleaned_data["email"] and self._meta.model.objects.filter(email=self.cleaned_data["email"]).exists():
             raise forms.ValidationError("Die E-Mail ist bereits vergeben")
         return self.cleaned_data["email"]
 

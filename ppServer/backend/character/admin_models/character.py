@@ -337,7 +337,7 @@ class CharakterAdmin(admin.ModelAdmin):
         return super().get_form(request, obj, change, **kwargs)
 
     def delete_model(self, request, obj):
-        if obj.card:
+        if hasattr(obj, "card"):
             # deactivate RelEffects before Card in case some change money on delete/deactivate
             deactivate_releffects_before_deleting_card_of_char(Charakter, obj)
 
