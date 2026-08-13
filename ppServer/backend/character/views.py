@@ -780,7 +780,7 @@ class HistoryView(VerifiedAccountMixin, tables.SingleTableMixin, TemplateView):
 def delete_char(request, pk):
     # assert user requesting delete a character
     qs = Charakter.objects.filter(pk=pk)
-    if not request.user.has_perm(CustomPermission.SPIELLEITUNG.value): qs = qs.filter(char__eigentümer=request.spieler)
+    if not request.user.has_perm(CustomPermission.SPIELLEITUNG.value): qs = qs.filter(eigentümer=request.spieler)
     char = qs.first()
     
     # cannot find char
