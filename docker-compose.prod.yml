@@ -57,7 +57,7 @@ services:
 
   nginx:
     container_name: nginx
-    image: dhi.io/nginx:1-alpine3.21-dev
+    image: dhi.io/nginx:1-alpine3.21
     restart: unless-stopped
     networks:
       - django_nginx
@@ -75,6 +75,7 @@ services:
     logging: *default-logging
     security_opt:
       - no-new-privileges:true
+    user: 0:0
 
 
 volumes:
