@@ -1,5 +1,6 @@
 from django.core.exceptions import DisallowedHost
-from django.http import HttpResponseBadRequest
+from django.http import HttpRequest, HttpResponse, HttpResponseBadRequest
+from django.utils.deprecation import MiddlewareMixin
 
 from character.models import CustomPermission
 from ppServer.settings import DEBUG
@@ -7,31 +8,27 @@ from ppServer.settings import DEBUG
 from .models import Request
 
 
-class RequestMiddleware:
+class RequestMiddleware(MiddlewareMixin):
     def __init__(self, get_response):
-        self.get_response = get_response
+        super().__init__(get_response)
+
         self.path_blacklist = ("/static", "/media", "/admin", "/api", "/prometheus")
         self.favicon_filename = "favicon.ico"
         self.ip_blacklist = ("139.162.134.44",)    # my Uptime_Kuma-monitoring
         # One-time configuration and initialization.
 
-    def __call__(self, request):
-        # Code to be executed for each request before
-        # the view (and later middleware) are called.
 
+    def process_response(self, request: HttpRequest, response: HttpResponse):
         ip = (request.META["HTTP_X_FORWARDED_FOR"] if "HTTP_X_FORWARDED_FOR" in request.META else "someone?")
         if DEBUG or\
-            request.scope["path"].startswith(self.path_blacklist) or\
-            self.favicon_filename in request.scope["path"] or\
-            ip in self.ip_blacklist or\
-            request.user.has_perm(CustomPermission.SPIELLEITUNG.value):
+           request.scope["path"].startswith(self.path_blacklist) or\
+           self.favicon_filename in request.scope["path"] or\
+           ip in self.ip_blacklist or\
+           request.user.has_perm(CustomPermission.SPIELLEITUNG.value):
+            return
 
-            return self.get_response(request)
-
-        response = self.get_response(request)
         user_agent = request.META["HTTP_USER_AGENT"] if "HTTP_USER_AGENT" in request.META.keys() else None
-        if user_agent and len(user_agent) > 200:
-            user_agent = user_agent[:297] + "..."
+        if user_agent and len(user_agent) > 200: user_agent = user_agent[:297] + "..."
 
         Request.objects.create(
             pfad=self.cap_string(request.scope["path"], 500),
@@ -50,11 +47,9 @@ class RequestMiddleware:
         return string
 
 
-class SentryignoreDisallowedHostMiddleware:
-    def __init__(self, get_response):
-        self.get_response = get_response
+class SentryignoreDisallowedHostMiddleware(MiddlewareMixin):
 
-    def __call__(self, request):
+    def process_request(self, request: HttpRequest):
         # Code to be executed for each request before
         # the view (and later middleware) are called.
         try:
@@ -62,6 +57,4 @@ class SentryignoreDisallowedHostMiddleware:
             # if not, return 403-response immediately without alerting Sentry
             request.get_host()
         except DisallowedHost:
-            return HttpResponseBadRequest()
-
-        return self.get_response(request)
+            raise HttpResponseBadRequest()

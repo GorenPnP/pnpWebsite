@@ -39,7 +39,7 @@ django-push-notifications[WP]==3.3.*    # send web-pushies
 
 
 django_redis==6.0.*
-django-prometheus==2.4.*
+django-prometheus==2.5.*
 
 
 crispy-bootstrap5==2025.*   # char nachtragen complex forms & formsets
