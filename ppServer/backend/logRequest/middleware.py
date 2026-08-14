@@ -57,4 +57,4 @@ class SentryignoreDisallowedHostMiddleware(MiddlewareMixin):
             # if not, return 403-response immediately without alerting Sentry
             request.get_host()
         except DisallowedHost:
-            raise HttpResponseBadRequest()
+            return HttpResponseBadRequest()
