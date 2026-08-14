@@ -12,7 +12,15 @@ from .models import Card
 @receiver(pre_delete, sender=Charakter)
 def deactivate_releffects_before_deleting_card_of_char(sender, instance, **kwargs):
     if hasattr(instance, "card"):
-        for releffect in instance.releffect_set.filter(is_active=True): releffect.deactivate(False)
+        # update wertaenderung on all related, active RelEffects. Set it to 0 ^= no change, because
+        # on deletion of an active RelEffect, the applied effect will be deactivated and some calculations take
+        # place. Sometimes the result does not comply with the field checks (e.G. negative attribute value) on it.
+        instance.releffect_set.filter(is_active=True).exclude(wertaenderung=None).update(wertaenderung=0)
+
+        # deactivate all related RelEffects
+        instance.releffect_set.update(is_active=False)
+
+        # cleanup Transactions of the char.card.
         delete_transactions_when_deleting_card(Card, instance.card)
 
 
