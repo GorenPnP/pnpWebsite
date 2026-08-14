@@ -25,7 +25,7 @@ class RequestMiddleware(MiddlewareMixin):
            self.favicon_filename in request.scope["path"] or\
            ip in self.ip_blacklist or\
            request.user.has_perm(CustomPermission.SPIELLEITUNG.value):
-            return
+            return response
 
         user_agent = request.META["HTTP_USER_AGENT"] if "HTTP_USER_AGENT" in request.META.keys() else None
         if user_agent and len(user_agent) > 200: user_agent = user_agent[:297] + "..."
