@@ -338,7 +338,7 @@ if not DEBUG:
 ###################################################
 # PUSHIES
 PUSH_NOTIFICATIONS_SETTINGS = {
-    "WP_PRIVATE_KEY": os.path.join(BASE_DIR, "webPush", "certs", "private_key.pem"),
+    "WP_PRIVATE_KEY": os.environ.get('PUSH_NOTIFICATION_PRIVATE_KEY'),
     "WP_CLAIMS": {'sub': os.environ.get('PUSH_NOTIFICATION_CONTACT') },
     "UNIQUE_REG_ID": True,
 }
