@@ -7,6 +7,8 @@ class RequestAdmin(admin.ModelAdmin):
     list_display = ['zeit', 'methode', '_pfad', 'user', 'antwort', 'user_agent']
     list_display_links = ["zeit"]
 
+    show_full_result_count = False  # if filtered list, show the count of all unfiltered on True. Disabled to prevent a duplicated query.
+
     def _pfad(self, obj):
         return format_html('<a href="{0}">{0}</a>'.format(obj.pfad))
 
