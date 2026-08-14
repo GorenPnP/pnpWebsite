@@ -7,7 +7,7 @@ from .models import Spieler
 class SpielerMiddleware(MiddlewareMixin):
     """ both sync/async Middleware that adds spieler object to each request """
 
-    def process_request(request: HttpRequest):
+    def process_request(self, request: HttpRequest):
         request.spieler = None
 
         if request.user.is_authenticated:
