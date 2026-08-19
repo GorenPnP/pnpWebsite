@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.db.models import ObjectDoesNotExist
 from django.db.models.signals import post_delete, pre_delete, pre_save, post_save
 from django.dispatch import receiver
 
@@ -189,16 +190,12 @@ def update_states_of_spielermodules(sender, instance, **kwargs):
 # delete all Media on delete of Question
 @receiver(pre_delete, sender=Question)
 def delete_its_media(sender, instance, **kwargs):
-    media = [
-        instance.images,
-        instance.files,
-    ]
-    for type in media:
-        if type is None: continue
-
-        for m in type:
-            if m is not None:
-                m.delete()
+    for attr in ['images', 'files']:
+        try:
+            obj = getattr(instance, attr)
+            if obj is not None:
+                [medium.delete() for medium in obj if medium is not None]
+        except ObjectDoesNotExist: pass
 
 
 # delete all SpielerModules on delete of Module
@@ -228,14 +225,12 @@ def delete_its_spieler_questions(sender, instance, **kwargs):
 # delete all media of SpielerQuestion on its delete
 @receiver(pre_delete, sender=SpielerQuestion)
 def delete_its_media(sender, instance, **kwargs):
-    media = [
-        instance.answer_img,
-        instance.answer_file,
-        instance.correct_img,
-        instance.correct_file
-    ]
-    for m in media:
-        if m is not None: m.delete()
+
+    for attr in ['answer_img', 'answer_file', 'correct_img', 'correct_file']:
+        try:
+            obj = getattr(instance, attr)
+            if obj is not None: obj.delete()
+        except ObjectDoesNotExist: pass
 
 
 @receiver(pre_delete, sender=Image)
