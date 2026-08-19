@@ -211,12 +211,13 @@ class RelEffect(AbstractEffect):
             target.card.money = self.wertaenderung
             target.card.save(update_fields=["money"])
 
-            Transaction.objects.create(
-                sender=target.card if diff < 0 else None,
-                receiver=target.card if diff >= 0 else None,
-                amount=math.fabs(diff),
-                reason=f"Aktiver Effekt von {', '.join([getattr(self, field.replace('_id', '')).__str__() for field, val in self.__dict__.items() if 'source_' in field and val])} setzt das Konto auf {self.wertaenderung:n} Dr.",
-            )
+            if diff:
+                Transaction.objects.create(
+                    sender=target.card if diff < 0 else None,
+                    receiver=target.card if diff >= 0 else None,
+                    amount=math.fabs(diff),
+                    reason=f"Aktiver Effekt von {', '.join([getattr(self, field.replace('_id', '')).__str__() for field, val in self.__dict__.items() if 'source_' in field and val])} setzt das Konto auf {self.wertaenderung:n} Dr.",
+                )
 
         elif self.target_fieldname.rsplit("_", 1)[-1] == "fix":
             setattr(target, field, self.wertaenderung)
@@ -236,7 +237,7 @@ class RelEffect(AbstractEffect):
                 target.save(update_fields=[field])
 
         # additional 'logging' for money transaction
-        if self.target_fieldname == "cards.Card.money":
+        if self.target_fieldname == "cards.Card.money" and self.wertaenderung:
             Transaction.objects.create(
                 sender=target if self.wertaenderung < 0 else None,
                 receiver=target if self.wertaenderung >= 0 else None,
@@ -269,12 +270,13 @@ class RelEffect(AbstractEffect):
             target.card.money = 0
             target.card.save(update_fields=["money"])
 
-            Transaction.objects.create(
-                sender=target.card if diff < 0 else None,
-                receiver=target.card if diff >= 0 else None,
-                amount=math.fabs(diff),
-                reason=f"Deaktivieren des Effekts von {', '.join([getattr(self, field.replace('_id', '')).__str__() for field, val in self.__dict__.items() if 'source_' in field and val])} setzt das Konto auf 0 Dr.",
-            )
+            if diff:
+                Transaction.objects.create(
+                    sender=target.card if diff < 0 else None,
+                    receiver=target.card if diff >= 0 else None,
+                    amount=math.fabs(diff),
+                    reason=f"Deaktivieren des Effekts von {', '.join([getattr(self, field.replace('_id', '')).__str__() for field, val in self.__dict__.items() if 'source_' in field and val])} setzt das Konto auf 0 Dr.",
+                )
 
         elif self.target_fieldname.rsplit("_", 1)[-1] == "fix":
             setattr(target, field, None)
@@ -296,7 +298,7 @@ class RelEffect(AbstractEffect):
                 target.save(update_fields=[field])
 
         # additional 'logging' for money transaction
-        if self.target_fieldname == "cards.Card.money":
+        if self.target_fieldname == "cards.Card.money" and self.wertaenderung:
             Transaction.objects.create(
                 sender=target if self.wertaenderung > 0 else None,
                 receiver=target if self.wertaenderung <= 0 else None,
