@@ -29,7 +29,7 @@ class GfsAttributInLine(admin.TabularInline):
         return False
 
     def get_queryset(self, request):
-        return super().get_queryset(request).prefetch_related('attribut')
+        return super().get_queryset(request).select_related('attribut')
 
 
 class GfsFertigkeitInLine(admin.TabularInline):
@@ -74,7 +74,8 @@ class GfsSkilltreeInLine(admin.TabularInline):
     extra = 1
 
     def get_queryset(self, request):
-        return super().get_queryset(request).prefetch_related("base", "gfs", "wesenkraft", "magische_ausrüstung", "vorteil", "nachteil",
+        return super().get_queryset(request) \
+            .select_related("base", "gfs", "wesenkraft", "magische_ausrüstung", "vorteil", "nachteil",
             "spezialfertigkeit__attr1", "spezialfertigkeit__attr2", "wissensfertigkeit__attr1", "wissensfertigkeit__attr2", "wissensfertigkeit__attr3")
 
     def get_formset(self, request, obj=None, **kwargs):
@@ -92,7 +93,9 @@ class GfsStufenplanInLine(admin.TabularInline):
     extra = 0
 
     def get_queryset(self, request):
-        return super().get_queryset(request).prefetch_related('basis', 'vorteile', 'wesenkräfte', 'ability')
+        return super().get_queryset(request) \
+            .select_related('basis', 'ability') \
+            .prefetch_related('vorteile', 'wesenkräfte')
 
 
 
