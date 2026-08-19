@@ -33,7 +33,7 @@ class BuyView(VerifiedAccountMixin, DetailView):
         firma_shop_entries = self.firmashop_model.objects.filter(item=id)
         item = get_object_or_404(self.shop_model, id=id)
 
-        charaktere = Charakter.objects.all()
+        charaktere = Charakter.objects.select_related("card").all()
 
         # characters to buy stuff for
         if not request.user.has_perm(CustomPermission.SPIELLEITUNG.value):
