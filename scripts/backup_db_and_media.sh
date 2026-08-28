@@ -38,7 +38,7 @@ find $BASEPATH_HOST/backups -type f -mtime +30 -delete
 cd $BASEPATH_HOST/backups/$DATE
 
 # upload db dump
-PSQL_FILENAME=$(find ./*.psql.bin -maxdepth 1 -type f -iname *.psql.bin -exec basename {} \;)
+PSQL_FILENAME=$(find ./*.psql.bin -maxdepth 1 -type f -iname "*.psql.bin" -exec basename {} \;)
 curl -u $NEXTCLOUD_AUTH -T $PSQL_FILENAME "$UPLOAD_PATH/$PSQL_FILENAME"
 
 # upload media

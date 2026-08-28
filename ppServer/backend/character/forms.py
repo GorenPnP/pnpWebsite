@@ -296,7 +296,7 @@ class CreateTagForm(forms.ModelForm):
 class CreateRamschForm(forms.ModelForm):
     class Meta:
         model = RelRamsch
-        fields = ["char", "anz", "item"]
+        fields = ["char", "anz", "item", "notizen"]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -309,6 +309,7 @@ class CreateRamschForm(forms.ModelForm):
                 "neues Item mitnehmen", # name of container, not a field
                 InlineField("anz", wrapper_class="col-sm-2"),
                 InlineField("item", wrapper_class="col-sm"),
+                InlineField("notizen", wrapper_class="col-sm-6"),
                 ButtonHolder(
                     Submit('Save', 'ins Inventar', css_class='btn btn-primary'),
                     css_class="col-sm-auto"
@@ -342,6 +343,10 @@ class StoryNotesForm(forms.ModelForm):
             css_class='row'),
         )
 
+class ItemNotesForm(forms.ModelForm):
+    class Meta:
+        model = RelShop
+        fields = ["notizen"]
 
 @crispy
 class SpendMoneyForm(forms.ModelForm):

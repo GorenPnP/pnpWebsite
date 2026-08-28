@@ -1757,18 +1757,15 @@ class GfsSkilltreeEntry(models.Model):
             char.save(update_fields=["sp"])
 
 
-class RelRamsch(models.Model):
+class RelRamsch(RelShop):
     class Meta:
-        ordering = ['char', 'item']
-        unique_together = (('char', 'item'),)
+        verbose_name = "Ramsch"
+        verbose_name_plural = "Ramsch"
 
-    char = models.ForeignKey(Charakter, on_delete=models.CASCADE)
-
-    anz = models.PositiveIntegerField(default=1, validators=[MinValueValidator(1)])
     item = models.CharField(max_length=128, blank=False)
 
-    def __str__(self):
-        return "{} ({})".format(self.item, self.anz)
+    def cheapest(self):
+        return None
 
 
 class CurrentStory(models.Model):

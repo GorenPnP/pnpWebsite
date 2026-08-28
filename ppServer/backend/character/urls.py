@@ -17,5 +17,6 @@ urlpatterns = [
     path('spend_money/<int:pk>/', views.spend_money, name='spend_money'),
     path('remove_sp/<int:pk>/', views.remove_sp, name='remove_sp'),
     path('remove_item/<str:relshop_model>/<int:pk>/', views.remove_relshop, name='remove_item'),
+    path('save_item_notizen/<str:relshop_model>/<int:pk>/', views.save_item_notizen, name='save_item_notizen'),
     path('save_story_notes/<int:pk>/', views.save_story_notes, name='save_story_notes'),
 ]

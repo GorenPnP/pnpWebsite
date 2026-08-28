@@ -103,6 +103,18 @@ class ShowView(VerifiedAccountMixin, DetailView):
             value = value.replace("item__", "")
             return super().render_other(value)
 
+        def render_notizen_(self, value, record):
+            relmodel_name = f"Rel{record['model_name']}"
+            pk = record["pk"]
+            href = href = reverse("character:save_item_notizen", args=[relmodel_name, pk])
+
+            return format_html(
+                f"""<form method="post" action="{href}" style="min-width: min(20vw, 200px)" class="item-notizen-form">
+                    <input type="hidden" name="csrfmiddlewaretoken" value="{self.csrf_token}"/>
+                    <textarea class="form-control" name="notizen" placeholder="✎" aria-label="Notizen zu {record['item__name']}">{record['notizen']}</textarea>
+                </form>"""
+            )
+
         def render_use(self, value, record):
             relmodel_name = f"Rel{record['model_name']}"
             pk = record["pk"]
@@ -141,13 +153,12 @@ class ShowView(VerifiedAccountMixin, DetailView):
                         item__pk=F("pk"),
                         item__icon=Value(""),
                         item__name=F("item"),
-                        stufe=Value(None, output_field=models.IntegerField()),
                         item__beschreibung=Value("(selbst angelegt)"),
                         other=Value(""),
-                        notizen=Value("-"),
+                        notizen_=Value("-"),
                         use=Value("-"),
                     )\
-                    .values(*field_names, "pk", "model_name", "art", "item__pk")
+                    .values(*field_names, "pk", "model_name", "art", "item__pk", "notizen")
 
             # normal RelShop-case
 
@@ -159,9 +170,10 @@ class ShowView(VerifiedAccountMixin, DetailView):
                     model_name=Value(Shop._meta.model_name),
                     art=Value(Shop._meta.verbose_name),
                     use=Value("-"),
+                    notizen_=Value("-"),
                     other=Subquery(Shop.objects.filter(pk=OuterRef("item__pk")).annotate(**annotate_other(Shop, other_fields)).values_list("other", flat=True)),
                 )\
-                .values(*field_names, "pk", "model_name", "art", "item__pk")
+                .values(*field_names, "pk", "model_name", "art", "item__pk", "notizen")
 
 
     template_name = "character/show.html"
@@ -540,8 +552,14 @@ class ShowView(VerifiedAccountMixin, DetailView):
                 orderable = False
                 attrs = {"class": "table table-dark table-striped table-hover"}
 
+            def render_ability__name(self, value, record):
+                stufenplan_entry = record.ability.gfsstufenplan
+
+                return format_html(f"{value}<br><small><i>({stufenplan_entry.gfs.titel} {stufenplan_entry.basis.stufe})</i></small>")
+
+
         return {
-            "gfs_ability__table": GfsAbilityTable(char.relgfsability_set.all())
+            "gfs_ability__table": GfsAbilityTable(char.relgfsability_set.prefetch_related("ability__gfsstufenplan__basis", "ability__gfsstufenplan__gfs").all())
         }
 
     def get_klasse_ability(self, char):
@@ -552,8 +570,19 @@ class ShowView(VerifiedAccountMixin, DetailView):
                 orderable = False
                 attrs = {"class": "table table-dark table-striped table-hover"}
 
+            def render_ability__name(self, value, record):
+                stufenplan_entry = record.ability.klassestufenplan_set.first()
+                base_entry = record.ability.klasse_set.first() if not stufenplan_entry else None
+
+                klasse = stufenplan_entry.klasse.titel if stufenplan_entry else base_entry.titel
+                stufe = stufenplan_entry.stufe if stufenplan_entry else "Basis"
+
+                return format_html(f"{value}<br><small><i>({klasse} {stufe})</i></small>")
+
         return {
-            "klasse_ability__table": KlasseAbilityTable(char.relklasseability_set.all())
+            "klasse_ability__table": KlasseAbilityTable(
+                char.relklasseability_set.prefetch_related("ability__klasse_set", "ability__klassestufenplan_set__klasse").all()
+            )
         }
 
     def get_affektivität(self, char):
@@ -578,7 +607,7 @@ class ShowView(VerifiedAccountMixin, DetailView):
             item__beschreibung = tables.Column(verbose_name="Beschreibung"),
             art = tables.Column(),
             other = tables.Column(verbose_name=""),
-            notizen = tables.Column(),
+            notizen_ = tables.Column(),
             use = tables.Column(verbose_name=""),
         )
 
@@ -623,7 +652,7 @@ class ShowView(VerifiedAccountMixin, DetailView):
             item__manaverbrauch = tables.Column(),
             item__astralschaden = tables.Column(),
             other = tables.Column(verbose_name=""),
-            notizen = tables.Column(),
+            notizen_ = tables.Column(),
         )
 
         return {
@@ -642,7 +671,7 @@ class ShowView(VerifiedAccountMixin, DetailView):
             stufe = tables.Column(),
             item__beschreibung = tables.Column(verbose_name="Beschreibung"),
             other = tables.Column(verbose_name=""),
-            notizen = tables.Column(),
+            notizen_ = tables.Column(),
             use = tables.Column(verbose_name=""),
         )
 
@@ -668,7 +697,7 @@ class ShowView(VerifiedAccountMixin, DetailView):
             stufe = tables.Column(),
             item__beschreibung = tables.Column(verbose_name="Beschreibung"),
             other = tables.Column(verbose_name=""),
-            notizen = tables.Column(),
+            notizen_ = tables.Column(),
             use = tables.Column(verbose_name=""),
         )
 
@@ -1064,6 +1093,26 @@ def save_story_notes(request, pk):
     form.save()
 
     return JsonResponse({}, status=200)
+
+
+@require_POST
+@verified_account
+def save_item_notizen(request, relshop_model, pk):
+    # assert user requesting to add an item
+    Model = apps.get_model('character', relshop_model)
+    relshop = get_object_or_404(Model.objects.prefetch_related("char"), pk=pk)
+    char = relshop.char
+    if not request.user.has_perm(CustomPermission.SPIELLEITUNG.value) and char.eigentümer != request.spieler:
+        return JsonResponse({"message": "Es ist nicht dein Charakter, dessen Notizen du speichern willst."}, status=418)
+
+    form = ItemNotesForm(request.POST, instance=relshop)
+    form.full_clean()
+    if not form.is_valid():
+        return JsonResponse({"message": "Notizen speichern ist fehlgeschlagen."}, status=418)
+
+    form.save()
+    return JsonResponse({}, status=200)
+
 
 class CreateCharacterView(VerifiedAccountMixin, CopiesCharsMixin, CreateView):
     redirect_to = "character:index"
