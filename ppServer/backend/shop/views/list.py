@@ -3,7 +3,7 @@ from typing import Any, Dict
 
 from django.apps import apps
 from django.core.exceptions import ImproperlyConfigured
-from django.db.models import Max, Min, Value, TextField, F, ManyToManyField, OuterRef
+from django.db.models import Max, Min, Value, TextField, F, ManyToManyField, OuterRef, ForeignKey
 from django.db.models.fields import BooleanField
 from django.db.models.functions import Concat
 from django.db.models.query import QuerySet
@@ -73,9 +73,11 @@ def annotate_other(Model: models.Model, other_fieldnames: list[str]) -> dict[str
         elif field.__class__ == BooleanField:
             displays_of_fields_in_other[queryname] = display_value([("True", "Ja"), ("False", "Nein")], field.name)
 
-        # resolves M2M with related_object.name
-        elif field.__class__ == ManyToManyField:
-            displays_of_fields_in_other[queryname] = ConcatSubquery(field.related_model.objects.filter(**{f"{Model._meta.model_name}__id": OuterRef("id")}).values("name"), separator=", ")
+        # resolves FK or M2M with related_object.name or .titel
+        elif field.__class__ in [ForeignKey, ManyToManyField]:
+            possible_fields_for_representation = ["name", "titel"]
+            repr_fieldname = [f for f in possible_fields_for_representation if f in field.related_model.__dict__][0]
+            displays_of_fields_in_other[queryname] = ConcatSubquery(field.related_model.objects.filter(**{f"{Model._meta.model_name}__id": OuterRef("id")}).values(repr_fieldname), separator=", ")
 
         # base case, no changes
         else:

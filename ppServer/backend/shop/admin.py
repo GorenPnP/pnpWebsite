@@ -181,9 +181,9 @@ class SchusswaffenAdmin(BaseAdmin):
 
     exclude = ['magazine', 'st_magazine', 'pfeile_bolzen', 'st_pfeile_bolzen']
     list_display = ('name', 'beschreibung', "ab_stufe", 'erfolge', 'bs', 'zs', 'dk', 'präzision', 'schadensart', 'billigste',
-                    'kategorie', 'info', "has_implementation")
-    list_filter = ['kategorie', 'erfolge', 'bs', 'zs', 'dk', 'präzision', 'schadensart', 'illegal', 'lizenz_benötigt', "frei_editierbar"]
-    list_editable = ['schadensart']
+                    'kategorie', 'fertigkeit', 'info', "has_implementation")
+    list_filter = ['kategorie', 'erfolge', 'bs', 'zs', 'dk', 'präzision', 'schadensart', 'fertigkeit__titel', 'illegal', 'lizenz_benötigt', "frei_editierbar"]
+    list_editable = ['schadensart', 'kategorie', 'fertigkeit']
 
     inlines = [SchussMagazineInLine, SchussPfeileBolzenInLine,
                FirmaSchusswaffenInLine]

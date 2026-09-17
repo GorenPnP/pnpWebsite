@@ -61,11 +61,13 @@ werkzeuge_enum = [
 
 
 schusswaffen_enum = [
-    ('p', 'professionelle Waffen'),
-    ('sf', 'schwere F-Waffen'),
-    ('ss', 'Schusswaffen und Sniper'),
-    ('m', 'Maschinengewehre'),
-    ('g', 'Geschütze')
+    ('k', 'Kurzwaffe'),
+    ('w', 'Gewehr'),
+    ('m', 'Maschinengewehr'),
+    ('s', 'Scharfschützengewehr'),
+    ('g', 'Geschütz'),
+    ('e', 'Exotische Waffe'),
+    ('t', 'Taktikwaffe'),
 ]
 
 

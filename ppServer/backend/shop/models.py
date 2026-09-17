@@ -318,12 +318,13 @@ class Schusswaffen(BaseShop):
     dk = models.PositiveIntegerField(default=0, blank=True)
     präzision = models.PositiveIntegerField(default=0, blank=True)
 
-    kategorie = models.CharField(choices=enums.schusswaffen_enum, max_length=2, default=enums.schusswaffen_enum[0][0])
+    fertigkeit = models.ForeignKey('character.Fertigkeit', on_delete=models.SET_NULL, null=True, blank=True)
+    kategorie = models.CharField(choices=enums.schusswaffen_enum, max_length=1, default=enums.schusswaffen_enum[0][0])
     firmen = models.ManyToManyField('Firma', through='FirmaSchusswaffen', blank=True)
 
     @staticmethod
     def getShopDisplayFields():
-        return super(Schusswaffen, Schusswaffen).getShopDisplayFields() + ["erfolge", "bs", "zs", "dk", "präzision", "schadensart", "kategorie",
+        return super(Schusswaffen, Schusswaffen).getShopDisplayFields() + ["fertigkeit", "erfolge", "bs", "zs", "dk", "präzision", "schadensart", "kategorie",
         "magazine"] # , "pfeile_bolzen"]  ist eh leer
 
 
