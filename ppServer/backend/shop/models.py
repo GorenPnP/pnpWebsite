@@ -108,8 +108,8 @@ class FirmaItem(FirmaShop):
     item = models.ForeignKey('Item', on_delete=models.CASCADE)
 
 
-class FirmaWaffen_Werkzeuge(FirmaShop):
-    item = models.ForeignKey('Waffen_Werkzeuge', on_delete=models.CASCADE)
+class FirmaWaffe_Werkzeug(FirmaShop):
+    item = models.ForeignKey('Waffe_Werkzeug', on_delete=models.CASCADE)
 
 
 class FirmaMunition(FirmaShop):
@@ -124,13 +124,13 @@ class FirmaMagische_Ausrüstung(FirmaShop):
     item = models.ForeignKey('Magische_Ausrüstung', on_delete=models.CASCADE)
 
 
-class FirmaRituale_Runen(models.Model):
+class FirmaRitual_Rune(models.Model):
     class Meta:
         verbose_name = "Firma"
         verbose_name_plural = "Firmen"
 
     firma = models.ForeignKey(Firma, on_delete=models.CASCADE)
-    item = models.ForeignKey('Rituale_Runen', on_delete=models.CASCADE)
+    item = models.ForeignKey('Ritual_Rune', on_delete=models.CASCADE)
 
     stufe_1 = models.IntegerField(default=0, null=True)
     stufe_2 = models.IntegerField(default=0, null=True)
@@ -167,8 +167,8 @@ class FirmaFahrzeug(FirmaShop):
     item = models.ForeignKey('Fahrzeug', on_delete=models.CASCADE)
 
 
-class FirmaEinbauten(FirmaShop):
-    item = models.ForeignKey('Einbauten', on_delete=models.CASCADE)
+class FirmaEinbaute(FirmaShop):
+    item = models.ForeignKey('Einbaute', on_delete=models.CASCADE)
 
 
 class FirmaZauber(FirmaShop):
@@ -243,7 +243,7 @@ class Item(BaseShop):
         return super(Item, Item).getShopDisplayFields() + ["kategorie"]
 
 
-class Waffen_Werkzeuge(BaseShop):
+class Waffe_Werkzeug(BaseShop):
     class Meta:
         verbose_name = "Waffe/Werkzeug"
         verbose_name_plural = "Waffen & Werkzeuge"
@@ -256,12 +256,13 @@ class Waffen_Werkzeuge(BaseShop):
     dk = models.PositiveIntegerField(default=0, blank=True, null=True)
     schadensart = models.CharField(max_length=1, choices=enums.schadensart_enum, null=True, blank=True)
 
-    kategorie = models.CharField(choices=enums.werkzeuge_enum, max_length=2, default=enums.werkzeuge_enum[0][0])
-    firmen = models.ManyToManyField('Firma', through='FirmaWaffen_Werkzeuge', blank=True)
+    kategorie = models.CharField(choices=enums.werkzeug_enum, max_length=2, default=enums.werkzeug_enum[0][0])
+    firmen = models.ManyToManyField('Firma', through='FirmaWaffe_Werkzeug', blank=True)
 
     @staticmethod
     def getShopDisplayFields():
-        return super(Waffen_Werkzeuge, Waffen_Werkzeuge).getShopDisplayFields() + ["erfolge", "bs", "zs", "dk", "schadensart", "kategorie"]
+        return super(Waffe_Werkzeug, Waffe_Werkzeug).getShopDisplayFields() + ["erfolge", "bs", "zs", "dk", "schadensart", "kategorie"]
+
 
 class Munition(BaseShop):
     class Meta:
@@ -324,19 +325,19 @@ class Magische_Ausrüstung(BaseShop):
     def getShopDisplayFields():
         return super(Magische_Ausrüstung, Magische_Ausrüstung).getShopDisplayFields() + ["kategorie"]
 
-class Rituale_Runen(BaseShop):
+class Ritual_Rune(BaseShop):
     class Meta:
         verbose_name = "Ritual/Rune"
-        verbose_name_plural = "Rituale & Runen"
+        verbose_name_plural = "Rituale/Runen"
 
         ordering = ['name']
 
-    kategorie = models.CharField(choices=enums.rituale_enum, max_length=2, default=enums.rituale_enum[0][0])
-    firmen = models.ManyToManyField('Firma', through='FirmaRituale_Runen', blank=True)
+    kategorie = models.CharField(choices=enums.ritual_enum, max_length=2, default=enums.ritual_enum[0][0])
+    firmen = models.ManyToManyField('Firma', through='FirmaRitual_Rune', blank=True)
 
     @staticmethod
     def getShopDisplayFields():
-        return super(Rituale_Runen, Rituale_Runen).getShopDisplayFields() + ["kategorie"]
+        return super(Ritual_Rune, Ritual_Rune).getShopDisplayFields() + ["kategorie"]
     
     def cheapest(self, stufe=1) -> int or None:
         offers = getattr(self, f"{self.firmen.through._meta.model_name}_set").all()
@@ -399,20 +400,20 @@ class Fahrzeug(BaseShop):
         return super(Fahrzeug, Fahrzeug).getShopDisplayFields() + ["schnelligkeit", "rüstung", "erfolge", "kategorie"]
 
 
-class Einbauten(BaseShop):
+class Einbaute(BaseShop):
     class Meta:
-        verbose_name = "Einbauten"
+        verbose_name = "Einbaute"
         verbose_name_plural = "Einbauten"
 
         ordering = ['name']
 
     manifestverlust = models.CharField(max_length=20, null=True, blank=True)
-    kategorie = models.CharField(choices=enums.einbauten_enum, max_length=2, default=enums.einbauten_enum[0][0])
-    firmen = models.ManyToManyField('Firma', through='FirmaEinbauten', blank=True)
+    kategorie = models.CharField(choices=enums.einbaute_enum, max_length=2, default=enums.einbaute_enum[0][0])
+    firmen = models.ManyToManyField('Firma', through='FirmaEinbaute', blank=True)
 
     @staticmethod
     def getShopDisplayFields():
-        return super(Einbauten, Einbauten).getShopDisplayFields() + ["manifestverlust", "kategorie"]
+        return super(Einbaute, Einbaute).getShopDisplayFields() + ["manifestverlust", "kategorie"]
 
 
 class Zauber(BaseShop):

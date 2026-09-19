@@ -3,7 +3,7 @@ import math
 from django.db.models.signals import pre_save, post_save, pre_delete, post_delete
 from django.dispatch import receiver
 
-from character.models import RelAttribut, RelFertigkeit, RelVorteil, RelNachteil, RelTalent, RelKlasse, RelKlasseAbility, RelGfsAbility, RelBegleiter, RelMagische_Ausrüstung, RelRüstung, RelAusrüstung_Technik, RelEinbauten, Charakter
+from character.models import RelAttribut, RelFertigkeit, RelVorteil, RelNachteil, RelTalent, RelKlasse, RelKlasseAbility, RelGfsAbility, RelBegleiter, RelMagische_Ausrüstung, RelRüstung, RelAusrüstung_Technik, RelEinbaute, Charakter
 
 from .models import *
 
@@ -36,7 +36,7 @@ def deactivate_effect_on_delete(sender, instance, **kwargs):
 @receiver(post_save, sender=RelMagische_Ausrüstung)
 @receiver(post_save, sender=RelRüstung)
 @receiver(post_save, sender=RelAusrüstung_Technik)
-@receiver(post_save, sender=RelEinbauten)
+@receiver(post_save, sender=RelEinbaute)
 def apply_effect_on_rel_relation(sender, instance, created, **kwargs):
     if not created or\
         ("effect_signals" in instance.char.processing_notes and instance.char.processing_notes["effect_signals"] == "ignore"):
@@ -51,7 +51,7 @@ def apply_effect_on_rel_relation(sender, instance, created, **kwargs):
         effect_qs = instance.ability.effect_set.all()
     elif sender == RelKlasse: 
         effect_qs = instance.klasse.effect_set.all()
-    elif sender in [RelBegleiter, RelMagische_Ausrüstung, RelRüstung, RelAusrüstung_Technik, RelEinbauten]:
+    elif sender in [RelBegleiter, RelMagische_Ausrüstung, RelRüstung, RelAusrüstung_Technik, RelEinbaute]:
         effect_qs = instance.item.effect_set.all()
 
     for effect in effect_qs:
@@ -113,7 +113,7 @@ def apply_effect_on_rel_relation(sender, instance, created, **kwargs):
                 )
 
             # wertaenderung = min(item-Stufe, 5)
-            if sender == RelEinbauten and effect.source_shopEinbauten.name == "Panzerimplantate":
+            if sender == RelEinbaute and effect.source_shopEinbaute.name == "Panzerimplantate":
                 instance.releffect_set.create(
                     target_fieldname=effect.target_fieldname,
                     wertaenderung=min(instance.stufe, 5),
@@ -124,7 +124,7 @@ def apply_effect_on_rel_relation(sender, instance, created, **kwargs):
                 )
 
             # wertaenderung = min(item-Stufe, 10)
-            if sender == RelEinbauten and effect.source_shopEinbauten.name == "Sense-KIT":
+            if sender == RelEinbaute and effect.source_shopEinbaute.name == "Sense-KIT":
                 instance.releffect_set.create(
                     target_fieldname=effect.target_fieldname,
                     wertaenderung=min(instance.stufe, 10),
@@ -135,7 +135,7 @@ def apply_effect_on_rel_relation(sender, instance, created, **kwargs):
                 )
 
             # wertaenderung = min(item-Stufe, 3)
-            if sender == RelEinbauten and effect.source_shopEinbauten.name in ["Motivationsbooster", "Hirnbooster", "Hormonpumpe", "Reflexbeschleuniger"]:
+            if sender == RelEinbaute and effect.source_shopEinbaute.name in ["Motivationsbooster", "Hirnbooster", "Hormonpumpe", "Reflexbeschleuniger"]:
                 instance.releffect_set.create(
                     target_fieldname=effect.target_fieldname,
                     wertaenderung=min(instance.stufe, 3),
@@ -146,7 +146,7 @@ def apply_effect_on_rel_relation(sender, instance, created, **kwargs):
                 )
 
             # wertaenderung = 10 * min(item-Stufe, 3)
-            if sender == RelEinbauten and effect.source_shopEinbauten.name == "Manareservator":
+            if sender == RelEinbaute and effect.source_shopEinbaute.name == "Manareservator":
                 instance.releffect_set.create(
                     target_fieldname=effect.target_fieldname,
                     wertaenderung=10 * min(instance.stufe, 3),

@@ -546,7 +546,7 @@ class CharakterExporter:
         
         end_zauberrow = ROW
         ROW = start_zauberrow
-        for r in self.char.relrituale_runen_set.prefetch_related("item").all():
+        for r in self.char.relritual_rune_set.prefetch_related("item").all():
             ROW += 1
             werte_ws.write(f"D{ROW}", r.anz)
             werte_ws.merge_range(f"E{ROW}:G{ROW}", r.item.name)
@@ -576,8 +576,8 @@ class CharakterExporter:
             werte_ws.write(f"H{ROW}", None, format_border_right)
         # Waffen & Werkzeuge
         ROW += 1
-        werte_ws.merge_range(f"A{ROW}:H{ROW}", "Waffen & Werkzeuge", format_ramsch_titel)
-        for r in self.char.relwaffen_werkzeuge_set.prefetch_related("item").all():
+        werte_ws.merge_range(f"A{ROW}:H{ROW}", "Waffen / Werkzeuge", format_ramsch_titel)
+        for r in self.char.relwaffe_werkzeug_set.prefetch_related("item").all():
             ROW += 1
             werte_ws.write(f"A{ROW}", r.anz, format_border_left)
             werte_ws.write(f"B{ROW}", r.item.name)
@@ -604,7 +604,7 @@ class CharakterExporter:
         # Einbauten
         ROW += 1
         werte_ws.merge_range(f"A{ROW}:H{ROW}", "Cyber- und Bioware", format_ramsch_titel)
-        for r in self.char.releinbauten_set.prefetch_related("item").all():
+        for r in self.char.releinbaute_set.prefetch_related("item").all():
             ROW += 1
             werte_ws.write(f"A{ROW}", r.anz, format_border_left)
             werte_ws.write(f"B{ROW}", r.item.name)

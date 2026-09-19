@@ -110,7 +110,7 @@ class BuyView(VerifiedAccountMixin, DetailView):
 
         if not extra:
             firma_shop = get_object_or_404(self.firmashop_model, id=firma_shop_id)
-            if (firma_shop.item.stufenabhängig or self.shop_model == Rituale_Runen) and stufe is None:
+            if (firma_shop.item.stufenabhängig or self.shop_model == Ritual_Rune) and stufe is None:
                 messages.error(request, "Die Stufe ist nicht angekommen")
                 return redirect(request.build_absolute_uri())
 
@@ -124,11 +124,11 @@ class BuyView(VerifiedAccountMixin, DetailView):
 
         # price of one item (at Stufe 1)
         if extra: debt = price
-        elif self.shop_model == Rituale_Runen: debt = getattr(firma_shop, "getPriceStufe{}".format(stufe))()
+        elif self.shop_model == Ritual_Rune: debt = getattr(firma_shop, "getPriceStufe{}".format(stufe))()
         else: debt = firma_shop.getPrice()
 
         # multiply num_items and stufe
-        if item.stufenabhängig and not self.shop_model == Rituale_Runen: debt *= num_items * stufe
+        if item.stufenabhängig and not self.shop_model == Ritual_Rune: debt *= num_items * stufe
         else: debt *= num_items
 
         if debt > char.geld:
@@ -156,7 +156,7 @@ class BuyView(VerifiedAccountMixin, DetailView):
         # add to db or increase num if already exists
 
         # stufenabhängig
-        if item.stufenabhängig or self.shop_model == Rituale_Runen:
+        if item.stufenabhängig or self.shop_model == Ritual_Rune:
             items = self.relshop_model.objects.filter(char=char, item=item, stufe=stufe)
             if items.count():
                 i = items[0]

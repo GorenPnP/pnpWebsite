@@ -27,8 +27,8 @@ class FirmaItemInLine(FirmaShopInLine):
     model = FirmaItem
 
 
-class FirmaWaffen_WerkzeugeInLine(FirmaShopInLine):
-    model = FirmaWaffen_Werkzeuge
+class FirmaWaffe_WerkzeugInLine(FirmaShopInLine):
+    model = FirmaWaffe_Werkzeug
 
 
 class FirmaMunitionInLine(FirmaShopInLine):
@@ -43,8 +43,8 @@ class FirmaMagische_AusrüstungInLine(FirmaShopInLine):
     model = FirmaMagische_Ausrüstung
 
 
-class FirmaRituale_RunenInLine(FirmaShopInLine):
-    model = FirmaRituale_Runen
+class FirmaRitual_RuneInLine(FirmaShopInLine):
+    model = FirmaRitual_Rune
 
 
 class FirmaRüstungInLine(FirmaShopInLine):
@@ -59,8 +59,8 @@ class FirmaFahrzeugInLine(FirmaShopInLine):
     model = FirmaFahrzeug
 
 
-class FirmaEinbautenInLine(FirmaShopInLine):
-    model = FirmaEinbauten
+class FirmaEinbauteInLine(FirmaShopInLine):
+    model = FirmaEinbaute
 
 
 class FirmaZauberInLine(FirmaShopInLine):
@@ -129,17 +129,17 @@ class ItemAdmin(BaseAdmin):
     inlines = [FirmaItemInLine]
 
 
-class Waffen_WerkzeugeAdmin(BaseAdmin):
+class Waffe_WerkzeugAdmin(BaseAdmin):
 
-    shop_model = Waffen_Werkzeuge
-    firma_shop_model = FirmaWaffen_Werkzeuge
+    shop_model = Waffe_Werkzeug
+    firma_shop_model = FirmaWaffe_Werkzeug
 
     list_display = ('name', 'beschreibung', "ab_stufe", 'erfolge', 'bs', 'zs', 'dk', 'schadensart', 'billigste',
                     'kategorie', 'info', "has_implementation")
     list_filter = ['kategorie', 'erfolge', 'bs', 'zs', 'dk', 'schadensart', 'illegal', 'lizenz_benötigt', "frei_editierbar"]
     list_editable = ['schadensart']
 
-    inlines = [FirmaWaffen_WerkzeugeInLine]
+    inlines = [FirmaWaffe_WerkzeugInLine]
 
 
 class MunitionAdmin(BaseAdmin):
@@ -178,10 +178,10 @@ class Magische_AusrüstungAdmin(BaseAdmin):
     inlines = [FirmaMagische_AusrüstungInLine]
 
 
-class Rituale_RunenAdmin(admin.ModelAdmin):
+class Ritual_RuneAdmin(admin.ModelAdmin):
 
-    shop_model = Rituale_Runen
-    firma_shop_model = FirmaRituale_Runen
+    shop_model = Ritual_Rune
+    firma_shop_model = FirmaRitual_Rune
 
     list_display = ('name', 'beschreibung', "ab_stufe", 'billigste',
                      'kategorie', 'info', "has_implementation")
@@ -189,7 +189,7 @@ class Rituale_RunenAdmin(admin.ModelAdmin):
     list_editable = ("has_implementation",)
     search_fields = ["name", "beschreibung__contains"]
 
-    inlines = [FirmaRituale_RunenInLine]
+    inlines = [FirmaRitual_RuneInLine]
 
     def info(self, obj):
         res = []
@@ -250,10 +250,10 @@ class FahrzeugAdmin(BaseAdmin):
     inlines = [FirmaFahrzeugInLine]
 
 
-class EinbautenAdmin(BaseAdmin):
+class EinbauteAdmin(BaseAdmin):
 
-    shop_model = Einbauten
-    firma_shop_model = FirmaEinbauten
+    shop_model = Einbaute
+    firma_shop_model = FirmaEinbaute
 
     list_display = ('name', 'beschreibung', "ab_stufe", #'manifestverlust',
      'billigste',
@@ -261,7 +261,7 @@ class EinbautenAdmin(BaseAdmin):
     list_filter = ['kategorie', #'manifestverlust',
     'illegal', 'lizenz_benötigt', "frei_editierbar"]
 
-    inlines = [FirmaEinbautenInLine]
+    inlines = [FirmaEinbauteInLine]
 
 
 class ZauberAdmin(BaseAdmin):
@@ -377,15 +377,15 @@ class ModifierAdmin(admin.ModelAdmin):
         )
 
 admin.site.register(Item, ItemAdmin)
-admin.site.register(Waffen_Werkzeuge, Waffen_WerkzeugeAdmin)
+admin.site.register(Waffe_Werkzeug, Waffe_WerkzeugAdmin)
 admin.site.register(Munition, MunitionAdmin)
 admin.site.register(Fernkampfwaffe, FernkampfwaffeAdmin)
 admin.site.register(Magische_Ausrüstung, Magische_AusrüstungAdmin)
-admin.site.register(Rituale_Runen, Rituale_RunenAdmin)
+admin.site.register(Ritual_Rune, Ritual_RuneAdmin)
 admin.site.register(Rüstung, RüstungAdmin)
 admin.site.register(Ausrüstung_Technik, Ausrüstung_TechnikAdmin)
 admin.site.register(Fahrzeug, FahrzeugAdmin)
-admin.site.register(Einbauten, EinbautenAdmin)
+admin.site.register(Einbaute, EinbauteAdmin)
 admin.site.register(Zauber, ZauberAdmin)
 admin.site.register(Alchemie, AlchemieAdmin)
 admin.site.register(Tinker, TinkerAdmin)

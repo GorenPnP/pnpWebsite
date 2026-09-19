@@ -53,7 +53,7 @@ item_enum = [
 ]
 
 
-werkzeuge_enum = [
+werkzeug_enum = [
     ('k', 'Im Kampf'),
     ('w', 'weitere Waffen'),
 ]
@@ -81,7 +81,7 @@ magische_Ausrüstung_enum = [
 
 
 
-rituale_enum = [
+ritual_enum = [
     ('i', 'Grundrituale'),
     ('u', 'Grundrunen'),
     ('g', "'o Grome"),
@@ -104,7 +104,7 @@ fahrzeuge_enum = [
 ]
 
 
-einbauten_enum = [
+einbaute_enum = [
     ('ca', 'Cyberaugen'),
     ('co', 'Cyberohren'),
     ('k', 'Körpereinbauten'),

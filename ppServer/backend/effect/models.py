@@ -139,7 +139,7 @@ class Effect(AbstractEffect):
     source_shopMagischeAusrüstung = models.ForeignKey("shop.Magische_Ausrüstung", on_delete=models.CASCADE, null=True, blank=True)
     source_shopRüstung = models.ForeignKey("shop.Rüstung", on_delete=models.CASCADE, null=True, blank=True)
     source_shopAusrüstungTechnik = models.ForeignKey("shop.Ausrüstung_Technik", on_delete=models.CASCADE, null=True, blank=True)
-    source_shopEinbauten = models.ForeignKey("shop.Einbauten", on_delete=models.CASCADE, null=True, blank=True)
+    source_shopEinbaute = models.ForeignKey("shop.Einbaute", on_delete=models.CASCADE, null=True, blank=True)
 
     has_custom_implementation = models.BooleanField(default=False, null=False, blank=False)
 
@@ -165,7 +165,7 @@ class RelEffect(AbstractEffect):
     source_shopMagischeAusrüstung = models.ForeignKey("character.RelMagische_Ausrüstung", on_delete=models.CASCADE, null=True, blank=True)
     source_shopRüstung = models.ForeignKey("character.RelRüstung", on_delete=models.CASCADE, null=True, blank=True)
     source_shopAusrüstungTechnik = models.ForeignKey("character.RelAusrüstung_Technik", on_delete=models.CASCADE, null=True, blank=True)
-    source_shopEinbauten = models.ForeignKey("character.RelEinbauten", on_delete=models.CASCADE, null=True, blank=True)
+    source_shopEinbaute = models.ForeignKey("character.RelEinbaute", on_delete=models.CASCADE, null=True, blank=True)
 
     is_active = models.BooleanField(default=True, null=False, blank=False)
 

@@ -182,9 +182,9 @@ class ShowView(VerifiedAccountMixin, DetailView):
         "gfs", "persönlichkeit", "religion", "beruf", "relfertigkeit_set__fertigkeit__attribut", "relgruppe_set",
         "relklasse_set__klasse", "relklasseability_set__ability", "relattribut_set__attribut", "relwesenkraft_set__wesenkraft", "reltalent_set__talent",
         "relgfsability_set__ability", "affektivität_set",
-        "relzauber_set__item", "relrituale_runen_set__item", "relfernkampfwaffe_set__item", "relwaffen_werkzeuge_set__item",
+        "relzauber_set__item", "relritual_rune_set__item", "relfernkampfwaffe_set__item", "relwaffe_werkzeug_set__item",
         "relmunition_set__item", "relmagische_ausrüstung_set__item", "relrüstung_set__item",
-        "relausrüstung_technik_set__item", "relfahrzeug_set__item", "releinbauten_set__item", "relalchemie_set__item",
+        "relausrüstung_technik_set__item", "relfahrzeug_set__item", "releinbaute_set__item", "relalchemie_set__item",
         "reltinker_set__item", "relbegleiter_set__item", "relramsch_set", "card"
     )
 
@@ -614,7 +614,7 @@ class ShowView(VerifiedAccountMixin, DetailView):
         objects = []
 
         # Misc Shop items
-        for Model in [m for m in shopmodel_list if m not in [Waffen_Werkzeuge, Fernkampfwaffe, Zauber, Rituale_Runen]]:
+        for Model in [m for m in shopmodel_list if m not in [Waffe_Werkzeug, Fernkampfwaffe, Zauber, Ritual_Rune]]:
             RelModel = apps.get_model("character", f"Rel{Model._meta.model_name}")
             objects += ShowView.ItemTable.get_queryset(char, RelModel.objects.prefetch_related("item__firmen"), table_fields.keys())
 
@@ -677,7 +677,7 @@ class ShowView(VerifiedAccountMixin, DetailView):
 
         return {
             "ritual__table": ShowView.ItemTable(
-                ShowView.ItemTable.get_queryset(char, char.relrituale_runen_set.prefetch_related("item__firmen"), table_fields.keys()),
+                ShowView.ItemTable.get_queryset(char, char.relritual_rune_set.prefetch_related("item__firmen"), table_fields.keys()),
                 extra_columns = [(k, v) for k, v in table_fields.items()],
                 csrf_token=get_token(self.request),
             )
@@ -703,7 +703,7 @@ class ShowView(VerifiedAccountMixin, DetailView):
 
         return {
             "nahkampf__table": WaffenTable(
-                ShowView.ItemTable.get_queryset(char, char.relwaffen_werkzeuge_set.prefetch_related("item__firmen"), table_fields.keys()),
+                ShowView.ItemTable.get_queryset(char, char.relwaffe_werkzeug_set.prefetch_related("item__firmen"), table_fields.keys()),
                 extra_columns = [(k, v) for k, v in table_fields.items()],
                 csrf_token=get_token(self.request)
             ),
@@ -753,7 +753,7 @@ class ShowView(VerifiedAccountMixin, DetailView):
                         "source_shopMagischeAusrüstung__char", "source_shopMagischeAusrüstung__item",
                         "source_shopRüstung__char", "source_shopRüstung__item",
                         "source_shopAusrüstungTechnik__char", "source_shopAusrüstungTechnik__item",
-                        "source_shopEinbauten__char", "source_shopEinbauten__item",
+                        "source_shopEinbaute__char", "source_shopEinbaute__item",
                     )\
                     .annotate(
                         wert=Value(" "),
@@ -1140,15 +1140,15 @@ class CreateCharacterView(VerifiedAccountMixin, CopiesCharsMixin, CreateView):
 
             # shop
             "items": ShopItemFormSet,
-            "waffenWerkzeuge": ShopWaffenWerkzeugeFormSet,
+            "waffenWerkzeuge": ShopWaffeWerkzeugFormSet,
             "munition": ShopMunitionFormSet,
             "fernkampfwaffen": ShopFernkampfwaffeFormSet,
             "magischeAusrüstung": ShopMagAusrüstungFormSet,
-            "rituale_runen": ShopRitualeRunenFormSet,
+            "rituale_runen": ShopRitualRuneFormSet,
             "rüstungen": ShopRüstungFormSet,
             "ausrüstungTechnik": ShopAusrüstungTechnikFormSet,
             "fahrzeuge": ShopFahrzeugFormSet,
-            "einbauten": ShopEinbautenFormSet,
+            "einbauten": ShopEinbauteFormSet,
             "zauber": ShopZauberFormSet,
             "begleiter": ShopBegleiterFormSet,
             "engelsroboter": ShopEngelsroboterFormSet,

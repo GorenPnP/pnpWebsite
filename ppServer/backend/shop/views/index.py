@@ -37,7 +37,7 @@ def transfer_items(request):
     class TransferForm(forms.Form):
         action_enum = [
             ('Alchemie', 'Drogen zu Alchemie'),
-            ('Rune', "'o Grome zu Rituale_Runen"),
+            ('Rune', "'o Grome zu Ritual_Rune"),
             ('Technik', 'Programme zu Ausrüstung_Technik')
         ]
         aktion = forms.ChoiceField(choices=action_enum, required=True)
@@ -62,9 +62,9 @@ def transfer_items(request):
                 ModelFirma = FirmaAlchemie
                 kategorie = 'd'
             if form.cleaned_data["aktion"] == "Rune":
-                Model = Rituale_Runen
+                Model = Ritual_Rune
                 kategorie = 'g'
-                ModelFirma = FirmaRituale_Runen
+                ModelFirma = FirmaRitual_Rune
             if form.cleaned_data["aktion"] == "Technik":
                 Model = Ausrüstung_Technik
                 ModelFirma = FirmaAusrüstung_Technik

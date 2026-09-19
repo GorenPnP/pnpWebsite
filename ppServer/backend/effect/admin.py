@@ -22,7 +22,7 @@ class EffectAdmin(admin.ModelAdmin):
         "source_shopMagischeAusrüstung__name",
         "source_shopRüstung__name",
         "source_shopAusrüstungTechnik__name",
-        "source_shopEinbauten__name",
+        "source_shopEinbaute__name",
     ]
 
     def wert(self, obj):

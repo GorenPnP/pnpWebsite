@@ -771,15 +771,15 @@ class Charakter(models.Model):
     klassen_fähigkeiten = models.ManyToManyField(KlasseAbility, through='character.RelKlasseAbility', blank=True)
 
     items = models.ManyToManyField(Item, through='character.RelItem', blank=True)
-    waffenWerkzeuge = models.ManyToManyField(Waffen_Werkzeuge, through='character.RelWaffen_Werkzeuge', blank=True)
+    waffenWerkzeuge = models.ManyToManyField(Waffe_Werkzeug, through='character.RelWaffe_Werkzeug', blank=True)
     munition = models.ManyToManyField(Munition, through='character.RelMunition', blank=True)
     fernkampfwaffen = models.ManyToManyField(Fernkampfwaffe, through='character.RelFernkampfwaffe', blank=True)
     magischeAusrüstung = models.ManyToManyField(Magische_Ausrüstung, through='character.RelMagische_Ausrüstung', blank=True)
-    rituale_runen = models.ManyToManyField(Rituale_Runen, through='character.RelRituale_Runen', blank=True)
+    rituale_runen = models.ManyToManyField(Ritual_Rune, through='character.RelRitual_Rune', blank=True)
     rüstungen = models.ManyToManyField(Rüstung, through='character.RelRüstung', blank=True)
     ausrüstungTechnik = models.ManyToManyField(Ausrüstung_Technik, through='character.RelAusrüstung_Technik', blank=True)
     fahrzeuge = models.ManyToManyField(Fahrzeug, through='character.RelFahrzeug', blank=True)
-    einbauten = models.ManyToManyField(Einbauten, through='character.RelEinbauten', blank=True)
+    einbauten = models.ManyToManyField(Einbaute, through='character.RelEinbaute', blank=True)
     zauber = models.ManyToManyField(Zauber, through='character.RelZauber', blank=True)
     begleiter = models.ManyToManyField(Begleiter, through='character.RelBegleiter', blank=True)
     engelsroboter = models.ManyToManyField(Engelsroboter, through='character.RelEngelsroboter', blank=True)
@@ -1253,12 +1253,12 @@ class RelItem(RelShop):
     item = models.ForeignKey(Item, on_delete=models.CASCADE)
 
 
-class RelWaffen_Werkzeuge(RelShop):
+class RelWaffe_Werkzeug(RelShop):
     class Meta:
         verbose_name = "Waffe/Werkzeug"
-        verbose_name_plural = "Waffen & Werkzeuge"
+        verbose_name_plural = "Waffen/Werkzeuge"
 
-    item = models.ForeignKey(Waffen_Werkzeuge, on_delete=models.CASCADE)
+    item = models.ForeignKey(Waffe_Werkzeug, on_delete=models.CASCADE)
 
 
 class RelMunition(RelShop):
@@ -1310,12 +1310,12 @@ class RelFahrzeug(RelShop):
     item = models.ForeignKey(Fahrzeug, on_delete=models.CASCADE)
 
 
-class RelEinbauten(RelShop):
+class RelEinbaute(RelShop):
     class Meta:
-        verbose_name = "Einbauten"
+        verbose_name = "Einbaute"
         verbose_name_plural = "Einbauten"
 
-    item = models.ForeignKey(Einbauten, on_delete=models.CASCADE)
+    item = models.ForeignKey(Einbaute, on_delete=models.CASCADE)
 
 
 class RelZauber(RelShop):
@@ -1364,12 +1364,12 @@ class RelEngelsroboter(RelShop):
     item = models.ForeignKey(Engelsroboter, on_delete=models.CASCADE, null=True)
 
 
-class RelRituale_Runen(RelShop):
+class RelRitual_Rune(RelShop):
     class Meta:
         verbose_name = "Ritual/Rune"
-        verbose_name_plural = "Rituale & Runen"
+        verbose_name_plural = "Rituale/Runen"
 
-    item = models.ForeignKey(Rituale_Runen, on_delete=models.CASCADE)
+    item = models.ForeignKey(Ritual_Rune, on_delete=models.CASCADE)
 
 
 # verf_shop_firma
@@ -1395,12 +1395,12 @@ class RelFirmaItem(RelFirmaShop):
     firma_shop = models.ForeignKey(FirmaItem, on_delete=models.CASCADE)
 
 
-class RelFirmaWaffen_Werkzeuge(RelFirmaShop):
+class RelFirmaWaffe_Werkzeug(RelFirmaShop):
     class Meta:
         verbose_name = "Waffe/Werkzeug Verfügbarkeit"
-        verbose_name_plural = "Waffen & Werkzeuge Verfügbarkeiten"
+        verbose_name_plural = "Waffe/Werkzeug Verfügbarkeiten"
 
-    firma_shop = models.ForeignKey(FirmaWaffen_Werkzeuge, on_delete=models.CASCADE)
+    firma_shop = models.ForeignKey(FirmaWaffe_Werkzeug, on_delete=models.CASCADE)
 
 
 class RelFirmaMunition(RelFirmaShop):
@@ -1451,12 +1451,12 @@ class RelFirmaFahrzeug(RelFirmaShop):
     firma_shop = models.ForeignKey(FirmaFahrzeug, on_delete=models.CASCADE)
 
 
-class RelFirmaEinbauten(RelFirmaShop):
+class RelFirmaEinbaute(RelFirmaShop):
     class Meta:
-        verbose_name = "Einbauten Verfügbarkeit"
-        verbose_name_plural = "Einbauten Verfügbarkeiten"
+        verbose_name = "Einbaute Verfügbarkeit"
+        verbose_name_plural = "Einbaute Verfügbarkeiten"
 
-    firma_shop = models.ForeignKey(FirmaEinbauten, on_delete=models.CASCADE)
+    firma_shop = models.ForeignKey(FirmaEinbaute, on_delete=models.CASCADE)
 
 
 class RelFirmaZauber(RelFirmaShop):
@@ -1502,12 +1502,12 @@ class RelFirmaEngelsroboter(RelFirmaShop):
     firma_shop = models.ForeignKey(FirmaEngelsroboter, on_delete=models.CASCADE)
 
 
-class RelFirmaRituale_Runen(RelFirmaShop):
+class RelFirmaRitual_Rune(RelFirmaShop):
     class Meta:
         verbose_name = "Ritual/Rune Verfügbarkeit"
-        verbose_name_plural = "Rituale & Runen Verfügbarkeiten"
+        verbose_name_plural = "Ritual/Rune Verfügbarkeiten"
 
-    firma_shop = models.ForeignKey(FirmaRituale_Runen, on_delete=models.CASCADE)
+    firma_shop = models.ForeignKey(FirmaRitual_Rune, on_delete=models.CASCADE)
 
 # bonus things
 class SkilltreeBase(models.Model):

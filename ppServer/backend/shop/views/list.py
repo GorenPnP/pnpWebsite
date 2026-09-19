@@ -297,8 +297,8 @@ class ItemTableView(ShopTableView):
     table_fields = ("icon", "name", "beschreibung", "ab_stufe", "preis")
 
 
-class WaffenWerkzeugeTableView(ShopTableView):
-    model = Waffen_Werkzeuge
+class WaffeWerkzeugTableView(ShopTableView):
+    model = Waffe_Werkzeug
     filterset_fields = {
         **shop_filter_fields,
         "erfolge": ["icontains"],
@@ -336,10 +336,10 @@ class MagischeAusrüstungTableView(ShopTableView):
     table_fields = ("icon", "name", "beschreibung", "ab_stufe", "preis")
 
 
-class RitualeRunenTableView(ShopTableView):
+class RitualRuneTableView(ShopTableView):
     class Filter(FilterSet):
         class Meta:
-            model = Rituale_Runen
+            model = Ritual_Rune
             fields = {
                 "name": ["icontains"],
                 "beschreibung": ["icontains"],
@@ -372,7 +372,7 @@ class RitualeRunenTableView(ShopTableView):
         def render_stufe_5(self, value, record, column):
             return self._render_stufe_x(value, record, column)
 
-    model = Rituale_Runen
+    model = Ritual_Rune
     filterset_class = Filter
     custom_table_class = Table
     table_fields = ("icon", "name", "beschreibung", "ab_stufe", "stufe_1", "stufe_2", "stufe_3", "stufe_4", "stufe_5")
@@ -405,8 +405,8 @@ class FahrzeugTableView(ShopTableView):
     table_fields = ("icon", "name", "beschreibung", "ab_stufe", "schnelligkeit", "rüstung", "erfolge", "preis")
 
 
-class EinbautenTableView(ShopTableView):
-    model = Einbauten
+class EinbauteTableView(ShopTableView):
+    model = Einbaute
     filterset_fields = {**shop_filter_fields, "manifestverlust": ["icontains"]}
     table_fields = ("icon", "name", "beschreibung", "ab_stufe", "manifestverlust", "preis")
 
