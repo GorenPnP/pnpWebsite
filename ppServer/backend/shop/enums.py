@@ -67,6 +67,7 @@ fernkampfwaffe_enum = [
     ('g', 'Geschütz'),
     ('e', 'Exotische Waffe'),
     ('t', 'Taktikwaffe'),
+    ('b', 'Bögen/Armbrüste'),
 ]
 
 
