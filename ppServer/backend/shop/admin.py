@@ -18,11 +18,6 @@ class SchussMagazineInLine(admin.TabularInline):
     extra = 1
 
 
-class SchussPfeileBolzenInLine(admin.TabularInline):
-    model = Fernkampfwaffe.pfeile_bolzen.through
-    extra = 1
-
-
 ############# FirmaShop ##################
 class FirmaShopInLine(admin.TabularInline):
     extra = 1
@@ -38,10 +33,6 @@ class FirmaWaffen_WerkzeugeInLine(FirmaShopInLine):
 
 class FirmaMagazinInLine(FirmaShopInLine):
     model = FirmaMagazin
-
-
-class FirmaPfeil_BolzenInLine(FirmaShopInLine):
-    model = FirmaPfeil_Bolzen
 
 
 class FirmaFernkampfwaffeInLine(FirmaShopInLine):
@@ -162,31 +153,18 @@ class MagazinAdmin(BaseAdmin):
     inlines = [FirmaMagazinInLine]
 
 
-class Pfeil_BolzenAdmin(BaseAdmin):
-
-    shop_model = Pfeil_Bolzen
-    firma_shop_model = FirmaPfeil_Bolzen
-
-    list_display = ('name', 'beschreibung', "ab_stufe", 'bs', 'zs', 'schadensart', 'billigste', 'info', "has_implementation")
-    list_filter = ['bs', 'zs', 'schadensart', 'illegal', 'lizenz_benötigt', "frei_editierbar"]
-    list_editable = ['schadensart']
-
-    inlines = [FirmaPfeil_BolzenInLine]
-
-
 class FernkampfwaffeAdmin(BaseAdmin):
 
     shop_model = Fernkampfwaffe
     firma_shop_model = FirmaFernkampfwaffe
 
-    exclude = ['magazine', 'st_magazine', 'pfeile_bolzen', 'st_pfeile_bolzen']
+    exclude = ['magazine', 'st_magazine']
     list_display = ('name', 'beschreibung', "ab_stufe", 'erfolge', 'bs', 'zs', 'dk', 'präzision', 'schadensart', 'billigste',
                     'kategorie', 'fertigkeit', 'info', "has_implementation")
     list_filter = ['kategorie', 'erfolge', 'bs', 'zs', 'dk', 'präzision', 'schadensart', 'fertigkeit__titel', 'illegal', 'lizenz_benötigt', "frei_editierbar"]
     list_editable = ['schadensart', 'kategorie', 'fertigkeit']
 
-    inlines = [SchussMagazineInLine, SchussPfeileBolzenInLine,
-               FirmaFernkampfwaffeInLine]
+    inlines = [SchussMagazineInLine, FirmaFernkampfwaffeInLine]
 
 
 class Magische_AusrüstungAdmin(BaseAdmin):
@@ -401,7 +379,6 @@ class ModifierAdmin(admin.ModelAdmin):
 admin.site.register(Item, ItemAdmin)
 admin.site.register(Waffen_Werkzeuge, Waffen_WerkzeugeAdmin)
 admin.site.register(Magazin, MagazinAdmin)
-admin.site.register(Pfeil_Bolzen, Pfeil_BolzenAdmin)
 admin.site.register(Fernkampfwaffe, FernkampfwaffeAdmin)
 admin.site.register(Magische_Ausrüstung, Magische_AusrüstungAdmin)
 admin.site.register(Rituale_Runen, Rituale_RunenAdmin)

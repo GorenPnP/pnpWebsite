@@ -20,7 +20,6 @@ urlpatterns = [
     path('items/', listViews.ItemTableView.as_view(), name='item_list'),
     path('waffen_werkzeuge/', listViews.WaffenWerkzeugeTableView.as_view(), name='waffen_werkzeuge_list'),
     path('magazine/', listViews.MagazinTableView.as_view(), name='magazin_list'),
-    path('pfeile_bolzen/', listViews.PfeilBolzenTableView.as_view(), name='pfeil_bolzen_list'),
     path("fernkampfwaffen", listViews.FernkampfwaffeTableView.as_view(), name='fernkampfwaffe_list'),
     path('magische_ausrüstung/', listViews.MagischeAusrüstungTableView.as_view(), name='magische_ausrüstung_list'),
     path('rituale_runen/', listViews.RitualeRunenTableView.as_view(), name='rituale_runen_list'),

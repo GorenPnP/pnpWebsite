@@ -316,12 +316,6 @@ class MagazinTableView(ShopTableView):
     table_fields = ("icon", "name", "beschreibung", "ab_stufe", "schuss", "preis")
 
 
-class PfeilBolzenTableView(ShopTableView):
-    model = Pfeil_Bolzen
-    filterset_fields = {**shop_filter_fields, "bs": ["icontains"], "zs": ["icontains"], "schadensart": ["exact"]}
-    table_fields = ("icon", "name", "beschreibung", "ab_stufe", "bs", "zs", "schadensart", "preis")
-
-
 class FernkampfwaffeTableView(ShopTableView):
     model = Fernkampfwaffe
     filterset_fields = {

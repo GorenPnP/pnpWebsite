@@ -116,10 +116,6 @@ class FirmaMagazin(FirmaShop):
     item = models.ForeignKey('Magazin', on_delete=models.CASCADE)
 
 
-class FirmaPfeil_Bolzen(FirmaShop):
-    item = models.ForeignKey('Pfeil_Bolzen', on_delete=models.CASCADE)
-
-
 class FirmaFernkampfwaffe(FirmaShop):
     item = models.ForeignKey('Fernkampfwaffe', on_delete=models.CASCADE)
 
@@ -287,24 +283,6 @@ class Magazin(BaseShop):
         return super(Magazin, Magazin).getShopDisplayFields() + ["schuss", 'bs', 'zs', 'schadensart']
 
 
-class Pfeil_Bolzen(BaseShop):
-    class Meta:
-        verbose_name = "Pfeil/Bolzen"
-        verbose_name_plural = "Pfeile & Bolzen"
-
-        ordering = ['name']
-
-    bs = models.CharField(max_length=20, default='')
-    zs = models.CharField(max_length=20, default='')
-    schadensart = models.CharField(max_length=1, choices=enums.schadensart_enum, null=True, blank=True)
-
-    firmen = models.ManyToManyField('Firma', through='FirmaPfeil_Bolzen', blank=True)
-
-    @staticmethod
-    def getShopDisplayFields():
-        return super(Pfeil_Bolzen, Pfeil_Bolzen).getShopDisplayFields() + [ "bs", "zs", "schadensart"]
-
-
 class Fernkampfwaffe(BaseShop):
     class Meta:
         verbose_name = "Fernkampfwaffe"
@@ -318,7 +296,6 @@ class Fernkampfwaffe(BaseShop):
     schadensart = models.CharField(max_length=1, choices=enums.schadensart_enum, null=True, blank=True)
 
     magazine = models.ManyToManyField(Magazin, blank=True)
-    pfeile_bolzen = models.ManyToManyField(Pfeil_Bolzen, blank=True)
 
     dk = models.PositiveIntegerField(default=0, blank=True)
     präzision = models.PositiveIntegerField(default=0, blank=True)
@@ -330,7 +307,7 @@ class Fernkampfwaffe(BaseShop):
     @staticmethod
     def getShopDisplayFields():
         return super(Fernkampfwaffe, Fernkampfwaffe).getShopDisplayFields() + ["fertigkeit", "erfolge", "bs", "zs", "dk", "präzision", "schadensart", "kategorie",
-        "magazine"] # , "pfeile_bolzen"]  ist eh leer
+        "magazine"]
 
 
 class Magische_Ausrüstung(BaseShop):

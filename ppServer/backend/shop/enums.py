@@ -2,7 +2,6 @@ category_enum = [
     ('i', 'Items'),
     ('w', 'Waffen & Werkzeuge'),
     ('m', 'Magazine'),
-    ('p', 'Pfeile & Bolzen'),
     ('s', 'Fernkampfwaffen'),
     ('a', 'magische Ausrüstung'),
     ('r', 'Rituale & Runen'),
