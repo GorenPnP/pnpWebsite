@@ -310,8 +310,8 @@ class WaffenWerkzeugeTableView(ShopTableView):
     table_fields = ("icon", "name", "beschreibung", "ab_stufe", "erfolge", "bs", "zs", "dk", "schadensart", "preis")
 
 
-class MagazinTableView(ShopTableView):
-    model = Magazin
+class MunitionTableView(ShopTableView):
+    model = Munition
     filterset_fields = {**shop_filter_fields, "schuss": ["exact"]}
     table_fields = ("icon", "name", "beschreibung", "ab_stufe", "schuss", "preis")
 

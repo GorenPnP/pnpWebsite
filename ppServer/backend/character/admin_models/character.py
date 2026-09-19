@@ -198,8 +198,8 @@ class RelWaffen_WerkzeugelInLine(RelShopInLine):
     model = RelWaffen_Werkzeuge
 
 
-class RelMagazinInLine(RelShopInLine):
-    model = RelMagazin
+class RelMunitionInLine(RelShopInLine):
+    model = RelMunition
 
 
 class RelFernkampfwaffeInLine(RelShopInLine):
@@ -293,7 +293,7 @@ class CharakterAdmin(admin.ModelAdmin):
 
         RelItemlInLine,
         RelWaffen_WerkzeugelInLine,
-        RelMagazinInLine,
+        RelMunitionInLine,
         RelFernkampfwaffeInLine,
         RelMagische_AusrüstungInLine,
         RelRituale_RunenInLine,

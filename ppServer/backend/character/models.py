@@ -772,7 +772,7 @@ class Charakter(models.Model):
 
     items = models.ManyToManyField(Item, through='character.RelItem', blank=True)
     waffenWerkzeuge = models.ManyToManyField(Waffen_Werkzeuge, through='character.RelWaffen_Werkzeuge', blank=True)
-    magazine = models.ManyToManyField(Magazin, through='character.RelMagazin', blank=True)
+    munition = models.ManyToManyField(Munition, through='character.RelMunition', blank=True)
     fernkampfwaffen = models.ManyToManyField(Fernkampfwaffe, through='character.RelFernkampfwaffe', blank=True)
     magischeAusrüstung = models.ManyToManyField(Magische_Ausrüstung, through='character.RelMagische_Ausrüstung', blank=True)
     rituale_runen = models.ManyToManyField(Rituale_Runen, through='character.RelRituale_Runen', blank=True)
@@ -1261,12 +1261,12 @@ class RelWaffen_Werkzeuge(RelShop):
     item = models.ForeignKey(Waffen_Werkzeuge, on_delete=models.CASCADE)
 
 
-class RelMagazin(RelShop):
+class RelMunition(RelShop):
     class Meta:
-        verbose_name = "Magazin"
-        verbose_name_plural = "Magazine"
+        verbose_name = "Munition"
+        verbose_name_plural = "Munition"
 
-    item = models.ForeignKey(Magazin, on_delete=models.CASCADE)
+    item = models.ForeignKey(Munition, on_delete=models.CASCADE)
 
 
 class RelFernkampfwaffe(RelShop):
@@ -1403,12 +1403,12 @@ class RelFirmaWaffen_Werkzeuge(RelFirmaShop):
     firma_shop = models.ForeignKey(FirmaWaffen_Werkzeuge, on_delete=models.CASCADE)
 
 
-class RelFirmaMagazin(RelFirmaShop):
+class RelFirmaMunition(RelFirmaShop):
     class Meta:
-        verbose_name = "Magazin Verfügbarkeit"
-        verbose_name_plural = "Magazine Verfügbarkeiten"
+        verbose_name = "Munition Verfügbarkeit"
+        verbose_name_plural = "Munition Verfügbarkeiten"
 
-    firma_shop = models.ForeignKey(FirmaMagazin, on_delete=models.CASCADE)
+    firma_shop = models.ForeignKey(FirmaMunition, on_delete=models.CASCADE)
 
 
 class RelFirmaFernkampfwaffe(RelFirmaShop):

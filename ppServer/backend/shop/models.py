@@ -112,8 +112,8 @@ class FirmaWaffen_Werkzeuge(FirmaShop):
     item = models.ForeignKey('Waffen_Werkzeuge', on_delete=models.CASCADE)
 
 
-class FirmaMagazin(FirmaShop):
-    item = models.ForeignKey('Magazin', on_delete=models.CASCADE)
+class FirmaMunition(FirmaShop):
+    item = models.ForeignKey('Munition', on_delete=models.CASCADE)
 
 
 class FirmaFernkampfwaffe(FirmaShop):
@@ -263,10 +263,10 @@ class Waffen_Werkzeuge(BaseShop):
     def getShopDisplayFields():
         return super(Waffen_Werkzeuge, Waffen_Werkzeuge).getShopDisplayFields() + ["erfolge", "bs", "zs", "dk", "schadensart", "kategorie"]
 
-class Magazin(BaseShop):
+class Munition(BaseShop):
     class Meta:
-        verbose_name = "Magazin"
-        verbose_name_plural = "Magazine"
+        verbose_name = "Munition"
+        verbose_name_plural = "Munition"
 
         ordering = ['name']
 
@@ -276,11 +276,11 @@ class Magazin(BaseShop):
     zs = models.CharField(max_length=20, default='')
     schadensart = models.CharField(max_length=1, choices=enums.schadensart_enum, null=True, blank=True)
 
-    firmen = models.ManyToManyField('Firma', through='FirmaMagazin', blank=True)
+    firmen = models.ManyToManyField('Firma', through='FirmaMunition', blank=True)
 
     @staticmethod
     def getShopDisplayFields():
-        return super(Magazin, Magazin).getShopDisplayFields() + ["schuss", 'bs', 'zs', 'schadensart']
+        return super(Munition, Munition).getShopDisplayFields() + ["schuss", 'bs', 'zs', 'schadensart']
 
 
 class Fernkampfwaffe(BaseShop):
@@ -295,7 +295,7 @@ class Fernkampfwaffe(BaseShop):
     zs = models.CharField(max_length=20, default='')
     schadensart = models.CharField(max_length=1, choices=enums.schadensart_enum, null=True, blank=True)
 
-    magazine = models.ManyToManyField(Magazin, blank=True)
+    munition = models.ManyToManyField(Munition, blank=True)
 
     dk = models.PositiveIntegerField(default=0, blank=True)
     präzision = models.PositiveIntegerField(default=0, blank=True)
@@ -307,7 +307,7 @@ class Fernkampfwaffe(BaseShop):
     @staticmethod
     def getShopDisplayFields():
         return super(Fernkampfwaffe, Fernkampfwaffe).getShopDisplayFields() + ["fertigkeit", "erfolge", "bs", "zs", "dk", "präzision", "schadensart", "kategorie",
-        "magazine"]
+        "munition"]
 
 
 class Magische_Ausrüstung(BaseShop):

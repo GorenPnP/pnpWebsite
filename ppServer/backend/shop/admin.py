@@ -13,8 +13,8 @@ from ppServer.utils import ConcatSubquery
 from .models import *
 
 
-class SchussMagazineInLine(admin.TabularInline):
-    model = Fernkampfwaffe.magazine.through
+class SchussMunitionInLine(admin.TabularInline):
+    model = Fernkampfwaffe.munition.through
     extra = 1
 
 
@@ -31,8 +31,8 @@ class FirmaWaffen_WerkzeugeInLine(FirmaShopInLine):
     model = FirmaWaffen_Werkzeuge
 
 
-class FirmaMagazinInLine(FirmaShopInLine):
-    model = FirmaMagazin
+class FirmaMunitionInLine(FirmaShopInLine):
+    model = FirmaMunition
 
 
 class FirmaFernkampfwaffeInLine(FirmaShopInLine):
@@ -142,15 +142,15 @@ class Waffen_WerkzeugeAdmin(BaseAdmin):
     inlines = [FirmaWaffen_WerkzeugeInLine]
 
 
-class MagazinAdmin(BaseAdmin):
+class MunitionAdmin(BaseAdmin):
 
-    shop_model = Magazin
-    firma_shop_model = FirmaMagazin
+    shop_model = Munition
+    firma_shop_model = FirmaMunition
 
     list_display = ('name', 'beschreibung', "ab_stufe", 'schuss', 'bs', 'zs', 'schadensart', 'billigste', 'info', "has_implementation")
     list_filter = ['schuss', 'illegal', 'lizenz_benötigt', "frei_editierbar"]
 
-    inlines = [FirmaMagazinInLine]
+    inlines = [FirmaMunitionInLine]
 
 
 class FernkampfwaffeAdmin(BaseAdmin):
@@ -158,13 +158,13 @@ class FernkampfwaffeAdmin(BaseAdmin):
     shop_model = Fernkampfwaffe
     firma_shop_model = FirmaFernkampfwaffe
 
-    exclude = ['magazine', 'st_magazine']
+    exclude = ['munition', 'st_munition']
     list_display = ('name', 'beschreibung', "ab_stufe", 'erfolge', 'bs', 'zs', 'dk', 'präzision', 'schadensart', 'billigste',
                     'kategorie', 'fertigkeit', 'info', "has_implementation")
     list_filter = ['kategorie', 'erfolge', 'bs', 'zs', 'dk', 'präzision', 'schadensart', 'fertigkeit__titel', 'illegal', 'lizenz_benötigt', "frei_editierbar"]
     list_editable = ['schadensart', 'kategorie', 'fertigkeit']
 
-    inlines = [SchussMagazineInLine, FirmaFernkampfwaffeInLine]
+    inlines = [SchussMunitionInLine, FirmaFernkampfwaffeInLine]
 
 
 class Magische_AusrüstungAdmin(BaseAdmin):
@@ -378,7 +378,7 @@ class ModifierAdmin(admin.ModelAdmin):
 
 admin.site.register(Item, ItemAdmin)
 admin.site.register(Waffen_Werkzeuge, Waffen_WerkzeugeAdmin)
-admin.site.register(Magazin, MagazinAdmin)
+admin.site.register(Munition, MunitionAdmin)
 admin.site.register(Fernkampfwaffe, FernkampfwaffeAdmin)
 admin.site.register(Magische_Ausrüstung, Magische_AusrüstungAdmin)
 admin.site.register(Rituale_Runen, Rituale_RunenAdmin)

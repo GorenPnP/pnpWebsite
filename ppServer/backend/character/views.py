@@ -183,7 +183,7 @@ class ShowView(VerifiedAccountMixin, DetailView):
         "relklasse_set__klasse", "relklasseability_set__ability", "relattribut_set__attribut", "relwesenkraft_set__wesenkraft", "reltalent_set__talent",
         "relgfsability_set__ability", "affektivität_set",
         "relzauber_set__item", "relrituale_runen_set__item", "relfernkampfwaffe_set__item", "relwaffen_werkzeuge_set__item",
-        "relmagazin_set__item", "relmagische_ausrüstung_set__item", "relrüstung_set__item",
+        "relmunition_set__item", "relmagische_ausrüstung_set__item", "relrüstung_set__item",
         "relausrüstung_technik_set__item", "relfahrzeug_set__item", "releinbauten_set__item", "relalchemie_set__item",
         "reltinker_set__item", "relbegleiter_set__item", "relramsch_set", "card"
     )
@@ -1141,7 +1141,7 @@ class CreateCharacterView(VerifiedAccountMixin, CopiesCharsMixin, CreateView):
             # shop
             "items": ShopItemFormSet,
             "waffenWerkzeuge": ShopWaffenWerkzeugeFormSet,
-            "magazine": ShopMagazineFormSet,
+            "munition": ShopMunitionFormSet,
             "fernkampfwaffen": ShopFernkampfwaffeFormSet,
             "magischeAusrüstung": ShopMagAusrüstungFormSet,
             "rituale_runen": ShopRitualeRunenFormSet,
