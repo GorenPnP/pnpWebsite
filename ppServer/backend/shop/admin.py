@@ -156,7 +156,7 @@ class MagazinAdmin(BaseAdmin):
     shop_model = Magazin
     firma_shop_model = FirmaMagazin
 
-    list_display = ('name', 'beschreibung', "ab_stufe", 'schuss', 'billigste', 'info', "has_implementation")
+    list_display = ('name', 'beschreibung', "ab_stufe", 'schuss', 'bs', 'zs', 'schadensart', 'billigste', 'info', "has_implementation")
     list_filter = ['schuss', 'illegal', 'lizenz_benötigt', "frei_editierbar"]
 
     inlines = [FirmaMagazinInLine]

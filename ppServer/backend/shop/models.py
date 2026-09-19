@@ -284,7 +284,7 @@ class Magazin(BaseShop):
 
     @staticmethod
     def getShopDisplayFields():
-        return super(Magazin, Magazin).getShopDisplayFields() + ["schuss"]
+        return super(Magazin, Magazin).getShopDisplayFields() + ["schuss", 'bs', 'zs', 'schadensart']
 
 
 class Pfeil_Bolzen(BaseShop):
