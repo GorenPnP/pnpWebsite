@@ -9,7 +9,7 @@ class AuswertungForm(forms.Form):
 
     story = forms.CharField(label="Story", required=True)
 
-    ep = forms.IntegerField(initial=0, label="EP", required=True, min_value=1)
+    ep = forms.IntegerField(initial=0, label="EP", required=True)
     sp = forms.IntegerField(initial=0, label="SP", required=True)
     geld = forms.IntegerField(initial=0, label="Geld", required=True)
     prestige = forms.IntegerField(initial=0, label="Prestige", required=True)
