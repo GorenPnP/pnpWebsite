@@ -142,7 +142,7 @@ def propose_item(request, model: Model):
     )
     return render(request, "shop/propose.html", {
         "topic": "neues Item",
-        "app_index": Model._meta.verbose_name_plural,
-        "app_index_url": reverse(f"shop:{Model._meta.model_name}_list"),
+        "app_index": model._meta.verbose_name_plural,
+        "app_index_url": reverse(f"shop:{model._meta.model_name}_list"),
         "form": form,
     })
