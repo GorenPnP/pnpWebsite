@@ -774,7 +774,7 @@ class Charakter(models.Model):
     waffenWerkzeuge = models.ManyToManyField(Waffen_Werkzeuge, through='character.RelWaffen_Werkzeuge', blank=True)
     magazine = models.ManyToManyField(Magazin, through='character.RelMagazin', blank=True)
     pfeile_bolzen = models.ManyToManyField(Pfeil_Bolzen, through='character.RelPfeil_Bolzen', blank=True)
-    schusswaffen = models.ManyToManyField(Schusswaffen, through='character.RelSchusswaffen', blank=True)
+    fernkampfwaffen = models.ManyToManyField(Fernkampfwaffe, through='character.RelFernkampfwaffe', blank=True)
     magischeAusrüstung = models.ManyToManyField(Magische_Ausrüstung, through='character.RelMagische_Ausrüstung', blank=True)
     rituale_runen = models.ManyToManyField(Rituale_Runen, through='character.RelRituale_Runen', blank=True)
     rüstungen = models.ManyToManyField(Rüstung, through='character.RelRüstung', blank=True)
@@ -1278,12 +1278,12 @@ class RelPfeil_Bolzen(RelShop):
     item = models.ForeignKey(Pfeil_Bolzen, on_delete=models.CASCADE)
 
 
-class RelSchusswaffen(RelShop):
+class RelFernkampfwaffe(RelShop):
     class Meta:
-        verbose_name = "Schusswaffe"
-        verbose_name_plural = "Schusswaffen"
+        verbose_name = "Fernkampfwaffe"
+        verbose_name_plural = "Fernkampfwaffen"
 
-    item = models.ForeignKey(Schusswaffen, on_delete=models.CASCADE)
+    item = models.ForeignKey(Fernkampfwaffe, on_delete=models.CASCADE)
 
 
 class RelMagische_Ausrüstung(RelShop):
@@ -1428,12 +1428,12 @@ class RelFirmaPfeil_Bolzen(RelFirmaShop):
     firma_shop = models.ForeignKey(FirmaPfeil_Bolzen, on_delete=models.CASCADE)
 
 
-class RelFirmaSchusswaffen(RelFirmaShop):
+class RelFirmaFernkampfwaffe(RelFirmaShop):
     class Meta:
-        verbose_name = "Schusswaffe Verfügbarkeit"
-        verbose_name_plural = "Schusswaffen Verfügbarkeiten"
+        verbose_name = "Fernkampfwaffe Verfügbarkeit"
+        verbose_name_plural = "Fernkampfwaffen Verfügbarkeiten"
 
-    firma_shop = models.ForeignKey(FirmaSchusswaffen, on_delete=models.CASCADE)
+    firma_shop = models.ForeignKey(FirmaFernkampfwaffe, on_delete=models.CASCADE)
 
 
 class RelFirmaMagische_Ausrüstung(RelFirmaShop):

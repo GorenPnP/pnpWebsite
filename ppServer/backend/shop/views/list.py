@@ -322,8 +322,8 @@ class PfeilBolzenTableView(ShopTableView):
     table_fields = ("icon", "name", "beschreibung", "ab_stufe", "bs", "zs", "schadensart", "preis")
 
 
-class SchusswaffenTableView(ShopTableView):
-    model = Schusswaffen
+class FernkampfwaffeTableView(ShopTableView):
+    model = Fernkampfwaffe
     filterset_fields = {
         **shop_filter_fields,
         "erfolge": ["exact"],

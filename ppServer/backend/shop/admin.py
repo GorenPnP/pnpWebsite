@@ -14,12 +14,12 @@ from .models import *
 
 
 class SchussMagazineInLine(admin.TabularInline):
-    model = Schusswaffen.magazine.through
+    model = Fernkampfwaffe.magazine.through
     extra = 1
 
 
 class SchussPfeileBolzenInLine(admin.TabularInline):
-    model = Schusswaffen.pfeile_bolzen.through
+    model = Fernkampfwaffe.pfeile_bolzen.through
     extra = 1
 
 
@@ -44,8 +44,8 @@ class FirmaPfeil_BolzenInLine(FirmaShopInLine):
     model = FirmaPfeil_Bolzen
 
 
-class FirmaSchusswaffenInLine(FirmaShopInLine):
-    model = FirmaSchusswaffen
+class FirmaFernkampfwaffeInLine(FirmaShopInLine):
+    model = FirmaFernkampfwaffe
 
 
 class FirmaMagische_AusrüstungInLine(FirmaShopInLine):
@@ -174,10 +174,10 @@ class Pfeil_BolzenAdmin(BaseAdmin):
     inlines = [FirmaPfeil_BolzenInLine]
 
 
-class SchusswaffenAdmin(BaseAdmin):
+class FernkampfwaffeAdmin(BaseAdmin):
 
-    shop_model = Schusswaffen
-    firma_shop_model = FirmaSchusswaffen
+    shop_model = Fernkampfwaffe
+    firma_shop_model = FirmaFernkampfwaffe
 
     exclude = ['magazine', 'st_magazine', 'pfeile_bolzen', 'st_pfeile_bolzen']
     list_display = ('name', 'beschreibung', "ab_stufe", 'erfolge', 'bs', 'zs', 'dk', 'präzision', 'schadensart', 'billigste',
@@ -186,7 +186,7 @@ class SchusswaffenAdmin(BaseAdmin):
     list_editable = ['schadensart', 'kategorie', 'fertigkeit']
 
     inlines = [SchussMagazineInLine, SchussPfeileBolzenInLine,
-               FirmaSchusswaffenInLine]
+               FirmaFernkampfwaffeInLine]
 
 
 class Magische_AusrüstungAdmin(BaseAdmin):
@@ -402,7 +402,7 @@ admin.site.register(Item, ItemAdmin)
 admin.site.register(Waffen_Werkzeuge, Waffen_WerkzeugeAdmin)
 admin.site.register(Magazin, MagazinAdmin)
 admin.site.register(Pfeil_Bolzen, Pfeil_BolzenAdmin)
-admin.site.register(Schusswaffen, SchusswaffenAdmin)
+admin.site.register(Fernkampfwaffe, FernkampfwaffeAdmin)
 admin.site.register(Magische_Ausrüstung, Magische_AusrüstungAdmin)
 admin.site.register(Rituale_Runen, Rituale_RunenAdmin)
 admin.site.register(Rüstung, RüstungAdmin)

@@ -206,8 +206,8 @@ class RelPfeil_BolzenInLine(RelShopInLine):
     model = RelPfeil_Bolzen
 
 
-class RelSchusswaffenInLine(RelShopInLine):
-    model = RelSchusswaffen
+class RelFernkampfwaffeInLine(RelShopInLine):
+    model = RelFernkampfwaffe
 
 
 class RelMagische_AusrüstungInLine(RelShopInLine):
@@ -299,7 +299,7 @@ class CharakterAdmin(admin.ModelAdmin):
         RelWaffen_WerkzeugelInLine,
         RelMagazinInLine,
         RelPfeil_BolzenInLine,
-        RelSchusswaffenInLine,
+        RelFernkampfwaffeInLine,
         RelMagische_AusrüstungInLine,
         RelRituale_RunenInLine,
         RelRüstungInLine,

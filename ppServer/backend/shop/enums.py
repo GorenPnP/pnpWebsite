@@ -3,7 +3,7 @@ category_enum = [
     ('w', 'Waffen & Werkzeuge'),
     ('m', 'Magazine'),
     ('p', 'Pfeile & Bolzen'),
-    ('s', 'Schusswaffen'),
+    ('s', 'Fernkampfwaffen'),
     ('a', 'magische Ausrüstung'),
     ('r', 'Rituale & Runen'),
     ('u', 'Rüstungen'),
@@ -60,7 +60,7 @@ werkzeuge_enum = [
 ]
 
 
-schusswaffen_enum = [
+fernkampfwaffe_enum = [
     ('k', 'Kurzwaffe'),
     ('w', 'Gewehr'),
     ('m', 'Maschinengewehr'),

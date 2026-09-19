@@ -120,8 +120,8 @@ class FirmaPfeil_Bolzen(FirmaShop):
     item = models.ForeignKey('Pfeil_Bolzen', on_delete=models.CASCADE)
 
 
-class FirmaSchusswaffen(FirmaShop):
-    item = models.ForeignKey('Schusswaffen', on_delete=models.CASCADE)
+class FirmaFernkampfwaffe(FirmaShop):
+    item = models.ForeignKey('Fernkampfwaffe', on_delete=models.CASCADE)
 
 
 class FirmaMagische_Ausrüstung(FirmaShop):
@@ -275,6 +275,11 @@ class Magazin(BaseShop):
         ordering = ['name']
 
     schuss = models.PositiveIntegerField(default=0)
+
+    bs = models.CharField(max_length=20, default='')
+    zs = models.CharField(max_length=20, default='')
+    schadensart = models.CharField(max_length=1, choices=enums.schadensart_enum, null=True, blank=True)
+
     firmen = models.ManyToManyField('Firma', through='FirmaMagazin', blank=True)
 
     @staticmethod
@@ -300,10 +305,10 @@ class Pfeil_Bolzen(BaseShop):
         return super(Pfeil_Bolzen, Pfeil_Bolzen).getShopDisplayFields() + [ "bs", "zs", "schadensart"]
 
 
-class Schusswaffen(BaseShop):
+class Fernkampfwaffe(BaseShop):
     class Meta:
-        verbose_name = "Schusswaffe"
-        verbose_name_plural = "Schusswaffen"
+        verbose_name = "Fernkampfwaffe"
+        verbose_name_plural = "Fernkampfwaffen"
 
         ordering = ['name']
 
@@ -319,12 +324,12 @@ class Schusswaffen(BaseShop):
     präzision = models.PositiveIntegerField(default=0, blank=True)
 
     fertigkeit = models.ForeignKey('character.Fertigkeit', on_delete=models.SET_NULL, null=True, blank=True)
-    kategorie = models.CharField(choices=enums.schusswaffen_enum, max_length=1, default=enums.schusswaffen_enum[0][0])
-    firmen = models.ManyToManyField('Firma', through='FirmaSchusswaffen', blank=True)
+    kategorie = models.CharField(choices=enums.fernkampfwaffe_enum, max_length=1, default=enums.fernkampfwaffe_enum[0][0])
+    firmen = models.ManyToManyField('Firma', through='FirmaFernkampfwaffe', blank=True)
 
     @staticmethod
     def getShopDisplayFields():
-        return super(Schusswaffen, Schusswaffen).getShopDisplayFields() + ["fertigkeit", "erfolge", "bs", "zs", "dk", "präzision", "schadensart", "kategorie",
+        return super(Fernkampfwaffe, Fernkampfwaffe).getShopDisplayFields() + ["fertigkeit", "erfolge", "bs", "zs", "dk", "präzision", "schadensart", "kategorie",
         "magazine"] # , "pfeile_bolzen"]  ist eh leer
 
 
