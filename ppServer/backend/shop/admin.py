@@ -293,8 +293,9 @@ class BegleiterAdmin(BaseAdmin):
     shop_model = Begleiter
     firma_shop_model = FirmaBegleiter
 
-    list_display = ('name', 'beschreibung', "ab_stufe", 'billigste', 'info', "has_implementation")
+    list_display = ('name', 'beschreibung', "ab_stufe", "hp", "physische_reaktion", "astrale_reaktion", "astraler_widerstand", "physischer_widerstand", 'billigste', 'info', "has_implementation")
     # list_filter = ["frei_editierbar"]
+    list_editable = ["hp", "physische_reaktion", "astrale_reaktion", "astraler_widerstand", "physischer_widerstand"]
 
     inlines = [FirmaBegleiterInLine]
 
@@ -304,8 +305,9 @@ class EngelsroboterAdmin(BaseAdmin):
     shop_model = Engelsroboter
     firma_shop_model = FirmaEngelsroboter
 
-    list_display = ('name', 'beschreibung', "ab_stufe", 'ST', 'UM', 'MA', 'IN', 'billigste', 'info', "has_implementation")
+    list_display = ('name', 'beschreibung', "ab_stufe", "hp", "physische_reaktion", "astrale_reaktion", "astraler_widerstand", "physischer_widerstand", 'ST', 'UM', 'MA', 'IN', 'billigste', 'info', "has_implementation")
     # list_filter = ["frei_editierbar"]
+    list_editable = ["hp", "physische_reaktion", "astrale_reaktion", "astraler_widerstand", "physischer_widerstand"]
 
     inlines = [FirmaEngelsroboterInLine]
 

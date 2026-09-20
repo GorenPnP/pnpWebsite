@@ -421,6 +421,7 @@ class Zauber(BaseShop):
     def getShopDisplayFields():
         return super(Zauber, Zauber).getShopDisplayFields() + ["astralschaden", "manaverbrauch", "verteidigung", "schadensart", "kategorie"]
 
+
 class Alchemie(BaseShop):
     class Meta:
         verbose_name = "Alchemie"
@@ -434,6 +435,7 @@ class Alchemie(BaseShop):
     @staticmethod
     def getShopDisplayFields():
         return super(Alchemie, Alchemie).getShopDisplayFields() + ["kategorie"]
+
 
 class Tinker(BaseShop):
     class Meta:
@@ -472,6 +474,12 @@ class Begleiter(BaseShop):
 
         ordering = ['name']
 
+    hp = models.CharField(max_length=64, default='')
+    physische_reaktion = models.CharField(max_length=64, default='')
+    astrale_reaktion = models.CharField(max_length=64, default='')
+    astraler_widerstand = models.CharField(max_length=64, default='')
+    physischer_widerstand = models.CharField(max_length=64, default='')
+
     firmen = models.ManyToManyField('Firma', through='FirmaBegleiter', blank=True)
 
 
@@ -486,6 +494,12 @@ class Engelsroboter(BaseShop):
     UM = models.PositiveSmallIntegerField(default=0, null=False, blank=False, help_text="Umgang")
     MA = models.PositiveSmallIntegerField(default=0, null=False, blank=False, help_text="Magie")
     IN = models.PositiveSmallIntegerField(default=0, null=False, blank=False, help_text="Intelligenz")
+
+    hp = models.CharField(max_length=64, default='')
+    physische_reaktion = models.CharField(max_length=64, default='')
+    astrale_reaktion = models.CharField(max_length=64, default='')
+    astraler_widerstand = models.CharField(max_length=64, default='')
+    physischer_widerstand = models.CharField(max_length=64, default='')
 
     firmen = models.ManyToManyField('Firma', through='FirmaEngelsroboter', blank=True)
 
