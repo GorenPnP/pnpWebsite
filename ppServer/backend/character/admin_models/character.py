@@ -194,8 +194,8 @@ class RelItemlInLine(RelShopInLine):
     model = RelItem
 
 
-class RelWaffe_WerkzeuglInLine(RelShopInLine):
-    model = RelWaffe_Werkzeug
+class RelNahkampfwaffeInLine(RelShopInLine):
+    model = RelNahkampfwaffe
 
 
 class RelMunitionInLine(RelShopInLine):
@@ -292,7 +292,7 @@ class CharakterAdmin(admin.ModelAdmin):
         RelKlasseAbilityInLine,
 
         RelItemlInLine,
-        RelWaffe_WerkzeuglInLine,
+        RelNahkampfwaffeInLine,
         RelMunitionInLine,
         RelFernkampfwaffeInLine,
         RelMagische_AusrüstungInLine,

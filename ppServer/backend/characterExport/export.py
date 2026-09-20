@@ -574,10 +574,10 @@ class CharakterExporter:
             werte_ws.write(f"A{ROW}", r.anz, format_border_left)
             werte_ws.write(f"B{ROW}", r.item.name)
             werte_ws.write(f"H{ROW}", None, format_border_right)
-        # Waffen & Werkzeuge
+        # Nahkampf-/Wurfwaffen
         ROW += 1
-        werte_ws.merge_range(f"A{ROW}:H{ROW}", "Waffen / Werkzeuge", format_ramsch_titel)
-        for r in self.char.relwaffe_werkzeug_set.prefetch_related("item").all():
+        werte_ws.merge_range(f"A{ROW}:H{ROW}", "Nahkampf-/Wurfwaffen", format_ramsch_titel)
+        for r in self.char.relnahkampfwaffe_set.prefetch_related("item").all():
             ROW += 1
             werte_ws.write(f"A{ROW}", r.anz, format_border_left)
             werte_ws.write(f"B{ROW}", r.item.name)

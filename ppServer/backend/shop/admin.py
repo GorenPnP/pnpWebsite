@@ -27,8 +27,8 @@ class FirmaItemInLine(FirmaShopInLine):
     model = FirmaItem
 
 
-class FirmaWaffe_WerkzeugInLine(FirmaShopInLine):
-    model = FirmaWaffe_Werkzeug
+class FirmaNahkampfwaffeInLine(FirmaShopInLine):
+    model = FirmaNahkampfwaffe
 
 
 class FirmaMunitionInLine(FirmaShopInLine):
@@ -125,17 +125,17 @@ class ItemAdmin(BaseAdmin):
     inlines = [FirmaItemInLine]
 
 
-class Waffe_WerkzeugAdmin(BaseAdmin):
+class NahkampfwaffeAdmin(BaseAdmin):
 
-    shop_model = Waffe_Werkzeug
-    firma_shop_model = FirmaWaffe_Werkzeug
+    shop_model = Nahkampfwaffe
+    firma_shop_model = FirmaNahkampfwaffe
 
-    list_display = ('name', 'beschreibung', "ab_stufe", 'erfolge', 'bs', 'zs', 'dk', 'schadensart', 'billigste',
+    list_display = ('name', 'beschreibung', "ab_stufe", "reichweite", "wirkbereich", "händigkeit", "fertigkeit", "schaden", 'bs', 'zs', 'dk', 'schadensart', 'billigste',
                     'kategorie', 'info', "has_implementation")
-    list_filter = ['kategorie', 'erfolge', 'bs', 'zs', 'dk', 'schadensart', "frei_editierbar"]
-    list_editable = ['schadensart']
+    list_filter = ['kategorie', 'bs', 'zs', 'dk', 'schadensart', 'händigkeit', "frei_editierbar"]
+    list_editable = ["schaden", "reichweite", "wirkbereich", "händigkeit", "fertigkeit", 'kategorie']
 
-    inlines = [FirmaWaffe_WerkzeugInLine]
+    inlines = [FirmaNahkampfwaffeInLine]
 
 
 class MunitionAdmin(BaseAdmin):
@@ -368,7 +368,7 @@ class ModifierAdmin(admin.ModelAdmin):
         )
 
 admin.site.register(Item, ItemAdmin)
-admin.site.register(Waffe_Werkzeug, Waffe_WerkzeugAdmin)
+admin.site.register(Nahkampfwaffe, NahkampfwaffeAdmin)
 admin.site.register(Munition, MunitionAdmin)
 admin.site.register(Fernkampfwaffe, FernkampfwaffeAdmin)
 admin.site.register(Magische_Ausrüstung, Magische_AusrüstungAdmin)

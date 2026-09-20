@@ -297,17 +297,16 @@ class ItemTableView(ShopTableView):
     table_fields = ("icon", "name", "beschreibung", "ab_stufe", "preis")
 
 
-class WaffeWerkzeugTableView(ShopTableView):
-    model = Waffe_Werkzeug
+class NahkampfwaffeTableView(ShopTableView):
+    model = Nahkampfwaffe
     filterset_fields = {
         **shop_filter_fields,
-        "erfolge": ["icontains"],
         "bs": ["icontains"],
         "zs": ["icontains"],
         "dk": ["lte"],
         "schadensart": ["exact"]
     }
-    table_fields = ("icon", "name", "beschreibung", "ab_stufe", "erfolge", "bs", "zs", "dk", "schadensart", "preis")
+    table_fields = ("icon", "name", "beschreibung", "ab_stufe", "bs", "zs", "dk", "schadensart", "preis")
 
 
 class MunitionTableView(ShopTableView):

@@ -1,6 +1,6 @@
 category_enum = [
     ('i', 'Items'),
-    ('w', 'Waffen & Werkzeuge'),
+    ('h', 'Nahkampfwaffen'),
     ('m', 'Munition'),
     ('s', 'Fernkampfwaffen'),
     ('a', 'magische Ausrüstung'),
@@ -53,9 +53,17 @@ item_enum = [
 ]
 
 
-werkzeug_enum = [
-    ('k', 'Im Kampf'),
+nahkampfwaffe_enum = [
+    ('d', 'Dolche/Messer'),
+    ('s', 'Schwerter'),
+    ('a', 'Äxte'),
+    ('h', 'Hämmer'),
+    ('h', 'stumpfe Waffen'),
+    ('c', 'Schwungwaffen'),
+    ('l', 'Schlagringe'),
     ('w', 'weitere Waffen'),
+    ('g', 'Granaten/Bomben'),
+    ('e', 'sonstige Exoten'),
 ]
 
 
@@ -151,4 +159,11 @@ tinker_enum = [
     ('p', 'Produktionsstätten'),
     ('u', 'Müll'),
     ('e', 'Energie')
+]
+
+
+hand_enum = [
+    ('1', '🤚'),
+    ('.', '🤚/🤲'),
+    ('2', '🤲'),
 ]

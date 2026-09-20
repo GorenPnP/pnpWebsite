@@ -32,7 +32,7 @@ WesenkraftFormSet = FormSet(Charakter, RelWesenkraft, "wesenkraft", ["wesenkraft
 # Shop
 shop_fields = ["anz", "item", "stufe", "notizen"]
 ShopItemFormSet = FormSet(Charakter, RelItem, "item", shop_fields)
-ShopWaffeWerkzeugFormSet = FormSet(Charakter, RelWaffe_Werkzeug, "waffeWerkzeug", shop_fields)
+ShopNahkampfwaffeFormSet = FormSet(Charakter, RelNahkampfwaffe, "nahkampfwaffe", shop_fields)
 ShopMunitionFormSet = FormSet(Charakter, RelMunition, "munition", shop_fields)
 ShopFernkampfwaffeFormSet = FormSet(Charakter, RelFernkampfwaffe, "fernkampfwaffe", shop_fields)
 ShopMagAusrüstungFormSet = FormSet(Charakter, RelMagische_Ausrüstung, "mag_ausr", shop_fields)
@@ -80,7 +80,7 @@ class CharacterForm(forms.ModelForm):
     	    "notizen", "persönlicheZiele", "sonstige_items", "affektivitäten",
             "klassen", "klassen_fähigkeiten", "vorteile", "nachteile", "talente", "wesenkräfte",
             "attribute", "fertigkeiten","gruppen", "spezialfertigkeiten", "wissensfertigkeiten", "gfs_fähigkeiten",
-            "items", "waffenWerkzeuge", "munition", "fernkampfwaffen", "magischeAusrüstung", "rituale_runen", "rüstungen", "ausrüstungTechnik", "fahrzeuge", "einbauten", "zauber", "begleiter", "engelsroboter",
+            "items", "nahkampfwaffen", "munition", "fernkampfwaffen", "magischeAusrüstung", "rituale_runen", "rüstungen", "ausrüstungTechnik", "fahrzeuge", "einbauten", "zauber", "begleiter", "engelsroboter",
         ]
 
     # field for char.card.money
@@ -222,8 +222,8 @@ class CharacterForm(forms.ModelForm):
                         Formset("items"),
                     ),
                     Fieldset(
-                        "Waffen & Werkzeuge",
-                        Formset("waffenWerkzeuge"),
+                        "Nahkampf- und Wurfwaffen",
+                        Formset("nahkampfwaffen"),
                     ),
                     Fieldset(
                         "Fernkampfwaffen",

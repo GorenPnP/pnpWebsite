@@ -18,7 +18,7 @@ urlpatterns = [
     path('all/', listViews.FullShopTableView.as_view(), name='all'),
 
     path('items/', listViews.ItemTableView.as_view(), name='item_list'),
-    path('waffen_werkzeuge/', listViews.WaffeWerkzeugTableView.as_view(), name='waffe_werkzeug_list'),
+    path('nahkampf_wurfwaffen/', listViews.NahkampfwaffeTableView.as_view(), name='nahkampfwaffe_list'),
     path('munition/', listViews.MunitionTableView.as_view(), name='munition_list'),
     path("fernkampfwaffen", listViews.FernkampfwaffeTableView.as_view(), name='fernkampfwaffe_list'),
     path('magische_ausrüstung/', listViews.MagischeAusrüstungTableView.as_view(), name='magische_ausrüstung_list'),

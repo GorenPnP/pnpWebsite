@@ -108,8 +108,8 @@ class FirmaItem(FirmaShop):
     item = models.ForeignKey('Item', on_delete=models.CASCADE)
 
 
-class FirmaWaffe_Werkzeug(FirmaShop):
-    item = models.ForeignKey('Waffe_Werkzeug', on_delete=models.CASCADE)
+class FirmaNahkampfwaffe(FirmaShop):
+    item = models.ForeignKey('Nahkampfwaffe', on_delete=models.CASCADE)
 
 
 class FirmaMunition(FirmaShop):
@@ -240,25 +240,30 @@ class Item(BaseShop):
         return super(Item, Item).getShopDisplayFields() + ["kategorie"]
 
 
-class Waffe_Werkzeug(BaseShop):
+class Nahkampfwaffe(BaseShop):
     class Meta:
-        verbose_name = "Waffe/Werkzeug"
-        verbose_name_plural = "Waffen & Werkzeuge"
+        verbose_name = "Nahkampf-/Wurfwaffe"
+        verbose_name_plural = "Nahkampf-/Wurfwaffen"
 
         ordering = ['name']
 
-    erfolge = models.PositiveIntegerField(default=0)
     bs = models.CharField(max_length=20, default=0)
     zs = models.CharField(max_length=20, default=0)
+    schaden = models.CharField(max_length=64, default=0)
     dk = models.PositiveIntegerField(default=0, blank=True, null=True)
     schadensart = models.CharField(max_length=1, choices=enums.schadensart_enum, null=True, blank=True)
 
-    kategorie = models.CharField(choices=enums.werkzeug_enum, max_length=2, default=enums.werkzeug_enum[0][0])
-    firmen = models.ManyToManyField('Firma', through='FirmaWaffe_Werkzeug', blank=True)
+    reichweite = models.FloatField(default=0.0, verbose_name="Reichweite in m")
+    wirkbereich = models.TextField(default='')
+    händigkeit = models.CharField(max_length=1, choices=enums.hand_enum, default='1')
+    fertigkeit = models.ForeignKey('character.Fertigkeit', on_delete=models.SET_NULL, null=True, blank=True)
+
+    kategorie = models.CharField(choices=enums.nahkampfwaffe_enum, max_length=2, default=enums.nahkampfwaffe_enum[0][0])
+    firmen = models.ManyToManyField('Firma', through='FirmaNahkampfwaffe', blank=True)
 
     @staticmethod
     def getShopDisplayFields():
-        return super(Waffe_Werkzeug, Waffe_Werkzeug).getShopDisplayFields() + ["erfolge", "bs", "zs", "dk", "schadensart", "kategorie"]
+        return super(Nahkampfwaffe, Nahkampfwaffe).getShopDisplayFields() + ["bs", "zs", "dk", "schadensart", "reichweite", "wirkbereich", "händigkeit", "fertigkeit", "kategorie"]
 
 
 class Munition(BaseShop):

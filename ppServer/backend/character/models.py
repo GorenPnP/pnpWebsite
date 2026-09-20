@@ -771,7 +771,7 @@ class Charakter(models.Model):
     klassen_fähigkeiten = models.ManyToManyField(KlasseAbility, through='character.RelKlasseAbility', blank=True)
 
     items = models.ManyToManyField(Item, through='character.RelItem', blank=True)
-    waffenWerkzeuge = models.ManyToManyField(Waffe_Werkzeug, through='character.RelWaffe_Werkzeug', blank=True)
+    nahkampfwaffen = models.ManyToManyField(Nahkampfwaffe, through='character.RelNahkampfwaffe', blank=True)
     munition = models.ManyToManyField(Munition, through='character.RelMunition', blank=True)
     fernkampfwaffen = models.ManyToManyField(Fernkampfwaffe, through='character.RelFernkampfwaffe', blank=True)
     magischeAusrüstung = models.ManyToManyField(Magische_Ausrüstung, through='character.RelMagische_Ausrüstung', blank=True)
@@ -1253,12 +1253,12 @@ class RelItem(RelShop):
     item = models.ForeignKey(Item, on_delete=models.CASCADE)
 
 
-class RelWaffe_Werkzeug(RelShop):
+class RelNahkampfwaffe(RelShop):
     class Meta:
-        verbose_name = "Waffe/Werkzeug"
-        verbose_name_plural = "Waffen/Werkzeuge"
+        verbose_name = "Nahkampf-/Wurfwaffe"
+        verbose_name_plural = "Nahkampf-/Wurfwaffen"
 
-    item = models.ForeignKey(Waffe_Werkzeug, on_delete=models.CASCADE)
+    item = models.ForeignKey(Nahkampfwaffe, on_delete=models.CASCADE)
 
 
 class RelMunition(RelShop):
@@ -1395,12 +1395,12 @@ class RelFirmaItem(RelFirmaShop):
     firma_shop = models.ForeignKey(FirmaItem, on_delete=models.CASCADE)
 
 
-class RelFirmaWaffe_Werkzeug(RelFirmaShop):
+class RelFirmaNahkampfwaffe(RelFirmaShop):
     class Meta:
-        verbose_name = "Waffe/Werkzeug Verfügbarkeit"
-        verbose_name_plural = "Waffe/Werkzeug Verfügbarkeiten"
+        verbose_name = "Nahkampf-/Wurfwaffe Verfügbarkeit"
+        verbose_name_plural = "Nahkampf-/Wurfwaffe Verfügbarkeiten"
 
-    firma_shop = models.ForeignKey(FirmaWaffe_Werkzeug, on_delete=models.CASCADE)
+    firma_shop = models.ForeignKey(FirmaNahkampfwaffe, on_delete=models.CASCADE)
 
 
 class RelFirmaMunition(RelFirmaShop):
