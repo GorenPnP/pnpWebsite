@@ -122,10 +122,12 @@ ausrüstung_enum = [
 
 
 fahrzeuge_enum = [
-    ('f', 'Fahrzeuge'),
-    ('t', 'Technik/Besondere Fahrzeuge'),
+    ('z', 'Zweiräder'),
+    ('w', 'PKW/LKW'),
     ('r', 'Raumschiffe'),
-    ('k', 'Kriegsfahrzeuge'),
+    ('p', 'Panzer'),
+    ('s', 'Schiffe'),
+    ('d', 'Drohnen'),
 ]
 
 

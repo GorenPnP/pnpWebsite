@@ -215,9 +215,10 @@ class FahrzeugAdmin(BaseAdmin):
     shop_model = Fahrzeug
     firma_shop_model = FirmaFahrzeug
 
-    list_display = ('name', 'beschreibung', "ab_stufe", 'schnelligkeit', 'rüstung', 'erfolge',
+    list_display = ('name', 'beschreibung', "ab_stufe", 'geschwindigkeit', 'hp', 'erfolge',
                     'billigste', 'kategorie', 'info', "has_implementation")
-    # list_filter = ['kategorie', 'schnelligkeit', 'rüstung', 'erfolge', "frei_editierbar"]
+    # list_filter = ['kategorie', 'geschwindigkeit', 'hp', 'erfolge', "frei_editierbar"]
+    list_editable = ["kategorie"]
 
     inlines = [FirmaFahrzeugInLine]
 

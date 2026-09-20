@@ -370,8 +370,8 @@ class Fahrzeug(BaseShop):
 
         ordering = ['name']
 
-    schnelligkeit = models.PositiveIntegerField(blank=True, null=True)
-    rüstung = models.PositiveIntegerField(blank=True, null=True)
+    geschwindigkeit = models.PositiveIntegerField(blank=True, null=True)
+    hp = models.PositiveIntegerField(blank=True, null=True)
     erfolge = models.PositiveIntegerField(default=0, blank=True, null=True)
 
     kategorie = models.CharField(choices=enums.fahrzeuge_enum, max_length=2, default=enums.fahrzeuge_enum[0][0])
@@ -379,7 +379,7 @@ class Fahrzeug(BaseShop):
 
     @staticmethod
     def getShopDisplayFields():
-        return super(Fahrzeug, Fahrzeug).getShopDisplayFields() + ["schnelligkeit", "rüstung", "erfolge", "kategorie"]
+        return super(Fahrzeug, Fahrzeug).getShopDisplayFields() + ["geschwindigkeit", "hp", "erfolge", "kategorie"]
 
 
 class Einbaute(BaseShop):

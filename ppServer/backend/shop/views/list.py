@@ -360,11 +360,11 @@ class FahrzeugTableView(ShopTableView):
     model = Fahrzeug
     filterset_fields = {
         **shop_filter_fields,
-        "schnelligkeit": ["gte"],
-        "rüstung": ["gte"],
+        "geschwindigkeit": ["gte"],
+        "hp": ["gte"],
         "erfolge": ["lte"],
     }
-    table_fields = ("icon", "name", "beschreibung", "ab_stufe", "schnelligkeit", "rüstung", "erfolge", "preis")
+    table_fields = ("icon", "name", "beschreibung", "ab_stufe", "geschwindigkeit", "hp", "erfolge", "preis")
 
 
 class EinbauteTableView(ShopTableView):
