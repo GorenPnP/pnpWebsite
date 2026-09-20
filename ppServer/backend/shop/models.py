@@ -1,9 +1,8 @@
 import math
 
-from django.shortcuts import get_object_or_404
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
-from django.db.models import Count, Q
+from django.db.models import Count, Q, QuerySet
 
 from django_resized import ResizedImageField
 
@@ -82,6 +81,87 @@ class Firma(models.Model):
 
     def __str__(self):
         return "{}".format(self.name)
+
+
+############################################
+
+class Tag(models.Model):
+    class Meta:
+        ordering = ['name']
+        verbose_name = "Tag"
+        verbose_name_plural = "Tags"
+
+    icon = ResizedImageField(size=[64, 64], null=True, blank=True)
+    name = models.CharField(max_length=32, unique=True)
+
+    def __str__(self):
+        return self.name
+
+class Slot(models.Model):
+    class Meta:
+        abstract = True
+        ordering = ['item', 'tag']
+        verbose_name = "Slot"
+        verbose_name_plural = "Slots"
+
+    tag = models.ForeignKey(Tag, on_delete=models.CASCADE)
+    num = models.PositiveSmallIntegerField(validators=[MinValueValidator(1)], default=1)
+
+    class PreloadManager(models.Manager):
+        def get_queryset(self) -> QuerySet:
+            """ adds 'tag' field """
+            return super().get_queryset().prefetch_related("tag", "item")
+    objects = PreloadManager()
+
+    def __str__(self):
+        return f'{self.item} hat {self.num}x {self.tag.name} Slots'
+
+
+class SlotNahkampfwaffe(Slot):
+    item = models.ForeignKey("Nahkampfwaffe", on_delete=models.CASCADE)
+
+class SlotFernkampfwaffe(Slot):
+    item = models.ForeignKey("Fernkampfwaffe", on_delete=models.CASCADE)
+
+class SlotRitual_Rune(Slot):
+    item = models.ForeignKey("Ritual_Rune", on_delete=models.CASCADE)
+
+class SlotEinbaute(Slot):
+    item = models.ForeignKey("Einbaute", on_delete=models.CASCADE)
+
+class SlotZauber(Slot):
+    item = models.ForeignKey("Zauber", on_delete=models.CASCADE)
+
+class SlotBegleiter(Slot):
+    item = models.ForeignKey("Begleiter", on_delete=models.CASCADE)
+
+
+class Upgrade(models.Model):
+
+    class Meta:
+        ordering = ['tag', 'name', 'ab_stufe', 'price']
+        verbose_name = "Upgrade"
+        verbose_name_plural = "Upgrades"
+
+    # properties
+    name = models.CharField(max_length=32)
+    beschreibung = models.TextField(default='')
+    tag = models.ForeignKey(Tag, on_delete=models.SET_NULL, null=True)
+
+    # requirements to get
+    ab_stufe = models.PositiveSmallIntegerField(default=0)
+    price = models.IntegerField(default=0)
+    achievement_unlock = models.BooleanField(default=False, verbose_name="nur manuell von SL nach Achievement freischaltbar")
+
+    class PreloadTagManager(models.Manager):
+        def get_queryset(self) -> QuerySet:
+            """ adds 'tag' field """
+            return super().get_queryset().prefetch_related("tag")
+    objects = PreloadTagManager()
+
+    def __str__(self):
+        return "{} #{}".format(self.name, self.tag.name)
+
 
 
 ############# FirmaShop #####################
@@ -231,6 +311,9 @@ class Nahkampfwaffe(BaseShop):
     händigkeit = models.CharField(max_length=1, choices=enums.hand_enum, default='1')
     fertigkeit = models.ForeignKey('character.Fertigkeit', on_delete=models.SET_NULL, null=True, blank=True)
 
+    slots = models.ManyToManyField(Tag, through=SlotNahkampfwaffe)
+    possible_upgrades = models.ManyToManyField(Upgrade)
+
     kategorie = models.CharField(choices=enums.nahkampfwaffe_enum, max_length=2, default=enums.nahkampfwaffe_enum[0][0])
     firmen = models.ManyToManyField('Firma', through='FirmaNahkampfwaffe', blank=True)
 
@@ -282,6 +365,9 @@ class Fernkampfwaffe(BaseShop):
 
     munition = models.ManyToManyField(Munition, blank=True)
 
+    slots = models.ManyToManyField(Tag, through=SlotFernkampfwaffe)
+    possible_upgrades = models.ManyToManyField(Upgrade)
+
     fertigkeit = models.ForeignKey('character.Fertigkeit', on_delete=models.SET_NULL, null=True, blank=True)
     kategorie = models.CharField(choices=enums.fernkampfwaffe_enum, max_length=1, default=enums.fernkampfwaffe_enum[0][0])
     firmen = models.ManyToManyField('Firma', through='FirmaFernkampfwaffe', blank=True)
@@ -317,6 +403,9 @@ class Ritual_Rune(BaseShop):
     wirkbereich = models.TextField(default='')
 
     manaverbrauch = models.CharField(max_length=100, default='', null=True, blank=True)
+
+    slots = models.ManyToManyField(Tag, through=SlotRitual_Rune)
+    possible_upgrades = models.ManyToManyField(Upgrade)
 
     kategorie = models.CharField(choices=enums.ritual_enum, max_length=2, default=enums.ritual_enum[0][0])
     firmen = models.ManyToManyField('Firma', through='FirmaRitual_Rune', blank=True)
@@ -390,6 +479,10 @@ class Einbaute(BaseShop):
         ordering = ['name']
 
     manifestverlust = models.CharField(max_length=20, null=True, blank=True)
+
+    slots = models.ManyToManyField(Tag, through=SlotEinbaute)
+    possible_upgrades = models.ManyToManyField(Upgrade)
+
     kategorie = models.CharField(choices=enums.einbaute_enum, max_length=2, default=enums.einbaute_enum[0][0])
     firmen = models.ManyToManyField('Firma', through='FirmaEinbaute', blank=True)
 
@@ -413,6 +506,9 @@ class Zauber(BaseShop):
     schadensart = models.CharField(max_length=1, choices=enums.schadensart_enum, null=True, blank=True)
     wirkbereich = models.TextField(default='')
     wirkdauer = models.TextField(default='')
+
+    slots = models.ManyToManyField(Tag, through=SlotZauber)
+    possible_upgrades = models.ManyToManyField(Upgrade)
 
     kategorie = models.CharField(choices=enums.zauber_enum, max_length=2, null=True, blank=True)
     firmen = models.ManyToManyField('Firma', through='FirmaZauber', blank=True)
@@ -479,6 +575,9 @@ class Begleiter(BaseShop):
     astrale_reaktion = models.CharField(max_length=64, default='')
     astraler_widerstand = models.CharField(max_length=64, default='')
     physischer_widerstand = models.CharField(max_length=64, default='')
+
+    slots = models.ManyToManyField(Tag, through=SlotBegleiter)
+    possible_upgrades = models.ManyToManyField(Upgrade)
 
     firmen = models.ManyToManyField('Firma', through='FirmaBegleiter', blank=True)
 

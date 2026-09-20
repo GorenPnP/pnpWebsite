@@ -23,7 +23,7 @@ from ppServer.utils import ConcatSubquery, display_value
 
 from ..models import *
 
-shopmodel_list = [m for m in apps.get_app_config("shop").get_models() if not m._meta.abstract and m._meta.model_name not in ["modifier", "shopcategory"] and not m._meta.model_name.startswith("firma")]
+shopmodel_list = [m for m in apps.get_app_config("shop").get_models() if not m._meta.abstract and m._meta.model_name not in ["modifier", "shopcategory", "tag", "upgrade"] and not m._meta.model_name.startswith("firma") and not m._meta.model_name.startswith("slot")]
 
 def annotate_price(Model: models.Model) -> dict[str, any]:
     

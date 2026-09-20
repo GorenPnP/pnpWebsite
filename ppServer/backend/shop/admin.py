@@ -12,74 +12,101 @@ from ppServer.utils import ConcatSubquery
 
 from .models import *
 
+class InLine(admin.TabularInline):
+    extra = 1
 
-class SchussMunitionInLine(admin.TabularInline):
+
+############### F-Waffe -> Munition #################
+
+class SchussMunitionInLine(InLine):
     model = Fernkampfwaffe.munition.through
-    extra = 1
 
 
-############# FirmaShop ##################
-class FirmaShopInLine(admin.TabularInline):
-    extra = 1
+##################### Slots #########################
+
+class SlotNahkampfwaffeInLine(InLine):
+    model=Nahkampfwaffe.slots.through
+
+class SlotFernkampfwaffeInLine(InLine):
+    model=Fernkampfwaffe.slots.through
+
+class SlotRitual_RuneInLine(InLine):
+    model=Ritual_Rune.slots.through
+
+class SlotEinbauteInLine(InLine):
+    model=Einbaute.slots.through
+class SlotZauberInLine(InLine):
+    model=Zauber.slots.through
+
+class SlotBegleiterInLine(InLine):
+    model=Begleiter.slots.through
 
 
-class FirmaItemInLine(FirmaShopInLine):
+class UpgradeNahkampfwaffeInLine(InLine):
+    model=Nahkampfwaffe.possible_upgrades.through
+
+class UpgradeFernkampfwaffeInLine(InLine):
+    model=Fernkampfwaffe.possible_upgrades.through
+
+class UpgradeRitual_RuneInLine(InLine):
+    model=Ritual_Rune.possible_upgrades.through
+
+class UpgradeEinbauteInLine(InLine):
+    model=Einbaute.possible_upgrades.through
+class UpgradeZauberInLine(InLine):
+    model=Zauber.possible_upgrades.through
+
+class UpgradeBegleiterInLine(InLine):
+    model=Begleiter.possible_upgrades.through
+
+
+
+################### FirmaShops ######################
+
+class FirmaItemInLine(InLine):
     model = FirmaItem
 
-
-class FirmaNahkampfwaffeInLine(FirmaShopInLine):
+class FirmaNahkampfwaffeInLine(InLine):
     model = FirmaNahkampfwaffe
 
-
-class FirmaMunitionInLine(FirmaShopInLine):
+class FirmaMunitionInLine(InLine):
     model = FirmaMunition
 
-
-class FirmaFernkampfwaffeInLine(FirmaShopInLine):
+class FirmaFernkampfwaffeInLine(InLine):
     model = FirmaFernkampfwaffe
 
-
-class FirmaMagische_AusrüstungInLine(FirmaShopInLine):
+class FirmaMagische_AusrüstungInLine(InLine):
     model = FirmaMagische_Ausrüstung
 
-
-class FirmaRitual_RuneInLine(FirmaShopInLine):
+class FirmaRitual_RuneInLine(InLine):
     model = FirmaRitual_Rune
 
-
-class FirmaRüstungInLine(FirmaShopInLine):
+class FirmaRüstungInLine(InLine):
     model = FirmaRüstung
 
-
-class FirmaAusrüstung_TechnikInLine(FirmaShopInLine):
+class FirmaAusrüstung_TechnikInLine(InLine):
     model = FirmaAusrüstung_Technik
 
-
-class FirmaFahrzeugInLine(FirmaShopInLine):
+class FirmaFahrzeugInLine(InLine):
     model = FirmaFahrzeug
 
-
-class FirmaEinbauteInLine(FirmaShopInLine):
+class FirmaEinbauteInLine(InLine):
     model = FirmaEinbaute
 
-
-class FirmaZauberInLine(FirmaShopInLine):
+class FirmaZauberInLine(InLine):
     model = FirmaZauber
 
-
-class FirmaAlchemieInLine(FirmaShopInLine):
+class FirmaAlchemieInLine(InLine):
     model = FirmaAlchemie
 
-class FirmaBegleiterInLine(FirmaShopInLine):
+class FirmaBegleiterInLine(InLine):
     model = FirmaBegleiter
 
-
-class FirmaEngelsroboterInLine(FirmaShopInLine):
+class FirmaEngelsroboterInLine(InLine):
     model = FirmaEngelsroboter
 
 
-
-######### BaseAdmin ##################
+################# BaseAdmin #########################
 class BaseAdmin(admin.ModelAdmin):
     search_fields = ['name', "beschreibung__contains"]
     list_editable = ["has_implementation"]
@@ -110,7 +137,7 @@ class BaseAdmin(admin.ModelAdmin):
         return [field.name for field in self.opts.local_fields if field.name != "icon"]
 
 
-########### ShopAdmin ###############
+################### ShopAdmin #######################
 
 class ItemAdmin(BaseAdmin):
     change_list_template = "shop/admin/change_list_itemtransfer.html"
@@ -129,12 +156,11 @@ class NahkampfwaffeAdmin(BaseAdmin):
     shop_model = Nahkampfwaffe
     firma_shop_model = FirmaNahkampfwaffe
 
-    list_display = ('name', 'beschreibung', "ab_stufe", "reichweite", "wirkbereich", "händigkeit", "fertigkeit", "schaden", 'bs', 'zs', 'dk', 'schadensart', 'billigste',
-                    'kategorie', 'info', "has_implementation")
+    list_display = ('name', 'beschreibung', "ab_stufe", "reichweite", "wirkbereich", "händigkeit", "fertigkeit", "schaden", 'bs', 'zs', 'dk', 'schadensart', 'billigste', 'kategorie', 'info', "has_implementation")
     # list_filter = ['kategorie', 'bs', 'zs', 'dk', 'schadensart', 'händigkeit', "frei_editierbar"]
     list_editable = ["schaden", "reichweite", "wirkbereich", "händigkeit", "fertigkeit", 'kategorie']
 
-    inlines = [FirmaNahkampfwaffeInLine]
+    inlines = [SlotNahkampfwaffeInLine, UpgradeNahkampfwaffeInLine, FirmaNahkampfwaffeInLine]
 
 
 class MunitionAdmin(BaseAdmin):
@@ -160,7 +186,7 @@ class FernkampfwaffeAdmin(BaseAdmin):
     # list_filter = ['kategorie', 'bs', 'zs', 'schaden', 'dk', 'präzision', 'schadensart', 'fertigkeit__titel', "frei_editierbar"]
     list_editable = ['schaden', 'feuerrate', "reichweite", "wirkbereich", "händigkeit",]
 
-    inlines = [SchussMunitionInLine, FirmaFernkampfwaffeInLine]
+    inlines = [SchussMunitionInLine, SlotFernkampfwaffeInLine, UpgradeFernkampfwaffeInLine, FirmaFernkampfwaffeInLine]
 
 
 class Magische_AusrüstungAdmin(BaseAdmin):
@@ -183,7 +209,7 @@ class Ritual_RuneAdmin(BaseAdmin):
     # list_filter = ['kategorie', "frei_editierbar"]
     list_editable = ("has_implementation",)
 
-    inlines = [FirmaRitual_RuneInLine]
+    inlines = [SlotRitual_RuneInLine, UpgradeRitual_RuneInLine, FirmaRitual_RuneInLine]
 
 
 class RüstungAdmin(BaseAdmin):
@@ -233,7 +259,7 @@ class EinbauteAdmin(BaseAdmin):
                     'kategorie', 'info', "has_implementation")
     # list_filter = ['kategorie', 'manifestverlust', "frei_editierbar"]
 
-    inlines = [FirmaEinbauteInLine]
+    inlines = [SlotEinbauteInLine, UpgradeEinbauteInLine, FirmaEinbauteInLine]
 
 
 class ZauberAdmin(BaseAdmin):
@@ -246,7 +272,7 @@ class ZauberAdmin(BaseAdmin):
     # list_filter = ['kategorie', 'astralschaden', 'manaverbrauch', "verteidigung", 'schadensart', "frei_editierbar"]
     list_editable = ["schaden", "wirkbereich", "wirkdauer"]
 
-    inlines = [FirmaZauberInLine]
+    inlines = [SlotZauberInLine, UpgradeZauberInLine, FirmaZauberInLine]
 
 
 class AlchemieAdmin(BaseAdmin):
@@ -297,7 +323,7 @@ class BegleiterAdmin(BaseAdmin):
     # list_filter = ["frei_editierbar"]
     list_editable = ["hp", "physische_reaktion", "astrale_reaktion", "astraler_widerstand", "physischer_widerstand"]
 
-    inlines = [FirmaBegleiterInLine]
+    inlines = [SlotBegleiterInLine, UpgradeBegleiterInLine, FirmaBegleiterInLine]
 
 
 class EngelsroboterAdmin(BaseAdmin):
@@ -312,6 +338,7 @@ class EngelsroboterAdmin(BaseAdmin):
     inlines = [FirmaEngelsroboterInLine]
 
 
+################### Modifier ########################
 
 class FirmaAdmin(admin.ModelAdmin):
     list_display = ('name', 'beschreibung')
@@ -349,6 +376,7 @@ class ModifierAdmin(admin.ModelAdmin):
             firmennames = ConcatSubquery(Firma.objects.filter(modifier=OuterRef("id")).values("name"), ", "),
         )
 
+
 admin.site.register(Item, ItemAdmin)
 admin.site.register(Nahkampfwaffe, NahkampfwaffeAdmin)
 admin.site.register(Munition, MunitionAdmin)
@@ -367,3 +395,5 @@ admin.site.register(Engelsroboter, EngelsroboterAdmin)
 
 admin.site.register(Firma, FirmaAdmin)
 admin.site.register(Modifier, ModifierAdmin)
+admin.site.register(Tag)
+admin.site.register(Upgrade)
