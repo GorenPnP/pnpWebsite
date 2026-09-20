@@ -101,7 +101,7 @@ def transfer_items(request):
 def index(request):
     return render(request, "shop/index.html", {
         "topic": "Shop",
-        "links": [{"link": reverse(f'shop:{m._meta.model_name}_list'), "text": m._meta.verbose_name_plural} for m in shopmodel_list],
+        "links": [{"link": reverse(f'shop:{m._meta.model_name}_list'), "text": m._meta.verbose_name_plural} for m in shopmodel_list if m._meta.model_name != "tinker"],
     })
 
 

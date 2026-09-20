@@ -173,7 +173,7 @@ class FullShopTableView(VerifiedAccountMixin, ExportMixin, SingleTableMixin, Tem
             topic="ganzer Shop",
             app_index="Shop",
             app_index_url=reverse("shop:index"),
-            model_choices=[('', '--------'), *[(Model._meta.model_name, Model._meta.verbose_name) for Model in shopmodel_list]], # for filter of "art"
+            model_choices=[('', '--------'), *[(Model._meta.model_name, Model._meta.verbose_name) for Model in shopmodel_list if Model._meta.model_name != "tinker"]], # for filter of "art"
         )
 
     def get_table_data(self):
@@ -195,6 +195,7 @@ class FullShopTableView(VerifiedAccountMixin, ExportMixin, SingleTableMixin, Tem
         # get filtered objects
         objects = []
         for Model in shopmodel_list:
+            if Model._meta.model_name == "tinker": continue
 
             # construct base queryset without frei_editierbare instances, apply user-filters and return objects as dicts in list
             objects += Model.objects\
