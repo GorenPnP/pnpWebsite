@@ -752,7 +752,6 @@ class ShowView(VerifiedAccountMixin, DetailView):
                         "source_shopBegleiter__char", "source_shopBegleiter__item",
                         "source_shopMagischeAusrüstung__char", "source_shopMagischeAusrüstung__item",
                         "source_shopRüstung__char", "source_shopRüstung__item",
-                        "source_shopAusrüstungTechnik__char", "source_shopAusrüstungTechnik__item",
                         "source_shopEinbaute__char", "source_shopEinbaute__item",
                     )\
                     .annotate(

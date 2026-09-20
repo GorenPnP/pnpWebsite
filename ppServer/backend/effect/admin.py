@@ -21,7 +21,6 @@ class EffectAdmin(admin.ModelAdmin):
         "source_shopBegleiter__name",
         "source_shopMagischeAusrüstung__name",
         "source_shopRüstung__name",
-        "source_shopAusrüstungTechnik__name",
         "source_shopEinbaute__name",
     ]
 

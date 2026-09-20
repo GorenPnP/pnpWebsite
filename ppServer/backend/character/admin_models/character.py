@@ -147,7 +147,7 @@ class RelEffectInLine(RelInlineAdmin):
     fields = [
         "wertaenderung", "wertaenderung_str", "target_fieldname", "target_attribut", "target_fertigkeit", "source_vorteil", "source_nachteil",
         "source_talent", "source_gfsAbility", "source_klasse", "source_klasseAbility", "source_shopBegleiter",
-        "source_shopMagischeAusrüstung", "source_shopRüstung", "source_shopAusrüstungTechnik", "source_shopEinbaute", "is_active"
+        "source_shopMagischeAusrüstung", "source_shopRüstung", "source_shopEinbaute", "is_active"
     ]
     extra = 0
 
@@ -163,7 +163,7 @@ class RelEffectInLine(RelInlineAdmin):
             "source_gfsAbility__ability", "source_gfsAbility__char__eigentümer",
             "source_klasse__klasse", "source_klasse__char__eigentümer",
             "source_klasseAbility__ability", "source_klasseAbility__char",
-            "source_shopBegleiter__item", "source_shopMagischeAusrüstung__item", "source_shopRüstung__item", "source_shopAusrüstungTechnik__item", "source_shopEinbaute__item"
+            "source_shopBegleiter__item", "source_shopMagischeAusrüstung__item", "source_shopRüstung__item", "source_shopEinbaute__item"
         )
         return qs.filter(target_char__id=related_char_id) if related_char_id else qs
 
