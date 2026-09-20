@@ -88,11 +88,7 @@ class BaseAdmin(admin.ModelAdmin):
         return f"{self.firma_shop_model._meta.model_name}_set"
 
     def info(self, obj):
-        res = []
-        if obj.illegal: res.append("illegal")
-        if obj.lizenz_benötigt: res.append("Lizenz benötigt")
-        if obj.frei_editierbar: res.append("frei editierbar")
-        return ", ".join(res) or self.get_empty_value_display()
+        return "frei editierbar" if obj.frei_editierbar else self.get_empty_value_display()
 
     def billigste(self, obj):
         return obj.cheapest()
@@ -123,7 +119,7 @@ class ItemAdmin(BaseAdmin):
     firma_shop_model = FirmaItem
 
     list_display = ('name', 'beschreibung', "ab_stufe", 'billigste', 'kategorie', 'info', "has_implementation")
-    list_filter = ['kategorie', 'illegal', 'lizenz_benötigt', "frei_editierbar"
+    list_filter = ['kategorie', "frei_editierbar"
                    ]
 
     inlines = [FirmaItemInLine]
@@ -136,7 +132,7 @@ class Waffe_WerkzeugAdmin(BaseAdmin):
 
     list_display = ('name', 'beschreibung', "ab_stufe", 'erfolge', 'bs', 'zs', 'dk', 'schadensart', 'billigste',
                     'kategorie', 'info', "has_implementation")
-    list_filter = ['kategorie', 'erfolge', 'bs', 'zs', 'dk', 'schadensart', 'illegal', 'lizenz_benötigt', "frei_editierbar"]
+    list_filter = ['kategorie', 'erfolge', 'bs', 'zs', 'dk', 'schadensart', "frei_editierbar"]
     list_editable = ['schadensart']
 
     inlines = [FirmaWaffe_WerkzeugInLine]
@@ -148,7 +144,7 @@ class MunitionAdmin(BaseAdmin):
     firma_shop_model = FirmaMunition
 
     list_display = ('name', 'beschreibung', "ab_stufe", 'schuss', 'bs', 'zs', 'schadensart', 'billigste', 'info', "has_implementation")
-    list_filter = ['schuss', 'illegal', 'lizenz_benötigt', "frei_editierbar"]
+    list_filter = ['schuss', "frei_editierbar"]
 
     inlines = [FirmaMunitionInLine]
 
@@ -161,7 +157,7 @@ class FernkampfwaffeAdmin(BaseAdmin):
     exclude = ['munition', 'st_munition']
     list_display = ('name', 'beschreibung', "ab_stufe", 'erfolge', 'bs', 'zs', 'dk', 'präzision', 'schadensart', 'billigste',
                     'kategorie', 'fertigkeit', 'info', "has_implementation")
-    list_filter = ['kategorie', 'erfolge', 'bs', 'zs', 'dk', 'präzision', 'schadensart', 'fertigkeit__titel', 'illegal', 'lizenz_benötigt', "frei_editierbar"]
+    list_filter = ['kategorie', 'erfolge', 'bs', 'zs', 'dk', 'präzision', 'schadensart', 'fertigkeit__titel', "frei_editierbar"]
     list_editable = ['schadensart', 'kategorie', 'fertigkeit']
 
     inlines = [SchussMunitionInLine, FirmaFernkampfwaffeInLine]
@@ -173,7 +169,7 @@ class Magische_AusrüstungAdmin(BaseAdmin):
     firma_shop_model = FirmaMagische_Ausrüstung
 
     list_display = ('name', 'beschreibung', "ab_stufe", 'billigste', 'kategorie', 'info', "has_implementation")
-    list_filter = ['kategorie', 'illegal', 'lizenz_benötigt', "frei_editierbar"]
+    list_filter = ['kategorie', "frei_editierbar"]
 
     inlines = [FirmaMagische_AusrüstungInLine]
 
@@ -185,18 +181,14 @@ class Ritual_RuneAdmin(admin.ModelAdmin):
 
     list_display = ('name', 'beschreibung', "ab_stufe", 'billigste',
                      'kategorie', 'info', "has_implementation")
-    list_filter = ['kategorie', 'illegal', 'lizenz_benötigt', "frei_editierbar"]
+    list_filter = ['kategorie', "frei_editierbar"]
     list_editable = ("has_implementation",)
     search_fields = ["name", "beschreibung__contains"]
 
     inlines = [FirmaRitual_RuneInLine]
 
     def info(self, obj):
-        res = []
-        if obj.illegal: res.append("illegal")
-        if obj.lizenz_benötigt: res.append("Lizenz benötigt")
-        if obj.frei_editierbar: res.append("frei editierbar")
-        return ", ".join(res) or self.get_empty_value_display()
+        return "frei editierbar" if obj.frei_editierbar else self.get_empty_value_display()
     
     def billigste(self, obj):
         return obj.cheapest()
@@ -221,7 +213,7 @@ class RüstungAdmin(BaseAdmin):
 
     list_display = ('name', 'beschreibung', "ab_stufe", 'schutz', 'haltbarkeit', 'billigste',
                     'info', "has_implementation")
-    list_filter = ['schutz', 'haltbarkeit', 'illegal', 'lizenz_benötigt', "frei_editierbar"]
+    list_filter = ['schutz', 'haltbarkeit', "frei_editierbar"]
 
     inlines = [FirmaRüstungInLine]
 
@@ -233,7 +225,7 @@ class Ausrüstung_TechnikAdmin(BaseAdmin):
 
     list_display = ('name', 'beschreibung', "ab_stufe", 'manifestverlust', 'kategorie', 'billigste',
                     'info', "has_implementation")
-    list_filter = ['kategorie', 'manifestverlust', 'illegal', 'lizenz_benötigt', "frei_editierbar"]
+    list_filter = ['kategorie', 'manifestverlust', "frei_editierbar"]
 
     inlines = [FirmaAusrüstung_TechnikInLine]
 
@@ -245,7 +237,7 @@ class FahrzeugAdmin(BaseAdmin):
 
     list_display = ('name', 'beschreibung', "ab_stufe", 'schnelligkeit', 'rüstung', 'erfolge',
                     'billigste', 'kategorie', 'info', "has_implementation")
-    list_filter = ['kategorie', 'schnelligkeit', 'rüstung', 'erfolge', 'illegal', 'lizenz_benötigt', "frei_editierbar"]
+    list_filter = ['kategorie', 'schnelligkeit', 'rüstung', 'erfolge', "frei_editierbar"]
 
     inlines = [FirmaFahrzeugInLine]
 
@@ -258,8 +250,7 @@ class EinbauteAdmin(BaseAdmin):
     list_display = ('name', 'beschreibung', "ab_stufe", #'manifestverlust',
      'billigste',
                     'kategorie', 'info', "has_implementation")
-    list_filter = ['kategorie', #'manifestverlust',
-    'illegal', 'lizenz_benötigt', "frei_editierbar"]
+    list_filter = ['kategorie', 'manifestverlust', "frei_editierbar"]
 
     inlines = [FirmaEinbauteInLine]
 
@@ -271,7 +262,7 @@ class ZauberAdmin(BaseAdmin):
 
     list_display = ('name', 'beschreibung', "ab_stufe", 'astralschaden', 'manaverbrauch', "verteidigung", 'schadensart', 'billigste',
                     'kategorie', 'info', "has_implementation")
-    list_filter = ['kategorie', 'astralschaden', 'manaverbrauch', "verteidigung", 'schadensart', 'illegal', 'lizenz_benötigt', "frei_editierbar"]
+    list_filter = ['kategorie', 'astralschaden', 'manaverbrauch', "verteidigung", 'schadensart', "frei_editierbar"]
 
     list_editable = ["verteidigung", "has_implementation", 'schadensart']
 
@@ -284,7 +275,7 @@ class AlchemieAdmin(BaseAdmin):
     firma_shop_model = FirmaAlchemie
 
     list_display = ('name', 'beschreibung', "ab_stufe", 'billigste', 'kategorie', 'info', "has_implementation")
-    list_filter = ['kategorie', 'illegal', 'lizenz_benötigt', "frei_editierbar"]
+    list_filter = ['kategorie', "frei_editierbar"]
 
     inlines = [FirmaAlchemieInLine]
 
@@ -296,10 +287,10 @@ class TinkerAdmin(BaseAdmin):
 
     list_display = ('icon_', 'name', 'beschreibung', "profitable_flip", "wooble_buy_price", "wooble_sell_price", "werte", "ab_stufe", 'billigste', 'kategorie', 'info', "has_implementation", "has_implementation", "minecraft_mod_id")
     list_display_links = ('icon_', 'name')
-    list_filter = ['kategorie', 'illegal', 'lizenz_benötigt', "frei_editierbar"]
+    list_filter = ['kategorie', "frei_editierbar"]
     list_editable = BaseAdmin.list_editable + ["wooble_buy_price", "wooble_sell_price"]
 
-    fields = ['icon', 'name', 'beschreibung', 'ab_stufe', 'illegal', 'lizenz_benötigt', 'frei_editierbar', 'werte', 'kategorie', "wooble_buy_price", "wooble_sell_price"]
+    fields = ['icon', 'name', 'beschreibung', 'ab_stufe', 'frei_editierbar', 'werte', 'kategorie', "wooble_buy_price", "wooble_sell_price"]
 
 
     def get_queryset(self, request):
@@ -323,7 +314,7 @@ class BegleiterAdmin(BaseAdmin):
     firma_shop_model = FirmaBegleiter
 
     list_display = ('name', 'beschreibung', "ab_stufe", 'billigste', 'info', "has_implementation")
-    list_filter = ['illegal', 'lizenz_benötigt', "frei_editierbar"]
+    list_filter = ["frei_editierbar"]
 
     inlines = [FirmaBegleiterInLine]
 
@@ -334,7 +325,7 @@ class EngelsroboterAdmin(BaseAdmin):
     firma_shop_model = FirmaEngelsroboter
 
     list_display = ('name', 'beschreibung', "ab_stufe", 'ST', 'UM', 'MA', 'IN', 'billigste', 'info', "has_implementation")
-    list_filter = ['illegal', 'lizenz_benötigt', "frei_editierbar"]
+    list_filter = ["frei_editierbar"]
 
     inlines = [FirmaEngelsroboterInLine]
 

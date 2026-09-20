@@ -85,12 +85,6 @@ def handle_overlay(json_dict: dict, item_qs: QuerySet[Tinker], profil:Profile) -
 			.annotate(product_num = Subquery(Product.objects.filter(item=item, recipe=OuterRef("pk")).values_list("num", flat=True)[:1]))\
 			.first()
 
-		weiteres = "illegal" if item.illegal else ""
-		if item.lizenz_benötigt and not weiteres:
-				weiteres = "Lizenz benötigt"
-		if item.lizenz_benötigt and item.illegal:
-				weiteres += ", Lizenz benötigt"
-
 		data = {
 			"id": item.id,
 			"link": f'{reverse("shop:tinker_list")}?name__icontains={item.name.replace(" ", "+")}',
@@ -100,7 +94,7 @@ def handle_overlay(json_dict: dict, item_qs: QuerySet[Tinker], profil:Profile) -
 			"icon": item.getIconUrl(),
 			"description": item.beschreibung,
 			"values": item.werte,
-			"other": weiteres,
+			"other": '',
 			"duration": "",
 			"spezial": [],
 			"wissen": [],

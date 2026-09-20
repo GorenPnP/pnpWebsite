@@ -20,7 +20,6 @@ function openDetails(id) {
 		document.querySelector("#overlay__description").innerText = data.description || "-"
 
 		var values = data.values
-		if (data.other) values = values ? [values, data.other].join(", ") : data.other
 		document.querySelector("#overlay__values").innerText = values || "-"
 
 		document.querySelector("#overlay__stufe").innerText = data.ab_stufe || 0

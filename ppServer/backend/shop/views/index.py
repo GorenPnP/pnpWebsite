@@ -55,7 +55,7 @@ def transfer_items(request):
         if not form.is_valid():
             messages.error(request, "Transfer konnte nicht durchgeführt werden")
         else:
-            fields = ("name", "beschreibung", "icon", "ab_stufe", "illegal", "lizenz_benötigt", "frei_editierbar", "stufenabhängig")
+            fields = ("name", "beschreibung", "icon", "ab_stufe", "frei_editierbar", "stufenabhängig")
 
             if form.cleaned_data["aktion"] == "Alchemie":
                 Model = Alchemie
@@ -132,11 +132,9 @@ def propose_item(request, model: Model):
         "beschreibung",
         Div(
             Field('ab_stufe', wrapper_class='col-12 col-sm-3'),
-            Field('illegal', wrapper_class='col-12 col-sm-3'),
-            Field('lizenz_benötigt', wrapper_class='col-12 col-sm-3'),
             Field('stufenabhängig', wrapper_class='col-12 col-sm-3'),
         css_class='row align-items-center'),
-        *[field for field in form.fields.keys() if field not in ["icon", "name", "beschreibung", "illegal", "lizenz_benötigt", "stufenabhängig", "ab_stufe"]],
+        *[field for field in form.fields.keys() if field not in ["icon", "name", "beschreibung", "stufenabhängig", "ab_stufe"]],
         Submit("submit", "Item vorschlagen"),
         Button("", "Zurück", css_class="btn btn-outline-light ms-3", onclick="history.back()")
     )

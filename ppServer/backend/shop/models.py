@@ -200,8 +200,6 @@ class BaseShop(models.Model):
     icon = ResizedImageField(size=[64, 64], null=True, blank=True)
 
     ab_stufe = models.IntegerField(default=0, validators=[MinValueValidator(0)], blank=True)
-    illegal = models.BooleanField(default=False)
-    lizenz_benötigt = models.BooleanField(default=False)
 
     frei_editierbar = models.BooleanField(default=True)
     stufenabhängig = models.BooleanField(default=False)
@@ -224,7 +222,6 @@ class BaseShop(models.Model):
     def getShopDisplayFields():
         return [
             "name", "beschreibung", "icon", "ab_stufe", "preis",    # preis needs to be added separately by firmen->preis/stufe_1
-            "illegal", "lizenz_benötigt",
         ]
 
 
