@@ -263,7 +263,7 @@ class Nahkampfwaffe(BaseShop):
 
     @staticmethod
     def getShopDisplayFields():
-        return super(Nahkampfwaffe, Nahkampfwaffe).getShopDisplayFields() + ["bs", "zs", "dk", "schadensart", "reichweite", "wirkbereich", "händigkeit", "fertigkeit", "kategorie"]
+        return super(Nahkampfwaffe, Nahkampfwaffe).getShopDisplayFields() + ["bs", "zs", "dk", "schadensart", "fertigkeit", "kategorie"]
 
 
 class Munition(BaseShop):
@@ -295,15 +295,19 @@ class Fernkampfwaffe(BaseShop):
 
         ordering = ['name']
 
-    erfolge = models.PositiveIntegerField(default=0)
     bs = models.CharField(max_length=20, default='')
     zs = models.CharField(max_length=20, default='')
+    schaden = models.CharField(max_length=64, default=0)
     schadensart = models.CharField(max_length=1, choices=enums.schadensart_enum, null=True, blank=True)
-
-    munition = models.ManyToManyField(Munition, blank=True)
 
     dk = models.PositiveIntegerField(default=0, blank=True)
     präzision = models.PositiveIntegerField(default=0, blank=True)
+    feuerrate = models.CharField(max_length=1, choices=enums.feuerrate_enum, default=enums.feuerrate_enum[2][0])
+    reichweite = models.FloatField(default=0.0, verbose_name="Reichweite in m")
+    wirkbereich = models.TextField(default='')
+    händigkeit = models.CharField(max_length=1, choices=enums.hand_enum, default='1')
+
+    munition = models.ManyToManyField(Munition, blank=True)
 
     fertigkeit = models.ForeignKey('character.Fertigkeit', on_delete=models.SET_NULL, null=True, blank=True)
     kategorie = models.CharField(choices=enums.fernkampfwaffe_enum, max_length=1, default=enums.fernkampfwaffe_enum[0][0])
@@ -311,8 +315,7 @@ class Fernkampfwaffe(BaseShop):
 
     @staticmethod
     def getShopDisplayFields():
-        return super(Fernkampfwaffe, Fernkampfwaffe).getShopDisplayFields() + ["fertigkeit", "erfolge", "bs", "zs", "dk", "präzision", "schadensart", "kategorie",
-        "munition"]
+        return super(Fernkampfwaffe, Fernkampfwaffe).getShopDisplayFields() + ["fertigkeit", "bs", "zs", "dk", "präzision", "schadensart", "kategorie", "munition"]
 
 
 class Magische_Ausrüstung(BaseShop):

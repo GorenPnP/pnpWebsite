@@ -687,9 +687,6 @@ class ShowView(VerifiedAccountMixin, DetailView):
         class WaffenTable(ShowView.ItemTable):
             class Meta(ShowView.ItemTable.Meta): pass
 
-            def render_item__zs(self, value, record):
-                return f"{value} (ab {record.item.erfolge})"
-
         table_fields = OrderedDict(
             anz = tables.Column(),
             item__icon = tables.Column(verbose_name=""),

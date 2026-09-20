@@ -78,6 +78,14 @@ fernkampfwaffe_enum = [
     ('b', 'Bögen/Armbrüste'),
 ]
 
+feuerrate_enum = [
+    ('1', 'sehr langsam'),
+    ('2', 'langsam'),
+    ('3', 'normal'),
+    ('4', 'schnell'),
+    ('5', 'sehr schnell'),
+]
+
 
 magische_Ausrüstung_enum = [
     ('g', 'magische Grundausstattung'),

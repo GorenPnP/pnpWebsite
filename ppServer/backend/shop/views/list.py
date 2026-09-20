@@ -319,14 +319,13 @@ class FernkampfwaffeTableView(ShopTableView):
     model = Fernkampfwaffe
     filterset_fields = {
         **shop_filter_fields,
-        "erfolge": ["exact"],
         "bs": ["icontains"],
         "zs": ["icontains"],
         "dk": ["exact"],
         "präzision": ["exact"],
         "schadensart": ["exact"]
     }
-    table_fields = ("icon", "name", "beschreibung", "ab_stufe", "erfolge", "bs", "zs", "dk", "präzision", "schadensart", "preis")
+    table_fields = ("icon", "name", "beschreibung", "ab_stufe", "bs", "zs", "dk", "präzision", "schadensart", "preis")
 
 
 class MagischeAusrüstungTableView(ShopTableView):

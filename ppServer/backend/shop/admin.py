@@ -119,8 +119,7 @@ class ItemAdmin(BaseAdmin):
     firma_shop_model = FirmaItem
 
     list_display = ('name', 'beschreibung', "ab_stufe", 'billigste', 'kategorie', 'info', "has_implementation")
-    list_filter = ['kategorie', "frei_editierbar"
-                   ]
+    # list_filter = ['kategorie', "frei_editierbar"]
 
     inlines = [FirmaItemInLine]
 
@@ -132,7 +131,7 @@ class NahkampfwaffeAdmin(BaseAdmin):
 
     list_display = ('name', 'beschreibung', "ab_stufe", "reichweite", "wirkbereich", "händigkeit", "fertigkeit", "schaden", 'bs', 'zs', 'dk', 'schadensart', 'billigste',
                     'kategorie', 'info', "has_implementation")
-    list_filter = ['kategorie', 'bs', 'zs', 'dk', 'schadensart', 'händigkeit', "frei_editierbar"]
+    # list_filter = ['kategorie', 'bs', 'zs', 'dk', 'schadensart', 'händigkeit', "frei_editierbar"]
     list_editable = ["schaden", "reichweite", "wirkbereich", "händigkeit", "fertigkeit", 'kategorie']
 
     inlines = [FirmaNahkampfwaffeInLine]
@@ -144,7 +143,7 @@ class MunitionAdmin(BaseAdmin):
     firma_shop_model = FirmaMunition
 
     list_display = ('name', 'beschreibung', "ab_stufe", 'schuss', 'bs', 'zs', 'schaden', 'schadensart', 'wirkbereich', 'billigste', 'info', "has_implementation")
-    list_filter = ['schuss', "frei_editierbar"]
+    # list_filter = ['schuss', "frei_editierbar"]
     list_editable = ['schaden', 'wirkbereich']
 
     inlines = [FirmaMunitionInLine]
@@ -156,10 +155,10 @@ class FernkampfwaffeAdmin(BaseAdmin):
     firma_shop_model = FirmaFernkampfwaffe
 
     exclude = ['munition', 'st_munition']
-    list_display = ('name', 'beschreibung', "ab_stufe", 'erfolge', 'bs', 'zs', 'dk', 'präzision', 'schadensart', 'billigste',
+    list_display = ('name', 'beschreibung', "ab_stufe", 'bs', 'zs', 'schaden', 'feuerrate', "reichweite", "wirkbereich", "händigkeit", 'dk', 'präzision', 'schadensart', 'billigste',
                     'kategorie', 'fertigkeit', 'info', "has_implementation")
-    list_filter = ['kategorie', 'erfolge', 'bs', 'zs', 'dk', 'präzision', 'schadensart', 'fertigkeit__titel', "frei_editierbar"]
-    list_editable = ['schadensart', 'kategorie', 'fertigkeit']
+    # list_filter = ['kategorie', 'bs', 'zs', 'schaden', 'dk', 'präzision', 'schadensart', 'fertigkeit__titel', "frei_editierbar"]
+    list_editable = ['schaden', 'feuerrate', "reichweite", "wirkbereich", "händigkeit",]
 
     inlines = [SchussMunitionInLine, FirmaFernkampfwaffeInLine]
 
@@ -170,7 +169,7 @@ class Magische_AusrüstungAdmin(BaseAdmin):
     firma_shop_model = FirmaMagische_Ausrüstung
 
     list_display = ('name', 'beschreibung', "ab_stufe", 'billigste', 'kategorie', 'info', "has_implementation")
-    list_filter = ['kategorie', "frei_editierbar"]
+    # list_filter = ['kategorie', "frei_editierbar"]
 
     inlines = [FirmaMagische_AusrüstungInLine]
 
@@ -182,7 +181,7 @@ class Ritual_RuneAdmin(admin.ModelAdmin):
 
     list_display = ('name', 'beschreibung', "ab_stufe", 'billigste',
                      'kategorie', 'info', "has_implementation")
-    list_filter = ['kategorie', "frei_editierbar"]
+    # list_filter = ['kategorie', "frei_editierbar"]
     list_editable = ("has_implementation",)
     search_fields = ["name", "beschreibung__contains"]
 
@@ -214,7 +213,7 @@ class RüstungAdmin(BaseAdmin):
 
     list_display = ('name', 'beschreibung', "ab_stufe", 'schutz', 'haltbarkeit', 'billigste',
                     'info', "has_implementation")
-    list_filter = ['schutz', 'haltbarkeit', "frei_editierbar"]
+    # list_filter = ['schutz', 'haltbarkeit', "frei_editierbar"]
 
     inlines = [FirmaRüstungInLine]
 
@@ -226,7 +225,7 @@ class Ausrüstung_TechnikAdmin(BaseAdmin):
 
     list_display = ('name', 'beschreibung', "ab_stufe", 'manifestverlust', 'kategorie', 'billigste',
                     'info', "has_implementation")
-    list_filter = ['kategorie', 'manifestverlust', "frei_editierbar"]
+    # list_filter = ['kategorie', 'manifestverlust', "frei_editierbar"]
 
     inlines = [FirmaAusrüstung_TechnikInLine]
 
@@ -238,7 +237,7 @@ class FahrzeugAdmin(BaseAdmin):
 
     list_display = ('name', 'beschreibung', "ab_stufe", 'schnelligkeit', 'rüstung', 'erfolge',
                     'billigste', 'kategorie', 'info', "has_implementation")
-    list_filter = ['kategorie', 'schnelligkeit', 'rüstung', 'erfolge', "frei_editierbar"]
+    # list_filter = ['kategorie', 'schnelligkeit', 'rüstung', 'erfolge', "frei_editierbar"]
 
     inlines = [FirmaFahrzeugInLine]
 
@@ -251,7 +250,7 @@ class EinbauteAdmin(BaseAdmin):
     list_display = ('name', 'beschreibung', "ab_stufe", #'manifestverlust',
      'billigste',
                     'kategorie', 'info', "has_implementation")
-    list_filter = ['kategorie', 'manifestverlust', "frei_editierbar"]
+    # list_filter = ['kategorie', 'manifestverlust', "frei_editierbar"]
 
     inlines = [FirmaEinbauteInLine]
 
@@ -263,7 +262,7 @@ class ZauberAdmin(BaseAdmin):
 
     list_display = ('name', 'beschreibung', "ab_stufe", 'astralschaden', 'manaverbrauch', "verteidigung", 'schadensart', 'billigste',
                     'kategorie', 'info', "has_implementation")
-    list_filter = ['kategorie', 'astralschaden', 'manaverbrauch', "verteidigung", 'schadensart', "frei_editierbar"]
+    # list_filter = ['kategorie', 'astralschaden', 'manaverbrauch', "verteidigung", 'schadensart', "frei_editierbar"]
 
     list_editable = ["verteidigung", "has_implementation", 'schadensart']
 
@@ -276,7 +275,7 @@ class AlchemieAdmin(BaseAdmin):
     firma_shop_model = FirmaAlchemie
 
     list_display = ('name', 'beschreibung', "ab_stufe", 'billigste', 'kategorie', 'info', "has_implementation")
-    list_filter = ['kategorie', "frei_editierbar"]
+    # list_filter = ['kategorie', "frei_editierbar"]
 
     inlines = [FirmaAlchemieInLine]
 
@@ -288,7 +287,7 @@ class TinkerAdmin(BaseAdmin):
 
     list_display = ('icon_', 'name', 'beschreibung', "profitable_flip", "wooble_buy_price", "wooble_sell_price", "werte", "ab_stufe", 'billigste', 'kategorie', 'info', "has_implementation", "has_implementation", "minecraft_mod_id")
     list_display_links = ('icon_', 'name')
-    list_filter = ['kategorie', "frei_editierbar"]
+    # list_filter = ['kategorie', "frei_editierbar"]
     list_editable = BaseAdmin.list_editable + ["wooble_buy_price", "wooble_sell_price"]
 
     fields = ['icon', 'name', 'beschreibung', 'ab_stufe', 'frei_editierbar', 'werte', 'kategorie', "wooble_buy_price", "wooble_sell_price"]
@@ -315,7 +314,7 @@ class BegleiterAdmin(BaseAdmin):
     firma_shop_model = FirmaBegleiter
 
     list_display = ('name', 'beschreibung', "ab_stufe", 'billigste', 'info', "has_implementation")
-    list_filter = ["frei_editierbar"]
+    # list_filter = ["frei_editierbar"]
 
     inlines = [FirmaBegleiterInLine]
 
@@ -326,7 +325,7 @@ class EngelsroboterAdmin(BaseAdmin):
     firma_shop_model = FirmaEngelsroboter
 
     list_display = ('name', 'beschreibung', "ab_stufe", 'ST', 'UM', 'MA', 'IN', 'billigste', 'info', "has_implementation")
-    list_filter = ["frei_editierbar"]
+    # list_filter = ["frei_editierbar"]
 
     inlines = [FirmaEngelsroboterInLine]
 
