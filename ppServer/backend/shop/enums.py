@@ -105,6 +105,14 @@ ritual_enum = [
 ]
 
 
+ruestung_enum = [
+    ('g', 'Ganzkörper'),
+    ('m', 'Mäntel'),
+    ('s', 'Schilde'),
+    ('u', 'Upgrades'),
+]
+
+
 ausrüstung_enum = [
     ('c', 'Computerzubehör'),
     ('p', 'Programme'),

@@ -335,7 +335,9 @@ class Rüstung(BaseShop):
 
     schutz = models.CharField(default="0", max_length=64)
     haltbarkeit = models.PositiveIntegerField(default=0)
+    damage_speciality = models.TextField(default='', verbose_name="Besonderheiten bei Schadensarten")
 
+    kategorie = models.CharField(choices=enums.ruestung_enum, max_length=2, default=enums.ruestung_enum[0][0])
     firmen = models.ManyToManyField('Firma', through='FirmaRüstung', blank=True)
 
     @staticmethod
