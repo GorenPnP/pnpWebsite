@@ -23,10 +23,6 @@ class BuyView(VerifiedAccountMixin, DetailView):
         self.firmashop_model = self.shop_model.firmen.through
         self.relfirmashop_model = self.firmashop_model.__dict__[f"relfirma{self.shop_model._meta.model_name}_set"].field.model
 
-    def get_template_names(self):
-        return [f"shop/buy_{self.kwargs['model']._meta.model_name}.html", "shop/buy_shop.html"]
-
-
     def get(self, request, id: int, *args, **kwargs):
         self.set_shopmodels()
 
@@ -77,7 +73,7 @@ class BuyView(VerifiedAccountMixin, DetailView):
 
         # for redirect eventually
         context["text"] = "Für dieses Item gibt es keinen Verkäufer."
-        return render(request, self.get_template_names(), context)
+        return render(request, "shop/buy_shop.html", context)
     
     def post(self, request, id: int, *args, **kwargs):
         self.set_shopmodels()
@@ -124,11 +120,10 @@ class BuyView(VerifiedAccountMixin, DetailView):
 
         # price of one item (at Stufe 1)
         if extra: debt = price
-        elif self.shop_model == Ritual_Rune: debt = getattr(firma_shop, "getPriceStufe{}".format(stufe))()
         else: debt = firma_shop.getPrice()
 
         # multiply num_items and stufe
-        if item.stufenabhängig and not self.shop_model == Ritual_Rune: debt *= num_items * stufe
+        if item.stufenabhängig: debt *= num_items * stufe
         else: debt *= num_items
 
         if debt > char.geld:

@@ -124,36 +124,9 @@ class FirmaMagische_Ausrüstung(FirmaShop):
     item = models.ForeignKey('Magische_Ausrüstung', on_delete=models.CASCADE)
 
 
-class FirmaRitual_Rune(models.Model):
-    class Meta:
-        verbose_name = "Firma"
-        verbose_name_plural = "Firmen"
-
-    firma = models.ForeignKey(Firma, on_delete=models.CASCADE)
+class FirmaRitual_Rune(FirmaShop):
     item = models.ForeignKey('Ritual_Rune', on_delete=models.CASCADE)
 
-    stufe_1 = models.IntegerField(default=0, null=True)
-    stufe_2 = models.IntegerField(default=0, null=True)
-    stufe_3 = models.IntegerField(default=0, null=True)
-    stufe_4 = models.IntegerField(default=0, null=True)
-    stufe_5 = models.IntegerField(default=0, null=True)
-
-
-    verfügbarkeit = models.PositiveIntegerField(default=0)
-
-    def __str__(self):
-        return "{} von {} ({}%)".format(self.item, self.firma, self.verfügbarkeit)
-
-    def getPriceStufe1(self):
-        return Modifier.getModifier(self.firma, self.item.__class__)(self.stufe_1)
-    def getPriceStufe2(self):
-        return Modifier.getModifier(self.firma, self.item.__class__)(self.stufe_2)
-    def getPriceStufe3(self):
-        return Modifier.getModifier(self.firma, self.item.__class__)(self.stufe_3)
-    def getPriceStufe4(self):
-        return Modifier.getModifier(self.firma, self.item.__class__)(self.stufe_4)
-    def getPriceStufe5(self):
-        return Modifier.getModifier(self.firma, self.item.__class__)(self.stufe_5)
 
 class FirmaRüstung(FirmaShop):
     item = models.ForeignKey('Rüstung', on_delete=models.CASCADE)
@@ -339,18 +312,18 @@ class Ritual_Rune(BaseShop):
 
         ordering = ['name']
 
+    schaden = models.CharField(max_length=64, default=0)
+    schadensart = models.CharField(max_length=1, choices=enums.schadensart_enum, null=True, blank=True)
+    wirkbereich = models.TextField(default='')
+
+    manaverbrauch = models.CharField(max_length=100, default='', null=True, blank=True)
+
     kategorie = models.CharField(choices=enums.ritual_enum, max_length=2, default=enums.ritual_enum[0][0])
     firmen = models.ManyToManyField('Firma', through='FirmaRitual_Rune', blank=True)
 
     @staticmethod
     def getShopDisplayFields():
         return super(Ritual_Rune, Ritual_Rune).getShopDisplayFields() + ["kategorie"]
-    
-    def cheapest(self, stufe=1) -> int or None:
-        offers = getattr(self, f"{self.firmen.through._meta.model_name}_set").all()
-        if not offers: return None
-
-        return sorted([getattr(o, "getPriceStufe{}".format(stufe), lambda: None)() for o in offers])[0]
 
 
 class Rüstung(BaseShop):

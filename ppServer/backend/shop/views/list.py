@@ -335,45 +335,9 @@ class MagischeAusrüstungTableView(ShopTableView):
 
 
 class RitualRuneTableView(ShopTableView):
-    class Filter(FilterSet):
-        class Meta:
-            model = Ritual_Rune
-            fields = {
-                "name": ["icontains"],
-                "beschreibung": ["icontains"],
-                "ab_stufe": ["lte"],
-            }
-
-        stufe_1__lte = NumberFilter(field_name="stufe_1", lookup_expr="lte", label="Preis für Stufe 1 ist kleiner oder gleich")
-        stufe_2__lte = NumberFilter(field_name="stufe_2", lookup_expr="lte", label="Preis für Stufe 2 ist kleiner oder gleich")
-        stufe_3__lte = NumberFilter(field_name="stufe_3", lookup_expr="lte", label="Preis für Stufe 3 ist kleiner oder gleich")
-        stufe_4__lte = NumberFilter(field_name="stufe_4", lookup_expr="lte", label="Preis für Stufe 4 ist kleiner oder gleich")
-        stufe_5__lte = NumberFilter(field_name="stufe_5", lookup_expr="lte", label="Preis für Stufe 5 ist kleiner oder gleich")
-        other__icontains = CharFilter(field_name="other", lookup_expr="icontains", label="other enthält")
-
-    class Table(RenderableTable):
-        class Meta(RenderableTable.Meta):
-            pass
-
-        def _render_stufe_x(self, value, record, column):
-            max_value = getattr(record, column.accessor + "_max")
-            return "{}{} Dr.".format(value, " - "+str(max_value) if value != max_value else "")
-
-        def render_stufe_1(self, value, record, column):
-            return self._render_stufe_x(value, record, column)
-        def render_stufe_2(self, value, record, column):
-            return self._render_stufe_x(value, record, column)
-        def render_stufe_3(self, value, record, column):
-            return self._render_stufe_x(value, record, column)
-        def render_stufe_4(self, value, record, column):
-            return self._render_stufe_x(value, record, column)
-        def render_stufe_5(self, value, record, column):
-            return self._render_stufe_x(value, record, column)
-
     model = Ritual_Rune
-    filterset_class = Filter
-    custom_table_class = Table
-    table_fields = ("icon", "name", "beschreibung", "ab_stufe", "stufe_1", "stufe_2", "stufe_3", "stufe_4", "stufe_5")
+    filterset_fields = shop_filter_fields
+    table_fields = ("icon", "name", "beschreibung", "ab_stufe", "preis")
 
 
 class RüstungTableView(ShopTableView):

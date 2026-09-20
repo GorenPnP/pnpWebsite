@@ -174,36 +174,16 @@ class Magische_AusrüstungAdmin(BaseAdmin):
     inlines = [FirmaMagische_AusrüstungInLine]
 
 
-class Ritual_RuneAdmin(admin.ModelAdmin):
+class Ritual_RuneAdmin(BaseAdmin):
 
     shop_model = Ritual_Rune
     firma_shop_model = FirmaRitual_Rune
 
-    list_display = ('name', 'beschreibung', "ab_stufe", 'billigste',
-                     'kategorie', 'info', "has_implementation")
+    list_display = ('name', 'beschreibung', "ab_stufe", 'billigste', 'kategorie', 'info', "has_implementation")
     # list_filter = ['kategorie', "frei_editierbar"]
     list_editable = ("has_implementation",)
-    search_fields = ["name", "beschreibung__contains"]
 
     inlines = [FirmaRitual_RuneInLine]
-
-    def info(self, obj):
-        return "frei editierbar" if obj.frei_editierbar else self.get_empty_value_display()
-    
-    def billigste(self, obj):
-        return obj.cheapest()
-
-    def get_readonly_fields(self, request: HttpRequest, obj = ...):
-        # spielleitung
-        if request.user.has_perm(CustomPermission.SPIELLEITUNG.value):
-            return super().get_readonly_fields(request, obj)
-        
-        # spieler (create OR frei_editierbar)
-        if not obj or obj.frei_editierbar:
-            return ["frei_editierbar"]
-        
-        # spieler, not frei_editierbar
-        return [field.name for field in self.opts.local_fields if field.name != "icon"]
 
 
 class RüstungAdmin(BaseAdmin):
