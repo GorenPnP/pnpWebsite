@@ -277,13 +277,15 @@ class Munition(BaseShop):
 
     bs = models.CharField(max_length=20, default='')
     zs = models.CharField(max_length=20, default='')
+    schaden = models.CharField(max_length=64, default=0)
     schadensart = models.CharField(max_length=1, choices=enums.schadensart_enum, null=True, blank=True)
+    wirkbereich = models.TextField(default='')
 
     firmen = models.ManyToManyField('Firma', through='FirmaMunition', blank=True)
 
     @staticmethod
     def getShopDisplayFields():
-        return super(Munition, Munition).getShopDisplayFields() + ["schuss", 'bs', 'zs', 'schadensart']
+        return super(Munition, Munition).getShopDisplayFields() + ["schuss", 'bs', 'zs', 'schadensart', 'wirkbereich']
 
 
 class Fernkampfwaffe(BaseShop):

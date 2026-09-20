@@ -143,8 +143,9 @@ class MunitionAdmin(BaseAdmin):
     shop_model = Munition
     firma_shop_model = FirmaMunition
 
-    list_display = ('name', 'beschreibung', "ab_stufe", 'schuss', 'bs', 'zs', 'schadensart', 'billigste', 'info', "has_implementation")
+    list_display = ('name', 'beschreibung', "ab_stufe", 'schuss', 'bs', 'zs', 'schaden', 'schadensart', 'wirkbereich', 'billigste', 'info', "has_implementation")
     list_filter = ['schuss', "frei_editierbar"]
+    list_editable = ['schaden', 'wirkbereich']
 
     inlines = [FirmaMunitionInLine]
 
