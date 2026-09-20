@@ -171,17 +171,11 @@ def apply_hp_effect_of_haustierfels(sender, instance, **kwargs):
     if kHpPlus_fix_effects.count() != 1 or not getattr(kHpPlus_fix_effects.first(), "source_shopBegleiter", None) or getattr(kHpPlus_fix_effects.first(), "source_shopBegleiter", None).item.name != "Haustier-Fels":
         return
     
-    #  für alle 1.000 EP oder 10 LARP-Ränge des Charakters +1% HP K (max. 100%).
-    factor: float = min(math.floor(instance.ep / 1000) / 100, 1) + min(math.floor(instance.larp_rang / 10) / 100, 1)
+    #  für jede char-Stufe oder 50 LARP-Ränge des Charakters 1 HP K.
+    fels_hp = math.floor(instance.larp_rang / 50) if instance.larp else instance.ep_stufe
 
-    kHp_without_fels = sum([
-        int(instance.relattribut_set.get(attribut__titel="ST").aktuell() * 5),
-        int(math.floor(instance.larp_rang / 20) if instance.larp else instance.ep_stufe * 2),
-        int(instance.HPplus),
-    ])
-
-    # keep HPplus and add the benefit by factor
-    new_fix = instance.HPplus + int(math.floor(kHp_without_fels * factor + 0.5))
+    # keep HPplus and add the benefit
+    new_fix = instance.HPplus + fels_hp
     if new_fix != instance.HPplus_fix:
         instance.HPplus_fix = new_fix
         instance.save(update_fields=["HPplus_fix"])

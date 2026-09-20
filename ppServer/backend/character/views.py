@@ -403,13 +403,13 @@ class ShowView(VerifiedAccountMixin, DetailView):
 
     def get_hp(self, char):
         khp = [
-            self._rel_attribute["ST"].aktuell() * 5,
-            math.floor(char.larp_rang / 20) if char.larp else char.ep_stufe * 2,
+            self._rel_attribute["ST"].aktuell() * 3,
+            math.floor(char.larp_rang / 25) if char.larp else char.ep_stufe * 3,
             char.HPplus_fix if char.HPplus_fix is not None else char.HPplus,
         ]
         ghp = [
-            self._rel_attribute["WK"].aktuell() * 5,
-            math.floor(char.larp_rang / 20) if char.larp else char.ep_stufe * 2,
+            self._rel_attribute["WK"].aktuell() * 3,
+            math.floor(char.larp_rang / 25) if char.larp else char.ep_stufe * 3,
             char.HPplus_geistig + (10 if char.no_MA_MG else 0),
         ]
 

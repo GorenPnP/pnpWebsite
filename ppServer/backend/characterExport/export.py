@@ -463,21 +463,21 @@ class CharakterExporter:
         
         # HP
         werte_ws.write(f"I{ROW}", "K HP Bonus", format_align_border_top)
-        werte_ws.write(f"J{ROW}", f"={(self.char.HPplus_fix if self.char.HPplus_fix is not None else self.char.HPplus) or 0}+{math.floor(self.char.larp_rang/20) if self.char.larp else self._position('ep_stufe')*2}", format_hp)
+        werte_ws.write(f"J{ROW}", f"={(self.char.HPplus_fix if self.char.HPplus_fix is not None else self.char.HPplus) or 0}+{math.floor(self.char.larp_rang/25) if self.char.larp else self._position('ep_stufe')*3}", format_hp)
         
         ROW += 1
         self._POSITION["kHP"] = f"Werte!J{ROW}"
         werte_ws.write(f"I{ROW}", "Körperliche HP", format_section_titel)
-        werte_ws.write(f"J{ROW}", f"=J{ROW-1}+({self._position('ST')}*5)", format_hp)
+        werte_ws.write(f"J{ROW}", f"=J{ROW-1}+({self._position('ST')}*3)", format_hp)
         
         ROW += 1
         werte_ws.write(f"I{ROW}", "G HP Bonus", format_align_center_center)
-        werte_ws.write(f"J{ROW}", self.char.HPplus_geistig + (math.floor(self.char.larp_rang / 20) if self.char.larp else self.char.ep_stufe * 2) + (10 if self.char.no_MA_MG else 0), format_hp)
+        werte_ws.write(f"J{ROW}", self.char.HPplus_geistig + (math.floor(self.char.larp_rang / 25) if self.char.larp else self.char.ep_stufe * 3) + (10 if self.char.no_MA_MG else 0), format_hp)
         
         ROW += 1
         self._POSITION["gHP"] = f"Werte!J{ROW}"
         werte_ws.write(f"I{ROW}", "Geistige HP", format_section_titel)
-        werte_ws.write(f"J{ROW}", f"=J{ROW-1}+{self._position('WK')}*5", format_hp)
+        werte_ws.write(f"J{ROW}", f"=J{ROW-1}+{self._position('WK')}*3", format_hp)
 
         ROW += 1
         werte_ws.merge_range(f"I{ROW}:I{ROW+1}", "Konzentration (Max.)", format_konz_titel)
