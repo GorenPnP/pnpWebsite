@@ -409,9 +409,12 @@ class Zauber(BaseShop):
     manaverbrauch = models.CharField(max_length=100, default='', null=True, blank=True)
     verteidigung = models.CharField(max_length=1, choices=enums.zauberverteidigung_enum, default=enums.zauberverteidigung_enum[0][0], verbose_name="Reaktion")
 
+    schaden = models.CharField(max_length=64, default=0)
     schadensart = models.CharField(max_length=1, choices=enums.schadensart_enum, null=True, blank=True)
-    kategorie = models.CharField(choices=enums.zauber_enum, max_length=2, null=True, blank=True)
+    wirkbereich = models.TextField(default='')
+    wirkdauer = models.TextField(default='')
 
+    kategorie = models.CharField(choices=enums.zauber_enum, max_length=2, null=True, blank=True)
     firmen = models.ManyToManyField('Firma', through='FirmaZauber', blank=True)
 
     @staticmethod
