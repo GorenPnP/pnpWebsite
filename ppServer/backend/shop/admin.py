@@ -168,7 +168,7 @@ class MunitionAdmin(BaseAdmin):
     shop_model = Munition
     firma_shop_model = FirmaMunition
 
-    list_display = ('name', 'beschreibung', "ab_stufe", 'schuss', 'bs', 'zs', 'schaden', 'schadensart', 'wirkbereich', 'billigste', 'info', "has_implementation")
+    list_display = ('name', 'beschreibung', "ab_stufe", 'bs', 'zs', 'schaden', 'schadensart', 'wirkbereich', 'billigste', 'info', "has_implementation")
     # list_filter = ['schuss', "frei_editierbar"]
     list_editable = ['schaden', 'wirkbereich']
 
@@ -181,13 +181,18 @@ class FernkampfwaffeAdmin(BaseAdmin):
     firma_shop_model = FirmaFernkampfwaffe
 
     exclude = ['munition', 'st_munition', 'possible_upgrades']
-    list_display = ('name', 'beschreibung', "ab_stufe", 'bs', 'zs', 'schaden', 'feuerrate', "reichweite", "wirkbereich", "händigkeit", 'dk', 'präzision', 'schadensart', 'billigste',
+    list_display = ('name', 'beschreibung', "ab_stufe", 'schuss', 'munition_', 'feuerrate', "reichweite", "wirkbereich", "händigkeit", 'dk', 'präzision', 'billigste',
                     'kategorie', 'fertigkeit', 'info', "has_implementation")
-    # list_filter = ['kategorie', 'bs', 'zs', 'schaden', 'dk', 'präzision', 'schadensart', 'fertigkeit__titel', "frei_editierbar"]
-    list_editable = ['schaden', 'feuerrate', "reichweite", "wirkbereich", "händigkeit",]
+    # list_filter = ['kategorie', 'dk', 'präzision', 'fertigkeit__titel', "frei_editierbar"]
+    list_editable = ['feuerrate', "reichweite", "wirkbereich", "händigkeit",]
 
     inlines = [SchussMunitionInLine, SlotFernkampfwaffeInLine, UpgradeFernkampfwaffeInLine, FirmaFernkampfwaffeInLine]
 
+    def get_queryset(self, request):
+        return super().get_queryset(request).prefetch_related("munition")
+
+    def munition_(self, obj):
+        return ", ".join([m.__str__() for m in obj.munition.all()])
 
 class Magische_AusrüstungAdmin(BaseAdmin):
 

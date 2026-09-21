@@ -312,21 +312,18 @@ class NahkampfwaffeTableView(ShopTableView):
 
 class MunitionTableView(ShopTableView):
     model = Munition
-    filterset_fields = {**shop_filter_fields, "schuss": ["exact"]}
-    table_fields = ("icon", "name", "beschreibung", "ab_stufe", "schuss", "preis")
+    filterset_fields = shop_filter_fields
+    table_fields = ("icon", "name", "beschreibung", "ab_stufe", "preis")
 
 
 class FernkampfwaffeTableView(ShopTableView):
     model = Fernkampfwaffe
     filterset_fields = {
         **shop_filter_fields,
-        "bs": ["icontains"],
-        "zs": ["icontains"],
         "dk": ["exact"],
         "präzision": ["exact"],
-        "schadensart": ["exact"]
     }
-    table_fields = ("icon", "name", "beschreibung", "ab_stufe", "bs", "zs", "dk", "präzision", "schadensart", "preis")
+    table_fields = ("icon", "name", "beschreibung", "ab_stufe", "dk", "präzision", "preis")
 
 
 class MagischeAusrüstungTableView(ShopTableView):

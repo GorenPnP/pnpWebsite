@@ -351,8 +351,6 @@ class Munition(BaseShop):
 
         ordering = ['name']
 
-    schuss = models.PositiveIntegerField(default=0)
-
     bs = models.CharField(max_length=20, default='')
     zs = models.CharField(max_length=20, default='')
     schaden = models.CharField(max_length=64, default=0)
@@ -361,9 +359,12 @@ class Munition(BaseShop):
 
     firmen = models.ManyToManyField('Firma', through='FirmaMunition', blank=True)
 
+    def __str__(self):
+        return f"{self.name} ({self.schaden if self.schaden and self.schaden != '0' else f'{self.bs}|{self.zs}'} {self.get_schadensart_display()})"
+
     @staticmethod
     def getShopDisplayFields():
-        return super(Munition, Munition).getShopDisplayFields() + ["schuss", 'bs', 'zs', 'schadensart', 'wirkbereich']
+        return super(Munition, Munition).getShopDisplayFields() + ['bs', 'zs', 'schadensart', 'wirkbereich']
 
 
 class Fernkampfwaffe(BaseShop):
@@ -373,11 +374,7 @@ class Fernkampfwaffe(BaseShop):
 
         ordering = ['name']
 
-    bs = models.CharField(max_length=20, default='')
-    zs = models.CharField(max_length=20, default='')
-    schaden = models.CharField(max_length=64, default=0)
-    schadensart = models.CharField(max_length=1, choices=enums.schadensart_enum, null=True, blank=True)
-
+    schuss = models.PositiveIntegerField(default=1)
     dk = models.PositiveIntegerField(default=0, blank=True)
     präzision = models.PositiveIntegerField(default=0, blank=True)
     feuerrate = models.CharField(max_length=1, choices=enums.feuerrate_enum, default=enums.feuerrate_enum[2][0])
@@ -396,7 +393,7 @@ class Fernkampfwaffe(BaseShop):
 
     @staticmethod
     def getShopDisplayFields():
-        return super(Fernkampfwaffe, Fernkampfwaffe).getShopDisplayFields() + ["fertigkeit", "bs", "zs", "dk", "präzision", "schadensart", "kategorie", "munition"]
+        return super(Fernkampfwaffe, Fernkampfwaffe).getShopDisplayFields() + ["fertigkeit", "dk", "präzision", "kategorie", "munition"]
 
 
 class Magische_Ausrüstung(BaseShop):
