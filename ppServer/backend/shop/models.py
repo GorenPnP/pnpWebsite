@@ -147,6 +147,7 @@ class Upgrade(models.Model):
         ('schaden', 'Schaden'),
         ('schadensart', 'Schadensart'),
         ('dk', 'DK'),
+        ('schuss', 'Schuss'),
         ('präzision', 'Präzision'),
         ('reichweite', 'Reichweite'),
         ('wirkbereich', 'Wirkbereich'),
