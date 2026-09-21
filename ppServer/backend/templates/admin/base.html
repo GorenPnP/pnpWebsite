@@ -38,5 +38,15 @@
 
   --selected-row: rgba(var(--selected-row-rgb), 0.3);
 }
+@media (prefers-color-scheme: dark) {
+  :root {
+    --primary: #006600;
+    --link-fg: hsl(36, 100%, 45%);
+    --link-selected-fg: hsl(280, 100%, 60%);
+    --link-hover-color: hsl(280, 100%, 35%);
+
+    --selected-row: rgba(var(--selected-row-rgb), 0.3);
+  }
+}
 </style>
 {% endblock %}
