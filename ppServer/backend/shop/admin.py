@@ -205,9 +205,9 @@ class Ritual_RuneAdmin(BaseAdmin):
     shop_model = Ritual_Rune
     firma_shop_model = FirmaRitual_Rune
 
-    list_display = ('name', 'beschreibung', "ab_stufe", 'billigste', 'kategorie', 'info', "has_implementation")
+    list_display = ('name', 'beschreibung', "ab_stufe", "schaden", "schadensart", "wirkbereich", "manaverbrauch", 'billigste', 'kategorie', 'info', "has_implementation")
     # list_filter = ['kategorie', "frei_editierbar"]
-    list_editable = ("has_implementation",)
+    list_editable = ("schaden", "schadensart", "wirkbereich", "manaverbrauch",)
 
     inlines = [SlotRitual_RuneInLine, UpgradeRitual_RuneInLine, FirmaRitual_RuneInLine]
 
