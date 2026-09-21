@@ -5,7 +5,7 @@ services:
     restart: unless-stopped
     volumes:
       - postgres_data:/var/lib/postgresql
-      - ./ppServer/backups:/var/lib/postgresql/backups:ro
+      - ./ppServer/backend/backups:/var/lib/postgresql/backups:ro
     networks:
       - django_internal
     ports:
@@ -69,7 +69,6 @@ services:
       - PGADMIN_DEFAULT_EMAIL=vsteinbr@gmail.com
       - PGADMIN_DEFAULT_PASSWORD=SuperSecret
     volumes:
-      - ./ppServer/backups:/backups:ro
       - pgadmin_workdir:/var/lib/pgadmin
 
 
