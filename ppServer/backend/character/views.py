@@ -184,7 +184,7 @@ class ShowView(VerifiedAccountMixin, DetailView):
         "relgfsability_set__ability", "affektivität_set",
         "relzauber_set__item", "relritual_rune_set__item", "relfernkampfwaffe_set__item", "relnahkampfwaffe_set__item",
         "relmunition_set__item", "relmagische_ausrüstung_set__item", "relrüstung_set__item",
-        "relausrüstung_technik_set__item", "relfahrzeug_set__item", "releinbaute_set__item", "relalchemie_set__item",
+        "reltechnik_set__item", "relfahrzeug_set__item", "releinbaute_set__item", "relalchemie_set__item",
         "reltinker_set__item", "relbegleiter_set__item", "relramsch_set", "card"
     )
 
@@ -1142,7 +1142,7 @@ class CreateCharacterView(VerifiedAccountMixin, CopiesCharsMixin, CreateView):
             "magischeAusrüstung": ShopMagAusrüstungFormSet,
             "rituale_runen": ShopRitualRuneFormSet,
             "rüstungen": ShopRüstungFormSet,
-            "ausrüstungTechnik": ShopAusrüstungTechnikFormSet,
+            "technik": ShopTechnikFormSet,
             "fahrzeuge": ShopFahrzeugFormSet,
             "einbauten": ShopEinbauteFormSet,
             "zauber": ShopZauberFormSet,

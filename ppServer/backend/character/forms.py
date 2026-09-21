@@ -38,7 +38,7 @@ ShopFernkampfwaffeFormSet = FormSet(Charakter, RelFernkampfwaffe, "fernkampfwaff
 ShopMagAusrüstungFormSet = FormSet(Charakter, RelMagische_Ausrüstung, "mag_ausr", shop_fields)
 ShopRitualRuneFormSet = FormSet(Charakter, RelRitual_Rune, "ritual_rune", shop_fields)
 ShopRüstungFormSet = FormSet(Charakter, RelRüstung, "rüstung", shop_fields)
-ShopAusrüstungTechnikFormSet = FormSet(Charakter, RelAusrüstung_Technik, "ausr_technik", [*shop_fields, "selbst_eingebaut"])
+ShopTechnikFormSet = FormSet(Charakter, RelTechnik, "technik", [*shop_fields, "selbst_eingebaut"])
 ShopFahrzeugFormSet = FormSet(Charakter, RelFahrzeug, "fahrzeug", shop_fields)
 ShopEinbauteFormSet = FormSet(Charakter, RelEinbaute, "einbaute", shop_fields)
 ShopZauberFormSet = FormSet(Charakter, RelZauber, "zauber", [*shop_fields, "tier", "learned"])
@@ -80,7 +80,7 @@ class CharacterForm(forms.ModelForm):
     	    "notizen", "persönlicheZiele", "sonstige_items", "affektivitäten",
             "klassen", "klassen_fähigkeiten", "vorteile", "nachteile", "talente", "wesenkräfte",
             "attribute", "fertigkeiten","gruppen", "spezialfertigkeiten", "wissensfertigkeiten", "gfs_fähigkeiten",
-            "items", "nahkampfwaffen", "munition", "fernkampfwaffen", "magischeAusrüstung", "rituale_runen", "rüstungen", "ausrüstungTechnik", "fahrzeuge", "einbauten", "zauber", "begleiter", "engelsroboter",
+            "items", "nahkampfwaffen", "munition", "fernkampfwaffen", "magischeAusrüstung", "rituale_runen", "rüstungen", "technik", "fahrzeuge", "einbauten", "zauber", "begleiter", "engelsroboter",
         ]
 
     # field for char.card.money
@@ -246,8 +246,8 @@ class CharacterForm(forms.ModelForm):
                         Formset("rüstungen"),
                     ),
                     Fieldset(
-                        "Ausrüstung / Technik",
-                        Formset("ausrüstungTechnik"),
+                        "Technik",
+                        Formset("technik"),
                     ),
                     Fieldset(
                         "Einbauten (Cyber- & Bioware)",

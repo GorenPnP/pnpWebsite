@@ -130,12 +130,6 @@ class RenderableTable(GenericTable):
         # build dict; convert "kategory: some stuff,\ntimes: 3" => {kategory: "some stuff", "times": "3"}
         values = {v.split(": ")[0].strip(): v.split(": ")[1].strip() for v in value.split(',\n')}
 
-        # join manifestverlust
-        if "manifestverlust str" in values:
-            if values["manifestverlust str"]:
-                values["manifestverlust"] = f"{values["manifestverlust"]} + {values["manifestverlust str"]}" if "manifestverlust" in values else values["manifestverlust str"]
-            del values["manifestverlust str"]
-
         # format cell content
         return format_html("<ul><li>" + '</li><li>'.join(f'<em>{k}</em>: {v}' for k, v in values.items() if v) + "</li></ul>")
 
@@ -348,8 +342,8 @@ class RüstungTableView(ShopTableView):
     table_fields = ("icon", "name", "beschreibung", "ab_stufe", "schutz", "haltbarkeit",  "preis")
 
 
-class AusrüstungTechnikTableView(ShopTableView):
-    model = Ausrüstung_Technik
+class TechnikTableView(ShopTableView):
+    model = Technik
     filterset_fields = shop_filter_fields
     table_fields = ("icon", "name", "beschreibung", "ab_stufe", "preis")
 

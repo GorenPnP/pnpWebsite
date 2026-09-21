@@ -84,8 +84,8 @@ class FirmaRitual_RuneInLine(InLine):
 class FirmaRüstungInLine(InLine):
     model = FirmaRüstung
 
-class FirmaAusrüstung_TechnikInLine(InLine):
-    model = FirmaAusrüstung_Technik
+class FirmaTechnikInLine(InLine):
+    model = FirmaTechnik
 
 class FirmaFahrzeugInLine(InLine):
     model = FirmaFahrzeug
@@ -230,16 +230,16 @@ class RüstungAdmin(BaseAdmin):
     inlines = [FirmaRüstungInLine]
 
 
-class Ausrüstung_TechnikAdmin(BaseAdmin):
+class TechnikAdmin(BaseAdmin):
 
-    shop_model = Ausrüstung_Technik
-    firma_shop_model = FirmaAusrüstung_Technik
+    shop_model = Technik
+    firma_shop_model = FirmaTechnik
 
-    list_display = ('name', 'beschreibung', "ab_stufe", 'manifestverlust', 'kategorie', 'billigste',
+    list_display = ('name', 'beschreibung', "ab_stufe", 'kategorie', 'billigste',
                     'info', "has_implementation")
-    # list_filter = ['kategorie', 'manifestverlust', "frei_editierbar"]
+    # list_filter = ['kategorie', "frei_editierbar"]
 
-    inlines = [FirmaAusrüstung_TechnikInLine]
+    inlines = [FirmaTechnikInLine]
 
 
 class FahrzeugAdmin(BaseAdmin):
@@ -388,7 +388,7 @@ admin.site.register(Fernkampfwaffe, FernkampfwaffeAdmin)
 admin.site.register(Magische_Ausrüstung, Magische_AusrüstungAdmin)
 admin.site.register(Ritual_Rune, Ritual_RuneAdmin)
 admin.site.register(Rüstung, RüstungAdmin)
-admin.site.register(Ausrüstung_Technik, Ausrüstung_TechnikAdmin)
+admin.site.register(Technik, TechnikAdmin)
 admin.site.register(Fahrzeug, FahrzeugAdmin)
 admin.site.register(Einbaute, EinbauteAdmin)
 admin.site.register(Zauber, ZauberAdmin)

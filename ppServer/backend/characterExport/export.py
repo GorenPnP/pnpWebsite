@@ -590,10 +590,10 @@ class CharakterExporter:
             werte_ws.write(f"A{ROW}", r.anz, format_border_left)
             werte_ws.write_row(f"B{ROW}", [r.item.name, f"BS {r.item.bs}", f"ZS {r.item.zs}", f"Präzi {r.item.präzision}"])
             werte_ws.write(f"H{ROW}", None, format_border_right)
-        # Ausrüstung & Technik
+        # Technik
         ROW += 1
-        werte_ws.merge_range(f"A{ROW}:H{ROW}", "Ausrüstung und Technische Geräte", format_ramsch_titel)
-        for r in self.char.relausrüstung_technik_set.prefetch_related("item").all():
+        werte_ws.merge_range(f"A{ROW}:H{ROW}", "Technische Geräte", format_ramsch_titel)
+        for r in self.char.reltechnik_set.prefetch_related("item").all():
             ROW += 1
             werte_ws.write(f"A{ROW}", r.anz, format_border_left)
             werte_ws.write(f"B{ROW}", r.item.name)

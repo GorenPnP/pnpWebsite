@@ -777,7 +777,7 @@ class Charakter(models.Model):
     magischeAusrüstung = models.ManyToManyField(Magische_Ausrüstung, through='character.RelMagische_Ausrüstung', blank=True)
     rituale_runen = models.ManyToManyField(Ritual_Rune, through='character.RelRitual_Rune', blank=True)
     rüstungen = models.ManyToManyField(Rüstung, through='character.RelRüstung', blank=True)
-    ausrüstungTechnik = models.ManyToManyField(Ausrüstung_Technik, through='character.RelAusrüstung_Technik', blank=True)
+    technik = models.ManyToManyField(Technik, through='character.RelTechnik', blank=True)
     fahrzeuge = models.ManyToManyField(Fahrzeug, through='character.RelFahrzeug', blank=True)
     einbauten = models.ManyToManyField(Einbaute, through='character.RelEinbaute', blank=True)
     zauber = models.ManyToManyField(Zauber, through='character.RelZauber', blank=True)
@@ -1293,12 +1293,12 @@ class RelRüstung(RelShop):
     item = models.ForeignKey(Rüstung, on_delete=models.CASCADE)
 
 
-class RelAusrüstung_Technik(RelShop):
+class RelTechnik(RelShop):
     class Meta:
-        verbose_name = "Ausrüstung & Technik"
-        verbose_name_plural = "Ausrüstung & Technik"
+        verbose_name = "Technik"
+        verbose_name_plural = "Technik"
 
-    item = models.ForeignKey(Ausrüstung_Technik, on_delete=models.CASCADE)
+    item = models.ForeignKey(Technik, on_delete=models.CASCADE)
     selbst_eingebaut = models.BooleanField(default=False)
 
 
@@ -1435,12 +1435,12 @@ class RelFirmaRüstung(RelFirmaShop):
     firma_shop = models.ForeignKey(FirmaRüstung, on_delete=models.CASCADE)
 
 
-class RelFirmaAusrüstung_Technik(RelFirmaShop):
+class RelFirmaTechnik(RelFirmaShop):
     class Meta:
-        verbose_name = "Ausrüstung & Technik Verfügbarkeit"
-        verbose_name_plural = "Ausrüstung & Technik Verfügbarkeiten"
+        verbose_name = "Technik Verfügbarkeit"
+        verbose_name_plural = "Technik Verfügbarkeiten"
 
-    firma_shop = models.ForeignKey(FirmaAusrüstung_Technik, on_delete=models.CASCADE)
+    firma_shop = models.ForeignKey(FirmaTechnik, on_delete=models.CASCADE)
 
 
 class RelFirmaFahrzeug(RelFirmaShop):

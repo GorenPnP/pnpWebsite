@@ -235,8 +235,8 @@ class FirmaRüstung(FirmaShop):
     item = models.ForeignKey('Rüstung', on_delete=models.CASCADE)
 
 
-class FirmaAusrüstung_Technik(FirmaShop):
-    item = models.ForeignKey('Ausrüstung_Technik', on_delete=models.CASCADE)
+class FirmaTechnik(FirmaShop):
+    item = models.ForeignKey('Technik', on_delete=models.CASCADE)
 
 
 class FirmaFahrzeug(FirmaShop):
@@ -454,23 +454,19 @@ class Rüstung(BaseShop):
         return super(Rüstung, Rüstung).getShopDisplayFields() + ["schutz", "haltbarkeit"]
 
 
-class Ausrüstung_Technik(BaseShop):
+class Technik(BaseShop):
     class Meta:
-        verbose_name = "Ausrüstung/Technik"
-        verbose_name_plural = "Ausrüstung & Technik"
+        verbose_name = "Technik"
+        verbose_name_plural = "Technik"
 
         ordering = ['name']
 
-    manifestverlust_str = models.CharField(max_length=20, null=True, blank=True)
-    manifestverlust = models.DecimalField('manifestverlust', max_digits=4, decimal_places=2,
-                                          default=0.0, blank=True, null=True,
-                                          validators=[MinValueValidator(0), MaxValueValidator(10)])
-    kategorie = models.CharField(choices=enums.ausrüstung_enum, max_length=2, default=enums.ausrüstung_enum[0][0])
-    firmen = models.ManyToManyField('Firma', through='FirmaAusrüstung_Technik', blank=True)
+    kategorie = models.CharField(choices=enums.technik_enum, max_length=2, default=enums.technik_enum[0][0])
+    firmen = models.ManyToManyField('Firma', through='FirmaTechnik', blank=True)
 
     @staticmethod
     def getShopDisplayFields():
-        return super(Ausrüstung_Technik, Ausrüstung_Technik).getShopDisplayFields() + ["manifestverlust", "manifestverlust_str", "kategorie"]
+        return super(Technik, Technik).getShopDisplayFields() + ["kategorie"]
 
 class Fahrzeug(BaseShop):
     class Meta:

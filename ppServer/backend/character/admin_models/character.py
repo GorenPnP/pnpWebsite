@@ -219,8 +219,8 @@ class RelRüstungInLine(RelShopInLine):
     model = RelRüstung
 
 
-class RelAusrüstung_TechnikInLine(RelShopInLine):
-    model = RelAusrüstung_Technik
+class RelTechnikInLine(RelShopInLine):
+    model = RelTechnik
     fields = ["anz", "stufe", "item", "notizen", "selbst_eingebaut"]
 
 
@@ -298,7 +298,7 @@ class CharakterAdmin(admin.ModelAdmin):
         RelMagische_AusrüstungInLine,
         RelRitual_RuneInLine,
         RelRüstungInLine,
-        RelAusrüstung_TechnikInLine,
+        RelTechnikInLine,
         RelFahrzeugInLine,
         RelEinbauteInLine,
         RelZauberInLine,

@@ -6,7 +6,7 @@ category_enum = [
     ('a', 'magische Ausrüstung'),
     ('r', 'Rituale & Runen'),
     ('u', 'Rüstungen'),
-    ('n', 'Ausrüstung & Technik'),
+    ('n', 'Technik'),
     ('f', 'Fahrzeuge'),
     ('e', 'Einbauten'),
     ('z', 'Zauber'),
@@ -47,9 +47,7 @@ item_enum = [
     ('bt', 'besondere Tränke'),
     ('d', 'Drogen'),
     ('hd', 'harte Drogen'),
-    ('g', 'Mono-/Oligo-/Polygrome'),
-    ('a', 'Ausrüstung & Technik - Verschiedenes'),
-    ('p', 'Ausrüstung & Technik - Programme'),
+    ('s', 'Sonstiges'),
 ]
 
 
@@ -113,7 +111,7 @@ ruestung_enum = [
 ]
 
 
-ausrüstung_enum = [
+technik_enum = [
     ('c', 'Computerzubehör'),
     ('p', 'Programme'),
     ('a', 'Akkumulatoren'),
