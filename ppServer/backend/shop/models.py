@@ -183,7 +183,7 @@ class Upgrade(models.Model):
     objects = PreloadTagManager()
 
     def __str__(self):
-        return "{} #{}".format(self.name, self.tag.name)
+        return f"{self.name} #{self.tag.name} ({self.price} Dr.)"
 
 
 

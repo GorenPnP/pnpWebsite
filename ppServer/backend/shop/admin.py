@@ -109,6 +109,7 @@ class FirmaEngelsroboterInLine(InLine):
 ################# BaseAdmin #########################
 class BaseAdmin(admin.ModelAdmin):
     search_fields = ['name', "beschreibung__contains"]
+    exclude = ['possible_upgrades']
     list_editable = ["has_implementation"]
 
     def _firmashop_modelset(self) -> str:
@@ -180,7 +181,7 @@ class FernkampfwaffeAdmin(BaseAdmin):
     shop_model = Fernkampfwaffe
     firma_shop_model = FirmaFernkampfwaffe
 
-    exclude = ['munition', 'st_munition', 'possible_upgrades']
+    exclude = ['munition', 'possible_upgrades']
     list_display = ('name', 'beschreibung', "ab_stufe", 'schuss', 'munition_', 'feuerrate', "reichweite", "wirkbereich", "händigkeit", 'dk', 'präzision', 'billigste',
                     'kategorie', 'fertigkeit', 'info', "has_implementation")
     # list_filter = ['kategorie', 'dk', 'präzision', 'fertigkeit__titel', "frei_editierbar"]
@@ -259,9 +260,7 @@ class EinbauteAdmin(BaseAdmin):
     shop_model = Einbaute
     firma_shop_model = FirmaEinbaute
 
-    list_display = ('name', 'beschreibung', "ab_stufe", #'manifestverlust',
-     'billigste',
-                    'kategorie', 'info', "has_implementation")
+    list_display = ('name', 'beschreibung', "ab_stufe", 'manifestverlust', 'billigste', 'kategorie', 'info', "has_implementation")
     # list_filter = ['kategorie', 'manifestverlust', "frei_editierbar"]
 
     inlines = [SlotEinbauteInLine, UpgradeEinbauteInLine, FirmaEinbauteInLine]
