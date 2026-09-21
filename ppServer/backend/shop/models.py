@@ -143,15 +143,37 @@ class Upgrade(models.Model):
         verbose_name = "Upgrade"
         verbose_name_plural = "Upgrades"
 
+    fields_enum = [
+        ('schaden', 'Schaden'),
+        ('schadensart', 'Schadensart'),
+        ('dk', 'DK'),
+        ('präzision', 'Präzision'),
+        ('reichweite', 'Reichweite'),
+        ('wirkbereich', 'Wirkbereich'),
+        ('händigkeit', 'Händigkeit'),
+        ('feuerrate', 'Feuerrate'),
+        ('manaverbrauch', 'Manaverbrauch'),
+        # ('manifestverlust', 'Manifestverlust'),
+        ('hp', 'HP'),
+        ('physische_reaktion', 'physische Reaktion'),
+        ('astrale_reaktion', 'astrale Reaktion'),
+        ('physischer_widerstand', 'physischer Widerstand'),
+        ('astraler_widerstand', 'astraler Widerstand'),
+    ]
+
     # properties
     name = models.CharField(max_length=32)
-    beschreibung = models.TextField(default='')
+    beschreibung = models.TextField(default='', blank=True)
     tag = models.ForeignKey(Tag, on_delete=models.SET_NULL, null=True)
 
     # requirements to get
     ab_stufe = models.PositiveSmallIntegerField(default=0)
     price = models.IntegerField(default=0)
     achievement_unlock = models.BooleanField(default=False, verbose_name="nur manuell von SL nach Achievement freischaltbar")
+
+    # calc
+    influenced_field = models.CharField(max_length=64, choices=fields_enum, null=True, blank=True)
+    field_value = models.TextField(default='', blank=True)
 
     class PreloadTagManager(models.Manager):
         def get_queryset(self) -> QuerySet:
@@ -307,7 +329,7 @@ class Nahkampfwaffe(BaseShop):
     schadensart = models.CharField(max_length=1, choices=enums.schadensart_enum, null=True, blank=True)
 
     reichweite = models.FloatField(default=0.0, verbose_name="Reichweite in m")
-    wirkbereich = models.TextField(default='')
+    wirkbereich = models.TextField(default='', blank=True)
     händigkeit = models.CharField(max_length=1, choices=enums.hand_enum, default='1')
     fertigkeit = models.ForeignKey('character.Fertigkeit', on_delete=models.SET_NULL, null=True, blank=True)
 
@@ -335,7 +357,7 @@ class Munition(BaseShop):
     zs = models.CharField(max_length=20, default='')
     schaden = models.CharField(max_length=64, default=0)
     schadensart = models.CharField(max_length=1, choices=enums.schadensart_enum, null=True, blank=True)
-    wirkbereich = models.TextField(default='')
+    wirkbereich = models.TextField(default='', blank=True)
 
     firmen = models.ManyToManyField('Firma', through='FirmaMunition', blank=True)
 
@@ -360,7 +382,7 @@ class Fernkampfwaffe(BaseShop):
     präzision = models.PositiveIntegerField(default=0, blank=True)
     feuerrate = models.CharField(max_length=1, choices=enums.feuerrate_enum, default=enums.feuerrate_enum[2][0])
     reichweite = models.FloatField(default=0.0, verbose_name="Reichweite in m")
-    wirkbereich = models.TextField(default='')
+    wirkbereich = models.TextField(default='', blank=True)
     händigkeit = models.CharField(max_length=1, choices=enums.hand_enum, default='1')
 
     munition = models.ManyToManyField(Munition, blank=True)
@@ -400,7 +422,7 @@ class Ritual_Rune(BaseShop):
 
     schaden = models.CharField(max_length=64, default=0)
     schadensart = models.CharField(max_length=1, choices=enums.schadensart_enum, null=True, blank=True)
-    wirkbereich = models.TextField(default='')
+    wirkbereich = models.TextField(default='', blank=True)
 
     manaverbrauch = models.CharField(max_length=100, default='', null=True, blank=True)
 
@@ -504,8 +526,8 @@ class Zauber(BaseShop):
 
     schaden = models.CharField(max_length=64, default=0)
     schadensart = models.CharField(max_length=1, choices=enums.schadensart_enum, null=True, blank=True)
-    wirkbereich = models.TextField(default='')
-    wirkdauer = models.TextField(default='')
+    wirkbereich = models.TextField(default='', blank=True)
+    wirkdauer = models.TextField(default='', blank=True)
 
     slots = models.ManyToManyField(Tag, through=SlotZauber)
     possible_upgrades = models.ManyToManyField(Upgrade)
