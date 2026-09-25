@@ -25,21 +25,28 @@ class SchussMunitionInLine(InLine):
 ##################### Slots #########################
 
 class SlotNahkampfwaffeInLine(InLine):
-    model=Nahkampfwaffe.slots.through
+    model=SlotNahkampfwaffe
+    fields = ["tag", "num"]
 
 class SlotFernkampfwaffeInLine(InLine):
-    model=Fernkampfwaffe.slots.through
+    model=SlotFernkampfwaffe
+    fields = ["tag", "num"]
 
 class SlotRitual_RuneInLine(InLine):
-    model=Ritual_Rune.slots.through
+    model=SlotRitual_Rune
+    fields = ["tag", "num"]
 
 class SlotEinbauteInLine(InLine):
-    model=Einbaute.slots.through
+    model=SlotEinbaute
+    fields = ["tag", "num"]
+
 class SlotZauberInLine(InLine):
-    model=Zauber.slots.through
+    model=SlotZauber
+    fields = ["tag", "num"]
 
 class SlotBegleiterInLine(InLine):
-    model=Begleiter.slots.through
+    model=SlotBegleiter
+    fields = ["tag", "num"]
 
 
 class UpgradeNahkampfwaffeInLine(InLine):
@@ -109,7 +116,7 @@ class FirmaEngelsroboterInLine(InLine):
 ################# BaseAdmin #########################
 class BaseAdmin(admin.ModelAdmin):
     search_fields = ['name', "beschreibung__contains"]
-    exclude = ['possible_upgrades']
+    exclude = ['slots', 'possible_upgrades']
     list_editable = ["has_implementation"]
 
     def _firmashop_modelset(self) -> str:

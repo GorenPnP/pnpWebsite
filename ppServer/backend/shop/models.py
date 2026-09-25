@@ -100,11 +100,11 @@ class Tag(models.Model):
 class Slot(models.Model):
     class Meta:
         abstract = True
-        ordering = ['item', 'tag']
+        ordering = ['item', 'tag__name']
         verbose_name = "Slot"
         verbose_name_plural = "Slots"
 
-    tag = models.ForeignKey(Tag, on_delete=models.CASCADE)
+    tag = models.ManyToManyField(Tag)
     num = models.PositiveSmallIntegerField(validators=[MinValueValidator(1)], default=1)
 
     class PreloadManager(models.Manager):
@@ -113,8 +113,8 @@ class Slot(models.Model):
             return super().get_queryset().prefetch_related("tag", "item")
     objects = PreloadManager()
 
-    def __str__(self):
-        return f'{self.item} hat {self.num}x {self.tag.name} Slots'
+    # def __str__(self):
+    #     return f'{self.item} hat {self.num}x {self.tag.name} Slots'
 
 
 class SlotNahkampfwaffe(Slot):
@@ -334,7 +334,7 @@ class Nahkampfwaffe(BaseShop):
     händigkeit = models.CharField(max_length=1, choices=enums.hand_enum, default='1')
     fertigkeit = models.ForeignKey('character.Fertigkeit', on_delete=models.SET_NULL, null=True, blank=True)
 
-    slots = models.ManyToManyField(Tag, through=SlotNahkampfwaffe)
+    slots = models.ManyToManyField(SlotNahkampfwaffe)
     possible_upgrades = models.ManyToManyField(Upgrade)
 
     kategorie = models.CharField(choices=enums.nahkampfwaffe_enum, max_length=2, default=enums.nahkampfwaffe_enum[0][0])
@@ -385,7 +385,7 @@ class Fernkampfwaffe(BaseShop):
 
     munition = models.ManyToManyField(Munition, blank=True)
 
-    slots = models.ManyToManyField(Tag, through=SlotFernkampfwaffe)
+    slots = models.ManyToManyField(SlotFernkampfwaffe)
     possible_upgrades = models.ManyToManyField(Upgrade)
 
     fertigkeit = models.ForeignKey('character.Fertigkeit', on_delete=models.SET_NULL, null=True, blank=True)
@@ -424,7 +424,7 @@ class Ritual_Rune(BaseShop):
 
     manaverbrauch = models.CharField(max_length=100, default='', null=True, blank=True)
 
-    slots = models.ManyToManyField(Tag, through=SlotRitual_Rune)
+    slots = models.ManyToManyField(SlotRitual_Rune)
     possible_upgrades = models.ManyToManyField(Upgrade)
 
     kategorie = models.CharField(choices=enums.ritual_enum, max_length=2, default=enums.ritual_enum[0][0])
@@ -496,7 +496,7 @@ class Einbaute(BaseShop):
 
     manifestverlust = models.CharField(max_length=20, null=True, blank=True)
 
-    slots = models.ManyToManyField(Tag, through=SlotEinbaute)
+    slots = models.ManyToManyField(SlotEinbaute)
     possible_upgrades = models.ManyToManyField(Upgrade)
 
     kategorie = models.CharField(choices=enums.einbaute_enum, max_length=2, default=enums.einbaute_enum[0][0])
@@ -523,7 +523,7 @@ class Zauber(BaseShop):
     wirkbereich = models.TextField(default='', blank=True)
     wirkdauer = models.TextField(default='', blank=True)
 
-    slots = models.ManyToManyField(Tag, through=SlotZauber)
+    slots = models.ManyToManyField(SlotZauber)
     possible_upgrades = models.ManyToManyField(Upgrade)
 
     kategorie = models.CharField(choices=enums.zauber_enum, max_length=2, null=True, blank=True)
@@ -592,7 +592,7 @@ class Begleiter(BaseShop):
     astraler_widerstand = models.CharField(max_length=64, default='')
     physischer_widerstand = models.CharField(max_length=64, default='')
 
-    slots = models.ManyToManyField(Tag, through=SlotBegleiter)
+    slots = models.ManyToManyField(SlotBegleiter)
     possible_upgrades = models.ManyToManyField(Upgrade)
 
     firmen = models.ManyToManyField('Firma', through='FirmaBegleiter', blank=True)
