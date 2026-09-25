@@ -6,7 +6,7 @@ def migrate_wirkbereich_Fwaffe(apps, schema_editor):
     Fernkampfwaffe = apps.get_model('shop', 'Fernkampfwaffe')
 
     for f in Fernkampfwaffe.objects.exclude(wirkbereich=''):
-        for m in f.munition_set.all():
+        for m in f.munition.all():
             m.wirkbereich = f"{m.wirkbereich}, {f.wirkbereich}" if m.wirkbereich else f.wirkbereich
             m.save()
 
