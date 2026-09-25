@@ -188,7 +188,7 @@ class FernkampfwaffeAdmin(BaseAdmin):
     shop_model = Fernkampfwaffe
     firma_shop_model = FirmaFernkampfwaffe
 
-    exclude = ['munition', 'possible_upgrades']
+    exclude = BaseAdmin.exclude + ['munition']
     list_display = ('name', 'beschreibung', "ab_stufe", 'schuss', 'munition_', 'feuerrate', "reichweite", "händigkeit", 'dk', 'präzision', 'billigste',
                     'kategorie', 'fertigkeit', 'info', "has_implementation")
     # list_filter = ['kategorie', 'dk', 'präzision', 'fertigkeit__titel', "frei_editierbar"]
