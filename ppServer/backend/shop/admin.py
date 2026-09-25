@@ -189,10 +189,10 @@ class FernkampfwaffeAdmin(BaseAdmin):
     firma_shop_model = FirmaFernkampfwaffe
 
     exclude = ['munition', 'possible_upgrades']
-    list_display = ('name', 'beschreibung', "ab_stufe", 'schuss', 'munition_', 'feuerrate', "reichweite", "wirkbereich", "händigkeit", 'dk', 'präzision', 'billigste',
+    list_display = ('name', 'beschreibung', "ab_stufe", 'schuss', 'munition_', 'feuerrate', "reichweite", "händigkeit", 'dk', 'präzision', 'billigste',
                     'kategorie', 'fertigkeit', 'info', "has_implementation")
     # list_filter = ['kategorie', 'dk', 'präzision', 'fertigkeit__titel', "frei_editierbar"]
-    list_editable = ['feuerrate', "reichweite", "wirkbereich", "händigkeit",]
+    list_editable = ['feuerrate', "reichweite", "händigkeit",]
 
     inlines = [SchussMunitionInLine, SlotFernkampfwaffeInLine, UpgradeFernkampfwaffeInLine, FirmaFernkampfwaffeInLine]
 

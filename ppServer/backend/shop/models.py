@@ -171,6 +171,7 @@ class Upgrade(models.Model):
     ab_stufe = models.PositiveSmallIntegerField(default=0)
     price = models.IntegerField(default=0)
     achievement_unlock = models.BooleanField(default=False, verbose_name="nur manuell von SL nach Achievement freischaltbar")
+    achievement_requirement = models.TextField(default='', blank=True)
 
     # calc
     influenced_field = models.CharField(max_length=64, choices=fields_enum, null=True, blank=True)
@@ -380,7 +381,6 @@ class Fernkampfwaffe(BaseShop):
     präzision = models.PositiveIntegerField(default=0, blank=True)
     feuerrate = models.CharField(max_length=1, choices=enums.feuerrate_enum, default=enums.feuerrate_enum[2][0])
     reichweite = models.FloatField(default=0.0, verbose_name="Reichweite in m")
-    wirkbereich = models.TextField(default='', blank=True)
     händigkeit = models.CharField(max_length=1, choices=enums.hand_enum, default='1')
 
     munition = models.ManyToManyField(Munition, blank=True)
