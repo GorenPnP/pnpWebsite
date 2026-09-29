@@ -1,10 +1,13 @@
 import math
 
-from django.core.validators import MinValueValidator, MaxValueValidator
+from django.core.validators import MinValueValidator
 from django.db import models
-from django.db.models import Count, Q, QuerySet
+from django.db.models import  Count, Value,  OuterRef, Q, QuerySet
 
+from django.db.models.functions import Coalesce, Concat
 from django_resized import ResizedImageField
+
+from ppServer.utils import ConcatSubquery, ChoicesLabelCase
 
 from . import enums
 
@@ -42,7 +45,7 @@ class Modifier(models.Model):
         )
 
     @classmethod
-    def getModifier(cls, firma, shopCategory: "BaseShop"):
+    def getModifier(cls, firma, shopCategory: type["BaseShop"]):
         # get Category letter of Shop-model
         shopmodel_name = shopCategory._meta.verbose_name_plural
         catLetter = next((letter for letter, cat in enums.category_enum if cat == shopmodel_name), '')
@@ -136,6 +139,7 @@ class SlotBegleiter(Slot):
     item = models.ForeignKey("Begleiter", on_delete=models.CASCADE)
 
 
+# TODO add required Upgrade-field
 class Upgrade(models.Model):
 
     class Meta:
@@ -274,7 +278,7 @@ class BaseShop(models.Model):
 
     name = models.CharField(max_length=50, default='', unique=True)
     beschreibung = models.TextField(max_length=1500, default='', blank=True)
-    icon = ResizedImageField(size=[64, 64], null=True, blank=True)
+    icon = ResizedImageField(size=[1024, 1024], null=True, blank=True)
 
     ab_stufe = models.IntegerField(default=0, validators=[MinValueValidator(0)], blank=True)
 
@@ -391,6 +395,18 @@ class Fernkampfwaffe(BaseShop):
     fertigkeit = models.ForeignKey('character.Fertigkeit', on_delete=models.SET_NULL, null=True, blank=True)
     kategorie = models.CharField(choices=enums.fernkampfwaffe_enum, max_length=1, default=enums.fernkampfwaffe_enum[0][0])
     firmen = models.ManyToManyField('Firma', through='FirmaFernkampfwaffe', blank=True)
+
+    class SchadenManager(models.Manager):
+        def annotate_schaden(self):
+            """ annotates with schaden = ', '.join(<schaden> <schadensart>) of munition" """
+
+            return self.prefetch_related("munition").annotate(
+            schaden = ConcatSubquery(Munition.objects.filter(fernkampfwaffe=OuterRef("pk")).annotate(
+                art = ChoicesLabelCase('schadensart', choices=enums.schadensart_enum),
+                s = Concat(Coalesce("schaden", Value("0")), Value(" "), "art"),
+            ).values("s"))
+        )
+    objects = SchadenManager()
 
     @staticmethod
     def getShopDisplayFields():

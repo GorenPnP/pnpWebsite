@@ -1,0 +1,50 @@
+{% extends 'base/headed_main.html' %}
+{% load static levelUp.resources crispy_forms_tags django_tables2 %}
+
+{% block extra-head %}
+<link rel="stylesheet" href="{% static 'shop/css/list.css' %}">
+{% endblock %}
+
+{% block asides %}{{ block.super }}
+    {% resources title="Filter" icon="static/res/img/icon-filter.svg" %}{% crispy filter.form %}{% endresources %}
+{% endblock %}
+
+{% block main %}
+    <ul>
+        {% for obj in page_obj %}
+            <li>{% include obj.template with obj=obj %}</li>
+        {% endfor %}
+    </ul>
+
+
+    {% if page_obj and page_obj.paginator.num_pages > 1 %}
+    <nav class="mt-5" aria-label="Table navigation">
+        <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}
+            <li class="page-item previous">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}">
+                    <span aria-hidden="true">&laquo;</span>
+                    vorherige
+                </a>
+            </li>
+        {% endif %}
+        {% if page_obj.has_previous or page_obj.has_next %}
+            {% for p in page_obj|table_page_range:page_obj.paginator %}
+                <li class="page-item{% if p == page_obj.number %} active{% endif %}">
+                    <a class="page-link" href="?page={{ p }}">{{ p }}</a>
+                </li>
+            {% endfor %}
+        {% endif %}
+
+        {% if page_obj.has_next %}
+            <li class="page-item next">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}">
+                    nächste
+                    <span aria-hidden="true">&raquo;</span>
+                </a>
+            </li>
+        {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+{% endblock %}

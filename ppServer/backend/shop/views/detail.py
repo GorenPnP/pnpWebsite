@@ -5,7 +5,6 @@ from django.db.models import Case, When, PositiveIntegerField, Q
 from django.contrib import messages
 from django.shortcuts import render, get_object_or_404, redirect
 from django.views.generic import DetailView
-from django.urls import reverse
 
 from cards.models import Card, Transaction
 from character.models import *
@@ -13,9 +12,10 @@ from log.create_log import logShop
 from ppServer.mixins import VerifiedAccountMixin
 
 from ..models import *
+from .index import get_list_url
 
 
-class BuyView(VerifiedAccountMixin, DetailView):
+class DetailView(VerifiedAccountMixin, DetailView):
 
     def set_shopmodels(self):
         self.shop_model = self.kwargs["model"]
@@ -67,13 +67,13 @@ class BuyView(VerifiedAccountMixin, DetailView):
             "extra_preis_field": request.user.has_perm(CustomPermission.SPIELLEITUNG.value),
             "st": item.stufenabhängig,
             "topic": item.name,
-            "app_index": "Shop",
-            "app_index_url": reverse("shop:index")
+            "app_index": self.shop_model._meta.verbose_name_plural,
+            "app_index_url": get_list_url(self.shop_model)
         }
 
         # for redirect eventually
         context["text"] = "Für dieses Item gibt es keinen Verkäufer."
-        return render(request, "shop/buy_shop.html", context)
+        return render(request, "shop/detail/default.html", context)
     
     def post(self, request, id: int, *args, **kwargs):
         self.set_shopmodels()

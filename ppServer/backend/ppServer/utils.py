@@ -3,7 +3,7 @@ from operator import or_
 
 from django.contrib import admin
 from django.db import models
-from django.db.models import Case, fields, Subquery, Value, When, Window, Avg, Q
+from django.db.models import Case, CharField, fields, Subquery, Value, When, Window, Avg, Q, Model
 
 def get_filter(model: models.Model, model_field: str, fields: list[str]):
     """
@@ -106,3 +106,15 @@ def display_value(choices, field):
         *[When(**{field: k, 'then': Value(v) }) for k, v in choices],
         output_field=models.CharField()
     )
+
+
+class ChoicesLabelCase(Case):
+    """ see https://stackoverflow.com/questions/55878881/django-get-choice-display-on-using-values """
+    def __init__(self, field: str, model: Model = None, choices: list = None, *args, **kwargs) -> None:
+        if choices is None and model is None:
+            raise ValueError("Either a model or a choices parameter must be provided.")
+        elif choices is None:
+            choices = model._meta.get_field(field).flatchoices
+
+        cases_list = [When(**{field: val, "then": Value(label)}) for (val, label) in choices]
+        super(ChoicesLabelCase, self).__init__(*cases_list, output_field=CharField(), *args, **kwargs)

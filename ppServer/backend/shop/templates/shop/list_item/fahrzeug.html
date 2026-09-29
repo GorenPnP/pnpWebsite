@@ -1,0 +1,9 @@
+{% extends 'shop/list_item/default.html' %}
+
+{% block above_price %}
+    {{ block.super }}
+    <div class="info-row">
+        {{ obj.hp|default:0 }} HP,
+        {{ obj.geschwindigkeit|default:0 }} Geschwindigkeit
+    </div>
+{% endblock %}

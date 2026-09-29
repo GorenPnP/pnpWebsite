@@ -9,7 +9,7 @@
         right: 0;
         height: 0;
     }
-    .character-resources .offcanvas { bottom: unset; max-height: calc(100vh - 20px); }
+    .character-resources .offcanvas { bottom: unset; max-height: calc(100vh - var(--after-header__margin-top) - 1em); }
     .character-resources .offcanvas.offcanvas-end, .character-resources-trigger {
         /* color */
         --bg-rgb: 132, 31, 82;  /* pink */
@@ -51,7 +51,7 @@
 
     <div class="offcanvas offcanvas-end show text-bg-dark" tabindex="-1" id="{{ offcanvas_id }}" aria-labelledby="offcanvasExampleLabel" data-bs-scroll="true" data-bs-backdrop="false">
         <div class="offcanvas-header">
-            <h5 class="offcanvas-title" id="offcanvasExampleLabel">Ressoucen</h5>
+            <h5 class="offcanvas-title" id="offcanvasExampleLabel">{{ title }}</h5>
             <button type="button" class="btn-close btn-close-white text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
         </div>
         <div class="offcanvas-body">

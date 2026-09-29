@@ -1,0 +1,7 @@
+{% extends 'shop/list_item/default.html' %}
+
+{% block above_price %}
+    <div class="info-row">
+        {{ obj.schaden|default:0 }} {{ obj.schadensart }}, kostet {{ obj.manaverbrauch|default:0 }} Mana
+    </div>
+{% endblock %}

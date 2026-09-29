@@ -1,0 +1,9 @@
+{% extends 'shop/list_item/default.html' %}
+
+{% block above_price %}
+    {{ block.super }}
+    <div class="info-row">
+        {{ obj.schutz|default:0 }} Schutz,
+        {{ obj.haltbarkeit|default:0 }} Haltbarkeit
+    </div>
+{% endblock %}

@@ -1,0 +1,36 @@
+{% load static shop.get_detail_url shop.get_curr_price %}
+
+<div class="item-container">
+    <!-- img -->
+     <div class="icon-container">
+        {% if obj.ab_stufe %}<span class="ab-stufe">ab Stufe {{ obj.ab_stufe }}</span>{% endif %}
+        
+        <img class="icon" src="{% if obj.icon %}{{ obj.icon.url }}{% else %}{% static 'res/img/goren_logo.png' %}{% endif %}" loading='lazy'>
+     </div>
+
+    <!-- information  -->
+     <div class="information">
+        <div class="info-row"><a class="titel" href="{{ obj|get_detail_url }}">{{ obj.name }}</a></div>
+        <div class="info-row">
+            {% if obj.model_verbose_name %}<em class="model">{{ obj.model_verbose_name }} -</em>&nbsp;{% endif %}
+            {% if obj.kategorie %}<em class="kategory">{{ obj.get_kategorie_display }}.</em>&nbsp;{% endif %}
+            <span class="description">{{ obj.beschreibung|truncatechars_html:150 }}</span>
+        </div>
+        {% block above_price %}
+        {% if obj.schaden or obj.schadensart or obj.händigkeit %}<div class="info-row">
+            {% if obj.händigkeit %}{{ obj.get_händigkeit_display }}{% endif %}
+            {% if obj.schaden and obj.schaden is not 0 %}{{ obj.schaden }}{% endif %}
+            {% if obj.schadensart %}{{ obj.get_schadensart_display }}{% endif %}
+        </div>{% endif %}
+        {% endblock %}
+        <div class="info-row info-row--price">
+            {% with price=obj|get_curr_price %}
+            <b class="price">{{ price|default_if_none:'nicht kaufbar mit ' }} Dr.{% if obj.stufenabhängig %} * Stufe{% endif %}</b>
+            {% if price is not None and price < obj.preis %}<span class="base-price">{{ obj.preis }} Dr.</span>
+            <span class="discount">Spare  {% widthratio price obj.preis 1 %}%</span>{% endif %}
+            {% endwith %}
+        </div>
+        <div class="info-row"><a class="btn btn-sm btn-outline-light" href="{{ obj|get_detail_url }}">Optionen anzeigen</a></div>
+        {% block below_info %}{% endblock %}
+    </div>
+</div>

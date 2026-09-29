@@ -5,7 +5,7 @@ from typing import Any, Dict
 from django.apps import apps
 from django.contrib import messages
 from django.db import transaction
-from django.db.models import Value, F, CharField, OuterRef, Case, When
+from django.db.models import BooleanField, ForeignKey, ManyToManyField, TextField, Value, F, CharField, OuterRef, Case, When
 from django.db.models.functions import Concat
 from django.db.utils import IntegrityError
 from django.http import HttpResponseRedirect, JsonResponse
@@ -27,13 +27,102 @@ from log.create_log import render_number
 from log.models import Log
 from ppServer.decorators import verified_account
 from ppServer.mixins import VerifiedAccountMixin, CopiesCharsMixin
-from ppServer.utils import ConcatSubquery
-from shop.views.list import shopmodel_list, RenderableTable, annotate_other
+from ppServer.utils import ConcatSubquery, display_value
+from shop.views.list import shopmodel_list
 
 from .forms import *
 from .models import *
 
 locale.setlocale(locale.LC_NUMERIC, "de_DE.utf8")
+
+
+def annotate_other(Model: models.Model, other_fieldnames: list[str]) -> dict[str, any]:
+
+    # get all fields displayed on "other"
+    other_fields = [field for field in Model._meta.get_fields() if field.name in other_fieldnames]
+
+    # qs-prep: change display in "other"-cell of table at db level (to make it searchable)
+    other_concat_parts = []
+    displays_of_fields_in_other = {}
+    for field in other_fields:
+        queryname = f"{field.name}_display"
+
+        # prepare EACH FIELD used in "other" for concat later
+        other_concat_parts.append(Value(f"{field.verbose_name}: " if not other_concat_parts else f",\n {field.verbose_name}: "))
+        other_concat_parts.append(queryname)
+
+
+        choices = getattr(field, "choices", []) or []
+        # use verbose text of choice/enum
+        if choices:
+            displays_of_fields_in_other[queryname] = display_value(choices, field.name)
+
+        # translate boolean field values to german
+        elif field.__class__ == BooleanField:
+            displays_of_fields_in_other[queryname] = display_value([("True", "Ja"), ("False", "Nein")], field.name)
+
+        # resolves FK or M2M with related_object.name or .titel
+        elif field.__class__ in [ForeignKey, ManyToManyField]:
+            possible_fields_for_representation = ["name", "titel"]
+            repr_fieldname = [f for f in possible_fields_for_representation if f in field.related_model.__dict__][0]
+            displays_of_fields_in_other[queryname] = ConcatSubquery(field.related_model.objects.filter(**{f"{Model._meta.model_name}__id": OuterRef("id")}).values(repr_fieldname), separator=", ")
+
+        # base case, no changes
+        else:
+            displays_of_fields_in_other[queryname] = F(field.name)
+
+    # construct base queryset without frei_editierbare instances
+    return {
+        **displays_of_fields_in_other,
+        "other": Concat(*other_concat_parts, output_field=TextField()),
+    } if displays_of_fields_in_other else {"other": Value("")}
+
+
+class RenderableTable(GenericTable):
+    class Meta:
+        attrs = GenericTable.Meta.attrs
+        order_by_field = "name"
+
+    def _get(self, obj, key: str):
+        try:
+            return getattr(obj, key, obj[key])
+        except:
+            return obj.__dict__[key] 
+
+    def render_icon(self, value, record):
+        Model = apps.get_model('shop', self._get(record, "model_name"))
+        instance = Model.objects.get(id=self._get(record, "id"))
+
+        # use python model .objects.get().getIconUrl()
+        return format_html("<img src='{url}' loading='lazy'>", url=instance.getIconUrl())
+
+    def render_name(self, value, record):
+        try:
+            url = reverse(f'shop:buy', args=[apps.get_model("shop", self._get(record, "model_name")), self._get(record, "id")])
+            return format_html(f"<a href='{url}'>{value}</a>")
+        except:
+            return value
+
+    def render_beschreibung(self, value):
+        return format_html(value.replace("\n", "<br>"))
+
+    def render_art(self, value, record):
+        return self._get(record, "art_display")
+    
+    def render_preis(self, value, record):
+        preis = "{}{}".format(render_number(value), " - {}".format(render_number(self._get(record, "max_preis"))) if self._get(record, "max_preis") != value else "")
+        return "{} Dr.{}".format(preis, " * Stufe" if self._get(record, "stufenabhängig") else "")
+
+    def render_other(self, value):
+
+        # build dict; convert "kategory: some stuff,\ntimes: 3" => {kategory: "some stuff", "times": "3"}
+        values = {v.split(": ")[0].strip(): v.split(": ")[1].strip() for v in value.split(',\n')}
+
+        # format cell content
+        return format_html("<ul><li>" + '</li><li>'.join(f'<em>{k}</em>: {v}' for k, v in values.items() if v) + "</li></ul>")
+
+
+
 
 class CharacterListView(VerifiedAccountMixin, TemplateView):
     template_name = "character/index.html"

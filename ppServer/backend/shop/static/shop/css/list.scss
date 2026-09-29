@@ -1,0 +1,94 @@
+html {
+    width: 100vw;
+    overflow-x: hidden;
+}
+
+.main-container {
+    padding-inline: .5em;
+}
+
+ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+.offcanvas {
+    max-height: 90vh;
+}
+
+.item-container {
+
+    display: grid;
+    grid-template-columns: clamp(85px, 20%, 120px) auto;
+    gap: .5em;
+    margin-block: 0.25em;
+
+    border: 1px solid rgba(255, 255, 255, .1);
+    border-radius: 5px;
+    overflow: hidden;
+
+    .icon-container {
+        position: relative;
+        background-color: rgba(255, 255, 255, .04);
+        
+        .icon {
+            aspect-ratio: 1;
+            width: 100%;
+            object-fit: cover;
+        }
+        .ab-stufe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            padding: .25em .5em;
+            background-color: rgba(0, 0, 0, .6);
+            border-radius: 0 0 5px 0;
+            line-height: 1em;
+            font-size: .6rem;
+        }
+    }
+
+    .information {
+        display: grid;
+        grid-template-rows: auto auto 1fr auto;
+        align-items: end;
+
+        .info-row {
+            display: -webkit-box;        /* required for the clamp to apply   */
+            -webkit-box-orient: vertical;/* stack the lines vertically        */
+            line-clamp: 2;               /* keep only the first 2 lines       */
+            -webkit-line-clamp: 2;
+            overflow: hidden;            /* hide everything past the clamp    */
+
+            &.info-row--price {
+                display: flex;
+                gap: .5em;
+                align-items: baseline;
+                font-size: 0.8rem;
+            }
+        }
+
+        .titel, .price {
+            color: var(--bs-body-color);
+            font-size: 1.1rem;
+            font-weight: bold;
+            text-decoration: none;
+        }
+        .titel:hover {
+            opacity: .8;
+            text-decoration: underline;
+        }
+        .kategory, .description, .base-price {
+            opacity: 0.85;
+        }
+
+        .base-price {
+            text-decoration: line-through;
+        }
+
+        .discount {
+            padding: .25em .5em;
+            background-color: var(--bs-indigo);
+        }
+    }
+}

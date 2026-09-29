@@ -1,13 +1,13 @@
 from django.urls import path, register_converter
 
 from .converter import *
+from .models import *
 from .views.index import index, review_items, transfer_items, propose_item, shopmodel_list
-from .views.buy import BuyView
-from .views import list as listViews
+from .views.detail import DetailView
+from .views.list import AllListView, ListView, FernkampfwaffeView, shop_model_filter_fields
 
 app_name = 'shop'
 register_converter(get_ModelNameConverter(app_name, shopmodel_list), "model")
-register_converter(get_ModelNameConverter(app_name, [m for m in shopmodel_list if m._meta.model_name != "tinker"]), "buyable_model")
 
 urlpatterns = [
     path('', index, name='index'),
@@ -15,23 +15,16 @@ urlpatterns = [
     path('transfer-items/', transfer_items, name='transfer_items'),
     path('propose/<model:model>/', propose_item, name="propose"),
 
-    path('all/', listViews.FullShopTableView.as_view(), name='all'),
+    path('all/', AllListView.as_view(), name='all'),
 
-    path('items/', listViews.ItemTableView.as_view(), name='item_list'),
-    path('nahkampf_wurfwaffen/', listViews.NahkampfwaffeTableView.as_view(), name='nahkampfwaffe_list'),
-    path('munition/', listViews.MunitionTableView.as_view(), name='munition_list'),
-    path("fernkampfwaffen", listViews.FernkampfwaffeTableView.as_view(), name='fernkampfwaffe_list'),
-    path('magische_ausrüstung/', listViews.MagischeAusrüstungTableView.as_view(), name='magische_ausrüstung_list'),
-    path('rituale_runen/', listViews.RitualRuneTableView.as_view(), name='ritual_rune_list'),
-    path('rüstungen/', listViews.RüstungTableView.as_view(), name='rüstung_list'),
-    path('technik/', listViews.TechnikTableView.as_view(), name='technik_list'),
-    path('fahrzeuge/', listViews.FahrzeugTableView.as_view(), name='fahrzeug_list'),
-    path('einbauten/', listViews.EinbauteTableView.as_view(), name='einbaute_list'),
-    path('zauber/', listViews.ZauberTableView.as_view(), name='zauber_list'),
-    path('alchemie/', listViews.AlchemieTableView.as_view(), name='alchemie_list'),
-    path('tinker/', listViews.TinkerTableView.as_view(), name='tinker_list'),
-    path('begleiter/', listViews.BegleiterTableView.as_view(), name='begleiter_list'),
-    path('engelsroboter/', listViews.EngelsroboterTableView.as_view(), name='engelsroboter_list'),
-
-    path('buy_<buyable_model:model>/<int:id>/', BuyView.as_view(), name="buy"),
+    path('nahkampf_wurfwaffen/', ListView.as_view(model=Nahkampfwaffe, filterset_fields={**shop_model_filter_fields, "schaden": ["gte"], "schadensart": ["exact"], "dk": ["lte"]}), name='nahkampfwaffe_list'),
+    path("fernkampfwaffen", FernkampfwaffeView.as_view(), name='fernkampfwaffe_list'),
+    path('rüstungen/', ListView.as_view(model=Rüstung, filterset_fields={**shop_model_filter_fields, "schutz": ["icontains"], "haltbarkeit": ["gte"]}), name='rüstung_list'),
+    path('fahrzeuge/', ListView.as_view(model=Fahrzeug, filterset_fields={**shop_model_filter_fields, "geschwindigkeit": ["gte"], "hp": ["gte"], "erfolge": ["lte"]}), name='fahrzeug_list'),
+    path('einbauten/', ListView.as_view(model=Einbaute, filterset_fields={**shop_model_filter_fields, "manifestverlust": ["icontains"]}), name='einbaute_list'),
+    path('zauber/', ListView.as_view(model=Zauber, filterset_fields={**shop_model_filter_fields, "astralschaden": ["icontains"], "manaverbrauch": ["icontains"], "verteidigung": ["exact"], "kategorie": ["exact"], "schadensart": ["exact"]}), name='zauber_list'),
+    path('engelsroboter/', ListView.as_view(model=Engelsroboter, filterset_fields={ **shop_model_filter_fields, 'ST': ["gte"], 'UM': ["gte"], 'MA': ["gte"], 'IN': ["gte"]}), name='engelsroboter_list'),
+    path('<model:model>/', ListView.as_view(), name="list"),
+    
+    path('<model:model>/<int:id>/', DetailView.as_view(), name="detail"),
 ]

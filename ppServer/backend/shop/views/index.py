@@ -4,7 +4,7 @@ from django.db.models import Model
 from django.contrib import messages
 from django.http import Http404
 from django.shortcuts import render, redirect
-from django.urls import reverse
+from django.urls import NoReverseMatch, reverse
 
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Field, Layout, Div, Submit, Button
@@ -15,6 +15,13 @@ from ppServer.decorators import spielleitung_only, verified_account
 
 from ..models import *
 from .list import shopmodel_list
+
+
+def get_list_url(m: type[BaseShop]) -> str:
+    try:
+        return reverse(f'shop:{m._meta.model_name}_list')
+    except NoReverseMatch:
+        return reverse('shop:list', args=[m])
 
 
 @verified_account
@@ -101,7 +108,7 @@ def transfer_items(request):
 def index(request):
     return render(request, "shop/index.html", {
         "topic": "Shop",
-        "links": [{"link": reverse(f'shop:{m._meta.model_name}_list'), "text": m._meta.verbose_name_plural} for m in shopmodel_list if m._meta.model_name != "tinker"],
+        "links": [{"link": get_list_url(m), "text": m._meta.verbose_name_plural} for m in shopmodel_list if m._meta.model_name != "tinker"],
     })
 
 
@@ -141,6 +148,6 @@ def propose_item(request, model: Model):
     return render(request, "shop/propose.html", {
         "topic": "neues Item",
         "app_index": model._meta.verbose_name_plural,
-        "app_index_url": reverse(f"shop:{model._meta.model_name}_list"),
+        "app_index_url": get_list_url(model),
         "form": form,
     })
