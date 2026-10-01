@@ -34,6 +34,8 @@ shop_extra_filter_fields = {
 
 
 class CharakterFilter(ChoiceFilter):
+    ''' see shop->list.html that sets ab_stufe and price when char is selected '''
+
     def __init__(self, spieler: Spieler, *args, **kwargs):
         super().__init__(
             *args, **kwargs,
@@ -42,17 +44,17 @@ class CharakterFilter(ChoiceFilter):
         )
 
     def filter(self, qs, value):
+        # filter should already be set on selection in form. Selecting a character sets ab_stufe and price
         return qs
 
 
-# TODO add pagination
 class ListView(VerifiedAccountMixin, FilterView):
 
     model = None
     filterset_fields = shop_model_filter_fields
     filterset_extra_fields = shop_extra_filter_fields
 
-    page_size = 50    # 50 items per page
+    page_size = 50    # num of items per page
 
     # topic/title of page and other stuff for the header & file export
     topic = None
@@ -82,6 +84,7 @@ class ListView(VerifiedAccountMixin, FilterView):
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(
             *args, **kwargs,
+            char_stats={c["pk"]: {"stufe": c["ep_stufe"], "geld": c["card__money"]} for c in Charakter.objects.filter(larp=False, eigentümer=self.request.spieler).values("pk", "ep_stufe", "card__money")},
             topic=self.get_topic(),
             plus=self.get_plus(),
             plus_url=self.get_plus_url(),
@@ -126,7 +129,7 @@ class ListView(VerifiedAccountMixin, FilterView):
 
         return {
             **extra,
-            # "char": CharakterFilter(self.request.spieler), TODO delete or use?
+            "char": CharakterFilter(self.request.spieler),
             "o": OrderingFilter(fields=[*self.filterset_fields.keys(), *set([k.split("__")[0] for k in extra.keys()])]),
         }
 

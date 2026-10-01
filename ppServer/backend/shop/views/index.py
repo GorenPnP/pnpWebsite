@@ -1,20 +1,16 @@
-from django import forms
-
-from django.db.models import Model
 from django.contrib import messages
-from django.http import Http404
-from django.shortcuts import render, redirect
+from django.shortcuts import redirect
+from django.views.decorators.http import require_GET
 from django.urls import NoReverseMatch, reverse
 
-from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Field, Layout, Div, Submit, Button
+from django.views.generic import TemplateView
 
-from base.crispy_form_decorator import crispy
 from base.views import reviewable_shop
-from ppServer.decorators import spielleitung_only, verified_account
+from ppServer.mixins import SpielleitungOnlyMixin, VerifiedAccountMixin
 
+from ..forms import get_ProposeForm
 from ..models import *
-from .list import shopmodel_list
+from .list import ListView, shopmodel_list
 
 
 def get_list_url(m: type[BaseShop]) -> str:
@@ -24,130 +20,99 @@ def get_list_url(m: type[BaseShop]) -> str:
         return reverse('shop:list', args=[m])
 
 
-@verified_account
-@spielleitung_only()
-def review_items(request):
+class ReviewView(SpielleitungOnlyMixin, ListView):
+    template_name = "shop/review.html"
+    model = Item
 
-    context = {"topic": "Neue Items", "items": reviewable_shop()}
+    def get_template_names(self):
+        return [self.template_name]
 
-    if not context["items"]:
-        return redirect("base:index")
+    def get_topic(self):
+        return "Neue Items"
 
-    return render(request, "shop/review_items.html", context)
+    def get_plus(self):
+        return None
+    def get_plus_url(self):
+        return None
 
+    def _update_context_data(self, context):
+        return context
 
-@verified_account
-@spielleitung_only()
-def transfer_items(request):
+    def get_queryset(self):
+        objects = []
+        
+        # get objects (manually ordered by name)
+        for e in sorted(reviewable_shop(), key=lambda e: e["item"]["name"]):
+            item = e["item"]
+            model = e["model"]
+            template = self.get_item_template(model)
 
-    @crispy(form_tag=False)
-    class TransferForm(forms.Form):
-        action_enum = [
-            ('Alchemie', 'Drogen zu Alchemie'),
-            ('Rune', "'o Grome zu Ritual_Rune"),
-            ('Technik', 'Programme zu Technik')
-        ]
-        aktion = forms.ChoiceField(choices=action_enum, required=True)
-        items = forms.ModelMultipleChoiceField(Item.objects.all(), widget=forms.CheckboxSelectMultiple(), required=True)
+            display = {"kategorie": None, "schadensart": None, "händigkeit": None}
+            for field in display.keys():
+                if field in item and item[field]:
+                    for k, v in model._meta.get_field(field).choices:
+                        if k == item[field]:
+                            display[field] = v
+                            break
 
-    if request.method == "GET":
-        context = {
-            "topic": "Item-Transfer",
-            "form": TransferForm()
-        }
+            objects.append({
+                **item,
+                **{f'get_{field}_display': v for field,v in display.items()},
+                "template": template,     # needed to render this item nicely
+                "model_verbose_name": model._meta.verbose_name,
+                "detail_url": reverse('admin:shop_{}_change'.format(model._meta.model_name), args=(item["id"],)),
+            })
+        return objects
 
-    if request.method == "POST":
-        form = TransferForm(request.POST)
-        form.full_clean()
-        if not form.is_valid():
-            messages.error(request, "Transfer konnte nicht durchgeführt werden")
-        else:
-            fields = ("name", "beschreibung", "icon", "ab_stufe", "frei_editierbar", "stufenabhängig")
+    def get(self, request, *args, **kwargs):
+        context = self.get_context_data(*args, **kwargs, object_list=self.get_queryset())
 
-            if form.cleaned_data["aktion"] == "Alchemie":
-                Model = Alchemie
-                ModelFirma = FirmaAlchemie
-                kategorie = 'd'
-            if form.cleaned_data["aktion"] == "Rune":
-                Model = Ritual_Rune
-                kategorie = 'g'
-                ModelFirma = FirmaRitual_Rune
-            if form.cleaned_data["aktion"] == "Technik":
-                Model = Technik
-                ModelFirma = FirmaTechnik
-                kategorie = 'p'
-
-            for item in form.cleaned_data["items"]:
-
-                # create in new category
-                values = {field: getattr(item, field) for field in fields}
-                values["kategorie"] = kategorie
-                new_item, _ = Model.objects.get_or_create(**values)
-
-                # link to firma
-                for firmaitem in item.firmaitem_set.all():
-                    if form.cleaned_data["aktion"] == "Rune":
-                        new_item.frei_editierbar = True
-                        new_item.save(update_fields=["frei_editierbar"])
-                        ModelFirma.objects.get_or_create(item=new_item, firma=firmaitem.firma, defaults={"stufe_1": firmaitem.preis, "verfügbarkeit": firmaitem.verfügbarkeit})
-                    else:
-                        ModelFirma.objects.get_or_create(item=new_item, firma=firmaitem.firma, defaults={"preis": firmaitem.preis, "verfügbarkeit": firmaitem.verfügbarkeit})
-            names = ", ".join(form.cleaned_data["items"].values_list("name", flat=True))
-
-            # delete old item
-            form.cleaned_data["items"].delete()
-
-            messages.success(request, f"{names} zu {form.cleaned_data['aktion']}")
-
-        return redirect(request.build_absolute_uri())
-
-    return render(request, "shop/sp_transfer_from_items.html", context)
+        if not context["object_list"]: return redirect("base:index")
+        return self.render_to_response(context)
 
 
-@verified_account
-def index(request):
-    return render(request, "shop/index.html", {
-        "topic": "Shop",
-        "links": [{"link": get_list_url(m), "text": m._meta.verbose_name_plural} for m in shopmodel_list if m._meta.model_name != "tinker"],
+class IndexView(VerifiedAccountMixin, TemplateView):
+    template_name = "shop/index.html"
+
+    @classmethod
+    def as_view(cls, **initkwargs):
+        return require_GET(super().as_view(**initkwargs))
+
+    def get_context_data(self, *args, **kwargs):
+        return super().get_context_data(
+            *args, **kwargs, 
+            topic = "Shop",
+            links = [{"link": get_list_url(m), "text": m._meta.verbose_name_plural} for m in shopmodel_list if m._meta.model_name != "tinker"],
+        )
+
+
+class ProposeView(VerifiedAccountMixin, TemplateView):
+    template_name = "shop/propose.html"
+
+    def setup(self, request, *args, **kwargs):
+        res = super().setup(request, *args, **kwargs)
+        self.model = self.kwargs["model"]
+        return res
+
+    def get_context_data(self, *args, **kwargs):
+        return super().get_context_data(*args, **kwargs, **{
+        "topic": "neues Item",
+        "app_index": self.model._meta.verbose_name_plural,
+        "app_index_url": get_list_url(self.model),
     })
 
+    def get(self, request, *args, **kwargs):
+        form = get_ProposeForm(self.model)()
+        return super().get(request, *args, **kwargs, form=form)
 
-@verified_account
-def propose_item(request, model: Model):
-    if model not in shopmodel_list: return Http404()
-
-    ModelForm = forms.modelform_factory(model=model, exclude=["firmen", "frei_editierbar", "has_implementation", "minecraft_mod_id", "wooble_buy_price", "wooble_sell_price"])
-    form = ModelForm()
-
-    if request.method == 'POST':
-        form = ModelForm(request.POST)
+    def post(self, *args, **kwargs):
+        form = get_ProposeForm(self.model)(self.request.POST)
         form.full_clean()
         if form.is_valid():
             item = form.save()
-            messages.success(request, "Vorschlag wurde eingereicht")
-            return redirect(f"shop:{model._meta.model_name}_list")
+            messages.success(self.request, "Vorschlag wurde eingereicht")
+            return redirect(get_list_url(self.model))
 
-        messages.error(request, "Beim Speichern sind Fehler aufgetreten")
+        messages.error(self.request, "Beim Speichern sind Fehler aufgetreten")
 
-
-    form.helper = FormHelper()
-    form.helper.layout = Layout(
-        Div(
-            Field('icon', wrapper_class='col-12 col-md-4'),
-            Field('name', wrapper_class='col-12 col-md-8'),
-        css_class='row align-items-center'),
-        "beschreibung",
-        Div(
-            Field('ab_stufe', wrapper_class='col-12 col-sm-3'),
-            Field('stufenabhängig', wrapper_class='col-12 col-sm-3'),
-        css_class='row align-items-center'),
-        *[field for field in form.fields.keys() if field not in ["icon", "name", "beschreibung", "stufenabhängig", "ab_stufe"]],
-        Submit("submit", "Item vorschlagen"),
-        Button("", "Zurück", css_class="btn btn-outline-light ms-3", onclick="history.back()")
-    )
-    return render(request, "shop/propose.html", {
-        "topic": "neues Item",
-        "app_index": model._meta.verbose_name_plural,
-        "app_index_url": get_list_url(model),
-        "form": form,
-    })
+        return super().get(*args, **kwargs, form=form)

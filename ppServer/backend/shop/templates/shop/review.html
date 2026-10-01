@@ -1,0 +1,14 @@
+{% extends 'base/headed_main.html' %}
+{% load static %}
+
+{% block extra-head %}
+<link rel="stylesheet" href="{% static 'shop/css/list.css' %}">
+{% endblock %}
+
+{% block main %}
+<ul>
+    {% for obj in object_list %}
+        <li>{% include obj.template with obj=obj %}</li>
+    {% endfor %}
+</ul>
+{% endblock %}

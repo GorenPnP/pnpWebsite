@@ -10,10 +10,12 @@
 
     <!-- information  -->
      <div class="information">
-        <div class="info-row"><a class="titel" href="{{ obj|get_detail_url }}">{{ obj.name }}</a></div>
+        <div class="info-row"><a class="titel" href="{% if obj.detail_url %}{{ obj.detail_url }}{% else %}{{ obj|get_detail_url }}{% endif %}">{{ obj.name }}</a></div>
         <div class="info-row">
-            {% if obj.model_verbose_name %}<em class="model">{{ obj.model_verbose_name }} -</em>&nbsp;{% endif %}
-            {% if obj.kategorie %}<em class="kategory">{{ obj.get_kategorie_display }}.</em>&nbsp;{% endif %}
+            {% if obj.model_verbose_name %}<em class="model">{{ obj.model_verbose_name }}</em>{% endif %}
+            {% if obj.model_verbose_name and obj.kategorie %}<em>&nbsp;-&nbsp;</em>{% endif %}
+            {% if obj.kategorie %}<em class="kategory">{{ obj.get_kategorie_display }}</em>{% endif %}
+            <em>.</em>&nbsp;
             <span class="description">{{ obj.beschreibung|truncatechars_html:150 }}</span>
         </div>
         {% block above_price %}
@@ -24,13 +26,15 @@
         </div>{% endif %}
         {% endblock %}
         <div class="info-row info-row--price">
-            {% with price=obj|get_curr_price %}
+            {% if not obj.frei_editierbar %}{% with price=obj|get_curr_price %}
             <b class="price">{{ price|default_if_none:'nicht kaufbar mit ' }} Dr.{% if obj.stufenabhängig %} * Stufe{% endif %}</b>
             {% if price is not None and price < obj.preis %}<span class="base-price">{{ obj.preis }} Dr.</span>
             <span class="discount">Spare  {% widthratio price obj.preis 1 %}%</span>{% endif %}
-            {% endwith %}
+            {% endwith %}{% else %}
+            <b class="price">nicht kaufbar{% if obj.stufenabhängig %} , hat Stufen{% endif %}</b>
+            {% endif %}
         </div>
-        <div class="info-row"><a class="btn btn-sm btn-outline-light" href="{{ obj|get_detail_url }}">Optionen anzeigen</a></div>
+        <div class="info-row"><a class="btn btn-sm btn-outline-light" href="{% if obj.detail_url %}{{ obj.detail_url }}{% else %}{{ obj|get_detail_url }}{% endif %}">Optionen anzeigen</a></div>
         {% block below_info %}{% endblock %}
     </div>
 </div>

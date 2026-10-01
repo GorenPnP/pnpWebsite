@@ -33,33 +33,7 @@ class DetailView(VerifiedAccountMixin, DetailView):
 
         # characters to buy stuff for
         if not request.user.has_perm(CustomPermission.SPIELLEITUNG.value):
-            if self.shop_model._meta.model_name == "zauber":
-                charaktere = charaktere.annotate(
-                        # mind. 5 bei Zaubern:
-                        magieamateur_exists = Exists(RelVorteil.objects.filter(char=OuterRef("pk"), teil__titel="Magie-Amateur")),                    
-                        # mind. 10 bei Zaubern:
-                        magiegelehrter_exists = Exists(RelVorteil.objects.filter(char=OuterRef("pk"), teil__titel="Magie-Gelehrter")),
-
-                        max_shopstufe=Case(When(
-                            Q(magiegelehrter_exists=True) & Q(ep_stufe_in_progress__lt=10),
-                            then=10),
-                            default=Case(When(
-                                Q(magieamateur_exists=True) & Q(ep_stufe_in_progress__lt=5),
-                                then=5),
-                                default=F("ep_stufe_in_progress"),
-                                output_field=PositiveIntegerField()
-                            ),
-                            output_field=PositiveIntegerField()
-                        ),
-                    )
-            else:
-                charaktere = charaktere.annotate(
-                    # mind. 3
-                    basarflipper_exists = Exists(RelVorteil.objects.filter(char=OuterRef("pk"), teil__titel="Basar-Flipper")),
-                    max_shopstufe=Case(When(Q(basarflipper_exists=True) & Q(ep_stufe_in_progress__lt=3), then=3), default=F("ep_stufe_in_progress"), output_field=PositiveIntegerField()), #F("ep_stufe_in_progress"),
-                )
-
-            charaktere = charaktere.filter(eigentümer=request.spieler, max_shopstufe__gte=item.ab_stufe)
+            charaktere = charaktere.filter(eigentümer=request.spieler, ep_stufe__gte=item.ab_stufe)
 
         context = {
             "charaktere": charaktere.order_by('name'),

@@ -20,9 +20,8 @@ def reviewable_shop() -> list:
 
     spielleitung_notes = []
     for m in shopmodel_list:
-        for i in m.objects.filter(frei_editierbar=True):
-            spielleitung_notes.append({"titel": i.name, "model": m,
-                                    "url": reverse('admin:shop_{}_change'.format(m.__name__.lower()), args=(i.id,))})
+        for i in m.objects.filter(frei_editierbar=True).values():
+            spielleitung_notes.append({"item": i, "model": m})
     return spielleitung_notes
 
 

@@ -148,8 +148,6 @@ class BaseAdmin(admin.ModelAdmin):
 ################### ShopAdmin #######################
 
 class ItemAdmin(BaseAdmin):
-    change_list_template = "shop/admin/change_list_itemtransfer.html"
-
     shop_model = Item
     firma_shop_model = FirmaItem
 

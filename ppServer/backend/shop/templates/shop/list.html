@@ -2,6 +2,17 @@
 {% load static levelUp.resources crispy_forms_tags django_tables2 %}
 
 {% block extra-head %}
+{{ char_stats|json_script:"char_stats" }}
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const char_stats = JSON.parse(document.querySelector("#char_stats").innerHTML);
+
+    document.querySelector("select#id_char").addEventListener("change", function() {
+        this.closest("form").querySelector("input#id_ab_stufe__lte").value = char_stats[this.value]?.stufe || '';
+        this.closest("form").querySelector("input#id_preis__lte").value = char_stats[this.value]?.geld || '';
+    });
+})
+</script>
 <link rel="stylesheet" href="{% static 'shop/css/list.css' %}">
 {% endblock %}
 
