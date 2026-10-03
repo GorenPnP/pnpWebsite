@@ -10,7 +10,7 @@ from ppServer.mixins import SpielleitungOnlyMixin, VerifiedAccountMixin
 
 from ..forms import get_ProposeForm
 from ..models import *
-from .list import ListView, shopmodel_list
+from .list import AllListView, BaseList, HeaderMixin, ListView, MixedListFilterMixin, shopmodel_list
 
 
 def get_list_url(m: type[BaseShop]) -> str:
@@ -20,68 +20,48 @@ def get_list_url(m: type[BaseShop]) -> str:
         return reverse('shop:list', args=[m])
 
 
-class ReviewView(SpielleitungOnlyMixin, ListView):
-    template_name = "shop/review.html"
-    model = Item
-
-    def get_template_names(self):
-        return [self.template_name]
-
-    def get_topic(self):
-        return "Neue Items"
+class ReviewView(VerifiedAccountMixin, SpielleitungOnlyMixin, HeaderMixin, MixedListFilterMixin, BaseList):
+    # template_name = "shop/review.html"
+    topic = "Neue Items"
+    app_index = 'Shop'
+    app_index_url = 'shop:index'
+    model = Item    # irrelevant, just need a model here for the filter
+    filterset_fields = {}
 
     def get_plus(self):
-        return None
+        return None     # ignore preset with self.model
     def get_plus_url(self):
-        return None
+        return None     # ignore preset with self.model
 
-    def _update_context_data(self, context):
-        return context
+    def set_ordering(self):
+        self.ordering = "name"
 
-    def get_queryset(self):
-        objects = []
-        
-        # get objects (manually ordered by name)
-        for e in sorted(reviewable_shop(), key=lambda e: e["item"]["name"]):
-            item = e["item"]
-            model = e["model"]
-            template = self.get_item_template(model)
+    def get_filters(self):
+        return {"frei_editierbar": True}
 
-            display = {"kategorie": None, "schadensart": None, "händigkeit": None}
-            for field in display.keys():
-                if field in item and item[field]:
-                    for k, v in model._meta.get_field(field).choices:
-                        if k == item[field]:
-                            display[field] = v
-                            break
+    def get_filterset_extra_fields(self):
+        return {}
 
-            objects.append({
-                **item,
-                **{f'get_{field}_display': v for field,v in display.items()},
-                "template": template,     # needed to render this item nicely
-                "model_verbose_name": model._meta.verbose_name,
-                "detail_url": reverse('admin:shop_{}_change'.format(model._meta.model_name), args=(item["id"],)),
-            })
+
+class IndexView(VerifiedAccountMixin, HeaderMixin, MixedListFilterMixin, BaseList):
+    template_name = "shop/index.html" # todo change
+    topic = "Shop"
+
+    model = Item
+
+    def get_filters(self):
+        return {"frei_editierbar": False}
+
+    def get_objects(self, filters):
+        objects = super().get_objects(filters)
+
+        print(objects)
+        # TODO filter items on sale
         return objects
-
-    def get(self, request, *args, **kwargs):
-        context = self.get_context_data(*args, **kwargs, object_list=self.get_queryset())
-
-        if not context["object_list"]: return redirect("base:index")
-        return self.render_to_response(context)
-
-
-class IndexView(VerifiedAccountMixin, TemplateView):
-    template_name = "shop/index.html"
-
-    @classmethod
-    def as_view(cls, **initkwargs):
-        return require_GET(super().as_view(**initkwargs))
 
     def get_context_data(self, *args, **kwargs):
         return super().get_context_data(
             *args, **kwargs, 
-            topic = "Shop",
             links = [{"link": get_list_url(m), "text": m._meta.verbose_name_plural} for m in shopmodel_list if m._meta.model_name != "tinker"],
         )
 

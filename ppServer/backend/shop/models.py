@@ -22,24 +22,19 @@ class ShopCategory(models.Model):
 class Modifier(models.Model):
 
     class Meta:
-        ordering = ['prio']
+        ordering = ['factor']
         verbose_name = "Modifier"
         verbose_name_plural = "Modifier"
 
-    prio = models.FloatField(validators=[MinValueValidator(1.0)], default=100, unique=True)
-
-    price_modifier = models.FloatField(null=False, blank=False, default=1.0)
-    is_factor_not_addition = models.BooleanField(default=True)
+    factor = models.FloatField(null=False, blank=False, default=1.0)
     active = models.BooleanField(default=True)
 
     firmen = models.ManyToManyField("Firma")
     kategorien = models.ManyToManyField(ShopCategory)
 
     def __str__(self):
-        return "#{} {}{} ({})({})".format(
-            self.prio,
-            "*" if self.is_factor_not_addition else "+",
-            self.price_modifier,
+        return "*{} ({})({})".format(
+            self.factor,
             ", ".join([f.name for f in self.firmen.all()]),
             ", ".join([k.get_kategorie_display() for k in self.kategorien.all()])
         )
@@ -58,15 +53,12 @@ class Modifier(models.Model):
                 # get base modifiers (that modify everything)
                 Q(firmen__count=0, kategorien__count=0)
             )\
-            .filter(active=True).order_by("prio")
+            .filter(active=True)
         
         # return function that calculates the modified value of a passed price
         def calcPrice(price: int) -> int:
             for modifier in allModifiers:
-                if modifier.is_factor_not_addition:
-                    price *= modifier.price_modifier
-                else:
-                    price += modifier.price_modifier
+                price *= modifier.factor
 
             return math.floor(price + 0.5)
         return calcPrice

@@ -1,6 +1,6 @@
 from django import forms
 
-from crispy_forms.layout import Button, Layout, Div, Field, Submit, Reset, Fieldset
+from crispy_forms.layout import Button, Layout, Div, Field, Submit
 from django_filters import FilterSet
 
 from base.crispy_form_decorator import crispy
@@ -18,7 +18,6 @@ class ShopFilter(FilterSet):
                 self.helper.layout = Layout(
                     *self.fields.keys(),
                     Submit('submit', "Filtern", css_class="btn btn-light me-1"),
-                    Reset('reset', "Zurücksetzen", css_class="btn btn-outline-light"),
                 )
         return Form
 

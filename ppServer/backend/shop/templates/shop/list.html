@@ -1,5 +1,5 @@
 {% extends 'base/headed_main.html' %}
-{% load static levelUp.resources crispy_forms_tags django_tables2 %}
+{% load static levelUp.resources shop.update_querystring crispy_forms_tags django_tables2 %}
 
 {% block extra-head %}
 {{ char_stats|json_script:"char_stats" }}
@@ -7,7 +7,7 @@
 document.addEventListener("DOMContentLoaded", () => {
     const char_stats = JSON.parse(document.querySelector("#char_stats").innerHTML);
 
-    document.querySelector("select#id_char").addEventListener("change", function() {
+    document.querySelector("select#id_char")?.addEventListener("change", function() {
         this.closest("form").querySelector("input#id_ab_stufe__lte").value = char_stats[this.value]?.stufe || '';
         this.closest("form").querySelector("input#id_preis__lte").value = char_stats[this.value]?.geld || '';
     });
@@ -17,23 +17,29 @@ document.addEventListener("DOMContentLoaded", () => {
 {% endblock %}
 
 {% block asides %}{{ block.super }}
+    {% if filter and filter.fields %}
     {% resources title="Filter" icon="static/res/img/icon-filter.svg" %}{% crispy filter.form %}{% endresources %}
+    {% endif %}
 {% endblock %}
 
 {% block main %}
     <ul>
-        {% for obj in page_obj %}
+        {% for obj in object_list %}
             <li>{% include obj.template with obj=obj %}</li>
+
+        {% empty %}
+        <p>Leider nichts da :(</p>
+        {% if request.GET %}<a class="text-light" href="?">ohne Filter nochmal versuchen</a>{% endif %}
         {% endfor %}
     </ul>
 
 
-    {% if page_obj and page_obj.paginator.num_pages > 1 %}
+    {% if is_paginated %}
     <nav class="mt-5" aria-label="Table navigation">
         <ul class="pagination justify-content-center">
         {% if page_obj.has_previous %}
             <li class="page-item previous">
-                <a class="page-link" href="?page={{ page_obj.previous_page_number }}">
+                <a class="page-link" href="{% update_querystring page=page_obj.previous_page_number %}">
                     <span aria-hidden="true">&laquo;</span>
                     vorherige
                 </a>
@@ -42,14 +48,14 @@ document.addEventListener("DOMContentLoaded", () => {
         {% if page_obj.has_previous or page_obj.has_next %}
             {% for p in page_obj|table_page_range:page_obj.paginator %}
                 <li class="page-item{% if p == page_obj.number %} active{% endif %}">
-                    <a class="page-link" href="?page={{ p }}">{{ p }}</a>
+                    <a class="page-link" href="{% update_querystring page=p %}">{{ p }}</a>
                 </li>
             {% endfor %}
         {% endif %}
 
         {% if page_obj.has_next %}
             <li class="page-item next">
-                <a class="page-link" href="?page={{ page_obj.next_page_number }}">
+                <a class="page-link" href="{% update_querystring page=page_obj.next_page_number %}">
                     nächste
                     <span aria-hidden="true">&raquo;</span>
                 </a>

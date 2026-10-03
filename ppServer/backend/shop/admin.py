@@ -365,14 +365,11 @@ class FirmaInLine(admin.TabularInline):
     verbose_name_plural = 'Firmen'
     extra = 1
 class ModifierAdmin(admin.ModelAdmin):
-    list_display = ['prio', 'price_modification', '_firmen', '_kategorien', 'active']
+    list_display = ['factor', '_firmen', '_kategorien', 'active']
     exclude = ['kategorien', 'firmen']
     list_filter = ['kategorien', 'firmen']
 
     inlines = [ShopCategoryInline, FirmaInLine]
-
-    def price_modification(self, obj):
-        return '{} {}'.format('*' if obj.is_factor_not_addition else '+', obj.price_modifier)
     
     def _firmen(self, obj):
         return obj.firmennames or self.get_empty_value_display()

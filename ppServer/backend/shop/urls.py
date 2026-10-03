@@ -4,7 +4,7 @@ from .converter import *
 from .models import *
 from .views.index import IndexView, ProposeView, ReviewView, shopmodel_list
 from .views.detail import DetailView
-from .views.list import AllListView, ListView, FernkampfwaffeView, shop_model_filter_fields
+from .views.list import AllListView, ListView, BaseList, FernkampfwaffeView, shop_model_filter_fields
 
 app_name = 'shop'
 register_converter(get_ModelNameConverter(app_name, shopmodel_list), "model")
