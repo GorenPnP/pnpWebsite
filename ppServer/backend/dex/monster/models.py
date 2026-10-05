@@ -154,12 +154,12 @@ class Attacke(models.Model):
     def __str__(self):
         return self.name
     
-    class CardManager(models.Manager):
+    class CardQuerySet(QuerySet):
 
         def load_card(self):
             """ preloads all fields needed for display of monster-listentry """
             return self.prefetch_related("types", "damage")
-    objects = CardManager()
+    objects = CardQuerySet().as_manager()
 
 
 class MonsterRang(models.Model):

@@ -1241,9 +1241,6 @@ class RelShop(models.Model):
     def __str__(self):
         return "{} ({})".format(self.item, self.anz)
 
-    def cheapest(self) -> int or None:
-        return self.item.cheapest(self.stufe or 1)
-
 
 class RelItem(RelShop):
     class Meta:
@@ -1372,142 +1369,141 @@ class RelRitual_Rune(RelShop):
     item = models.ForeignKey(Ritual_Rune, on_delete=models.CASCADE)
 
 
-# verf_shop_firma
-############ RelFirmaShop ###########
-class RelFirmaShop(models.Model):
+############ RelShopAvailable ###########
+class RelShopAvailable(models.Model):
     class Meta:
         abstract = True
-        ordering = ['char', 'firma_shop']
-        unique_together = (('char', "firma_shop"),)
+        ordering = ['char', 'item']
+        unique_together = (('char', "item"),)
 
     char = models.ForeignKey(Charakter, on_delete=models.CASCADE)
     last_tried = models.DateField(default=date.today)
 
     def __str__(self):
-        return "{}, {}, {}".format(self.firma_shop, self.char, self.last_tried)
+        return "{}, {}, {}".format(self.item, self.char, self.last_tried)
 
 
-class RelFirmaItem(RelFirmaShop):
+class RelItemAvailable(RelShopAvailable):
     class Meta:
         verbose_name = "Item Verfügbarkeit"
         verbose_name_plural = "Items Verfügbarkeiten"
 
-    firma_shop = models.ForeignKey(FirmaItem, on_delete=models.CASCADE)
+    item = models.ForeignKey(Item, on_delete=models.CASCADE)
 
 
-class RelFirmaNahkampfwaffe(RelFirmaShop):
+class RelNahkampfwaffeAvailable(RelShopAvailable):
     class Meta:
         verbose_name = "Nahkampf-/Wurfwaffe Verfügbarkeit"
         verbose_name_plural = "Nahkampf-/Wurfwaffe Verfügbarkeiten"
 
-    firma_shop = models.ForeignKey(FirmaNahkampfwaffe, on_delete=models.CASCADE)
+    item = models.ForeignKey(Nahkampfwaffe, on_delete=models.CASCADE)
 
 
-class RelFirmaMunition(RelFirmaShop):
+class RelMunitionAvailable(RelShopAvailable):
     class Meta:
         verbose_name = "Munition Verfügbarkeit"
         verbose_name_plural = "Munition Verfügbarkeiten"
 
-    firma_shop = models.ForeignKey(FirmaMunition, on_delete=models.CASCADE)
+    item = models.ForeignKey(Munition, on_delete=models.CASCADE)
 
 
-class RelFirmaFernkampfwaffe(RelFirmaShop):
+class RelFernkampfwaffeAvailable(RelShopAvailable):
     class Meta:
         verbose_name = "Fernkampfwaffe Verfügbarkeit"
         verbose_name_plural = "Fernkampfwaffen Verfügbarkeiten"
 
-    firma_shop = models.ForeignKey(FirmaFernkampfwaffe, on_delete=models.CASCADE)
+    item = models.ForeignKey(Fernkampfwaffe, on_delete=models.CASCADE)
 
 
-class RelFirmaMagische_Ausrüstung(RelFirmaShop):
+class RelMagische_AusrüstungAvailable(RelShopAvailable):
     class Meta:
         verbose_name = "magische Ausrüstung Verfügbarkeit"
         verbose_name_plural = "magische Ausrüstung Verfügbarkeiten"
 
-    firma_shop = models.ForeignKey(FirmaMagische_Ausrüstung, on_delete=models.CASCADE)
+    item = models.ForeignKey(Magische_Ausrüstung, on_delete=models.CASCADE)
 
 
-class RelFirmaRüstung(RelFirmaShop):
+class RelRüstungAvailable(RelShopAvailable):
     class Meta:
         verbose_name = "Rüstung Verfügbarkeit"
         verbose_name_plural = "Rüstungen Verfügbarkeiten"
 
-    firma_shop = models.ForeignKey(FirmaRüstung, on_delete=models.CASCADE)
+    item = models.ForeignKey(Rüstung, on_delete=models.CASCADE)
 
 
-class RelFirmaTechnik(RelFirmaShop):
+class RelTechnikAvailable(RelShopAvailable):
     class Meta:
         verbose_name = "Technik Verfügbarkeit"
         verbose_name_plural = "Technik Verfügbarkeiten"
 
-    firma_shop = models.ForeignKey(FirmaTechnik, on_delete=models.CASCADE)
+    item = models.ForeignKey(Technik, on_delete=models.CASCADE)
 
 
-class RelFirmaFahrzeug(RelFirmaShop):
+class RelFahrzeugAvailable(RelShopAvailable):
     class Meta:
         verbose_name = "Fahrzeug Verfügbarkeit"
         verbose_name_plural = "Fahrzeuge Verfügbarkeiten"
 
-    firma_shop = models.ForeignKey(FirmaFahrzeug, on_delete=models.CASCADE)
+    item = models.ForeignKey(Fahrzeug, on_delete=models.CASCADE)
 
 
-class RelFirmaEinbaute(RelFirmaShop):
+class RelEinbauteAvailable(RelShopAvailable):
     class Meta:
         verbose_name = "Einbaute Verfügbarkeit"
         verbose_name_plural = "Einbaute Verfügbarkeiten"
 
-    firma_shop = models.ForeignKey(FirmaEinbaute, on_delete=models.CASCADE)
+    item = models.ForeignKey(Einbaute, on_delete=models.CASCADE)
 
 
-class RelFirmaZauber(RelFirmaShop):
+class RelZauberAvailable(RelShopAvailable):
     class Meta:
         verbose_name = "Zauber Verfügbarkeit"
         verbose_name_plural = "Zauber Verfügbarkeiten"
 
-    firma_shop = models.ForeignKey(FirmaZauber, on_delete=models.CASCADE)
+    item = models.ForeignKey(Zauber, on_delete=models.CASCADE)
 
     def __str__(self):
-        return "{}".format(self.firma_shop)
+        return "{}".format(self.item)
 
 
-class RelFirmaAlchemie(RelFirmaShop):
+class RelAlchemieAvailable(RelShopAvailable):
     class Meta:
         verbose_name = "Alchemie Verfügbarkeit"
         verbose_name_plural = "Alchemie Verfügbarkeiten"
 
-    firma_shop = models.ForeignKey(FirmaAlchemie, on_delete=models.CASCADE)
+    item = models.ForeignKey(Alchemie, on_delete=models.CASCADE)
 
 
-class RelFirmaTinker(RelFirmaShop):
+class RelTinkerAvailable(RelShopAvailable):
     class Meta:
         verbose_name = "Für Selbstständige Verfügbarkeit"
         verbose_name_plural = "Für Selbstständige Verfügbarkeiten"
 
-    firma_shop = models.ForeignKey(FirmaTinker, on_delete=models.CASCADE)
+    item = models.ForeignKey(Tinker, on_delete=models.CASCADE)
 
 
-class RelFirmaBegleiter(RelFirmaShop):
+class RelBegleiterAvailable(RelShopAvailable):
     class Meta:
         verbose_name = "Begleiter Verfügbarkeit"
         verbose_name_plural = "Begleiter Verfügbarkeiten"
 
-    firma_shop = models.ForeignKey(FirmaBegleiter, on_delete=models.CASCADE)
+    item = models.ForeignKey(Begleiter, on_delete=models.CASCADE)
 
 
-class RelFirmaEngelsroboter(RelFirmaShop):
+class RelEngelsroboterAvailable(RelShopAvailable):
     class Meta:
         verbose_name = "Engelsroboter Verfügbarkeit"
         verbose_name_plural = "Engelsroboter Verfügbarkeiten"
 
-    firma_shop = models.ForeignKey(FirmaEngelsroboter, on_delete=models.CASCADE)
+    item = models.ForeignKey(Engelsroboter, on_delete=models.CASCADE)
 
 
-class RelFirmaRitual_Rune(RelFirmaShop):
+class RelRitual_RuneAvailable(RelShopAvailable):
     class Meta:
         verbose_name = "Ritual/Rune Verfügbarkeit"
         verbose_name_plural = "Ritual/Rune Verfügbarkeiten"
 
-    firma_shop = models.ForeignKey(FirmaRitual_Rune, on_delete=models.CASCADE)
+    item = models.ForeignKey(Ritual_Rune, on_delete=models.CASCADE)
 
 # bonus things
 class SkilltreeBase(models.Model):
@@ -1746,9 +1742,6 @@ class RelRamsch(RelShop):
         verbose_name_plural = "Ramsch"
 
     item = models.CharField(max_length=128, blank=False)
-
-    def cheapest(self):
-        return None
 
 
 class CurrentStory(models.Model):

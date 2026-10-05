@@ -3,7 +3,8 @@ from operator import or_
 
 from django.contrib import admin
 from django.db import models
-from django.db.models import Case, CharField, fields, Subquery, Value, When, Window, Avg, Q, Model
+from django.db.models import F, Case, CharField, Func, QuerySet, fields, Subquery, Value, When, Window, Avg, Q, Model
+from django.db.models.aggregates import Sum
 
 def get_filter(model: models.Model, model_field: str, fields: list[str]):
     """
@@ -118,3 +119,15 @@ class ChoicesLabelCase(Case):
 
         cases_list = [When(**{field: val, "then": Value(label)}) for (val, label) in choices]
         super(ChoicesLabelCase, self).__init__(*cases_list, output_field=CharField(), *args, **kwargs)
+
+
+class ProductSubquery(Subquery):
+
+    def __init__(self, queryset: QuerySet, field:str, **kwargs):
+        queryset = queryset.annotate(
+            ln_field=Func(F(field), function="LN"),
+            sum = Window(expression=Sum("ln_field")),
+            total = Func(F("sum"), function="EXP"),
+        ).values('total')[:1]
+
+        super().__init__(queryset, fields.FloatField(), **kwargs)

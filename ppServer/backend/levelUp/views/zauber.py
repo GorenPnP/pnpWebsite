@@ -11,7 +11,7 @@ from django.utils.decorators import method_decorator
 
 from cards.models import Card, Transaction
 from character.models import Charakter, RelAttribut, RelVorteil, Spieler, get_tier_cost_with_sp, RelZauber
-from shop.models import Firma, FirmaZauber, Modifier, Zauber
+from shop.models import Zauber
 
 from ..decorators import is_erstellung_done
 from ..mixins import LevelUpMixin
@@ -29,12 +29,6 @@ class GenericZauberView(LevelUpMixin, UserPassesTestMixin, TemplateView):
         char = self.get_character()
         return not char.no_MA and not char.no_MA_MG
 
-    def _get_price_modifiers(self) -> dict[int, Callable[[float], float]]:
-        ''' get price modifiers for Zauber by firma.pk
-            Should be called once to be used everywhere needed, because it contains pricy db operations.
-        '''
-        return {firma.pk: Modifier.getModifier(firma, Zauber) for firma in Firma.objects.annotate(pick=Exists(FirmaZauber.objects.filter(firma=OuterRef("pk")))).filter(pick=True)}
-        
 
     def get_context_data(self, *args, **kwargs):
         char = self.get_character(Charakter.objects.prefetch_related("zauber", "relzauber_set", "relattribut_set__attribut").annotate(
@@ -54,10 +48,9 @@ class GenericZauberView(LevelUpMixin, UserPassesTestMixin, TemplateView):
             querystring=Concat(Value('?name__icontains='), Replace("item__name", Value(" "), Value("+")), output_field=CharField()),
         ).order_by("item__name")
 
-        firmen_modifiers = self._get_price_modifiers()
         zauber = [
-            {"zauber": z, "geld": min([firmen_modifiers[f.firma.pk](f.preis) for f in z.firmazauber_set.all()])}
-            for z in Zauber.objects.prefetch_related("firmazauber_set__firma")\
+            {"zauber": z, "geld": z.curr_price or 0}
+            for z in Zauber.objects.annotate_price().prefetch_related("firma")\
                 .annotate(
                     querystring=Concat(Value('?name__icontains='), Replace("name", Value(" "), Value("+")), output_field=CharField()),
                 )\
@@ -83,8 +76,8 @@ class GenericZauberView(LevelUpMixin, UserPassesTestMixin, TemplateView):
 
         if operation == "create":
             zauber_id = request.POST.get("zauber_id")
-            zauber = get_object_or_404(Zauber, id=zauber_id)
-            
+            zauber = get_object_or_404(Zauber.objects.annotate_price(), id=zauber_id)
+
             # checks
             if RelZauber.objects.filter(char=char, item=zauber, learned=True).exists():
                 messages.error(request, f"Den Zauber {zauber.name} kennst du bereits.")
@@ -94,11 +87,9 @@ class GenericZauberView(LevelUpMixin, UserPassesTestMixin, TemplateView):
             if min_stufe_of_slots == -1:
                 messages.error(request, f"Du hast keinen passenden Zauberplatz für {zauber.name}.")
                 return redirect(request.build_absolute_uri())
-            
-            firmen_modifiers = self._get_price_modifiers()
-            firma_prices = {t.firma.name: firmen_modifiers[t.firma.pk](t.preis) for t in FirmaZauber.objects.prefetch_related("firma").filter(item=zauber)}
-            price = min(firma_prices.values())
-            firma_name = [k for k, v in firma_prices.items() if v == price][0]
+
+            price = zauber.curr_price or 0
+            firma_name = zauber.firma.name
             if not char.in_erstellung and char.geld < price:
                 messages.error(request, f"Du hast nicht genug Geld für {zauber.name}.")
                 return redirect(request.build_absolute_uri())

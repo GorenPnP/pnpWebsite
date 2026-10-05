@@ -67,70 +67,11 @@ class UpgradeBegleiterInLine(InLine):
     model=Begleiter.possible_upgrades.through
 
 
-
-################### FirmaShops ######################
-
-class FirmaItemInLine(InLine):
-    model = FirmaItem
-
-class FirmaNahkampfwaffeInLine(InLine):
-    model = FirmaNahkampfwaffe
-
-class FirmaMunitionInLine(InLine):
-    model = FirmaMunition
-
-class FirmaFernkampfwaffeInLine(InLine):
-    model = FirmaFernkampfwaffe
-
-class FirmaMagische_AusrüstungInLine(InLine):
-    model = FirmaMagische_Ausrüstung
-
-class FirmaRitual_RuneInLine(InLine):
-    model = FirmaRitual_Rune
-
-class FirmaRüstungInLine(InLine):
-    model = FirmaRüstung
-
-class FirmaTechnikInLine(InLine):
-    model = FirmaTechnik
-
-class FirmaFahrzeugInLine(InLine):
-    model = FirmaFahrzeug
-
-class FirmaEinbauteInLine(InLine):
-    model = FirmaEinbaute
-
-class FirmaZauberInLine(InLine):
-    model = FirmaZauber
-
-class FirmaAlchemieInLine(InLine):
-    model = FirmaAlchemie
-
-class FirmaBegleiterInLine(InLine):
-    model = FirmaBegleiter
-
-class FirmaEngelsroboterInLine(InLine):
-    model = FirmaEngelsroboter
-
-
 ################# BaseAdmin #########################
 class BaseAdmin(admin.ModelAdmin):
     search_fields = ['name', "beschreibung__contains"]
     exclude = ['slots', 'possible_upgrades']
-    list_editable = ["has_implementation"]
-
-    def _firmashop_modelset(self) -> str:
-        return f"{self.firma_shop_model._meta.model_name}_set"
-
-    def info(self, obj):
-        return "frei editierbar" if obj.frei_editierbar else self.get_empty_value_display()
-
-    def billigste(self, obj):
-        return obj.cheapest()
-
-
-    def get_queryset(self, request: HttpRequest) -> QuerySet[Any]:
-        return super().get_queryset(request).prefetch_related(f"{self._firmashop_modelset()}__firma")
+    list_editable = ["has_implementation", "beschreibung", "frei_editierbar"]
 
     def get_readonly_fields(self, request: HttpRequest, obj = ...):
         # spielleitung
@@ -148,51 +89,32 @@ class BaseAdmin(admin.ModelAdmin):
 ################### ShopAdmin #######################
 
 class ItemAdmin(BaseAdmin):
-    shop_model = Item
-    firma_shop_model = FirmaItem
-
-    list_display = ('name', 'beschreibung', "ab_stufe", 'billigste', 'kategorie', 'info', "has_implementation")
+    list_display = ('name', 'beschreibung', "ab_stufe", 'price', 'kategorie', 'frei_editierbar', "has_implementation")
     # list_filter = ['kategorie', "frei_editierbar"]
-
-    inlines = [FirmaItemInLine]
 
 
 class NahkampfwaffeAdmin(BaseAdmin):
-
-    shop_model = Nahkampfwaffe
-    firma_shop_model = FirmaNahkampfwaffe
-
-    list_display = ('name', 'beschreibung', "ab_stufe", "reichweite", "wirkbereich", "händigkeit", "fertigkeit", "schaden", 'bs', 'zs', 'dk', 'schadensart', 'billigste', 'kategorie', 'info', "has_implementation")
+    list_display = ('name', 'beschreibung', "ab_stufe", "reichweite", "wirkbereich", "händigkeit", "fertigkeit", "schaden", 'bs', 'zs', 'dk', 'schadensart', 'price', 'kategorie', 'frei_editierbar', "has_implementation")
     # list_filter = ['kategorie', 'bs', 'zs', 'dk', 'schadensart', 'händigkeit', "frei_editierbar"]
-    list_editable = ["schaden", "reichweite", "wirkbereich", "händigkeit", "fertigkeit", 'kategorie']
+    list_editable = BaseAdmin.list_editable + ["schaden", "reichweite", "wirkbereich", "händigkeit", "fertigkeit", 'kategorie']
 
-    inlines = [SlotNahkampfwaffeInLine, UpgradeNahkampfwaffeInLine, FirmaNahkampfwaffeInLine]
+    inlines = [SlotNahkampfwaffeInLine, UpgradeNahkampfwaffeInLine]
 
 
 class MunitionAdmin(BaseAdmin):
-
-    shop_model = Munition
-    firma_shop_model = FirmaMunition
-
-    list_display = ('name', 'beschreibung', "ab_stufe", 'bs', 'zs', 'schaden', 'schadensart', 'wirkbereich', 'billigste', 'info', "has_implementation")
+    list_display = ('name', 'beschreibung', "ab_stufe", 'bs', 'zs', 'schaden', 'schadensart', 'wirkbereich', 'price', 'frei_editierbar', "has_implementation")
     # list_filter = ['schuss', "frei_editierbar"]
-    list_editable = ['schaden', 'wirkbereich']
-
-    inlines = [FirmaMunitionInLine]
+    list_editable = BaseAdmin.list_editable + ['schaden', 'wirkbereich']
 
 
 class FernkampfwaffeAdmin(BaseAdmin):
-
-    shop_model = Fernkampfwaffe
-    firma_shop_model = FirmaFernkampfwaffe
-
     exclude = BaseAdmin.exclude + ['munition']
-    list_display = ('name', 'beschreibung', "ab_stufe", 'schuss', 'munition_', 'feuerrate', "reichweite", "händigkeit", 'dk', 'präzision', 'billigste',
-                    'kategorie', 'fertigkeit', 'info', "has_implementation")
+    list_display = ('name', 'beschreibung', "ab_stufe", 'schuss', 'munition_', 'feuerrate', "reichweite", "händigkeit", 'dk', 'präzision', 'price',
+                    'kategorie', 'fertigkeit', 'frei_editierbar', "has_implementation")
     # list_filter = ['kategorie', 'dk', 'präzision', 'fertigkeit__titel', "frei_editierbar"]
-    list_editable = ['feuerrate', "reichweite", "händigkeit",]
+    list_editable = BaseAdmin.list_editable + ['feuerrate', "reichweite", "händigkeit",]
 
-    inlines = [SchussMunitionInLine, SlotFernkampfwaffeInLine, UpgradeFernkampfwaffeInLine, FirmaFernkampfwaffeInLine]
+    inlines = [SchussMunitionInLine, SlotFernkampfwaffeInLine, UpgradeFernkampfwaffeInLine]
 
     def get_queryset(self, request):
         return super().get_queryset(request).prefetch_related("munition")
@@ -201,106 +123,58 @@ class FernkampfwaffeAdmin(BaseAdmin):
         return ", ".join([m.__str__() for m in obj.munition.all()])
 
 class Magische_AusrüstungAdmin(BaseAdmin):
-
-    shop_model = Magische_Ausrüstung
-    firma_shop_model = FirmaMagische_Ausrüstung
-
-    list_display = ('name', 'beschreibung', "ab_stufe", 'billigste', 'kategorie', 'info', "has_implementation")
+    list_display = ('name', 'beschreibung', "ab_stufe", 'price', 'kategorie', 'frei_editierbar', "has_implementation")
     # list_filter = ['kategorie', "frei_editierbar"]
-
-    inlines = [FirmaMagische_AusrüstungInLine]
 
 
 class Ritual_RuneAdmin(BaseAdmin):
-
-    shop_model = Ritual_Rune
-    firma_shop_model = FirmaRitual_Rune
-
-    list_display = ('name', 'beschreibung', "ab_stufe", "schaden", "schadensart", "wirkbereich", "manaverbrauch", 'billigste', 'kategorie', 'info', "has_implementation")
+    list_display = ('name', 'beschreibung', "ab_stufe", "schaden", "schadensart", "wirkbereich", "manaverbrauch", 'price', 'kategorie', 'frei_editierbar', "has_implementation")
     # list_filter = ['kategorie', "frei_editierbar"]
-    list_editable = ("schaden", "schadensart", "wirkbereich", "manaverbrauch",)
-
-    inlines = [SlotRitual_RuneInLine, UpgradeRitual_RuneInLine, FirmaRitual_RuneInLine]
+    list_editable = BaseAdmin.list_editable + ["schaden", "schadensart", "wirkbereich", "manaverbrauch"]
 
 
 class RüstungAdmin(BaseAdmin):
-
-    shop_model = Rüstung
-    firma_shop_model = FirmaRüstung
-
-    list_display = ('name', 'beschreibung', "ab_stufe", 'damage_speciality', 'kategorie', 'schutz', 'haltbarkeit', 'billigste', 'info', "has_implementation")
+    list_display = ('name', 'beschreibung', "ab_stufe", 'damage_speciality', 'kategorie', 'schutz', 'haltbarkeit', 'price', 'frei_editierbar', "has_implementation")
     # list_filter = ['schutz', 'haltbarkeit', "frei_editierbar"]
-    list_editable = ['damage_speciality', 'kategorie']
-
-    inlines = [FirmaRüstungInLine]
+    list_editable = BaseAdmin.list_editable + ['damage_speciality', 'kategorie']
 
 
 class TechnikAdmin(BaseAdmin):
-
-    shop_model = Technik
-    firma_shop_model = FirmaTechnik
-
-    list_display = ('name', 'beschreibung', "ab_stufe", 'kategorie', 'billigste',
-                    'info', "has_implementation")
+    list_display = ('name', 'beschreibung', "ab_stufe", 'kategorie', 'price',
+                    'frei_editierbar', "has_implementation")
     # list_filter = ['kategorie', "frei_editierbar"]
-
-    inlines = [FirmaTechnikInLine]
 
 
 class FahrzeugAdmin(BaseAdmin):
-
-    shop_model = Fahrzeug
-    firma_shop_model = FirmaFahrzeug
-
     list_display = ('name', 'beschreibung', "ab_stufe", 'geschwindigkeit', 'hp', 'erfolge',
-                    'billigste', 'kategorie', 'info', "has_implementation")
+                    'price', 'kategorie', 'frei_editierbar', "has_implementation")
     # list_filter = ['kategorie', 'geschwindigkeit', 'hp', 'erfolge', "frei_editierbar"]
-    list_editable = ["kategorie"]
-
-    inlines = [FirmaFahrzeugInLine]
+    list_editable = BaseAdmin.list_editable + ["kategorie"]
 
 
 class EinbauteAdmin(BaseAdmin):
-
-    shop_model = Einbaute
-    firma_shop_model = FirmaEinbaute
-
-    list_display = ('name', 'beschreibung', "ab_stufe", 'manifestverlust', 'billigste', 'kategorie', 'info', "has_implementation")
+    list_display = ('name', 'beschreibung', "ab_stufe", 'manifestverlust', 'price', 'kategorie', 'frei_editierbar', "has_implementation")
     # list_filter = ['kategorie', 'manifestverlust', "frei_editierbar"]
 
-    inlines = [SlotEinbauteInLine, UpgradeEinbauteInLine, FirmaEinbauteInLine]
+    inlines = [SlotEinbauteInLine, UpgradeEinbauteInLine]
 
 
 class ZauberAdmin(BaseAdmin):
-
-    shop_model = Zauber
-    firma_shop_model = FirmaZauber
-
-    list_display = ('name', 'beschreibung', "ab_stufe", "schaden", "wirkbereich", "wirkdauer", 'astralschaden', 'manaverbrauch', "verteidigung", 'schadensart', 'billigste',
-                    'kategorie', 'info', "has_implementation")
+    list_display = ('name', 'beschreibung', "ab_stufe", "schaden", "wirkbereich", "wirkdauer", 'astralschaden', 'manaverbrauch', "verteidigung", 'schadensart', 'price',
+                    'kategorie', 'frei_editierbar', "has_implementation")
     # list_filter = ['kategorie', 'astralschaden', 'manaverbrauch', "verteidigung", 'schadensart', "frei_editierbar"]
-    list_editable = ["schaden", "wirkbereich", "wirkdauer"]
+    list_editable = BaseAdmin.list_editable + ["schaden", "wirkbereich", "wirkdauer"]
 
-    inlines = [SlotZauberInLine, UpgradeZauberInLine, FirmaZauberInLine]
+    inlines = [SlotZauberInLine, UpgradeZauberInLine]
 
 
 class AlchemieAdmin(BaseAdmin):
-
-    shop_model = Alchemie
-    firma_shop_model = FirmaAlchemie
-
-    list_display = ('name', 'beschreibung', "ab_stufe", 'billigste', 'kategorie', 'info', "has_implementation")
+    list_display = ('name', 'beschreibung', "ab_stufe", 'price', 'kategorie', 'frei_editierbar', "has_implementation")
     # list_filter = ['kategorie', "frei_editierbar"]
-
-    inlines = [FirmaAlchemieInLine]
 
 
 class TinkerAdmin(BaseAdmin):
-
-    shop_model = Tinker
-    firma_shop_model = FirmaTinker
-
-    list_display = ('icon_', 'name', 'beschreibung', "profitable_flip", "wooble_buy_price", "wooble_sell_price", "werte", "ab_stufe", 'billigste', 'kategorie', 'info', "has_implementation", "has_implementation", "minecraft_mod_id")
+    list_display = ('icon_', 'name', 'beschreibung', "profitable_flip", "wooble_buy_price", "wooble_sell_price", "werte", "ab_stufe", 'price', 'kategorie', 'frei_editierbar', "has_implementation", "has_implementation", "minecraft_mod_id")
     list_display_links = ('icon_', 'name')
     # list_filter = ['kategorie', "frei_editierbar"]
     list_editable = BaseAdmin.list_editable + ["wooble_buy_price", "wooble_sell_price"]
@@ -324,35 +198,34 @@ class TinkerAdmin(BaseAdmin):
 
 
 class BegleiterAdmin(BaseAdmin):
-
-    shop_model = Begleiter
-    firma_shop_model = FirmaBegleiter
-
-    list_display = ('name', 'beschreibung', "ab_stufe", "hp", "physische_reaktion", "astrale_reaktion", "astraler_widerstand", "physischer_widerstand", 'billigste', 'info', "has_implementation")
+    list_display = ('name', 'beschreibung', "ab_stufe", "hp", "physische_reaktion", "astrale_reaktion", "astraler_widerstand", "physischer_widerstand", 'price', 'frei_editierbar', "has_implementation")
     # list_filter = ["frei_editierbar"]
-    list_editable = ["hp", "physische_reaktion", "astrale_reaktion", "astraler_widerstand", "physischer_widerstand"]
+    list_editable = BaseAdmin.list_editable + ["hp", "physische_reaktion", "astrale_reaktion", "astraler_widerstand", "physischer_widerstand"]
 
-    inlines = [SlotBegleiterInLine, UpgradeBegleiterInLine, FirmaBegleiterInLine]
+    inlines = [SlotBegleiterInLine, UpgradeBegleiterInLine]
 
 
 class EngelsroboterAdmin(BaseAdmin):
-
-    shop_model = Engelsroboter
-    firma_shop_model = FirmaEngelsroboter
-
-    list_display = ('name', 'beschreibung', "ab_stufe", "hp", "physische_reaktion", "astrale_reaktion", "astraler_widerstand", "physischer_widerstand", 'ST', 'UM', 'MA', 'IN', 'billigste', 'info', "has_implementation")
+    list_display = ('name', 'beschreibung', "ab_stufe", "hp", "physische_reaktion", "astrale_reaktion", "astraler_widerstand", "physischer_widerstand", 'ST', 'UM', 'MA', 'IN', 'price', 'frei_editierbar', "has_implementation")
     # list_filter = ["frei_editierbar"]
-    list_editable = ["hp", "physische_reaktion", "astrale_reaktion", "astraler_widerstand", "physischer_widerstand"]
-
-    inlines = [FirmaEngelsroboterInLine]
+    list_editable = BaseAdmin.list_editable + ["hp", "physische_reaktion", "astrale_reaktion", "astraler_widerstand", "physischer_widerstand"]
 
 
 ################### Modifier ########################
 
 class FirmaAdmin(admin.ModelAdmin):
-    list_display = ('name', 'beschreibung')
+    list_display = ('_icon', 'name', 'beschreibung')
+    list_display_links = ("name",)
 
+    def _icon(self, obj):
+        return format_html(f'<img src="{obj.icon.url}" style="max-width: 32px; max-height:32px;" loading="lazy" />') if obj.icon else self.get_empty_value_display()
 
+class UpgradeAdmin(admin.ModelAdmin):
+    list_display = ('name', 'beschreibung', 'ab_stufe', 'price', 'field', 'tag', 'prerequisite')
+    list_editable = ["prerequisite"]
+
+    def field(self, obj):
+        return f"{obj.get_influenced_field_display()} {obj.field_value}"
 
 class ShopCategoryInline(admin.TabularInline):
     model = Modifier.kategorien.through
@@ -402,4 +275,4 @@ admin.site.register(Engelsroboter, EngelsroboterAdmin)
 admin.site.register(Firma, FirmaAdmin)
 admin.site.register(Modifier, ModifierAdmin)
 admin.site.register(Tag)
-admin.site.register(Upgrade)
+admin.site.register(Upgrade, UpgradeAdmin)

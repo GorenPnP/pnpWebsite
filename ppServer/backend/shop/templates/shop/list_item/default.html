@@ -1,4 +1,4 @@
-{% load static shop.get_detail_url shop.get_curr_price %}
+{% load static shop.get_detail_url %}
 
 <div class="item-container">
     <!-- img -->
@@ -26,13 +26,15 @@
         </div>{% endif %}
         {% endblock %}
         <div class="info-row info-row--price">
-            {% if not obj.frei_editierbar %}{% with price=obj|get_curr_price %}
-            <b class="price">{{ price|default_if_none:'nicht kaufbar mit ' }} Dr.{% if obj.stufenabhängig %} * Stufe{% endif %}</b>
-            {% if price is not None and price < obj.preis %}<span class="base-price">{{ obj.preis }} Dr.</span>
-            <span class="discount">Spare  {% widthratio price obj.preis 1 %}%</span>{% endif %}
-            {% endwith %}{% else %}
-            <b class="price">nicht kaufbar{% if obj.stufenabhängig %} , hat Stufen{% endif %}</b>
+        {% if not obj.frei_editierbar %}
+            <b class="price">{{ obj.curr_price|default_if_none:'nicht kaufbar mit ' }} Dr.{% if obj.stufenabhängig %} * Stufe{% endif %}</b>
+            {% if obj.price is not None and obj.discount > 0 %}
+                <span class="base-price">{{ obj.price }} Dr.</span>
+                <span class="discount">Spare {{ obj.discount }}%</span>
             {% endif %}
+        {% else %}
+            <b class="price">nicht kaufbar{% if obj.stufenabhängig %} , hat Stufen{% endif %}</b>
+        {% endif %}
         </div>
         <div class="info-row"><a class="btn btn-sm btn-outline-light" href="{% if obj.detail_url %}{{ obj.detail_url }}{% else %}{{ obj|get_detail_url }}{% endif %}">Optionen anzeigen</a></div>
         {% block below_info %}{% endblock %}

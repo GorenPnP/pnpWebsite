@@ -4,7 +4,7 @@ from .converter import *
 from .models import *
 from .views.index import IndexView, ProposeView, ReviewView, shopmodel_list
 from .views.detail import DetailView
-from .views.list import AllListView, ListView, BaseList, FernkampfwaffeView, shop_model_filter_fields
+from .views.list import AllListView, DiscountView, ListView, FernkampfwaffeView, shop_model_filter_fields
 
 app_name = 'shop'
 register_converter(get_ModelNameConverter(app_name, shopmodel_list), "model")
@@ -18,6 +18,7 @@ urlpatterns = [
 
     # lists
     path('all/', AllListView.as_view(), name='all'),
+    path('discount/', DiscountView.as_view(), name='discount'),
 
     path('nahkampf_wurfwaffen/', ListView.as_view(model=Nahkampfwaffe, filterset_fields={**shop_model_filter_fields, "schaden": ["gte"], "schadensart": ["exact"], "dk": ["lte"]}), name='nahkampfwaffe_list'),
     path("fernkampfwaffen", FernkampfwaffeView.as_view(), name='fernkampfwaffe_list'),
@@ -29,5 +30,5 @@ urlpatterns = [
     path('<model:model>/', ListView.as_view(), name="list"),
 
     # detail
-    path('<model:model>/<int:id>/', DetailView.as_view(), name="detail"),
+    path('<model:model>/<int:pk>/', DetailView.as_view(), name="detail"),
 ]

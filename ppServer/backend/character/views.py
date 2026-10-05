@@ -87,7 +87,7 @@ class RenderableTable(GenericTable):
         try:
             return getattr(obj, key, obj[key])
         except:
-            return obj.__dict__[key] 
+            return obj.__dict__[key]
 
     def render_icon(self, value, record):
         Model = apps.get_model('shop', self._get(record, "model_name"))
@@ -205,17 +205,16 @@ class ShowView(VerifiedAccountMixin, DetailView):
             )
 
         def render_use(self, value, record):
-            relmodel_name = f"Rel{record['model_name']}"
-            pk = record["pk"]
+            RelModel = apps.get_model("character", f"rel{record['model_name']}")
+            relitem = RelModel.objects.get(pk=record["pk"])
             
-            RelModel = apps.get_model("character", relmodel_name)
             if RelModel == RelRamsch: price = 0
             else:
-                FirmaShopModel = RelModel.item.field.related_model.firmen.through
-                relitem = get_object_or_404(RelModel.objects.prefetch_related(f"item__{FirmaShopModel._meta.model_name}_set__firma"), pk=pk)
-                price = relitem.cheapest() or 0
+                Model = apps.get_model("shop", record['model_name'])
+                item = Model.objects.annotate_price().get(pk=record["item__pk"])
+                price = (item.curr_price or 0) * (record["stufe"] or 1)
 
-            href = reverse("character:remove_item", args=[relmodel_name, pk])
+            href = reverse("character:remove_item", args=[relitem._meta.model_name, relitem.pk])
             sell_btn = f'<button type="submit" class="btn btn-sm btn-warning" name="sell">verkaufen (je {int(price * 0.4+.5):n} Dr.)</button>'
             return format_html(
                 f"""<form method="post" action="{href}">
@@ -254,7 +253,7 @@ class ShowView(VerifiedAccountMixin, DetailView):
             other_fields = [f for f in Shop.getShopDisplayFields() if f not in ["preis", "ab_stufe"] and f"item__{f}" not in field_names]
 
             return RelShopQS\
-                .filter(char=char, item__frei_editierbar=False)\
+                .filter(char=char)\
                 .annotate(
                     model_name=Value(Shop._meta.model_name),
                     art=Value(Shop._meta.verbose_name),
@@ -705,7 +704,7 @@ class ShowView(VerifiedAccountMixin, DetailView):
         # Misc Shop items
         for Model in [m for m in shopmodel_list if m not in [Nahkampfwaffe, Fernkampfwaffe, Zauber, Ritual_Rune]]:
             RelModel = apps.get_model("character", f"Rel{Model._meta.model_name}")
-            objects += ShowView.ItemTable.get_queryset(char, RelModel.objects.prefetch_related("item__firmen"), table_fields.keys())
+            objects += ShowView.ItemTable.get_queryset(char, RelModel.objects.prefetch_related("item__firma"), table_fields.keys())
 
         # RelRamsch
         objects += ShowView.ItemTable.get_queryset(char, char.relramsch_set, table_fields.keys())
@@ -746,7 +745,7 @@ class ShowView(VerifiedAccountMixin, DetailView):
 
         return {
             "zauber__table": ZauberTable(
-                ZauberTable.get_queryset(char, char.relzauber_set.prefetch_related("item__firmen"), table_fields.keys()),
+                ZauberTable.get_queryset(char, char.relzauber_set.prefetch_related("item__firma"), table_fields.keys()),
                 extra_columns = [(k, v) for k, v in table_fields.items()],
                 csrf_token=get_token(self.request),
             )
@@ -766,7 +765,7 @@ class ShowView(VerifiedAccountMixin, DetailView):
 
         return {
             "ritual__table": ShowView.ItemTable(
-                ShowView.ItemTable.get_queryset(char, char.relritual_rune_set.prefetch_related("item__firmen"), table_fields.keys()),
+                ShowView.ItemTable.get_queryset(char, char.relritual_rune_set.prefetch_related("item__firma"), table_fields.keys()),
                 extra_columns = [(k, v) for k, v in table_fields.items()],
                 csrf_token=get_token(self.request),
             )
@@ -789,12 +788,12 @@ class ShowView(VerifiedAccountMixin, DetailView):
 
         return {
             "nahkampf__table": WaffenTable(
-                ShowView.ItemTable.get_queryset(char, char.relnahkampfwaffe_set.prefetch_related("item__firmen"), table_fields.keys()),
+                ShowView.ItemTable.get_queryset(char, char.relnahkampfwaffe_set.prefetch_related("item__firma"), table_fields.keys()),
                 extra_columns = [(k, v) for k, v in table_fields.items()],
                 csrf_token=get_token(self.request)
             ),
             "fernkampf__table": WaffenTable(
-                ShowView.ItemTable.get_queryset(char, char.relfernkampfwaffe_set.prefetch_related("item__firmen"), table_fields.keys()),
+                ShowView.ItemTable.get_queryset(char, char.relfernkampfwaffe_set.prefetch_related("item__firma"), table_fields.keys()),
                 extra_columns = [(k, v) for k, v in table_fields.items()],
                 csrf_token=get_token(self.request)
             )
@@ -1085,7 +1084,7 @@ def _decrease_anz_relshop(request, relshop_model: str, rel_item_pk: int):
     # assert user requesting to use an item
     if not request.user.has_perm(CustomPermission.SPIELLEITUNG.value) and not Model.objects.filter(pk=rel_item_pk, char__eigentümer=request.spieler).exists():
         messages.error(request, "Es ist nicht dein Charakter, von dem du Items benutzen willst.")
-        return redirect("character:index")
+        return {"success": False, "redirect": redirect("character:index")}
 
     # assert item existance
     rel_shop = Model.objects.prefetch_related("char__eigentümer")
@@ -1101,8 +1100,8 @@ def _decrease_anz_relshop(request, relshop_model: str, rel_item_pk: int):
         return {"success": False, "redirect": redirect("character:index")}
 
     char = rel_shop.char
-    item = rel_shop.item
     item_name = rel_shop.item.name if issubclass(Model, RelShop) else rel_shop.item
+    item = rel_shop.item._meta.model.objects.annotate_price().get(pk=rel_shop.item.pk) if issubclass(Model, RelShop) else rel_shop.item
     stufe = rel_shop.stufe or 1 if issubclass(Model, RelShop) else 1
 
     # remove item
@@ -1126,10 +1125,10 @@ def remove_relshop(request, relshop_model, pk):
         price = 0
         Model = apps.get_model('character', relshop_model)
         if issubclass(Model, RelShop):  # is not RelRamsch
-            price = res["item"].cheapest(res["stufe"]) or 0
-            
+            curr_price = res["item"].__dict__.get("curr_price", 0) * (res["stufe"] or 1)
+
             # 40% of cheapest price
-            price = int((price * .4) + .5) * res["amount"]
+            price = int((curr_price * .4) + .5) * res["amount"]
         
         # receive money
         card = res["char"].card

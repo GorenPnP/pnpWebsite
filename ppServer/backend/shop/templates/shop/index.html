@@ -1,16 +1,40 @@
 {% extends 'base/headed_main.html' %}
-{% load static %}
+{% load static shop.get_detail_url %}
+
+{% block extra-head %}
+<style>
+ul {
+    list-style-type: none;
+    padding: 0;
+}
+</style>
+{% endblock %}
 
 {% block main %}
-<section class="shop-overview list-container">
-    <a class="text-light" href="{% url 'shop:all' %}" style="display: block; margin-bottom: 3em">ganzer Shop</a>
+<ul>
+    <li>
+        <a class="text-light" href="{% url 'shop:discount' %}"><h2>Top-Angebote</h2></a>
 
-    <h2>Kategorien</h2>
+        <div class="row row-cols-1 row-cols-sm-3 row-cols-md-6 g-2">
+            {% for obj in object_list %}
+                {% include 'shop/generic_itemcard.html' with obj=obj %}
+            {% endfor %}
+        </div>
+        <p class="mb-3"><a class="text-light" href="{% url 'shop:discount' %}">mehr entdecken</a></p>
+    </li>
+    {% for link in links %}
+    <li class="my-5"><a class="text-light" href="{{ link.link }}"><h2>{{ link.text }}</h2></a>
 
-    <ul>
-        {% for link in links %}
-        <li class="my-3"><a class="text-light" href="{{ link.link }}">{{ link.text }}</a></li>
-        {% endfor %}
-    </ul>
-</section>
+        <div class="row row-cols-1 row-cols-sm-3 row-cols-md-6 g-2">
+            {% for obj in link.object_list %}
+                {% include 'shop/generic_itemcard.html' with obj=obj %}
+            {% endfor %}
+        </div>
+        <p class="mb-3"><a class="text-light" href="{{ link.link }}">mehr entdecken</a></p>
+    </li>
+    {% endfor %}
+    <li>
+        <a class="text-light" href="{% url 'shop:all' %}"><h2>ganzes Sortiment entdecken</h2></a>
+    </li>
+</ul>
 {% endblock %}

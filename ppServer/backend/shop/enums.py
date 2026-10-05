@@ -58,10 +58,10 @@ nahkampfwaffe_enum = [
     ('h', 'Hämmer'),
     ('h', 'stumpfe Waffen'),
     ('c', 'Schwungwaffen'),
-    ('l', 'Schlagringe'),
-    ('w', 'weitere Waffen'),
+    ('l', 'waffenloser Kampf'),
     ('g', 'Granaten/Bomben'),
-    ('e', 'sonstige Exoten'),
+    ('e', 'Exoten'),
+    ('w', 'weitere Waffen'),
 ]
 
 

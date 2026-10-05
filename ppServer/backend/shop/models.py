@@ -2,12 +2,12 @@ import math
 
 from django.core.validators import MinValueValidator
 from django.db import models
-from django.db.models import  Count, Value,  OuterRef, Q, QuerySet
+from django.db.models import  F, Case, Count, Exists, IntegerField, Value,  OuterRef, Q, QuerySet, When
 
-from django.db.models.functions import Coalesce, Concat
+from django.db.models.functions import Cast, Coalesce, Concat
 from django_resized import ResizedImageField
 
-from ppServer.utils import ConcatSubquery, ChoicesLabelCase
+from ppServer.utils import ConcatSubquery, ChoicesLabelCase, ProductSubquery
 
 from . import enums
 
@@ -40,7 +40,7 @@ class Modifier(models.Model):
         )
 
     @classmethod
-    def getModifier(cls, firma, shopCategory: type["BaseShop"]):
+    def getModifier(cls, firma: "Firma", shopCategory: type["BaseShop"]):
         # get Category letter of Shop-model
         shopmodel_name = shopCategory._meta.verbose_name_plural
         catLetter = next((letter for letter, cat in enums.category_enum if cat == shopmodel_name), '')
@@ -71,6 +71,7 @@ class Firma(models.Model):
         verbose_name = "Firma"
         verbose_name_plural = "Firmen"
 
+    icon = ResizedImageField(size=[1024, 1024], null=True, blank=True)
     name = models.CharField(max_length=50, default='')
     beschreibung = models.TextField(max_length=1000, default='', blank=True)
 
@@ -149,7 +150,7 @@ class Upgrade(models.Model):
         ('wirkbereich', 'Wirkbereich'),
         ('händigkeit', 'Händigkeit'),
         ('feuerrate', 'Feuerrate'),
-        ('manaverbrauch', 'Manaverbrauch'),
+        # ('manaverbrauch', 'Manaverbrauch'),
         # ('manifestverlust', 'Manifestverlust'),
         ('hp', 'HP'),
         ('physische_reaktion', 'physische Reaktion'),
@@ -170,8 +171,10 @@ class Upgrade(models.Model):
     achievement_requirement = models.TextField(default='', blank=True)
 
     # calc
+    prerequisite = models.ForeignKey("Upgrade", related_query_name="upgrade", on_delete=models.SET_NULL, null=True, blank=True)
     influenced_field = models.CharField(max_length=64, choices=fields_enum, null=True, blank=True)
     field_value = models.TextField(default='', blank=True)
+    manaverbrauch = models.IntegerField(default=0, blank=True)
 
     class PreloadTagManager(models.Manager):
         def get_queryset(self) -> QuerySet:
@@ -182,85 +185,6 @@ class Upgrade(models.Model):
     def __str__(self):
         return f"{self.name} #{self.tag.name} ({self.price} Dr.)"
 
-
-
-############# FirmaShop #####################
-
-class FirmaShop(models.Model):
-    class Meta:
-        abstract = True
-        ordering = ['item', 'firma']
-        verbose_name = "Firma"
-        verbose_name_plural = "Firmen"
-
-    firma = models.ForeignKey(Firma, on_delete=models.CASCADE)
-    preis = models.IntegerField(default=0, null=True)
-
-    verfügbarkeit = models.PositiveIntegerField(default=0)
-
-    def __str__(self):
-        return "{} von {} ({}%)".format(self.item, self.firma, self.verfügbarkeit)
-
-    def getPrice(self):
-        return Modifier.getModifier(self.firma, self.item.__class__)(self.preis)
-
-class FirmaItem(FirmaShop):
-    item = models.ForeignKey('Item', on_delete=models.CASCADE)
-
-
-class FirmaNahkampfwaffe(FirmaShop):
-    item = models.ForeignKey('Nahkampfwaffe', on_delete=models.CASCADE)
-
-
-class FirmaMunition(FirmaShop):
-    item = models.ForeignKey('Munition', on_delete=models.CASCADE)
-
-
-class FirmaFernkampfwaffe(FirmaShop):
-    item = models.ForeignKey('Fernkampfwaffe', on_delete=models.CASCADE)
-
-
-class FirmaMagische_Ausrüstung(FirmaShop):
-    item = models.ForeignKey('Magische_Ausrüstung', on_delete=models.CASCADE)
-
-
-class FirmaRitual_Rune(FirmaShop):
-    item = models.ForeignKey('Ritual_Rune', on_delete=models.CASCADE)
-
-
-class FirmaRüstung(FirmaShop):
-    item = models.ForeignKey('Rüstung', on_delete=models.CASCADE)
-
-
-class FirmaTechnik(FirmaShop):
-    item = models.ForeignKey('Technik', on_delete=models.CASCADE)
-
-
-class FirmaFahrzeug(FirmaShop):
-    item = models.ForeignKey('Fahrzeug', on_delete=models.CASCADE)
-
-
-class FirmaEinbaute(FirmaShop):
-    item = models.ForeignKey('Einbaute', on_delete=models.CASCADE)
-
-
-class FirmaZauber(FirmaShop):
-    item = models.ForeignKey('Zauber', on_delete=models.CASCADE)
-
-
-class FirmaAlchemie(FirmaShop):
-    item = models.ForeignKey('Alchemie', on_delete=models.CASCADE)
-
-
-class FirmaTinker(FirmaShop):
-    item = models.ForeignKey('Tinker', on_delete=models.CASCADE)
-
-
-class FirmaBegleiter(FirmaShop):
-    item = models.ForeignKey('Begleiter', on_delete=models.CASCADE)
-
-class FirmaEngelsroboter(FirmaShop):
-    item = models.ForeignKey('Engelsroboter', on_delete=models.CASCADE)
 
 ################ Base Shop ####################
 
@@ -278,23 +202,53 @@ class BaseShop(models.Model):
     stufenabhängig = models.BooleanField(default=False)
     has_implementation = models.BooleanField(default=False, verbose_name="ist implementiert")
 
+    firma = models.ForeignKey(Firma, on_delete=models.CASCADE, null=True, blank=True)
+    price = models.IntegerField(null=True, blank=True)
+    verfügbarkeit = models.PositiveIntegerField(default=0)
+
+    class PriceQuerySet(QuerySet):
+
+        def annotate_price(self):
+            """ annotates with curr_price, discount (in %) """
+
+            return self.annotate(
+                _factor = self._modifiers(),
+                curr_price = Case(When(price=None, then=None), default=Cast((F("price") * F("_factor")) + .5, output_field=IntegerField())),
+                discount = Cast(((1.0 - F("_factor")) * 100) + .5, output_field=IntegerField()),
+            )
+            
+            
+        def _modifiers(self):
+            # get Category letter of Shop-model
+            catLetter = next((letter for letter, cat in enums.category_enum if cat == self.model._meta.verbose_name_plural), '')
+
+            qs = Modifier.objects\
+                .annotate(
+                    no_firma = ~Exists(Firma.objects.filter(modifier=OuterRef("pk"))),
+                    no_cat = ~Exists(ShopCategory.objects.filter(modifier=OuterRef("pk"))),
+                )\
+                .filter(active=True)\
+                .filter(
+                    # get category-specific modifiers with correct firma OR category
+                    Q(firmen=OuterRef("firma")) | Q(kategorien__kategorie=catLetter) |
+                    # get base modifiers (that modify everything)
+                    (Q(no_firma=True) & Q(no_cat=True))
+                )
+
+            return ProductSubquery(qs, "factor")
+
+    objects = PriceQuerySet().as_manager()
 
     def __str__(self):
         return "{} ({})".format(self.name, self._meta.verbose_name)
 
     def getIconUrl(self):
         return self.icon.url if self.icon else "/static/res/img/goren_logo.png"
-    
-    def cheapest(self, stufe=1) -> int or None:
-        offers = getattr(self, f"{self.firmen.through._meta.model_name}_set").all()
-        if not offers: return None
-
-        return sorted([o.getPrice() for o in offers])[0] * stufe
 
     @staticmethod
     def getShopDisplayFields():
         return [
-            "name", "beschreibung", "icon", "ab_stufe", "preis",    # preis needs to be added separately by firmen->preis/stufe_1
+            "name", "beschreibung", "icon", "ab_stufe", "price",
         ]
 
 
@@ -306,7 +260,6 @@ class Item(BaseShop):
         ordering = ['name']
 
     kategorie = models.CharField(choices=enums.item_enum, max_length=2, default=enums.item_enum[0][0])
-    firmen = models.ManyToManyField('Firma', through='FirmaItem', blank=True, related_name='firmen')
 
     @staticmethod
     def getShopDisplayFields():
@@ -335,7 +288,6 @@ class Nahkampfwaffe(BaseShop):
     possible_upgrades = models.ManyToManyField(Upgrade)
 
     kategorie = models.CharField(choices=enums.nahkampfwaffe_enum, max_length=2, default=enums.nahkampfwaffe_enum[0][0])
-    firmen = models.ManyToManyField('Firma', through='FirmaNahkampfwaffe', blank=True)
 
     @staticmethod
     def getShopDisplayFields():
@@ -354,8 +306,6 @@ class Munition(BaseShop):
     schaden = models.CharField(max_length=64, default=0)
     schadensart = models.CharField(max_length=1, choices=enums.schadensart_enum, null=True, blank=True)
     wirkbereich = models.TextField(default='', blank=True)
-
-    firmen = models.ManyToManyField('Firma', through='FirmaMunition', blank=True)
 
     def __str__(self):
         return f"{self.name} ({self.schaden if self.schaden and self.schaden != '0' else f'{self.bs}|{self.zs}'} {self.get_schadensart_display()})"
@@ -386,19 +336,18 @@ class Fernkampfwaffe(BaseShop):
 
     fertigkeit = models.ForeignKey('character.Fertigkeit', on_delete=models.SET_NULL, null=True, blank=True)
     kategorie = models.CharField(choices=enums.fernkampfwaffe_enum, max_length=1, default=enums.fernkampfwaffe_enum[0][0])
-    firmen = models.ManyToManyField('Firma', through='FirmaFernkampfwaffe', blank=True)
 
-    class SchadenManager(models.Manager):
+    class SchadenQuerySet(BaseShop.PriceQuerySet):
         def annotate_schaden(self):
             """ annotates with schaden = ', '.join(<schaden> <schadensart>) of munition" """
 
             return self.prefetch_related("munition").annotate(
-            schaden = ConcatSubquery(Munition.objects.filter(fernkampfwaffe=OuterRef("pk")).annotate(
-                art = ChoicesLabelCase('schadensart', choices=enums.schadensart_enum),
-                s = Concat(Coalesce("schaden", Value("0")), Value(" "), "art"),
-            ).values("s"))
-        )
-    objects = SchadenManager()
+                schaden = ConcatSubquery(Munition.objects.filter(fernkampfwaffe=OuterRef("pk")).annotate(
+                    art = ChoicesLabelCase('schadensart', choices=enums.schadensart_enum),
+                    s = Concat(Coalesce("schaden", Value("0")), Value(" "), "art"),
+                ).values("s"))
+            )
+    objects = SchadenQuerySet().as_manager()
 
     @staticmethod
     def getShopDisplayFields():
@@ -413,7 +362,6 @@ class Magische_Ausrüstung(BaseShop):
         ordering = ['name']
 
     kategorie = models.CharField(choices=enums.magische_Ausrüstung_enum, max_length=2, default=enums.magische_Ausrüstung_enum[0][0])
-    firmen = models.ManyToManyField('Firma', through='FirmaMagische_Ausrüstung', blank=True)
 
     @staticmethod
     def getShopDisplayFields():
@@ -436,7 +384,6 @@ class Ritual_Rune(BaseShop):
     possible_upgrades = models.ManyToManyField(Upgrade)
 
     kategorie = models.CharField(choices=enums.ritual_enum, max_length=2, default=enums.ritual_enum[0][0])
-    firmen = models.ManyToManyField('Firma', through='FirmaRitual_Rune', blank=True)
 
     @staticmethod
     def getShopDisplayFields():
@@ -455,7 +402,6 @@ class Rüstung(BaseShop):
     damage_speciality = models.TextField(default='', verbose_name="Besonderheiten bei Schadensarten")
 
     kategorie = models.CharField(choices=enums.ruestung_enum, max_length=2, default=enums.ruestung_enum[0][0])
-    firmen = models.ManyToManyField('Firma', through='FirmaRüstung', blank=True)
 
     @staticmethod
     def getShopDisplayFields():
@@ -470,7 +416,6 @@ class Technik(BaseShop):
         ordering = ['name']
 
     kategorie = models.CharField(choices=enums.technik_enum, max_length=2, default=enums.technik_enum[0][0])
-    firmen = models.ManyToManyField('Firma', through='FirmaTechnik', blank=True)
 
     @staticmethod
     def getShopDisplayFields():
@@ -488,7 +433,6 @@ class Fahrzeug(BaseShop):
     erfolge = models.PositiveIntegerField(default=0, blank=True, null=True)
 
     kategorie = models.CharField(choices=enums.fahrzeuge_enum, max_length=2, default=enums.fahrzeuge_enum[0][0])
-    firmen = models.ManyToManyField('Firma', through='FirmaFahrzeug', blank=True)
 
     @staticmethod
     def getShopDisplayFields():
@@ -508,7 +452,6 @@ class Einbaute(BaseShop):
     possible_upgrades = models.ManyToManyField(Upgrade)
 
     kategorie = models.CharField(choices=enums.einbaute_enum, max_length=2, default=enums.einbaute_enum[0][0])
-    firmen = models.ManyToManyField('Firma', through='FirmaEinbaute', blank=True)
 
     @staticmethod
     def getShopDisplayFields():
@@ -535,7 +478,6 @@ class Zauber(BaseShop):
     possible_upgrades = models.ManyToManyField(Upgrade)
 
     kategorie = models.CharField(choices=enums.zauber_enum, max_length=2, null=True, blank=True)
-    firmen = models.ManyToManyField('Firma', through='FirmaZauber', blank=True)
 
     @staticmethod
     def getShopDisplayFields():
@@ -550,7 +492,6 @@ class Alchemie(BaseShop):
         ordering = ['name']
 
     kategorie = models.CharField(choices=enums.alchemie_enum, max_length=2, default=enums.alchemie_enum[0][0])
-    firmen = models.ManyToManyField('Firma', through='FirmaAlchemie', blank=True)
 
     @staticmethod
     def getShopDisplayFields():
@@ -566,7 +507,6 @@ class Tinker(BaseShop):
 
     werte = models.TextField(max_length=1500, default='', blank=True)
     kategorie = models.CharField(choices=enums.tinker_enum, max_length=2, default=enums.tinker_enum[0][0])
-    firmen = models.ManyToManyField('Firma', through='FirmaTinker', blank=True)
 
     minecraft_mod_id = models.CharField(max_length=512, null=True, blank=True)
     wooble_buy_price = models.FloatField(default=1.0)
@@ -603,8 +543,6 @@ class Begleiter(BaseShop):
     slots = models.ManyToManyField(SlotBegleiter)
     possible_upgrades = models.ManyToManyField(Upgrade)
 
-    firmen = models.ManyToManyField('Firma', through='FirmaBegleiter', blank=True)
-
 
 class Engelsroboter(BaseShop):
     class Meta:
@@ -623,8 +561,6 @@ class Engelsroboter(BaseShop):
     astrale_reaktion = models.CharField(max_length=64, default='')
     astraler_widerstand = models.CharField(max_length=64, default='')
     physischer_widerstand = models.CharField(max_length=64, default='')
-
-    firmen = models.ManyToManyField('Firma', through='FirmaEngelsroboter', blank=True)
 
     @staticmethod
     def getShopDisplayFields():

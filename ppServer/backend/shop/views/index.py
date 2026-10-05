@@ -44,25 +44,38 @@ class ReviewView(VerifiedAccountMixin, SpielleitungOnlyMixin, HeaderMixin, Mixed
 
 
 class IndexView(VerifiedAccountMixin, HeaderMixin, MixedListFilterMixin, BaseList):
-    template_name = "shop/index.html" # todo change
+    template_name = "shop/index.html"
     topic = "Shop"
 
     model = Item
+    paginate_by = 6
 
     def get_filters(self):
+        # filter items on sale
         return {"frei_editierbar": False}
 
-    def get_objects(self, filters):
-        objects = super().get_objects(filters)
+    def set_ordering(self):
+        self.ordering = "-discount"
 
-        print(objects)
-        # TODO filter items on sale
-        return objects
+    def get_objects(self, filters):
+
+        # add interesting items per model
+        self.sections = []
+        for m in shopmodel_list:
+            if m._meta.model_name == "tinker": continue
+
+            self.sections.append({
+                "link": get_list_url(m),
+                "text": m._meta.verbose_name_plural,
+                "object_list": m.objects.annotate_price().filter(**filters).order_by(self.ordering)[:self.paginate_by]
+            })
+
+        return super().get_objects(filters)
 
     def get_context_data(self, *args, **kwargs):
         return super().get_context_data(
             *args, **kwargs, 
-            links = [{"link": get_list_url(m), "text": m._meta.verbose_name_plural} for m in shopmodel_list if m._meta.model_name != "tinker"],
+            links = self.sections,
         )
 
 

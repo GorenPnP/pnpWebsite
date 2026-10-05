@@ -1,9 +1,9 @@
 import random
 from datetime import date
 
-from django.db.models import Case, When, PositiveIntegerField, Q
+from django.apps import apps
 from django.contrib import messages
-from django.shortcuts import render, get_object_or_404, redirect
+from django.shortcuts import get_object_or_404, redirect, render
 from django.views.generic import DetailView
 
 from cards.models import Card, Transaction
@@ -11,154 +11,122 @@ from character.models import *
 from log.create_log import logShop
 from ppServer.mixins import VerifiedAccountMixin
 
+from ..forms import get_BuyForm
 from ..models import *
 from .index import get_list_url
+from .list import HeaderMixin
 
 
-class DetailView(VerifiedAccountMixin, DetailView):
+class DetailView(VerifiedAccountMixin, HeaderMixin, DetailView):
+    template_name = "shop/detail/default.html"
+    object = None
 
-    def set_shopmodels(self):
-        self.shop_model = self.kwargs["model"]
-        self.relshop_model = self.shop_model.__dict__[f"rel{self.shop_model._meta.model_name}_set"].field.model
-        self.firmashop_model = self.shop_model.firmen.through
-        self.relfirmashop_model = self.firmashop_model.__dict__[f"relfirma{self.shop_model._meta.model_name}_set"].field.model
+    def get_topic(self):
+        return self.get_object().name
+    def get_app_index(self):
+        return self.model._meta.verbose_name_plural
+    def get_app_index_url(self):
+        return get_list_url(self.model)
+    def get_plus(self):
+        return None
+    def get_plus_url(self):
+        return None
 
-    def get(self, request, id: int, *args, **kwargs):
-        self.set_shopmodels()
+    def setup(self, request, *args, **kwargs):
+        super().setup(request, *args, **kwargs)
+        self.model = self.kwargs["model"]
 
-        firma_shop_entries = self.firmashop_model.objects.filter(item=id)
-        item = get_object_or_404(self.shop_model, id=id)
+    def get_queryset(self):
+        return self.model.objects.prefetch_related("firma").annotate_price()
 
-        charaktere = Charakter.objects.select_related("card").all()
+    def get_context_data(self, *args, **kwargs):
+        self.object = self.object or self.get_object()
 
-        # characters to buy stuff for
-        if not request.user.has_perm(CustomPermission.SPIELLEITUNG.value):
-            charaktere = charaktere.filter(eigentümer=request.spieler, ep_stufe__gte=item.ab_stufe)
+        context = super().get_context_data(*args, **kwargs)
+        if not context.get("form"):
+            context["form"] = get_BuyForm(self.request.spieler, self.get_object())
+        
+        return context
 
-        context = {
-            "charaktere": charaktere.order_by('name'),
-            "entries": firma_shop_entries,
-            "extra_preis_field": request.user.has_perm(CustomPermission.SPIELLEITUNG.value),
-            "st": item.stufenabhängig,
-            "topic": item.name,
-            "app_index": self.shop_model._meta.verbose_name_plural,
-            "app_index_url": get_list_url(self.shop_model)
-        }
 
-        # for redirect eventually
-        context["text"] = "Für dieses Item gibt es keinen Verkäufer."
-        return render(request, "shop/detail/default.html", context)
-    
-    def post(self, request, id: int, *args, **kwargs):
-        self.set_shopmodels()
-
-        # def buy_item_post(rit_run=False):
-        item = self.shop_model.objects.get(id=id)
+    def check_verfügbarkeit(self, form) -> bool:
+        AvailableModel = apps.get_model("character", f"rel{self.model._meta.model_name}available")
 
         # free unused space (random, I know ...)
-        self.relfirmashop_model.objects.exclude(last_tried=date.today()).delete()
-
-        # retrieve all values from request.POST & check them
-        extra = char_id = num_items = firma_shop_id = price = stufe = -2
-        try:
-            extra = "extra" in request.POST
-            char_id = int(request.POST.get("character"))
-            num_items = int(request.POST.get('amount'))
-            firma_shop_id = int(request.POST.get('firmashop_id')) if not extra else None
-            price = int(request.POST.get('price')) if extra else None
-            stufe = int(request.POST.get("stufe")) if request.POST.get("stufe") else None
-        except:
-            messages.error(request, "Daten nicht vollständig erhalten")
-            return redirect(request.build_absolute_uri())
-
-        # check if spieler may modify char
-        spieler = request.spieler
-        char = get_object_or_404(Charakter, id=char_id)
-        if char.eigentümer != spieler and not request.user.has_perm(CustomPermission.SPIELLEITUNG.value):
-            messages.error(request, "Keine Erlaubnis einzukaufen")
-            return redirect(request.build_absolute_uri())
-
-        if not extra:
-            firma_shop = get_object_or_404(self.firmashop_model, id=firma_shop_id)
-            if (firma_shop.item.stufenabhängig or self.shop_model == Ritual_Rune) and stufe is None:
-                messages.error(request, "Die Stufe ist nicht angekommen")
-                return redirect(request.build_absolute_uri())
-
-            # tried today already?
-            if not char.in_erstellung and self.relfirmashop_model.objects.filter(char=char, firma_shop=firma_shop, last_tried=date.today()).exists():
-                messages.error(request, "Heute kommt keine neue Ware mehr. Versuch's doch morgen nochmal.")
-                return redirect(request.build_absolute_uri())
-
-
-        # is the money all right?
-
-        # price of one item (at Stufe 1)
-        if extra: debt = price
-        else: debt = firma_shop.getPrice()
-
-        # multiply num_items and stufe
-        if item.stufenabhängig: debt *= num_items * stufe
-        else: debt *= num_items
-
-        if debt > char.geld:
-            messages.error(request, "Du bist zu arm dafür")
-            return redirect(request.build_absolute_uri())
-
-
-        # how about verfgbarkeit?
-        if not char.in_erstellung and not extra:
-            verf = firma_shop.verfügbarkeit
-            if item.stufenabhängig: verf -= (stufe - 1) * 10
-
+        AvailableModel.objects.exclude(last_tried=date.today()).delete()
+        
+        # how about verfügbarkeit?
+        char = form.cleaned_data["char"]
+        item = self.get_object()
+        stufe = form.cleaned_data.get("stufe", 1)
+        if not char.in_erstellung and not self.request.spieler.user.has_perm(CustomPermission.SPIELLEITUNG.value):
+            
+            verf = item.verfügbarkeit - (stufe - 1) * 10
             rand = random.randint(1, 100)
 
             # not available, try tomorrow
             if  rand > verf:
                 # add mark for today's unsuccessful try
-                self.relfirmashop_model.objects.create(char=char, firma_shop=firma_shop)
+                AvailableModel.objects.create(char=char, item=item)
+                return False
+        return True
 
-                messages.error(request, "Mit einer Verfügbarkeit von {} und einem random Wert von {} darüber ist es nicht verfügbar.".format(verf, rand) +\
-                    " Try again tomorrow")
-                return redirect(request.build_absolute_uri())
+    def do_money_transaction(self, char: Charakter, item: BaseShop, cost: int, transaction_reason: str):
+        
+        # char pays money
+        char.card.money -= cost
+        char.card.save(update_fields=["money"])
 
+        firma_card = None
+        if not self.request.spieler.user.has_perm(CustomPermission.SPIELLEITUNG.value):
+            spielleitung_spieler = get_object_or_404(Spieler, user__username__startswith="spielleit")
+            firma_card = Card.objects.get_or_create(name=item.firma.name, spieler=spielleitung_spieler)[0]
 
-        # add to db or increase num if already exists
+            # firma receives money
+            firma_card.money += cost
+            firma_card.save(update_fields=["money"])
 
-        # stufenabhängig
-        if item.stufenabhängig or self.shop_model == Ritual_Rune:
-            items = self.relshop_model.objects.filter(char=char, item=item, stufe=stufe)
-            if items.count():
-                i = items[0]
-                i.anz += num_items
+        # add Transaction
+        Transaction.objects.create(sender=char.card, receiver=firma_card, amount=cost, reason=transaction_reason)
+        
 
-                i.save(update_fields=["anz"])
-            else:
-                self.relshop_model.objects.create(char=char, item=item, stufe=stufe, anz=num_items)
+    
+    def post(self, *args, **kwargs):
+        item = self.get_object()
 
-        # stufenUNabhängig
-        else:
-            items = self.relshop_model.objects.filter(char=char, item=item)
-            if items.count():
-                i = items[0]
-                i.anz += num_items
+        form = get_BuyForm(self.request.spieler, item)(self.request.POST)
+        form.full_clean()
+        if not form.is_valid():
+            return render(self.request, self.template_name, self.get_context_data(form=form))
+    
+        if not self.check_verfügbarkeit(form):
+            messages.error(self.request, f"{item.name} ist zurzeit nicht verfügbar. Try again tomorrow.")
+            return render(self.request, self.template_name, self.get_context_data(form=form))
 
-                i.save(update_fields=["anz"])
-            else:
-                self.relshop_model.objects.create(char=char, item=item, anz=num_items)
+        # prepare relevant fields
+        char = form.cleaned_data["char"]
+        amount = form.cleaned_data["amount"]
+        stufe = form.cleaned_data.get("stufe")
 
         # pay
-        char.card.money -= debt
-        char.card.save(update_fields=["money"])
-        spielleitung_spieler = get_object_or_404(Spieler, user__username__startswith="spielleit")
-        firma_card = None if extra else Card.objects.get_or_create(name=firma_shop.firma.name, spieler=spielleitung_spieler)[0]
-        Transaction.objects.create(sender=char.card, receiver=firma_card, amount=debt, reason=f"kaufe {num_items}x {item.name}{' Stufe {}'.format(stufe) if item.stufenabhängig else ''}")
+        cost = form.cleaned_data["amount"] * form.cleaned_data.get("price", item.curr_price or 0) * form.cleaned_data.get("stufe", 1)
+        reason = f"kaufe {amount}x {item.name}{' Stufe {}'.format(stufe) if item.stufenabhängig else ''}"
+        self.do_money_transaction(char, item, cost, reason)
+
+        # add item to char
+        RelShopModel = apps.get_model("character", f"rel{self.model._meta.model_name}")
+        rel = RelShopModel.objects.filter(char=char, item=item, stufe=stufe).first()
+        if rel is not None:
+            rel.anz += amount
+            rel.save(update_fields=["anz"])
+        else:
+            rel = RelShopModel.objects.create(char=char, item=item, stufe=stufe, anz=amount)
 
         # log
-        log_dict = {
-            "num": num_items, "item": item, "preis_ges": debt,
-            "firma_titel": firma_shop.firma.name if not extra else "außer der Reihe", "stufe": stufe}
-        logShop(spieler, char, log_dict)
+        logShop(self.request.spieler, char, {
+            "num": amount, "item": item, "preis_ges": cost, "stufe": stufe,
+            "firma_titel": item.firma.name if not self.request.spieler.user.has_perm(CustomPermission.SPIELLEITUNG.value) else "außer der Reihe"
+        })
 
-
-        messages.success(request, f"{char.name} hat {debt} Dr. für {num_items} Item(s) ausgegeben.")
-        return redirect(request.build_absolute_uri())
+        messages.success(self.request, f"{char.name} hat {cost} Dr. für {amount}x {item.name} ausgegeben.")
+        return redirect(self.request.build_absolute_uri())

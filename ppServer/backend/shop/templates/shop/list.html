@@ -17,7 +17,7 @@ document.addEventListener("DOMContentLoaded", () => {
 {% endblock %}
 
 {% block asides %}{{ block.super }}
-    {% if filter and filter.fields %}
+    {% if filter and filter.filters %}
     {% resources title="Filter" icon="static/res/img/icon-filter.svg" %}{% crispy filter.form %}{% endresources %}
     {% endif %}
 {% endblock %}

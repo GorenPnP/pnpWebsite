@@ -40,7 +40,7 @@ class Account(models.Model):
     def get_avatar_url(self):
         return self.avatar.url if self.avatar else "/static/res/img/goren_logo.png"
     
-    class UnreadMessagesManager(models.Manager):
+    class UnreadMessagesQuerySet(models.QuerySet):
         def load_unread_messages(self):
             """ preloads number of unread messages """
 
@@ -49,7 +49,7 @@ class Account(models.Model):
                 .annotate(
                     unread_messages = Coalesce(SumSubquery("unread_messages", queryset=unread_message_qs, output_field=models.IntegerField()), Value(0))
                 )
-    objects = UnreadMessagesManager()
+    objects = UnreadMessagesQuerySet().as_manager()
 
 
 
@@ -72,7 +72,7 @@ class ChatroomAccount(models.Model):
     def __str__(self):
         return self.account.name
     
-    class UnreadMessagesManager(models.Manager):
+    class UnreadMessagesQuerySet(models.QuerySet):
         def load_unread_messages(self):
             """ preloads number of unread messages """
             return self\
@@ -87,7 +87,7 @@ class ChatroomAccount(models.Model):
                         Value(0)
                     )
                 )
-    objects = UnreadMessagesManager()
+    objects = UnreadMessagesQuerySet().as_manager()
 
 
 class Chatroom(models.Model):
@@ -113,7 +113,7 @@ class Chatroom(models.Model):
         return [a.get_avatar_url() for a in qs]
     
 
-    class TitleManager(models.Manager):
+    class TitleQuerySet(models.QuerySet):
         def load_title(self, account: Account):
             """ preloads a computed chatroom-title (field 'titel', fallback is all account names, except for the param 'account') """
             return self\
@@ -129,7 +129,7 @@ class Chatroom(models.Model):
                             separator=", ")
                     )
                 )
-    objects = TitleManager()
+    objects = TitleQuerySet().as_manager()
     
 
 class Message(models.Model):

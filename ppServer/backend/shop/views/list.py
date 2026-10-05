@@ -1,7 +1,7 @@
 from typing import Any, Dict
 
 from django.apps import apps
-from django.db.models import Q, Count, Max, Min, OuterRef, Subquery, Value
+from django.db.models import F, Value
 from django.db.models.query import QuerySet
 from django.shortcuts import reverse
 from django.template import TemplateDoesNotExist, loader as TemplateLoader
@@ -14,15 +14,13 @@ from django_filters.views import FilterMixin
 
 from character.models import Charakter, Spieler
 from ppServer.mixins import VerifiedAccountMixin
-from ppServer.utils import ConcatSubquery
 
-from ..enums import category_enum
 from ..forms import ShopFilter
-from ..models import BaseShop, Fernkampfwaffe, Item, Modifier, Tinker
+from ..models import BaseShop, Fernkampfwaffe, Item, Tinker
 
 ####################### abstract base ##################################
 
-shopmodel_list = [m for m in apps.get_app_config("shop").get_models() if not m._meta.abstract and m._meta.model_name not in ["modifier", "shopcategory", "tag", "upgrade"] and not m._meta.model_name.startswith("firma") and not m._meta.model_name.startswith("slot")]
+shopmodel_list = [m for m in apps.get_app_config("shop").get_models() if not m._meta.abstract and m._meta.model_name not in ["modifier", "shopcategory", "tag", "upgrade", "firma"] and not m._meta.model_name.startswith("slot")]
 
 
 shop_model_filter_fields = {
@@ -31,7 +29,7 @@ shop_model_filter_fields = {
     "ab_stufe": ["lte"],
 }
 shop_extra_filter_fields = {
-    "preis__lte": NumberFilter(field_name="preis", lookup_expr='lte', label="Preis ist kleiner oder gleich"),
+    "curr_price__lte": NumberFilter(field_name="curr_price", lookup_expr='lte', label="Preis ist kleiner oder gleich"),
 }
 
 
@@ -121,10 +119,13 @@ class ListFilterMixin(FilterMixin):
     def get_filterset_extra_fields(self) -> Dict[str, Filter]:
         extra = self.filterset_extra_fields or {}
 
+        fields = [*self.filterset_fields.keys(), *set([k.split("__")[0] for k in extra.keys()])]
+        field_dict = {field: ("Preis" if field == "curr_price" else field.replace("_", " ").title()) for field in fields}
+
         return {
             **extra,
             "char": CharakterFilter(self.request.spieler),
-            "o": OrderingFilter(fields=[*self.filterset_fields.keys(), *set([k.split("__")[0] for k in extra.keys()])]),
+            "o": OrderingFilter(fields=field_dict),
         }
 
     def get_filterset(self, filterset_class):
@@ -202,20 +203,14 @@ class MixedListFilterMixin(ListFilterMixin):
         # get filtered objects
         objects = []
         for Model in [m for m in shopmodel_list if m != Tinker]:
-            template = self.get_item_template(Model)
-            model_name = Model._meta.verbose_name
-
             qs = Model.objects.annotate_schaden() if Model == Fernkampfwaffe else Model.objects
 
             # construct base queryset without frei_editierbare instances, apply user-filters and return objects as dicts in list
-            objects += qs\
-                .prefetch_related("firmen")\
+            objects += qs.annotate_price()\
                 .annotate(
-                    template = Value(template),     # needed to render this item nicely
-                    model_verbose_name = Value(model_name),
-
-                    preis = Min(f'firma{Model._meta.model_name}__preis'),
-                    max_preis = Max(f'firma{Model._meta.model_name}__preis'),
+                    template = Value(self.get_item_template(Model)),     # needed to render this item nicely
+                    model_verbose_name = Value(Model._meta.verbose_name),
+                    Preis=F("price"),   # add annotation because I can't rename curr_price in html-select of OrderingFilter otherwise
                 )\
                 .filter(**filters)\
                 .order_by(self.ordering)
@@ -246,7 +241,7 @@ class BaseList(DjangoListView):
     ''' needs to set self.model in url or manually '''
 
     model = None
-    paginate_by = 50    # num of objects per page
+    paginate_by = 100    # num of objects per page
     context_object_name = "object_list"
 
     template_name = "shop/list.html"
@@ -270,43 +265,15 @@ class BaseList(DjangoListView):
         return template
 
     def get_queryset(self) -> QuerySet[Any]:
-        template = self.get_item_template(self.model)
+        if not self.queryset: self.queryset = self.model.objects
 
-        def modifiers(model: type[BaseShop]):
-            # get Category letter of Shop-model
-            catLetter = next((letter for letter, cat in category_enum if cat == model._meta.verbose_name_plural), '')
+        self.queryset = self.queryset.annotate_price()\
+        .filter(frei_editierbar=False)\
+        .annotate(
+            template = Value(self.get_item_template(self.model)),     # needed to render this item nicely
+        )
 
-            return ConcatSubquery(
-                Modifier.objects\
-                    .annotate(
-                        num_firmen = Count('firmen'),
-                        num_cats = Count('kategorien'),
-                    )\
-                    .filter(active=True)\
-                    .filter(
-                        # get category-specific modifiers with correct firma OR category
-                        Q(firmen__in=OuterRef("firmen")) | Q(kategorien__kategorie=catLetter) |
-                        # get base modifiers (that modify everything)
-                        (Q(num_firmen = 0) & Q(num_cats = 0))
-                    )\
-                    .values("factor")
-            )
-
-            # CALC: floor(price * exp(sum(ln(n), ln(n1), ...)) + .5)
-
-        model_name = self.model._meta.model_name
-        qs = super().get_queryset().filter(frei_editierbar=False).prefetch_related("firmen").annotate(
-            template = Value(template),     # needed to render this item nicely
-
-            # TODO
-            # modifiers = modifiers(self.model),
-            preis = Min(f'firma{model_name}__preis'),
-            max_preis = Max(f'firma{model_name}__preis'),
-        ).order_by("name")
-
-        print(qs.first().modifiers)
-
-        return qs
+        return super().get_queryset()
 
     @classmethod
     def as_view(cls, **initkwargs):
@@ -336,3 +303,29 @@ class AllListView(VerifiedAccountMixin, HeaderMixin, MixedListFilterMixin, BaseL
         return None     # ignore preset with self.model
     def get_plus_url(self):
         return None     # ignore preset with self.model
+
+
+class DiscountView(VerifiedAccountMixin, HeaderMixin, MixedListFilterMixin, BaseList):
+    topic = 'Sale'
+    app_index = 'Shop'
+    app_index_url = 'shop:index'
+    model = Item    # irrelevant, just need a model here for the filter
+
+    def get_plus(self):
+        return None     # ignore preset with self.model
+    def get_plus_url(self):
+        return None     # ignore preset with self.model
+
+    def get_filters(self):
+        # filter items on sale
+        return {**super().get_filters(), "discount__gt": 0}
+
+    def get_filterset_extra_fields(self) -> Dict[str, Filter]:
+        extra = self.filterset_extra_fields or {}
+
+        fields = ["discount", *self.filterset_fields.keys(), *set([k.split("__")[0] for k in extra.keys()])]
+        field_dict = {field: ("Preis" if field == "curr_price" else field.replace("_", " ").title()) for field in fields}
+
+        fields = super().get_filterset_extra_fields()
+        fields["o"] = OrderingFilter(fields=field_dict)
+        return fields
