@@ -122,6 +122,9 @@ class SlotFernkampfwaffe(Slot):
 class SlotRitual_Rune(Slot):
     item = models.ForeignKey("Ritual_Rune", on_delete=models.CASCADE)
 
+class SlotRüstung(Slot):
+    item = models.ForeignKey("Rüstung", on_delete=models.CASCADE)
+
 class SlotEinbaute(Slot):
     item = models.ForeignKey("Einbaute", on_delete=models.CASCADE)
 
@@ -136,7 +139,7 @@ class SlotBegleiter(Slot):
 class Upgrade(models.Model):
 
     class Meta:
-        ordering = ['tag', 'name', 'ab_stufe', 'price']
+        ordering = ['name', 'tag', 'ab_stufe', 'price']
         verbose_name = "Upgrade"
         verbose_name_plural = "Upgrades"
 
@@ -400,6 +403,9 @@ class Rüstung(BaseShop):
     schutz = models.CharField(default="0", max_length=64)
     haltbarkeit = models.PositiveIntegerField(default=0)
     damage_speciality = models.TextField(default='', verbose_name="Besonderheiten bei Schadensarten")
+
+    slots = models.ManyToManyField(SlotRüstung)
+    possible_upgrades = models.ManyToManyField(Upgrade)
 
     kategorie = models.CharField(choices=enums.ruestung_enum, max_length=2, default=enums.ruestung_enum[0][0])
 

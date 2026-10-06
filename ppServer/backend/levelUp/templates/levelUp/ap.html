@@ -11,6 +11,7 @@
 
 {{ INITIAL_AP_PENALTY_AKTUELL|json_script:"INITIAL_AP_PENALTY_AKTUELL" }}
 {{ INITIAL_AP_PENALTY_MAX|json_script:"INITIAL_AP_PENALTY_MAX" }}
+{{ INITIAL_AP_PENALTY_ATTRIBUTE_IDS|json_script:"INITIAL_AP_PENALTY_ATTRIBUTE_IDS" }}
 <script src="{% static 'levelUp/js/ap.js' %}" type="text/javascript"></script>
 {% endblock %}
 
@@ -19,7 +20,7 @@
 {% endblock %}
 
 {% block after_table %}
-<p class="note mt-4">Den aktuellen Wert zu erhöhen kostet 1 AP, das Maximum 2 AP. Wenn von 0 auf 1 erhöht wird, kostet es noch 1 AP mehr.</p>
+<p class="note mt-4">Den aktuellen Wert zu erhöhen kostet 1 AP, das Maximum 2 AP. Wenn von 0 auf 1 erhöht wird, kostet es für Magie noch 1 AP mehr.</p>
 
 <div class="note mt-5">
     <h2>Sonderfall Magie und Managetik</h2>

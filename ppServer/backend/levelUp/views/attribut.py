@@ -57,12 +57,13 @@ class GenericAttributView(LevelUpMixin, DynamicTableView):
 
     INITIAL_AP_PENALTY_AKTUELL = 1
     INITIAL_AP_PENALTY_MAX = 1
+    INITIAL_AP_PENALTY_ATTRIBUTE_IDS = [8]  # Magie
 
 
     def get_queryset(self):
         char = self.get_character()
 
-        return RelAttribut.objects.prefetch_related("char").filter(char=char).annotate(
+        return RelAttribut.objects.prefetch_related("char", "attribut").filter(char=char).annotate(
             is_aktuell_fix=Case(When(aktuellerWert_fix=None, then=False), default=True, output_field=models.BooleanField()),
             is_max_fix=Case(When(maxWert_fix=None, then=False), default=True, output_field=models.BooleanField()),
 
@@ -89,6 +90,7 @@ class GenericAttributView(LevelUpMixin, DynamicTableView):
         return super().get_context_data(*args, **kwargs,
             INITIAL_AP_PENALTY_AKTUELL=self.INITIAL_AP_PENALTY_AKTUELL,
             INITIAL_AP_PENALTY_MAX=self.INITIAL_AP_PENALTY_MAX,
+            INITIAL_AP_PENALTY_ATTRIBUTE_IDS=self.INITIAL_AP_PENALTY_ATTRIBUTE_IDS,
 
             denial_form = MA_MGDenialForm(instance=self.char),
         )
@@ -124,13 +126,15 @@ class GenericAttributView(LevelUpMixin, DynamicTableView):
 
             # .. previously
             ap_max += relattr.aktuellerWert_temp + 2* relattr.maxWert_temp
-            if relattr.aktuellerWert_temp and not relattr.aktuellerWert: ap_max += self.INITIAL_AP_PENALTY_AKTUELL
-            if relattr.maxWert_temp and not relattr.maxWert: ap_max += self.INITIAL_AP_PENALTY_MAX
+            if relattr.attribut.pk in self.INITIAL_AP_PENALTY_ATTRIBUTE_IDS:
+                if relattr.aktuellerWert_temp and not relattr.aktuellerWert: ap_max += self.INITIAL_AP_PENALTY_AKTUELL
+                if relattr.maxWert_temp and not relattr.maxWert: ap_max += self.INITIAL_AP_PENALTY_MAX
 
             # .. now
             ap_spent += aktuell + 2* max
-            if aktuell and not relattr.aktuellerWert: ap_spent += self.INITIAL_AP_PENALTY_AKTUELL
-            if max and not relattr.maxWert: ap_spent += self.INITIAL_AP_PENALTY_MAX
+            if relattr.attribut.pk in self.INITIAL_AP_PENALTY_ATTRIBUTE_IDS:
+                if aktuell and not relattr.aktuellerWert: ap_spent += self.INITIAL_AP_PENALTY_AKTUELL
+                if max and not relattr.maxWert: ap_spent += self.INITIAL_AP_PENALTY_MAX
 
         # test them
         if ap_spent > ap_max:

@@ -12,62 +12,27 @@ from ppServer.utils import ConcatSubquery
 
 from .models import *
 
-class InLine(admin.TabularInline):
-    extra = 1
 
+##################### InLines #########################
 
-############### F-Waffe -> Munition #################
+def get_SlotInLine(m: type[Slot]) -> type[admin.TabularInline]:
+    class Admin(admin.TabularInline):
+        model=m
+        fields = ["tag", "num"]
+        extra = 1
 
-class SchussMunitionInLine(InLine):
-    model = Fernkampfwaffe.munition.through
+    return Admin
 
+def get_InLine(m: type[models.Model]) -> type[admin.TabularInline]:
+    class Admin(admin.TabularInline):
+        model = m
+        extra = 1
 
-##################### Slots #########################
-
-class SlotNahkampfwaffeInLine(InLine):
-    model=SlotNahkampfwaffe
-    fields = ["tag", "num"]
-
-class SlotFernkampfwaffeInLine(InLine):
-    model=SlotFernkampfwaffe
-    fields = ["tag", "num"]
-
-class SlotRitual_RuneInLine(InLine):
-    model=SlotRitual_Rune
-    fields = ["tag", "num"]
-
-class SlotEinbauteInLine(InLine):
-    model=SlotEinbaute
-    fields = ["tag", "num"]
-
-class SlotZauberInLine(InLine):
-    model=SlotZauber
-    fields = ["tag", "num"]
-
-class SlotBegleiterInLine(InLine):
-    model=SlotBegleiter
-    fields = ["tag", "num"]
-
-
-class UpgradeNahkampfwaffeInLine(InLine):
-    model=Nahkampfwaffe.possible_upgrades.through
-
-class UpgradeFernkampfwaffeInLine(InLine):
-    model=Fernkampfwaffe.possible_upgrades.through
-
-class UpgradeRitual_RuneInLine(InLine):
-    model=Ritual_Rune.possible_upgrades.through
-
-class UpgradeEinbauteInLine(InLine):
-    model=Einbaute.possible_upgrades.through
-class UpgradeZauberInLine(InLine):
-    model=Zauber.possible_upgrades.through
-
-class UpgradeBegleiterInLine(InLine):
-    model=Begleiter.possible_upgrades.through
+    return Admin
 
 
 ################# BaseAdmin #########################
+
 class BaseAdmin(admin.ModelAdmin):
     search_fields = ['name', "beschreibung__contains"]
     exclude = ['slots', 'possible_upgrades']
@@ -86,7 +51,7 @@ class BaseAdmin(admin.ModelAdmin):
         return [field.name for field in self.opts.local_fields if field.name != "icon"]
 
 
-################### ShopAdmin #######################
+################### ShopAdmins #######################
 
 class ItemAdmin(BaseAdmin):
     list_display = ('name', 'beschreibung', "ab_stufe", 'price', 'kategorie', 'frei_editierbar', "has_implementation")
@@ -98,7 +63,7 @@ class NahkampfwaffeAdmin(BaseAdmin):
     # list_filter = ['kategorie', 'bs', 'zs', 'dk', 'schadensart', 'händigkeit', "frei_editierbar"]
     list_editable = BaseAdmin.list_editable + ["schaden", "reichweite", "wirkbereich", "händigkeit", "fertigkeit", 'kategorie']
 
-    inlines = [SlotNahkampfwaffeInLine, UpgradeNahkampfwaffeInLine]
+    inlines = [get_SlotInLine(SlotNahkampfwaffe), get_InLine(Nahkampfwaffe.possible_upgrades.through)]
 
 
 class MunitionAdmin(BaseAdmin):
@@ -114,7 +79,7 @@ class FernkampfwaffeAdmin(BaseAdmin):
     # list_filter = ['kategorie', 'dk', 'präzision', 'fertigkeit__titel', "frei_editierbar"]
     list_editable = BaseAdmin.list_editable + ['feuerrate', "reichweite", "händigkeit",]
 
-    inlines = [SchussMunitionInLine, SlotFernkampfwaffeInLine, UpgradeFernkampfwaffeInLine]
+    inlines = [get_InLine(Fernkampfwaffe.munition.through), get_SlotInLine(SlotFernkampfwaffe), get_InLine(Fernkampfwaffe.possible_upgrades.through)]
 
     def get_queryset(self, request):
         return super().get_queryset(request).prefetch_related("munition")
@@ -132,11 +97,15 @@ class Ritual_RuneAdmin(BaseAdmin):
     # list_filter = ['kategorie', "frei_editierbar"]
     list_editable = BaseAdmin.list_editable + ["schaden", "schadensart", "wirkbereich", "manaverbrauch"]
 
+    inlines = [get_SlotInLine(SlotRitual_Rune)]
+
 
 class RüstungAdmin(BaseAdmin):
     list_display = ('name', 'beschreibung', "ab_stufe", 'damage_speciality', 'kategorie', 'schutz', 'haltbarkeit', 'price', 'frei_editierbar', "has_implementation")
     # list_filter = ['schutz', 'haltbarkeit', "frei_editierbar"]
     list_editable = BaseAdmin.list_editable + ['damage_speciality', 'kategorie']
+
+    inlines = [get_SlotInLine(SlotRüstung), get_InLine(Rüstung.possible_upgrades.through)]
 
 
 class TechnikAdmin(BaseAdmin):
@@ -156,7 +125,7 @@ class EinbauteAdmin(BaseAdmin):
     list_display = ('name', 'beschreibung', "ab_stufe", 'manifestverlust', 'price', 'kategorie', 'frei_editierbar', "has_implementation")
     # list_filter = ['kategorie', 'manifestverlust', "frei_editierbar"]
 
-    inlines = [SlotEinbauteInLine, UpgradeEinbauteInLine]
+    inlines = [get_SlotInLine(SlotEinbaute), get_InLine(Einbaute.possible_upgrades.through)]
 
 
 class ZauberAdmin(BaseAdmin):
@@ -165,7 +134,7 @@ class ZauberAdmin(BaseAdmin):
     # list_filter = ['kategorie', 'astralschaden', 'manaverbrauch', "verteidigung", 'schadensart', "frei_editierbar"]
     list_editable = BaseAdmin.list_editable + ["schaden", "wirkbereich", "wirkdauer"]
 
-    inlines = [SlotZauberInLine, UpgradeZauberInLine]
+    inlines = [get_SlotInLine(SlotZauber), get_InLine(Zauber.possible_upgrades.through)]
 
 
 class AlchemieAdmin(BaseAdmin):
@@ -202,7 +171,7 @@ class BegleiterAdmin(BaseAdmin):
     # list_filter = ["frei_editierbar"]
     list_editable = BaseAdmin.list_editable + ["hp", "physische_reaktion", "astrale_reaktion", "astraler_widerstand", "physischer_widerstand"]
 
-    inlines = [SlotBegleiterInLine, UpgradeBegleiterInLine]
+    inlines = [get_SlotInLine(SlotBegleiter), get_InLine(Begleiter.possible_upgrades.through)]
 
 
 class EngelsroboterAdmin(BaseAdmin):
@@ -211,7 +180,7 @@ class EngelsroboterAdmin(BaseAdmin):
     list_editable = BaseAdmin.list_editable + ["hp", "physische_reaktion", "astrale_reaktion", "astraler_widerstand", "physischer_widerstand"]
 
 
-################### Modifier ########################
+################### Firma & Modifier ########################
 
 class FirmaAdmin(admin.ModelAdmin):
     list_display = ('_icon', 'name', 'beschreibung')
@@ -220,29 +189,13 @@ class FirmaAdmin(admin.ModelAdmin):
     def _icon(self, obj):
         return format_html(f'<img src="{obj.icon.url}" style="max-width: 32px; max-height:32px;" loading="lazy" />') if obj.icon else self.get_empty_value_display()
 
-class UpgradeAdmin(admin.ModelAdmin):
-    list_display = ('name', 'beschreibung', 'ab_stufe', 'price', 'field', 'tag', 'prerequisite')
-    list_editable = ["prerequisite"]
 
-    def field(self, obj):
-        return f"{obj.get_influenced_field_display()} {obj.field_value}"
-
-class ShopCategoryInline(admin.TabularInline):
-    model = Modifier.kategorien.through
-    verbose_name = 'Kategorie'
-    verbose_name_plural = 'Kategorien'
-    extra = 1
-class FirmaInLine(admin.TabularInline):
-    model = Modifier.firmen.through
-    verbose_name = 'Firma'
-    verbose_name_plural = 'Firmen'
-    extra = 1
 class ModifierAdmin(admin.ModelAdmin):
     list_display = ['factor', '_firmen', '_kategorien', 'active']
     exclude = ['kategorien', 'firmen']
     list_filter = ['kategorien', 'firmen']
 
-    inlines = [ShopCategoryInline, FirmaInLine]
+    inlines = [get_InLine(Modifier.kategorien.through), get_InLine(Modifier.firmen.through)]
     
     def _firmen(self, obj):
         return obj.firmennames or self.get_empty_value_display()
@@ -254,6 +207,27 @@ class ModifierAdmin(admin.ModelAdmin):
         return super().get_queryset(request).prefetch_related("kategorien").annotate(
             firmennames = ConcatSubquery(Firma.objects.filter(modifier=OuterRef("id")).values("name"), ", "),
         )
+
+
+################### Upgrade ########################
+
+class TagAdmin(admin.ModelAdmin):
+    list_display = ('_icon', 'name')
+    list_display_links = ("name",)
+
+    def _icon(self, obj):
+        return format_html(f'<img src="{obj.icon.url}" style="max-width: 32px; max-height:32px;" loading="lazy" />') if obj.icon else self.get_empty_value_display()
+
+
+class UpgradeAdmin(admin.ModelAdmin):
+    list_display = ('name', 'beschreibung', 'ab_stufe', 'price', 'field', 'tag', 'prerequisite')
+    list_editable = ["prerequisite"]
+
+    def field(self, obj):
+        return f"{obj.get_influenced_field_display() or self.get_empty_value_display}: {obj.field_value or self.get_empty_value_display()}"
+
+
+
 
 
 admin.site.register(Item, ItemAdmin)
@@ -274,5 +248,5 @@ admin.site.register(Engelsroboter, EngelsroboterAdmin)
 
 admin.site.register(Firma, FirmaAdmin)
 admin.site.register(Modifier, ModifierAdmin)
-admin.site.register(Tag)
+admin.site.register(Tag, TagAdmin)
 admin.site.register(Upgrade, UpgradeAdmin)

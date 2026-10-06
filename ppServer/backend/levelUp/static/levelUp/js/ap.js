@@ -2,24 +2,27 @@ let initial_ap = 0;
 
 const INITIAL_AP_PENALTY_AKTUELL = parseInt(document.querySelector("#INITIAL_AP_PENALTY_AKTUELL").innerText);
 const INITIAL_AP_PENALTY_MAX = parseInt(document.querySelector("#INITIAL_AP_PENALTY_MAX").innerText);
+const INITIAL_AP_PENALTY_ATTRIBUTE_IDS = JSON.parse(document.querySelector("#INITIAL_AP_PENALTY_ATTRIBUTE_IDS").innerText);
 
 
 function ap_spent() {
     let penalties = 0;
     const ap_aktuell = [...document.querySelectorAll(`.aktuell-input`)]
         .map(tag => {
+            const attr_id = parseInt(tag.dataset.id || '0')
             const cost = parseInt(tag.value) || 0;
             const fix = parseInt(tag.closest("td").querySelector(".aktuell-fix")?.innerText) || 0;
-            if (cost && !fix) penalties += INITIAL_AP_PENALTY_AKTUELL;
+            if (INITIAL_AP_PENALTY_ATTRIBUTE_IDS.includes(attr_id) && cost && !fix) penalties += INITIAL_AP_PENALTY_AKTUELL;
             return cost;
         })
         .reduce((sum, ap) => sum + ap, 0);
     
     const ap_max = [...document.querySelectorAll(`.max-input`)]
         .map(tag => {
+            const attr_id = parseInt(tag.dataset.id || '0')
             const cost = parseInt(tag.value) || 0;
             const fix = parseInt(tag.closest("td").querySelector(".max-fix")?.innerText) || 0;
-            if (cost && !fix) penalties += INITIAL_AP_PENALTY_MAX;
+            if (INITIAL_AP_PENALTY_ATTRIBUTE_IDS.includes(attr_id) && cost && !fix) penalties += INITIAL_AP_PENALTY_MAX;
             return cost;
         })
         .reduce((sum, ap) => sum + ap, 0);
