@@ -272,10 +272,6 @@ class Gfs(models.Model):
     ap = models.PositiveIntegerField(default=0, validators=[MaxValueValidator(100)], verbose_name="AP-Kosten")
 
     base_movement_speed = models.FloatField(default=3, null=False, blank=True, verbose_name="Grundbewegungsrate")
-    wesenschaden_waff_kampf = models.IntegerField("BS", default=0)
-    wesenschaden_andere_gestalt = models.IntegerField(
-        "BS andere Gestalt", blank=True, null=True)
-
     startmanifest = models.DecimalField('Startmanifest', max_digits=4, decimal_places=2, default=10.0,
                                         validators=[MaxValueValidator(10), MinValueValidator(0)])
 
@@ -730,8 +726,6 @@ class Charakter(models.Model):
     larp_rang = models.PositiveIntegerField(default=0)
 
     # kampf
-    wesenschaden_waff_kampf = models.IntegerField(default=0)
-    wesenschaden_andere_gestalt = models.IntegerField("BS andere Gestalt", blank=True, null=True)
     crit_attack = models.PositiveSmallIntegerField(default=0)
     crit_defense = models.PositiveSmallIntegerField(default=0)
     initiative_bonus = models.SmallIntegerField(default=0)
@@ -1636,14 +1630,6 @@ class GfsSkilltreeEntry(models.Model):
         if self.operation == "G":
             char.HPplus_geistig += self.amount
             char.save(update_fields=["HPplus_geistig"])
-            return
-        # HP Schaden waff. Kampf
-        if self.operation == "k":
-            if not char.wesenschaden_waff_kampf: char.wesenschaden_waff_kampf = 0
-            if not char.wesenschaden_andere_gestalt: char.wesenschaden_andere_gestalt = 0
-            char.wesenschaden_waff_kampf += self.amount
-            char.wesenschaden_andere_gestalt += self.amount
-            char.save(update_fields=["wesenschaden_waff_kampf", "wesenschaden_andere_gestalt"])
             return
         # Initiative fix
         if self.operation == "I":

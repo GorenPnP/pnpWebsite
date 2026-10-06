@@ -49,8 +49,6 @@ class AbstractEffect(models.Model):
 
         ("character.Charakter.crit_attack", "Charakter: Crit-Angriff"),
         ("character.Charakter.crit_defense", "Charakter: Crit-Verteidigung"),
-        ("character.Charakter.wesenschaden_waff_kampf", "Charakter: Schaden waffenloser Kampf"),
-        ("character.Charakter.wesenschaden_andere_gestalt", "Charakter: Schaden waffenloser Kampf (andere Form)"),
 
         ("character.Charakter.konzentration", "Charakter: Konzentration"),
         ("character.Charakter.konzentration_fix", "Charakter: Konzentration fix"),

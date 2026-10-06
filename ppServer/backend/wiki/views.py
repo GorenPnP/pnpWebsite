@@ -256,7 +256,6 @@ def stufenplan(request, gfs_id):
         {"field": "Wesenkräfte", "val": gfs.start_wesenkraft},
         {"field": "Bewegung in m", "val": gfs.base_movement_speed},
         {"field": "Startmanifest", "val": gfs.startmanifest},
-        {"field": "Schaden waffenloser Kampf (andere Form) in HP", "val": f"{gfs.wesenschaden_waff_kampf or 0} ({gfs.wesenschaden_andere_gestalt or 0})"},
         {"field": "Kosten in AP", "val": gfs.ap},
     ]
 

@@ -630,10 +630,6 @@ class CharakterExporter:
             notizen.append(f"Verzichtet für immer auf Magie und Managetik.")
         elif self.char.no_MA:
             notizen.append(f"Kann Managetik nutzen und verzichtet für immer auf Magie.")
-        if self.char.wesenschaden_waff_kampf:
-            notizen.append(f"+{self.char.wesenschaden_waff_kampf} HP im waffenlosen Kampf")
-        if self.char.wesenschaden_andere_gestalt:
-            notizen.append(f"+{self.char.wesenschaden_andere_gestalt} HP im waffenlosen Kampf der anderen Gestalt")
         if "skilltree" in self.char.processing_notes:
             for s in self.char.processing_notes["skilltree"]: notizen.append(s)
 

@@ -76,7 +76,7 @@ class CharacterForm(forms.ModelForm):
             "ap", "fp", "fg", "sp", "sp_fix", "ip", "tp", "zauberplätze", "konzentration", "konzentration_fix", "prestige", "verzehr", "glück", "sanität",
             "ep", "ep_stufe", "skilltree_stufe",
             "HPplus_geistig", "HPplus", "HPplus_fix",
-            "wesenschaden_waff_kampf", "wesenschaden_andere_gestalt", "crit_attack", "crit_defense", "initiative_bonus", "physische_reaktion_bonus", "physischer_widerstand_bonus", "physischer_widerstand_bonus_str", "astrale_reaktion_bonus", "astraler_widerstand_bonus_str", "manaoverflow_bonus", "nat_regeneration_bonus", "immunsystem_bonus",
+            "crit_attack", "crit_defense", "initiative_bonus", "physische_reaktion_bonus", "physischer_widerstand_bonus", "physischer_widerstand_bonus_str", "astrale_reaktion_bonus", "astraler_widerstand_bonus_str", "manaoverflow_bonus", "nat_regeneration_bonus", "immunsystem_bonus",
     	    "notizen", "persönlicheZiele", "sonstige_items", "affektivitäten",
             "klassen", "klassen_fähigkeiten", "vorteile", "nachteile", "talente", "wesenkräfte",
             "attribute", "fertigkeiten","gruppen", "spezialfertigkeiten", "wissensfertigkeiten", "gfs_fähigkeiten",
@@ -156,7 +156,7 @@ class CharacterForm(forms.ModelForm):
                     "Kampf & Boni",
                     Fieldset(
                         "Schaden machen",
-                        "wesenschaden_waff_kampf", "wesenschaden_andere_gestalt", "crit_attack",
+                        "crit_attack",
                     ),
                     Fieldset(
                         "Schaden verhindern",

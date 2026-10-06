@@ -101,14 +101,14 @@ class GfsStufenplanInLine(admin.TabularInline):
 
 class GfsAdmin(admin.ModelAdmin):
     list_display = ('icon_', 'titel', 'ap', 'difficulty', 'base_movement_speed', 'vorteil_', 'nachteil_', 'zauber_',
-                    "wesenschaden_waff_kampf", "wesenschaden_andere_gestalt", "wesenkraft_", "startmanifest",)
-    list_filter = ["wesen", 'ap', 'startmanifest', "wesenschaden_waff_kampf"]
+                    "wesenkraft_", "startmanifest",)
+    list_filter = ["wesen", 'ap', 'startmanifest']
     search_fields = ('titel', 'ap')
 
     list_display_links = ["icon_", "titel"]
     list_editable = ["base_movement_speed"]
 
-    fields = ["icon", "titel", "wesen", "beschreibung", "eigenschaften", "ap", "wesenschaden_waff_kampf", "wesenschaden_andere_gestalt", "startmanifest", "base_movement_speed", "difficulty"]
+    fields = ["icon", "titel", "wesen", "beschreibung", "eigenschaften", "ap", "startmanifest", "base_movement_speed", "difficulty"]
     inlines = [GfsImageInLine, GfsAttributInLine, GfsFertigkeitInLine,
                GfsVorteilInLine, GfsNachteilInLine,
                GfsWesenkraftInLine, GfsZauberInLine,
