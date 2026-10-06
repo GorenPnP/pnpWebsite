@@ -15,7 +15,7 @@
             {% if obj.model_verbose_name %}<em class="model">{{ obj.model_verbose_name }}</em>{% endif %}
             {% if obj.model_verbose_name and obj.kategorie %}<em>&nbsp;-&nbsp;</em>{% endif %}
             {% if obj.kategorie %}<em class="kategory">{{ obj.get_kategorie_display }}</em>{% endif %}
-            <em>.</em>&nbsp;
+            {% if obj.model_verbose_name or obj.kategorie %}<em>.</em>&nbsp;{% endif %}
             <span class="description">{{ obj.beschreibung|truncatechars_html:150 }}</span>
         </div>
         {% block above_price %}

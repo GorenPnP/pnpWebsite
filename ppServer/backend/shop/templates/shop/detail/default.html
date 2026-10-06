@@ -1,15 +1,175 @@
 {% extends 'base/headed_main.html' %}
-{% load crispy_forms_tags %}
+{% load static crispy_forms_tags shop.update_querystring %}
 
 {% block extra-head %}
+<link rel="stylesheet" href="{% static 'shop/css/list.css' %}">
+<style>
+    p { max-width: 60ch; }
+    td:first-of-type { font-weight: bold; }
+    h2 { margin-top: 1em; }
+    .top {
+        grid-template-columns: 35vw 1fr 25vw;
+    }
 
+    .icon-container {
+        max-width: 800px;
+        position: relative;
+
+        .icon {
+            aspect-ratio: 1;
+            width: 100%;
+            object-fit: cover;
+        }
+        .ab-stufe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            padding: .25em .5em;
+            background-color: rgba(0, 0, 0, .6);
+            border-radius: 0 0 5px 0;
+            line-height: 1em;
+        }
+    }
+
+    .sale {
+        padding: .25em .5em;
+        background-color: var(--bs-indigo);
+    }
+
+    .table-container { max-width: 400px; }
+
+    .slot-container {
+        height: 2.5rem;
+        padding-block: .2em;
+        display: flex !important;
+        gap: 1px;
+
+        .hexagon {
+            height: 100%; /* adjust to control the size  */
+            aspect-ratio: cos(30deg);
+            clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+            background-color: var(--bs-body-color);
+            opacity: .85;
+        }
+    }
+</style>
 {% endblock %}
 
 {% block main %}
-<b>{{ object.name }}</b>
-<p style="max-width: 60ch;">{{ object.beschreibung }}</p>
-<p>vertrieben von <b>{{ object.firma.name|default:'niemandem' }}</b>, zu {{ object.verfügbarkeit|default:0 }}% verfügbar.</p>
+<!-- img -->
+<div class="top d-md-grid d-block gap-2">
+    <div class="icon-container">
+        {% if object.ab_stufe %}<span class="ab-stufe">ab Stufe {{ object.ab_stufe }}</span>{% endif %}
+        
+        <img class="icon img-thumbnail w-100" src="{% if object.icon %}{{ object.icon.url }}{% else %}{% static 'res/img/goren_logo.png' %}{% endif %}" loading='lazy'>
+    </div>
+    
+    <div class="base-info-container">
+        <h1>{{ object.name }}</h1>
+        {% if object.firma %}<a class="fs-6 fw-lighter text-muted" href="{% url 'shop:all' %}{% update_querystring firma=object.firma.pk %}">Marke: {{ object.firma.name }}</a>{% endif %}
 
-{% crispy form %}
+        {% if object.price is not None and object.discount > 0 %}
+        <hr>
+        <span class="sale">Angebot</span>
 
+        <p class="d-flex gap-2 flex-wrap">
+            <span class="fs-2 fw-lighter text-warning">-{{object.discount}} %</span>
+            <span class="price fs-2">{{ object.curr_price }} Dr.</span>
+            <span class="fs-6 fw-lighter p-1">({{ object.saved_geld }} Dr. / Stück{% if object.stufenabhängig %} und Stufe{% endif %})</span>
+        </p>
+        {% endif %}
+
+        <p>{{ object.beschreibung }}</p>
+
+    </div>
+    <div class="price-container border border-light p-2 rounded">
+        {% if object.price is not None and object.discount > 0 %}
+            <p><b class="fs-6">Angebotspreis</b></p>
+        {% endif %}
+        {% if not object.frei_editierbar %}
+            <p>
+                <b class="price fs-2">{{ object.curr_price|default_if_none:'nicht kaufbar mit ' }} Dr.{% if object.stufenabhängig %} * Stufe{% endif %}</b>
+                {% if object.price is not None and object.discount > 0 %}
+                <span class="fs-6 fw-lighter p-1">({{ object.saved_geld }} Dr. / Stück{% if object.stufenabhängig %} und Stufe{% endif %})</span>
+                {% endif %}
+            </p>
+        {% else %}
+            <p><b class="price fs-2">nicht kaufbar{% if object.stufenabhängig %} , hat Stufen{% endif %}</b></p>
+        {% endif %}
+
+        <p>zu {{ object.verfügbarkeit|default:0 }}% verfügbar.</p>
+        {% crispy form %}
+    </div>
+</div>
+
+<h2>Produktdaten</h2>
+
+<div class="table-container table-responsive">
+    <table class="table table-dark table-striped table-hover">
+        <thead class="visually-hidden"><tr><th>Attribut</th><th>Wert</th></tr></thead>
+    
+        <tbody>
+            {% for field in table_fields %}
+            <tr>
+                <td>{{ field.name|title }}</td>
+                <td>{{ field.value }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% if not object.has_implementation %}
+<p class="text-warn">Achtung! Teile dieses Items sind nictht implementiert !</p>
+{% endif %}
+
+{% if slots or object.possible_upgrades %}
+<h2>Slots & Upgrades</h2>
+<div class="slot-container">
+    {% for slot in slots %}
+    <!-- TODO -->
+    <div title="{{ slot.tag_names }}" class="hexagon">
+        {% for tag in slot.tag.all %}
+        {% if slot.icon %}<img src="{{ slot.icon.url }}">{% endif %}
+        {% endfor %}
+    </div>
+    {% empty %}
+    Keine Slots vorhanden
+    {% endfor %}
+</div>
+
+<ul>
+    {% for upgrade in object.possible_upgrades.all %}
+    <!-- TODO -->
+    <li>{{ upgrade.name }} #{{ upgrade.tag }}</li>
+    {% empty %}
+    Keine Upgrades vorhanden
+    {% endfor %}
+</ul>
+{% endif %}
+
+{% if object.fernkampfwaffe_set or object.munition %}
+<h2>Dazu passt</h2>
+
+<ul>
+    {% for muni in object.munition.annotate_price %}
+    <li>{% include 'shop/list_item/default.html' with obj=muni %}</li>
+    {% endfor %}
+    {% for fwaffe in object.fernkampfwaffe_set.annotate_price %}
+    <li>{% include 'shop/list_item/default.html' with obj=fwaffe %}</li>
+    {% endfor %}
+</ul>
+{% endif %}
+
+{% if object.firma and firma_peers %}
+<h2>Von der Marke</h2>
+<div class="row row-cols-1 row-cols-sm-3 row-cols-md-6 g-2">
+    {% for obj in firma_peers %}{% include 'shop/generic_itemcard.html' with obj=obj %}{% endfor %}
+</div>
+{% endif %}
+
+{% comment %}
+<h2>Kundenrezensionen</h2>
+<!-- TODO -->
+...
+{% endcomment %}
 {% endblock %}

@@ -27,6 +27,7 @@ shop_model_filter_fields = {
     "name": ["icontains"],
     "beschreibung": ["icontains"],
     "ab_stufe": ["lte"],
+    "firma": ["exact"],
 }
 shop_extra_filter_fields = {
     "curr_price__lte": NumberFilter(field_name="curr_price", lookup_expr='lte', label="Preis ist kleiner oder gleich"),

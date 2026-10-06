@@ -39,30 +39,6 @@ class Modifier(models.Model):
             ", ".join([k.get_kategorie_display() for k in self.kategorien.all()])
         )
 
-    @classmethod
-    def getModifier(cls, firma: "Firma", shopCategory: type["BaseShop"]):
-        # get Category letter of Shop-model
-        shopmodel_name = shopCategory._meta.verbose_name_plural
-        catLetter = next((letter for letter, cat in enums.category_enum if cat == shopmodel_name), '')
-
-        allModifiers = Modifier.objects\
-            .annotate(Count('firmen'), Count('kategorien'))\
-            .filter(
-                # get category-specific modifiers with correct firma OR category
-                Q(firmen=firma) | Q(kategorien__kategorie=catLetter) |
-                # get base modifiers (that modify everything)
-                Q(firmen__count=0, kategorien__count=0)
-            )\
-            .filter(active=True)
-        
-        # return function that calculates the modified value of a passed price
-        def calcPrice(price: int) -> int:
-            for modifier in allModifiers:
-                price *= modifier.factor
-
-            return math.floor(price + 0.5)
-        return calcPrice
-     
 
 # Firma
 class Firma(models.Model):
