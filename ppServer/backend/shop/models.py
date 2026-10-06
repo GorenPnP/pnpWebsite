@@ -160,7 +160,7 @@ class Upgrade(models.Model):
     ]
 
     # properties
-    name = models.CharField(max_length=32)
+    name = models.CharField(max_length=64)
     beschreibung = models.TextField(default='', blank=True)
     tag = models.ForeignKey(Tag, on_delete=models.SET_NULL, null=True)
 
