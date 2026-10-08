@@ -42,14 +42,9 @@ class DetailView(VerifiedAccountMixin, HeaderMixin, MixedListFilterMixin, Detail
         self.model = self.kwargs["model"]
 
     def get_queryset(self):
-        qs = self.model.objects.prefetch_related("firma").annotate_price().annotate(saved_geld=F("price") - F("curr_price"))
+        qs = self.model.objects.select_related("firma").annotate_price()
         if self.model == Fernkampfwaffe:
             qs = qs.annotate_schaden()
-        try:
-            self.model._meta.get_field("slots")
-            qs = qs.prefetch_related(f"slot{self.model._meta.model_name}_set__tag", "possible_upgrades__tag")
-        except FieldDoesNotExist:
-            pass
         try:
             self.model._meta.get_field("fertigkeit")
             qs = qs.prefetch_related("fertigkeit")
@@ -97,6 +92,7 @@ class DetailView(VerifiedAccountMixin, HeaderMixin, MixedListFilterMixin, Detail
         except:
             pass
         context["table_fields"] = self.get_table_fields()
+        context["upgrades"] = self.object.possible_upgrades.select_related("tag").order_by("ab_stufe", "tag__name")
         context["firma_peers"] = context["filter"].qs[:self.paginate_by]
         if not context.get("form"):
             context["form"] = get_BuyForm(self.request.spieler, self.get_object())

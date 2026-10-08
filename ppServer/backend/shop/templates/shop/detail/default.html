@@ -35,21 +35,27 @@
         padding: .25em .5em;
         background-color: var(--bs-indigo);
     }
+    .ovp { text-decoration: line-through; }
 
     .table-container { max-width: 400px; }
 
     .slot-container {
-        height: 2.5rem;
         padding-block: .2em;
         display: flex !important;
+        flex-wrap: wrap;
         gap: 1px;
 
         .hexagon {
-            height: 100%; /* adjust to control the size  */
+            height: 4.5rem;
             aspect-ratio: cos(30deg);
             clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
             background-color: var(--bs-body-color);
+            color: var(--bs-text-color, #000000);
             opacity: .85;
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
     }
 </style>
@@ -59,7 +65,7 @@
 <!-- img -->
 <div class="top d-md-grid d-block gap-2">
     <div class="icon-container">
-        {% if object.ab_stufe %}<span class="ab-stufe">ab Stufe {{ object.ab_stufe }}</span>{% endif %}
+        {% if object.ab_stufe %}<span class="ab-stufe fs-6">ab Stufe {{ object.ab_stufe }}</span>{% endif %}
         
         <img class="icon img-thumbnail w-100" src="{% if object.icon %}{{ object.icon.url }}{% else %}{% static 'res/img/goren_logo.png' %}{% endif %}" loading='lazy'>
     </div>
@@ -72,10 +78,10 @@
         <hr>
         <span class="sale">Angebot</span>
 
-        <p class="d-flex gap-2 flex-wrap">
+        <p class="d-flex gap-2 flex-wrap align-items-baseline">
             <span class="fs-2 fw-lighter text-warning">-{{object.discount}} %</span>
             <span class="price fs-2">{{ object.curr_price }} Dr.</span>
-            <span class="fs-6 fw-lighter p-1">({{ object.saved_geld }} Dr. / Stück{% if object.stufenabhängig %} und Stufe{% endif %})</span>
+            <span class="fs-6 fw-lighter p-1 text-muted">(<span class="ovp">statt {{ object.price }} Dr. / Stück{% if object.stufenabhängig %} und Stufe{% endif %}</span>)</span>
         </p>
         {% endif %}
 
@@ -89,15 +95,12 @@
         {% if not object.frei_editierbar %}
             <p>
                 <b class="price fs-2">{{ object.curr_price|default_if_none:'nicht kaufbar mit ' }} Dr.{% if object.stufenabhängig %} * Stufe{% endif %}</b>
-                {% if object.price is not None and object.discount > 0 %}
-                <span class="fs-6 fw-lighter p-1">({{ object.saved_geld }} Dr. / Stück{% if object.stufenabhängig %} und Stufe{% endif %})</span>
-                {% endif %}
             </p>
         {% else %}
             <p><b class="price fs-2">nicht kaufbar{% if object.stufenabhängig %} , hat Stufen{% endif %}</b></p>
         {% endif %}
 
-        <p>zu {{ object.verfügbarkeit|default:0 }}% verfügbar.</p>
+        <p class="text-muted">zu {{ object.verfügbarkeit|default:0 }}% verfügbar.</p>
         {% crispy form %}
     </div>
 </div>
@@ -122,25 +125,31 @@
 <p class="text-warn">Achtung! Teile dieses Items sind nictht implementiert !</p>
 {% endif %}
 
-{% if slots or object.possible_upgrades %}
-<h2>Slots & Upgrades</h2>
+{% if slots %}
+<h2>Slots</h2>
 <div class="slot-container">
     {% for slot in slots %}
-    <!-- TODO -->
+    {% with ''|center:slot.num as range %}{% for _ in range %}
+    <!-- TODO style of multiple Tags on one slot; style of icons on slot -->
     <div title="{{ slot.tag_names }}" class="hexagon">
         {% for tag in slot.tag.all %}
-        {% if slot.icon %}<img src="{{ slot.icon.url }}">{% endif %}
+        {% if slot.icon %}<img src="{{ slot.icon.url }}">{% else %}<span>{{ tag.name.0 }}</span>{% endif %}
         {% endfor %}
     </div>
+    {% endfor %}{% endwith %}
     {% empty %}
     Keine Slots vorhanden
     {% endfor %}
 </div>
+{% endif %}
+
+{% if upgrades %}
+<h2>Upgrades</h2>
 
 <ul>
-    {% for upgrade in object.possible_upgrades.all %}
+    {% for upgrade in upgrades %}
     <!-- TODO -->
-    <li>{{ upgrade.name }} #{{ upgrade.tag }}</li>
+    <li>{% include 'shop/list_item/upgrade.html' with obj=upgrade %}</li>
     {% empty %}
     Keine Upgrades vorhanden
     {% endfor %}

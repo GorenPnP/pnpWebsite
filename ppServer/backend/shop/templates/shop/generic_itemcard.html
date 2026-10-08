@@ -15,7 +15,6 @@
         text-decoration: none;
     }
     .base-price {
-        opacity: 0.85;
         text-decoration: line-through;
     }
 
@@ -33,7 +32,7 @@
                 <div class="info-row info-row--price">
                 {% if not obj.frei_editierbar %}
                     {% if obj.price is not None and obj.discount > 0 %}
-                    <span class="base-price">{{ obj.price }} Dr.</span>
+                    <span class="base-price text-muted">statt {{ obj.price }} Dr.</span>
                     <span class="discount">Spare {{ obj.discount }}%</span>
                     {% endif %}
                     <b class="price d-block">{{ obj.curr_price|default_if_none:'nicht kaufbar mit ' }} Dr.{% if obj.stufenabhängig %} * Stufe{% endif %}</b>

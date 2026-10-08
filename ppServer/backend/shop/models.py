@@ -379,9 +379,9 @@ class Rüstung(BaseShop):
 
         ordering = ['name']
 
-    schutz = models.CharField(default="0", max_length=64)
+    schutz = models.CharField(default="0", max_length=64, blank=True)
     haltbarkeit = models.PositiveIntegerField(default=0)
-    damage_speciality = models.TextField(default='', verbose_name="Besonderheiten bei Schadensarten")
+    damage_speciality = models.TextField(default='', verbose_name="Besonderheiten bei Schadensarten", blank=True)
 
     slots = models.ManyToManyField(SlotRüstung)
     possible_upgrades = models.ManyToManyField(Upgrade)

@@ -1,0 +1,25 @@
+{% load static shop.get_detail_url %}
+
+<div class="item-container">
+    <!-- img -->
+     <div class="icon-container">
+        {% if obj.ab_stufe %}<span class="ab-stufe">ab Stufe {{ obj.ab_stufe }}</span>{% endif %}
+
+        <img class="icon" src="{% if obj.tag.icon %}{{ obj.tag.icon.url }}{% else %}{% static 'res/img/goren_logo.png' %}{% endif %}" loading='lazy'>
+     </div>
+
+    <!-- information  -->
+     <div class="information">
+        <div class="info-row"><b>{{ obj.name }}</b></div>
+        <div class="info-row">
+            {% if obj.tag %}<em class="kategory">#{{ obj.tag.name }}&nbsp;</em>{% endif %}
+            <span class="description">{{ obj.beschreibung }}</span>
+        </div>
+        {% block above_price %}
+        {% endblock %}
+        <div class="info-row info-row--price">
+            <b class="price">{{ obj.price|default_if_none:'nicht kaufbar mit ' }} Dr.</b>
+        </div>
+        {% block below_info %}{% endblock %}
+    </div>
+</div>
