@@ -81,8 +81,8 @@ class GfsSkilltreeInLine(admin.TabularInline):
     def get_formset(self, request, obj=None, **kwargs):
         formset = super().get_formset(request, obj, **kwargs)
 
-        formset.form.base_fields["spezialfertigkeit"].queryset = formset.form.base_fields["spezialfertigkeit"].queryset.prefetch_related("attr1", "attr2")
-        formset.form.base_fields["wissensfertigkeit"].queryset = formset.form.base_fields["wissensfertigkeit"].queryset.prefetch_related("attr1", "attr2", "attr3")
+        formset.form.base_fields["spezialfertigkeit"].queryset = formset.form.base_fields["spezialfertigkeit"].queryset.select_related("attr1", "attr2")
+        formset.form.base_fields["wissensfertigkeit"].queryset = formset.form.base_fields["wissensfertigkeit"].queryset.select_related("attr1", "attr2", "attr3")
 
         return formset
 
@@ -244,3 +244,10 @@ class GfsSkilltreeEntryAdmin(admin.ModelAdmin):
         return super().get_queryset(request).prefetch_related(
             'gfs', 'base', 'fertigkeit', 'vorteil', 'nachteil', 'wesenkraft', 'spezialfertigkeit', 'wissensfertigkeit', 'magische_ausrüstung'
         )
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "spezialfertigkeit":
+            kwargs["queryset"] = Spezialfertigkeit.objects.select_related("attr1", "attr2")
+        elif db_field.name == "wissensfertigkeit":
+            kwargs["queryset"] = Wissensfertigkeit.objects.select_related("attr1", "attr2", "attr3")
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)

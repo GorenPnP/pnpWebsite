@@ -223,8 +223,11 @@ class UpgradeAdmin(admin.ModelAdmin):
     list_display = ('name', 'beschreibung', 'ab_stufe', 'price', 'field', 'tag', 'prerequisite')
     list_editable = ["prerequisite"]
 
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related("prerequisite")
+
     def field(self, obj):
-        return f"{obj.get_influenced_field_display() or self.get_empty_value_display}: {obj.field_value or self.get_empty_value_display()}"
+        return f"{obj.get_influenced_field_display() or self.get_empty_value_display()}: {obj.field_value or self.get_empty_value_display()}"
 
 
 
