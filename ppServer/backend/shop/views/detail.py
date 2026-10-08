@@ -20,7 +20,7 @@ from .list import HeaderMixin, MixedListFilterMixin
 
 
 class DetailView(VerifiedAccountMixin, HeaderMixin, MixedListFilterMixin, DetailView):
-    template_name = "shop/detail/default.html"
+    template_name = "shop/detail.html"
     object = None
     context_object_name = "object"
 
@@ -93,7 +93,7 @@ class DetailView(VerifiedAccountMixin, HeaderMixin, MixedListFilterMixin, Detail
         except:
             pass
         context["table_fields"] = self.get_table_fields()
-        context["upgrades"] = self.object.possible_upgrades.select_related("tag").order_by("ab_stufe", "tag__name")
+        context["upgrades"] = self.object.possible_upgrades.select_related("tag", "prerequisite").order_by("ab_stufe", "tag__name")
         context["firma_peers"] = context["filter"].qs[:self.paginate_by]
         if not context.get("form"):
             context["form"] = get_BuyForm(self.request.spieler, self.get_object())

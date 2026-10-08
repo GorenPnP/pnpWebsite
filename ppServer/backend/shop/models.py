@@ -111,7 +111,6 @@ class SlotBegleiter(Slot):
     item = models.ForeignKey("Begleiter", on_delete=models.CASCADE)
 
 
-# TODO add required Upgrade-field
 class Upgrade(models.Model):
 
     class Meta:

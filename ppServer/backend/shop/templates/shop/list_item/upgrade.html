@@ -15,11 +15,13 @@
             {% if obj.tag %}<em class="kategory">#{{ obj.tag.name }}&nbsp;</em>{% endif %}
             <span class="description">{{ obj.beschreibung }}</span>
         </div>
-        {% block above_price %}
-        {% endblock %}
+        {% if obj.achievement_unlock or obj.prerequisite %}
+        <div class="info-row">Voraussetzung: {{ obj.achievement_requirement|default:'' }}
+            {% if obj.prerequisite %}besitze das Upgrade "{{ obj.prerequisite.name }}" passend zu diesem Item.{% endif %}
+        </div>
+        {% endif %}
         <div class="info-row info-row--price">
             <b class="price">{{ obj.price|default_if_none:'nicht kaufbar mit ' }} Dr.</b>
         </div>
-        {% block below_info %}{% endblock %}
     </div>
 </div>
