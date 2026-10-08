@@ -85,18 +85,21 @@ class DetailView(VerifiedAccountMixin, HeaderMixin, MixedListFilterMixin, Detail
 
         context = super().get_context_data(*args, **kwargs)
 
+        context["table_fields"] = self.get_table_fields()
+        context["firma_peers"] = context["filter"].qs[:self.paginate_by]
+        if not context.get("form"):
+            context["form"] = get_BuyForm(self.request.spieler, self.object)
+
+        # slots & upgrades (not in every model)
         try:
             context["slots"] = getattr(self.object, f"slot{self.model._meta.model_name}_set").prefetch_related("tag").annotate(
                 tag_names = ConcatSubquery(Tag.objects.filter(**{f"slot{self.model._meta.model_name}": OuterRef("pk")}).values("name")),
                 num_tags = Count("tag"),
             )
-        except:
-            pass
-        context["table_fields"] = self.get_table_fields()
-        context["upgrades"] = self.object.possible_upgrades.select_related("tag", "prerequisite").order_by("ab_stufe", "tag__name")
-        context["firma_peers"] = context["filter"].qs[:self.paginate_by]
-        if not context.get("form"):
-            context["form"] = get_BuyForm(self.request.spieler, self.get_object())
+        except: pass
+        try:
+            context["upgrades"] = self.object.possible_upgrades.select_related("tag", "prerequisite").order_by("ab_stufe", "tag__name")
+        except: pass
 
         return context
 

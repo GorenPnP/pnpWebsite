@@ -19,6 +19,7 @@
             aspect-ratio: 1;
             width: 100%;
             object-fit: cover;
+            border-radius: 3px;
         }
         .ab-stufe {
             position: absolute;
@@ -83,7 +84,7 @@
     <div class="icon-container">
         {% if object.ab_stufe %}<span class="ab-stufe fs-6">ab Stufe {{ object.ab_stufe }}</span>{% endif %}
         
-        <img class="icon img-thumbnail w-100" src="{% if object.icon %}{{ object.icon.url }}{% else %}{% static 'res/img/goren_logo.png' %}{% endif %}" loading='lazy'>
+        <img class="icon" src="{% if object.icon %}{{ object.icon.url }}{% else %}{% static 'res/img/goren_logo.png' %}{% endif %}" loading='lazy'>
     </div>
     
     <div class="base-info-container">

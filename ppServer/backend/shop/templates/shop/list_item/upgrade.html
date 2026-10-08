@@ -1,4 +1,4 @@
-{% load static shop.get_detail_url %}
+{% load static %}
 
 <div class="item-container">
     <!-- img -->
@@ -16,7 +16,7 @@
             <span class="description">{{ obj.beschreibung }}</span>
         </div>
         {% if obj.achievement_unlock or obj.prerequisite %}
-        <div class="info-row">Voraussetzung: {{ obj.achievement_requirement|default:'' }}
+        <div class="info-row d-block fw-lighter" style="font-size: smaller;"><u>Voraussetzung:</u> {{ obj.achievement_requirement|default:'' }}
             {% if obj.prerequisite %}besitze das Upgrade "{{ obj.prerequisite.name }}" passend zu diesem Item.{% endif %}
         </div>
         {% endif %}
