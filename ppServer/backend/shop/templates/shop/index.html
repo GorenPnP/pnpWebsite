@@ -1,17 +1,20 @@
 {% extends 'base/headed_main.html' %}
-{% load static shop.get_detail_url %}
+{% load levelUp.resources %}
 
-{% block extra-head %}
-<style>
-ul {
-    list-style-type: none;
-    padding: 0;
-}
-</style>
+{% block asides %}{{ block.super }}
+    {% resources title="Übersicht" %}
+    <ul>
+        <li><a class="text-light" href="{% url 'shop:discount' %}">Top-Angebote</a></li>
+        {% for link in links %}
+        <li><a class="text-light" href="{{ link.link }}">{{ link.text }}</a></li>
+        {% endfor %}
+        <li><a class="text-light" href="{% url 'shop:all' %}">ganzes Sortiment</a></li>
+    </ul>
+    {% endresources %}
 {% endblock %}
 
 {% block main %}
-<ul>
+<ul class="p-0" style="list-style-type: none;">
     <li>
         <a class="text-light" href="{% url 'shop:discount' %}"><h2>Top-Angebote</h2></a>
 
@@ -23,7 +26,7 @@ ul {
         <p class="mb-3"><a class="text-light" href="{% url 'shop:discount' %}">mehr entdecken</a></p>
     </li>
     {% for link in links %}
-    <li class="my-5"><a class="text-light" href="{{ link.link }}"><h2>{{ link.text }}</h2></a>
+    <li style="margin-block: 3em"><a class="text-light" href="{{ link.link }}"><h2>{{ link.text }}</h2></a>
 
         <div class="row row-cols-1 row-cols-sm-3 row-cols-md-6 g-2">
             {% for obj in link.object_list %}
