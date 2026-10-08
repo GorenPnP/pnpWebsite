@@ -132,6 +132,9 @@ class Upgrade(models.Model):
         # ('manaverbrauch', 'Manaverbrauch'),
         # ('manifestverlust', 'Manifestverlust'),
         ('hp', 'HP'),
+        ('schutz', 'Schutz'),
+        ('damage_speciality', 'Besonderheiten bei Schadensarten'),
+        ('haltbarkeit', 'Haltbarkeit'),
         ('physische_reaktion', 'physische Reaktion'),
         ('astrale_reaktion', 'astrale Reaktion'),
         ('physischer_widerstand', 'physischer Widerstand'),
@@ -158,7 +161,7 @@ class Upgrade(models.Model):
     class PreloadTagManager(models.Manager):
         def get_queryset(self) -> QuerySet:
             """ adds 'tag' field """
-            return super().get_queryset().prefetch_related("tag")
+            return super().get_queryset().select_related("tag")
     objects = PreloadTagManager()
 
     def __str__(self):
