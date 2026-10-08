@@ -57,6 +57,10 @@ class DetailView(VerifiedAccountMixin, HeaderMixin, MixedListFilterMixin, Detail
             pass
         return qs
 
+    def get_object(self, *args, **kwargs):
+        if not self.object: self.object = super().get_object(*args, **kwargs)
+        return self.object
+
     def get_filters(self):
         # filter items of same firma for firma_peers
         return {"frei_editierbar": False, "firma": self.get_object().firma}

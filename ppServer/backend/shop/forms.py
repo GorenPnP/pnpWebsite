@@ -70,7 +70,7 @@ def get_BuyForm(spieler: Spieler, item: BaseShop):
             )
 
         amount = forms.IntegerField(initial=1, min_value=1, required=True, label="Anzahl")
-        char = forms.ModelChoiceField(required=True, label="für Charakter", queryset=Charakter.objects.prefetch_related("card").order_by("name"))
+        char = forms.ModelChoiceField(required=True, label="für Charakter", queryset=Charakter.objects.select_related("eigentümer__user").prefetch_related("card").order_by("name"))
 
 
         def clean(self):
