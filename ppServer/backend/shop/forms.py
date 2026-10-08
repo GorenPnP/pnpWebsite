@@ -59,7 +59,7 @@ def get_BuyForm(spieler: Spieler, item: BaseShop):
             if spieler.user.has_perm(CustomPermission.SPIELLEITUNG.value):
                 self.fields["price"] = forms.IntegerField(initial=item.curr_price, min_value=0, required=True, label="Preis")
             else:
-                self.fields["char"].queryset = self.fields["char"].queryset.filter(eigentümer=spieler)
+                self.fields["char"].queryset = self.fields["char"].queryset.prefetch_related("eigentümer__user").filter(eigentümer=spieler)
 
             if item.stufenabhängig:
                 self.fields["stufe"] = forms.IntegerField(initial=1, min_value=1, required=True, label="Item Stufe")
