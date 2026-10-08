@@ -137,8 +137,6 @@
         {% endfor %}
     </div>
     {% endfor %}{% endwith %}
-    {% empty %}
-    Keine Slots vorhanden
     {% endfor %}
 </div>
 {% endif %}
@@ -148,10 +146,7 @@
 
 <ul>
     {% for upgrade in upgrades %}
-    <!-- TODO -->
     <li>{% include 'shop/list_item/upgrade.html' with obj=upgrade %}</li>
-    {% empty %}
-    Keine Upgrades vorhanden
     {% endfor %}
 </ul>
 {% endif %}

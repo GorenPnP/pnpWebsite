@@ -63,7 +63,7 @@ class Tag(models.Model):
         verbose_name = "Tag"
         verbose_name_plural = "Tags"
 
-    icon = ResizedImageField(size=[64, 64], null=True, blank=True)
+    icon = ResizedImageField(size=[512, 512], null=True, blank=True)
     name = models.CharField(max_length=32, unique=True)
 
     def __str__(self):
