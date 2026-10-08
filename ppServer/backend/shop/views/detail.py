@@ -87,7 +87,8 @@ class DetailView(VerifiedAccountMixin, HeaderMixin, MixedListFilterMixin, Detail
 
         try:
             context["slots"] = getattr(self.object, f"slot{self.model._meta.model_name}_set").prefetch_related("tag").annotate(
-                tag_names = ConcatSubquery(Tag.objects.filter(**{f"slot{self.model._meta.model_name}": OuterRef("pk")}).values("name"))
+                tag_names = ConcatSubquery(Tag.objects.filter(**{f"slot{self.model._meta.model_name}": OuterRef("pk")}).values("name")),
+                num_tags = Count("tag"),
             )
         except:
             pass

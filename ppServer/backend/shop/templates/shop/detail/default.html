@@ -46,24 +46,40 @@
         gap: 1px;
 
         .hexagon {
-            height: 4.5rem;
-            aspect-ratio: cos(30deg);
+            --hexagon-height: 4.5rem;
+
+            height: var(--hexagon-height);
+            width: calc(var(--hexagon-height) * cos(30deg));
             clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
             background-color: var(--bs-body-color);
             color: var(--bs-text-color, #000000);
             opacity: .85;
 
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            display: grid;
+            align-content: center;
+            justify-items: center;
+
+            &.hexagon--2, &.hexagon--3, &.hexagon--4 {
+                grid-template-columns: 1fr 1fr;
+
+            }
+
+            .img-container {
+                width: 100%;
+            }
+            img {
+                width: 100%;
+                aspect-ratio: 1;
+                object-fit: cover;
+            }
         }
     }
 </style>
 {% endblock %}
 
 {% block main %}
-<!-- img -->
 <div class="top d-md-grid d-block gap-2">
+    <!-- img -->
     <div class="icon-container">
         {% if object.ab_stufe %}<span class="ab-stufe fs-6">ab Stufe {{ object.ab_stufe }}</span>{% endif %}
         
@@ -115,7 +131,7 @@
             {% for field in table_fields %}
             <tr>
                 <td>{{ field.name|title }}</td>
-                <td>{{ field.value }}</td>
+                <td>{{ field.value|default:'-' }}</td>
             </tr>
             {% endfor %}
         </tbody>
@@ -130,10 +146,9 @@
 <div class="slot-container">
     {% for slot in slots %}
     {% with ''|center:slot.num as range %}{% for _ in range %}
-    <!-- TODO style of multiple Tags on one slot; style of icons on slot -->
-    <div title="{{ slot.tag_names }}" class="hexagon">
-        {% for tag in slot.tag.all %}
-        {% if slot.icon %}<img src="{{ slot.icon.url }}">{% else %}<span>{{ tag.name.0 }}</span>{% endif %}
+    <div title="{{ slot.tag_names }}" class="hexagon hexagon--{{ slot.num_tags }}">
+        {% for tag in slot.tag.all  %}
+            {% if tag.icon %}<div class="img-container"><img src="{{ tag.icon.url }}"></div>{% else %}<span>{{ tag.name.0 }}</span>{% endif %}
         {% endfor %}
     </div>
     {% endfor %}{% endwith %}
