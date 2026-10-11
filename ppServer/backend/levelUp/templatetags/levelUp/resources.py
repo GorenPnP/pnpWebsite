@@ -9,8 +9,8 @@ register = template.Library()
 @register.tag
 def resources(parser, token):
     """
-    call in html templates (icon="..." is optional, but has to start with "static/")
-    {% resources title="Resources" icon="static/res/img/icon questionmark.svg" %}
+    call in html templates (css_class="" icon="..." are optional, but icon has to start with "static/")
+    {% resources title="Resources" css_class="" icon="static/res/img/icon questionmark.svg" %}
         ...
     {% endresources %}
     """
@@ -22,19 +22,24 @@ def resources(parser, token):
     match = re.search(fr" icon=[\"']static/(?P<icon>({letter}+/)+{letter}*{endings})[\"']", token.contents)
     icon = match.group("icon") if match else "res/img/icon questionmark.svg"
 
+    # get class info
+    match = re.search(fr" css_class=[\"'](?P<class>{letter}*)[\"']", token.contents)
+    css_class = match.group("class") if match else ""
+
     # get title info
     match = re.search(fr" title=[\"'](?P<title>{letter}*)[\"']", token.contents)
     title = match.group("title") if match else "Ressoucen"
 
     nodelist = parser.parse(('endresources',))
     parser.delete_first_token()
-    return ResourcesNode(nodelist, icon, title)
+    return ResourcesNode(nodelist, icon, css_class, title)
 
 class ResourcesNode(template.Node):
-    def __init__(self, nodelist, icon, title):
+    def __init__(self, nodelist, icon, css_class, title):
 
         self.offcanvas_id = f"characterResources-{''.join(random.choices(string.ascii_letters + string.digits, k=10))}"
         self.nodelist = nodelist
+        self.css_class = css_class or ''
         self.title = title
 
         with open(finders.find(icon), 'r') as f:
@@ -45,5 +50,6 @@ class ResourcesNode(template.Node):
             "res": self.nodelist.render(context),
             "offcanvas_id": self.offcanvas_id,
             "icon": self.icon,
+            "css_class": self.css_class,
             "title": self.title,
         })

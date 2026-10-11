@@ -1,100 +1,59 @@
-from typing import Any, Dict
-
-from django.db.models.query import QuerySet
-from django.http import HttpRequest, HttpResponse
-from django.shortcuts import redirect
-from django.views.generic import DetailView
-from django.views.generic.list import ListView
+from django.shortcuts import get_object_or_404, redirect
+from django.views.decorators.http import require_POST
 from django.urls import reverse
 
 from cards.models import Transaction
 from character.models import Charakter
 from log.create_log import logAuswertung
-from ppServer.mixins import SpielleitungOnlyMixin, VerifiedAccountMixin
+from ppServer.decorators import spielleitung_only, verified_account
 
 from .forms import AuswertungForm, LarpAuswertungForm
 
+@require_POST
+@verified_account
+@spielleitung_only()
+def post_auswertung(request, *args, **kwargs):
+    object = get_object_or_404(Charakter.objects.prefetch_related("card"), pk=kwargs["pk"])
+    if (object.eigentümer == None or object.in_erstellung == True):
+                return redirect("character:show", args=[object.pk])
 
-class AuswertungListView(VerifiedAccountMixin, SpielleitungOnlyMixin, ListView):
-    model = Charakter
-    template_name = "campaign/auswertung_hub.html"
+    form = LarpAuswertungForm(request.POST) if object.larp else AuswertungForm(request.POST)
+    form.full_clean()
+    if form.is_valid():
+        fields = {**form.cleaned_data}
+        story = fields.pop("story", "") or "Zwischenauswertung"
 
-    def get_queryset(self) -> QuerySet[Any]:
-        return super().get_queryset()\
-            .prefetch_related("eigentümer")\
-            .exclude(eigentümer=None)\
-            .exclude(in_erstellung=True)\
-            .order_by("name")
-    
-    def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
-        return super().get_context_data(
-            **kwargs,
-            topic = "Auswertung",
-            app_index = "Charaktere",
-            app_index_url = reverse("character:index"),
-        )
+        # apply geld
+        geld = fields.pop("geld")
+        if geld:
+            object.card.money += geld
+            object.card.save(update_fields=["money"])
+            Transaction.objects.create(receiver=object.card, amount=geld, reason=f"Storybelohnung '{story}'")
 
+        # apply zauberplätze
+        zauberplätze = fields.pop("zauberplätze", dict()) or dict()
+        if zauberplätze.keys():
+            for stufe, amount in zauberplätze.items():
+                if not object.zauberplätze: object.zauberplätze = {}
 
-class AuswertungView(VerifiedAccountMixin, SpielleitungOnlyMixin, DetailView):
-    model = Charakter
-    template_name = "campaign/auswertung.html"
+                old_val = object.zauberplätze[stufe] if hasattr(object.zauberplätze, stufe) else 0
+                object.zauberplätze[stufe] = old_val + amount
 
-    def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
-        context = super().get_context_data(
-            **kwargs,
-            app_index = "Auswertung",
-            app_index_url = reverse("campaign:auswertung_hub"),
-        )
-        context["form"] = LarpAuswertungForm() if context["object"].larp else AuswertungForm()
-        context["topic"] = 'Auswertung für ' + context["object"].name
+            object.save(update_fields=["zauberplätze"])
 
-        return context
-    
-    def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
-        if (self.get_object().eigentümer == None or self.get_object().in_erstellung == True):
-            return redirect("campaign:auswertung_hub")
+        # apply all other/numeric fields
+        for k, v in fields.items():
+            old_value = getattr(object, k)
+            setattr(object, k, old_value + v)
 
-        return super().get(request, *args, **kwargs)
+        object.save(update_fields=fields)
 
-    def post(self, request, *args, **kwargs):
-        object = self.get_object(queryset=self.model.objects.prefetch_related("card"))
-        form = LarpAuswertungForm(request.POST) if object.larp else AuswertungForm(request.POST)
-        form.full_clean()
-        if form.is_valid():
-            fields = {**form.cleaned_data}
-            story = fields.pop("story")
+        zauberplatz_log = ", ".join([f"{amount}x Stufe {stufe}" for stufe, amount in zauberplätze.items() if amount])
+        logAuswertung(object.eigentümer, object, story, {**fields, "geld": geld, "zauber": zauberplatz_log})
 
-            # apply geld
-            geld = fields.pop("geld")
-            if geld:
-                object.card.money += geld
-                object.card.save(update_fields=["money"])
-                Transaction.objects.create(receiver=object.card, amount=geld, reason=f"Storybelohnung '{story}'")
+        # check ep for new stufe
+        object.init_stufenhub()
 
-            # apply zauberplätze
-            zauberplätze = fields.pop("zauberplätze", dict()) or dict()
-            if zauberplätze.keys():
-                for stufe, amount in zauberplätze.items():
-                    if not object.zauberplätze: object.zauberplätze = {}
+        return redirect(reverse("character:show", args=[object.pk]))
 
-                    old_val = object.zauberplätze[stufe] if hasattr(object.zauberplätze, stufe) else 0
-                    object.zauberplätze[stufe] = old_val + amount
-
-                object.save(update_fields=["zauberplätze"])
-
-            # apply all other/numeric fields
-            for k, v in fields.items():
-                old_value = getattr(object, k)
-                setattr(object, k, old_value + v)
-
-            object.save(update_fields=fields)
-
-            zauberplatz_log = ", ".join([f"{amount}x Stufe {stufe}" for stufe, amount in zauberplätze.items() if amount])
-            logAuswertung(object.eigentümer, object, story, {**fields, "geld": geld, "zauber": zauberplatz_log})
-
-            # check ep for new stufe
-            object.init_stufenhub()
-
-            return redirect("campaign:auswertung_hub")
-
-        return redirect(request.build_absolute_uri())
+    return redirect(request.build_absolute_uri())

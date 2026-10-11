@@ -21,6 +21,7 @@ from django.views.generic.edit import CreateView
 import django_tables2 as tables
 
 from base.abstract_views import GenericTable
+from campaign.forms import AuswertungForm, LarpAuswertungForm
 from cards.models import Card, Transaction
 from effect.models import RelEffect
 from log.create_log import render_number
@@ -180,7 +181,7 @@ class ShowView(VerifiedAccountMixin, DetailView):
             instance = Model.objects.get(pk=self._get(record, "item__pk"))
 
             # use python model .objects.get().getIconUrl()
-            return format_html("<img src='{url}' loading='lazy'>", url=instance.getIconUrl())
+            return format_html("<img src='{url}' loading='lazy' style='max-width: 64px; aspect-ratio:1'>", url=instance.getIconUrl())
         
         def render_item__beschreibung(self, value):
             return self.render_beschreibung(value)
@@ -301,6 +302,7 @@ class ShowView(VerifiedAccountMixin, DetailView):
             "story_notes_form": StoryNotesForm(instance=curr_story),
             "spend_money_form": SpendMoneyForm(sender_card=char.card),
             "regex_escaped_name": re.escape(char.name),
+            "auswertung_form": LarpAuswertungForm() if char.larp else AuswertungForm(),
 
             **self.get_personal(char),
             **self.get_resources(char),

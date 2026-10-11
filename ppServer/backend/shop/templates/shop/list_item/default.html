@@ -19,10 +19,11 @@
             <span class="description">{{ obj.beschreibung|truncatechars_html:150 }}</span>
         </div>
         {% block above_price %}
-        {% if obj.schaden or obj.schadensart or obj.händigkeit %}<div class="info-row">
+        {% if obj.schaden or obj.schadensart or obj.händigkeit or obj.wirkbereich %}<div class="info-row">
             {% if obj.händigkeit %}{{ obj.get_händigkeit_display }}{% endif %}
             {% if obj.schaden and obj.schaden is not 0 %}{{ obj.schaden }}{% endif %}
             {% if obj.schadensart %}{{ obj.get_schadensart_display }}{% endif %}
+            {% if obj.wirkbereich %}Wirkbereich: {{ obj.wirkbereich }}{% endif %}
         </div>{% endif %}
         {% endblock %}
         <div class="info-row info-row--price">

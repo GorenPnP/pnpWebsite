@@ -12,37 +12,57 @@
     flex: fit-content 0 0;
 }
 
-// mobile nav styles
-#nav-mobile {
+// container for all asides
+.aside-container {
     position: sticky;
-    top: 10px;
+    top: var(--after-header__margin-top);
 
     z-index: 10000;
 
-    #characterResources {
-        overflow: auto;
-        max-height: 85vh;
-    }
     .offcanvas-body { overflow-x: hidden; }
 }
 
 
-/* compromise ongoing story in favor of nav offcanvas */
+// colors
+.character-resources.aside--story {
+    .offcanvas.offcanvas-end, .character-resources-trigger { --bg-rgb: 135, 80, 172; }
 
-.character-resources.aside--story .offcanvas.offcanvas-end,
-.character-resources.aside--story .character-resources-trigger { --bg-rgb: 111, 66, 193; }
-
-@media (max-width: 767px) {
-    .aside--story { z-index: 9999 !important; }
-    .aside--story .offcanvas.offcanvas-end { max-height: calc(100vh - 8rem - 10px); }
-
-    .aside--story .character-resources-trigger,
-    .aside--story .offcanvas.offcanvas-end
-    {
-        top: 4rem !important;
-    }
+    .legend_is_label legend.form-label { font-size: 1rem; }
 }
-.aside--story .legend_is_label legend.form-label { font-size: 1rem; }
+.character-resources.aside--auswertung {
+    .offcanvas.offcanvas-end, .character-resources-trigger {
+        --bg-rgb: 0, 248, 210;
+        color: #000 !important;
+    }
+    .offcanvas.offcanvas-end { max-width: 250px; }
+
+    .btn-close { --bs-btn-close-white-filter: unset; }
+
+    #div_id_zauberplätze .input-group-prepend .input-group-text { border-radius: 0; }
+}
+
+// positions with & without scroll
+.character-resources {
+    --offset-top: 0; // change this for other asides below
+    --top: calc((1rem * var(--offset-top)) + 10px);
+
+    z-index: calc(var(--bs-offcanvas-zindex, 1000) - var(--offset-top)) !important;
+
+    & > * { top: var(--top) !important; }
+    & > :not(button) {
+        overflow: auto;
+        max-height: calc(100vh - var(--after-header__margin-top) - var(--top)) !important;
+    }
+
+    &:nth-of-type(2) { --offset-top: 3; }
+    &:nth-of-type(3) { --offset-top: 6; }
+}
+
+// hide/show nav for mobile
+.character-resources.aside--nav { display: none; }
+@media (max-width: 767px) {
+    .character-resources.aside--nav { display: block; }
+}
 
 
 .nav-pills-light {

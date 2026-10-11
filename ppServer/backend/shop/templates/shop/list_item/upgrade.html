@@ -13,7 +13,10 @@
         <div class="info-row"><b>{{ obj.name }}</b></div>
         <div class="info-row">
             {% if obj.tag %}<em class="kategory">#{{ obj.tag.name }}&nbsp;</em>{% endif %}
-            <span class="description">{{ obj.beschreibung }}</span>
+            <span class="description">
+                {{ obj.beschreibung }}
+                {% if obj.manaverbrauch %}Es kostet {{ obj.manaverbrauch }} Mana mehr.{% endif %}
+            </span>
         </div>
         {% if obj.achievement_unlock or obj.prerequisite %}
         <div class="info-row d-block fw-lighter" style="font-size: smaller;"><u>Voraussetzung:</u> {{ obj.achievement_requirement|default:'' }}
