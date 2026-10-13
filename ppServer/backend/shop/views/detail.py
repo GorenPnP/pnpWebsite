@@ -15,11 +15,11 @@ from ppServer.mixins import VerifiedAccountMixin
 
 from ..forms import get_BuyForm
 from ..models import *
-from .index import get_list_url
-from .list import HeaderMixin, MixedListFilterMixin
+from .index import get_list_url, shopmodel_list
+from .list import HeaderMixin
 
 
-class DetailView(VerifiedAccountMixin, HeaderMixin, MixedListFilterMixin, DetailView):
+class DetailView(VerifiedAccountMixin, HeaderMixin, DetailView):
     template_name = "shop/detail.html"
     object = None
     context_object_name = "object"
@@ -27,7 +27,7 @@ class DetailView(VerifiedAccountMixin, HeaderMixin, MixedListFilterMixin, Detail
     paginate_by = 6
 
     def get_topic(self):
-        return self.get_object().name
+        return self.object.name
     def get_app_index(self):
         return self.model._meta.verbose_name_plural
     def get_app_index_url(self):
@@ -40,6 +40,7 @@ class DetailView(VerifiedAccountMixin, HeaderMixin, MixedListFilterMixin, Detail
     def setup(self, request, *args, **kwargs):
         super().setup(request, *args, **kwargs)
         self.model = self.kwargs["model"]
+        self.get_object()
 
     def get_queryset(self):
         qs = self.model.objects.select_related("firma").annotate_price()
@@ -53,19 +54,8 @@ class DetailView(VerifiedAccountMixin, HeaderMixin, MixedListFilterMixin, Detail
         return qs
 
     def get_object(self, *args, **kwargs):
-        if not self.object: self.object = super().get_object(*args, **kwargs)
+        if not self.object: self.object = get_object_or_404(self.model.objects.select_related("firma").annotate_price(), pk=self.kwargs["pk"])
         return self.object
-
-    def get_filters(self):
-        # filter items of same firma for firma_peers
-        return {"frei_editierbar": False, "firma": self.get_object().firma}
-
-    def set_ordering(self):
-        # for firma_peers
-        self.ordering = "-discount"
-
-    def get_item_template(self, model):
-        return ''
 
     def get_table_fields(self):
         excluded_types = [ManyToManyRel, ManyToOneRel, ManyToManyField]
@@ -80,15 +70,32 @@ class DetailView(VerifiedAccountMixin, HeaderMixin, MixedListFilterMixin, Detail
             field_list.append({"name": name, "value": value})
         return field_list
 
+    def get_firma_peers(self) -> list[BaseShop]:
+        ''' get all shop items (except Tinker), filter and sort them '''
+
+        # get filtered objects
+        objects = []
+        for Model in [m for m in shopmodel_list if m != Tinker]:
+            qs = Model.objects.annotate_schaden() if Model == Fernkampfwaffe else Model.objects
+            
+            # rm self.object from result
+            if Model == self.object._meta.model: qs = qs.exclude(pk=self.object.pk)
+
+            # construct base queryset without frei_editierbare instances, apply user-filters and return objects as dicts in list
+            objects += qs.annotate_price().filter(frei_editierbar=False, firma=self.object.firma)
+
+        # sort objects randomly
+        random.shuffle(objects)
+        return objects[:self.paginate_by]
+
     def get_context_data(self, *args, **kwargs):
-        self.object = self.object or self.get_object()
+        context = super().get_context_data(
+            *args, **kwargs,
+            table_fields=self.get_table_fields(),
+            firma_peers=self.get_firma_peers(),
+        )
 
-        context = super().get_context_data(*args, **kwargs)
-
-        context["table_fields"] = self.get_table_fields()
-        context["firma_peers"] = context["filter"].qs[:self.paginate_by]
-        if not context.get("form"):
-            context["form"] = get_BuyForm(self.request.spieler, self.object)
+        if "form" not in context: context["form"] = get_BuyForm(self.request.spieler, self.object)
 
         # slots & upgrades (not in every model)
         try:
@@ -112,17 +119,16 @@ class DetailView(VerifiedAccountMixin, HeaderMixin, MixedListFilterMixin, Detail
         
         # how about verfügbarkeit?
         char = form.cleaned_data["char"]
-        item = self.get_object()
         stufe = form.cleaned_data.get("stufe", 1)
         if not char.in_erstellung and not self.request.spieler.user.has_perm(CustomPermission.SPIELLEITUNG.value):
             
-            verf = item.verfügbarkeit - (stufe - 1) * 10
+            verf = self.object.verfügbarkeit - (stufe - 1) * 10
             rand = random.randint(1, 100)
 
             # not available, try tomorrow
             if  rand > verf:
                 # add mark for today's unsuccessful try
-                AvailableModel.objects.create(char=char, item=item)
+                AvailableModel.objects.create(char=char, item=self.object)
                 return False
         return True
 
@@ -147,15 +153,13 @@ class DetailView(VerifiedAccountMixin, HeaderMixin, MixedListFilterMixin, Detail
 
     
     def post(self, *args, **kwargs):
-        item = self.get_object()
-
-        form = get_BuyForm(self.request.spieler, item)(self.request.POST)
+        form = get_BuyForm(self.request.spieler, self.object)(self.request.POST)
         form.full_clean()
         if not form.is_valid():
             return render(self.request, self.template_name, self.get_context_data(form=form))
     
         if not self.check_verfügbarkeit(form):
-            messages.error(self.request, f"{item.name} ist zurzeit nicht verfügbar. Try again tomorrow.")
+            messages.error(self.request, f"{self.object.name} ist zurzeit nicht verfügbar. Try again tomorrow.")
             return render(self.request, self.template_name, self.get_context_data(form=form))
 
         # prepare relevant fields
@@ -164,24 +168,24 @@ class DetailView(VerifiedAccountMixin, HeaderMixin, MixedListFilterMixin, Detail
         stufe = form.cleaned_data.get("stufe")
 
         # pay
-        cost = form.cleaned_data["amount"] * form.cleaned_data.get("price", item.curr_price or 0) * form.cleaned_data.get("stufe", 1)
-        reason = f"kaufe {amount}x {item.name}{' Stufe {}'.format(stufe) if item.stufenabhängig else ''}"
-        self.do_money_transaction(char, item, cost, reason)
+        cost = form.cleaned_data["amount"] * form.cleaned_data.get("price", self.object.curr_price or 0) * form.cleaned_data.get("stufe", 1)
+        reason = f"kaufe {amount}x {self.object.name}{' Stufe {}'.format(stufe) if self.object.stufenabhängig else ''}"
+        self.do_money_transaction(char, self.object, cost, reason)
 
         # add item to char
         RelShopModel = apps.get_model("character", f"rel{self.model._meta.model_name}")
-        rel = RelShopModel.objects.filter(char=char, item=item, stufe=stufe).first()
+        rel = RelShopModel.objects.filter(char=char, item=self.object, stufe=stufe).first()
         if rel is not None:
             rel.anz += amount
             rel.save(update_fields=["anz"])
         else:
-            rel = RelShopModel.objects.create(char=char, item=item, stufe=stufe, anz=amount)
+            rel = RelShopModel.objects.create(char=char, item=self.object, stufe=stufe, anz=amount)
 
         # log
         logShop(self.request.spieler, char, {
-            "num": amount, "item": item, "preis_ges": cost, "stufe": stufe,
-            "firma_titel": item.firma.name if not self.request.spieler.user.has_perm(CustomPermission.SPIELLEITUNG.value) else "außer der Reihe"
+            "num": amount, "item": self.object, "preis_ges": cost, "stufe": stufe,
+            "firma_titel": self.object.firma.name if not self.request.spieler.user.has_perm(CustomPermission.SPIELLEITUNG.value) else "außer der Reihe"
         })
 
-        messages.success(self.request, f"{char.name} hat {cost} Dr. für {amount}x {item.name} ausgegeben.")
+        messages.success(self.request, f"{char.name} hat {cost} Dr. für {amount}x {self.object.name} ausgegeben.")
         return redirect(self.request.build_absolute_uri())

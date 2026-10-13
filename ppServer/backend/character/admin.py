@@ -224,8 +224,18 @@ class KlasseAdmin(admin.ModelAdmin):
 
 class KlasseAbilityAdmin(admin.ModelAdmin):
     search_fields = ["name", "beschreibung__contains"]
-    list_display = ["name", "beschreibung"]#, "klassestufenplan_set__klasse__titel"]
+    list_display = ["name", "beschreibung", "used"]
     list_editable = ["beschreibung"]
+    list_filter = [get_filter(Klasse, "titel", ["klasse__titel", "klassestufenplan__klasse__titel"])]
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).prefetch_related("klasse_set", "klassestufenplan_set__klasse")
+
+    @admin.display(ordering="klassestufenplan__stufe")
+    def used(self, obj):
+        base = ', '.join([f'{kl} Basis' for kl in obj.klasse_set.values_list('titel', flat=True)])
+        later = ', '.join([f'{kl} {st}' for kl, st in obj.klassestufenplan_set.select_related("klasse").values_list("klasse__titel", "stufe")])
+        return ', '.join([base, later]) if base and later else base + later
 
 
 admin.site.register(Spieler, SpielerAdmin)

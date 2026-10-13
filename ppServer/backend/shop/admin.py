@@ -1,6 +1,7 @@
 import locale
 from typing import Any
 
+from django.apps import apps
 from django.contrib import admin
 from django.db.models import OuterRef, F
 from django.db.models.query import QuerySet
@@ -38,6 +39,28 @@ class BaseAdmin(admin.ModelAdmin):
     exclude = ['slots', 'possible_upgrades']
     list_editable = ["has_implementation", "beschreibung", "frei_editierbar"]
 
+
+    def get_queryset(self, request):
+        try:
+            SlotModel = apps.get_model("shop", f"slot{self.model._meta.model_name}")
+            # all Tag.pks that are on an Upgrade in item.possible_upgrades
+            all_tags_of_upgrades_qs = Tag.objects.filter(**{ f"upgrade__{self.model._meta.model_name}": OuterRef("pk") }).values_list("pk", flat=True)
+            # all Tag.pks taht are on Slots of the item. Used to exclude from the previous query, leaving all Tags that are on Upgrades, but not on slots of an item
+            exclude_tags_qs = SlotModel.objects.filter(item=OuterRef(OuterRef("pk"))).values_list("tag__pk", flat=True)
+
+            return super().get_queryset(request).annotate(
+                # all Tag names of Tags that are on Upgrades, but not on Slots of an item
+                impossible_upgrades = ConcatSubquery(all_tags_of_upgrades_qs.exclude(pk__in=exclude_tags_qs).values("name").distinct()),
+            )
+
+        # 'normal' query without a model using Slots and Upgrades
+        except LookupError:
+            return super().get_queryset(request).annotate(impossible_upgrades=Value(None, output_field=models.CharField()))
+
+    @admin.display(ordering="impossible_upgrades", description="nicht verteilbare Upgrades")
+    def impossible_upgrades(self, obj):
+        return format_html(f"<b style='background: red; padding: .5em 1em; color: white'>{obj.impossible_upgrades}") if obj.impossible_upgrades else self.get_empty_value_display()
+
     def get_readonly_fields(self, request: HttpRequest, obj = ...):
         # spielleitung
         if request.user.has_perm(CustomPermission.SPIELLEITUNG.value):
@@ -54,12 +77,12 @@ class BaseAdmin(admin.ModelAdmin):
 ################### ShopAdmins #######################
 
 class ItemAdmin(BaseAdmin):
-    list_display = ('name', 'beschreibung', "ab_stufe", 'price', 'kategorie', 'frei_editierbar', "has_implementation")
+    list_display = ('name', 'beschreibung', 'impossible_upgrades', "ab_stufe", 'price', 'kategorie', 'frei_editierbar', "has_implementation")
     # list_filter = ['kategorie', "frei_editierbar"]
 
 
 class NahkampfwaffeAdmin(BaseAdmin):
-    list_display = ('name', 'beschreibung', "ab_stufe", "reichweite", "wirkbereich", "händigkeit", "fertigkeit", "schaden", 'bs', 'zs', 'dk', 'schadensart', 'price', 'kategorie', 'frei_editierbar', "has_implementation")
+    list_display = ('name', 'beschreibung', 'impossible_upgrades', "ab_stufe", "reichweite", "wirkbereich", "händigkeit", "fertigkeit", "schaden", 'bs', 'zs', 'dk', 'schadensart', 'price', 'kategorie', 'frei_editierbar', "has_implementation")
     # list_filter = ['kategorie', 'bs', 'zs', 'dk', 'schadensart', 'händigkeit', "frei_editierbar"]
     list_editable = BaseAdmin.list_editable + ["schaden", "reichweite", "wirkbereich", "händigkeit", "fertigkeit", 'kategorie']
 
@@ -67,14 +90,14 @@ class NahkampfwaffeAdmin(BaseAdmin):
 
 
 class MunitionAdmin(BaseAdmin):
-    list_display = ('name', 'beschreibung', "ab_stufe", 'bs', 'zs', 'schaden', 'schadensart', 'wirkbereich', 'price', 'frei_editierbar', "has_implementation")
+    list_display = ('name', 'beschreibung', 'impossible_upgrades', "ab_stufe", 'bs', 'zs', 'schaden', 'schadensart', 'wirkbereich', 'price', 'frei_editierbar', "has_implementation")
     # list_filter = ['schuss', "frei_editierbar"]
     list_editable = BaseAdmin.list_editable + ['schaden', 'wirkbereich']
 
 
 class FernkampfwaffeAdmin(BaseAdmin):
     exclude = BaseAdmin.exclude + ['munition']
-    list_display = ('name', 'beschreibung', "ab_stufe", 'schuss', 'munition_', 'feuerrate', "reichweite", "händigkeit", 'dk', 'präzision', 'price',
+    list_display = ('name', 'beschreibung', 'impossible_upgrades', "ab_stufe", 'schuss', 'munition_', 'feuerrate', "reichweite", "händigkeit", 'dk', 'präzision', 'price',
                     'kategorie', 'fertigkeit', 'frei_editierbar', "has_implementation")
     # list_filter = ['kategorie', 'dk', 'präzision', 'fertigkeit__titel', "frei_editierbar"]
     list_editable = BaseAdmin.list_editable + ['feuerrate', "reichweite", "händigkeit",]
@@ -88,12 +111,12 @@ class FernkampfwaffeAdmin(BaseAdmin):
         return ", ".join([m.__str__() for m in obj.munition.all()])
 
 class Magische_AusrüstungAdmin(BaseAdmin):
-    list_display = ('name', 'beschreibung', "ab_stufe", 'price', 'kategorie', 'frei_editierbar', "has_implementation")
+    list_display = ('name', 'beschreibung', 'impossible_upgrades', "ab_stufe", 'price', 'kategorie', 'frei_editierbar', "has_implementation")
     # list_filter = ['kategorie', "frei_editierbar"]
 
 
 class Ritual_RuneAdmin(BaseAdmin):
-    list_display = ('name', 'beschreibung', "ab_stufe", "schaden", "schadensart", "wirkbereich", "manaverbrauch", 'price', 'kategorie', 'frei_editierbar', "has_implementation")
+    list_display = ('name', 'beschreibung', 'impossible_upgrades', "ab_stufe", "schaden", "schadensart", "wirkbereich", "manaverbrauch", 'price', 'kategorie', 'frei_editierbar', "has_implementation")
     # list_filter = ['kategorie', "frei_editierbar"]
     list_editable = BaseAdmin.list_editable + ["schaden", "schadensart", "wirkbereich", "manaverbrauch"]
 
@@ -101,7 +124,7 @@ class Ritual_RuneAdmin(BaseAdmin):
 
 
 class RüstungAdmin(BaseAdmin):
-    list_display = ('name', 'beschreibung', "ab_stufe", 'damage_speciality', 'kategorie', 'schutz', 'haltbarkeit', 'price', 'frei_editierbar', "has_implementation")
+    list_display = ('name', 'beschreibung', 'impossible_upgrades', "ab_stufe", 'damage_speciality', 'kategorie', 'schutz', 'haltbarkeit', 'price', 'frei_editierbar', "has_implementation")
     # list_filter = ['schutz', 'haltbarkeit', "frei_editierbar"]
     list_editable = BaseAdmin.list_editable + ['damage_speciality', 'kategorie']
 
@@ -109,27 +132,27 @@ class RüstungAdmin(BaseAdmin):
 
 
 class TechnikAdmin(BaseAdmin):
-    list_display = ('name', 'beschreibung', "ab_stufe", 'kategorie', 'price',
+    list_display = ('name', 'beschreibung', 'impossible_upgrades', "ab_stufe", 'kategorie', 'price',
                     'frei_editierbar', "has_implementation")
     # list_filter = ['kategorie', "frei_editierbar"]
 
 
 class FahrzeugAdmin(BaseAdmin):
-    list_display = ('name', 'beschreibung', "ab_stufe", 'geschwindigkeit', 'hp', 'erfolge',
+    list_display = ('name', 'beschreibung', 'impossible_upgrades', "ab_stufe", 'geschwindigkeit', 'hp', 'erfolge',
                     'price', 'kategorie', 'frei_editierbar', "has_implementation")
     # list_filter = ['kategorie', 'geschwindigkeit', 'hp', 'erfolge', "frei_editierbar"]
     list_editable = BaseAdmin.list_editable + ["kategorie"]
 
 
 class EinbauteAdmin(BaseAdmin):
-    list_display = ('name', 'beschreibung', "ab_stufe", 'manifestverlust', 'price', 'kategorie', 'frei_editierbar', "has_implementation")
+    list_display = ('name', 'beschreibung', 'impossible_upgrades', "ab_stufe", 'manifestverlust', 'price', 'kategorie', 'frei_editierbar', "has_implementation")
     # list_filter = ['kategorie', 'manifestverlust', "frei_editierbar"]
 
     inlines = [get_SlotInLine(SlotEinbaute), get_InLine(Einbaute.possible_upgrades.through)]
 
 
 class ZauberAdmin(BaseAdmin):
-    list_display = ('name', 'beschreibung', "ab_stufe", "schaden", "wirkbereich", "wirkdauer", 'astralschaden', 'manaverbrauch', "verteidigung", 'schadensart', 'price',
+    list_display = ('name', 'beschreibung', 'impossible_upgrades', "ab_stufe", "schaden", "wirkbereich", "wirkdauer", 'astralschaden', 'manaverbrauch', "verteidigung", 'schadensart', 'price',
                     'kategorie', 'frei_editierbar', "has_implementation")
     # list_filter = ['kategorie', 'astralschaden', 'manaverbrauch', "verteidigung", 'schadensart', "frei_editierbar"]
     list_editable = BaseAdmin.list_editable + ["schaden", "wirkbereich", "wirkdauer"]
@@ -138,7 +161,7 @@ class ZauberAdmin(BaseAdmin):
 
 
 class AlchemieAdmin(BaseAdmin):
-    list_display = ('name', 'beschreibung', "ab_stufe", 'price', 'kategorie', 'frei_editierbar', "has_implementation")
+    list_display = ('name', 'beschreibung', 'impossible_upgrades', "ab_stufe", 'price', 'kategorie', 'frei_editierbar', "has_implementation")
     # list_filter = ['kategorie', "frei_editierbar"]
 
 
@@ -167,7 +190,7 @@ class TinkerAdmin(BaseAdmin):
 
 
 class BegleiterAdmin(BaseAdmin):
-    list_display = ('name', 'beschreibung', "ab_stufe", "hp", "physische_reaktion", "astrale_reaktion", "astraler_widerstand", "physischer_widerstand", 'price', 'frei_editierbar', "has_implementation")
+    list_display = ('name', 'beschreibung', 'impossible_upgrades', "ab_stufe", "hp", "physische_reaktion", "astrale_reaktion", "astraler_widerstand", "physischer_widerstand", 'price', 'frei_editierbar', "has_implementation")
     # list_filter = ["frei_editierbar"]
     list_editable = BaseAdmin.list_editable + ["hp", "physische_reaktion", "astrale_reaktion", "astraler_widerstand", "physischer_widerstand"]
 
@@ -175,7 +198,7 @@ class BegleiterAdmin(BaseAdmin):
 
 
 class EngelsroboterAdmin(BaseAdmin):
-    list_display = ('name', 'beschreibung', "ab_stufe", "hp", "physische_reaktion", "astrale_reaktion", "astraler_widerstand", "physischer_widerstand", 'ST', 'UM', 'MA', 'IN', 'price', 'frei_editierbar', "has_implementation")
+    list_display = ('name', 'beschreibung', 'impossible_upgrades', "ab_stufe", "hp", "physische_reaktion", "astrale_reaktion", "astraler_widerstand", "physischer_widerstand", 'ST', 'UM', 'MA', 'IN', 'price', 'frei_editierbar', "has_implementation")
     # list_filter = ["frei_editierbar"]
     list_editable = BaseAdmin.list_editable + ["hp", "physische_reaktion", "astrale_reaktion", "astraler_widerstand", "physischer_widerstand"]
 
