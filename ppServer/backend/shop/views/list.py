@@ -20,7 +20,7 @@ from ..models import BaseShop, Fernkampfwaffe, Item, Tinker
 
 ####################### abstract base ##################################
 
-shopmodel_list = [m for m in apps.get_app_config("shop").get_models() if not m._meta.abstract and m._meta.model_name not in ["modifier", "shopcategory", "tag", "upgrade", "firma"] and not m._meta.model_name.startswith("slot")]
+shopmodel_list = [m for m in apps.get_app_config("shop").get_models() if not m._meta.abstract and issubclass(m, BaseShop)]
 
 
 shop_model_filter_fields = {

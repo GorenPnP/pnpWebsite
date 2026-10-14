@@ -1,10 +1,12 @@
-import math
+from django.utils.timezone import make_aware
+import pytz
+from datetime import datetime
 
 from django.core.validators import MinValueValidator
 from django.db import models
-from django.db.models import  F, Case, Count, Exists, IntegerField, Value,  OuterRef, Q, QuerySet, When
-
+from django.db.models import  F, Case, Exists, IntegerField, Subquery, Value,  OuterRef, Q, QuerySet, When
 from django.db.models.functions import Cast, Coalesce, Concat
+
 from django_resized import ResizedImageField
 
 from ppServer.utils import ConcatSubquery, ChoicesLabelCase, ProductSubquery
@@ -18,6 +20,20 @@ class ShopCategory(models.Model):
     def __str__(self):
         return self.get_kategorie_display()
 
+class Timespan(models.Model):
+    class Meta:
+        constraints = [
+            models.CheckConstraint(
+                condition=(Q(start=None) & ~Q(end=None)) | ~Q(start=None),
+                name="at least one of start or end set for Timespan",
+                violation_error_message="Mindestens Start- oder Endzeitpunkt muss angegeben werden"
+            ),
+        ]
+
+    start = models.DateTimeField(null=True, blank=True)
+    end = models.DateTimeField(null=True, blank=True)
+    modifier = models.ForeignKey("Modifier", on_delete=models.CASCADE)
+
 
 class Modifier(models.Model):
 
@@ -27,10 +43,21 @@ class Modifier(models.Model):
         verbose_name_plural = "Modifier"
 
     factor = models.FloatField(null=False, blank=False, default=1.0)
-    active = models.BooleanField(default=True)
 
     firmen = models.ManyToManyField("Firma")
     kategorien = models.ManyToManyField(ShopCategory)
+
+
+
+    class AnnotateActiveManager(models.Manager):
+        def get_queryset(self) -> QuerySet:
+            """ adds 'active' field """
+            now = make_aware(datetime.now())
+
+            return super().get_queryset().annotate(
+                active = Exists(Timespan.objects.filter(modifier=OuterRef("pk")).filter((Q(start=None) | Q(start__lte=now)) & (Q(end=None) | Q(end__gte=now)))),
+            )
+    objects = AnnotateActiveManager()
 
     def __str__(self):
         return "*{} ({})({})".format(
@@ -53,6 +80,34 @@ class Firma(models.Model):
 
     def __str__(self):
         return "{}".format(self.name)
+
+class Discount(models.Model):
+    class Meta:
+        constraints = [
+            models.CheckConstraint(
+                condition=(Q(start=None) & ~Q(end=None)) | ~Q(start=None),
+                name="at least one of start or end set for Discount",
+                violation_error_message="Mindestens Start- oder Endzeitpunkt muss angegeben werden"
+            ),
+        ]
+
+    start = models.DateTimeField(null=True, blank=True)
+    end = models.DateTimeField(null=True, blank=True)
+
+    discount = models.PositiveSmallIntegerField(default=1, validators=[MinValueValidator(1)], help_text="Discount in %. Kein Discount sind 0%, also '0', 30% günstiger als Normalpreis ist '30'.")
+
+    class AnnotateActiveManager(models.Manager):
+        def get_queryset(self) -> QuerySet:
+            """ adds 'active' field """
+            now = make_aware(datetime.now())
+
+            return super().get_queryset().annotate(
+                active = (Q(start=None) | Q(start__lte=now)) & (Q(end=None) | Q(end__gte=now)),
+            )
+    objects = AnnotateActiveManager()
+
+    def __str__(self):
+        return f"{self.discount}% von {self.start or '-'} bis {self.end or '-'}"
 
 
 ############################################
@@ -126,6 +181,7 @@ class Upgrade(models.Model):
         ('präzision', 'Präzision'),
         ('reichweite', 'Reichweite'),
         ('wirkbereich', 'Wirkbereich'),
+        ('wirkdauer', 'Wirkdauer'),
         ('händigkeit', 'Händigkeit'),
         ('feuerrate', 'Feuerrate'),
         # ('manaverbrauch', 'Manaverbrauch'),
@@ -185,6 +241,7 @@ class BaseShop(models.Model):
 
     firma = models.ForeignKey(Firma, on_delete=models.CASCADE, null=True, blank=True)
     price = models.IntegerField(null=True, blank=True)
+    discounts = models.ManyToManyField(Discount)
     verfügbarkeit = models.PositiveIntegerField(default=0)
 
     class PriceQuerySet(QuerySet):
@@ -193,11 +250,30 @@ class BaseShop(models.Model):
             """ annotates with curr_price, discount (in %) """
 
             return self.annotate(
-                _factor = self._modifiers(),
-                curr_price = Case(When(price=None, then=None), default=Cast((F("price") * F("_factor")) + .5, output_field=IntegerField())),
-                discount = Cast(((1.0 - F("_factor")) * 100) + .5, output_field=IntegerField()),
+                _factor_discount = self._discounts(),
+                _factor_modifier = self._modifiers(),
+                curr_price = Case(
+                    # use None when price is None
+                    When(price=None, then=None), default=
+                        Case(
+                            # use Modifiers
+                            When(_factor_discount=None, then=Cast((F("price") * F("_factor_modifier")) + .5, output_field=IntegerField())), default=
+                            # TODO calc of: use own discount
+                            Cast((F("price") * (Value(100) - F("_factor_modifier")) / Value(100)) + .5, output_field=IntegerField())
+                )),
+                discount = Case(
+                    When(_factor_discount=None, then=Cast(((1.0 - F("_factor_modifier")) * 100) + .5, output_field=IntegerField())), default=F("_factor_discount")
+                    , output_field=IntegerField()
+                    ),
             )
-            
+
+        def _discounts(self):
+            filter = {
+                self.model._meta.model_name: OuterRef("pk"),
+                "active": True,
+            }
+
+            return Coalesce(Subquery(Discount.objects.filter(**filter).order_by("-discount").values_list("discount")[:1]), None)
             
         def _modifiers(self):
             # get Category letter of Shop-model

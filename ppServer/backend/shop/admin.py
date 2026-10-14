@@ -16,10 +16,10 @@ from .models import *
 
 ##################### InLines #########################
 
-def get_SlotInLine(m: type[Slot]) -> type[admin.TabularInline]:
+def get_InLineWithFields(m: type[models.Model], f: list[str] or str) -> type[admin.TabularInline]:
     class Admin(admin.TabularInline):
-        model=m
-        fields = ["tag", "num"]
+        model = m
+        fields = f
         extra = 1
 
     return Admin
@@ -31,14 +31,16 @@ def get_InLine(m: type[models.Model]) -> type[admin.TabularInline]:
 
     return Admin
 
+def get_SlotInLine(m: type[Slot]) -> type[admin.TabularInline]:
+    return get_InLineWithFields(m, ["tag", "num"])
+
 
 ################# BaseAdmin #########################
 
 class BaseAdmin(admin.ModelAdmin):
     search_fields = ['name', "beschreibung__contains"]
-    exclude = ['slots', 'possible_upgrades']
+    exclude = ['slots', 'possible_upgrades', 'discounts']
     list_editable = ["has_implementation", "beschreibung", "frei_editierbar"]
-
 
     def get_queryset(self, request):
         try:
@@ -72,6 +74,9 @@ class BaseAdmin(admin.ModelAdmin):
         
         # spieler, not frei_editierbar
         return [field.name for field in self.opts.local_fields if field.name != "icon"]
+
+    def get_inlines(self, request, obj):
+        return [*super().get_inlines(request, obj), get_InLine(self.model.discounts.through)]
 
 
 ################### ShopAdmins #######################
@@ -213,18 +218,27 @@ class FirmaAdmin(admin.ModelAdmin):
         return format_html(f'<img src="{obj.icon.url}" style="max-width: 32px; max-height:32px;" loading="lazy" />') if obj.icon else self.get_empty_value_display()
 
 
+class TimespanInLine(admin.TabularInline):
+    model = Timespan
+    fields = ["start", "end"]
+    extra = 1
+
 class ModifierAdmin(admin.ModelAdmin):
     list_display = ['factor', '_firmen', '_kategorien', 'active']
     exclude = ['kategorien', 'firmen']
     list_filter = ['kategorien', 'firmen']
 
-    inlines = [get_InLine(Modifier.kategorien.through), get_InLine(Modifier.firmen.through)]
+    inlines = [get_InLine(Modifier.kategorien.through), get_InLine(Modifier.firmen.through), TimespanInLine]
     
     def _firmen(self, obj):
         return obj.firmennames or self.get_empty_value_display()
 
     def _kategorien(self, obj):
         return ", ".join([e.__str__() for e in obj.kategorien.all()]) or self.get_empty_value_display()
+
+    @admin.display(ordering="active", boolean=True)
+    def active(self, obj):
+        return obj.active
     
     def get_queryset(self, request: HttpRequest) -> QuerySet[Any]:
         return super().get_queryset(request).prefetch_related("kategorien").annotate(
@@ -253,6 +267,17 @@ class UpgradeAdmin(admin.ModelAdmin):
         return f"{obj.get_influenced_field_display() or self.get_empty_value_display()}: {obj.field_value or self.get_empty_value_display()}"
 
 
+class DiscountAdmin(admin.ModelAdmin):
+    list_display = ["discount_", "start", "end", "items"]
+
+    @admin.display(ordering="discount")
+    def discount_(self, obj):
+        return f"{obj.discount}%"
+
+    def items(self, obj):
+        # TODO extend to all other models, not only Item
+        return ", ".join(obj.item_set.values_list("name", flat=True))
+
 
 
 
@@ -276,3 +301,4 @@ admin.site.register(Firma, FirmaAdmin)
 admin.site.register(Modifier, ModifierAdmin)
 admin.site.register(Tag, TagAdmin)
 admin.site.register(Upgrade, UpgradeAdmin)
+admin.site.register(Discount, DiscountAdmin)
