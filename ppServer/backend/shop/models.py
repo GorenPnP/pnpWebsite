@@ -246,7 +246,9 @@ class BaseShop(models.Model):
             """ annotates with curr_price, discount (in %) """
 
             return self.annotate(
-                discount = Coalesce(self._discounts(), self._modifiers()), # discount in %
+                _discounts = self._discounts(),
+                special_offer = ~Q(_discounts=None),
+                discount = Coalesce(F("_discounts"), self._modifiers()), # discount in %
                 curr_price = Case(
                     # use None when price is None
                     When(price=None, then=None), default=

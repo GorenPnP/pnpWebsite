@@ -21,6 +21,8 @@
     .discount {
         padding: .25em .5em;
         background-color: var(--bs-indigo);
+
+        &.discount--special { background-color: #FFD700; color: #000000; }
     }
 </style>
 <div class="col">
@@ -33,7 +35,7 @@
                 {% if not obj.frei_editierbar %}
                     {% if obj.price is not None and obj.discount > 0 %}
                     <span class="base-price text-muted">statt {{ obj.price }} Dr.</span>
-                    <span class="discount">Spare {{ obj.discount }}%</span>
+                    <span class="discount{% if obj.special_offer %} discount--special{% endif %}">Spare {{ obj.discount }}%</span>
                     {% endif %}
                     <b class="price d-block">{{ obj.curr_price|default_if_none:'nicht kaufbar mit ' }} Dr.{% if obj.stufenabhängig %} * Stufe{% endif %}</b>
                 {% else %}

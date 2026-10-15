@@ -90,5 +90,7 @@ ul {
     .discount {
         padding: .25em .5em;
         background-color: var(--bs-indigo);
+
+        &.discount--special { background-color: #FFD700; color: #000000; }
     }
 }

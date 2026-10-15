@@ -31,7 +31,7 @@
             <b class="price">{{ obj.curr_price|default_if_none:'nicht kaufbar mit ' }} Dr.{% if obj.stufenabhängig %} * Stufe{% endif %}</b>
             {% if obj.price is not None and obj.discount > 0 %}
                 <span class="base-price">{{ obj.price }} Dr.</span>
-                <span class="discount">Spare {{ obj.discount }}%</span>
+                <span class="discount{% if obj.special_offer %} discount--special{% endif %}">Spare {{ obj.discount }}%</span>
             {% endif %}
         {% else %}
             <b class="price">nicht kaufbar{% if obj.stufenabhängig %} , hat Stufen{% endif %}</b>

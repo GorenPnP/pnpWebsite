@@ -15,7 +15,7 @@ from .views.list import shopmodel_list
 
 ##################### InLines #########################
 
-def get_InLineWithFields(m: type[models.Model], f: list[str] or str) -> type[admin.TabularInline]:
+def get_InLineWithFields(m: type[models.Model], f: list[str]) -> type[admin.TabularInline]:
     class Admin(admin.TabularInline):
         model = m
         fields = f
@@ -217,22 +217,15 @@ class FirmaAdmin(admin.ModelAdmin):
         return format_html(f'<img src="{obj.icon.url}" style="max-width: 32px; max-height:32px;" loading="lazy" />') if obj.icon else self.get_empty_value_display()
 
 
-class TimespanInLine(admin.TabularInline):
-    model = Timespan
-    fields = ["start", "end"]
-    extra = 1
-
 class ModifierAdmin(admin.ModelAdmin):
-    list_display = ['discount_', 'firmen_names', 'kategory_names', 'active']
+    list_display = ['discount', 'firmen_names', 'kategory_names', 'active']
     exclude = ['kategorien', 'firmen']
     list_filter = ['kategorien', 'firmen']
+    list_display_links = ["firmen_names"]
+    list_editable = ["discount"]
 
-    inlines = [get_InLine(Modifier.kategorien.through), get_InLine(Modifier.firmen.through), TimespanInLine]
+    inlines = [get_InLine(Modifier.kategorien.through), get_InLine(Modifier.firmen.through), get_InLineWithFields(Timespan, ["start", "end"])]
 
-
-    @admin.display(ordering="discount")
-    def discount_(self, obj):
-        return f"{obj.discount}%"
 
     @admin.display(ordering="firmen_names")
     def firmen_names(self, obj):
@@ -245,27 +238,6 @@ class ModifierAdmin(admin.ModelAdmin):
     @admin.display(ordering="active", boolean=True)
     def active(self, obj):
         return obj.active
-
-
-################### Upgrade ########################
-
-class TagAdmin(admin.ModelAdmin):
-    list_display = ('_icon', 'name')
-    list_display_links = ("name",)
-
-    def _icon(self, obj):
-        return format_html(f'<img src="{obj.icon.url}" style="max-width: 32px; max-height:32px;" loading="lazy" />') if obj.icon else self.get_empty_value_display()
-
-
-class UpgradeAdmin(admin.ModelAdmin):
-    list_display = ('name', 'beschreibung', 'ab_stufe', 'price', 'field', 'tag', 'prerequisite')
-    list_editable = ["prerequisite"]
-
-    def get_queryset(self, request):
-        return super().get_queryset(request).select_related("prerequisite")
-
-    def field(self, obj):
-        return f"{obj.get_influenced_field_display() or self.get_empty_value_display()}: {obj.field_value or self.get_empty_value_display()}"
 
 
 class DiscountAdmin(admin.ModelAdmin):
@@ -291,6 +263,25 @@ class DiscountAdmin(admin.ModelAdmin):
         return obj.items or self.get_empty_value_display()
 
 
+################### Upgrade ########################
+
+class TagAdmin(admin.ModelAdmin):
+    list_display = ('_icon', 'name')
+    list_display_links = ("name",)
+
+    def _icon(self, obj):
+        return format_html(f'<img src="{obj.icon.url}" style="max-width: 32px; max-height:32px;" loading="lazy" />') if obj.icon else self.get_empty_value_display()
+
+
+class UpgradeAdmin(admin.ModelAdmin):
+    list_display = ('name', 'beschreibung', 'ab_stufe', 'price', 'field', 'tag', 'prerequisite')
+    list_editable = ["prerequisite"]
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related("prerequisite")
+
+    def field(self, obj):
+        return f"{obj.get_influenced_field_display() or self.get_empty_value_display()}: {obj.field_value or self.get_empty_value_display()}"
 
 
 admin.site.register(Item, ItemAdmin)
