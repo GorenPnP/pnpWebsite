@@ -8,9 +8,24 @@ from django.db.models.functions import Cast, Coalesce, Concat
 
 from django_resized import ResizedImageField
 
-from ppServer.utils import ConcatSubquery, ChoicesLabelCase, ProductSubquery
+from ppServer.utils import ConcatSubquery, ChoicesLabelCase, ProductSubquery, display_value
 
 from . import enums
+
+
+# Firma
+class Firma(models.Model):
+    class Meta:
+        ordering = ['name']
+        verbose_name = "Firma"
+        verbose_name_plural = "Firmen"
+
+    icon = ResizedImageField(size=[1024, 1024], null=True, blank=True)
+    name = models.CharField(max_length=50, default='')
+    beschreibung = models.TextField(max_length=1000, default='', blank=True)
+
+    def __str__(self):
+        return self.name
 
 
 class ShopCategory(models.Model):
@@ -37,16 +52,14 @@ class Timespan(models.Model):
 class Modifier(models.Model):
 
     class Meta:
-        ordering = ['factor']
+        ordering = ['discount']
         verbose_name = "Modifier"
         verbose_name_plural = "Modifier"
 
-    factor = models.FloatField(null=False, blank=False, default=1.0)
+    discount = models.SmallIntegerField(default=0, help_text="Discount in %. Kein Discount sind 0%, also '0', 30% günstiger als Normalpreis ist '30'.")
 
     firmen = models.ManyToManyField("Firma")
     kategorien = models.ManyToManyField(ShopCategory)
-
-
 
     class AnnotateActiveManager(models.Manager):
         def get_queryset(self) -> QuerySet:
@@ -55,30 +68,14 @@ class Modifier(models.Model):
 
             return super().get_queryset().annotate(
                 active = Exists(Timespan.objects.filter(modifier=OuterRef("pk")).filter((Q(start=None) | Q(start__lte=now)) & (Q(end=None) | Q(end__gte=now)))),
+                firmen_names = ConcatSubquery(Firma.objects.filter(modifier=OuterRef("pk")).values("name")),
+                kategory_names = ConcatSubquery(ShopCategory.objects.filter(modifier=OuterRef("pk")).annotate(cat=display_value(enums.category_enum, 'kategorie')).values("cat")),
             )
     objects = AnnotateActiveManager()
 
     def __str__(self):
-        return "*{} ({})({})".format(
-            self.factor,
-            ", ".join([f.name for f in self.firmen.all()]),
-            ", ".join([k.get_kategorie_display() for k in self.kategorien.all()])
-        )
+        return f"{self.discount}% ({self.firmen_names})({self.kategory_names})"
 
-
-# Firma
-class Firma(models.Model):
-    class Meta:
-        ordering = ['name']
-        verbose_name = "Firma"
-        verbose_name_plural = "Firmen"
-
-    icon = ResizedImageField(size=[1024, 1024], null=True, blank=True)
-    name = models.CharField(max_length=50, default='')
-    beschreibung = models.TextField(max_length=1000, default='', blank=True)
-
-    def __str__(self):
-        return "{}".format(self.name)
 
 class Discount(models.Model):
     class Meta:
@@ -249,21 +246,12 @@ class BaseShop(models.Model):
             """ annotates with curr_price, discount (in %) """
 
             return self.annotate(
-                _factor_discount = self._discounts(),
-                _factor_modifier = self._modifiers(),
+                discount = Coalesce(self._discounts(), self._modifiers()), # discount in %
                 curr_price = Case(
                     # use None when price is None
                     When(price=None, then=None), default=
-                        Case(
-                            # use Modifiers
-                            When(_factor_discount=None, then=Cast((F("price") * F("_factor_modifier")) + .5, output_field=IntegerField())), default=
-                            # TODO calc of: use own discount
-                            Cast((F("price") * (Value(100) - F("_factor_modifier")) / Value(100)) + .5, output_field=IntegerField())
-                )),
-                discount = Case(
-                    When(_factor_discount=None, then=Cast(((1.0 - F("_factor_modifier")) * 100) + .5, output_field=IntegerField())), default=F("_factor_discount")
-                    , output_field=IntegerField()
-                    ),
+                    Cast((F("price") * (100 - F("discount")) / 100.0) + .5, output_field=IntegerField())
+                ),
             )
 
         def _discounts(self):
@@ -271,8 +259,7 @@ class BaseShop(models.Model):
                 self.model._meta.model_name: OuterRef("pk"),
                 "active": True,
             }
-
-            return Coalesce(Subquery(Discount.objects.filter(**filter).order_by("-discount").values_list("discount")[:1]), None)
+            return Coalesce(Subquery(Discount.objects.filter(**filter).order_by("-discount").values_list("discount")[:1]), None, output_field=IntegerField())
             
         def _modifiers(self):
             # get Category letter of Shop-model
@@ -282,6 +269,7 @@ class BaseShop(models.Model):
                 .annotate(
                     no_firma = ~Exists(Firma.objects.filter(modifier=OuterRef("pk"))),
                     no_cat = ~Exists(ShopCategory.objects.filter(modifier=OuterRef("pk"))),
+                    factor = Cast((100 - F("discount")) / 100.0, output_field=models.FloatField()),
                 )\
                 .filter(active=True)\
                 .filter(
@@ -291,7 +279,7 @@ class BaseShop(models.Model):
                     (Q(no_firma=True) & Q(no_cat=True))
                 )
 
-            return ProductSubquery(qs, "factor")
+            return Cast(100 - (100 * ProductSubquery(qs, "factor")), output_field=IntegerField())
 
     objects = PriceQuerySet().as_manager()
 

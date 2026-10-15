@@ -1,10 +1,8 @@
 import locale
-from typing import Any
 
 from django.apps import apps
 from django.contrib import admin
 from django.db.models import OuterRef, F
-from django.db.models.query import QuerySet
 from django.http.request import HttpRequest
 from django.utils.html import format_html
 
@@ -12,6 +10,7 @@ from character.models import CustomPermission
 from ppServer.utils import ConcatSubquery
 
 from .models import *
+from .views.list import shopmodel_list
 
 
 ##################### InLines #########################
@@ -224,26 +223,28 @@ class TimespanInLine(admin.TabularInline):
     extra = 1
 
 class ModifierAdmin(admin.ModelAdmin):
-    list_display = ['factor', '_firmen', '_kategorien', 'active']
+    list_display = ['discount_', 'firmen_names', 'kategory_names', 'active']
     exclude = ['kategorien', 'firmen']
     list_filter = ['kategorien', 'firmen']
 
     inlines = [get_InLine(Modifier.kategorien.through), get_InLine(Modifier.firmen.through), TimespanInLine]
-    
-    def _firmen(self, obj):
-        return obj.firmennames or self.get_empty_value_display()
 
-    def _kategorien(self, obj):
-        return ", ".join([e.__str__() for e in obj.kategorien.all()]) or self.get_empty_value_display()
+
+    @admin.display(ordering="discount")
+    def discount_(self, obj):
+        return f"{obj.discount}%"
+
+    @admin.display(ordering="firmen_names")
+    def firmen_names(self, obj):
+        return obj.firmen_names or self.get_empty_value_display()
+
+    @admin.display(ordering="kategory_names")
+    def kategory_names(self, obj):
+        return obj.kategory_names or self.get_empty_value_display()
 
     @admin.display(ordering="active", boolean=True)
     def active(self, obj):
         return obj.active
-    
-    def get_queryset(self, request: HttpRequest) -> QuerySet[Any]:
-        return super().get_queryset(request).prefetch_related("kategorien").annotate(
-            firmennames = ConcatSubquery(Firma.objects.filter(modifier=OuterRef("id")).values("name"), ", "),
-        )
 
 
 ################### Upgrade ########################
@@ -270,13 +271,24 @@ class UpgradeAdmin(admin.ModelAdmin):
 class DiscountAdmin(admin.ModelAdmin):
     list_display = ["discount_", "start", "end", "items"]
 
+    def get_queryset(self, request):
+
+        # build query over all shop models and collect names of items with this discount
+        qs = Item.objects.none().values("name")
+        for Model in shopmodel_list:
+            qs = qs.union(Model.objects.filter(discounts__pk=OuterRef("pk")).values("name"))
+
+        return super().get_queryset(request).annotate(
+            items = ConcatSubquery(qs)
+        )
+
     @admin.display(ordering="discount")
     def discount_(self, obj):
         return f"{obj.discount}%"
 
+    @admin.display(ordering="items")
     def items(self, obj):
-        # TODO extend to all other models, not only Item
-        return ", ".join(obj.item_set.values_list("name", flat=True))
+        return obj.items or self.get_empty_value_display()
 
 
 
