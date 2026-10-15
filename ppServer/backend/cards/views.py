@@ -5,7 +5,7 @@ from django.shortcuts import render, redirect, reverse, get_object_or_404
 from django.views.generic.base import TemplateView
 from django.views.generic.list import ListView
 
-from character.models import CustomPermission
+from character.permissions import CustomPermission
 from ppServer.decorators import spielleitung_only, verified_account
 from ppServer.mixins import VerifiedAccountMixin
 

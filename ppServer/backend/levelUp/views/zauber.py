@@ -10,12 +10,13 @@ from django.views.generic.base import TemplateView
 from django.utils.decorators import method_decorator
 
 from cards.models import Card, Transaction
-from character.models import Charakter, RelAttribut, RelVorteil, Spieler, get_tier_cost_with_sp, RelZauber
+from character.models import Charakter, RelAttribut, RelVorteil, Spieler, RelZauber
 from shop.models import Zauber
 
 from ..decorators import is_erstellung_done
 from ..mixins import LevelUpMixin
 from ..views import get_required_aktuellerWert
+from ..utils import get_tier_cost_with_sp
 
 
 @method_decorator([is_erstellung_done], name="dispatch")

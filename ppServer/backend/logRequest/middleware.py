@@ -2,7 +2,7 @@ from django.core.exceptions import DisallowedHost
 from django.http import HttpRequest, HttpResponse, HttpResponseBadRequest
 from django.utils.deprecation import MiddlewareMixin
 
-from character.models import CustomPermission
+from character.permissions import CustomPermission
 from ppServer.settings import DEBUG
 
 from .models import Request

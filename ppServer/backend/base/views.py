@@ -5,7 +5,7 @@ from django.shortcuts import reverse
 from django.views.generic.base import TemplateView
 
 from changelog.models import Changelog
-from character.models import CustomPermission
+from character.permissions import CustomPermission
 from ppServer.mixins import VerifiedAccountMixin
 from news.models import News
 from shop.views.list import shopmodel_list

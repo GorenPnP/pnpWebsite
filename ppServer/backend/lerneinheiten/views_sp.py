@@ -11,7 +11,7 @@ from django.views.decorators.http import require_POST
 from django.views.generic import DetailView
 from django.views.generic.list import ListView
 
-from character.models import CustomPermission
+from character.permissions import CustomPermission
 from ppServer.decorators import spielleitung_only, verified_account
 from ppServer.mixins import SpielleitungOnlyMixin, VerifiedAccountMixin
 

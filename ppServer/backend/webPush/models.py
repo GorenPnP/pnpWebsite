@@ -5,7 +5,7 @@ from django.contrib.auth import get_user_model
 from django.db import models
 from django.urls import reverse
 
-from character.models import CustomPermission
+from character.permissions import CustomPermission
 from push_notifications.models import WebPushDevice
 
 

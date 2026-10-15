@@ -12,7 +12,7 @@ from django.views.generic.base import TemplateView
 from django.views.generic.list import ListView
 from django.urls import reverse
 
-from character.models import CustomPermission
+from character.permissions import CustomPermission
 from ppServer.decorators import verified_account
 from ppServer.mixins import VerifiedAccountMixin
 from ppServer.utils import AvgSubquery

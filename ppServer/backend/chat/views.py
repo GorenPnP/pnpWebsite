@@ -5,7 +5,7 @@ from django.http.response import JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
 
-from character.models import CustomPermission
+from character.permissions import CustomPermission
 from ppServer.decorators import verified_account, spielleitung_only
 
 from .models import Message

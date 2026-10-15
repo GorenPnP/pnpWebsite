@@ -10,6 +10,7 @@ from django.views.generic import DetailView
 
 from cards.models import Card, Transaction
 from character.models import *
+from character.permissions import CustomPermission
 from log.create_log import logShop
 from ppServer.mixins import VerifiedAccountMixin
 

@@ -4,7 +4,7 @@ from typing import Optional
 from django.contrib.auth.mixins import UserPassesTestMixin, LoginRequiredMixin
 from django.shortcuts import get_object_or_404, redirect
 
-from character.models import CustomPermission
+from character.permissions import CustomPermission
 from httpChat.models import Account, Chatroom
 from polls.models import Question, QuestionSpieler
 

@@ -1,7 +1,7 @@
 from django.shortcuts import redirect
 from django.contrib.auth.decorators import login_required
 
-from character.models import CustomPermission
+from character.permissions import CustomPermission
 
 def _permission_decorator_factory(permissions: list[str], redirect_to: str):
     def decorator(view_func):

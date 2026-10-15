@@ -4,7 +4,8 @@ from math import floor
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse
 
-from character.models import CustomPermission, Spieler
+from character.models import Spieler
+from character.permissions import CustomPermission
 from ppServer.decorators import verified_account
 
 from . import models

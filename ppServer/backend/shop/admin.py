@@ -6,7 +6,7 @@ from django.db.models import OuterRef, F
 from django.http.request import HttpRequest
 from django.utils.html import format_html
 
-from character.models import CustomPermission
+from character.permissions import CustomPermission
 from ppServer.utils import ConcatSubquery
 
 from .models import *

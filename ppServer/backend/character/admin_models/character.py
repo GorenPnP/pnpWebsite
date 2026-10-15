@@ -10,6 +10,7 @@ from effect.models import RelEffect
 from cards.signals import deactivate_releffects_before_deleting_card_of_char
 
 from ..models import *
+from ..permissions import *
 
 
 class RelInlineAdmin(admin.TabularInline):
