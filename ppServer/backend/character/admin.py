@@ -8,7 +8,10 @@ from ppServer.utils import ConcatSubquery, get_filter
 
 from .admin_models.character import CharakterAdmin
 from .admin_models.gfs import *
-from .models import *
+from .models.base import *
+from .models.char import Charakter, Tag as CharTag
+from .models.klasse import *
+from .models.skilltree import SkilltreeBase
 
 
 class SpezialAusgleichInLine(admin.TabularInline):
@@ -271,4 +274,4 @@ admin.site.register(GfsSkilltreeEntry, GfsSkilltreeEntryAdmin)
 admin.site.register(GfsStufenplanBase, GfsStufenplanBaseAdmin)
 admin.site.register(GfsStufenplan, GfsStufenplanAdmin)
 
-admin.site.register(Tag, TagAdmin)
+admin.site.register(CharTag, TagAdmin)

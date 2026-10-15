@@ -5,7 +5,7 @@ from django.db.models import Exists, OuterRef
 from crispy_forms.layout import Layout, Div, Field
 
 from base.crispy_form_decorator import crispy
-from character.models import Spieler
+from character.models.base import Spieler
 from push_notifications.models import WebPushDevice
 
 from .models import *

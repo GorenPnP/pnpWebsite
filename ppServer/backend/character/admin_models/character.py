@@ -9,7 +9,9 @@ from django.utils.html import format_html
 from effect.models import RelEffect
 from cards.signals import deactivate_releffects_before_deleting_card_of_char
 
-from ..models import *
+from ..models.char import Charakter
+from ..models.rel import *
+from ..models.relshop import *
 from ..permissions import *
 
 

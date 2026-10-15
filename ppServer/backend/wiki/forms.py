@@ -3,7 +3,7 @@ from django import forms
 from crispy_forms.layout import Layout, Submit, HTML, Fieldset, ButtonHolder, LayoutObject, TEMPLATE_PACK, Div, Field, Button
 
 from base.crispy_form_decorator import crispy
-from character.models import Beruf, Religion
+from character.models.base import Beruf, Religion
 
 @crispy(form_tag=False, extra_inputs=[Submit('submit', 'Speichern'), Button("", "Zurück", css_class="btn btn-outline-light ms-3")])
 class BerufForm(forms.ModelForm):

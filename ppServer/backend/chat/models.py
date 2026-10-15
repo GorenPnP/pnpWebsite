@@ -1,6 +1,6 @@
 from django.db import models
 
-from character.models import Spieler
+from character.models.base import Spieler
 
 
 class Message(models.Model):

@@ -4,12 +4,13 @@ from datetime import date
 from django.apps import apps
 from django.core.exceptions import FieldDoesNotExist
 from django.contrib import messages
-from django.db.models import ManyToManyField, ManyToManyRel, ManyToOneRel
+from django.db.models import Count, ManyToManyField, ManyToManyRel, ManyToOneRel
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.generic import DetailView
 
 from cards.models import Card, Transaction
-from character.models import *
+from character.models.base import Spieler
+from character.models.char import Charakter
 from character.permissions import CustomPermission
 from log.create_log import logShop
 from ppServer.mixins import VerifiedAccountMixin

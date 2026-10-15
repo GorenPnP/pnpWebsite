@@ -13,7 +13,7 @@ from django.views.generic import DetailView
 from ppServer.decorators import spielleitung_only, verified_account
 from ppServer.mixins import VerifiedAccountMixin
 from ppServer.settings import STATIC_ROOT
-from character.models import Charakter
+from character.models.char import Charakter
 from character.permissions import CustomPermission
 
 from .export import CharakterExporter

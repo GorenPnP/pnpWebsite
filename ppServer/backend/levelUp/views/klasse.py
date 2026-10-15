@@ -8,7 +8,9 @@ from django.http.response import HttpResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.views.generic.base import TemplateView
 
-from character.models import Charakter, KlasseAbility, KlasseStufenplan, RelKlasse, RelKlasseAbility
+from character.models.char import Charakter
+from character.models.klasse import KlasseAbility, KlasseStufenplan
+from character.models.rel import RelKlasse, RelKlasseAbility
 from log.models import Log
 from ppServer.utils import ConcatSubquery
 

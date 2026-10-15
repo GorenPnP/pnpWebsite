@@ -18,7 +18,9 @@ import django_tables2 as tables
 from django_filters import FilterSet, ModelChoiceFilter
 
 from base.abstract_views import DynamicTableView, GenericTable
-from character.models import *
+from character.models.gfs import *
+from character.models.klasse import Klasse
+from character.models.skilltree import *
 from ppServer.mixins import VerifiedAccountMixin
 from ppServer.decorators import verified_account
 from ppServer.utils import ConcatSubquery

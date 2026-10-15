@@ -1,7 +1,7 @@
 from django import template
 from django.db.models import Sum
 
-from character.models import Spieler
+from character.models.base import Spieler
 from httpChat.models import Account
 
 register = template.Library()

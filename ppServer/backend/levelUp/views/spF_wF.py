@@ -10,7 +10,8 @@ from django.utils.html import format_html
 import django_tables2 as tables
 
 from base.abstract_views import GenericTable
-from character.models import Fertigkeit, Spezialfertigkeit, Wissensfertigkeit, RelSpezialfertigkeit, RelWissensfertigkeit
+from character.models.base import Fertigkeit, Spezialfertigkeit, Wissensfertigkeit
+from character.models.rel import RelSpezialfertigkeit, RelWissensfertigkeit
 from ppServer.utils import ConcatSubquery
 
 from ..decorators import is_erstellung_done

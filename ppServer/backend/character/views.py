@@ -31,8 +31,11 @@ from ppServer.mixins import VerifiedAccountMixin, CopiesCharsMixin
 from ppServer.utils import ConcatSubquery, display_value
 from shop.views.list import shopmodel_list
 
+from .enums import gruppen_enum
 from .forms import *
-from .models import *
+from .models.char import Charakter, Tag, CurrentStory
+from .models.rel import *
+from .models.relshop import RelRamsch, RelShop
 from .permissions import *
 
 locale.setlocale(locale.LC_NUMERIC, "de_DE.utf8")
@@ -474,7 +477,7 @@ class ShowView(VerifiedAccountMixin, DetailView):
                 return format_html(f"<b>{value}</b>") if record["impro_possible"] or record["fp"] else "-"
 
             def render_fertigkeit__gruppe(self, value):
-                return [name for token, name in enums.gruppen_enum if token == value][0]
+                return [name for token, name in gruppen_enum if token == value][0]
 
         qs_fert = char.relfertigkeit_set.all().prefetch_related("fertigkeit__attribut").annotate(
             fg=Value(1),

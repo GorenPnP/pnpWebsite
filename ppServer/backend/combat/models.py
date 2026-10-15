@@ -12,7 +12,8 @@ from django.forms.models import model_to_dict
 from django_resized import ResizedImageField
 from PIL import Image as PilImage
 
-from character.models import Spieler, Charakter
+from character.models.base import Spieler
+from character.models.char import Charakter
 from crafting.models import Profile
 from ppServer.settings import STATIC_ROOT, STATIC_URL
 from shop.models import Tinker

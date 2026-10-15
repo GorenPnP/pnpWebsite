@@ -1,7 +1,7 @@
 from django.utils.deprecation import MiddlewareMixin
 
 from django.http import HttpRequest
-from .models import Spieler
+from .models.base import Spieler
 
 
 class SpielerMiddleware(MiddlewareMixin):

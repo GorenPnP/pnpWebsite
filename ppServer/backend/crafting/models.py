@@ -6,7 +6,8 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 
 from django_resized import ResizedImageField
 
-from character.models import Spieler, Spezialfertigkeit, Wissensfertigkeit, Charakter
+from character.models.base import Spieler, Spezialfertigkeit, Wissensfertigkeit
+from character.models.char import Charakter
 from shop.models import Tinker
 
 

@@ -7,7 +7,8 @@ from django.utils.html import format_html
 import django_tables2 as tables
 
 from base.abstract_views import GenericTable
-from character.models import GfsAbility, RelGfsAbility
+from character.models.gfs import GfsAbility
+from character.models.rel import RelGfsAbility
 
 from ..decorators import is_erstellung_done
 from ..mixins import LevelUpMixin

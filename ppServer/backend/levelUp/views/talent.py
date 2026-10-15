@@ -5,7 +5,8 @@ from django.shortcuts import get_object_or_404, redirect
 from django.views.generic.base import TemplateView
 from django.utils.decorators import method_decorator
 
-from character.models import RelTalent, Talent
+from character.models.base import Talent
+from character.models.rel import RelTalent
 
 from ..decorators import is_erstellung_done
 from ..mixins import LevelUpMixin

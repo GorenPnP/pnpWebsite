@@ -8,7 +8,8 @@ from crispy_forms.layout import Button, Layout, Div, Field, Submit
 from django_filters import FilterSet
 
 from base.crispy_form_decorator import crispy
-from character.models import Spieler, Charakter
+from character.models.base import Spieler
+from character.models.char import Charakter
 from character.permissions import CustomPermission
 
 from .models import *

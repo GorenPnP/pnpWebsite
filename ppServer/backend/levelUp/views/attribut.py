@@ -14,7 +14,8 @@ from django.views.decorators.http import require_POST
 from django_tables2.columns import TemplateColumn
 
 from base.abstract_views import DynamicTableView, GenericTable
-from character.models import Charakter, RelAttribut
+from character.models.char import Charakter
+from character.models.rel import RelAttribut
 from character.permissions import CustomPermission
 from ppServer.decorators import verified_account
 

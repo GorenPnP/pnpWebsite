@@ -5,7 +5,7 @@ from django.db import models
 
 from django_resized import ResizedImageField
 
-from character.models import Spieler
+from character.models.base import Spieler
 
 
 ###### utils ########

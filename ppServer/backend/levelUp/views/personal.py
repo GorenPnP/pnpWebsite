@@ -5,8 +5,6 @@ from django.shortcuts import redirect
 from django.views.generic.base import TemplateView
 from django.utils.decorators import method_decorator
 
-from character.models import *
-
 from ..decorators import is_erstellung_done
 from ..forms import PersonalForm
 from ..mixins import LevelUpMixin

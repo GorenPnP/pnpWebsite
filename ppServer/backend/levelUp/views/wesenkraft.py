@@ -7,7 +7,7 @@ from django.shortcuts import get_object_or_404, redirect
 from django.views.generic.base import TemplateView
 from django.utils.decorators import method_decorator
 
-from character.models import RelWesenkraft, RelAttribut
+from character.models.rel import RelWesenkraft, RelAttribut
 
 from ..mixins import LevelUpMixin
 from ..views import get_required_aktuellerWert

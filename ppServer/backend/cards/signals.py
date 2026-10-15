@@ -2,7 +2,7 @@ from django.db.models import Q
 from django.db.models.signals import pre_delete
 from django.dispatch import receiver
 
-from character.models import Charakter
+from character.models.char import Charakter
 from .models import Card
 
 # If a Charakter is going to be deleted, all active RelEffects have a Signal to deactivate their effects.

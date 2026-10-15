@@ -8,7 +8,8 @@ from django.shortcuts import reverse, redirect
 from django.views.generic import DetailView
 from django.utils.decorators import method_decorator
 
-from character.models import Charakter, RelVorteil, RelNachteil, RelAttribut, RelGfsAbility
+from character.models.char import Charakter
+from character.models.rel import RelVorteil, RelNachteil, RelAttribut, RelGfsAbility
 from log.create_log import render_number
 
 from ..decorators import is_erstellung_done, is_done_entirely, pending_areas, is_ap_done, is_ferts_done, is_personal_done, is_spF_wF_done, is_zauber_done

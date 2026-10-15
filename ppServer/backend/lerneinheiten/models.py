@@ -3,7 +3,7 @@ from django.db.models import Max
 
 from colorfield.fields import ColorField
 
-from character.models import Spieler
+from character.models.base import Spieler
 
 class Fach(models.Model):
 

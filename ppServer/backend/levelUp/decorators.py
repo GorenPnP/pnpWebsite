@@ -2,7 +2,8 @@ from django.db.models import Sum
 from django.db.models.functions import Coalesce
 from django.shortcuts import get_object_or_404, redirect
 
-from character.models import Charakter, RelVorteil, RelNachteil, RelGfsAbility
+from character.models.char import Charakter
+from character.models.rel import RelVorteil, RelNachteil, RelGfsAbility
 from create.decorators import is_prio_done
 
 

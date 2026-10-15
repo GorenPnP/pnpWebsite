@@ -8,7 +8,8 @@ from django.shortcuts import redirect
 from django.views.generic.base import TemplateView
 from django.utils.decorators import method_decorator
 
-from character.models import RelVorteil, RelNachteil, Attribut, Fertigkeit, Nachteil, Vorteil
+from character.models.base import Attribut, Fertigkeit, Nachteil, Vorteil
+from character.models.rel import RelVorteil, RelNachteil
 from shop.models import Engelsroboter
 
 from ..decorators import is_erstellung_done

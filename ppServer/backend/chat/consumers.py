@@ -3,7 +3,7 @@ import json
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
 
-from character.models import Spieler
+from character.models.base import Spieler
 
 class ChatRoomConsumer(AsyncWebsocketConsumer):
 

@@ -1,6 +1,6 @@
 from django.db import models
 
-from character.models import Gfs
+from character.models.gfs import Gfs
 
 
 priority_enum = [

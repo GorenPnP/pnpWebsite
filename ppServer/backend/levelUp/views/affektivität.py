@@ -8,7 +8,7 @@ from django.utils.html import format_html
 import django_tables2 as tables
 
 from base.abstract_views import GenericTable
-from character.models import Affektivität
+from character.models.char import Affektivität
 
 from ..decorators import is_erstellung_done
 from ..forms import AffektivitätForm

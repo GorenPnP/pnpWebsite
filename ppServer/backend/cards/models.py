@@ -2,7 +2,8 @@ import uuid
 from django.db import models
 from django.db.models import Q
 
-from character.models import Spieler, Charakter
+from character.models.base import Spieler
+from character.models.char import Charakter
 
 
 class Card(models.Model):

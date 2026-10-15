@@ -3,7 +3,9 @@ import math
 from django.db.models.signals import pre_save, post_save, pre_delete, post_delete
 from django.dispatch import receiver
 
-from character.models import RelAttribut, RelFertigkeit, RelVorteil, RelNachteil, RelTalent, RelKlasse, RelKlasseAbility, RelGfsAbility, RelBegleiter, RelMagische_Ausrüstung, RelRüstung, RelTechnik, RelEinbaute, Charakter
+from character.models.char import Charakter
+from character.models.rel import RelAttribut, RelFertigkeit, RelVorteil, RelNachteil, RelTalent, RelKlasse, RelKlasseAbility, RelGfsAbility
+from character.models.relshop import RelBegleiter, RelMagische_Ausrüstung, RelRüstung, RelTechnik, RelEinbaute
 
 from .models import *
 

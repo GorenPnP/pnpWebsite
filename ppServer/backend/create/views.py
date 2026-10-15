@@ -16,9 +16,11 @@ from cards.models import Card, Transaction
 from ppServer.mixins import VerifiedAccountMixin
 
 from base.abstract_views import DynamicTableView
-from character.models import Wesenkraft, Beruf, RelAttribut, RelFertigkeit, RelVorteil,\
-    RelNachteil, RelWesenkraft, GfsAttribut, GfsFertigkeit, GfsWesenkraft, GfsVorteil,\
-    GfsNachteil, GfsZauber, GfsStufenplanBase, RelZauber, Klasse, RelKlasse, RelKlasseAbility, KlasseStufenplan
+from character.models.rel import RelAttribut, RelFertigkeit, RelVorteil, RelNachteil, RelWesenkraft, RelKlasse, RelKlasseAbility
+from character.models.base import Wesenkraft, Beruf
+from character.models.gfs import GfsAttribut, GfsFertigkeit, GfsWesenkraft, GfsVorteil, GfsNachteil, GfsZauber, GfsStufenplanBase
+from character.models.klasse import Klasse, KlasseStufenplan
+from character.models.relshop import RelZauber
 from levelUp.mixins import LevelUpMixin
 from log.models import Log
 

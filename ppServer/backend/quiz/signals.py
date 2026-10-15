@@ -3,7 +3,7 @@ from django.db.models import ObjectDoesNotExist
 from django.db.models.signals import post_delete, pre_delete, pre_save, post_save
 from django.dispatch import receiver
 
-from character.models import Spieler
+from character.models.base import Spieler
 from webPush.models import *
 from .models import Image, File, ModuleQuestion, RelQuiz, SpielerQuestion, SpielerSession, Module, module_state, Question, SpielerModule
 

@@ -1,6 +1,6 @@
 from django.shortcuts import get_object_or_404, redirect, reverse
 
-from character.models import Charakter
+from character.models.char import Charakter
 
 
 def is_prio_done(char: Charakter):

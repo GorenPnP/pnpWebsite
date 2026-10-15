@@ -7,7 +7,8 @@ from django.utils.html import format_html
 
 from ppServer.utils import get_filter, ConcatSubquery
 
-from ..models import *
+from ..models.gfs import *
+from ..models.skilltree import GfsSkilltreeEntry
 
 
 class GfsEigenschaftInLine(admin.TabularInline):

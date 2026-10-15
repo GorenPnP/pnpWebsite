@@ -7,7 +7,7 @@ from django.utils.text import slugify
 
 from django_resized import ResizedImageField
 
-from character.models import Spieler
+from character.models.base import Spieler
 from ppServer.utils import ConcatSubquery
 
 

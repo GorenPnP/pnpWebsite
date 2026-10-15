@@ -10,7 +10,10 @@ from django.views.generic.base import TemplateView
 from django.utils.decorators import method_decorator
 
 from cards.models import Card, Transaction
-from character.models import Charakter, RelAttribut, RelVorteil, Spieler, RelZauber
+from character.models.base import Spieler
+from character.models.char import Charakter
+from character.models.rel import RelAttribut, RelVorteil
+from character.models.relshop import RelZauber
 from shop.models import Zauber
 
 from ..decorators import is_erstellung_done

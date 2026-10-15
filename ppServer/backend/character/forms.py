@@ -11,7 +11,9 @@ from campaign.forms import ZauberplätzeWidget
 from cards.forms import CardField
 from cards.models import Card, Transaction
 
-from .models import *
+from .models.char import Charakter, Tag as CharTag, CurrentStory
+from .models.rel import *
+from .models.relshop import *
 from .form_utils import FormSet, PopulatedFormSet
 
 
@@ -283,7 +285,7 @@ class CharacterForm(forms.ModelForm):
 @crispy(form_tag=False)
 class CreateTagForm(forms.ModelForm):
     class Meta:
-        model = Tag
+        model = CharTag
         fields = ["spieler", "name"]
 
 

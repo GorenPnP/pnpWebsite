@@ -6,7 +6,7 @@ from django.urls import reverse
 
 from ppServer.mixins import VerifiedAccountMixin
 
-from character.models import Charakter
+from character.models.char import Charakter
 from character.permissions import CustomPermission
 
 

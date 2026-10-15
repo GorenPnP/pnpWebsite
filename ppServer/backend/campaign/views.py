@@ -3,7 +3,7 @@ from django.views.decorators.http import require_POST
 from django.urls import reverse
 
 from cards.models import Transaction
-from character.models import Charakter
+from character.models.char import Charakter
 from log.create_log import logAuswertung
 from ppServer.decorators import spielleitung_only, verified_account
 

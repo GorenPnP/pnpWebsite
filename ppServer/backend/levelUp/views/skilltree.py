@@ -8,7 +8,7 @@ from django.utils.decorators import method_decorator
 import django_tables2 as tables
 
 from base.abstract_views import GenericTable
-from character.models import GfsSkilltreeEntry, SkilltreeBase
+from character.models.skilltree import GfsSkilltreeEntry, SkilltreeBase
 
 from ..decorators import is_erstellung_done
 from ..forms import KonzentrationForm

@@ -1,6 +1,7 @@
 from django.db.models import F, Max
 
-from character.models import Charakter, RelFertigkeit
+from character.models.char import Charakter
+from character.models.rel import RelFertigkeit
 
 
 def get_required_aktuellerWert(char: Charakter, attr_titel: str) -> int:

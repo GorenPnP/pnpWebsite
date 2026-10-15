@@ -9,7 +9,8 @@ from django.utils.html import format_html
 from django_tables2.columns import TemplateColumn
 
 from base.abstract_views import DynamicTableView, GenericTable
-from character.models import *
+from character import enums
+from character.models.rel import RelAttribut, RelFertigkeit, RelGruppe
 
 from ..decorators import is_erstellung_done
 from ..mixins import LevelUpMixin

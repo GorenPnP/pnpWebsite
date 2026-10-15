@@ -12,7 +12,8 @@ from django_filters import NumberFilter, ChoiceFilter, Filter, OrderingFilter
 from django_filters.filterset import filterset_factory
 from django_filters.views import FilterMixin
 
-from character.models import Charakter, Spieler
+from character.models.base import Spieler
+from character.models.char import Charakter
 from ppServer.mixins import VerifiedAccountMixin
 
 from ..forms import ShopFilter

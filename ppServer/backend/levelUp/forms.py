@@ -5,7 +5,7 @@ from crispy_forms.layout import Layout, Div, Field, Fieldset, Submit
 from django.urls import reverse
 
 from base.crispy_form_decorator import crispy
-from character.models import Affektivität, Charakter
+from character.models.char import Affektivität, Charakter
 
 @crispy(form_tag=False)
 class PersonalForm(forms.ModelForm):

@@ -1,6 +1,6 @@
 from django import template
 
-from ...models import Charakter, Tag
+from ...models.char import Charakter, Tag
 
 register = template.Library()
 
