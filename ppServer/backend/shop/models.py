@@ -1,5 +1,4 @@
 from django.utils.timezone import make_aware
-import pytz
 from datetime import datetime
 
 from django.core.validators import MinValueValidator
