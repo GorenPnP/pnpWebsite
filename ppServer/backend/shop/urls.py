@@ -2,9 +2,9 @@ from django.urls import path, register_converter
 
 from .converter import *
 from .models import *
-from .views.index import IndexView, ProposeView, ReviewView, shopmodel_list
+from .views.index import IndexView, ProposeView, ReviewView
 from .views.detail import DetailView
-from .views.list import AllListView, DiscountView, ListView, FernkampfwaffeView, shop_model_filter_fields
+from .views.list import shopmodel_list, AllListView, DiscountView, ListView, FernkampfwaffeView, shop_model_filter_fields
 
 app_name = 'shop'
 register_converter(get_ModelNameConverter(app_name, shopmodel_list), "model")

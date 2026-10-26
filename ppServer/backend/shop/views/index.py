@@ -1,16 +1,14 @@
 from django.contrib import messages
 from django.shortcuts import redirect
-from django.views.decorators.http import require_GET
 from django.urls import NoReverseMatch, reverse
 
 from django.views.generic import TemplateView
 
-from base.views import reviewable_shop
 from ppServer.mixins import SpielleitungOnlyMixin, VerifiedAccountMixin
 
 from ..forms import get_ProposeForm
 from ..models import *
-from .list import AllListView, BaseList, HeaderMixin, ListView, MixedListFilterMixin, shopmodel_list
+from .list import BaseList, HeaderMixin, MixedListFilterMixin, shopmodel_list
 
 
 def get_list_url(m: type[BaseShop]) -> str:

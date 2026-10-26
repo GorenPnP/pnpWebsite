@@ -136,8 +136,8 @@ class Slot(models.Model):
             return super().get_queryset().prefetch_related("tag", "item")
     objects = PreloadManager()
 
-    # def __str__(self):
-    #     return f'{self.item} hat {self.num}x {self.tag.name} Slots'
+    def __str__(self):
+        return f'{self.item} hat {self.num}x {', '.join(self.tag.values_list("name", flat=True))} Slots'
 
 
 class SlotNahkampfwaffe(Slot):

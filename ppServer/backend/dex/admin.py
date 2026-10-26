@@ -84,3 +84,4 @@ admin.site.register(Fertigkeit)
 admin.site.register(ParaPflanze, PflanzenAdmin)
 admin.site.register(ParaTier, TierAdmin)
 admin.site.register(Geschöpf, GeschöpfAdmin)
+from .monster.admin import *    # include all their admins here for /admin/dex

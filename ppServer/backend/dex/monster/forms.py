@@ -14,16 +14,20 @@ class ColorWidget(Input):
         super().__init__(attrs)
 
 class MonsterVisibilityForm(forms.Form):
-    monster = forms.ModelMultipleChoiceField(queryset=Monster.objects.all(), widget=forms.CheckboxSelectMultiple(), required=True)
-    spieler = forms.ModelMultipleChoiceField(queryset=Spieler.objects.all(), widget=forms.CheckboxSelectMultiple(), required=True)
+    monster = forms.ModelMultipleChoiceField(queryset=Monster.objects, widget=forms.CheckboxSelectMultiple(), required=True)
+    spieler = forms.ModelMultipleChoiceField(queryset=Spieler.objects, widget=forms.CheckboxSelectMultiple(), required=True)
 
     visible = forms.BooleanField(label="Sollen Monster für die Spieler sichtbar sein?", initial=True, required=False)
 
 class AttackToMonsterForm(forms.Form):
     class MonsterSelect(CheckboxSelectMultiple):
         option_template_name = 'dex/sp/select_option_monster.html'
-    monster = forms.ModelMultipleChoiceField(queryset=Monster.objects.prefetch_related("types", "attacken").annotate(num_attacken=Count("attacken")).all().order_by("number"), widget=MonsterSelect())
+    monster = forms.ModelMultipleChoiceField(queryset=None, widget=MonsterSelect())
     monster_feddich = forms.BooleanField(required=False)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['monster'].queryset = Monster.objects.prefetch_related("types", "attacken").annotate(num_attacken=Count("attacken")).all().order_by("number")
 
 class TeamForm(forms.Form):
     name = forms.CharField(max_length=256, required=True)

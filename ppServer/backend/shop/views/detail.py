@@ -17,8 +17,8 @@ from ppServer.mixins import VerifiedAccountMixin
 
 from ..forms import get_BuyForm
 from ..models import *
-from .index import get_list_url, shopmodel_list
-from .list import HeaderMixin
+from .index import get_list_url
+from .list import shopmodel_list, shopmodel_upgrade_list, HeaderMixin
 
 
 class DetailView(VerifiedAccountMixin, HeaderMixin, DetailView):
@@ -100,15 +100,12 @@ class DetailView(VerifiedAccountMixin, HeaderMixin, DetailView):
         if "form" not in context: context["form"] = get_BuyForm(self.request.spieler, self.object)
 
         # slots & upgrades (not in every model)
-        try:
+        if self.model in shopmodel_upgrade_list:
             context["slots"] = getattr(self.object, f"slot{self.model._meta.model_name}_set").prefetch_related("tag").annotate(
                 tag_names = ConcatSubquery(Tag.objects.filter(**{f"slot{self.model._meta.model_name}": OuterRef("pk")}).values("name")),
                 num_tags = Count("tag"),
             )
-        except: pass
-        try:
             context["upgrades"] = self.object.possible_upgrades.select_related("tag", "prerequisite").order_by("ab_stufe", "tag__name")
-        except: pass
 
         return context
 

@@ -182,82 +182,21 @@ class RelEffectInLine(RelInlineAdmin):
 class RelRamschInLine(RelInlineAdmin):
     model = RelRamsch
 
-########## generic (st)shop ##############
-
-class RelShopInLine(RelInlineAdmin):
-    fields = ["anz", "item", "notizen"]
-
-    def get_queryset(self, request) -> QuerySet[Any]:
-        return super().get_queryset(request).prefetch_related('item')
-
 
 ################## Shop ############################
 
-class RelItemlInLine(RelShopInLine):
-    model = RelItem
+def get_RelShopInLine(m: type[RelShop], f = ["anz", "item", "notizen"]) -> type[admin.TabularInline]:
+    class RelShopInLine(RelInlineAdmin):
+        model = m
+        fields = f
+
+        def get_queryset(self, request) -> QuerySet[Any]:
+            return super().get_queryset(request).prefetch_related('item')
+
+    return RelShopInLine
 
 
-class RelNahkampfwaffeInLine(RelShopInLine):
-    model = RelNahkampfwaffe
-
-
-class RelMunitionInLine(RelShopInLine):
-    model = RelMunition
-
-
-class RelFernkampfwaffeInLine(RelShopInLine):
-    model = RelFernkampfwaffe
-
-
-class RelMagische_AusrüstungInLine(RelShopInLine):
-    model = RelMagische_Ausrüstung
-    fields = ["anz", "stufe", "item", "notizen"]
-
-
-class RelRitual_RuneInLine(RelShopInLine):
-    model = RelRitual_Rune
-    fields = ["anz", "stufe", "item", "notizen"]
-
-class RelRüstungInLine(RelShopInLine):
-    model = RelRüstung
-
-
-class RelTechnikInLine(RelShopInLine):
-    model = RelTechnik
-    fields = ["anz", "stufe", "item", "notizen", "selbst_eingebaut"]
-
-
-class RelFahrzeugInLine(RelShopInLine):
-    model = RelFahrzeug
-
-
-class RelEinbauteInLine(RelShopInLine):
-    model = RelEinbaute
-    fields = ["anz", "stufe", "item", "notizen"]
-
-
-class RelZauberInLine(RelShopInLine):
-    fields = fields = ["anz", "item", "tier", "learned", "notizen"]
-    model = RelZauber
-
-
-class RelAlchemieInLine(RelShopInLine):
-    model = RelAlchemie
-
-
-class RelTinkerInLine(RelShopInLine):
-    model = RelTinker
-
-
-class RelBegleiterInLine(RelShopInLine):
-    model = RelBegleiter
-
-
-class RelEngelsroboterInLine(RelShopInLine):
-    model = RelEngelsroboter
-
-
-
+################## Char ############################
 
 class CharakterAdmin(admin.ModelAdmin):
 
@@ -294,21 +233,21 @@ class CharakterAdmin(admin.ModelAdmin):
         RelGfsAbilityInLine,
         RelKlasseAbilityInLine,
 
-        RelItemlInLine,
-        RelNahkampfwaffeInLine,
-        RelMunitionInLine,
-        RelFernkampfwaffeInLine,
-        RelMagische_AusrüstungInLine,
-        RelRitual_RuneInLine,
-        RelRüstungInLine,
-        RelTechnikInLine,
-        RelFahrzeugInLine,
-        RelEinbauteInLine,
-        RelZauberInLine,
-        RelAlchemieInLine,
-        RelTinkerInLine,
-        RelBegleiterInLine,
-        RelEngelsroboterInLine,
+        get_RelShopInLine(RelItem),
+        get_RelShopInLine(RelNahkampfwaffe),
+        get_RelShopInLine(RelMunition),
+        get_RelShopInLine(RelFernkampfwaffe),
+        get_RelShopInLine(RelMagische_Ausrüstung, ["anz", "stufe", "item", "notizen"]),
+        get_RelShopInLine(RelRitual_Rune, ["anz", "stufe", "item", "notizen"]),
+        get_RelShopInLine(RelRüstung),
+        get_RelShopInLine(RelTechnik, ["anz", "stufe", "item", "notizen", "selbst_eingebaut"]),
+        get_RelShopInLine(RelFahrzeug),
+        get_RelShopInLine(RelEinbaute, ["anz", "stufe", "item", "notizen"]),
+        get_RelShopInLine(RelZauber, ["anz", "item", "tier", "learned", "notizen"]),
+        get_RelShopInLine(RelAlchemie),
+        get_RelShopInLine(RelTinker),
+        get_RelShopInLine(RelBegleiter),
+        get_RelShopInLine(RelEngelsroboter),
         RelRamschInLine,
 
         RelEffectInLine

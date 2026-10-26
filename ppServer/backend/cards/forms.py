@@ -3,12 +3,13 @@ import uuid
 from django import forms
 from django.core import validators
 from django.core.exceptions import ValidationError
+from django.db.models import QuerySet
 
 from base.crispy_form_decorator import crispy
 
 from .models import Card, Transaction
 
-def get_card(queryset=Card.objects.filter(active=True), **kwargs):
+def get_card(queryset: QuerySet[Card], **kwargs):
     try:
         return queryset.get(**kwargs)
     except:

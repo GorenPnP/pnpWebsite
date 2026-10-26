@@ -22,6 +22,7 @@ from ..models import BaseShop, Fernkampfwaffe, Item, Tinker
 ####################### abstract base ##################################
 
 shopmodel_list = [m for m in apps.get_app_config("shop").get_models() if not m._meta.abstract and issubclass(m, BaseShop)]
+shopmodel_upgrade_list = [m for m in shopmodel_list if "slots" in [f.name for f in m._meta.get_fields()]]
 
 
 shop_model_filter_fields = {
