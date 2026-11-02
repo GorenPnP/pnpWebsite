@@ -10,9 +10,9 @@ from django.shortcuts import redirect
 from django.views.decorators.http import require_GET
 from django.views.generic import DetailView
 
-from ppServer.decorators import spielleitung_only, verified_account
-from ppServer.mixins import VerifiedAccountMixin
-from ppServer.settings import STATIC_ROOT
+from core.decorators import spielleitung_only, verified_account
+from core.mixins import VerifiedAccountMixin
+from core.settings import STATIC_ROOT
 from character.models.char import Charakter
 from character.permissions import CustomPermission
 

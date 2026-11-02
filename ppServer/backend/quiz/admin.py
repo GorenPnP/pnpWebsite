@@ -5,7 +5,7 @@ from django.db.models.query import QuerySet
 from django.http.request import HttpRequest
 from django.utils.html import format_html
 
-from ppServer.utils import ConcatSubquery, get_filter
+from core.utils import ConcatSubquery, get_filter
 
 from .models import *
 

@@ -9,7 +9,7 @@ from django.db.models.query import QuerySet
 from django.http import HttpRequest
 from django.utils.html import format_html
 
-from ppServer.utils import ConcatSubquery
+from core.utils import ConcatSubquery
 
 from .models import *
 

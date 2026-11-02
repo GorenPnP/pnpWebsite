@@ -7,7 +7,7 @@ from django.views.generic.list import ListView
 
 from crafting.mixins import ProfileSetMixin
 from crafting.models import InventoryItem
-from ppServer.mixins import VerifiedAccountMixin, SpielleitungOnlyMixin
+from core.mixins import VerifiedAccountMixin, SpielleitungOnlyMixin
 
 from .forms import *
 from .models import *

@@ -7,7 +7,7 @@ from django.http.request import HttpRequest
 from django.utils.html import format_html
 
 from character.permissions import CustomPermission
-from ppServer.utils import ConcatSubquery
+from core.utils import ConcatSubquery
 
 from .models import *
 from .views.list import shopmodel_list

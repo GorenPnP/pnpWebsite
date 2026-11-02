@@ -21,9 +21,9 @@ from base.abstract_views import DynamicTableView, GenericTable
 from character.models.gfs import *
 from character.models.klasse import Klasse
 from character.models.skilltree import *
-from ppServer.mixins import VerifiedAccountMixin
-from ppServer.decorators import verified_account
-from ppServer.utils import ConcatSubquery
+from core.mixins import VerifiedAccountMixin
+from core.decorators import verified_account
+from core.utils import ConcatSubquery
 
 from .forms import *
 from .models import *

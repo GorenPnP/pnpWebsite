@@ -2,7 +2,7 @@ from datetime import date, timedelta
 
 from django.shortcuts import render, redirect
 
-from ppServer.decorators import verified_account
+from core.decorators import verified_account
 
 from .models import *
 from .forms import ProposalForm

@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.utils.html import format_html
 
-from ppServer.utils import ConcatSubquery
+from core.utils import ConcatSubquery
 
 from .models import *
 

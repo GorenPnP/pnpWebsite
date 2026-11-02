@@ -23,9 +23,9 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/2.0/howto/deployment/checklist/
 
 SECRET_KEY = os.environ.get('SECRET_KEY')
-DEBUG = not not int(os.environ.get('DEBUG'))
+DEBUG = not not int(os.environ.get('DEBUG', 1))
 
-ALLOWED_HOSTS = [i.strip() for i in os.environ.get('ALLOWED_HOSTS').split(",")]
+ALLOWED_HOSTS = [i.strip() for i in os.environ.get('ALLOWED_HOSTS', '*').split(",")]
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 # Application definition
@@ -111,7 +111,7 @@ MIDDLEWARE = [
     "django_prometheus.middleware.PrometheusAfterMiddleware",
 ]
 
-ROOT_URLCONF = 'ppServer.urls'
+ROOT_URLCONF = 'core.urls'
 
 TEMPLATES = [
     {
@@ -132,8 +132,8 @@ TEMPLATES = [
     },
 ]
 
-# WSGI_APPLICATION = 'ppServer.wsgi.application'
-ASGI_APPLICATION = 'ppServer.routing.application'
+# WSGI_APPLICATION = 'core.wsgi.application'
+ASGI_APPLICATION = 'core.routing.application'
 
 
 # Database

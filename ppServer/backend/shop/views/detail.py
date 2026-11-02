@@ -13,7 +13,7 @@ from character.models.base import Spieler
 from character.models.char import Charakter
 from character.permissions import CustomPermission
 from log.create_log import logShop
-from ppServer.mixins import VerifiedAccountMixin
+from core.mixins import VerifiedAccountMixin
 
 from ..forms import get_BuyForm
 from ..models import *

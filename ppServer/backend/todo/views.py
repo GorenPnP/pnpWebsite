@@ -7,8 +7,8 @@ from django.views.decorators.http import require_GET, require_POST
 from django.views.generic.base import TemplateView
 
 from planner.views import days, get_1st_day_of_next_month, get_month
-from ppServer.decorators import verified_account, TODOperson_only
-from ppServer.mixins import VerifiedAccountMixin, TODOPersonMixin
+from core.decorators import verified_account, TODOperson_only
+from core.mixins import VerifiedAccountMixin, TODOPersonMixin
 
 from .forms import CreateCategoryForm, CreateIntervalForm
 from .models import *

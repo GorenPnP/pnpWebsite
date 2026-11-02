@@ -6,7 +6,7 @@ from django.urls import reverse
 
 from character.models.base import Spieler
 from character.permissions import CustomPermission
-from ppServer.decorators import verified_account
+from core.decorators import verified_account
 
 from . import models
 

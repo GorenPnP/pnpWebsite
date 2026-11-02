@@ -9,8 +9,8 @@ from django.utils.html import format_html
 from django_tables2.columns import TemplateColumn
 
 from base.abstract_views import DynamicTableView, GenericTable
-from ppServer.decorators import spielleitung_only, verified_account
-from ppServer.mixins import SpielleitungOnlyMixin, VerifiedAccountMixin
+from core.decorators import spielleitung_only, verified_account
+from core.mixins import SpielleitungOnlyMixin, VerifiedAccountMixin
 
 from .models import *
 from .views import get_grade_score

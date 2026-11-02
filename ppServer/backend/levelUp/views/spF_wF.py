@@ -12,7 +12,7 @@ import django_tables2 as tables
 from base.abstract_views import GenericTable
 from character.models.base import Fertigkeit, Spezialfertigkeit, Wissensfertigkeit
 from character.models.rel import RelSpezialfertigkeit, RelWissensfertigkeit
-from ppServer.utils import ConcatSubquery
+from core.utils import ConcatSubquery
 
 from ..decorators import is_erstellung_done
 from ..mixins import LevelUpMixin

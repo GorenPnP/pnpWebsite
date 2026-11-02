@@ -12,8 +12,8 @@ from django.views.generic import DetailView
 from django.views.generic.list import ListView
 
 from character.permissions import CustomPermission
-from ppServer.decorators import spielleitung_only, verified_account
-from ppServer.mixins import SpielleitungOnlyMixin, VerifiedAccountMixin
+from core.decorators import spielleitung_only, verified_account
+from core.mixins import SpielleitungOnlyMixin, VerifiedAccountMixin
 
 from .forms import *
 from .models import *

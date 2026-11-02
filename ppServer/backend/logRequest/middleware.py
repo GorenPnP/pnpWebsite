@@ -3,7 +3,7 @@ from django.http import HttpRequest, HttpResponse, HttpResponseBadRequest
 from django.utils.deprecation import MiddlewareMixin
 
 from character.permissions import CustomPermission
-from ppServer.settings import DEBUG
+from core.settings import DEBUG
 
 from .models import Request
 

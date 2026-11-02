@@ -5,7 +5,7 @@ from django.urls import reverse
 from cards.models import Transaction
 from character.models.char import Charakter
 from log.create_log import logAuswertung
-from ppServer.decorators import spielleitung_only, verified_account
+from core.decorators import spielleitung_only, verified_account
 
 from .forms import AuswertungForm, LarpAuswertungForm
 

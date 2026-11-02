@@ -9,7 +9,7 @@ from django.shortcuts import redirect
 from django.views.generic.base import TemplateView, View
 from django.urls import reverse
 
-from ppServer.mixins import VerifiedAccountMixin, OwnChatMixin
+from core.mixins import VerifiedAccountMixin, OwnChatMixin
 
 from .forms import AccountForm, ChatroomForm
 from .models import *

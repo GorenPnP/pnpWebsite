@@ -13,7 +13,7 @@ from django.urls import reverse
 from django.utils.translation import gettext as _
 
 from base.crispy_form_decorator import crispy
-from ppServer.mixins import SpielleitungOnlyMixin, VerifiedAccountMixin
+from core.mixins import SpielleitungOnlyMixin, VerifiedAccountMixin
 
 from .models import *
 

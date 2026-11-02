@@ -4,7 +4,7 @@ from django.db.models import OuterRef
 from django.db.models.query import QuerySet
 from django.http import HttpRequest
 
-from ppServer.utils import ConcatSubquery
+from core.utils import ConcatSubquery
 
 from .models import *
 

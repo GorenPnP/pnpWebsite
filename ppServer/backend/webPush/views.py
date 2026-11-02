@@ -9,9 +9,9 @@ from django.views.generic.base import TemplateView
 
 from push_notifications.models import WebPushDevice
 
-from ppServer.decorators import verified_account
-from ppServer.mixins import SpielleitungOnlyMixin, VerifiedAccountMixin
-from ppServer.settings import PUSH_NOTIFICATION_KEY
+from core.decorators import verified_account
+from core.mixins import SpielleitungOnlyMixin, VerifiedAccountMixin
+from core.settings import PUSH_NOTIFICATION_KEY
 
 from .forms import *
 from .models import *

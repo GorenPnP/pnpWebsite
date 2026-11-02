@@ -1,7 +1,7 @@
 from django.urls import include, path
 from django.views.generic.base import TemplateView
 
-from ppServer.decorators import verified_account
+from core.decorators import verified_account
 
 from . import views
 

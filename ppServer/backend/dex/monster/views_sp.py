@@ -4,7 +4,7 @@ from django.contrib import messages
 from django.shortcuts import redirect, get_object_or_404
 from django.views.generic.base import TemplateView
 
-from ppServer.mixins import SpielleitungOnlyMixin, VerifiedAccountMixin
+from core.mixins import SpielleitungOnlyMixin, VerifiedAccountMixin
 
 from .forms import MonsterVisibilityForm, AttackToMonsterForm
 from .models import *

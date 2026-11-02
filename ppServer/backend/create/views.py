@@ -13,7 +13,7 @@ from django.urls import reverse
 from django.utils.decorators import method_decorator
 
 from cards.models import Card, Transaction
-from ppServer.mixins import VerifiedAccountMixin
+from core.mixins import VerifiedAccountMixin
 
 from base.abstract_views import DynamicTableView
 from character.models.rel import RelAttribut, RelFertigkeit, RelVorteil, RelNachteil, RelWesenkraft, RelKlasse, RelKlasseAbility

@@ -8,7 +8,7 @@ from django.db.models.functions import Cast, Coalesce, Concat
 
 from django_resized import ResizedImageField
 
-from ppServer.utils import ConcatSubquery, ChoicesLabelCase, ProductSubquery, display_value
+from core.utils import ConcatSubquery, ChoicesLabelCase, ProductSubquery, display_value
 
 from . import enums
 

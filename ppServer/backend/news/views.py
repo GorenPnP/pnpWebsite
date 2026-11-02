@@ -1,6 +1,6 @@
 from django.shortcuts import render
 
-from ppServer.decorators import verified_account
+from core.decorators import verified_account
 
 from .models import *
 

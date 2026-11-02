@@ -13,9 +13,9 @@ from django.views.generic.list import ListView
 from django.urls import reverse
 
 from character.permissions import CustomPermission
-from ppServer.decorators import verified_account
-from ppServer.mixins import VerifiedAccountMixin
-from ppServer.utils import AvgSubquery
+from core.decorators import verified_account
+from core.mixins import VerifiedAccountMixin
+from core.utils import AvgSubquery
 
 from .forms import *
 from .models import *

@@ -6,8 +6,8 @@ from django.views.generic.base import TemplateView
 from django.views.generic.list import ListView
 
 from character.permissions import CustomPermission
-from ppServer.decorators import spielleitung_only, verified_account
-from ppServer.mixins import VerifiedAccountMixin
+from core.decorators import spielleitung_only, verified_account
+from core.mixins import VerifiedAccountMixin
 
 from .forms import *
 

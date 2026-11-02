@@ -8,7 +8,7 @@ from django.shortcuts import redirect
 from django.urls import reverse
 from django.views.generic.detail import DetailView
 
-from ppServer.mixins import VerifiedAccountMixin, PollAllowedMixin
+from core.mixins import VerifiedAccountMixin, PollAllowedMixin
 
 from .models import Choice, Question
 

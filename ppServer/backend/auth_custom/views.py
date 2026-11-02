@@ -12,7 +12,7 @@ import six
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 
-from ppServer.decorators import verified_account
+from core.decorators import verified_account
 
 from .forms import ChangeEmailForm, SignupForm
 

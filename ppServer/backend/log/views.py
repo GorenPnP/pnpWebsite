@@ -1,7 +1,7 @@
 from django.contrib.admin.models import LogEntry
 
 from base.abstract_views import DynamicTableView, GenericTable
-from ppServer.mixins import SpielleitungOnlyMixin, VerifiedAccountMixin
+from core.mixins import SpielleitungOnlyMixin, VerifiedAccountMixin
 
 from .models import Log
 

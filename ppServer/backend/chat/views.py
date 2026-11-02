@@ -6,7 +6,7 @@ from django.shortcuts import render
 from django.urls import reverse
 
 from character.permissions import CustomPermission
-from ppServer.decorators import verified_account, spielleitung_only
+from core.decorators import verified_account, spielleitung_only
 
 from .models import Message
 

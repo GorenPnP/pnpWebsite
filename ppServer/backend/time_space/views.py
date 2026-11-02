@@ -8,7 +8,7 @@ from django.views.generic.list import ListView
 
 from markdown_view.views import MarkdownView
 
-from ppServer.mixins import SpielleitungOnlyMixin, VerifiedAccountMixin
+from core.mixins import SpielleitungOnlyMixin, VerifiedAccountMixin
 
 from .models import *
 

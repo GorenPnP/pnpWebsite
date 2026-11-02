@@ -2,7 +2,7 @@ import os, zipfile
 
 from django.core.management.base import BaseCommand
 
-from ppServer.settings import STATIC_ROOT
+from core.settings import STATIC_ROOT
 from character.models.char import Charakter
 
 from characterExport.export import CharakterExporter

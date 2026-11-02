@@ -11,8 +11,8 @@ from django.views.generic import DetailView
 from django.views.generic.list import ListView
 from django.shortcuts import reverse
 
-from ppServer.decorators import LARPler_only, verified_account
-from ppServer.mixins import LARPlerOnlyMixin, VerifiedAccountMixin
+from core.decorators import LARPler_only, verified_account
+from core.mixins import LARPlerOnlyMixin, VerifiedAccountMixin
 
 from .forms import InquiryForm, SpielerPageForm
 from .models import *

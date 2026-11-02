@@ -5,7 +5,7 @@ from django.contrib.auth.models import Group
 
 from django.db.models import OuterRef
 
-from ppServer.utils import ConcatSubquery
+from core.utils import ConcatSubquery
 
 
 # Define a new User admin

@@ -12,7 +12,7 @@ from character.models.char import Charakter
 from character.models.klasse import KlasseAbility, KlasseStufenplan
 from character.models.rel import RelKlasse, RelKlasseAbility
 from log.models import Log
-from ppServer.utils import ConcatSubquery
+from core.utils import ConcatSubquery
 
 from ..mixins import LevelUpMixin
 

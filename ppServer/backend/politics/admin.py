@@ -65,7 +65,7 @@ class PoliticianAdmin(admin.ModelAdmin):
 
 
 class LegalActAdmin(admin.ModelAdmin):
-    """ uses 'politics:admin-vote-on-legalAct' as detail/update view, see ppServer/urls.py """
+    """ uses 'politics:admin-vote-on-legalAct' as detail/update view, see core/urls.py """
     class Media:
         css = {
             "all": ["res/css/easyMDE.css"],

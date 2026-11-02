@@ -4,7 +4,7 @@ from django.db.models import OuterRef
 from django.db.models.query import QuerySet
 from django.http.request import HttpRequest
 
-from ppServer.utils import ConcatSubquery, get_filter
+from core.utils import ConcatSubquery, get_filter
 
 from .admin_models.character import CharakterAdmin
 from .admin_models.gfs import *

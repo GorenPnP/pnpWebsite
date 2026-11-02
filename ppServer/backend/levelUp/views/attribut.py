@@ -17,7 +17,7 @@ from base.abstract_views import DynamicTableView, GenericTable
 from character.models.char import Charakter
 from character.models.rel import RelAttribut
 from character.permissions import CustomPermission
-from ppServer.decorators import verified_account
+from core.decorators import verified_account
 
 from ..decorators import is_erstellung_done
 from ..forms import MA_MGDenialForm

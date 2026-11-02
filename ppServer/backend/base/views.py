@@ -6,7 +6,7 @@ from django.views.generic.base import TemplateView
 
 from changelog.models import Changelog
 from character.permissions import CustomPermission
-from ppServer.mixins import VerifiedAccountMixin
+from core.mixins import VerifiedAccountMixin
 from news.models import News
 from shop.views.list import shopmodel_list
 from todays_fact.models import History

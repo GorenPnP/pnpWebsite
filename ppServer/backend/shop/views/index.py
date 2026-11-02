@@ -4,7 +4,7 @@ from django.urls import NoReverseMatch, reverse
 
 from django.views.generic import TemplateView
 
-from ppServer.mixins import SpielleitungOnlyMixin, VerifiedAccountMixin
+from core.mixins import SpielleitungOnlyMixin, VerifiedAccountMixin
 
 from ..forms import get_ProposeForm
 from ..models import *

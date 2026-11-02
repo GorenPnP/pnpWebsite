@@ -28,9 +28,9 @@ from cards.models import Card, Transaction
 from effect.models import RelEffect
 from log.create_log import render_number
 from log.models import Log
-from ppServer.decorators import verified_account
-from ppServer.mixins import VerifiedAccountMixin, SpielleitungOnlyMixin, CopiesCharsMixin
-from ppServer.utils import ConcatSubquery, display_value
+from core.decorators import verified_account
+from core.mixins import VerifiedAccountMixin, SpielleitungOnlyMixin, CopiesCharsMixin
+from core.utils import ConcatSubquery, display_value
 from shop.views.list import shopmodel_list, shopmodel_upgrade_list
 
 from .enums import gruppen_enum

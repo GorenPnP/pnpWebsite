@@ -14,8 +14,8 @@ from django.views.generic.base import TemplateView
 from django.views.generic.list import ListView
 
 from combat.models import Region as CombatRegion
-from ppServer.mixins import SpielleitungOnlyMixin, VerifiedAccountMixin
-from ppServer.utils import ConcatSubquery
+from core.mixins import SpielleitungOnlyMixin, VerifiedAccountMixin
+from core.utils import ConcatSubquery
 from shop.models import Tinker
 from shop.enums import tinker_enum
 

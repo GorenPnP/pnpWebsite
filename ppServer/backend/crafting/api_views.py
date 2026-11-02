@@ -3,7 +3,7 @@ import os, re, zipfile
 from django.http.response import FileResponse
 from django.views import View
 
-from ppServer.settings import STATIC_ROOT
+from core.settings import STATIC_ROOT
 
 from .models import *
 

@@ -14,7 +14,7 @@ from django_filters.views import FilterMixin
 
 from character.models.base import Spieler
 from character.models.char import Charakter
-from ppServer.mixins import VerifiedAccountMixin
+from core.mixins import VerifiedAccountMixin
 
 from ..forms import ShopFilter
 from ..models import BaseShop, Fernkampfwaffe, Item, Tinker

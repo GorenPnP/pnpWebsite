@@ -8,7 +8,7 @@ from django.views.generic import DetailView
 from django.views.generic.list import ListView
 from django.urls import reverse
 
-from ppServer.mixins import VerifiedAccountMixin
+from core.mixins import VerifiedAccountMixin
 
 from .models import *
 

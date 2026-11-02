@@ -10,7 +10,7 @@ from character.models.base import *
 from character.models.rel import *
 from character.models.char import Charakter
 from log.models import Log
-from ppServer.utils import ConcatSubquery
+from core.utils import ConcatSubquery
 
 class CharakterExporter:
     COLOR = {

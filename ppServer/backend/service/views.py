@@ -1,9 +1,9 @@
-from ppServer.decorators import spielleitung_only
+from core.decorators import spielleitung_only
 
 from django.shortcuts import render
 from django.urls import reverse
 
-from ppServer.decorators import verified_account
+from core.decorators import verified_account
 from quiz.models import SpielerModule, RelQuiz, Subject
 from quiz.views import get_grade_score
 

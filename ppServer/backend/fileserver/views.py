@@ -4,7 +4,7 @@ from django.db.models import Q
 from django.urls import reverse
 from django.views.generic.list import ListView
 
-from ppServer.mixins import VerifiedAccountMixin
+from core.mixins import VerifiedAccountMixin
 
 from .models import Topic
 

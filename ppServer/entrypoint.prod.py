@@ -3,12 +3,12 @@ import os
 # essentially runs:
 # $ python manage.py migrate
 # $ python manage.py collectstatic --noinput
-# $ daphne -b 0.0.0.0 -p 8000 ppServer.asgi:application
+# $ daphne -b 0.0.0.0 -p 8000 core.asgi:application
 
 # see manage.py :)
 # needed to copy some of it, because the hardened image used does not have a shell to run multiple commands after the db is ready
 if __name__ == "__main__":
-    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "ppServer.settings")
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "core.settings")
     try:
         from django.core.management import execute_from_command_line
     except ImportError as exc:
@@ -23,4 +23,4 @@ if __name__ == "__main__":
 
     from daphne.cli import CommandLineInterface
     cmd = CommandLineInterface()
-    cmd.run(["--proxy-headers", "-b", "0.0.0.0", "-p", "8000", "ppServer.asgi:application"])   # old:  gunicorn ppServer.wsgi:application --bind 0.0.0.0:8000 --workers=3
+    cmd.run(["--proxy-headers", "-b", "0.0.0.0", "-p", "8000", "core.asgi:application"])   # old:  gunicorn core.wsgi:application --bind 0.0.0.0:8000 --workers=3

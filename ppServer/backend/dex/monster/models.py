@@ -13,7 +13,7 @@ from django_resized import ResizedImageField
 from colorfield.fields import ColorField
 
 from character.models.base import Spieler
-from ppServer.utils import ConcatSubquery
+from core.utils import ConcatSubquery
 from ..models import Dice, upload_and_rename_to_id
 
 
