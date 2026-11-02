@@ -32,11 +32,16 @@ class SendMessageForm(forms.Form):
     tag = forms.ChoiceField(required=False, choices=tuple((i.value, i.name) for i in PushTag), help_text="Der Browser ersetzt die letzte Nachricht mit dem Tag durch diese, anstatt beide Nachrichten gleichzeitig anzuzeigen")
 
     recipients = forms.ModelMultipleChoiceField(
-        queryset=get_user_model().objects.annotate(keep=Exists(WebPushDevice.objects.filter(user__pk=OuterRef("pk")))).filter(keep=True),
+        queryset=get_user_model().objects.none(),
         widget=forms.widgets.CheckboxSelectMultiple,
         label="Nachricht senden an",
         required=True,
     )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.fields["recipients"].queryset = get_user_model().objects.annotate(keep=Exists(WebPushDevice.objects.filter(user__pk=OuterRef("pk")))).filter(keep=True)
 
     def get_layout(self):
         return Layout(

@@ -1,0 +1,77 @@
+{% extends 'base/headed_main.html' %}
+{% load static crispy_forms_tags shop.get_detail_url %}
+
+{% block extra-head %}
+<style>
+    select {
+        max-width: fit-content;
+    }
+</style>
+{% endblock %}
+
+{% block main %}
+
+    {% for set in formsets %}{% if set.data %}
+
+    <h2>{{ set.modelname }}</h2>
+    {% for d in set.data %}
+    <form method="POST" action="{{ d.post_link }}">
+    <div class="card text-white bg-dark mb-3">
+        <div class="card-body">
+            <div class="row g-2">
+                <div class="col-12 col-sm-3" style="max-height: 200px; aspect-ratio: 1;">
+                    <img style="height: 100%; width: 100%; object-fit: contain;" src="{% if d.item.icon %}{{ d.item.icon.url }}{% else %}{% static 'res/img/goren_logo.svg' %}{% endif %}" class="card-img-top" alt="{{ d.item.name }}">
+                </div>
+                <div class="col-12 col-sm-9">
+                    <a class="h5 card-title text-white" href="{{ d.item|get_detail_url }}" target="_blank">{{ d.item.name }}</a>
+                    <p style="max-width: 60ch;">{{ d.item.beschreibung }}</p>
+                </div>
+
+            </div>
+
+            <hr>
+
+            <fieldset>
+                <legend class="h4">Basic Einstellungen</legend>
+                {% crispy d.relUpgradeForm %}
+                <fieldset>
+                    <legend class="h5">ungenutzte Upgrades</legend>
+                    {{ d.ownUpgradeFormSet.management_form }}
+                    {% for form in d.ownUpgradeFormSet.forms %}{% crispy form %}{% endfor %}
+                </fieldset>
+            </fieldset>
+
+            {% if d.upgradeSlotFormSets %}
+            <hr>
+                
+            <ul>
+                {% for formset in d.upgradeSlotFormSets %}
+                <li>
+                    <p class="h4">{{ d.item.name }}{% if formset.instance.stufe %} Stufe {{ formset.instance.stufe|default_if_none:"-" }}{% endif %}
+                    {% if formset.instance.notizen %}<p style="max-width: 60ch;">{{ formset.instance.notizen }}</p>{% endif %}
+
+                    <fieldset>
+                        <legend class="h5">Upgrades</legend>
+                        {{ formset.management_form }}
+                        {% for form in formset.forms %}{% crispy form %}{% endfor %}
+                    </fieldset>
+                </li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+        </div>
+
+        <hr>
+        
+        
+        <div class="card-body">
+            <button class="btn btn-primary" type="submit">Speichern</button>
+        </div>
+    </div>
+    </form>
+
+    {% endfor %}
+    {% endif %}{% endfor %}
+
+
+{% endblock %}

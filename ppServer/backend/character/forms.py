@@ -4,6 +4,8 @@ from django import forms
 
 from crispy_forms.bootstrap import AppendedText, Tab, TabHolder, Container, InlineField
 from crispy_forms.layout import Layout, Submit, HTML, Fieldset, ButtonHolder, LayoutObject, TEMPLATE_PACK, Div, Field
+from django.db import transaction
+from django.forms.widgets import HiddenInput
 from django.urls import reverse
 
 from base.crispy_form_decorator import crispy
@@ -32,7 +34,7 @@ TalentFormSet = FormSet(Charakter, RelTalent, "talent", ["talent"])
 WesenkraftFormSet = FormSet(Charakter, RelWesenkraft, "wesenkraft", ["wesenkraft", "tier"])
 
 # Shop
-shop_fields = ["anz", "item", "stufe", "notizen"]
+shop_fields = ["item", "stufe", "notizen"]
 ShopItemFormSet = FormSet(Charakter, RelItem, "item", shop_fields)
 ShopNahkampfwaffeFormSet = FormSet(Charakter, RelNahkampfwaffe, "nahkampfwaffe", shop_fields)
 ShopMunitionFormSet = FormSet(Charakter, RelMunition, "munition", shop_fields)
@@ -293,7 +295,7 @@ class CreateTagForm(forms.ModelForm):
 class CreateRamschForm(forms.ModelForm):
     class Meta:
         model = RelRamsch
-        fields = ["char", "anz", "item", "notizen"]
+        fields = ["char", "item", "notizen"]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -304,7 +306,6 @@ class CreateRamschForm(forms.ModelForm):
             "char",
             Container(
                 "neues Item mitnehmen", # name of container, not a field
-                InlineField("anz", wrapper_class="col-sm-2"),
                 InlineField("item", wrapper_class="col-sm"),
                 InlineField("notizen", wrapper_class="col-sm-6"),
                 ButtonHolder(
@@ -371,3 +372,187 @@ class SpendMoneyForm(forms.ModelForm):
             "reason", "add_to_inventory",
             Submit("submit", "Geld ausgeben", css_class="btn btn-primary"), "sender"
         )
+
+
+
+
+@crispy(form_tag=False)
+class RelUpgradeForm(forms.ModelForm):
+    class Meta:
+        model = RelUpgradeNahkampfwaffe
+        fields = ["points", "unlocked_upgrades", "item"]
+
+    def __init__(self, model: type[RelUpgrade], *args, **kwargs):
+        self._meta.model = model
+        super().__init__(*args, **kwargs)
+
+        self.fields["item"].widget = HiddenInput()
+        self.fields["item"].queryset = model.item.field.remote_field.model.objects.all()
+
+        # limit choices of unlocked_upgrades ..
+        # .. to unlockable for type[BaseShop]
+        ShopModel = model.item.field.related_model
+        self.fields["unlocked_upgrades"].queryset = Upgrade.objects\
+            .filter(Q(**{f"{ShopModel._meta.model_name}__possible_upgrades": F("pk")}) & Q(achievement_unlock=True))
+
+        # .. limit to the specific item
+        if "instance" in kwargs:
+             self.fields["unlocked_upgrades"].queryset =  self.fields["unlocked_upgrades"].queryset.filter(
+                 Q(**{ShopModel._meta.model_name: kwargs["instance"].item})
+             )
+
+        self.helper.layout = Layout(
+            "item",
+            Div(
+                Field('points', wrapper_class='col-12 col-sm-2'),
+                Field('unlocked_upgrades', wrapper_class='col-12 col-sm-10'),
+            css_class='row'),
+        )
+
+        
+    def clean(self):
+        res = super().clean()
+
+        # check if the custom constraints are met by calling instance.check_custom_m2m_constraints().
+        # We attempt to save the instance and related fields here AND reverse it with atomic & an arbitrary error (AssertionError one line down).
+        # Raised ValidationErrors are NOT cached.
+        # from BaseForm.clean(): "Any ValidationError raised by this method will not be associated with a particular field;
+        # it will have a special-case association with the field named '__all__'"
+        try:
+            with transaction.atomic():
+
+                # save item & set (it / its pk) on RelUpgrade
+                res["item"].save()
+                self.instance.item = res["item"]
+
+                # save RelUpgrade
+                self.instance.save()
+
+                # add unlocked_upgrades, own_upgrades
+                self._save_m2m()
+
+                # check everything. maybe throw a ValidationError
+                self.instance.check_custom_m2m_constraints()
+
+                # revert saves to db
+                raise AssertionError()
+        except AssertionError:
+            return res
+
+
+def get_OwnUpgradeForm(m: type[OwnUpgrade]) -> type[forms.ModelForm]:
+
+    @crispy(form_tag=False)
+    class OwnUpgradeForm(forms.ModelForm):
+        class Meta:
+            model = m
+            fields = ["relUpgrade", "num", "upgrade"]
+
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+
+            # filter field upgrade by relUpgrade.item model
+            ShopModel = self.fields["relUpgrade"].queryset.model.item.field.related_fields[0][1].model
+            self.fields["upgrade"].queryset = Upgrade.objects.filter(Q(**{f"{ShopModel._meta.model_name}__possible_upgrades": F("pk")}))
+
+
+            self.helper.layout = Layout(
+                "relUpgrade",
+                Div(
+                    Field('num', wrapper_class='col-12 col-sm-2'),
+                    Field('upgrade', wrapper_class='col-12 col-sm-8'),
+                    Div(Field('DELETE'), css_class='col-12 col-sm-2 align-content-end p-2'),
+                css_class='row'),
+            )
+
+        # def clean(self):
+        #     res = super().clean()
+
+        #     # check if the custom constraints are met by calling instance.check_custom_m2m_constraints().
+        #     # We attempt to save the instance and related fields here AND reverse it with atomic & an arbitrary error (AssertionError one line down).
+        #     # Raised ValidationErrors are NOT cached.
+        #     # from BaseForm.clean(): "Any ValidationError raised by this method will not be associated with a particular field;
+        #     # it will have a special-case association with the field named '__all__'"
+        #     try:
+        #         with transaction.atomic():
+
+        #             # save item & set (it / its pk) on RelUpgrade & Upgrade
+        #             res["relUpgrade"].save()
+        #             self.instance.relUpgrade = res["relUpgrade"]
+        #             res["upgrade"].save()
+        #             self.instance.upgrade = res["upgrade"]
+
+        #             # save OwnUpgrade
+        #             self.instance.save()
+        #             print("OwnUpgradeForm.clean()", self.instance)
+
+        #             # add unlocked_upgrades, own_upgrades
+        #             self._save_m2m()
+
+        #             # check everything. maybe throw a ValidationError
+        #             self.instance.check_custom_m2m_constraints()
+
+        #             # revert saves to db
+        #             raise AssertionError()
+        #     except AssertionError:
+        #         return res
+    return OwnUpgradeForm
+
+
+def get_UpgradeSlotForm(m: type[UpgradeSlot]) -> forms.ModelForm:
+    @crispy(form_tag=False)
+    class UpgradeSlotForm(forms.ModelForm):
+        class Meta:
+            model = m
+            fields = ["id", "relitem", "upgrade", "slot"]
+
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+
+            ShopModel = self.fields["relitem"].queryset.model.item.field.related_fields[0][1].model
+            self.fields["upgrade"].queryset = Upgrade.objects.filter(Q(**{f"{ShopModel._meta.model_name}__possible_upgrades": F("pk")}))
+
+            self.helper.layout = Layout(
+                "id", "relitem",
+                Div(
+                    Field('upgrade', wrapper_class='col-12 col-sm-5'),
+                    Field('slot', wrapper_class='col-12 col-sm-5'),
+                    Div(Field('DELETE'), css_class='col-12 col-sm-2 align-content-end p-2'),
+                css_class='row'),
+            )
+
+        # def clean(self):
+        #     res = super().clean()
+
+        #     # check if the custom constraints are met by calling instance.check_custom_m2m_constraints().
+        #     # We attempt to save the instance and related fields here AND reverse it with atomic & an arbitrary error (AssertionError one line down).
+        #     # Raised ValidationErrors are NOT cached.
+        #     # from BaseForm.clean(): "Any ValidationError raised by this method will not be associated with a particular field;
+        #     # it will have a special-case association with the field named '__all__'"
+        #     try:
+        #         with transaction.atomic():
+
+        #             # save item & set (it / its pk) on RelItem & Upgrade
+        #             res["relitem"].save()
+        #             self.instance.relitem = res["relitem"]
+        #             res["upgrade"].save()
+        #             self.instance.upgrade = res["upgrade"]
+        #             res["slot"].save()
+        #             self.instance.slot = res["slot"]
+
+        #             # save UpgradeSlot
+        #             self.instance.save()
+        #             print("UpgradeSlotForm.clean()", self.instance)
+
+        #             # add unlocked_upgrades, own_upgrades
+        #             self._save_m2m()
+
+        #             # check everything. maybe throw a ValidationError
+        #             self.instance.check_custom_m2m_constraints()
+
+        #             # revert saves to db
+        #             raise AssertionError()
+        #     except AssertionError:
+        #         return res
+
+    return UpgradeSlotForm

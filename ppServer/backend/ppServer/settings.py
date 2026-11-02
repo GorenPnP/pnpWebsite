@@ -348,5 +348,10 @@ PUSH_NOTIFICATION_KEY = os.environ.get('PUSH_NOTIFICATION_KEY')
 
 ###################################################
 # PROMETHEUS
-PROMETHEUS_EXPORT_MIGRATIONS = os.environ.get("PROMETHEUS_EXPORT_MIGRATIONS", True)
+
+''' Prevent start-up warning:
+django_prometheus's AppConfig.ready() calls ExportMigrations(), which instantiates a MigrationExecutor, which queries the DB to check which migrations have been applied — all during app initialization.
+open Issue: https://github.com/django-commons/django-prometheus/issues/334
+'''
+PROMETHEUS_EXPORT_MIGRATIONS = os.environ.get("PROMETHEUS_EXPORT_MIGRATIONS", False)
 # PROMETHEUS_METRIC_NAMESPACE='local'

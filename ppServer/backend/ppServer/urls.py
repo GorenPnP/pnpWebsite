@@ -35,9 +35,11 @@ urlpatterns = [
     # custom admin-update view
     path('admin/politics/legalact/<int:pk>/change/', LegalActUpdateRedirectView.as_view()),
 
+    # use own login view instead of the default admin one
+    path('admin/login/', RedirectView.as_view(pattern_name="auth:login", query_string=True)),
+
     path('admin/', admin.site.urls),
     path('auth/', include('auth_custom.urls')),
-    path('accounts/', include('auth_custom.urls')),
 
     path('cards/', include('cards.urls')),
     path('changelog/', include('changelog.urls')),

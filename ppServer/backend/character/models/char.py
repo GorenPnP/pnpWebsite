@@ -1,24 +1,15 @@
-import enum, sys, math
-from datetime import date
+import sys
 from sentry_sdk import capture_message
 
-from django.contrib.auth import get_user_model
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-from django.db.models import Max, Sum, Subquery, OuterRef, F, Q, Exists, Value
-from django.db.models.functions import Coalesce
-from django.db.models.query import QuerySet
-from django.utils.translation import gettext as _
+from django.db.models import Max, Sum
 
 from django_resized import ResizedImageField
-from markdownfield.models import MarkdownField, RenderedMarkdownField
-from markdownfield.validators import VALIDATOR_STANDARD
 
 from log.create_log import logStufenaufstieg
 from shop.models import *
 
-from .. import enums
-from ..permissions import CustomPermission
 from .base import *
 from .gfs import *
 from .rel import *
@@ -152,7 +143,7 @@ class Charakter(models.Model):
     engelsroboter = models.ManyToManyField(Engelsroboter, through='character.RelEngelsroboter', blank=True)
 
     affektivitäten = models.ManyToManyField("Affektivität", blank=True)
-    tags = models.ManyToManyField(Tag, blank=True)
+    tags = models.ManyToManyField("character.Tag", blank=True)
 
     @property
     def geld(self):

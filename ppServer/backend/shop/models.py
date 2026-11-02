@@ -133,11 +133,14 @@ class Slot(models.Model):
     class PreloadManager(models.Manager):
         def get_queryset(self) -> QuerySet:
             """ adds 'tag' field """
-            return super().get_queryset().prefetch_related("tag", "item")
+            model_name = self.model._meta.model_name
+            return super().get_queryset().prefetch_related("tag", "item").annotate(
+                tagnames = ConcatSubquery(Tag.objects.filter(Q(**{model_name: OuterRef("pk")})).values("name"))
+            )
     objects = PreloadManager()
 
     def __str__(self):
-        return f'{self.item} hat {self.num}x {', '.join(self.tag.values_list("name", flat=True))} Slots'
+        return f'{self.item} hat {self.num}x {self.tagnames} Slots'
 
 
 class SlotNahkampfwaffe(Slot):

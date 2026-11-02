@@ -173,12 +173,7 @@ class DetailView(VerifiedAccountMixin, HeaderMixin, DetailView):
 
         # add item to char
         RelShopModel = apps.get_model("character", f"rel{self.model._meta.model_name}")
-        rel = RelShopModel.objects.filter(char=char, item=self.object, stufe=stufe).first()
-        if rel is not None:
-            rel.anz += amount
-            rel.save(update_fields=["anz"])
-        else:
-            rel = RelShopModel.objects.create(char=char, item=self.object, stufe=stufe, anz=amount)
+        RelShopModel.objects.bulk_create([RelShopModel(char=char, item=self.object, stufe=stufe) for _ in range(amount)])
 
         # log
         logShop(self.request.spieler, char, {

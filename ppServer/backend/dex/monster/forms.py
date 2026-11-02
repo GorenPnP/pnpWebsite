@@ -14,10 +14,15 @@ class ColorWidget(Input):
         super().__init__(attrs)
 
 class MonsterVisibilityForm(forms.Form):
-    monster = forms.ModelMultipleChoiceField(queryset=Monster.objects, widget=forms.CheckboxSelectMultiple(), required=True)
-    spieler = forms.ModelMultipleChoiceField(queryset=Spieler.objects, widget=forms.CheckboxSelectMultiple(), required=True)
+    monster = forms.ModelMultipleChoiceField(queryset=Monster.objects.none(), widget=forms.CheckboxSelectMultiple(), required=True)
+    spieler = forms.ModelMultipleChoiceField(queryset=Spieler.objects.none(), widget=forms.CheckboxSelectMultiple(), required=True)
 
     visible = forms.BooleanField(label="Sollen Monster für die Spieler sichtbar sein?", initial=True, required=False)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['monster'].queryset = Monster.objects.all()
+        self.fields['spieler'].queryset = Spieler.objects.all()
 
 class AttackToMonsterForm(forms.Form):
     class MonsterSelect(CheckboxSelectMultiple):

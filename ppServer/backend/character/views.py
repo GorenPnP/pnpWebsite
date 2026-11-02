@@ -4,10 +4,12 @@ from typing import Any, Dict
 
 from django.apps import apps
 from django.contrib import messages
+from django.contrib.admin.models import ContentType, LogEntry, CHANGE
 from django.db import transaction
 from django.db.models import BooleanField, ForeignKey, ManyToManyField, TextField, Value, F, CharField, OuterRef, Case, When, Count
 from django.db.models.functions import Concat
 from django.db.utils import IntegrityError
+from django.forms.models import BaseInlineFormSet, inlineformset_factory
 from django.http import HttpResponseRedirect, JsonResponse
 from django.middleware.csrf import get_token
 from django.shortcuts import render, redirect, get_object_or_404
@@ -27,13 +29,13 @@ from effect.models import RelEffect
 from log.create_log import render_number
 from log.models import Log
 from ppServer.decorators import verified_account
-from ppServer.mixins import VerifiedAccountMixin, CopiesCharsMixin
+from ppServer.mixins import VerifiedAccountMixin, SpielleitungOnlyMixin, CopiesCharsMixin
 from ppServer.utils import ConcatSubquery, display_value
-from shop.views.list import shopmodel_list
+from shop.views.list import shopmodel_list, shopmodel_upgrade_list
 
 from .enums import gruppen_enum
 from .forms import *
-from .models.char import Charakter, Tag, CurrentStory
+from .models.char import Charakter, Tag as CharTag, CurrentStory
 from .models.rel import *
 from .models.relshop import RelRamsch, RelShop
 from .permissions import *
@@ -113,7 +115,7 @@ class RenderableTable(GenericTable):
 
     def render_art(self, value, record):
         return self._get(record, "art_display")
-    
+
     def render_preis(self, value, record):
         preis = "{}{}".format(render_number(value), " - {}".format(render_number(self._get(record, "max_preis"))) if self._get(record, "max_preis") != value else "")
         return "{} Dr.{}".format(preis, " * Stufe" if self._get(record, "stufenabhängig") else "")
@@ -141,21 +143,21 @@ class CharacterListView(VerifiedAccountMixin, TemplateView):
         return {
             'charaktere': char_qs,
             "num_all_chars": char_qs.count(),
-            "tags": Tag.objects.filter(spieler=self.request.spieler).annotate(num=Count("charakter")).order_by("name"),
+            "tags": CharTag.objects.filter(spieler=self.request.spieler).annotate(num=Count("charakter")).order_by("name"),
             'topic': "Charaktere",
             "plus": "+ Charakter",
             "plus_url": reverse('create:gfs'),
         }
-    
+
     def get(self, request, *args, **kwargs):
         tagname = self.request.GET["tag"] if "tag" in self.request.GET else None
         context = self.get_context_data(**kwargs)
 
-        if tagname and Tag.objects.filter(name=tagname, spieler=self.request.spieler).exists():
+        if tagname and CharTag.objects.filter(name=tagname, spieler=self.request.spieler).exists():
             context["charaktere"] = context["charaktere"].filter(tags__name=tagname)
 
         return self.render_to_response(context)
-    
+
     def post(self, *args, **kwargs):
         create_tag_form = CreateTagForm({"name": self.request.POST.get("name"), "spieler": self.request.spieler})
         create_tag_form.full_clean()
@@ -169,7 +171,7 @@ class CharacterListView(VerifiedAccountMixin, TemplateView):
 
 
 class ShowView(VerifiedAccountMixin, DetailView):
-    
+
     class ItemTable(RenderableTable):
         class Meta(RenderableTable.Meta):
             orderable = False
@@ -186,10 +188,10 @@ class ShowView(VerifiedAccountMixin, DetailView):
 
             # use python model .objects.get().getIconUrl()
             return format_html("<img src='{url}' loading='lazy' style='max-width: 64px; aspect-ratio:1'>", url=instance.getIconUrl())
-        
+
         def render_item__beschreibung(self, value):
             return self.render_beschreibung(value)
-        
+
         def render_art(self, value):
             return value
 
@@ -212,7 +214,7 @@ class ShowView(VerifiedAccountMixin, DetailView):
         def render_use(self, value, record):
             RelModel = apps.get_model("character", f"rel{record['model_name']}")
             relitem = RelModel.objects.get(pk=record["pk"])
-            
+
             if RelModel == RelRamsch: price = 0
             else:
                 Model = apps.get_model("shop", record['model_name'])
@@ -224,12 +226,11 @@ class ShowView(VerifiedAccountMixin, DetailView):
             return format_html(
                 f"""<form method="post" action="{href}">
                     <input type="hidden" name="csrfmiddlewaretoken" value="{self.csrf_token}"/>
-                    <input type="number" class="form-control" style="width: 10ch" placeholder="Anzahl" aria-label="Anzahl" name="amount" value="1" min="1" max="{record['anz']}" step="1" required>
                     <button type="submit" class="btn btn-sm btn-danger" name="use">verbrauchen</button>
                     {sell_btn if price else ''}
                 </form>"""
             )
-        
+
         @staticmethod
         def get_queryset(char: Charakter, RelShopQS: QuerySet[models.Model], field_names: list[str]) -> list:
             try:
@@ -242,7 +243,7 @@ class ShowView(VerifiedAccountMixin, DetailView):
                     .annotate(
                         model_name=Value("Ramsch"),
                         art=Value(RelShopQS.model._meta.verbose_name),
-                        
+
                         item__pk=F("pk"),
                         item__icon=Value(""),
                         item__name=F("item"),
@@ -284,9 +285,9 @@ class ShowView(VerifiedAccountMixin, DetailView):
     def get(self, request, *args, **kwargs):
         if not self.request.user.has_perm(CustomPermission.SPIELLEITUNG.value) and not Charakter.objects.filter(pk=kwargs["pk"], eigentümer=self.request.spieler).exists():
             return redirect("character:index")
-        
+
         return super().get(request, *args, **kwargs)
-    
+
 
     def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
         context = super().get_context_data(**kwargs)
@@ -327,7 +328,7 @@ class ShowView(VerifiedAccountMixin, DetailView):
             **self.get_nah_fernkampf(char),
             **self.get_effekte(char),
         }
-    
+
 
     def get_personal(self, char):
         gfs = f"<a class='text-white' href='{reverse('wiki:stufenplan', args=[char.gfs.id])}'>{char.gfs.titel}</a>" if char.gfs is not None else '-'
@@ -335,7 +336,7 @@ class ShowView(VerifiedAccountMixin, DetailView):
         further_notes = ""
         if char.no_MA_MG: further_notes = Charakter.no_MA_MG.field.verbose_name + "\n\n"
         elif char.no_MA: further_notes = Charakter.no_MA.field.verbose_name + "\n\n"
-        
+
         fields = [
                 ["Name", char.name],
                 ["Gfs (Stufe)", format_html(f"{gfs} ({char.skilltree_stufe})")],
@@ -383,7 +384,7 @@ class ShowView(VerifiedAccountMixin, DetailView):
         return {
             "resources__fields": [[k, v if v else 0] for k, v in fields]
         }
-    
+
     def get_calculated(self, char):
         MA_relattr = self._rel_attribute["MA"]
         MA_raw = MA_relattr.aktuellerWert if MA_relattr.aktuellerWert_fix is None else MA_relattr.aktuellerWert_fix
@@ -524,7 +525,7 @@ class ShowView(VerifiedAccountMixin, DetailView):
             "hp__k_fields": fields_khp,
             "hp__g_fields": fields_ghp,
         }
-    
+
     def get_spF_wF(self, char):
         attr = {attr_titel: rel.aktuell() for attr_titel, rel in self._rel_attribute.items()}
         fert = {rel.fertigkeit.titel: attr[rel.fertigkeit.attribut.titel] + self._gruppen_fg[rel.fertigkeit.gruppe] + rel.fp + rel.fp_bonus for rel in char.relfertigkeit_set.all()}
@@ -544,7 +545,7 @@ class ShowView(VerifiedAccountMixin, DetailView):
 
             def render_korrektur(self, value, record):
                 return math.floor(sum([fert[fert_name] for fert_name in record.fertigkeiten_names.split(";")]) / 2 + 0.5)
-            
+
             def render_w20_probe(self, value, record):
                 return sum([attr[attr_name] for attr_name in record.attribute.split(" + ")]) -5 + record.wp
 
@@ -561,7 +562,7 @@ class ShowView(VerifiedAccountMixin, DetailView):
 
             def render_gesamt(self, value, record):
                 return sum([attr[attr_name] for attr_name in record.attribute.split(" + ")])
-            
+
             def render_schwellwert(self, value, record):
                 return sum([
                     *[attr[attr_name] for attr_name in record.attribute.split(" + ")],
@@ -694,7 +695,6 @@ class ShowView(VerifiedAccountMixin, DetailView):
     def get_inventory(self, char):
 
         table_fields = OrderedDict(
-            anz = tables.Column(),
             item__icon = tables.Column(verbose_name=""),
             item__name = tables.Column(verbose_name="Name"),
             stufe = tables.Column(),
@@ -714,7 +714,7 @@ class ShowView(VerifiedAccountMixin, DetailView):
 
         # RelRamsch
         objects += ShowView.ItemTable.get_queryset(char, char.relramsch_set, table_fields.keys())
-            
+
         return {
             "inventory__table": ShowView.ItemTable(
                 sorted(objects, key=lambda o: o["item__name"].lower()),
@@ -732,7 +732,7 @@ class ShowView(VerifiedAccountMixin, DetailView):
             def render_item__beschreibung(self, value):
                 regex = "Tier [0IVX]+:"
                 return format_html(re.sub(regex, lambda match: f"<br><b>{match.group(0)}</b>", value))
-            
+
             def render_learned(self, value):
                 return "✔" if value else "✖"
 
@@ -759,7 +759,6 @@ class ShowView(VerifiedAccountMixin, DetailView):
 
     def get_ritual(self, char):
         table_fields = OrderedDict(
-            anz = tables.Column(),
             item__icon = tables.Column(verbose_name=""),
             item__name = tables.Column(verbose_name="Name"),
             stufe = tables.Column(),
@@ -782,7 +781,6 @@ class ShowView(VerifiedAccountMixin, DetailView):
             class Meta(ShowView.ItemTable.Meta): pass
 
         table_fields = OrderedDict(
-            anz = tables.Column(),
             item__icon = tables.Column(verbose_name=""),
             item__name = tables.Column(verbose_name="Name"),
             stufe = tables.Column(),
@@ -865,11 +863,11 @@ class HistoryView(VerifiedAccountMixin, tables.SingleTableMixin, TemplateView):
     template_name = "character/history.html"
     model = Log
     table_class=Table
-    
+
     def get_table_data(self):
         char = get_object_or_404(Charakter, pk=self.kwargs["pk"])
         return Log.objects.prefetch_related("spieler").filter(char=char, art__in=("s", "u", "i", "j", "l", "q", "w"))
-    
+
 
     def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
         char = get_object_or_404(Charakter.objects.prefetch_related("card"), pk=self.kwargs["pk"])
@@ -879,13 +877,13 @@ class HistoryView(VerifiedAccountMixin, tables.SingleTableMixin, TemplateView):
             topic = "Historie",
             app_index=char.name,
             app_index_url=reverse("character:show", args=[char.id]),
-            
+
             priotable=char.processing_notes["priotable"] if "priotable" in char.processing_notes else None,
 
             card=char.card,
             transactions = char.card.get_transactions().annotate(
                 card_uuid=Case(When(sender=char.card, then=F("receiver")), default=F("sender")),
-                
+
                 card_name=Subquery(Card.objects.filter(pk=OuterRef("card_uuid")).values("name")[:1]),
                 card=Case(When(card_name=None, then=Subquery(Card.objects.filter(pk=OuterRef("card_uuid")).values("char__name")[:1])), default=F("card_name")),
 
@@ -901,7 +899,7 @@ def delete_char(request, pk):
     qs = Charakter.objects.filter(pk=pk)
     if not request.user.has_perm(CustomPermission.SPIELLEITUNG.value): qs = qs.filter(eigentümer=request.spieler)
     char = qs.first()
-    
+
     # cannot find char
     if not char:
         messages.error(request, "Es ist nicht dein Charakter, den du löschen willst oder er existiert gar nicht.")
@@ -921,16 +919,16 @@ def delete_char(request, pk):
 def edit_tag(request, pk):
 
     # assert user requesting to edit the chars of a tag
-    tag = Tag.objects.filter(pk=pk, spieler=request.spieler).first()
+    tag = CharTag.objects.filter(pk=pk, spieler=request.spieler).first()
     if not tag:
         messages.error(request, "Das ist nicht dein Tag.")
         return redirect("character:index")
-    
+
     # get all selected chars for the tag
     char_ids = [int(k.replace(f"tag-{tag.id}-char-", "")) for k, v in request.POST.items() if v == "on" and re.match(fr"^tag\-{tag.id}\-char\-\d+$", k)]
     chars = Charakter.objects.filter(id__in=char_ids)
     if not request.user.has_perm(CustomPermission.SPIELLEITUNG.value): chars = chars.filter(eigentümer=request.spieler)
-    
+
     # set chars to db
     tag.charakter_set.set(chars)
 
@@ -942,8 +940,8 @@ def edit_tag(request, pk):
 def delete_tag(request, pk):
 
     # assert user requesting to edit the chars of a tag
-    tag = Tag.objects.filter(pk=pk, spieler=request.spieler).first()
-    num_tags_and_chars_deleted = Tag.objects.filter(pk=pk, spieler=request.spieler).delete()[0]
+    tag = CharTag.objects.filter(pk=pk, spieler=request.spieler).first()
+    num_tags_and_chars_deleted = CharTag.objects.filter(pk=pk, spieler=request.spieler).delete()[0]
     if num_tags_and_chars_deleted == 0:
         messages.error(request, "Der Tag existiert nicht.")
         return redirect("character:index")
@@ -979,10 +977,10 @@ def add_ramsch(request, pk):
         char=relramsch_item.char,
         art="q", # Inventar-Item angelegt
         kosten="",
-        notizen=f"{relramsch_item.anz}x {relramsch_item.item}",
+        notizen=f"{relramsch_item.item}",
     )
 
-    messages.success(request, f"{relramsch_item.anz}x {relramsch_item.item} angelegt")
+    messages.success(request, f"{relramsch_item.item} angelegt")
     return redirect(reverse("character:show", args=[pk]))
 
 
@@ -1006,7 +1004,7 @@ def spend_money(request, pk):
     except:
         messages.error(request, format_html(f"Geld ausgeben hat nicht geklappt {form.errors if form else ''}"))
         return redirect(reverse("character:show", args=[pk]))
-    
+
     # spend money
     card = form.cleaned_data["sender"]
     card.money -= form.cleaned_data["amount"]
@@ -1022,7 +1020,7 @@ def spend_money(request, pk):
 
     # add ramsch
     if form.cleaned_data["add_to_inventory"]:
-        RelRamsch.objects.create(char=char, anz=1, item=form.cleaned_data["reason"])
+        RelRamsch.objects.create(char=char, item=form.cleaned_data["reason"])
 
     # log
     Log.objects.create(
@@ -1058,7 +1056,7 @@ def remove_sp(request, pk):
     if char.sp_fix is not None or char.sp < 1:
         messages.error(request, "Keine SP vorhanden")
         return redirect(reverse("character:show", args=[pk]))
-    
+
     # spend SP
     char.sp -= 1
     char.save(update_fields=["sp"])
@@ -1101,21 +1099,13 @@ def _decrease_anz_relshop(request, relshop_model: str, rel_item_pk: int):
         messages.error(request, "Item konnte nicht im Inventar gefunden werden.")
         return {"success": False, "redirect": redirect("character:index")}
 
-    if rel_shop.anz < amount:
-        messages.error(request, "Zu wenige Items im Inventar gefunden.")
-        return {"success": False, "redirect": redirect("character:index")}
-
     char = rel_shop.char
     item_name = rel_shop.item.name if issubclass(Model, RelShop) else rel_shop.item
     item = rel_shop.item._meta.model.objects.annotate_price().get(pk=rel_shop.item.pk) if issubclass(Model, RelShop) else rel_shop.item
     stufe = rel_shop.stufe or 1 if issubclass(Model, RelShop) else 1
 
     # remove item
-    if rel_shop.anz == amount:
-        rel_shop.delete()
-    else:
-        rel_shop.anz -= amount
-        rel_shop.save(update_fields=["anz"])
+    rel_shop.delete()
 
     return {"success": True, "stufe": stufe, "amount": amount, "char": char, "item_name": item_name, "item": item}
 
@@ -1135,7 +1125,7 @@ def remove_relshop(request, relshop_model, pk):
 
             # 40% of cheapest price
             price = int((curr_price * .4) + .5) * res["amount"]
-        
+
         # receive money
         card = res["char"].card
         card.money += price
@@ -1254,11 +1244,11 @@ class CreateCharacterView(VerifiedAccountMixin, CopiesCharsMixin, CreateView):
             app_index_url=reverse("character:index"),
             **self.get_formsets_for_context(),
         )
-    
+
     def get(self, request, *args, **kwargs):
         messages.info(request, "Felder, die auf '_fix' enden sind erstmal leer (nicht 0, sondern leer!). Sie sind für Fixwerte gedacht, z.B. 0 auf 'konzentration_fix' bei Nachteil Insomnie.")
         return super().get(request, *args, **kwargs)
-    
+
 
     def form_valid(self, form):
         context = self.get_formsets_for_context()
@@ -1281,7 +1271,7 @@ class CreateCharacterView(VerifiedAccountMixin, CopiesCharsMixin, CreateView):
                 if non_form_errors: messages.error(self.request, format_html(non_form_errors))
 
                 return render(self.request, self.template_name, {**self.get_context_data(), **context})
-  
+
 
             messages.success(self.request, "Charakter ist nun übernommen")
             # create char in db
@@ -1313,3 +1303,146 @@ class CreateCharacterView(VerifiedAccountMixin, CopiesCharsMixin, CreateView):
 
     def get_success_url(self):
         return reverse('character:show', kwargs={'pk': self.object.pk})
+
+
+class EditUpgrdes(VerifiedAccountMixin, SpielleitungOnlyMixin, TemplateView):
+    model = Charakter
+    template_name = "character/edit_upgrades.html"
+
+    def setup(self, request, *args, **kwargs):
+        res = super().setup(request, *args, **kwargs)
+        self.object = Charakter.objects.get(pk=self.kwargs["pk"])
+        return res
+
+    def get_forms(self, item, data=None) -> list[RelUpgradeForm, BaseInlineFormSet, list[BaseInlineFormSet]]:
+        model_name = item._meta.model_name  # model_name of BaseShop instance belonging to item
+
+        RelUpgrade = apps.get_model("character", f"relupgrade{model_name}")
+        relUpgrade, _ = RelUpgrade.objects.get_or_create(item=item, char=self.object)
+
+        OwnUpgrade = apps.get_model("character", f"ownupgrade{model_name}")
+        OwnUpgradeFormSet = inlineformset_factory(RelUpgrade, OwnUpgrade, form=get_OwnUpgradeForm(OwnUpgrade), extra=1)
+
+        upgradeslotformsets = []
+
+        # prep UpgradeSlotFormSet
+        RelItem = apps.get_model("character", f"rel{model_name}")
+        UpgradeSlot = apps.get_model("character", f"upgradeslot{model_name}")
+        UpgradeSlotFormSet = inlineformset_factory(RelItem, UpgradeSlot, form=get_UpgradeSlotForm(UpgradeSlot), extra=1)
+        for relitem in getattr(item, f"rel{model_name}_set").prefetch_related("item__slots__tag", "upgradeslot_set__upgrade", "upgradeslot_set__slot__tag").filter(char=self.object):
+            upgradeslotformsets.append(UpgradeSlotFormSet(data=data, instance=relitem, queryset=relitem.upgradeslot_set.select_related("slot", "upgrade", "relitem__item"), prefix=f"upgradeslot-{model_name}-{relitem.pk}"))
+
+
+        # important things to build up and validate
+        return [
+            RelUpgradeForm(model=RelUpgrade, data=data, instance=relUpgrade, prefix=f"relupgrade-{model_name}-{item.pk}"),
+            OwnUpgradeFormSet(data=data, instance=relUpgrade, queryset=relUpgrade.own_upgrades.select_related("upgrade", f"relUpgrade__item"), prefix=f"ownupgrade-{model_name}-{item.pk}"),
+            upgradeslotformsets,
+        ]
+
+
+    def get_context_data(self, relUpgradeForm=None, ownUpgradeFormSet=None, upgradeSlotFormSets=None, *args, **kwargs):
+        formsets = []
+        for m in shopmodel_upgrade_list:
+
+            model_name = m._meta.model_name
+
+            item_qs = m.objects.prefetch_related(f"rel{model_name}_set", f"relupgrade{model_name}_set")\
+                .filter(Q(**{f"rel{model_name}__char": self.object}) | Q(**{f"relupgrade{model_name}__char": self.object}))\
+                .distinct()
+
+            data = []
+            for item in item_qs:
+                if not relUpgradeForm or relUpgradeForm.instance.item != item:
+                    relUpgradeForm, ownUpgradeFormSet, upgradeSlotFormSets = self.get_forms(item)
+
+                data.append({
+                    "item": item,
+                    "post_link": reverse("character:upgrades_post", args=[self.object.pk, m, item.pk]),
+                    "relUpgradeForm": relUpgradeForm,
+                    "ownUpgradeFormSet": ownUpgradeFormSet,
+                    "upgradeSlotFormSets": upgradeSlotFormSets,
+                })
+
+            formsets.append({
+                "modelname": m._meta.verbose_name_plural,
+                "data": data,
+            })
+
+
+        return super().get_context_data(
+			*args, **kwargs,
+			topic = "Upgrades",
+			app_index = self.object.name,
+			app_index_url = reverse("character:show", args=[self.object.pk]),
+
+            formsets = formsets,
+        )
+
+    def post(self, *args, **kwargs):
+        item = get_object_or_404(kwargs["shop_model"], pk=kwargs["item_pk"])
+        form, ownupgradeformset, upgradeslotformsets = self.get_forms(item, self.request.POST)
+
+        # clean
+        form.full_clean()
+        for f in upgradeslotformsets:
+            f.clean()
+        ownupgradeformset.clean()
+
+        # all valid?
+        if not form.is_valid() or not ownupgradeformset.is_valid() or False in [f.is_valid() for f in upgradeslotformsets]:
+            messages.error(self.request, "Etwas hat nicht geklappt :(")
+
+            return render(self.request, self.template_name, self.get_context_data(
+                relUpgradeForm=form, ownUpgradeFormSet=ownupgradeformset, upgradeSlotFormSets=upgradeslotformsets
+            ))
+
+        # check if item & char of model instances fits to the url params
+        if form.instance.char != self.object or form.instance.item != item or\
+            True in [f.instance.relUpgrade.char != self.object or f.instance.relUpgrade.item != item for f in ownupgradeformset.forms] or\
+            True in [True in [f.instance.relitem.char != self.object or f.instance.relitem.item != item for f in fs.forms] for fs in upgradeslotformsets]:
+
+            messages.error(self.request, f"Falscher Charakter oder falsches Item entdeckt. Lade neu")
+            return redirect(reverse("character:upgrades", args=[self.object.pk]))
+
+
+        # all valid for now. save everything and try the rest.
+        try:
+            with transaction.atomic():
+                relUpgrade = form.save()
+                ownUpgrades = ownupgradeformset.save()  # checks are included in checks for relUpgrade
+                upgradeSlots = [(uslot, formset, i) for formset in upgradeslotformsets for i, uslot in enumerate(formset.save())]
+
+                # check relational constraints after save
+                try:
+                    relUpgrade.check_custom_m2m_constraints()
+                except ValidationError as e:
+                    form.add_error(None, e)
+                    raise AssertionError()
+
+                for slot, formset, i in upgradeSlots:
+                    try:
+                        slot.check_custom_m2m_constraints()
+                    except ValidationError as e:
+                        formset.forms[i].add_error(None, e)
+                        raise AssertionError()
+
+        except AssertionError:
+            messages.error(self.request, "Etwas hat nicht geklappt :(")
+
+            return render(self.request, self.template_name, self.get_context_data(
+                relUpgradeForm=form, ownUpgradeFormSet=ownupgradeformset, upgradeSlotFormSets=upgradeslotformsets
+            ))
+
+
+        # log changes
+        LogEntry.objects.log_action(
+            user_id=self.request.user.id,
+            content_type_id=ContentType.objects.get_for_model(relUpgrade._meta.model).pk,
+            object_id=relUpgrade.id,
+            object_repr=relUpgrade.__str__(),
+            action_flag=CHANGE
+        )
+
+        messages.success(self.request, f"Speichern von {item} hat geklappt")
+        return redirect(reverse("character:upgrades", args=[self.object.pk]))

@@ -4,6 +4,7 @@ from django.contrib import admin, messages
 from django.db.models.query import QuerySet
 from django.forms.widgets import Widget as Widget
 from django.http.request import HttpRequest
+from django.urls import reverse
 from django.utils.html import format_html
 
 from effect.models import RelEffect
@@ -185,7 +186,7 @@ class RelRamschInLine(RelInlineAdmin):
 
 ################## Shop ############################
 
-def get_RelShopInLine(m: type[RelShop], f = ["anz", "item", "notizen"]) -> type[admin.TabularInline]:
+def get_RelShopInLine(m: type[RelShop], f = ["item", "notizen"]) -> type[admin.TabularInline]:
     class RelShopInLine(RelInlineAdmin):
         model = m
         fields = f
@@ -237,13 +238,13 @@ class CharakterAdmin(admin.ModelAdmin):
         get_RelShopInLine(RelNahkampfwaffe),
         get_RelShopInLine(RelMunition),
         get_RelShopInLine(RelFernkampfwaffe),
-        get_RelShopInLine(RelMagische_Ausrüstung, ["anz", "stufe", "item", "notizen"]),
-        get_RelShopInLine(RelRitual_Rune, ["anz", "stufe", "item", "notizen"]),
+        get_RelShopInLine(RelMagische_Ausrüstung, ["stufe", "item", "notizen"]),
+        get_RelShopInLine(RelRitual_Rune, ["stufe", "item", "notizen"]),
         get_RelShopInLine(RelRüstung),
-        get_RelShopInLine(RelTechnik, ["anz", "stufe", "item", "notizen", "selbst_eingebaut"]),
+        get_RelShopInLine(RelTechnik, ["stufe", "item", "notizen", "selbst_eingebaut"]),
         get_RelShopInLine(RelFahrzeug),
-        get_RelShopInLine(RelEinbaute, ["anz", "stufe", "item", "notizen"]),
-        get_RelShopInLine(RelZauber, ["anz", "item", "tier", "learned", "notizen"]),
+        get_RelShopInLine(RelEinbaute, ["stufe", "item", "notizen"]),
+        get_RelShopInLine(RelZauber, ["item", "tier", "learned", "notizen"]),
         get_RelShopInLine(RelAlchemie),
         get_RelShopInLine(RelTinker),
         get_RelShopInLine(RelBegleiter),
@@ -253,7 +254,7 @@ class CharakterAdmin(admin.ModelAdmin):
         RelEffectInLine
     ]
 
-    list_display = ['image_', 'name', 'eigentümer', "gfs", "ep_stufe", "larp", "in_erstellung"]
+    list_display = ['image_', 'name', 'eigentümer', "gfs", "ep_stufe", "larp", "in_erstellung", "upgrades"]
 
     list_filter = ['in_erstellung', 'larp']
     search_fields = ['name', 'eigentümer__user__username', 'eigentümer__user__first_name', 'eigentümer__user__last_name']
@@ -263,7 +264,10 @@ class CharakterAdmin(admin.ModelAdmin):
 
     def image_(self, obj):
         return format_html(f"<img src='{obj.image.url}' style='max-width: 32px; max-height:32px;' loading='lazy'>") if obj.image else "-"
-    
+
+    def upgrades(self, obj):
+        return format_html(f"<a href='{reverse('character:upgrades', args=[obj.pk])}'>Upgrades bearbeiten</a>")
+
     def get_queryset(self, request) -> QuerySet[Any]:
         return super().get_queryset(request).prefetch_related('eigentümer', "gfs", "tags")
 
