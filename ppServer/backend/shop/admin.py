@@ -31,11 +31,7 @@ def get_InLine(m: type[models.Model]) -> type[admin.TabularInline]:
     return Admin
 
 def get_SlotInLine(m: type[Slot]) -> type[admin.TabularInline]:
-    InLine = get_InLineWithFields(m, ["tag", "num"])
-    class SlotInLine(InLine):
-        def get_queryset(self, request):
-            return self.model.objects.get_queryset()
-    return SlotInLine
+    return get_InLineWithFields(m, ["tag", "num"])
 
 
 ################# BaseAdmin #########################

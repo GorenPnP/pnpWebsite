@@ -140,7 +140,10 @@ class Slot(models.Model):
     objects = PreloadManager()
 
     def __str__(self):
-        return f'{self.item} hat {self.num}x {self.tagnames} Slots'
+        tagnames = getattr(self, 'tagnames', None)
+        if tagnames:
+            return f'{self.item} hat {self.num}x {tagnames} Slots'
+        return f'{self.item} hat {self.num}x Slots'
 
 
 class SlotNahkampfwaffe(Slot):
