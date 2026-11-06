@@ -550,7 +550,7 @@ class CharakterExporter:
         ROW = start_zauberrow
         for r in self.char.relritual_rune_set.prefetch_related("item").all():
             ROW += 1
-            werte_ws.write(f"D{ROW}", r.anz)
+            werte_ws.write(f"D{ROW}", "")
             werte_ws.merge_range(f"E{ROW}:G{ROW}", r.item.name)
             werte_ws.write(f"H{ROW}", f"Stufe {r.stufe}", format_border_right)
         # Talente
@@ -573,7 +573,7 @@ class CharakterExporter:
         werte_ws.merge_range(f"A{ROW}:H{ROW}", "Items", format_ramsch_titel)
         for r in self.char.relitem_set.prefetch_related("item").all():
             ROW += 1
-            werte_ws.write(f"A{ROW}", r.anz, format_border_left)
+            werte_ws.write(f"A{ROW}", "", format_border_left)
             werte_ws.write(f"B{ROW}", r.item.name)
             werte_ws.write(f"H{ROW}", None, format_border_right)
         # Nahkampf-/Wurfwaffen
@@ -581,7 +581,7 @@ class CharakterExporter:
         werte_ws.merge_range(f"A{ROW}:H{ROW}", "Nahkampf-/Wurfwaffen", format_ramsch_titel)
         for r in self.char.relnahkampfwaffe_set.prefetch_related("item").all():
             ROW += 1
-            werte_ws.write(f"A{ROW}", r.anz, format_border_left)
+            werte_ws.write(f"A{ROW}", "", format_border_left)
             werte_ws.write(f"B{ROW}", r.item.name)
             werte_ws.write(f"H{ROW}", None, format_border_right)
         # Fernkampfwaffen
@@ -589,7 +589,7 @@ class CharakterExporter:
         werte_ws.merge_range(f"A{ROW}:H{ROW}", "Fernkampfwaffen", format_ramsch_titel)
         for r in self.char.relfernkampfwaffe_set.prefetch_related("item").all():
             ROW += 1
-            werte_ws.write(f"A{ROW}", r.anz, format_border_left)
+            werte_ws.write(f"A{ROW}", "", format_border_left)
             werte_ws.write_row(f"B{ROW}", [r.item.name, f"Präzi {r.item.präzision}"])
             werte_ws.write(f"H{ROW}", None, format_border_right)
         # Technik
@@ -597,7 +597,7 @@ class CharakterExporter:
         werte_ws.merge_range(f"A{ROW}:H{ROW}", "Technische Geräte", format_ramsch_titel)
         for r in self.char.reltechnik_set.prefetch_related("item").all():
             ROW += 1
-            werte_ws.write(f"A{ROW}", r.anz, format_border_left)
+            werte_ws.write(f"A{ROW}", "", format_border_left)
             werte_ws.write(f"B{ROW}", r.item.name)
             werte_ws.write(f"H{ROW}", None, format_border_right)
         # TODO ?
@@ -608,7 +608,7 @@ class CharakterExporter:
         werte_ws.merge_range(f"A{ROW}:H{ROW}", "Cyber- und Bioware", format_ramsch_titel)
         for r in self.char.releinbaute_set.prefetch_related("item").all():
             ROW += 1
-            werte_ws.write(f"A{ROW}", r.anz, format_border_left)
+            werte_ws.write(f"A{ROW}", "", format_border_left)
             werte_ws.write(f"B{ROW}", r.item.name)
             werte_ws.write(f"H{ROW}", None, format_border_right)
 

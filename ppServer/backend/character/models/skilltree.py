@@ -67,7 +67,7 @@ class GfsSkilltreeEntry(models.Model):
             
             # optional Stufe: Zauberslots, magisches Item
             if self.operation == "z": return f"{self.amount} Zauberslots" + (f" Stufe {self.stufe}" if self.stufe else "")
-            if self.operation == "h": return f"{self.amount} {self.magische_ausrüstung.name}" + (f" Stufe {self.stufe}" if self.stufe else "")
+            if self.operation == "h": return f"{self.magische_ausrüstung.name}" + (f" Stufe {self.stufe}" if self.stufe else "")
 
             # Bonus in Fertigkeit
             if self.operation == "B": return f"+{self.amount} Bonus in {self.fertigkeit.titel}"
@@ -187,9 +187,7 @@ class GfsSkilltreeEntry(models.Model):
 
         # magisches Item
         if self.operation == "h":
-            rel, created = RelMagische_Ausrüstung.objects.get_or_create(item=self.magische_ausrüstung, char=char, stufe=self.stufe)
-            rel.amount += self.amount
-            rel.save(update_fields=["amount"])
+            RelMagische_Ausrüstung.objects.create(item=self.magische_ausrüstung, char=char, stufe=self.stufe)
             return
 
         # Bonus in Fertigkeit

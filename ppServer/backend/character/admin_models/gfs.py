@@ -7,6 +7,7 @@ from django.utils.html import format_html
 
 from core.utils import get_filter, ConcatSubquery
 
+from ..models.base import Spezialfertigkeit, Wissensfertigkeit
 from ..models.gfs import *
 from ..models.skilltree import GfsSkilltreeEntry
 
