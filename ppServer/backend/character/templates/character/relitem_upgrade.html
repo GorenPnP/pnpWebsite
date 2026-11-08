@@ -1,0 +1,264 @@
+{% extends 'base/headed_main.html' %}
+{% load static crispy_forms_tags shop.update_querystring %}
+
+{% block extra-head %}
+<link rel="stylesheet" href="{% static 'shop/css/list.css' %}">
+<style>
+    p {
+        max-width: 60ch;
+    }
+
+    td:first-of-type {
+        font-weight: bold;
+    }
+
+    h2 {
+        margin-top: 1em;
+    }
+
+    .top {
+        grid-template-columns: 35vw 1fr 25vw;
+    }
+
+    .icon-container {
+        max-width: 800px;
+        position: relative;
+
+        .icon {
+            aspect-ratio: 1;
+            width: 100%;
+            object-fit: cover;
+            border-radius: 3px;
+        }
+
+        .ab-stufe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            padding: .25em .5em;
+            background-color: rgba(0, 0, 0, .6);
+            border-radius: 0 0 5px 0;
+            line-height: 1em;
+        }
+    }
+
+
+    .table-container { max-width: 400px; }
+    .item-container {
+        width: 100%;
+        max-width: 70ch;
+    }
+
+    ul.slot-container {
+        padding-block: .2em;
+
+        .hexagon {
+            --hexagon-height: 4.5rem;
+
+            height: var(--hexagon-height);
+            width: calc(var(--hexagon-height) * cos(30deg));
+            flex: 0 0 calc(var(--hexagon-height) * cos(30deg));
+            clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+            background-color: var(--bs-body-color);
+            color: var(--bs-text-color, #000000);
+            opacity: .85;
+
+            display: grid;
+            align-content: center;
+            justify-items: center;
+
+            &.hexagon--2,
+            &.hexagon--3,
+            &.hexagon--4 {
+                grid-template-columns: 1fr 1fr;
+
+            }
+
+            .img-container {
+                width: 100%;
+            }
+
+            img {
+                width: 100%;
+                aspect-ratio: 1;
+                object-fit: cover;
+            }
+        }
+
+        .item-container {  margin: 0; }
+    }
+</style>
+<script src="{% static 'character/js/jquery-3.7.0.slim.min.js' %}"></script>
+<script>
+    // open all modals with invalid forms directly
+    document.addEventListener("DOMContentLoaded", () => {
+        new Set([...document.querySelectorAll("[aria-invalid]")].map(formfield => formfield.closest(".modal"))).forEach(modal => $(modal).modal('show'));
+    });
+</script>
+{% endblock %}
+
+{% block main %}
+<div class="top d-md-grid d-block gap-2">
+    <!-- img -->
+    <div class="icon-container">
+        {% if object.ab_stufe %}<span class="ab-stufe fs-6">ab Stufe {{ object.ab_stufe }}</span>{% endif %}
+
+        <img class="icon"
+            src="{% if object.icon %}{{ object.icon.url }}{% else %}{% static 'res/img/goren_logo.png' %}{% endif %}"
+            loading='lazy'>
+    </div>
+
+    <div class="base-info-container">
+        <!-- item name (with edit & save of RelRamsch in modal) -->
+        <h1>{{ object.name }}{% if rel.stufe %} Stufe {{ rel.stufe }}{% endif %}{% if name_form %}<button type="button" class="ms-2 btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#name-modal">✎</button>{% endif %}</h1>
+        {% if object.firma %}<a class="fs-6 fw-lighter text-muted" href="{% url 'shop:all' %}{% update_querystring firma=object.firma.pk %}">Marke: {{ object.firma.name }}</a>{% endif %}
+        
+        <p>
+            {{ object.beschreibung }}
+            {% if shop_url %}<a class="d-block fs-6 fw-lighter text-muted" href="{{ shop_url }}">-> Shop</a>{% endif %}
+        </p>
+        <p>
+            <!-- notizen (with edit & save in modal) -->
+            Notizen: {{ rel.notizen|default:'-' }}
+            <button type="button" class="ms-2 btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#notizen-modal">✎</button>
+        </p>
+    </div>
+</div>
+
+<h2>Produktdaten</h2>
+
+<div class="table-container table-responsive">
+    <table class="table table-dark table-striped table-hover">
+        <thead class="visually-hidden">
+            <tr><th>Attribut</th><th>Wert</th></tr>
+        </thead>
+        <tbody>
+            {% for field in table_fields %}
+            <tr><td>{{ field.name|title }}</td><td>{{ field.value|default:'-' }}</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% if not object.has_implementation %}
+<p class="text-warn">Achtung! Teile dieses Items sind nictht implementiert !</p>
+{% endif %}
+
+<!-- TODO: implement own slots & upgrades for item -->
+
+{% if slots %}
+<h2>Slots</h2>
+<ul class="slot-container">
+    {% for slot in slots %}
+    
+        {% with ''|center:slot.num as range %}{% for _ in range %}
+        <li class="d-flex my-2 gap-2">
+            <div title="{{ slot.tagnames }}" class="hexagon hexagon--{{ slot.num_tags }}">
+                {% for tag in slot.tags %}
+                {% if tag.icon %}<div class="img-container"><img src="{{ tag.icon.url }}"></div>{% else %}<span>{{ tag.name.0 }}</span>{% endif %}
+                {% endfor %}
+            </div>
+
+            <!-- used upgrade for the slot -->
+            {% for upgrade in slot.upgrades %}
+                {% if forloop.parentloop.counter0 == forloop.counter0 %}
+                {% include 'shop/list_item/upgrade.html' with obj=upgrade %}
+                {% endif %}
+            {% endfor %}
+
+            {% endfor %}{% endwith %}
+        </li>
+    {% endfor %}
+</ul>
+{% endif %}
+
+{% if owned_upgrades %}
+<h2>nicht verteilte Upgrades</h2>
+<ul>
+    {% for upgrade in owned_upgrades %}
+    <li>{{ upgrade.num }}x {% include 'shop/list_item/upgrade.html' with obj=upgrade %}</li>
+    {% endfor %}
+</ul>
+{% endif %}
+
+{% if upgrades %}
+<h2>alle möglichen Upgrades <a class="h5" href="{{ shop_url }}">s. {{ object.name }} im Shop</a></h2>
+<ul>
+    {% for upgrade in upgrades %}
+    <li>{% include 'shop/list_item/upgrade.html' with obj=upgrade %}</li>
+    {% endfor %}
+</ul>
+{% endif %}
+
+
+<!-- TODO display only the owned ones -->
+{% if object.fernkampfwaffe_set or object.munition %}
+<h2>Kunden kauften auch</h2>
+
+<ul>
+    {% for muni in object.munition.annotate_price %}
+    <li>{% include 'shop/list_item/default.html' with obj=muni %}</li>
+    {% endfor %}
+    {% for fwaffe in object.fernkampfwaffe_set.annotate_price %}
+    <li>{% include 'shop/list_item/default.html' with obj=fwaffe %}</li>
+    {% endfor %}
+</ul>
+{% endif %}
+
+
+<div class="fixed-bottom">
+    <footer class="sticky-footer d-flex justify-content-center p-2 mt-5">
+        <form method="post" action="{{ rm_item_url }}">
+            <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}" />
+            <button type="submit" class="btn btn-sm btn-danger" name="use">verbrauchen</button>
+            {% if object.price %}<button type="submit" class="btn btn-sm btn-warning ms-2" name="sell">verkaufen ({{ sell_price }} Dr.)</button>{% endif %}
+        </form>
+    </footer>
+</div>
+
+
+
+
+<!-- Notizen - Modal -->
+<div class="modal fade" id="notizen-modal" tabindex="-1" aria-labelledby="notizen-modal-label" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="notizen-modal-label">Notizen ändern</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Abbrechen"></button>
+            </div>
+            <div class="modal-body">
+                <form method="post" id="notizen-form">
+                    {% crispy notizen_form %}
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                <button type="submit" class="btn btn-primary" form="notizen-form">Speichern</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if name_form %}
+<!-- Item name - Modal -->
+<div class="modal fade" id="name-modal" tabindex="-1" aria-labelledby="name-modal-label" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="name-modal-label">Itemnamen ändern</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Abbrechen"></button>
+            </div>
+            <div class="modal-body">
+                <form method="post" id="name-form">
+                    {% crispy name_form %}
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                <button type="submit" class="btn btn-primary" form="name-form">Speichern</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

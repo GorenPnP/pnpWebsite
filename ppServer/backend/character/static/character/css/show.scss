@@ -98,3 +98,8 @@ table { overflow-x: auto; }
         border-top: 4px solid #ddd;
     }
 }
+
+.accordion-dark {
+    --bs-accordion-body-padding-x: .5rem;
+    --bs-accordion-body-padding-y: .5rem;
+}

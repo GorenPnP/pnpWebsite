@@ -1,0 +1,54 @@
+{% load static shop.get_detail_url %}
+
+<div class="item-container">
+    <!-- img -->
+     <div class="icon-container">        
+        <img class="icon" src="{% if obj.icon %}{{ obj.icon.url }}{% else %}{% static 'res/img/goren_logo.png' %}{% endif %}" loading='lazy'>
+     </div>
+
+    <!-- information  -->
+     <div class="information">
+        <div class="info-row">
+            <a class="titel" href="{{ detail_url }}">{{ obj.name|default:obj }}{% if rel.stufe %} Stufe {{ rel.stufe }}{% endif %}</a>
+            {% if num_slots %}<span class="d-flex gap-1">
+                        
+                {% with ''|center:num_slots as range %}
+                {% for _ in range %}
+                
+                    {% if forloop.counter <= num_used_slots %}
+                    <div title="Slot #{{ forloop.counter }}, benutzt" class="hexagon hexagon--filled"></div>
+                    {% else %}
+                    <div title="Slot #{{ forloop.counter }}" class="hexagon"></div>
+                    {% endif %}
+
+                {% endfor %}{% endwith %}
+            </span>{% endif %}
+        </div>
+        <div class="info-row">
+            {% if model_verbose_name %}<em class="model">{{ model_verbose_name }}</em>{% endif %}
+            {% if model_verbose_name and obj.kategorie %}<em>&nbsp;-&nbsp;</em>{% endif %}
+            {% if obj.kategorie %}<em class="kategory">{{ obj.get_kategorie_display }}</em>{% endif %}
+            {% if model_verbose_name or obj.kategorie %}<em>.</em>&nbsp;{% endif %}
+            <span class="description">{{ obj.beschreibung|truncatechars_html:150 }}</span>
+        </div>
+        {% block above_price %}
+        {% if obj.schaden or obj.schadensart or obj.händigkeit or obj.wirkbereich %}<div class="info-row">
+            {% if obj.händigkeit %}{{ obj.get_händigkeit_display }}{% endif %}
+            {% if obj.schaden and obj.schaden is not 0 %}{{ obj.schaden }}{% endif %}
+            {% if obj.schadensart %}{{ obj.get_schadensart_display|default_if_none:"Schaden" }}{% endif %}
+            {% if obj.wirkbereich %}Wirkbereich: {{ obj.wirkbereich }}{% endif %}
+        </div>{% endif %}
+        {% endblock %}
+        <div class="info-row info-row--price d-block">
+            {% if notizen %}Notizen: {{ notizen }}{% endif %}
+            {% if num_used_slots %}<div class="text-muted" style="font-size: .7rem">*alle Angaben ohne Effekte von Upgrades</div>{% endif %}
+        </div>
+        <div class="info-row">
+            {% if detail_count %}<span class="badge bg-primary rounded-pill">{{ detail_count }} x</span>
+            {% else %}
+            <a class="btn btn-sm btn-outline-light" href="{{ detail_url }}">Details</a>
+            {% endif %}
+        </div>
+        {% block below_info %}{% endblock %}
+    </div>
+</div>

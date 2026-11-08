@@ -1,0 +1,73 @@
+{% load static character.filter_relmunition %}
+
+{% if relitems %}
+<link rel="stylesheet" href="{% static 'character/css/relitem_list.css' %}">
+
+
+{% regroup relitems by item as relitem_list %}
+
+<ul class="list-unstyled">
+    {% for relitem in relitem_list %}
+    {% with relitem.list.0 as first_rel %}
+    <li>
+        <!-- one rel of the item kind -->
+        {% if relitem.list|length == 1 %}
+        {% include first_rel.template with obj=first_rel.item rel=first_rel model_verbose_name=first_rel.model_verbose_name detail_url=first_rel.detail_url notizen=first_rel.notizen num_slots=first_rel.num_slots num_used_slots=first_rel.num_used_slots usable_relmunition=relmunition %}
+        
+        <!-- multiple rels of the item kind. Use an accordion -->
+        {% else %}
+            <div class="accordion accordion-flush accordion-dark accordion--relitem" id="accordion-{{ first_rel.model_name }}-{{ first_rel.pk }}">
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="flush-heading-{{ first_rel.model_name }}-{{ first_rel.pk }}">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#flush-{{ first_rel.model_name }}-{{ first_rel.pk }}" aria-expanded="false" aria-controls="flush-{{ first_rel.model_name }}-{{ first_rel.pk }}">
+                            {% include first_rel.template with obj=relitem.grouper model_verbose_name=first_rel.model_verbose_name detail_count=relitem.list|length %}
+                        </button>
+                    </h2>
+                    <div id="flush-{{ first_rel.model_name }}-{{ first_rel.pk }}" class="accordion-collapse collapse" aria-labelledby="flush-heading-{{ first_rel.model_name }}-{{ first_rel.pk }}" data-bs-parent="#accordion-{{ first_rel.model_name }}-{{ first_rel.pk }}">
+                        <div class="accordion-body">
+
+                            <ol class="list-group list-group-numbered list-group-flush">
+                                {% for rel in relitem.list %}
+                                <li class="list-group-item list-group-item-dark d-flex justify-content-between align-items-start">
+                                    <div class="ms-2 me-auto">
+                                        <div class="fw-bold">{{ relitem.grouper.name }}{% if rel.stufe %} Stufe {{ rel.stufe }}{% endif %}</div>
+                                            {% if rel.num_slots %}<span class="d-flex gap-1">
+                
+                                                {% with ''|center:rel.num_slots as range %}
+                                                {% for _ in range %}
+                                                
+                                                    {% if forloop.counter <= rel.num_used_slots %}
+                                                    <div title="Slot #{{ forloop.counter }}, benutzt" class="hexagon hexagon--filled"></div>
+                                                    {% else %}
+                                                    <div title="Slot #{{ forloop.counter }}" class="hexagon"></div>
+                                                    {% endif %}
+
+                                                {% endfor %}{% endwith %}
+                                            </span>{% endif %}
+                                        
+                                        {% if rel.notizen %}Notizen: {{ rel.notizen }}{% endif %}
+                                    </div>
+                                    <a class="btn btn-outline-dark" href="{{ first_rel.detail_url }}">Details</a>
+                                </li>
+                                {% endfor %}
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+
+            <!-- add fitting munition to fernkampfwaffe if owned -->
+
+            {% if first_rel.model_name == 'fernkampfwaffe' and relmunition %}
+            <div class="appended-munition">
+                <h3 class="ps-3 pt-2 h5">passende Munition zu {{ first_rel.item.name }}</h3>
+                {% include 'character/_relitem_list.html' with relitems=relmunition|filterRelMunition:first_rel %}
+            </div>
+            {% endif %}
+        </li>
+    {% endwith %}
+    {% endfor %}
+</ul>
+{% endif %}

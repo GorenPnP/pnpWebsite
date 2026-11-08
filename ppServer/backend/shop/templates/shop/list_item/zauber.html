@@ -2,6 +2,9 @@
 
 {% block above_price %}
     <div class="info-row">
-        {{ obj.schaden|default:0 }} {{ obj.schadensart }}, kostet {{ obj.manaverbrauch|default:0 }} Mana
+        {% if obj.schaden and obj.schaden != '0' and obj.schaden != '-' %}
+            {{ obj.schaden }} {{ obj.get_schadensart_display|default_if_none:"Schaden" }},
+        {% endif %}
+        kostet {{ obj.manaverbrauch|default:0 }} Mana
     </div>
 {% endblock %}

@@ -165,7 +165,7 @@ class RelEffect(AbstractEffect):
     source_shopRüstung = models.ForeignKey("character.RelRüstung", on_delete=models.CASCADE, null=True, blank=True)
     source_shopEinbaute = models.ForeignKey("character.RelEinbaute", on_delete=models.CASCADE, null=True, blank=True)
 
-    is_active = models.BooleanField(default=True, null=False, blank=False)
+    is_active = models.BooleanField(default=True, null=False, blank=False, verbose_name="ist aktiv")
 
     def clean(self) -> None:
         super().clean()

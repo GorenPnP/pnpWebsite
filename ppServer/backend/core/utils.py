@@ -3,7 +3,7 @@ from operator import or_
 
 from django.contrib import admin
 from django.db import models
-from django.db.models import F, Case, CharField, Func, QuerySet, fields, Subquery, Value, When, Window, Avg, Q, Model
+from django.db.models import F, Case, CharField, Count, Func, QuerySet, fields, Subquery, Value, When, Window, Avg, Q, Model
 from django.db.models.aggregates import Sum
 
 def get_filter(model: models.Model, model_field: str, fields: list[str]):
@@ -86,16 +86,27 @@ class ConcatSubquery(Subquery):
         return sql, sql_params + (self.separator, )
 
 
-class AvgSubquery(Subquery):
-
-    def __init__(self, queryset, field, **kwargs):
+class ExpressionSubquery(Subquery):
+    def __init__(self, queryset, field, expression, **kwargs):
         queryset = queryset.annotate(
             total=Window(
-                expression=Avg(field),
+                expression=expression(field),
             )
         ).values('total')[:1]
 
         super().__init__(queryset, fields.IntegerField(), **kwargs)
+
+class AvgSubquery(ExpressionSubquery):
+    def __init__(self, queryset, field, **kwargs):
+        super().__init__(queryset, field, Avg)
+
+class SumSubquery(ExpressionSubquery):
+    def __init__(self, queryset, field, **kwargs):
+        super().__init__(queryset, field, Sum)
+
+class CountSubquery(ExpressionSubquery):
+    def __init__(self, queryset, **kwargs):
+        super().__init__(queryset, "pk", Count)
 
 
 def display_value(choices, field):

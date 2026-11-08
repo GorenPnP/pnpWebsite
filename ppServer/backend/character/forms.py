@@ -556,3 +556,18 @@ def get_UpgradeSlotForm(m: type[UpgradeSlot]) -> forms.ModelForm:
         #         return res
 
     return UpgradeSlotForm
+
+
+def get_RelShopNotizenForm(m: type[RelShop]):
+
+    @crispy(form_tag=False)
+    class RelShopNotizenForm(forms.ModelForm):
+        class Meta:
+            fields = ["notizen"]
+            model = m
+    return RelShopNotizenForm
+
+class RelRamschNameForm(forms.ModelForm):
+    class Meta:
+        model = RelRamsch
+        fields = ["item"]

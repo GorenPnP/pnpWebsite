@@ -1,0 +1,47 @@
+@import url('/static/shop/css/list_item.css');
+
+.accordion--relitem {
+    border-radius: 5px;
+
+    .accordion-header {
+        .item-container { border: none; }
+        .btn-outline-light { display: none; }
+
+        .accordion-button { padding: 0 var(--bs-accordion-btn-padding-x) 0 0; }
+    }
+}
+
+.appended-munition ul {
+    list-style: disc;
+    padding-left: 2rem;
+}
+
+
+.hexagon {
+    --hexagon-height: 0.75rem;
+
+    height: var(--hexagon-height);
+    width: calc(var(--hexagon-height) * cos(30deg));
+    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+    color: var(--bs-list-group-bg, var(--bs-text-color), #000000);
+    background-color: var(--bs-list-group-color, var(--bs-body-color));
+    opacity: .5;
+
+    font-size: calc(var(--hexagon-height) * 0.7);
+    
+    &.hexagon--filled {
+        opacity: 1;
+        display: flex;
+        position: relative;
+
+        &::after {
+            content: '✓';
+            position: absolute;
+            height: 100%;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+    }
+}

@@ -1,18 +1,19 @@
 import locale, re, math
-from collections import OrderedDict
 from typing import Any, Dict
 
 from django.apps import apps
 from django.contrib import messages
 from django.contrib.admin.models import ContentType, LogEntry, CHANGE
+from django.core.exceptions import FieldDoesNotExist
 from django.db import transaction
-from django.db.models import BooleanField, ForeignKey, ManyToManyField, TextField, Value, F, CharField, OuterRef, Case, When, Count
-from django.db.models.functions import Concat
+from django.db.models import Q, ManyToManyField, ManyToManyRel, ManyToOneRel, Value, F, CharField, OuterRef, Case, When, Count
+from django.db.models.functions import Concat, Coalesce
 from django.db.utils import IntegrityError
 from django.forms.models import BaseInlineFormSet, inlineformset_factory
 from django.http import HttpResponseRedirect, JsonResponse
 from django.middleware.csrf import get_token
 from django.shortcuts import render, redirect, get_object_or_404
+from django.template import TemplateDoesNotExist, loader as TemplateLoader
 from django.urls import reverse
 from django.utils.html import format_html
 from django.views.decorators.http import require_GET, require_POST
@@ -30,7 +31,7 @@ from log.create_log import render_number
 from log.models import Log
 from core.decorators import verified_account
 from core.mixins import VerifiedAccountMixin, SpielleitungOnlyMixin, CopiesCharsMixin
-from core.utils import ConcatSubquery, display_value
+from core.utils import ConcatSubquery, CountSubquery, SumSubquery
 from shop.views.list import shopmodel_list, shopmodel_upgrade_list
 
 from .enums import gruppen_enum
@@ -41,95 +42,6 @@ from .models.relshop import RelRamsch, RelShop
 from .permissions import *
 
 locale.setlocale(locale.LC_NUMERIC, "de_DE.utf8")
-
-
-def annotate_other(Model: models.Model, other_fieldnames: list[str]) -> dict[str, any]:
-
-    # get all fields displayed on "other"
-    other_fields = [field for field in Model._meta.get_fields() if field.name in other_fieldnames]
-
-    # qs-prep: change display in "other"-cell of table at db level (to make it searchable)
-    other_concat_parts = []
-    displays_of_fields_in_other = {}
-    for field in other_fields:
-        queryname = f"{field.name}_display"
-
-        # prepare EACH FIELD used in "other" for concat later
-        other_concat_parts.append(Value(f"{field.verbose_name}: " if not other_concat_parts else f",\n {field.verbose_name}: "))
-        other_concat_parts.append(queryname)
-
-
-        choices = getattr(field, "choices", []) or []
-        # use verbose text of choice/enum
-        if choices:
-            displays_of_fields_in_other[queryname] = display_value(choices, field.name)
-
-        # translate boolean field values to german
-        elif field.__class__ == BooleanField:
-            displays_of_fields_in_other[queryname] = display_value([("True", "Ja"), ("False", "Nein")], field.name)
-
-        # resolves FK or M2M with related_object.name or .titel
-        elif field.__class__ in [ForeignKey, ManyToManyField]:
-            possible_fields_for_representation = ["name", "titel"]
-            repr_fieldname = [f for f in possible_fields_for_representation if f in field.related_model.__dict__][0]
-            displays_of_fields_in_other[queryname] = ConcatSubquery(field.related_model.objects.filter(**{f"{Model._meta.model_name}__id": OuterRef("id")}).values(repr_fieldname), separator=", ")
-
-        # base case, no changes
-        else:
-            displays_of_fields_in_other[queryname] = F(field.name)
-
-    # construct base queryset without frei_editierbare instances
-    return {
-        **displays_of_fields_in_other,
-        "other": Concat(*other_concat_parts, output_field=TextField()),
-    } if displays_of_fields_in_other else {"other": Value("")}
-
-
-class RenderableTable(GenericTable):
-    class Meta:
-        attrs = GenericTable.Meta.attrs
-        order_by_field = "name"
-
-    def _get(self, obj, key: str):
-        try:
-            return getattr(obj, key, obj[key])
-        except:
-            return obj.__dict__[key]
-
-    def render_icon(self, value, record):
-        Model = apps.get_model('shop', self._get(record, "model_name"))
-        instance = Model.objects.get(id=self._get(record, "id"))
-
-        # use python model .objects.get().getIconUrl()
-        return format_html("<img src='{url}' loading='lazy'>", url=instance.getIconUrl())
-
-    def render_name(self, value, record):
-        try:
-            url = reverse(f'shop:buy', args=[apps.get_model("shop", self._get(record, "model_name")), self._get(record, "id")])
-            return format_html(f"<a href='{url}'>{value}</a>")
-        except:
-            return value
-
-    def render_beschreibung(self, value):
-        return format_html(value.replace("\n", "<br>"))
-
-    def render_art(self, value, record):
-        return self._get(record, "art_display")
-
-    def render_preis(self, value, record):
-        preis = "{}{}".format(render_number(value), " - {}".format(render_number(self._get(record, "max_preis"))) if self._get(record, "max_preis") != value else "")
-        return "{} Dr.{}".format(preis, " * Stufe" if self._get(record, "stufenabhängig") else "")
-
-    def render_other(self, value):
-
-        # build dict; convert "kategory: some stuff,\ntimes: 3" => {kategory: "some stuff", "times": "3"}
-        values = {v.split(": ")[0].strip(): v.split(": ")[1].strip() for v in value.split(',\n')}
-
-        # format cell content
-        return format_html("<ul><li>" + '</li><li>'.join(f'<em>{k}</em>: {v}' for k, v in values.items() if v) + "</li></ul>")
-
-
-
 
 class CharacterListView(VerifiedAccountMixin, TemplateView):
     template_name = "character/index.html"
@@ -172,104 +84,6 @@ class CharacterListView(VerifiedAccountMixin, TemplateView):
 
 class ShowView(VerifiedAccountMixin, DetailView):
 
-    class ItemTable(RenderableTable):
-        class Meta(RenderableTable.Meta):
-            orderable = False
-
-        def __init__(self, *args, csrf_token: str, **kwargs):
-            super().__init__(*args, **kwargs)
-
-            self.csrf_token = csrf_token
-
-
-        def render_item__icon(self, value, record):
-            Model = apps.get_model('shop', record["model_name"])
-            instance = Model.objects.get(pk=self._get(record, "item__pk"))
-
-            # use python model .objects.get().getIconUrl()
-            return format_html("<img src='{url}' loading='lazy' style='max-width: 64px; aspect-ratio:1'>", url=instance.getIconUrl())
-
-        def render_item__beschreibung(self, value):
-            return self.render_beschreibung(value)
-
-        def render_art(self, value):
-            return value
-
-        def render_other(self, value):
-            value = value.replace("item__", "")
-            return super().render_other(value)
-
-        def render_notizen_(self, value, record):
-            relmodel_name = f"Rel{record['model_name']}"
-            pk = record["pk"]
-            href = href = reverse("character:save_item_notizen", args=[relmodel_name, pk])
-
-            return format_html(
-                f"""<form method="post" action="{href}" style="min-width: min(20vw, 200px)" class="item-notizen-form">
-                    <input type="hidden" name="csrfmiddlewaretoken" value="{self.csrf_token}"/>
-                    <textarea class="form-control" name="notizen" placeholder="✎" aria-label="Notizen zu {record['item__name']}">{record['notizen']}</textarea>
-                </form>"""
-            )
-
-        def render_use(self, value, record):
-            RelModel = apps.get_model("character", f"rel{record['model_name']}")
-            relitem = RelModel.objects.get(pk=record["pk"])
-
-            if RelModel == RelRamsch: price = 0
-            else:
-                Model = apps.get_model("shop", record['model_name'])
-                item = Model.objects.annotate_price().get(pk=record["item__pk"])
-                price = (item.curr_price or 0) * (record["stufe"] or 1)
-
-            href = reverse("character:remove_item", args=[relitem._meta.model_name, relitem.pk])
-            sell_btn = f'<button type="submit" class="btn btn-sm btn-warning" name="sell">verkaufen (je {int(price * 0.4+.5):n} Dr.)</button>'
-            return format_html(
-                f"""<form method="post" action="{href}">
-                    <input type="hidden" name="csrfmiddlewaretoken" value="{self.csrf_token}"/>
-                    <button type="submit" class="btn btn-sm btn-danger" name="use">verbrauchen</button>
-                    {sell_btn if price else ''}
-                </form>"""
-            )
-
-        @staticmethod
-        def get_queryset(char: Charakter, RelShopQS: QuerySet[models.Model], field_names: list[str]) -> list:
-            try:
-                Shop = apps.get_model("shop", RelShopQS.model._meta.model_name[3:])
-            except:
-
-                # RelRamsch
-                return RelShopQS\
-                    .filter(char=char)\
-                    .annotate(
-                        model_name=Value("Ramsch"),
-                        art=Value(RelShopQS.model._meta.verbose_name),
-
-                        item__pk=F("pk"),
-                        item__icon=Value(""),
-                        item__name=F("item"),
-                        item__beschreibung=Value("(selbst angelegt)"),
-                        other=Value(""),
-                        notizen_=Value("-"),
-                        use=Value("-"),
-                    )\
-                    .values(*field_names, "pk", "model_name", "art", "item__pk", "notizen")
-
-            # normal RelShop-case
-
-            other_fields = [f for f in Shop.getShopDisplayFields() if f not in ["preis", "ab_stufe"] and f"item__{f}" not in field_names]
-
-            return RelShopQS\
-                .filter(char=char)\
-                .annotate(
-                    model_name=Value(Shop._meta.model_name),
-                    art=Value(Shop._meta.verbose_name),
-                    use=Value("-"),
-                    notizen_=Value("-"),
-                    other=Subquery(Shop.objects.filter(pk=OuterRef("item__pk")).annotate(**annotate_other(Shop, other_fields)).values_list("other", flat=True)),
-                )\
-                .values(*field_names, "pk", "model_name", "art", "item__pk", "notizen")
-
-
     template_name = "character/show.html"
     model = Charakter
     queryset = Charakter.objects.prefetch_related(
@@ -281,6 +95,39 @@ class ShowView(VerifiedAccountMixin, DetailView):
         "reltechnik_set__item", "relfahrzeug_set__item", "releinbaute_set__item", "relalchemie_set__item",
         "reltinker_set__item", "relbegleiter_set__item", "relramsch_set", "card"
     )
+
+    def get_item_qs(self, model: type[RelShop] or RelRamsch, char: Charakter) -> QuerySet[type[RelShop] or RelRamsch]:
+        """ uses model to return the url to a template as string to use for rendering an item in a list """
+
+        # get template
+        model_name = model._meta.model_name[3:]
+        template = 'character/relitem_list_item/default.html'
+        try:
+            TemplateLoader.get_template(f'character/relitem_list_item/{model_name}.html')
+            template = f'character/relitem_list_item/{model_name}.html'
+        except TemplateDoesNotExist:
+            pass
+
+
+        # get detail_url
+        detail_url = reverse("character:relitem_upgrade_detail", args=[model, 0]).replace('0', '')
+
+        # form queryset
+        qs = model.objects.select_related("char").filter(char=char)\
+            .annotate(
+                template = Value(template),     # needed to render this item nicely
+                model_name = Value(model_name),
+                model_verbose_name = Value(apps.get_model("shop", model_name)._meta.verbose_name if model != RelRamsch else "Ramsch"),
+                detail_url = Concat(Value(detail_url), F("pk"), output_field=CharField()),
+            )
+        if model_name in [m._meta.model_name for m in shopmodel_upgrade_list]:
+            qs = qs.annotate(
+                num_slots = Coalesce(SumSubquery(apps.get_model("shop", f"slot{model_name}").objects.filter(Q(item=OuterRef("item__pk"))), "num"), 0),
+                num_used_slots = Coalesce(CountSubquery(apps.get_model("character", f"upgradeslot{model_name}").objects.filter(relitem=OuterRef("pk"))), 0),
+            )
+        if model != RelRamsch: qs = qs.select_related("item")
+        if model == RelFernkampfwaffe: qs = qs.prefetch_related("item__munition")
+        return qs.order_by("item", "-stufe", "-notizen")
 
     def get(self, request, *args, **kwargs):
         if not self.request.user.has_perm(CustomPermission.SPIELLEITUNG.value) and not Charakter.objects.filter(pk=kwargs["pk"], eigentümer=self.request.spieler).exists():
@@ -323,9 +170,6 @@ class ShowView(VerifiedAccountMixin, DetailView):
             **self.get_klasse_ability(char),
             **self.get_affektivität(char),
             **self.get_inventory(char),
-            **self.get_zauber(char),
-            **self.get_ritual(char),
-            **self.get_nah_fernkampf(char),
             **self.get_effekte(char),
         }
 
@@ -380,6 +224,26 @@ class ShowView(VerifiedAccountMixin, DetailView):
             fields.insert(4, ["LARP-Ränge", render_number(char.larp_rang)])
         else:
             fields.insert(4, ["EP (Stufe)", f"{render_number(char.ep)} ({char.ep_stufe})"])
+
+        # collect unused Upgrade points (format {item_type, item_name, points}[] of all RelUpgrades with points > 0)
+        upgrade_points = sorted([
+            entry for m in apps.get_models("character") if issubclass(m, RelUpgrade) for entry in m.objects.filter(char=char, points__gt=0).annotate(
+                # verbose_name of item's model
+                item_type=Value(m.item.field.related_fields[0][0].related_model._meta.verbose_name)
+            ).values("item_type", "item__name", "points")
+        ], key=lambda entry: f"{entry['item_type']}|||{entry['item__name']}")
+        if len(upgrade_points):
+            fields.append(["Upgrade-Punkte", format_html('<ul>' + ''.join([f'<li>{i["item_type"]} <b>{i["item__name"]}</b>: {i["points"]} Punkt{'e' if i["points"] > 1 else ''}</li>' for i in upgrade_points]) + "</ul>")])
+
+        # collect unused Upgrades (format {item_type, item_name, num, upgrade}[] of all OwnUpgrades)
+        upgrades = sorted([
+            entry for m in apps.get_models("character") if issubclass(m, OwnUpgrade) for entry in m.objects.annotate(
+                # verbose_name of relUpgrade.item's model
+                item_type=Value(m.relUpgrade.field.related_model.item.field.related_fields[0][0].related_model._meta.verbose_name)
+            ).values("item_type", "relUpgrade__item__name", "num", "upgrade__name")
+        ], key=lambda entry: f"{entry['item_type']}|||{entry['relUpgrade__item__name']}")
+        if len(upgrades):
+            fields.append(["unverteilte Upgrades", format_html('<ul>' + ''.join([f'<li>{i["item_type"]} <b>{i["relUpgrade__item__name"]}</b>: {i["num"]}x {i["upgrade__name"]}</li>' for i in upgrades]) + "</ul>")])
 
         return {
             "resources__fields": [[k, v if v else 0] for k, v in fields]
@@ -652,9 +516,12 @@ class ShowView(VerifiedAccountMixin, DetailView):
 
                 return format_html(f"{value}<br><small><i>({stufenplan_entry.gfs.titel} {stufenplan_entry.basis.stufe})</i></small>")
 
-
+        qs = char.relgfsability_set.prefetch_related("ability__gfsstufenplan__basis", "ability__gfsstufenplan__gfs").annotate(
+            has_effect = Exists(RelEffect.objects.filter(source_gfsAbility=OuterRef("pk"), target_char=char, is_active=True))
+        )
         return {
-            "gfs_ability__table": GfsAbilityTable(char.relgfsability_set.prefetch_related("ability__gfsstufenplan__basis", "ability__gfsstufenplan__gfs").all())
+            "gfs_ability__table": GfsAbilityTable(qs.filter(has_effect=False)),
+            "gfs_ability_effect__table": GfsAbilityTable(qs.filter(has_effect=True)),
         }
 
     def get_klasse_ability(self, char):
@@ -674,10 +541,12 @@ class ShowView(VerifiedAccountMixin, DetailView):
 
                 return format_html(f"{value}<br><small><i>({klasse} {stufe})</i></small>")
 
+        qs = char.relklasseability_set.prefetch_related("ability__klasse_set", "ability__klassestufenplan_set__klasse").annotate(
+            has_effect = Exists(RelEffect.objects.filter(source_klasseAbility=OuterRef("pk"), target_char=char, is_active=True))
+        )
         return {
-            "klasse_ability__table": KlasseAbilityTable(
-                char.relklasseability_set.prefetch_related("ability__klasse_set", "ability__klassestufenplan_set__klasse").all()
-            )
+            "klasse_ability__table": KlasseAbilityTable(qs.filter(has_effect=False)),
+            "klasse_ability_effect__table": KlasseAbilityTable(qs.filter(has_effect=True)),
         }
 
     def get_affektivität(self, char):
@@ -693,114 +562,19 @@ class ShowView(VerifiedAccountMixin, DetailView):
         }
 
     def get_inventory(self, char):
-
-        table_fields = OrderedDict(
-            item__icon = tables.Column(verbose_name=""),
-            item__name = tables.Column(verbose_name="Name"),
-            stufe = tables.Column(),
-            item__beschreibung = tables.Column(verbose_name="Beschreibung"),
-            art = tables.Column(),
-            other = tables.Column(verbose_name=""),
-            notizen_ = tables.Column(),
-            use = tables.Column(verbose_name=""),
-        )
-
-        objects = []
-
-        # Misc Shop items
-        for Model in [m for m in shopmodel_list if m not in [Nahkampfwaffe, Fernkampfwaffe, Zauber, Ritual_Rune]]:
-            RelModel = apps.get_model("character", f"Rel{Model._meta.model_name}")
-            objects += ShowView.ItemTable.get_queryset(char, RelModel.objects.prefetch_related("item__firma"), table_fields.keys())
-
-        # RelRamsch
-        objects += ShowView.ItemTable.get_queryset(char, char.relramsch_set, table_fields.keys())
+        RelModels = [*[apps.get_model("character", f"Rel{Model._meta.model_name}") for Model in [m for m in shopmodel_list if m not in [Nahkampfwaffe, Fernkampfwaffe, Zauber, Ritual_Rune]]], RelRamsch]
+        objects = [item for m in RelModels for item in self.get_item_qs(m, char)]
 
         return {
-            "inventory__table": ShowView.ItemTable(
-                sorted(objects, key=lambda o: o["item__name"].lower()),
-                extra_columns = [(k, v) for k, v in table_fields.items()],
-                csrf_token=get_token(self.request)
-            ),
+            "inventory": sorted(objects, key=lambda o: o.item.name.lower() if hasattr(o.item, "name") else o.item.lower()),
             "ramsch_form": CreateRamschForm(initial={"char": char.pk}),
-            "inventory__random_items": format_html(re.sub("\n", "<br>", char.sonstige_items, 0, re.MULTILINE))
-        }
+            "inventory__random_items": format_html(re.sub("\n", "<br>", char.sonstige_items, 0, re.MULTILINE)),
 
-    def get_zauber(self, char):
-        class ZauberTable(ShowView.ItemTable):
-            class Meta(ShowView.ItemTable.Meta): pass
-
-            def render_item__beschreibung(self, value):
-                regex = "Tier [0IVX]+:"
-                return format_html(re.sub(regex, lambda match: f"<br><b>{match.group(0)}</b>", value))
-
-            def render_learned(self, value):
-                return "✔" if value else "✖"
-
-
-        table_fields = OrderedDict(
-            learned = tables.Column(verbose_name="gelernt"),
-            item__icon = tables.Column(verbose_name=""),
-            item__name = tables.Column(),
-            tier = tables.Column(),
-            item__beschreibung = tables.Column(),
-            item__manaverbrauch = tables.Column(),
-            item__astralschaden = tables.Column(),
-            other = tables.Column(verbose_name=""),
-            notizen_ = tables.Column(),
-        )
-
-        return {
-            "zauber__table": ZauberTable(
-                ZauberTable.get_queryset(char, char.relzauber_set.prefetch_related("item__firma"), table_fields.keys()),
-                extra_columns = [(k, v) for k, v in table_fields.items()],
-                csrf_token=get_token(self.request),
-            )
-        }
-
-    def get_ritual(self, char):
-        table_fields = OrderedDict(
-            item__icon = tables.Column(verbose_name=""),
-            item__name = tables.Column(verbose_name="Name"),
-            stufe = tables.Column(),
-            item__beschreibung = tables.Column(verbose_name="Beschreibung"),
-            other = tables.Column(verbose_name=""),
-            notizen_ = tables.Column(),
-            use = tables.Column(verbose_name=""),
-        )
-
-        return {
-            "ritual__table": ShowView.ItemTable(
-                ShowView.ItemTable.get_queryset(char, char.relritual_rune_set.prefetch_related("item__firma"), table_fields.keys()),
-                extra_columns = [(k, v) for k, v in table_fields.items()],
-                csrf_token=get_token(self.request),
-            )
-        }
-
-    def get_nah_fernkampf(self, char):
-        class WaffenTable(ShowView.ItemTable):
-            class Meta(ShowView.ItemTable.Meta): pass
-
-        table_fields = OrderedDict(
-            item__icon = tables.Column(verbose_name=""),
-            item__name = tables.Column(verbose_name="Name"),
-            stufe = tables.Column(),
-            item__beschreibung = tables.Column(verbose_name="Beschreibung"),
-            other = tables.Column(verbose_name=""),
-            notizen_ = tables.Column(),
-            use = tables.Column(verbose_name=""),
-        )
-
-        return {
-            "nahkampf__table": WaffenTable(
-                ShowView.ItemTable.get_queryset(char, char.relnahkampfwaffe_set.prefetch_related("item__firma"), table_fields.keys()),
-                extra_columns = [(k, v) for k, v in table_fields.items()],
-                csrf_token=get_token(self.request)
-            ),
-            "fernkampf__table": WaffenTable(
-                ShowView.ItemTable.get_queryset(char, char.relfernkampfwaffe_set.prefetch_related("item__firma"), table_fields.keys()),
-                extra_columns = [(k, v) for k, v in table_fields.items()],
-                csrf_token=get_token(self.request)
-            )
+            "zauber": self.get_item_qs(RelZauber, char),
+            "ritual": self.get_item_qs(RelRitual_Rune, char),
+            "nahkampf": self.get_item_qs(RelNahkampfwaffe, char),
+            "fernkampf": self.get_item_qs(RelFernkampfwaffe, char),
+            "munition": self.get_item_qs(RelMunition, char),
         }
 
     def get_effekte(self, char):
@@ -1074,64 +848,55 @@ def remove_sp(request, pk):
     return redirect(reverse("character:show", args=[pk]))
 
 
-def _decrease_anz_relshop(request, relshop_model: str, rel_item_pk: int):
-    try:
-        Model = apps.get_model('character', relshop_model)
-        # assert model
-        if not issubclass(Model, RelShop) and Model != RelRamsch: raise LookupError()
-
-        amount = int(request.POST.get("amount"))
-    except LookupError:
-        messages.error(request, "Anfrage fehlerhaft")
-        return {"success": False, "redirect": redirect("character:index")}
-
-    # assert user requesting to use an item
-    if not request.user.has_perm(CustomPermission.SPIELLEITUNG.value) and not Model.objects.filter(pk=rel_item_pk, char__eigentümer=request.spieler).exists():
-        messages.error(request, "Es ist nicht dein Charakter, von dem du Items benutzen willst.")
-        return {"success": False, "redirect": redirect("character:index")}
+def _decrease_anz_relshop(request, Model: type[RelShop], rel_item_pk: int):
+    
+    # get rel
+    qs = Model.objects.select_related("char__eigentümer", "char__card").filter(pk=rel_item_pk)
+    if Model != RelRamsch: qs = qs.prefetch_related("item")
+    rel_shop = qs.first()
 
     # assert item existance
-    rel_shop = Model.objects.prefetch_related("char__eigentümer")
-    if issubclass(Model, RelShop): rel_shop = rel_shop.prefetch_related("item")
-    rel_shop = rel_shop.filter(pk=rel_item_pk).first()
-
     if not rel_shop:
         messages.error(request, "Item konnte nicht im Inventar gefunden werden.")
         return {"success": False, "redirect": redirect("character:index")}
 
+    # assert user requesting to use an item
+    if not request.user.has_perm(CustomPermission.SPIELLEITUNG.value) and rel_shop.char.eigentümer != request.spieler:
+        messages.error(request, "Es ist nicht dein Charakter, von dem du Items benutzen willst.")
+        return {"success": False, "redirect": redirect("character:index")}
+
     char = rel_shop.char
-    item_name = rel_shop.item.name if issubclass(Model, RelShop) else rel_shop.item
-    item = rel_shop.item._meta.model.objects.annotate_price().get(pk=rel_shop.item.pk) if issubclass(Model, RelShop) else rel_shop.item
-    stufe = rel_shop.stufe or 1 if issubclass(Model, RelShop) else 1
+    item_name = rel_shop.item.name if Model != RelRamsch else rel_shop.item
+    item = rel_shop.item._meta.model.objects.annotate_price().get(pk=rel_shop.item.pk) if Model != RelRamsch else rel_shop.item
+    stufe = rel_shop.stufe or 1 if Model != RelRamsch else 1
 
     # remove item
     rel_shop.delete()
 
-    return {"success": True, "stufe": stufe, "amount": amount, "char": char, "item_name": item_name, "item": item}
+    return {"success": True, "stufe": stufe, "char": char, "item_name": item_name, "item": item}
 
 
 @require_POST
 @verified_account
-def remove_relshop(request, relshop_model, pk):
-    res = _decrease_anz_relshop(request, relshop_model, pk)
+def remove_relshop(request, rel_model: type[RelShop], pk: int):
+    res = _decrease_anz_relshop(request, rel_model, pk)
     if not res["success"]: return res["redirect"]
 
     if "sell" in request.POST:
         # get sell price
         price = 0
-        Model = apps.get_model('character', relshop_model)
-        if issubclass(Model, RelShop):  # is not RelRamsch
-            curr_price = res["item"].__dict__.get("curr_price", 0) * (res["stufe"] or 1)
+        if rel_model != RelRamsch:
+            curr_price = (res["item"].curr_price or 0) * (res["stufe"] or 1)
 
             # 40% of cheapest price
-            price = int((curr_price * .4) + .5) * res["amount"]
+            price = int((curr_price * .4) + .5)
 
         # receive money
         card = res["char"].card
         card.money += price
         card.save(update_fields=["money"])
 
-        Transaction.objects.create(receiver=card, amount=price, reason=f"verkaufe {res['amount']}x {res['item_name']}")
+        Transaction.objects.create(receiver=card, amount=price, reason=f"verkaufe 1x {res['item_name']}")
 
         # log transaction
         Log.objects.create(
@@ -1139,9 +904,9 @@ def remove_relshop(request, relshop_model, pk):
             char=res["char"],
             art="w", # Inventar-Item verbraucht
             kosten=f"Erlös: {price:n} Drachmen",
-            notizen=f"{res['amount']}x {res['item_name']}",
+            notizen=f"1x {res['item_name']}",
         )
-        messages.success(request, f'Du hast {res["amount"]} von "{res["item_name"]}" für {price:n} Dr. verkauft')
+        messages.success(request, f'Du hast "{res["item_name"]}" für {price:n} Dr. verkauft')
 
     if "use" in request.POST:
         # log usage
@@ -1150,11 +915,11 @@ def remove_relshop(request, relshop_model, pk):
             char=res["char"],
             art="j", # Inventar-Item verbraucht
             kosten="",
-            notizen=f"{res['amount']}x {res['item_name']}",
+            notizen=f"1x {res['item_name']}",
         )
-        messages.success(request, f'Du hast {res["amount"]} von "{res["item_name"]}" verbraucht')
+        messages.success(request, f'Du hast "{res["item_name"]}" verbraucht')
 
-    return redirect(reverse("character:show", args=[res["char"].id]))
+    return redirect(reverse("character:show", args=[res["char"].pk]))
 
 
 @require_POST
@@ -1305,7 +1070,7 @@ class CreateCharacterView(VerifiedAccountMixin, CopiesCharsMixin, CreateView):
         return reverse('character:show', kwargs={'pk': self.object.pk})
 
 
-class EditUpgrdes(VerifiedAccountMixin, SpielleitungOnlyMixin, TemplateView):
+class EditUpgrades(VerifiedAccountMixin, SpielleitungOnlyMixin, TemplateView):
     model = Charakter
     template_name = "character/edit_upgrades.html"
 
@@ -1446,3 +1211,142 @@ class EditUpgrdes(VerifiedAccountMixin, SpielleitungOnlyMixin, TemplateView):
 
         messages.success(self.request, f"Speichern von {item} hat geklappt")
         return redirect(reverse("character:upgrades", args=[self.object.pk]))
+
+
+class RelItemUpgradeDetailView(VerifiedAccountMixin, DetailView):
+    template_name = "character/relitem_upgrade.html"
+
+    context_object_name = "object"
+    object = None
+    item = None
+
+    def setup(self, request, *args, **kwargs):
+        res = super().setup(request, *args, **kwargs)
+        self.queryset = self.kwargs["shop_model"].objects.select_related("char")
+        if self.kwargs["shop_model"] != RelRamsch:
+            self.queryset = self.queryset.select_related("item__firma")
+
+        self.get_object()
+        if self.queryset.model != RelRamsch: self.item = get_object_or_404(self.get_item_queryset(), pk=self.object.item.pk)
+
+        return res
+
+    def get_item_queryset(self):
+        Model = self.object.item._meta.model
+        qs = Model.objects.select_related("firma").annotate_price()
+        if Model == RelFernkampfwaffe:
+            qs = qs.annotate_schaden()
+        try:
+            Model._meta.get_field("fertigkeit")
+            qs = qs.prefetch_related("fertigkeit")
+        except FieldDoesNotExist:
+            pass
+        return qs
+
+    def get_object(self, *args, **kwargs):
+        if not self.object: self.object = get_object_or_404(self.queryset or self.model, pk=self.kwargs["pk"])
+        return self.object
+
+    def get_table_fields(self):
+        if self.queryset.model == RelRamsch: return []
+
+        excluded_types = [ManyToManyRel, ManyToOneRel, ManyToManyField]
+        excluded_fields = ["pk", "id", "ab_stufe", "icon", "name", "beschreibung", "frei_editierbar", "stufenabhängig", "verfügbarkeit", "firma", "price", "has_implementation"]
+
+        field_list = []
+        for field in self.item._meta.get_fields():
+            if type(field) in excluded_types or field.name in excluded_fields: continue
+
+            name = field.verbose_name or field.name
+            value = getattr(self.item, f"get_{field.name}_display")() if field.choices else getattr(self.item, field.name)
+            field_list.append({"name": name, "value": value})
+        return field_list
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(
+            *args, **kwargs,
+            table_fields=self.get_table_fields(),
+            csrf_token=get_token(self.request),
+            shop_url = reverse('shop:detail', args=[self.item._meta.model, self.item.pk]) if self.queryset.model != RelRamsch else '',
+            sell_price = f"{int(self.item.curr_price * (self.object.stufe or 1) * 0.4+.5):n}" if self.queryset.model != RelRamsch else None,
+            rm_item_url = reverse('character:remove_item', args=[self.object._meta.model, self.object.pk]),
+
+            topic = self.object.item.name if self.queryset.model != RelRamsch else self.object.item,
+            app_index = self.object.char.name,
+            app_index_url = reverse("character:show", args=[self.object.char.pk]),
+        )
+        context["object"] = self.item if self.queryset.model != RelRamsch else {"name": self.object.item}
+        context["rel"] = self.object
+
+        if ("name_form" not in context or not context["name_form"]) and self.queryset.model == RelRamsch:
+            context["name_form"] = RelRamschNameForm(instance=self.object, prefix="name")
+
+        if "notizen_form" not in context:
+            context["notizen_form"] = get_RelShopNotizenForm(self.queryset.model)(instance=self.object, prefix="notizen")
+
+        # slots & upgrades (not in every model)
+        if self.item and self.item._meta.model in shopmodel_upgrade_list:
+            Shop_modelname = self.item._meta.model_name
+            Slot = apps.get_model("shop", f"slot{Shop_modelname}")
+            UpgradeSlot = apps.get_model("character", f"upgradeslot{Shop_modelname}")
+            relUpgrade, _ = apps.get_model("character", f"relupgrade{Shop_modelname}").objects.get_or_create(char=self.object.char, item=self.item)
+
+            # gather upgrades
+            context["upgrades"] = self.item.possible_upgrades.select_related("tag", "prerequisite").order_by("ab_stufe", "tag__name")
+            context["owned_upgrades"] = Upgrade.objects\
+                .filter(Q(**{f"ownupgrade{Shop_modelname}__in": relUpgrade.own_upgrades.values_list("pk", flat=True)}))\
+                .annotate(
+                    num = Subquery(relUpgrade.own_upgrades.filter(upgrade=OuterRef("pk")).values("num")[:1]),
+                )\
+                .order_by("ab_stufe", "tag__name")
+
+            # gather slots (with associated upgrades)
+            slots = Slot.objects.filter(item=self.item).prefetch_related("tag").annotate(
+                num_tags = Count("tag"),
+                tags = ConcatSubquery(Tag.objects.filter(Q(**{f"slot{Shop_modelname}": OuterRef("pk")})).values("pk")),
+                upgrades = ConcatSubquery(UpgradeSlot.objects.filter(relitem=self.object, slot=OuterRef("pk")).values("upgrade")),
+            ).values("num", "tags", "tagnames", "num_tags", "upgrades")
+            all_tags = Tag.objects.all()
+
+            # fill pks of Tag, Upgrade with the whole object
+            for slot in slots:
+                upgrade_pks = [int(pk) for pk in (slot["upgrades"] or "").split(",")] if slot["upgrades"] else []
+                slot["upgrades"] = [u for u in context["upgrades"] if u.pk in upgrade_pks]
+                
+                tag_pks = [int(pk) for pk in (slot["tags"] or "").split(",")] if slot["tags"] else []
+                slot["tags"] = [t for t in all_tags if t.pk in tag_pks]
+
+            context["slots"] = slots
+
+        return context
+
+    # TODO delete later
+    def get(self, request, *args, **kwargs):
+        messages.warning(request, "Diese Seite befindet sich zurzeit aktiv in Entwicklung bzgl. Upgrades")
+        return super().get(request, *args, **kwargs)
+
+    def post(self, *args, **kwargs):
+
+        # notizen
+        notizen_form = get_RelShopNotizenForm(self.queryset.model)(data=self.request.POST, instance=self.object, prefix="notizen")
+        notizen_form.full_clean()
+
+        if notizen_form.is_valid():
+            notizen_form.save()
+        else:
+            messages.error(self.request, "Beim Speichern der Notizen ist etwas schief gelaufen")
+
+        # item name for RelRamsch
+        name_form = None
+        if self.queryset.model == RelRamsch:
+            name_form = RelRamschNameForm(data=self.request.POST, instance=self.object, prefix="name")
+            name_form.full_clean()
+
+            if name_form.is_valid():
+                name_form.save()
+            else:
+                messages.error(self.request, "Beim Speichern der Notizen ist etwas schief gelaufen")
+
+        if notizen_form.is_valid() and (not name_form or name_form.is_valid()):
+            return redirect(self.request.build_absolute_uri())
+        return render(self.request, self.template_name, self.get_context_data(notizen_form=notizen_form, name_form=name_form))

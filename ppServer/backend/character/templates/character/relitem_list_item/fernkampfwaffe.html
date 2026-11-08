@@ -1,0 +1,9 @@
+{% extends 'character/relitem_list_item/default.html' %}
+
+{% block above_price %}
+    <div class="info-row">
+        {% if obj.händigkeit %}{{ obj.get_händigkeit_display }}{% endif %}
+        Schaden: siehe Munition
+        {% if obj.wirkbereich %}Wirkbereich: {{ obj.wirkbereich }}{% endif %}
+    </div>
+{% endblock %}
