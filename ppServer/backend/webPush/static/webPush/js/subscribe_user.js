@@ -51,33 +51,37 @@ async function registerForWebPush(show_alerts=true) {
     
     // subscribe to push service
     navigator.serviceWorker.ready
-        .then(reg =>
-            reg.pushManager.subscribe({
+        .then(async reg => {
+            // Unsubscribe any existing subscription (e.g. from old VAPID keys)
+            const existing = await reg.pushManager.getSubscription();
+            if (existing) await existing.unsubscribe();
+
+            return reg.pushManager.subscribe({
                 userVisibleOnly: true,
                 applicationServerKey: urlBase64ToUint8Array(applicationServerKey),
             })
-        )
-        // get connection credentials via PushSubscription
-        .then(sub => {
-            const string_transform = key => btoa(String.fromCharCode.apply(null, new Uint8Array(sub.getKey(key))));
+            // get connection credentials via PushSubscription
+            .then(sub => {
+                const string_transform = key => btoa(String.fromCharCode.apply(null, new Uint8Array(sub.getKey(key))));
 
-            // create (or update) PushDevice @ backend
-            return requestPOSTToServer({
-                p256dh: string_transform('p256dh'),
-                auth: string_transform('auth'),
-                registration_id: sub.endpoint,
+                // create (or update) PushDevice @ backend
+                return requestPOSTToServer({
+                    p256dh: string_transform('p256dh'),
+                    auth: string_transform('auth'),
+                    registration_id: sub.endpoint,
+                })
             })
-        })
-        // notify user (probably success)
-        .then(success => {
-            if (success) {
-                show_alerts && alert(`Erfolgreich registriert`);
-                console.log("webpush-registration was successful");
-            }
-            else {
-                console.error('Unable to subscribe to push', "Registrierungsdaten falsch oder unvollständig")
-                show_alerts && alert(`Ein Fehler ist aufgetreten: Registrierungsdaten sind falsch oder unvollständig`);
-            }
+            // notify user (probably success)
+            .then(success => {
+                if (success) {
+                    show_alerts && alert(`Erfolgreich registriert`);
+                    console.log("webpush-registration was successful");
+                }
+                else {
+                    console.error('Unable to subscribe to push', "Registrierungsdaten falsch oder unvollständig")
+                    show_alerts && alert(`Ein Fehler ist aufgetreten: Registrierungsdaten sind falsch oder unvollständig`);
+                }
+            })
         })
         // notify user (error)
         .catch(function (e) {
