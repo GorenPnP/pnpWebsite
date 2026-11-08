@@ -1,4 +1,5 @@
 import enum, json
+from pywebpush import WebPushException
 from typing import Iterable
 
 from django.contrib.auth import get_user_model
@@ -72,10 +73,21 @@ class PushSettings(models.Model):
         users = PushSettings.objects.filter(**filters).values_list("user", flat=True)
 
         # send message
-        msg = {
+        msg = json.dumps({
             "title": title or "",
             "message": message,
             "tag": tag,
             "url": url,
-        }
-        return WebPushDevice.objects.filter(user__in=users).send_message(json.dumps(msg))
+        })
+
+        devices = WebPushDevice.objects.filter(user__in=users)
+        results = []
+        for device in devices:
+            try:
+                results.append(device.send_message(msg))
+            except WebPushException as e:
+                if e.response is not None and e.response.status_code in (401, 410):
+                    device.delete()  # stale subscription, remove it
+                else:
+                    raise e
+        return results
