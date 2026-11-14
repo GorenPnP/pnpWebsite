@@ -41,6 +41,7 @@ class KlasseStufenplan(models.Model):
 
     @staticmethod
     def get_own_KlasseStufenplan(char: "Charakter") -> QuerySet["KlasseStufenplan"]:
+        RelKlasse = apps.get_model("character", "RelKlasse")
         return KlasseStufenplan.objects\
             .annotate(owned = Exists(RelKlasse.objects.filter(char=char, klasse=OuterRef("klasse"), stufe__gte=OuterRef("stufe"))))\
             .filter(owned=True)

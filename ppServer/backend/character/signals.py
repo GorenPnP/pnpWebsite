@@ -4,7 +4,7 @@ from django.dispatch import receiver
 
 from .models.base import Spieler, Attribut, Fertigkeit
 from .models.char import Charakter
-from .models.gfs import GfsAttribut, Gfs, GfsFertigkeit
+from .models.gfs import GfsAttribut, Gfs, GfsFertigkeit, GfsStufenplan, GfsStufenplanBase
 from .models.skilltree import *
 
 

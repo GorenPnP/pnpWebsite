@@ -31,7 +31,7 @@ class GenericKlasseView(LevelUpMixin, TemplateView):
                 abilities = ConcatSubquery(
                     KlasseAbility.objects\
                         .filter(Q(klassestufenplan__klasse=OuterRef("klasse")) & Q(klassestufenplan__stufe__lte=OuterRef("stufe")) | Q(klasse=OuterRef("klasse")))\
-                        .annotate(repr = Concat(Value("<li><b>"), "name", Value("</b><br>"), Replace("beschreibung", Value("\n"), Value("<br>")), Value("</li>"), output_field=CharField()))\
+                        .annotate(repr = Concat(Value("<li><b>"), "name", Value("</b><br>"), Replace("beschreibung", Value("\n"), Value("<br>"), output_field=CharField()), Value("</li>"), output_field=CharField()))\
                         .order_by("klasse", "klassestufenplan__stufe", "name")\
                         .values("repr"),
                     separator=""

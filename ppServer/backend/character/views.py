@@ -517,7 +517,7 @@ class ShowView(VerifiedAccountMixin, DetailView):
                 return format_html(f"{value}<br><small><i>({stufenplan_entry.gfs.titel} {stufenplan_entry.basis.stufe})</i></small>")
 
         qs = char.relgfsability_set.prefetch_related("ability__gfsstufenplan__basis", "ability__gfsstufenplan__gfs").annotate(
-            has_effect = Exists(RelEffect.objects.filter(source_gfsAbility=OuterRef("pk"), target_char=char, is_active=True))
+            has_effect = Exists(RelEffect.objects.filter(effect__source_gfsAbility=OuterRef("ability__pk"), target_char=char, is_active=True))
         )
         return {
             "gfs_ability__table": GfsAbilityTable(qs.filter(has_effect=False)),
@@ -542,7 +542,7 @@ class ShowView(VerifiedAccountMixin, DetailView):
                 return format_html(f"{value}<br><small><i>({klasse} {stufe})</i></small>")
 
         qs = char.relklasseability_set.prefetch_related("ability__klasse_set", "ability__klassestufenplan_set__klasse").annotate(
-            has_effect = Exists(RelEffect.objects.filter(source_klasseAbility=OuterRef("pk"), target_char=char, is_active=True))
+            has_effect = Exists(RelEffect.objects.filter(effect__source_klasseAbility=OuterRef("ability__pk"), target_char=char, is_active=True))
         )
         return {
             "klasse_ability__table": KlasseAbilityTable(qs.filter(has_effect=False)),
@@ -578,7 +578,7 @@ class ShowView(VerifiedAccountMixin, DetailView):
         }
 
     def get_effekte(self, char):
-        class EffectTable(tables.Table):
+        class RelEffectTable(tables.Table):
             class Meta:
                 model = RelEffect
                 fields = ("wert", "fieldname", "source")
@@ -586,39 +586,37 @@ class ShowView(VerifiedAccountMixin, DetailView):
                 attrs = {"class": "table table-dark table-striped table-hover"}
 
             def render_wert(self, value, record):
-                return record.wertaenderung_str or record.wertaenderung
+                return record.wert
 
             def render_fieldname(self, value, record):
-                display = record.get_target_fieldname_display()
-                if "RelAttribut" in record.target_fieldname: return f"{display} {record.target_attribut.attribut.titel}"
-                if "RelFertigkeit" in record.target_fieldname: return f"{display} {record.target_fertigkeit.fertigkeit.titel}"
+                display = record.effect.get_target_fieldname_display()
+                if record.effect.has_custom_implementation and record.effect.target_fieldname == "character.Charakter.HPplus_fix" and record.effect.source.startswith("Haustier-Fels"): display = "Charakter: kHP plus"
+                if "RelAttribut" in record.effect.target_fieldname: return f"{display} {record.target_attribut.attribut.titel if record.target_attribut else record.effect.target_attribut.titel}"
+                if "RelFertigkeit" in record.effect.target_fieldname: return f"{display} {record.effect.target_fertigkeit.titel}"
                 return display
 
             def render_source(self, value, record):
-                fieldnames = [field for field, val in record.__dict__.items() if "source_" in field and val]
-                sources = [getattr(record, field.replace("_id", "")) for field in fieldnames if getattr(record, field) is not None]
-                reprs = [f"{field.__class__._meta.verbose_name} {field}".__str__() for field in sources]
-                return ", ".join(reprs)
+                return record.effect.source
 
         return {
-            "effect__table": EffectTable(
+            "effect__table": RelEffectTable(
                 char.releffect_set.filter(is_active=True)\
                     .prefetch_related(
-                        "target_attribut__attribut", "target_fertigkeit__fertigkeit",
+                        "effect__target_attribut", "target_attribut__attribut",
+                        "effect__target_fertigkeit",
 
-                        "source_vorteil__char", "source_vorteil__teil",
-                        "source_nachteil__char", "source_nachteil__teil",
-                        "source_talent__char", "source_talent__talent",
-                        "source_gfsAbility__char", "source_gfsAbility__ability",
-                        "source_klasse__char", "source_klasse__klasse",
-                        "source_klasseAbility__char", "source_klasseAbility__ability",
-                        "source_shopBegleiter__char", "source_shopBegleiter__item",
-                        "source_shopMagischeAusrüstung__char", "source_shopMagischeAusrüstung__item",
-                        "source_shopRüstung__char", "source_shopRüstung__item",
-                        "source_shopEinbaute__char", "source_shopEinbaute__item",
+                        "effect__source_vorteil",
+                        "effect__source_nachteil",
+                        "effect__source_talent",
+                        "effect__source_gfsAbility",
+                        "effect__source_klasse",
+                        "effect__source_klasseAbility",
+                        "effect__source_shopBegleiter",
+                        "effect__source_shopMagischeAusrüstung",
+                        "effect__source_shopRüstung",
+                        "effect__source_shopEinbaute",
                     )\
                     .annotate(
-                        wert=Value(" "),
                         fieldname=Value(" "),
                         source=Value(" "),
                     ).all()

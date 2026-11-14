@@ -149,9 +149,7 @@ class RelTalentInLine(RelInlineAdmin):
 class RelEffectInLine(RelInlineAdmin):
     model = RelEffect
     fields = [
-        "wertaenderung", "wertaenderung_str", "target_fieldname", "target_attribut", "target_fertigkeit", "source_vorteil", "source_nachteil",
-        "source_talent", "source_gfsAbility", "source_klasse", "source_klasseAbility", "source_shopBegleiter",
-        "source_shopMagischeAusrüstung", "source_shopRüstung", "source_shopEinbaute", "is_active"
+        "effect", "wertaenderung", "wertaenderung_str", "target_attribut", "source", "is_active"
     ]
     extra = 0
 
@@ -159,26 +157,30 @@ class RelEffectInLine(RelInlineAdmin):
         related_char_id = getattr(request.resolver_match.kwargs, 'object_id', None)
 
         qs = self.model.objects.prefetch_related(
+            'effect__target_attribut',
             'target_attribut__attribut', 'target_attribut__char__eigentümer',
-            'target_fertigkeit__fertigkeit', 'target_fertigkeit__char__eigentümer',
-            'source_vorteil__teil', 'source_vorteil__char',
-            'source_nachteil__teil', 'source_nachteil__char',
-            "source_talent__talent", "source_talent__char",
-            "source_gfsAbility__ability", "source_gfsAbility__char__eigentümer",
-            "source_klasse__klasse", "source_klasse__char__eigentümer",
-            "source_klasseAbility__ability", "source_klasseAbility__char",
-            "source_shopBegleiter__item", "source_shopMagischeAusrüstung__item", "source_shopRüstung__item", "source_shopEinbaute__item"
+            'effect__target_fertigkeit',
+            'effect__source_vorteil',
+            'effect__source_nachteil',
+            "effect__source_talent",
+            "effect__source_gfsAbility",
+            "effect__source_klasse",
+            "effect__source_klasseAbility",
+            "effect__source_shopBegleiter", "effect__source_shopMagischeAusrüstung", "effect__source_shopRüstung", "effect__source_shopEinbaute"
         )
         return qs.filter(target_char__id=related_char_id) if related_char_id else qs
 
     def get_readonly_fields(self, request: HttpRequest, obj):
         if request.user.has_perm(CustomPermission.SPIELLEITUNG.value):
-            return filter(lambda item: item not in ['wertaenderung', "wertaenderung_str", 'is_active'], self.fields)
+            return filter(lambda item: item != 'is_active', self.fields)
         else:
             return self.fields
         
     def has_add_permission(self, request: HttpRequest, obj) -> bool:
         return False
+
+    def source(self, obj):
+        return obj.effect.source
 
 class RelRamschInLine(RelInlineAdmin):
     model = RelRamsch

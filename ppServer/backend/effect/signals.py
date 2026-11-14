@@ -4,7 +4,7 @@ from django.db.models.signals import pre_save, post_save, pre_delete, post_delet
 from django.dispatch import receiver
 
 from character.models.char import Charakter
-from character.models.rel import RelAttribut, RelFertigkeit, RelVorteil, RelNachteil, RelTalent, RelKlasse, RelKlasseAbility, RelGfsAbility
+from character.models.rel import RelAttribut, RelVorteil, RelNachteil, RelTalent, RelKlasse, RelKlasseAbility, RelGfsAbility
 from character.models.relshop import RelBegleiter, RelMagische_Ausrüstung, RelRüstung, RelTechnik, RelEinbaute
 
 from .models import *
@@ -59,104 +59,31 @@ def apply_effect_on_rel_relation(sender, instance, created, **kwargs):
     for effect in effect_qs:
 
         if not effect.has_custom_implementation:
-            instance.releffect_set.create(
-                target_fieldname=effect.target_fieldname,
-                wertaenderung=effect.wertaenderung,
-                wertaenderung_str=effect.wertaenderung_str,
+            RelEffect.objects.create(
+                effect=effect,
                 target_char=instance.char,
-                target_attribut=RelAttribut.objects.get(char=instance.char, attribut=effect.target_attribut) if getattr(effect, "target_attribut", None) else None,
-                target_fertigkeit=RelFertigkeit.objects.get(char=instance.char, fertigkeit=effect.target_fertigkeit) if getattr(effect, "target_fertigkeit", None) else None,
             )
         else:
-            if sender == RelNachteil and effect.source_nachteil.titel.startswith("Defizit"):
-                instance.releffect_set.create(
-                    target_fieldname=effect.target_fieldname,
-                    wertaenderung=effect.wertaenderung,
-                    wertaenderung_str=effect.wertaenderung_str,
+            if (sender == RelVorteil and effect.source_vorteil.titel == "Inselbegabung") or\
+               (sender == RelNachteil and effect.source_nachteil.titel.startswith("Defizit")):
+                RelEffect.create(
+                    effect=effect,
                     target_char=instance.char,
                     target_attribut=RelAttribut.objects.get(char=instance.char, attribut=instance.attribut) if getattr(instance, "attribut", None) else None,
-                    target_fertigkeit=RelFertigkeit.objects.get(char=instance.char, fertigkeit=effect.target_fertigkeit) if getattr(effect, "target_fertigkeit", None) else None,
-                )
-
-            if sender == RelVorteil and effect.source_vorteil.titel == "Inselbegabung":
-                instance.releffect_set.create(
-                    target_fieldname=effect.target_fieldname,
-                    wertaenderung=effect.wertaenderung,
-                    wertaenderung_str=effect.wertaenderung_str,
-                    target_char=instance.char,
-                    target_attribut=RelAttribut.objects.get(char=instance.char, attribut=instance.attribut) if getattr(instance, "attribut", None) else None,
-                    target_fertigkeit=RelFertigkeit.objects.get(char=instance.char, fertigkeit=effect.target_fertigkeit) if getattr(effect, "target_fertigkeit", None) else None,
                 )
 
             # HP durch Haustier-Fels
             if sender == RelBegleiter and effect.source_shopBegleiter.name == "Haustier-Fels":
-                instance.releffect_set.create(
-                    target_fieldname=effect.target_fieldname,
+                RelEffect.create(
+                    effect=effect,
+                    target_char=instance.char,
                     wertaenderung=effect.wertaenderung,
                     wertaenderung_str=effect.wertaenderung_str,
-                    target_char=instance.char,
-                    target_attribut=RelAttribut.objects.get(char=instance.char, attribut=effect.target_attribut) if getattr(effect, "target_attribut", None) else None,
-                    target_fertigkeit=RelFertigkeit.objects.get(char=instance.char, fertigkeit=effect.target_fertigkeit) if getattr(effect, "target_fertigkeit", None) else None,
                 )
 
                 # apply_hp_effect_of_haustierfels(Charakter, instance.char)
                 instance.char.save(update_fields=["HPplus_fix"])
 
-
-            # wertaenderung = item-Stufe
-            if sender == RelMagische_Ausrüstung and effect.source_shopMagischeAusrüstung.name in ["Astralblocker", "Magiefokus", "Spruchzaubereifokus", "Dunkelmagiefokus", "Ritualfokus", "Antimagiefokus", "Alchemiefokus"]:
-                instance.releffect_set.create(
-                    target_fieldname=effect.target_fieldname,
-                    wertaenderung=instance.stufe,
-                    wertaenderung_str=effect.wertaenderung_str,
-                    target_char=instance.char,
-                    target_attribut=RelAttribut.objects.get(char=instance.char, attribut=effect.target_attribut) if getattr(effect, "target_attribut", None) else None,
-                    target_fertigkeit=RelFertigkeit.objects.get(char=instance.char, fertigkeit=effect.target_fertigkeit) if getattr(effect, "target_fertigkeit", None) else None,
-                )
-
-            # wertaenderung = min(item-Stufe, 5)
-            if sender == RelEinbaute and effect.source_shopEinbaute.name == "Panzerimplantate":
-                instance.releffect_set.create(
-                    target_fieldname=effect.target_fieldname,
-                    wertaenderung=min(instance.stufe, 5),
-                    wertaenderung_str=effect.wertaenderung_str,
-                    target_char=instance.char,
-                    target_attribut=RelAttribut.objects.get(char=instance.char, attribut=effect.target_attribut) if getattr(effect, "target_attribut", None) else None,
-                    target_fertigkeit=RelFertigkeit.objects.get(char=instance.char, fertigkeit=effect.target_fertigkeit) if getattr(effect, "target_fertigkeit", None) else None,
-                )
-
-            # wertaenderung = min(item-Stufe, 10)
-            if sender == RelEinbaute and effect.source_shopEinbaute.name == "Sense-KIT":
-                instance.releffect_set.create(
-                    target_fieldname=effect.target_fieldname,
-                    wertaenderung=min(instance.stufe, 10),
-                    wertaenderung_str=effect.wertaenderung_str,
-                    target_char=instance.char,
-                    target_attribut=RelAttribut.objects.get(char=instance.char, attribut=effect.target_attribut) if getattr(effect, "target_attribut", None) else None,
-                    target_fertigkeit=RelFertigkeit.objects.get(char=instance.char, fertigkeit=effect.target_fertigkeit) if getattr(effect, "target_fertigkeit", None) else None,
-                )
-
-            # wertaenderung = min(item-Stufe, 3)
-            if sender == RelEinbaute and effect.source_shopEinbaute.name in ["Motivationsbooster", "Hirnbooster", "Hormonpumpe", "Reflexbeschleuniger"]:
-                instance.releffect_set.create(
-                    target_fieldname=effect.target_fieldname,
-                    wertaenderung=min(instance.stufe, 3),
-                    wertaenderung_str=effect.wertaenderung_str,
-                    target_char=instance.char,
-                    target_attribut=RelAttribut.objects.get(char=instance.char, attribut=effect.target_attribut) if getattr(effect, "target_attribut", None) else None,
-                    target_fertigkeit=RelFertigkeit.objects.get(char=instance.char, fertigkeit=effect.target_fertigkeit) if getattr(effect, "target_fertigkeit", None) else None,
-                )
-
-            # wertaenderung = 10 * min(item-Stufe, 3)
-            if sender == RelEinbaute and effect.source_shopEinbaute.name == "Manareservator":
-                instance.releffect_set.create(
-                    target_fieldname=effect.target_fieldname,
-                    wertaenderung=10 * min(instance.stufe, 3),
-                    wertaenderung_str=effect.wertaenderung_str,
-                    target_char=instance.char,
-                    target_attribut=RelAttribut.objects.get(char=instance.char, attribut=effect.target_attribut) if getattr(effect, "target_attribut", None) else None,
-                    target_fertigkeit=RelFertigkeit.objects.get(char=instance.char, fertigkeit=effect.target_fertigkeit) if getattr(effect, "target_fertigkeit", None) else None,
-                )
 
 
 ########################## following: custom for Haustier-Fels #########################
@@ -167,24 +94,36 @@ def apply_hp_effect_of_haustierfels(sender, instance, **kwargs):
     # not on create
     if instance.pk is None: return
 
-    kHpPlus_fix_effects = instance.releffect_set.filter(is_active=True, target_fieldname="character.Charakter.HPplus_fix")
+    kHpPlus_fix_effects = instance.releffect_set.filter(is_active=True, effect__target_fieldname="character.Charakter.HPplus_fix")[:]
+    first_effect = kHpPlus_fix_effects[0] if kHpPlus_fix_effects else None
+    new_fix = None
 
-    # Haustierfels is the only one affecting the character's kHp plus fix?
-    if kHpPlus_fix_effects.count() != 1 or not getattr(kHpPlus_fix_effects.first(), "source_shopBegleiter", None) or getattr(kHpPlus_fix_effects.first(), "source_shopBegleiter", None).item.name != "Haustier-Fels":
-        return
+    # Haustier-Fels is not / not the only one affecting the character's kHp plus fix
+    if len(kHpPlus_fix_effects) != 1 or not getattr(first_effect.effect, "source_shopBegleiter", None) or first_effect.effect.source_shopBegleiter.name != "Haustier-Fels":
+        new_fix = min([e.wert for e in kHpPlus_fix_effects]) if len(kHpPlus_fix_effects) else None
+
+    # only Haustier-Fels
+    else:
     
-    #  für jede char-Stufe oder 50 LARP-Ränge des Charakters 1 HP K.
-    fels_hp = math.floor(instance.larp_rang / 50) if instance.larp else instance.ep_stufe
+        # für jede char-Stufe oder 50 LARP-Ränge des Charakters 1 HP K.
+        fels_hp = math.floor(instance.larp_rang / 50) if instance.larp else instance.ep_stufe
 
-    # keep HPplus and add the benefit
-    new_fix = instance.HPplus + fels_hp
+        # keep HPplus and add the benefit
+        new_fix = instance.HPplus + fels_hp
+
+        if fels_hp != first_effect.wert:
+            fieldname = "wertaenderung_str" if first_effect.effect.target_fieldname.endswith("_str") else "wertaenderung"
+            setattr(first_effect, fieldname, fels_hp)
+            first_effect.save(update_fields=[fieldname])
+
+    # update kHPplus_fix if changed
     if new_fix != instance.HPplus_fix:
         instance.HPplus_fix = new_fix
         instance.save(update_fields=["HPplus_fix"])
 
 @receiver(post_delete, sender=RelEffect)
 def deactivate_hp_effect_of_haustierfels_on_delete(sender, instance, **kwargs):
-    if instance.target_fieldname == "character.Charakter.HPplus_fix" and not instance.target_char.releffect_set.filter(target_fieldname="character.Charakter.HPplus_fix").exists():
+    if instance.effect.target_fieldname == "character.Charakter.HPplus_fix" and not instance.target_char.releffect_set.filter(effect__target_fieldname="character.Charakter.HPplus_fix").exists():
 
         # don't use char.save(update_fields=["HPplus_fix"]); char.save() here, because on char deletion the char/other char-relations are gone by now.
         # this query can execute even without an object selected by .filter()
