@@ -103,7 +103,7 @@ class RelEffect(models.Model):
         verbose_name_plural = "Charakter-Effekte"
         ordering = ['effect']
 
-    effect = models.ForeignKey(Effect, on_delete=models.CASCADE, null=True)
+    effect = models.ForeignKey(Effect, on_delete=models.CASCADE, null=False)
     target_char = models.ForeignKey("character.Charakter", on_delete=models.CASCADE, null=False, blank=False)
 
     target_attribut = models.ForeignKey("character.RelAttribut", on_delete=models.SET_DEFAULT, default=None, null=True, blank=True)
