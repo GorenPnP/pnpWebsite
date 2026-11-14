@@ -13,6 +13,6 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AlterUniqueTogether(
             name='releffect',
-            unique_together={('target_char', 'effect')},
+            unique_together={('target_char', 'effect', 'target_attribut')},
         ),
     ]
