@@ -1,11 +1,12 @@
 import math
 
+from django.db.models import Q
 from django.db.models.signals import pre_save, post_save, pre_delete, post_delete
 from django.dispatch import receiver
 
 from character.models.char import Charakter
 from character.models.rel import RelAttribut, RelVorteil, RelNachteil, RelTalent, RelKlasse, RelKlasseAbility, RelGfsAbility
-from character.models.relshop import RelBegleiter, RelMagische_Ausrüstung, RelRüstung, RelTechnik, RelEinbaute
+from character.models.relshop import RelBegleiter, RelMagische_Ausrüstung, RelRüstung, RelEinbaute
 
 from .models import *
 
@@ -37,7 +38,6 @@ def deactivate_effect_on_delete(sender, instance, **kwargs):
 @receiver(post_save, sender=RelBegleiter)
 @receiver(post_save, sender=RelMagische_Ausrüstung)
 @receiver(post_save, sender=RelRüstung)
-@receiver(post_save, sender=RelTechnik)
 @receiver(post_save, sender=RelEinbaute)
 def apply_effect_on_rel_relation(sender, instance, created, **kwargs):
     if not created or\
@@ -53,7 +53,7 @@ def apply_effect_on_rel_relation(sender, instance, created, **kwargs):
         effect_qs = instance.ability.effect_set.all()
     elif sender == RelKlasse: 
         effect_qs = instance.klasse.effect_set.all()
-    elif sender in [RelBegleiter, RelMagische_Ausrüstung, RelRüstung, RelTechnik, RelEinbaute]:
+    elif sender in [RelBegleiter, RelMagische_Ausrüstung, RelRüstung, RelEinbaute]:
         effect_qs = instance.item.effect_set.all()
 
     for effect in effect_qs:
@@ -84,6 +84,33 @@ def apply_effect_on_rel_relation(sender, instance, created, **kwargs):
                 # apply_hp_effect_of_haustierfels(Charakter, instance.char)
                 instance.char.save(update_fields=["HPplus_fix"])
 
+
+
+@receiver(post_delete, sender=RelVorteil)
+@receiver(post_delete, sender=RelNachteil)
+@receiver(post_delete, sender=RelTalent)
+@receiver(post_delete, sender=RelGfsAbility)
+@receiver(post_delete, sender=RelKlasse)
+@receiver(post_delete, sender=RelKlasseAbility)
+@receiver(post_delete, sender=RelBegleiter)
+@receiver(post_delete, sender=RelMagische_Ausrüstung)
+@receiver(post_delete, sender=RelRüstung)
+@receiver(post_delete, sender=RelEinbaute)
+def delete_releffects_when_deleting_source(sender, instance, **kwargs):
+    source_filter = {
+        RelVorteil: Q(effect__source_vorteil=getattr(instance, "teil", None)),
+        RelNachteil: Q(effect__source_nachteil=getattr(instance, "teil", None)),
+        RelTalent: Q(effect__source_talent=getattr(instance, "talent", None)),
+        RelGfsAbility: Q(effect__source_gfsAbility=getattr(instance, "ability", None)),
+        RelKlasse: Q(effect__source_klasse=getattr(instance, "klasse", None)),
+        RelKlasseAbility: Q(effect__source_klasseAbility=getattr(instance, "ability", None)),
+        RelBegleiter: Q(effect__source_shopBegleiter=getattr(instance, "item", None)),
+        RelMagische_Ausrüstung: Q(effect__source_shopMagischeAusrüstung=getattr(instance, "item", None)),
+        RelRüstung: Q(effect__source_shopRüstung=getattr(instance, "item", None)),
+        RelEinbaute: Q(effect__source_shopEinbaute=getattr(instance, "item", None)),
+    }[sender]
+
+    RelEffect.objects.filter(Q(target_char=instance.char) & source_filter).delete()
 
 
 ########################## following: custom for Haustier-Fels #########################

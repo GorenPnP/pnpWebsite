@@ -230,7 +230,7 @@ class RelEffect(models.Model):
 
         # get target object
         if Model == "character.RelAttribut":
-            target = getattr(self, "target_attribut", RelAttribut.objects.get(char=self.target_char, attribut=self.effect.target_attribut))
+            target = self.target_attribut or RelAttribut.objects.get(char=self.target_char, attribut=self.effect.target_attribut)
         elif Model == "character.RelFertigkeit":
             target = RelFertigkeit.objects.get(char=self.target_char, fertigkeit=self.effect.target_fertigkeit)
         elif Model == "cards.Card":
