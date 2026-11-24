@@ -152,18 +152,15 @@ class Charakter(models.Model):
     def __str__(self):
         return "{} ({})".format(self.name, self.eigentümer)
 
-    def get_max_stufe(self) -> int:
-        return GfsStufenplanBase.objects.filter(ep__lte=self.ep).aggregate(Max("stufe"))["stufe__max"] or 1
-
     def max_tier_allowed(self) -> int:
         new_tiers_at_stufe = [1, 2, 5, 8, 12, 16, 20]
 
-        if self.larp: return len(new_tiers_at_stufe)
-        return len([stufe for stufe in new_tiers_at_stufe if stufe <= self.ep_stufe_in_progress])
+        char_stufe = LarpStufe.get_stufe(self) if self.larp else self.ep_stufe_in_progress
+        return len([stufe for stufe in new_tiers_at_stufe if stufe <= char_stufe])
 
     def init_stufenhub(self):
         # new Stufe verteilen?
-        max_stufe = self.get_max_stufe()
+        max_stufe = GfsStufenplanBase.objects.filter(ep__lte=self.ep).aggregate(Max("stufe"))["stufe__max"] or 1
         if self.ep_stufe_in_progress >= max_stufe or self.gfs is None: return
 
         base_qs = self.gfs.gfsstufenplan_set\

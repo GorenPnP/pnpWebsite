@@ -36,6 +36,7 @@ from shop.views.list import shopmodel_list, shopmodel_upgrade_list
 
 from .enums import gruppen_enum
 from .forms import *
+from .models.base import LarpStufe
 from .models.char import Charakter, Tag as CharTag, CurrentStory
 from .models.rel import *
 from .models.relshop import RelRamsch, RelShop
@@ -220,10 +221,12 @@ class ShowView(VerifiedAccountMixin, DetailView):
             ["Krit-Angriff", char.crit_attack],
             ["Krit-Verteidigung", char.crit_defense],
         ]
+
+        stufe = LarpStufe.get_stufe(char)
         if char.larp:
-            fields.insert(4, ["LARP-Ränge", render_number(char.larp_rang)])
+            fields.insert(4, ["LARP-Ränge (entspricht Stufe)", f"{render_number(char.larp_rang)} ({stufe})"])
         else:
-            fields.insert(4, ["EP (Stufe)", f"{render_number(char.ep)} ({char.ep_stufe})"])
+            fields.insert(4, ["EP (Stufe)", f"{render_number(char.ep)} ({stufe})"])
 
         # collect unused Upgrade points (format {item_type, item_name, points}[] of all RelUpgrades with points > 0)
         upgrade_points = sorted([
@@ -361,26 +364,28 @@ class ShowView(VerifiedAccountMixin, DetailView):
         }
 
     def get_hp(self, char):
+        stufe = LarpStufe.get_stufe(char)
+
         khp = [
             self._rel_attribute["ST"].aktuell() * 3,
-            math.floor(char.larp_rang / 25) if char.larp else char.ep_stufe * 3,
+            stufe * 3,
             char.HPplus_fix if char.HPplus_fix is not None else char.HPplus,
         ]
         ghp = [
             self._rel_attribute["WK"].aktuell() * 3,
-            math.floor(char.larp_rang / 25) if char.larp else char.ep_stufe * 3,
+            stufe * 3,
             char.HPplus_geistig + (10 if char.no_MA_MG else 0),
         ]
 
         fields_khp = [
             ["HP durch Stärke", khp[0]],
-            ["HP durch LARP-Ränge" if char.larp else "HP durch Stufe", khp[1]],
+            ["HP durch Stufe", khp[1]],
             ["HP-Bonus", khp[2]],
             [format_html("<b>Körperliche HP</b>"), format_html(f"<b>{sum(khp)}</b>")],
         ]
         fields_ghp = [
             ["HP durch Willenskraft", ghp[0]],
-            ["HP durch LARP-Ränge" if char.larp else "HP durch Stufe", khp[1]],
+            ["HP durch Stufe", khp[1]],
             ["HP-Bonus", ghp[2]],
             [format_html("<b>geistige HP</b>"), format_html(f"<b>{sum(ghp)}</b>")],
         ]

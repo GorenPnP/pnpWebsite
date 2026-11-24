@@ -4,6 +4,7 @@ from django.db.models import Q
 from django.db.models.signals import pre_save, post_save, pre_delete, post_delete
 from django.dispatch import receiver
 
+from character.models.base import LarpStufe
 from character.models.char import Charakter
 from character.models.rel import RelAttribut, RelVorteil, RelNachteil, RelTalent, RelKlasse, RelKlasseAbility, RelGfsAbility
 from character.models.relshop import RelBegleiter, RelMagische_Ausrüstung, RelRüstung, RelEinbaute
@@ -132,8 +133,8 @@ def apply_hp_effect_of_haustierfels(sender, instance, **kwargs):
     # only Haustier-Fels
     else:
     
-        # für jede char-Stufe oder 50 LARP-Ränge des Charakters 1 HP K.
-        fels_hp = math.floor(instance.larp_rang / 50) if instance.larp else instance.ep_stufe
+        # für jede Stufe des Charakters 1 HP K.
+        fels_hp = LarpStufe.get_stufe(instance)
 
         # keep HPplus and add the benefit
         new_fix = instance.HPplus + fels_hp

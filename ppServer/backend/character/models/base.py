@@ -242,3 +242,20 @@ class Spezialfertigkeit(models.Model):
         st = self.attr1.__str__()
         nd = self.attr2.__str__()
         return "{} ({}, {})".format(self.titel, st, nd)
+
+
+class LarpStufe(models.Model):
+    class Meta:
+        verbose_name = "Larp Stufe"
+        verbose_name_plural = "Larp Stufen"
+        ordering = ("stufe", "ränge")
+
+    stufe = models.PositiveSmallIntegerField(default=0, unique=True, null=False, blank=False)
+    ränge = models.PositiveIntegerField(default=0, null=False, blank=False)
+
+    def __str__(self):
+        return f"Stufe {self.stufe} ab {self.ränge} Larp-Rängen"
+
+    @classmethod
+    def get_stufe(cls, char) -> int:
+        return char.ep_stufe if not char.larp else cls.objects.filter(ränge__lte=char.larp_rang).order_by("-stufe").values_list("stufe", flat=True).first() or 1

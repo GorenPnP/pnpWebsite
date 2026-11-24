@@ -6,6 +6,8 @@ from django.db.models import Subquery, OuterRef, F, Q, Exists, Value
 from django.db.models.functions import Coalesce
 from django.db.models.query import QuerySet
 
+from .base import LarpStufe
+
 
 class Klasse(models.Model):
     class Meta:
@@ -72,23 +74,23 @@ class KlasseStufenplan(models.Model):
         attrs = {rel.attribut.titel: rel.aktuellerWert + rel.aktuellerWert_bonus if rel.aktuellerWert_fix is None else rel.aktuellerWert_fix for rel in char.relattribut_set.prefetch_related("attribut").all()}
         fg = { rel.gruppe: rel.fg for rel in char.relgruppe_set.all() }
         fert = {rel.fertigkeit.titel: attrs[rel.fertigkeit.attribut.titel] + fg[rel.fertigkeit.gruppe] + rel.fp + rel.fp_bonus for rel in char.relfertigkeit_set.prefetch_related("fertigkeit__attribut").all()}
-        
+
         astrale_reaktion = attrs["MA"] + attrs["WK"] + char.astrale_reaktion_bonus
         if char.no_MA_MG:
-            astrale_reaktion += 4
+            astrale_reaktion = attrs["WK"] + char.astrale_reaktion_bonus + 4
         elif char.no_MA:
             astrale_reaktion = attrs["WK"] + char.astrale_reaktion_bonus
 
-        HPstufe = math.floor(char.larp_rang / 20) if char.larp else char.ep_stufe*2
-        gHP = attrs["WK"]*5 + char.HPplus_geistig + HPstufe
-        if char.no_MA_MG: gHP += 20
+        stufe = LarpStufe.get_stufe(char)
+        gHP = (attrs["WK"] + stufe) * 3 + char.HPplus_geistig
+        if char.no_MA_MG: gHP += 10
 
         calc_vals = {
             "Initiative": attrs["SCH"]*2 + attrs["WK"] + attrs["GES"] + char.initiative_bonus,
             "astrale Reaktion": astrale_reaktion,
             "physische Reaktion": attrs["SCH"] + attrs["GES"] + char.physische_reaktion_bonus,
             "physischer Widerstand": attrs["ST"] + attrs["VER"] + char.physischer_widerstand_bonus, # ignored string/dice component
-            "körperliche HP": attrs["ST"]*5 + (char.HPplus_fix if char.HPplus_fix is not None else char.HPplus) + HPstufe,
+            "körperliche HP": (attrs["ST"] + stufe)*3 + (char.HPplus_fix if char.HPplus_fix is not None else char.HPplus),
             "geistige HP": gHP,
         }
         fields = { **attrs, **fert, **calc_vals }

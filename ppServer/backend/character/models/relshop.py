@@ -7,6 +7,7 @@ from django.forms import ValidationError
 
 from shop.models import *
 
+from .base import LarpStufe
 
 ############ RelShop ###########
 
@@ -430,8 +431,8 @@ class RelUpgrade(models.Model):
             if not self.item.possible_upgrades.filter(pk=own_upgrade.upgrade.pk).exists():
                 raise ValidationError("Upgrade muss zum Item passen")
 
-            # ab_stufe of upgrade is grater than chars ep_stufe
-            if own_upgrade.upgrade.ab_stufe > self.char.ep_stufe:
+            # ab_stufe of upgrade is grater than chars stufe
+            if own_upgrade.upgrade.ab_stufe > LarpStufe.get_stufe(self.char):
                 raise ValidationError("Upgrade benötigt höhere Stufe")
 
             # unlockable upgrade needs to be unlocked first
@@ -454,7 +455,7 @@ class RelUpgrade(models.Model):
 
         return Upgrade.objects.filter(
             used_upgrades | own_upgrades | unlocked_upgrades | without_prerequisites | with_prerequisites
-        ).filter(ab_stufe__lte=self.char.ep_stufe)
+        ).filter(ab_stufe__lte=LarpStufe.get_stufe(self.char))
 
 
 class RelUpgradeNahkampfwaffe(RelUpgrade):

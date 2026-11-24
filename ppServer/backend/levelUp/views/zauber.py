@@ -10,7 +10,7 @@ from django.views.generic.base import TemplateView
 from django.utils.decorators import method_decorator
 
 from cards.models import Card, Transaction
-from character.models.base import Spieler
+from character.models.base import Spieler, LarpStufe
 from character.models.char import Charakter
 from character.models.rel import RelAttribut, RelVorteil
 from character.models.relshop import RelZauber
@@ -45,7 +45,7 @@ class GenericZauberView(LevelUpMixin, UserPassesTestMixin, TemplateView):
         zauberplätze = char.zauberplätze if char.zauberplätze else {}
 
         zauberplatz_stufe_limit = max([int(k) for k in zauberplätze.keys()], default=-1)
-        char_stufe_limit = max(char.ep_stufe_in_progress, 5 if char.magieamateur_exists else 0, 10 if char.magiegelehrter_exists else 0) if not char.larp else Zauber.objects.aggregate(Max("ab_stufe", default=-1))["ab_stufe__max"]
+        char_stufe_limit = max(char.ep_stufe_in_progress, LarpStufe.get_stufe(char), 5 if char.magieamateur_exists else 0, 10 if char.magiegelehrter_exists else 0)
         max_stufe = min(zauberplatz_stufe_limit, char_stufe_limit)
 
         own_zauber = char.relzauber_set.filter(learned=True).prefetch_related("item").all().annotate(

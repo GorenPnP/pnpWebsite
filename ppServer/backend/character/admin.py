@@ -48,6 +48,11 @@ class SpielerAdmin(admin.ModelAdmin):
         return obj.__str__()
 
 
+class LarpStufeAdmin(admin.ModelAdmin):
+    list_display = ["stufe", "ränge"]
+    list_editable = ["ränge"]
+
+
 class TagAdmin(admin.ModelAdmin):
     list_display = ['name', 'spieler', "_charaktere"]
     list_filter = ["spieler", 'name',]
@@ -275,3 +280,4 @@ admin.site.register(GfsStufenplanBase, GfsStufenplanBaseAdmin)
 admin.site.register(GfsStufenplan, GfsStufenplanAdmin)
 
 admin.site.register(CharTag, TagAdmin)
+admin.site.register(LarpStufe, LarpStufeAdmin)

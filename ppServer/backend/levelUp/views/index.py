@@ -138,7 +138,7 @@ class IndexView(LevelUpMixin, DetailView):
 
         base_qs = []
         stufenbelohnung = []
-        if char.gfs:
+        if char.gfs and not char.larp:
             base_qs = char.gfs.gfsstufenplan_set\
                 .prefetch_related("basis")\
                 .filter(basis__stufe__gt=char.ep_stufe, basis__stufe__lte=char.ep_stufe_in_progress)

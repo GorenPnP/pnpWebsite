@@ -52,7 +52,7 @@ class GenericKlasseView(LevelUpMixin, TemplateView):
             messages.info(self.request, f"{char.name} ist älter als Klassen, bekommt also bis Charakterstufe {char.reduced_rewards_until_klasse_stufe} nur deren Fähigkeiten.")
 
         return super().get_context_data(*args, **kwargs,
-            missing_stufen = char.ep_stufe_in_progress - char.relklasse_set.aggregate(stufen=Coalesce(Sum("stufe"), 0))["stufen"],
+            missing_stufen = char.ep_stufe_in_progress - char.relklasse_set.aggregate(stufen=Coalesce(Sum("stufe"), 0))["stufen"] if not char.larp else 0,
             own_klassen = own_klassen,
             stufenpläne = stufenpläne,
             topic = "Klassen",
@@ -61,6 +61,9 @@ class GenericKlasseView(LevelUpMixin, TemplateView):
 
     def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
         char = self.get_character(Charakter.objects.prefetch_related("relklasse_set"))
+        if char.larp:
+            messages.error(request, "Im Larp kannst du keine Klassen wählen")
+            return redirect("levelUp:index", args=[char.pk])
 
         # GATHER DATA
         stufenplan_id = int(request.POST.get("stufenplan_id"))

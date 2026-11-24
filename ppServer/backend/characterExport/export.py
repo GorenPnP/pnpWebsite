@@ -280,9 +280,9 @@ class CharakterExporter:
         werte_ws.write(f"J{ROW}", self.char.ep, format_ep)
 
         ROW += 1
-        self._POSITION["ep_stufe"] = f"Werte!J{ROW}"
+        self._POSITION["stufe"] = f"Werte!J{ROW}"
         werte_ws.write(f"I{ROW}", "Stufe", format_align_center_center)
-        werte_ws.write(f"J{ROW}", self.char.ep_stufe, format_ep)
+        werte_ws.write(f"J{ROW}", LarpStufe.get_stufe(self.char), format_ep)
         werte_ws.merge_range(f"K{ROW-1}:L{ROW-1}", "Manifest", format_manifest)
         werte_ws.merge_range(f"K{ROW}:L{ROW}", self.char.manifest - self.char.sonstiger_manifestverlust if self.char.manifest_fix is None else self.char.manifest_fix, format_manifest)
 
@@ -465,7 +465,7 @@ class CharakterExporter:
         
         # HP
         werte_ws.write(f"I{ROW}", "K HP Bonus", format_align_border_top)
-        werte_ws.write(f"J{ROW}", f"={(self.char.HPplus_fix if self.char.HPplus_fix is not None else self.char.HPplus) or 0}+{math.floor(self.char.larp_rang/25) if self.char.larp else self._position('ep_stufe')*3}", format_hp)
+        werte_ws.write(f"J{ROW}", f"={(self.char.HPplus_fix if self.char.HPplus_fix is not None else self.char.HPplus) or 0}+{self._position('stufe')}*3", format_hp)
         
         ROW += 1
         self._POSITION["kHP"] = f"Werte!J{ROW}"
@@ -474,7 +474,7 @@ class CharakterExporter:
         
         ROW += 1
         werte_ws.write(f"I{ROW}", "G HP Bonus", format_align_center_center)
-        werte_ws.write(f"J{ROW}", self.char.HPplus_geistig + (math.floor(self.char.larp_rang / 25) if self.char.larp else self.char.ep_stufe * 3) + (10 if self.char.no_MA_MG else 0), format_hp)
+        werte_ws.write(f"J{ROW}", f"={self.char.HPplus_geistig} + ({self._position('stufe')} * 3) + {10 if self.char.no_MA_MG else 0}", format_hp)
         
         ROW += 1
         self._POSITION["gHP"] = f"Werte!J{ROW}"
