@@ -36,7 +36,6 @@ from shop.views.list import shopmodel_list, shopmodel_upgrade_list
 
 from .enums import gruppen_enum
 from .forms import *
-from .models.base import LarpStufe
 from .models.char import Charakter, Tag as CharTag, CurrentStory
 from .models.rel import *
 from .models.relshop import RelRamsch, RelShop
@@ -222,7 +221,7 @@ class ShowView(VerifiedAccountMixin, DetailView):
             ["Krit-Verteidigung", char.crit_defense],
         ]
 
-        stufe = LarpStufe.get_stufe(char)
+        stufe = char.stufe
         if char.larp:
             fields.insert(4, ["LARP-Ränge (entspricht Stufe)", f"{render_number(char.larp_rang)} ({stufe})"])
         else:
@@ -235,8 +234,12 @@ class ShowView(VerifiedAccountMixin, DetailView):
                 item_type=Value(m.item.field.related_fields[0][0].related_model._meta.verbose_name)
             ).values("item_type", "item__name", "points")
         ], key=lambda entry: f"{entry['item_type']}|||{entry['item__name']}")
-        if len(upgrade_points):
-            fields.append(["Upgrade-Punkte", format_html('<ul>' + ''.join([f'<li>{i["item_type"]} <b>{i["item__name"]}</b>: {i["points"]} Punkt{'e' if i["points"] > 1 else ''}</li>' for i in upgrade_points]) + "</ul>")])
+        if char.zauber_upgrade_points or len(upgrade_points):
+            li_items = [f'<li>{i["item_type"]} <b>{i["item__name"]}</b>: {i["points"]} Punkt{'e' if i["points"] > 1 else ''}</li>' for i in upgrade_points]
+            if char.zauber_upgrade_points:
+                li_items.append(f"<li><b>beliebiger Zauber</b>: {char.zauber_upgrade_points} Punkt{'e' if char.zauber_upgrade_points > 1 else ''}</li>")
+
+            fields.append(["Upgrade-Punkte", format_html('<ul>' + ''.join(li_items) + "</ul>")])
 
         # collect unused Upgrades (format {item_type, item_name, num, upgrade}[] of all OwnUpgrades)
         upgrades = sorted([
@@ -258,25 +261,15 @@ class ShowView(VerifiedAccountMixin, DetailView):
         attrs = { attr_name: rel.aktuell() for attr_name, rel in self._rel_attribute.items() }
 
         num = lambda n: "{0:.1f}".format(n) if type(n) is float else n
-
-        astrale_reaktion = f'{attrs["MA"] + attrs["WK"]}'
-        if char.no_MA_MG: astrale_reaktion = f'{attrs["WK"] + 4}'
-        elif char.no_MA: astrale_reaktion = f'{attrs["WK"]} + Pool Angriffsfertigkeit'
-        if  char.astrale_reaktion_bonus: astrale_reaktion += f" + {char.astrale_reaktion_bonus}"
-
-        physischer_widerstand = f'{attrs["VER"]}'
-        if char.physischer_widerstand_bonus: physischer_widerstand += f" + {char.physischer_widerstand_bonus}"
-        if char.physischer_widerstand_bonus_str: physischer_widerstand += f' + {char.physischer_widerstand_bonus_str}'
-
         return {
             "calculated__fields": [
-                ["Initiative", num(attrs["SCH"]*2 + attrs["WK"] + attrs["GES"] + char.initiative_bonus)],
+                ["Initiative", num(char.initiative)],
                 ["Manaoverflow", num((attrs["WK"] + MA_raw)*3 + char.manaoverflow_bonus)],
 
-                ["physische Reaktion", num(attrs["SCH"] + attrs["GES"] + char.physische_reaktion_bonus)],
-                ["physischer Widerstand", f"{physischer_widerstand} HP"],
-                ["astrale Reaktion", astrale_reaktion],
-                ["astraler Widerstand", f"{attrs["WK"]} + {char.astraler_widerstand_bonus_str} HP" if char.astraler_widerstand_bonus_str else f"{attrs["WK"]} HP"],
+                ["physische Reaktion", num(char.physische_reaktion)],
+                ["physischer Widerstand", f"{' + '.join([v for v in char.physischer_widerstand if v])} HP"],
+                ["astrale Reaktion", ' + '.join([f'{v}' for v in char.astrale_reaktion if v])],
+                ["astraler Widerstand", f"{' + '.join([f'{v}' for v in char.astraler_widerstand if v])} HP"],
                 ["Bewegung Laufen", f'{num(char.gfs.base_movement_speed + attrs["SCH"] + char.speed_laufen_bonus)}m'],
                 ["Bewegung Schwimmen", f'{num((char.gfs.base_movement_speed + attrs["SCH"])/2 + char.speed_schwimmen_bonus)}m'],
                 ["Bewegung Fliegen", f'{num((char.gfs.base_movement_speed + attrs["SCH"])*2 + char.speed_fliegen_bonus)}m'],
@@ -364,35 +357,22 @@ class ShowView(VerifiedAccountMixin, DetailView):
         }
 
     def get_hp(self, char):
-        stufe = LarpStufe.get_stufe(char)
-
-        khp = [
-            self._rel_attribute["ST"].aktuell() * 3,
-            stufe * 3,
-            char.HPplus_fix if char.HPplus_fix is not None else char.HPplus,
-        ]
-        ghp = [
-            self._rel_attribute["WK"].aktuell() * 3,
-            stufe * 3,
-            char.HPplus_geistig + (10 if char.no_MA_MG else 0),
-        ]
-
-        fields_khp = [
-            ["HP durch Stärke", khp[0]],
-            ["HP durch Stufe", khp[1]],
-            ["HP-Bonus", khp[2]],
-            [format_html("<b>Körperliche HP</b>"), format_html(f"<b>{sum(khp)}</b>")],
-        ]
-        fields_ghp = [
-            ["HP durch Willenskraft", ghp[0]],
-            ["HP durch Stufe", khp[1]],
-            ["HP-Bonus", ghp[2]],
-            [format_html("<b>geistige HP</b>"), format_html(f"<b>{sum(ghp)}</b>")],
-        ]
+        khp = char.kHP
+        ghp = char.gHP
 
         return {
-            "hp__k_fields": fields_khp,
-            "hp__g_fields": fields_ghp,
+            "hp__k_fields": [
+                ["HP durch Stärke", khp["attribut"]],
+                ["HP durch Stufe", khp["stufe"]],
+                ["HP-Bonus", khp["bonus"]],
+                [format_html("<b>Körperliche HP</b>"), format_html(f"<b>{khp['total']}</b>")],
+            ],
+            "hp__g_fields": [
+                ["HP durch Willenskraft", ghp["attribut"]],
+                ["HP durch Stufe", ghp["stufe"]],
+                ["HP-Bonus", ghp["bonus"]],
+                [format_html("<b>geistige HP</b>"), format_html(f"<b>{ghp['total']}</b>")],
+            ],
         }
 
     def get_spF_wF(self, char):

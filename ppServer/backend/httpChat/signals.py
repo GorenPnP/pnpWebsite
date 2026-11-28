@@ -3,6 +3,7 @@ from django.db.models.signals import post_save
 from django.db.models.functions import Coalesce
 from django.dispatch import receiver
 
+from core.utils import SumSubquery
 from httpChat.models import ChatroomAccount
 from webPush.models import PushSettings, PushTag
 

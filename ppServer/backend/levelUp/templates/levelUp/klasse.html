@@ -74,7 +74,7 @@
                             {% if rel.fg %}<li>{{ rel.fg }} FG</li>{% endif %}
                             {% if rel.tp %}<li>{{ rel.tp }} TP</li>{% endif %}
                             {% if rel.ip %}<li>{{ rel.ip }} IP</li>{% endif %}
-                            {% if rel.zauber %}<li>{{ rel.zauber }} Zauberslots</li>{% endif %}
+                            {% if rel.zauber %}<li>{{ rel.zauber }} Zauber-Upgradepunkt/e</li>{% endif %}
                             <li>Klassenfähigkeiten:<ul>{{ rel.abilities|safe|linebreaks }}</ul></li>
                         </ul>
                     </small>
@@ -115,7 +115,7 @@
                                         {% if rel.fg %}<li>{{ rel.fg }} FG</li>{% endif %}
                                         {% if rel.tp %}<li>{{ rel.tp }} TP</li>{% endif %}
                                         {% if rel.ip %}<li>{{ rel.ip }} IP</li>{% endif %}
-                                        {% if rel.zauber %}<li>{{ rel.zauber }} Zauberslots</li>{% endif %}
+                                        {% if rel.zauber %}<li>{{ rel.zauber }} Zauber-Upgradepunkt/e</li>{% endif %}
                                         {% if rel.ability %}<li><b>{{ rel.ability.name }}</b>{{ rel.ability.beschreibung|linebreaks }}</li>{% endif %}
                                     </ul>
                                 {% endif %}

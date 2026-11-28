@@ -30,17 +30,6 @@ def post_auswertung(request, *args, **kwargs):
             object.card.save(update_fields=["money"])
             Transaction.objects.create(receiver=object.card, amount=geld, reason=f"Storybelohnung '{story}'")
 
-        # apply zauberplätze
-        zauberplätze = fields.pop("zauberplätze", dict()) or dict()
-        if zauberplätze.keys():
-            for stufe, amount in zauberplätze.items():
-                if not object.zauberplätze: object.zauberplätze = {}
-
-                old_val = object.zauberplätze[stufe] if hasattr(object.zauberplätze, stufe) else 0
-                object.zauberplätze[stufe] = old_val + amount
-
-            object.save(update_fields=["zauberplätze"])
-
         # apply all other/numeric fields
         for k, v in fields.items():
             old_value = getattr(object, k)
@@ -48,8 +37,7 @@ def post_auswertung(request, *args, **kwargs):
 
         object.save(update_fields=fields)
 
-        zauberplatz_log = ", ".join([f"{amount}x Stufe {stufe}" for stufe, amount in zauberplätze.items() if amount])
-        logAuswertung(object.eigentümer, object, story, {**fields, "geld": geld, "zauber": zauberplatz_log})
+        logAuswertung(object.eigentümer, object, story, {**fields, "geld": geld})
 
         # check ep for new stufe
         object.init_stufenhub()

@@ -25,20 +25,6 @@
 <ul class="submit-errors text-danger mt-2"></ul>
 
 <script>
-    // add labels for individual zauberslots
-    document.querySelectorAll(".zauberplätze-input").forEach(input => {
-        input.classList.add("numberinput", "form-control");
-
-        const label = document.createElement("label");
-        label.setAttribute("for", input.id);
-        label.classList.add("form-label");
-        label.innerHTML = `Stufe ${parseInt(input.id.match(/\d+/))}`;
-
-        input.parentNode.insertBefore(label, input);
-    });
-
-
-    
     // catch submit errors & display them below the submit button
     let timer = Date.now();
     const submit_errors = document.querySelector(".submit-errors");

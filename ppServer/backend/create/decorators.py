@@ -10,7 +10,6 @@ def is_prio_done(char: Charakter):
         char.ip is None or
         char.fp is None or
         char.fg is None or
-        char.zauberplätze is None or
         char.geld is None
     )
 

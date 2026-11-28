@@ -114,10 +114,9 @@ class GenericKlasseView(LevelUpMixin, TemplateView):
             char.fg += stufenplan.fg
             char.tp += stufenplan.tp
             char.ip += stufenplan.ip
-            new_zauber = char.zauberplätze.get(f"{char.ep_stufe_in_progress}", 0) + stufenplan.zauber
-            if new_zauber: char.zauberplätze[char.ep_stufe_in_progress] = new_zauber
+            char.zauber_upgrade_points += stufenplan.zauber
 
-            char.save(update_fields=["ap", "fp", "fg", "tp", "ip", "zauberplätze"])
+            char.save(update_fields=["ap", "fp", "fg", "tp", "ip", "zauber_upgrade_points"])
 
         # .. stufe-abilities
         if stufenplan.ability: char.relklasseability_set.create(ability=stufenplan.ability)

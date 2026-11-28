@@ -256,7 +256,7 @@ class CharakterExporter:
 
         ROW += 1
         werte_ws.write(f"I{ROW}", "Initiative", format_ini_titel)
-        werte_ws.write(f"J{ROW}", f"=2*{self._position('SCH')}+{self._position('WK')}+{self._position('GES')}"+(f"+{self.char.initiative_bonus}" if self.char.initiative_bonus else ""), format_ini)
+        werte_ws.write(f"J{ROW}", self.char.initiative, format_ini)
 
         ROW = max(ROW+1, int(re.search(r"\d+$", self._position("attr_labels")).group(0)))
 
@@ -282,7 +282,7 @@ class CharakterExporter:
         ROW += 1
         self._POSITION["stufe"] = f"Werte!J{ROW}"
         werte_ws.write(f"I{ROW}", "Stufe", format_align_center_center)
-        werte_ws.write(f"J{ROW}", LarpStufe.get_stufe(self.char), format_ep)
+        werte_ws.write(f"J{ROW}", self.char.stufe, format_ep)
         werte_ws.merge_range(f"K{ROW-1}:L{ROW-1}", "Manifest", format_manifest)
         werte_ws.merge_range(f"K{ROW}:L{ROW}", self.char.manifest - self.char.sonstiger_manifestverlust if self.char.manifest_fix is None else self.char.manifest_fix, format_manifest)
 
@@ -357,31 +357,31 @@ class CharakterExporter:
 
         # colorful dice
         werte_ws.merge_range(f"M{ROW}:O{ROW}", "physische Reaktion", format_colorful_titel_emph)
-        werte_ws.merge_range(f"P{ROW}:R{ROW}", f"={self._position('SCH')}+{self._position('GES')}"+(f"+{self.char.physische_reaktion_bonus}" if self.char.physische_reaktion_bonus else ""), format_colorful)
+        werte_ws.merge_range(f"P{ROW}:R{ROW}", self.char.physische_reaktion, format_colorful)
         werte_ws.write(f"S{ROW}", "SCH+GES")
 
         ROW += 1
+        phyWi = self.char.physischer_widerstand
         werte_ws.merge_range(f"M{ROW}:O{ROW}", "physischer Widerstand", format_colorful_titel_emph)
-        werte_ws.merge_range(f"P{ROW}:Q{ROW}", f"={self._position('VER')}"+(f"+{self.char.physischer_widerstand_bonus}" or ""), format_colorful)
-        werte_ws.write(f"R{ROW}", self.char.physischer_widerstand_bonus_str, format_colorful)
+        werte_ws.merge_range(f"P{ROW}:Q{ROW}", phyWi[0], format_colorful)
+        werte_ws.write(f"R{ROW}", phyWi[1], format_colorful)
         werte_ws.write(f"S{ROW}", f"VER")
 
         ROW += 1
         werte_ws.merge_range(f"M{ROW}:O{ROW}", "astrale Reaktion", format_colorful_titel_emph)
+        werte_ws.merge_range(f"P{ROW}:R{ROW}", " + ".join([f'{v}' for v in self.char.astrale_reaktion if v]), format_colorful)
         if self.char.no_MA_MG:
-            werte_ws.merge_range(f"P{ROW}:R{ROW}", f"={self._position('WK')}+4"+(f"+{self.char.astrale_reaktion_bonus}" if self.char.astrale_reaktion_bonus else ""), format_colorful)
             werte_ws.write(f"S{ROW}", "WK+4")
         elif self.char.no_MA:
-            werte_ws.merge_range(f"P{ROW}:R{ROW}", f"={self._position('WK')}"+(f"+{self.char.astrale_reaktion_bonus}" if self.char.astrale_reaktion_bonus else ""), format_colorful)
             werte_ws.write(f"S{ROW}", "WK")
         else:
-            werte_ws.merge_range(f"P{ROW}:R{ROW}", f"={self._position('MA')}+{self._position('WK')}"+(f"+{self.char.astrale_reaktion_bonus}" if self.char.astrale_reaktion_bonus else ""), format_colorful)
             werte_ws.write(f"S{ROW}", "MA+WK")
 
         ROW += 1
+        asWi = self.char.astraler_widerstand
         werte_ws.merge_range(f"M{ROW}:O{ROW}", "astraler Widerstand", format_colorful_titel_emph)
-        werte_ws.merge_range(f"P{ROW}:Q{ROW}", f"={self._position('WK')}", format_colorful)
-        werte_ws.write(f"R{ROW}", self.char.astraler_widerstand_bonus_str, format_colorful)
+        werte_ws.merge_range(f"P{ROW}:Q{ROW}", f"={asWi[0]}", format_colorful)
+        werte_ws.write(f"R{ROW}", asWi[1], format_colorful)
         werte_ws.write(f"S{ROW}", "WK")
 
         ROW += 1
@@ -464,22 +464,24 @@ class CharakterExporter:
         format_hp =                 wb.add_format({'align': 'center', "valign": "vcenter", 'bold': True, "border": 1, "bg_color": self.COLOR["green"], "font_size": 12})
         
         # HP
+        khp = self.char.kHP
         werte_ws.write(f"I{ROW}", "K HP Bonus", format_align_border_top)
-        werte_ws.write(f"J{ROW}", f"={(self.char.HPplus_fix if self.char.HPplus_fix is not None else self.char.HPplus) or 0}+{self._position('stufe')}*3", format_hp)
+        werte_ws.write(f"J{ROW}", f"={khp["bonus"]}+{khp['stufe']}", format_hp)
         
         ROW += 1
         self._POSITION["kHP"] = f"Werte!J{ROW}"
         werte_ws.write(f"I{ROW}", "Körperliche HP", format_section_titel)
-        werte_ws.write(f"J{ROW}", f"=J{ROW-1}+({self._position('ST')}*3)", format_hp)
+        werte_ws.write(f"J{ROW}", f"=J{ROW-1}+({khp['attribut']})", format_hp)
         
         ROW += 1
+        ghp = self.char.gHP
         werte_ws.write(f"I{ROW}", "G HP Bonus", format_align_center_center)
-        werte_ws.write(f"J{ROW}", f"={self.char.HPplus_geistig} + ({self._position('stufe')} * 3) + {10 if self.char.no_MA_MG else 0}", format_hp)
+        werte_ws.write(f"J{ROW}", f"={ghp["bonus"]}+{ghp['stufe']}", format_hp)
         
         ROW += 1
         self._POSITION["gHP"] = f"Werte!J{ROW}"
         werte_ws.write(f"I{ROW}", "Geistige HP", format_section_titel)
-        werte_ws.write(f"J{ROW}", f"=J{ROW-1}+{self._position('WK')}*3", format_hp)
+        werte_ws.write(f"J{ROW}", f"=J{ROW-1}+{ghp['attribut']}", format_hp)
 
         ROW += 1
         werte_ws.merge_range(f"I{ROW}:I{ROW+1}", "Konzentration (Max.)", format_konz_titel)

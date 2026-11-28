@@ -30,9 +30,6 @@ def is_ap_done(char: Charakter):
 def is_ferts_done(char: Charakter):
     return char is not None and not char.fp and not char.fg
 
-def is_zauber_done(char: Charakter):
-    return char is not None and (char.no_MA or char.no_MA_MG or len(char.zauberplätze.keys()) == 0)
-
 def is_teil_done(char: Charakter):
     return char is not None and char.ip >= 0 and\
         not RelVorteil.objects.filter(char=char, will_create=True).exists() and\
@@ -54,7 +51,6 @@ def pending_areas(char: Charakter) -> list:
         if not is_klasse_done(char): res.append("Klassen")
         if not is_ap_done(char): res.append("Attribute")
         if not is_ferts_done(char): res.append("Fertigkeiten")
-        if not is_zauber_done(char): res.append("Zauber")
         if not is_personal_done(char): res.append("persönliche Informationen")
         if not is_spF_wF_done(char): res.append("Spezial- und Wissensfertigkeiten")
         if not is_teil_done(char): res.append("Vor- und Nachteile")

@@ -218,7 +218,7 @@ class CharakterAdmin(admin.ModelAdmin):
                               'initiative_bonus', 'physische_reaktion_bonus', 'physischer_widerstand_bonus', 'physischer_widerstand_bonus_str', 'astrale_reaktion_bonus', 'astraler_widerstand_bonus_str',
                               "manaoverflow_bonus", "nat_regeneration_bonus", "immunsystem_bonus"]}),
         ('Kampagne', {'fields': ["ep", 'ep_stufe', 'ep_stufe_in_progress', "skilltree_stufe", "processing_notes"]}),
-        ('Währungen', {'fields': ['ap', 'fp', 'fg', 'sp', "sp_fix", 'ip', 'tp', 'spF_wF', 'wp', 'zauberplätze', 'konzentration', "konzentration_fix", "prestige", "verzehr", "glück", "sanität"]}),
+        ('Währungen', {'fields': ['ap', 'fp', 'fg', 'sp', "sp_fix", 'ip', 'tp', 'spF_wF', 'wp', 'zauber_upgrade_points', 'konzentration', "konzentration_fix", "prestige", "verzehr", "glück", "sanität"]}),
         ('Bewegungsraten', {'fields': ['speed_laufen_bonus', 'speed_schwimmen_bonus', 'speed_fliegen_bonus', 'speed_astral_bonus']}),
         ('Geschreibsel', {'fields': ['notizen', 'persönlicheZiele', 'sonstige_items']}),
     ]
@@ -246,7 +246,7 @@ class CharakterAdmin(admin.ModelAdmin):
         get_RelShopInLine(RelTechnik, ["stufe", "item", "notizen", "selbst_eingebaut"]),
         get_RelShopInLine(RelFahrzeug),
         get_RelShopInLine(RelEinbaute, ["stufe", "item", "notizen"]),
-        get_RelShopInLine(RelZauber, ["item", "tier", "learned", "notizen"]),
+        get_RelShopInLine(RelZauber, ["item", "tier", "notizen"]),
         get_RelShopInLine(RelAlchemie),
         get_RelShopInLine(RelTinker),
         get_RelShopInLine(RelBegleiter),

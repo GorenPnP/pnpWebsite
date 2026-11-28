@@ -85,11 +85,11 @@ class GfsFormView(VerifiedAccountMixin, TemplateView):
             char.fg = 2
             char.sp = 0
             char.ip = 0
-            char.zauberplätze = {}
+            char.zauber_upgrade_points = 0
             char.ep_stufe = 0
             char.ep_stufe_in_progress = 0
             char.beruf = get_object_or_404(Beruf, titel="Schüler")
-            char.save(update_fields=["ap", "fp", "fg", "sp", "ip", "zauberplätze", "beruf", "ep_stufe", "ep_stufe_in_progress"])
+            char.save(update_fields=["ap", "fp", "fg", "sp", "ip", "zauber_upgrade_points", "beruf", "ep_stufe", "ep_stufe_in_progress"])
             card = Card.objects.create(char=char, money=5000, active=True)
             Transaction.objects.create(receiver=card, amount=card.money, reason="LARP-Startkapital")
 
@@ -169,7 +169,7 @@ class GfsFormView(VerifiedAccountMixin, TemplateView):
 
             # Zauber
             RelZauber.objects.bulk_create([
-                RelZauber(char=char, item=gfs_zauber.item, tier=gfs_zauber.tier, learned=True)
+                RelZauber(char=char, item=gfs_zauber.item, tier=gfs_zauber.tier)
                 for gfs_zauber in GfsZauber.objects.filter(gfs=char.gfs)
             ])
 
@@ -230,7 +230,7 @@ class PriotableFormView(LevelUpMixin, DetailView):
                 "Konz. = Konzentration, um Proben besser zu würfeln als sonst",
                 "FP = Fertigkeitspunkte",
                 "FG = Fertigkeitsgruppen",
-                "Zauber = Anz. wählbarer Zauber, bzw. Zauberverbesserungen",
+                "Zauber = Anz. Zauber-Upgrades, um Zauber zu verbessern",
                 "Drachmen = Geld",
                 "SP-Fert und W-Fert = wählbare Spezialisierungen"
             ]
@@ -297,7 +297,7 @@ class PriotableFormView(LevelUpMixin, DetailView):
 
         # zauber
         prio = getattr(chosen_fields, "zauber")
-        char.zauberplätze = {"1": prio.zauber} if prio.zauber else {}
+        char.zauber_upgrade_points = prio.zauber or 0
         fields.append({"prio": prio.priority, "text": f"{prio.zauber} Zauber"})
 
         # drachmen & spF_wF
@@ -330,14 +330,13 @@ class PriotableFormView(LevelUpMixin, DetailView):
             char.fg += reward.fg
             char.tp += reward.tp
             char.ip += reward.ip
-            new_zauber = char.zauberplätze.get(f"{char.ep_stufe_in_progress}", 0) + reward.zauber
-            if new_zauber: char.zauberplätze[char.ep_stufe_in_progress] = new_zauber
+            char.zauber_upgrade_points += reward.zauber
 
             # .. base-abilities
             for ability in reward.klasse.base_abilities.all():
                 RelKlasseAbility.objects.create(char=char, ability=ability)
 
-        char.save(update_fields=["ip", "sp", "konzentration", "fp", "fg", "zauberplätze", "spF_wF", "wp", "ap", "tp", "processing_notes"])
+        char.save(update_fields=["ip", "sp", "konzentration", "fp", "fg", "zauber_upgrade_points", "spF_wF", "wp", "ap", "tp", "processing_notes"])
 
         if not char.processing_notes["creation_larp"] and char.ep:
             char.init_stufenhub()

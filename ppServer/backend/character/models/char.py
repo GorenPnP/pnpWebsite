@@ -66,7 +66,7 @@ class Charakter(models.Model):
     tp = models.PositiveSmallIntegerField(default=0)
     spF_wF = models.IntegerField(null=True, blank=True)
     wp = models.IntegerField(null=True, blank=True)
-    zauberplätze = models.JSONField(default=dict, null=False, blank=True) # {"0": 2, "2": 1}
+    zauber_upgrade_points = models.PositiveSmallIntegerField(default=0, null=False, blank=False)
     konzentration = models.PositiveSmallIntegerField(null=True, blank=True)
     konzentration_fix = models.SmallIntegerField(default=None, null=True, blank=True)
     prestige = models.PositiveIntegerField(default=0)
@@ -149,14 +149,90 @@ class Charakter(models.Model):
     def geld(self):
         return self.card.money if self.card else None
 
+    @property
+    def stufe(self):
+        return LarpStufe.get_stufe(self)
+
+    @property
+    def kHP(self) -> dict:
+        ''' { "attribut": int, "stufe": int, "bonus": int, "total": int } '''
+        hp = [
+            self.relattribut_set.get(attribut__titel="ST").aktuell() * 3,
+            self.stufe * 3,
+            self.HPplus_fix if self.HPplus_fix is not None else self.HPplus,
+        ]
+
+        return {
+            "attribut": hp[0],
+            "stufe": hp[1],
+            "bonus": hp[2],
+            "total": sum(hp)
+        }
+
+    @property
+    def gHP(self) -> dict:
+        ''' { "attribut": int, "stufe": int, "bonus": int, "total": int } '''
+        hp = [
+            self.relattribut_set.get(attribut__titel="WK").aktuell() * 3,
+            self.stufe * 3,
+            self.HPplus_geistig + (10 if self.no_MA_MG else 0),
+        ]
+
+        return {
+            "attribut": hp[0],
+            "stufe": hp[1],
+            "bonus": hp[2],
+            "total": sum(hp)
+        }
+
+    @property
+    def initiative(self) -> int:
+        return sum([rel.aktuell() * (2 if rel.attribut.titel == "SCH" else 1) for rel in self.relattribut_set.select_related("attribut").filter(attribut__titel__in=["SCH", "WK", "GES"])]) + self.initiative_bonus
+
+    @property
+    def physische_reaktion(self) -> int:
+        return sum([rel.aktuell() for rel in self.relattribut_set.filter(attribut__titel__in=["SCH", "GES"])]) + self.physische_reaktion_bonus
+
+    @property
+    def astrale_reaktion(self) -> tuple[int, str]:
+        res = 0
+        if self.no_MA_MG: res = self.relattribut_set.get(attribut__titel="WK").aktuell() + 4
+        elif self.no_MA: res = self.relattribut_set.get(attribut__titel="WK").aktuell()
+        else: res = sum([rel.aktuell() for rel in self.relattribut_set.filter(attribut__titel__in=["MA", "WK"])])
+
+        return (
+            res,
+            " + ".join([v for v in [self.astrale_reaktion_bonus or '', 'Pool Angriffsfertigkeit' if self.no_MA else ''] if v])
+        )
+
+    @property
+    def astraler_widerstand(self) -> tuple[int, str]:
+        return (
+            self.relattribut_set.get(attribut__titel="WK").aktuell(),
+            self.astraler_widerstand_bonus_str or ''
+        )
+    
+
+    @property
+    def physischer_widerstand(self) -> tuple[int, str]:
+        return (
+            self.relattribut_set.get(attribut__titel="VER").aktuell() + (self.physischer_widerstand_bonus or 0),
+            self.physischer_widerstand_bonus_str or ''
+        )
+
+
     def __str__(self):
         return "{} ({})".format(self.name, self.eigentümer)
 
     def max_tier_allowed(self) -> int:
         new_tiers_at_stufe = [1, 2, 5, 8, 12, 16, 20]
 
-        char_stufe = LarpStufe.get_stufe(self) if self.larp else self.ep_stufe_in_progress
+        char_stufe = self.stufe if self.larp else self.ep_stufe_in_progress
         return len([stufe for stufe in new_tiers_at_stufe if stufe <= char_stufe])
+
+    def max_num_zauber(self):
+        return self.relattribut_set.get(attribut__titel="MA").aktuell() + 3 if not self.no_MA and not self.no_MA_MG else 0
+
 
     def init_stufenhub(self):
         # new Stufe verteilen?
@@ -225,13 +301,8 @@ class Charakter(models.Model):
 
 
         # zauber
-        if not hasattr(self, "zauberplätze") or not self.zauberplätze: self.zauberplätze = {}
-        for plan in base_qs.filter(zauber__gt=0):
-            stufe = plan.basis.stufe
-            current = self.zauberplätze[stufe] if hasattr(self.zauberplätze, f"{stufe}") else 0
-            self.zauberplätze[stufe] = current + plan.zauber
-
-        self.save(update_fields=["zauberplätze"])
+        self.zauber_upgrade_points += base_qs.aggregate(new=Sum("zauber"))["new"] or 0
+        self.save(update_fields=["zauber_upgrade_points"])
 
 
         # wesenkräfte

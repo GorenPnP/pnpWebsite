@@ -12,7 +12,7 @@ from character.models.char import Charakter
 from character.models.rel import RelVorteil, RelNachteil, RelAttribut, RelGfsAbility
 from log.create_log import render_number
 
-from ..decorators import is_erstellung_done, is_done_entirely, pending_areas, is_ap_done, is_ferts_done, is_personal_done, is_spF_wF_done, is_zauber_done
+from ..decorators import is_erstellung_done, is_done_entirely, pending_areas, is_ap_done, is_ferts_done, is_personal_done, is_spF_wF_done
 from ..mixins import LevelUpMixin
 from ..views import *
 
@@ -37,15 +37,6 @@ class IndexView(LevelUpMixin, DetailView):
             f"{char.sp} SP",
             f"{char.ap} AP / {MA_aktuell} MA/MG"
         ])
-
-        if not char.zauberplätze:
-            char.zauberplätze = {}
-            char.save(update_fields=["zauberplätze"])
-        zauber_werte = "<br>".join([
-            *[f"{amount} Stufe {stufe} Zauber" for stufe, amount in char.zauberplätze.items()],
-            wesenkr_werte
-        ])
-
 
         rows = []
 
@@ -111,9 +102,6 @@ class IndexView(LevelUpMixin, DetailView):
         # Teile
         rows.append({"done": char.ip >= 0, "link": self._get_url("vorteile", char), "text": "<b>Vorteile</b>", "werte": f"{char.ip} IP"})
         rows.append({"done": char.ip >= 0, "link": self._get_url("nachteile", char), "text": "<b>Nachteile</b>", "werte": f"{char.ip} IP"})
-        # Zauber
-        if not char.no_MA and not char.no_MA_MG and (char.zauberplätze.keys() or char.zauber.exists()):
-            rows.append({"done": is_zauber_done(char), "link": self._get_url("zauber", char), "text": "<b>Zauber</b>", "werte": zauber_werte})
         # Spezis & Wissis
         if char.spF_wF or char.wp or char.spezialfertigkeiten.exists() or char.wissensfertigkeiten.exists() or char.sp:
             rows.append({"done": is_spF_wF_done(char), "link": self._get_url("spF_wF", char), "text": "<b>Spezial- und Wissensfertigkeiten</b>", "werte": f"{char.spF_wF or 0} offen<br>{char.wp or 0} WP<br>{char.sp or 0} SP"})
@@ -149,7 +137,7 @@ class IndexView(LevelUpMixin, DetailView):
                 if stufe.basis.fp: stufen_str.append(f"<b class='badge rounded-pill' style='background-color: var(--bs-indigo)'>+{stufe.basis.fp} FP</b>")
                 if stufe.basis.fg: stufen_str.append(f"<b class='badge rounded-pill' style='background-color: var(--bs-blue)'>+{stufe.basis.fg} FG</b>")
                 if stufe.basis.tp: stufen_str.append(f"+{stufe.basis.tp} TP")
-                if stufe.zauber: stufen_str.append(f"+{stufe.zauber} Zauberslots")
+                if stufe.zauber: stufen_str.append(f"+{stufe.zauber} Zauber-Upgradepunkt/e")
                 if stufe.ability: stufen_str.append(f"Gfs-Fähigkeit {stufe.ability.name}")
 
                 stufenbelohnung.append(f"Stufe {stufe.basis.stufe} gibt: " + ", ".join(stufen_str))

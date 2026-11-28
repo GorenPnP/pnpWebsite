@@ -7,7 +7,7 @@ skilltreeentry_enum = [
     ('i', 'IP'),
     ('t', 'TP'),
 
-    ('z', 'Zauberslot/s'),
+    ('z', 'Zauber-Upgradepunkt/e'),
 
     ('v', 'neuer Vorteil'),
     ('n', 'neuer Nachteil'),

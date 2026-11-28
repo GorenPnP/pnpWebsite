@@ -8,15 +8,7 @@ from django.utils.text import slugify
 from django_resized import ResizedImageField
 
 from character.models.base import Spieler
-from core.utils import ConcatSubquery
-
-
-class SumSubquery(Subquery):
-    template = '(SELECT SUM("%(sum_field)s") FROM (%(subquery)s) subquery)'
-
-    def __init__(self, sum_field, queryset, output_field, **extra):
-        super().__init__(queryset, output_field, sum_field=sum_field, **extra)
-
+from core.utils import ConcatSubquery, SumSubquery
 
 class Account(models.Model):
     class Meta:

@@ -9,7 +9,6 @@ from django.forms.widgets import HiddenInput
 from django.urls import reverse
 
 from base.crispy_form_decorator import crispy
-from campaign.forms import ZauberplätzeWidget
 from cards.forms import CardField
 from cards.models import Card, Transaction
 
@@ -45,7 +44,7 @@ ShopRüstungFormSet = FormSet(Charakter, RelRüstung, "rüstung", shop_fields)
 ShopTechnikFormSet = FormSet(Charakter, RelTechnik, "technik", [*shop_fields, "selbst_eingebaut"])
 ShopFahrzeugFormSet = FormSet(Charakter, RelFahrzeug, "fahrzeug", shop_fields)
 ShopEinbauteFormSet = FormSet(Charakter, RelEinbaute, "einbaute", shop_fields)
-ShopZauberFormSet = FormSet(Charakter, RelZauber, "zauber", [*shop_fields, "tier", "learned"])
+ShopZauberFormSet = FormSet(Charakter, RelZauber, "zauber", [*shop_fields, "tier"])
 ShopBegleiterFormSet = FormSet(Charakter, RelBegleiter, "begleiter", shop_fields)
 ShopEngelsroboterFormSet = FormSet(Charakter, RelEngelsroboter, "engelsroboter", shop_fields)
 
@@ -61,15 +60,6 @@ class Formset(LayoutObject):
         return formset.render(template_name="character/_formset.html")
 
 
-class CharacterZauberWidget(ZauberplätzeWidget):
-    def decompress(self, value):
-        value = json.loads(value) if value else {}
-        return [value[str(i)] if str(i) in value else None for i in range(self.MIN_STUFE, self.MAX_STUFE+1)]
-
-    def value_from_datadict(self, data, files, name):
-        return json.dumps(super().value_from_datadict(data, files, name))
-
-
 @crispy(form_method='post')
 class CharacterForm(forms.ModelForm):
     class Meta:
@@ -77,7 +67,7 @@ class CharacterForm(forms.ModelForm):
         fields = [
             "image", "name", "gewicht", "größe", "alter", "geschlecht", "sexualität", "beruf", "präf_arm", "religion", "hautfarbe", "haarfarbe", "augenfarbe", "gfs", "persönlichkeit",
             "manifest", "manifest_fix", "sonstiger_manifestverlust", "notizen_sonstiger_manifestverlust",
-            "ap", "fp", "fg", "sp", "sp_fix", "ip", "tp", "zauberplätze", "konzentration", "konzentration_fix", "prestige", "verzehr", "glück", "sanität",
+            "ap", "fp", "fg", "sp", "sp_fix", "ip", "tp", "zauber_upgrade_points", "konzentration", "konzentration_fix", "prestige", "verzehr", "glück", "sanität",
             "ep", "ep_stufe", "skilltree_stufe",
             "HPplus_geistig", "HPplus", "HPplus_fix",
             "wesenschaden_waff_kampf", "wesenschaden_andere_gestalt", "crit_attack", "crit_defense", "initiative_bonus", "physische_reaktion_bonus", "physischer_widerstand_bonus", "physischer_widerstand_bonus_str", "astrale_reaktion_bonus", "astraler_widerstand_bonus_str", "manaoverflow_bonus", "nat_regeneration_bonus", "immunsystem_bonus",
@@ -89,7 +79,6 @@ class CharacterForm(forms.ModelForm):
 
     # field for char.card.money
     geld = forms.IntegerField(initial=0, label="Geld in Dr.", required=True, min_value=0)
-    zauberplätze = forms.JSONField(initial=dict, label="Zauberslots", required=False, widget=CharacterZauberWidget(attrs={'class': 'zauberplätze-input'}))
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -145,7 +134,7 @@ class CharacterForm(forms.ModelForm):
                     Fieldset(
                         "Kampagne",
                         "ep", "ep_stufe",
-                        "ap", "fp", "fg", "sp", "sp_fix", "ip", "tp", "zauberplätze",
+                        "ap", "fp", "fg", "sp", "sp_fix", "ip", "tp", "zauber_upgrade_points",
                     ),
                     Fieldset(
                         "Ingame",

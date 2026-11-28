@@ -37,7 +37,6 @@ class GfsSkilltreeEntry(models.Model):
     operation = models.CharField(max_length=1, choices=enums.skilltreeentry_enum, default="R", null=False, blank=False, help_text="wichtigstes Feld, bestimmt die Art des Eintrags und welche anderen Felder benötigt werden.")
 
     amount = models.SmallIntegerField(null=True, blank=True, help_text="für AP, FP, FG, SP, IP, TP und Anz. Zauber-slots, WP in Speizis/Wissis, Fertigkeitsboni, Crit und HP")
-    stufe = models.SmallIntegerField(null=True, blank=True, help_text="für Zauber-slots und Stufen von Items")
     text = models.TextField(null=True, blank=True, help_text="für Vor-/Nachteilnotizen und alles nicht-implementierbare, z. B. Bonuseffekte bei Angriffen")
 
     fertigkeit = models.ForeignKey(Fertigkeit, on_delete=models.SET_NULL, null=True, blank=True, help_text="für Bonus in Fertigkeit und  ggf. Vor-/Nachteile wie Spezialisiert, die eine Fertigkeit brauchen.")
@@ -58,16 +57,15 @@ class GfsSkilltreeEntry(models.Model):
         try:
 
             # AP, FP, FG, SP, IP, TP, Crit-Angriff, Crit-Verteidigung, körperliche HP, geistige HP, HP Schaden waff. Kampf,
-            # Initiative fix, physische & astrale Reaktion, physischer Widerstand
-            if self.operation in ["a", "f", "F", "p", "i", "t", "A", "V", "K", "G", "k", "I", "r", "N", "T"]:
+            # Initiative fix, physische & astrale Reaktion, physischer Widerstand, Zauber-Upgradepunkte
+            if self.operation in ["a", "f", "F", "p", "i", "t", "A", "V", "K", "G", "k", "I", "r", "N", "T", "z"]:
                 return f"+{self.amount} {self.get_operation_display()}"
 
             # Roleplay-Text
             if self.operation == "R": return f"{self.text} (Achtung, keine automatische Verechnung!)"
             
-            # optional Stufe: Zauberslots, magisches Item
-            if self.operation == "z": return f"{self.amount} Zauberslots" + (f" Stufe {self.stufe}" if self.stufe else "")
-            if self.operation == "h": return f"{self.magische_ausrüstung.name}" + (f" Stufe {self.stufe}" if self.stufe else "")
+            # magisches Item
+            if self.operation == "h": return self.magische_ausrüstung.name
 
             # Bonus in Fertigkeit
             if self.operation == "B": return f"+{self.amount} Bonus in {self.fertigkeit.titel}"
@@ -177,17 +175,15 @@ class GfsSkilltreeEntry(models.Model):
             char.save(update_fields=["processing_notes"])
             return
         
-        # Zauberslots
+        # Zauber-Upgradepunkte
         if self.operation == "z":
-            stufe = self.stufe if self.stufe is not None else 30
-            prev_amount = char.zauberplätze[str(stufe)] if stufe in char.zauberplätze else 0
-            char.zauberplätze[str(stufe)] = prev_amount + self.amount
-            char.save(update_fields=["zauberplätze"])
+            char.zauber_upgrade_points += self.amount
+            char.save(update_fields=["zauber_upgrade_points"])
             return
 
         # magisches Item
         if self.operation == "h":
-            RelMagische_Ausrüstung.objects.create(item=self.magische_ausrüstung, char=char, stufe=self.stufe)
+            RelMagische_Ausrüstung.objects.create(item=self.magische_ausrüstung, char=char)
             return
 
         # Bonus in Fertigkeit

@@ -7,7 +7,7 @@ from django.utils.html import format_html
 
 from core.utils import get_filter, ConcatSubquery
 
-from ..models.base import Spezialfertigkeit, Wissensfertigkeit
+from ..models.base import Vorteil, Nachteil, Spezialfertigkeit, Wissensfertigkeit
 from ..models.gfs import *
 from ..models.skilltree import GfsSkilltreeEntry
 
@@ -72,7 +72,7 @@ class GfsZauberInLine(admin.TabularInline):
 
 class GfsSkilltreeInLine(admin.TabularInline):
     model = GfsSkilltreeEntry
-    fields = ["base", "operation", "amount", "stufe", "text", "fertigkeit", "vorteil", "nachteil", "wesenkraft", "spezialfertigkeit", "wissensfertigkeit", "magische_ausrüstung"]
+    fields = ["base", "operation", "amount", "text", "fertigkeit", "vorteil", "nachteil", "wesenkraft", "spezialfertigkeit", "wissensfertigkeit", "magische_ausrüstung"]
     extra = 1
 
     def get_queryset(self, request):
@@ -229,7 +229,7 @@ class GfsSkilltreeEntryAdmin(admin.ModelAdmin):
 
     list_display = ["context_", "entry", "operation", "correctly_formatted"]
 
-    search_fields = ["gfs__titel", "base__stufe", "text__contains", "vorteil__titel", "nachteil__titel", "spezialfertigkeit__titel", "wissensfertigkeit__titel", "amount", "stufe", "wesenkraft__titel"]
+    search_fields = ["gfs__titel", "base__stufe", "text__contains", "vorteil__titel", "nachteil__titel", "spezialfertigkeit__titel", "wissensfertigkeit__titel", "amount", "wesenkraft__titel"]
     list_filter = [get_filter(Gfs, "titel", ["gfs__titel"]), "base__stufe", "operation", IsCorrectlyFormattedFilter]
 
     def context_(self, obj):

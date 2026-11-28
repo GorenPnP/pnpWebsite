@@ -166,6 +166,15 @@ class DetailView(VerifiedAccountMixin, HeaderMixin, DetailView):
         amount = form.cleaned_data["amount"]
         stufe = form.cleaned_data.get("stufe")
 
+
+        # check #zauber von char
+        max_num = char.max_num_zauber()
+        curr_num = char.relzauber.count()
+        if max_num < curr_num + amount:
+            messages.error(self.request, f"Du kannst nur noch {max_num - curr_num} neue Zauber kaufen.")
+            return render(self.request, self.template_name, self.get_context_data(form=form))
+
+
         # pay
         cost = form.cleaned_data["amount"] * form.cleaned_data.get("price", self.object.curr_price or 0) * form.cleaned_data.get("stufe", 1)
         reason = f"kaufe {amount}x {self.object.name}{' Stufe {}'.format(stufe) if self.object.stufenabhängig else ''}"

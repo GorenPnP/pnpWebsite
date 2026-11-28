@@ -12,7 +12,7 @@ from django_filters import NumberFilter, ChoiceFilter, Filter, OrderingFilter
 from django_filters.filterset import filterset_factory
 from django_filters.views import FilterMixin
 
-from character.models.base import Spieler, LarpStufe
+from character.models.base import Spieler
 from character.models.char import Charakter
 from core.mixins import VerifiedAccountMixin
 
@@ -116,7 +116,7 @@ class ListFilterMixin(FilterMixin):
             *args, **kwargs,
             **{
             # needed for CharacterFilter to work with .js in list.html to fill the other filter fields on selection
-            "char_stats": {c.pk: {"stufe": LarpStufe.get_stufe(c), "geld": c.geld} for c in Charakter.objects.select_related("card").filter(eigentümer=self.request.spieler)},
+            "char_stats": {c.pk: {"stufe": c.stufe, "geld": c.geld} for c in Charakter.objects.select_related("card").filter(eigentümer=self.request.spieler)},
         })
 
     def get_filterset_extra_fields(self) -> Dict[str, Filter]:

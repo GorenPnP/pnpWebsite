@@ -30,7 +30,7 @@ def logShop(spieler, char, item):
 
 
 def logAuswertung(spieler, char, story, fields):
-    """ fields: Dict["story", "ep", "sp", "prestige", "verzehr"] """
+    """ fields: Dict["story", "ep", "sp", "prestige", "verzehr", "zauber_upgrade_points"] """
 
     notizen = ", ".join([f"+{render_number(v)} {k}" for k, v in fields.items() if v])
 
