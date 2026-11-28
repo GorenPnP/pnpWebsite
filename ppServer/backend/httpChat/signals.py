@@ -3,7 +3,7 @@ from django.db.models.signals import post_save
 from django.db.models.functions import Coalesce
 from django.dispatch import receiver
 
-from core.utils import SumSubquery
+from core.utils import SumSubqueryForAggregate
 from httpChat.models import ChatroomAccount
 from webPush.models import PushSettings, PushTag
 
@@ -24,7 +24,7 @@ def send_webpush(sender, instance, **kwargs):
     # get their count of unread messages
     unread_message_qs = Account.objects.load_unread_messages().prefetch_related("spieler").filter(spieler__id=OuterRef("id"))
     impacted_spieler = spieler_qs.prefetch_related("user", "account_set").annotate(
-            num_messages = Coalesce(SumSubquery("unread_messages", queryset=unread_message_qs, output_field=models.IntegerField()), 0)
+            num_messages = Coalesce(SumSubqueryForAggregate("unread_messages", queryset=unread_message_qs, output_field=models.IntegerField()), 0)
         )\
         .filter(num_messages__gt=0)
 

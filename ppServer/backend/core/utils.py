@@ -109,6 +109,13 @@ class CountSubquery(ExpressionSubquery):
         super().__init__(queryset, "pk", Count)
 
 
+class SumSubqueryForAggregate(Subquery):
+    template = '(SELECT SUM("%(sum_field)s") FROM (%(subquery)s) subquery)'
+
+    def __init__(self, sum_field, queryset, output_field, **extra):
+        super().__init__(queryset, output_field, sum_field=sum_field, **extra)
+
+
 def display_value(choices, field):
     """
     converts short form of choice into the long form on db-level.

@@ -12,8 +12,6 @@ skilltreeentry_enum = [
     ('v', 'neuer Vorteil'),
     ('n', 'neuer Nachteil'),
 
-    ('e', 'neue Wesenkraft'),
-
     ('s', 'neue Spezialfertigkeit'),
     ('w', 'neue Wissensfertigkeit'),
     ('S', 'WP in Spezialfertigkeit'),

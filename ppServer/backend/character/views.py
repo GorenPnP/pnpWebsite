@@ -88,7 +88,7 @@ class ShowView(VerifiedAccountMixin, DetailView):
     model = Charakter
     queryset = Charakter.objects.prefetch_related(
         "gfs", "persönlichkeit", "religion", "beruf", "relfertigkeit_set__fertigkeit__attribut", "relgruppe_set",
-        "relklasse_set__klasse", "relklasseability_set__ability", "relattribut_set__attribut", "relwesenkraft_set__wesenkraft", "reltalent_set__talent",
+        "relklasse_set__klasse", "relklasseability_set__ability", "relattribut_set__attribut", "reltalent_set__talent",
         "relgfsability_set__ability", "affektivität_set",
         "relzauber_set__item", "relritual_rune_set__item", "relfernkampfwaffe_set__item", "relnahkampfwaffe_set__item",
         "relmunition_set__item", "relmagische_ausrüstung_set__item", "relrüstung_set__item",
@@ -164,7 +164,6 @@ class ShowView(VerifiedAccountMixin, DetailView):
             **self.get_hp(char),
             **self.get_spF_wF(char),
             **self.get_teils(char),
-            **self.get_wesenkraft(char),
             **self.get_talent(char),
             **self.get_gfs_ability(char),
             **self.get_klasse_ability(char),
@@ -458,22 +457,6 @@ class ShowView(VerifiedAccountMixin, DetailView):
         return {
             "vorteil__table": TeilTable(char.relvorteil_set.prefetch_related("teil", "attribut", "fertigkeit", "engelsroboter").all().annotate(notiz=Value(" "))),
             "nachteil__table": TeilTable(char.relnachteil_set.prefetch_related("teil", "attribut", "fertigkeit", "engelsroboter").all().annotate(notiz=Value(" "))),
-        }
-
-    def get_wesenkraft(self, char):
-        class WesenkraftTable(tables.Table):
-            class Meta:
-                model = RelWesenkraft
-                fields = ("wesenkraft__titel", "tier", "wesenkraft__probe", "wesenkraft__wirkung", "wesenkraft__manaverbrauch")
-                orderable = False
-                attrs = {"class": "table table-dark table-striped table-hover"}
-
-            def render_wesenkraft__wirkung(self, value):
-                regex = "Tier [0IVX]+:"
-                return format_html(re.sub(regex, lambda match: f"<br><b>{match.group(0)}</b>", value))
-
-        return {
-            "wesenkraft__table": WesenkraftTable(char.relwesenkraft_set.all())
         }
 
     def get_talent(self, char):
@@ -964,7 +947,6 @@ class CreateCharacterView(VerifiedAccountMixin, CopiesCharsMixin, CreateView):
             "vorteile": VorteilFormSet,
             "nachteile": NachteilFormSet,
             "talente": TalentFormSet,
-            "wesenkräfte": WesenkraftFormSet,
 
             # shop
             "items": ShopItemFormSet,

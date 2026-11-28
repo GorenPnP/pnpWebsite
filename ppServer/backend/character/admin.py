@@ -89,26 +89,6 @@ class FertigkeitAdmin(admin.ModelAdmin):
         return super().get_queryset(request).prefetch_related('attribut')
 
 
-class WesenkraftAdmin(admin.ModelAdmin):
-
-    fields = ['titel', 'probe', 'wirkung', 'manaverbrauch']
-    inlines = [GfsWesenkraftInLine]
-
-    list_display = ['titel', 'probe', 'manaverbrauch', 'wirkung', 'start_gfs_']
-    search_fields = ['titel']
-
-    @admin.display(ordering="start_gfsnames")
-    def start_gfs_(self, obj):
-        return obj.start_gfsnames or self.get_empty_value_display()
-
-    def get_queryset(self, request):
-        qs = Gfs.objects.filter(wesenkraft__id=OuterRef("id")).values("titel")
-
-        return super().get_queryset(request).annotate(
-            start_gfsnames = ConcatSubquery(qs, separator=", ")
-        )
-
-
 class SpezialfertigkeitAdmin(admin.ModelAdmin):
     fieldsets = [
         (None, {'fields': ['titel', 'attr1', 'attr2']}),
@@ -253,7 +233,6 @@ admin.site.register(Persönlichkeit, PersönlichkeitAdmin)
 
 admin.site.register(Attribut, AttributAdmin)
 admin.site.register(Fertigkeit, FertigkeitAdmin)
-admin.site.register(Wesenkraft, WesenkraftAdmin)
 admin.site.register(Spezialfertigkeit, SpezialfertigkeitAdmin)
 admin.site.register(Religion, ReligionAdmin)
 admin.site.register(Beruf, BerufAdmin)

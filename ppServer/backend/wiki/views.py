@@ -244,7 +244,6 @@ def stufenplan(request, gfs_id):
         start_vorteil = ConcatSubquery(GfsVorteil.objects.filter(gfs=OuterRef("pk")).annotate(text=Concat("teil__titel", Value(" "), "notizen", output_field=CharField())).values("text"), separator=", "),
         start_nachteil = ConcatSubquery(GfsNachteil.objects.filter(gfs=OuterRef("pk")).annotate(text=Concat("teil__titel", Value(" "), "notizen", output_field=CharField())).values("text"), separator=", "),
         start_zauber = ConcatSubquery(GfsZauber.objects.filter(gfs=OuterRef("pk")).annotate(text=Concat("item__name", Value(" (Tier "), "tier", Value(")"), output_field=CharField())).values("text"), separator=", "),
-        start_wesenkraft = ConcatSubquery(GfsWesenkraft.objects.filter(gfs=OuterRef("pk")).values("wesenkraft__titel"), separator=", "),
     )
     gfs = get_object_or_404(gfs_qs, id=gfs_id)
 
@@ -255,7 +254,6 @@ def stufenplan(request, gfs_id):
         {"field": "Vorteile", "val": gfs.start_vorteil},
         {"field": "Nachteile", "val": gfs.start_nachteil},
         {"field": "Zauber", "val": gfs.start_zauber},
-        {"field": "Wesenkräfte", "val": gfs.start_wesenkraft},
         {"field": "Bewegung in m", "val": gfs.base_movement_speed},
         {"field": "Startmanifest", "val": gfs.startmanifest},
         {"field": "Schaden waffenloser Kampf (andere Form) in HP", "val": f"{gfs.wesenschaden_waff_kampf or 0} ({gfs.wesenschaden_andere_gestalt or 0})"},
@@ -265,7 +263,7 @@ def stufenplan(request, gfs_id):
 
     # Skilltree
     skilltree_subquery = GfsSkilltreeEntry.objects\
-        .prefetch_related("base", "fertigkeit", "vorteil", "nachteil", "wesenkraft", "spezialfertigkeit", "wissensfertigkeit")\
+        .prefetch_related("base", "fertigkeit", "vorteil", "nachteil", "spezialfertigkeit", "wissensfertigkeit")\
         .filter(gfs=gfs)
     skilltree = list(SkilltreeBase.objects.values("stufe", "sp").order_by("stufe"))
     for skill in skilltree_subquery:
@@ -280,7 +278,6 @@ def stufenplan(request, gfs_id):
     entries = []
     for e in GfsStufenplan.objects.prefetch_related("basis", "ability").filter(gfs=gfs).annotate(
         vorteile_string = ConcatSubquery(Vorteil.objects.filter(gfsstufenplan=OuterRef("pk")).values("titel"), separator=", "),
-        wesenkräfte_string = ConcatSubquery(Wesenkraft.objects.filter(gfsstufenplan=OuterRef("pk")).values("titel"), separator=", "),
     ):
         entry = {
             "stufe": e.basis.stufe,
@@ -290,7 +287,6 @@ def stufenplan(request, gfs_id):
                     f"+{e.basis.fg} Gr.".format() if e.basis.fg else None],
             "zauber": f"+{e.zauber}" if e.zauber else None,
             "tp": f"+{e.basis.tp}" if e.basis.tp else None,
-            "wesenkräfte": e.wesenkräfte_string,
             "vorteile": e.vorteile_string
         }
         if hasattr(e, "ability") and e.ability:
@@ -425,29 +421,6 @@ class WissensfertigkeitTableView(VerifiedAccountMixin, DynamicTableView):
 
     def get_queryset(self) -> QuerySet[Any]:
         return super().get_queryset().prefetch_related("attr1", "attr2", "attr3", "fertigkeit__attribut")
-
-
-class WesenkraftTableView(VerifiedAccountMixin, DynamicTableView):
-    class Table(GenericTable):
-        class Meta:
-            model = Wesenkraft
-            fields = ["titel", "probe", "manaverbrauch", "wirkung"]
-            attrs = GenericTable.Meta.attrs
-
-    model = Wesenkraft
-    table_class = Table
-    filterset_fields = {
-        "titel": ["icontains"],
-        "probe": ["icontains"],
-        "manaverbrauch": ["icontains"],
-        "wirkung": ["icontains"],
-    }
-
-    app_index = "Wiki"
-    app_index_url = "wiki:index"
-
-    def get_queryset(self):
-        return super().get_queryset()
 
 
 class ReligionTableView(VerifiedAccountMixin, DynamicTableView):

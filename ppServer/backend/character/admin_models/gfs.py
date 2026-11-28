@@ -57,14 +57,6 @@ class GfsNachteilInLine(admin.TabularInline):
     extra = 1
 
 
-class GfsWesenkraftInLine(admin.TabularInline):
-    model = GfsWesenkraft
-    extra = 1
-
-    def get_queryset(self, request):
-        return super().get_queryset(request).prefetch_related("wesenkraft", "gfs")
-
-
 class GfsZauberInLine(admin.TabularInline):
     model = GfsZauber
     extra = 1
@@ -72,12 +64,12 @@ class GfsZauberInLine(admin.TabularInline):
 
 class GfsSkilltreeInLine(admin.TabularInline):
     model = GfsSkilltreeEntry
-    fields = ["base", "operation", "amount", "text", "fertigkeit", "vorteil", "nachteil", "wesenkraft", "spezialfertigkeit", "wissensfertigkeit", "magische_ausrüstung"]
+    fields = ["base", "operation", "amount", "text", "fertigkeit", "vorteil", "nachteil", "spezialfertigkeit", "wissensfertigkeit", "magische_ausrüstung"]
     extra = 1
 
     def get_queryset(self, request):
         return super().get_queryset(request) \
-            .select_related("base", "gfs", "wesenkraft", "magische_ausrüstung", "vorteil", "nachteil",
+            .select_related("base", "gfs", "magische_ausrüstung", "vorteil", "nachteil",
             "spezialfertigkeit__attr1", "spezialfertigkeit__attr2", "wissensfertigkeit__attr1", "wissensfertigkeit__attr2", "wissensfertigkeit__attr3")
 
     def get_formset(self, request, obj=None, **kwargs):
@@ -91,19 +83,19 @@ class GfsSkilltreeInLine(admin.TabularInline):
 
 class GfsStufenplanInLine(admin.TabularInline):
     model = GfsStufenplan
-    fields = ["basis", "vorteile", "zauber", "wesenkräfte", "ability"]
+    fields = ["basis", "vorteile", "zauber", "ability"]
     extra = 0
 
     def get_queryset(self, request):
         return super().get_queryset(request) \
             .select_related('basis', 'ability') \
-            .prefetch_related('vorteile', 'wesenkräfte')
+            .prefetch_related('vorteile')
 
 
 
 class GfsAdmin(admin.ModelAdmin):
     list_display = ('icon_', 'titel', 'ap', 'difficulty', 'base_movement_speed', 'vorteil_', 'nachteil_', 'zauber_',
-                    "wesenschaden_waff_kampf", "wesenschaden_andere_gestalt", "wesenkraft_", "startmanifest",)
+                    "wesenschaden_waff_kampf", "wesenschaden_andere_gestalt", "startmanifest",)
     list_filter = ["wesen", 'ap', 'startmanifest', "wesenschaden_waff_kampf"]
     search_fields = ('titel', 'ap')
 
@@ -111,10 +103,11 @@ class GfsAdmin(admin.ModelAdmin):
     list_editable = ["base_movement_speed"]
 
     fields = ["icon", "titel", "wesen", "beschreibung", "eigenschaften", "ap", "wesenschaden_waff_kampf", "wesenschaden_andere_gestalt", "startmanifest", "base_movement_speed", "difficulty"]
-    inlines = [GfsImageInLine, GfsAttributInLine, GfsFertigkeitInLine,
-               GfsVorteilInLine, GfsNachteilInLine,
-               GfsWesenkraftInLine, GfsZauberInLine,
-               GfsSkilltreeInLine, GfsStufenplanInLine]
+    inlines = [
+        GfsImageInLine, GfsAttributInLine, GfsFertigkeitInLine,
+        GfsVorteilInLine, GfsNachteilInLine,
+        GfsZauberInLine, GfsSkilltreeInLine, GfsStufenplanInLine
+    ]
     
     def get_queryset(self, request):
         return super().get_queryset(request).prefetch_related("wesen").annotate(
@@ -122,7 +115,6 @@ class GfsAdmin(admin.ModelAdmin):
             vorteilnames = ConcatSubquery(Vorteil.objects.filter(gfs=OuterRef("id")).values("titel"), ", "),
             nachteilnames = ConcatSubquery(Nachteil.objects.filter(gfs=OuterRef("id")).values("titel"), ", "),
             zaubernames = ConcatSubquery(GfsZauber.objects.prefetch_related("item").filter(gfs=OuterRef("id")).values("item__name"), ", "),
-            wesenkraftnames = ConcatSubquery(Wesenkraft.objects.filter(gfs=OuterRef("id")).values("titel"), ", "),
         )
 
     def icon_(self, obj):
@@ -144,10 +136,6 @@ class GfsAdmin(admin.ModelAdmin):
     def zauber_(self, obj):
         return obj.zaubernames or self.get_empty_value_display()
 
-    @admin.display(ordering="wesenkraftnames")
-    def wesenkraft_(self, obj):
-        return obj.wesenkraftnames or self.get_empty_value_display()
-
     def _beschreibung(self, obj):
         return format_html(obj.beschreibung_rendered)
 
@@ -159,7 +147,7 @@ class GfsStufenplanBaseAdmin(admin.ModelAdmin):
     list_editable = ["ep", "ap", "fp", "fg", "tp"]
 
 class GfsStufenplanAdmin(admin.ModelAdmin):
-    list_display = ["stufe", "gfs", "_vorteile", "_wesenkräfte", "zauber", "ability"]
+    list_display = ["stufe", "gfs", "_vorteile", "zauber", "ability"]
     list_filter = ["basis__stufe", "gfs"]
 
     @admin.display(ordering="basis__stufe")
@@ -167,8 +155,6 @@ class GfsStufenplanAdmin(admin.ModelAdmin):
         return obj.basis.stufe
     def _vorteile(self, obj):
         return ",".join([e.__str__() for e in obj.vorteile.all()]) or self.get_empty_value_display()
-    def _wesenkräfte(self, obj):
-        return ",".join([e.__str__() for e in obj.wesenkräfte.all()]) or self.get_empty_value_display()
 
 
 class GfsAbilityAdmin(admin.ModelAdmin):
@@ -229,7 +215,7 @@ class GfsSkilltreeEntryAdmin(admin.ModelAdmin):
 
     list_display = ["context_", "entry", "operation", "correctly_formatted"]
 
-    search_fields = ["gfs__titel", "base__stufe", "text__contains", "vorteil__titel", "nachteil__titel", "spezialfertigkeit__titel", "wissensfertigkeit__titel", "amount", "wesenkraft__titel"]
+    search_fields = ["gfs__titel", "base__stufe", "text__contains", "vorteil__titel", "nachteil__titel", "spezialfertigkeit__titel", "wissensfertigkeit__titel", "amount"]
     list_filter = [get_filter(Gfs, "titel", ["gfs__titel"]), "base__stufe", "operation", IsCorrectlyFormattedFilter]
 
     def context_(self, obj):
@@ -244,7 +230,7 @@ class GfsSkilltreeEntryAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         return super().get_queryset(request).prefetch_related(
-            'gfs', 'base', 'fertigkeit', 'vorteil', 'nachteil', 'wesenkraft', 'spezialfertigkeit', 'wissensfertigkeit', 'magische_ausrüstung'
+            'gfs', 'base', 'fertigkeit', 'vorteil', 'nachteil', 'spezialfertigkeit', 'wissensfertigkeit', 'magische_ausrüstung'
         )
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):

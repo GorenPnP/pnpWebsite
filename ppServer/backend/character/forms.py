@@ -30,7 +30,6 @@ WissensfertigkeitenFormSet = FormSet(Charakter, RelWissensfertigkeit, "wF", ["wi
 VorteilFormSet = FormSet(Charakter, RelVorteil, "vorteil", ["teil", "attribut", "fertigkeit", "engelsroboter", "ip", "notizen"])
 NachteilFormSet = FormSet(Charakter, RelNachteil, "nachteil", ["teil", "attribut", "fertigkeit", "engelsroboter", "ip", "notizen"])
 TalentFormSet = FormSet(Charakter, RelTalent, "talent", ["talent"])
-WesenkraftFormSet = FormSet(Charakter, RelWesenkraft, "wesenkraft", ["wesenkraft", "tier"])
 
 # Shop
 shop_fields = ["item", "stufe", "notizen"]
@@ -72,7 +71,7 @@ class CharacterForm(forms.ModelForm):
             "HPplus_geistig", "HPplus", "HPplus_fix",
             "wesenschaden_waff_kampf", "wesenschaden_andere_gestalt", "crit_attack", "crit_defense", "initiative_bonus", "physische_reaktion_bonus", "physischer_widerstand_bonus", "physischer_widerstand_bonus_str", "astrale_reaktion_bonus", "astraler_widerstand_bonus_str", "manaoverflow_bonus", "nat_regeneration_bonus", "immunsystem_bonus",
     	    "notizen", "persönlicheZiele", "sonstige_items", "affektivitäten",
-            "klassen", "klassen_fähigkeiten", "vorteile", "nachteile", "talente", "wesenkräfte",
+            "klassen", "klassen_fähigkeiten", "vorteile", "nachteile", "talente",
             "attribute", "fertigkeiten","gruppen", "spezialfertigkeiten", "wissensfertigkeiten", "gfs_fähigkeiten",
             "items", "nahkampfwaffen", "munition", "fernkampfwaffen", "magischeAusrüstung", "rituale_runen", "rüstungen", "technik", "fahrzeuge", "einbauten", "zauber", "begleiter", "engelsroboter",
         ]
@@ -113,10 +112,6 @@ class CharacterForm(forms.ModelForm):
                         "Gfs-Fähigkeiten",
                         Formset("gfs_fähigkeiten"),
                     ),
-                    Fieldset(
-                        "Wesenkräfte",
-                        Formset("wesenkräfte"),
-                    )
                 ),
                 Tab(
                     "Klassen",

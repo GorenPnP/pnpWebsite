@@ -43,7 +43,6 @@ class GfsSkilltreeEntry(models.Model):
     vorteil = models.ForeignKey(Vorteil, on_delete=models.SET_NULL, null=True, blank=True, help_text="für neuen Vorteil")
     nachteil = models.ForeignKey(Nachteil, on_delete=models.SET_NULL, null=True, blank=True, help_text="für neuen Nachteil")
     
-    wesenkraft = models.ForeignKey(Wesenkraft, on_delete=models.SET_NULL, null=True, blank=True, help_text="Für neue Wesenkraft")
     spezialfertigkeit = models.ForeignKey(Spezialfertigkeit, on_delete=models.SET_NULL, null=True, blank=True, help_text="Für neue Spezi oder WP in einer Spezi")
     wissensfertigkeit = models.ForeignKey(Wissensfertigkeit, on_delete=models.SET_NULL, null=True, blank=True, help_text="Für neue Wissi oder WP in einer Wissi")
 
@@ -70,8 +69,7 @@ class GfsSkilltreeEntry(models.Model):
             # Bonus in Fertigkeit
             if self.operation == "B": return f"+{self.amount} Bonus in {self.fertigkeit.titel}"
 
-            # neu! (Wesenkraft, Spezi, Wissi)
-            if self.operation == "e": return self.wesenkraft.titel
+            # neu! (Spezi, Wissi)
             if self.operation == "s": return self.spezialfertigkeit.titel
             if self.operation == "w": return self.wissensfertigkeit.titel
 
@@ -193,10 +191,6 @@ class GfsSkilltreeEntry(models.Model):
             relfert.save(update_fields=["fp_bonus"])
             return
 
-        # neu! Wesenkraft
-        if self.operation == "e":
-            RelWesenkraft.objects.get_or_create(char=char, wesenkraft=self.wesenkraft)
-            return
         # neu! Spezi
         if self.operation == "s":
             RelSpezialfertigkeit.objects.get_or_create(char=char, spezialfertigkeit=self.spezialfertigkeit)

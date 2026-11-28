@@ -562,14 +562,6 @@ class CharakterExporter:
             ROW += 1
             werte_ws.write_row(f"A{ROW}", [r.talent.titel], format_border_left)
             werte_ws.write(f"H{ROW}", None, format_border_right)
-        # Wesenkraft
-        ROW += 1
-        werte_ws.merge_range(f"A{ROW}:H{ROW}", "Wesenkräfte", format_ramsch_titel)
-        for r in self.char.relwesenkraft_set.prefetch_related("wesenkraft").all():
-            ROW += 1
-            werte_ws.write_row(f"A{ROW}", [r.wesenkraft.titel], format_border_left)
-            werte_ws.write_row(f"B{ROW}", [r.tier])
-            werte_ws.write(f"H{ROW}", None, format_border_right)
         # Items
         ROW += 1
         werte_ws.merge_range(f"A{ROW}:H{ROW}", "Items", format_ramsch_titel)

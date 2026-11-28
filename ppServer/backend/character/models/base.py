@@ -42,21 +42,6 @@ class Spieler(models.Model):
         return self.user.get_full_name() or self.user.username
 
 
-class Wesenkraft(models.Model):
-    class Meta:
-        ordering = ['titel']
-        verbose_name = "Wesenkraft"
-        verbose_name_plural = "Wesenkräfte"
-
-    titel = models.CharField(max_length=30, null=False, default="")
-    probe = models.CharField(max_length=200, null=False, default="")
-    wirkung = models.TextField(null=False, default="")
-    manaverbrauch = models.CharField(max_length=100, null=True, blank=True, default="")
-
-    def __str__(self):
-        return self.titel
-
-
 class Persönlichkeit(models.Model):
     
     class Meta:

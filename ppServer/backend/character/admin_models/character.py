@@ -68,13 +68,6 @@ class RelFertigkeitInLine(ReadonlyRelInlineAdmin):
         return super().get_queryset(request).prefetch_related("fertigkeit")
 
 
-class RelWesenkraftInLine(RelInlineAdmin):
-    model = RelWesenkraft
-
-    def get_queryset(self, request: HttpRequest) -> QuerySet[Any]:
-        return super().get_queryset(request).prefetch_related("wesenkraft")
-
-
 class RelSpezialfertigkeitInLine(RelInlineAdmin):
     model = RelSpezialfertigkeit
 
@@ -225,7 +218,6 @@ class CharakterAdmin(admin.ModelAdmin):
 
     inlines = [
         RelKlasseInline,
-        RelWesenkraftInLine,
         RelAttributInline,
         RelGruppeInLine,
         RelFertigkeitInLine,

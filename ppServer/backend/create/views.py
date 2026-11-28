@@ -16,9 +16,9 @@ from cards.models import Card, Transaction
 from core.mixins import VerifiedAccountMixin
 
 from base.abstract_views import DynamicTableView
-from character.models.rel import RelAttribut, RelFertigkeit, RelVorteil, RelNachteil, RelWesenkraft, RelKlasse, RelKlasseAbility
-from character.models.base import Wesenkraft, Beruf
-from character.models.gfs import GfsAttribut, GfsFertigkeit, GfsWesenkraft, GfsVorteil, GfsNachteil, GfsZauber, GfsStufenplanBase
+from character.models.rel import RelAttribut, RelFertigkeit, RelVorteil, RelNachteil, RelKlasse, RelKlasseAbility
+from character.models.base import Beruf
+from character.models.gfs import GfsAttribut, GfsFertigkeit, GfsVorteil, GfsNachteil, GfsZauber, GfsStufenplanBase
 from character.models.klasse import Klasse, KlasseStufenplan
 from character.models.relshop import RelZauber
 from levelUp.mixins import LevelUpMixin
@@ -126,12 +126,6 @@ class GfsFormView(VerifiedAccountMixin, TemplateView):
                 e.fp_bonus = e.bonus
                 objects.append(e)
             RelFertigkeit.objects.bulk_update(objects, fields=["fp_bonus"])
-
-            # Wesenkräfte
-            RelWesenkraft.objects.bulk_create([
-                RelWesenkraft(char=char, wesenkraft=gfs_wesenkr.wesenkraft)
-                for gfs_wesenkr in GfsWesenkraft.objects.prefetch_related("wesenkraft").filter(gfs=char.gfs)
-            ])
 
             # Vorteile
             for gfs_teil in GfsVorteil.objects.filter(gfs=char.gfs):

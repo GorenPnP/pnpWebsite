@@ -1,14 +1,15 @@
 from datetime import datetime, timezone
 
 from django.db import models
-from django.db.models import F, Subquery, OuterRef, Q, Count, Value
+from django.db.models import F, OuterRef, Q, Count, Value
 from django.db.models.functions import Coalesce
 from django.utils.text import slugify
 
 from django_resized import ResizedImageField
 
 from character.models.base import Spieler
-from core.utils import ConcatSubquery, SumSubquery
+from core.utils import ConcatSubquery, SumSubqueryForAggregate
+
 
 class Account(models.Model):
     class Meta:
@@ -39,7 +40,7 @@ class Account(models.Model):
             unread_message_qs = ChatroomAccount.objects.load_unread_messages().prefetch_related("account").filter(account__id=OuterRef("id"))
             return self\
                 .annotate(
-                    unread_messages = Coalesce(SumSubquery("unread_messages", queryset=unread_message_qs, output_field=models.IntegerField()), Value(0))
+                    unread_messages = Coalesce(SumSubqueryForAggregate("unread_messages", queryset=unread_message_qs, output_field=models.IntegerField()), Value(0))
                 )
     objects = UnreadMessagesQuerySet().as_manager()
 

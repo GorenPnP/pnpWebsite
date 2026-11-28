@@ -118,7 +118,6 @@ class Charakter(models.Model):
     vorteile = models.ManyToManyField(Vorteil, through="character.RelVorteil", blank=True)
     nachteile = models.ManyToManyField(Nachteil, through="character.RelNachteil", blank=True)
     talente = models.ManyToManyField(Talent, through="character.RelTalent", blank=True)
-    wesenkräfte = models.ManyToManyField(Wesenkraft, through="character.RelWesenkraft", blank=True)
 
     attribute = models.ManyToManyField(Attribut, through="character.RelAttribut", blank=True)
     fertigkeiten = models.ManyToManyField(Fertigkeit, through='character.RelFertigkeit', blank=True)
@@ -304,18 +303,6 @@ class Charakter(models.Model):
         self.zauber_upgrade_points += base_qs.aggregate(new=Sum("zauber"))["new"] or 0
         self.save(update_fields=["zauber_upgrade_points"])
 
-
-        # wesenkräfte
-        wesenkräfte = []
-        for stufe in base_qs:
-            for wk in stufe.wesenkräfte.all():
-                wesenkräfte.append(wk)
-
-        for w in wesenkräfte:
-            _, created = RelWesenkraft.objects.get_or_create(char=self, wesenkraft=w, defaults={"tier": 0})
-            if not created:
-                # log that wesenkraft already existed
-                capture_message(f"Wesenkraft {w.titel} war bei {self.name} ({self.gfs.titel}) im EP-Tree Stufe {self.ep_stufe+1} - {self.ep_stufe_in_progress}", level='info')
 
         logStufenaufstieg(self.eigentümer, self)
 

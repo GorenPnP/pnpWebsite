@@ -7,9 +7,6 @@ from markdownfield.validators import VALIDATOR_STANDARD
 
 from shop.models import Engelsroboter
 
-from .base import Wesenkraft
-
-
 class Wesen(models.Model):
 
     class Meta:
@@ -95,7 +92,6 @@ class Gfs(models.Model):
 
     vorteile = models.ManyToManyField('Vorteil', through="GfsVorteil", blank=True)
     nachteile = models.ManyToManyField('Nachteil', through="GfsNachteil", blank=True)
-    wesenkraft = models.ManyToManyField('Wesenkraft', through="GfsWesenkraft")
 
     difficulty = models.CharField(max_length=1, choices=DIFFICULTY_ENUM, default=DIFFICULTY_ENUM[0][0], verbose_name=".. leicht/mittel/schwer zu spielen sein?")
 
@@ -142,22 +138,6 @@ class GfsFertigkeit(models.Model):
 
     def __str__(self):
         return "'{}' von '{}'".format(self.fertigkeit.__str__(), self.gfs.__str__())
-
-
-class GfsWesenkraft(models.Model):
-
-    class Meta:
-        ordering = ['gfs', 'wesenkraft']
-        verbose_name = "Start-Wesenkraft von Gfs"
-        verbose_name_plural = "Start-Wesenkräfte von Gfs"
-
-        unique_together = (('gfs', 'wesenkraft'),)
-
-    gfs = models.ForeignKey(Gfs, on_delete=models.CASCADE)
-    wesenkraft = models.ForeignKey(Wesenkraft, on_delete=models.CASCADE)
-
-    def __str__(self):
-        return "{} ({})".format(self.wesenkraft, self.gfs.__str__())
 
 
 class GfsVorteil(models.Model):
@@ -262,6 +242,5 @@ class GfsStufenplan(models.Model):
 
     vorteile = models.ManyToManyField("Vorteil", blank=True)
     zauber = models.PositiveSmallIntegerField(default=0)
-    wesenkräfte = models.ManyToManyField("Wesenkraft", blank=True)
     ability = models.OneToOneField(GfsAbility, on_delete=models.SET_NULL, null=True, blank=True)
 

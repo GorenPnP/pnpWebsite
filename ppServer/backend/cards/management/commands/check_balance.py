@@ -1,9 +1,9 @@
 from django.core.management.base import BaseCommand
-from django.db.models import Sum, F, Subquery, OuterRef, Q, Count, Value, PositiveBigIntegerField
+from django.db.models import F, OuterRef, Value, PositiveBigIntegerField
 from django.db.models.functions import Coalesce
 
+from core.utils import SumSubquery
 from cards.models import Card, Transaction
-from httpChat.models import SumSubquery
 
 class Command(BaseCommand):
     help = "compares current account balance to the transaction history of Characters"
@@ -12,8 +12,8 @@ class Command(BaseCommand):
 
         # get imbalanced cards
         cards = [*Card.objects.annotate(
-            received = Coalesce(SumSubquery("amount", queryset=Transaction.objects.filter(receiver__pk=OuterRef("pk")), output_field=PositiveBigIntegerField()), Value(0)),
-            spent = Coalesce(SumSubquery("amount", queryset=Transaction.objects.filter(sender__pk=OuterRef("pk")), output_field=PositiveBigIntegerField()), Value(0)),
+            received = Coalesce(SumSubquery(Transaction.objects.filter(receiver__pk=OuterRef("pk")), "amount", output_field=PositiveBigIntegerField()), Value(0)),
+            spent = Coalesce(SumSubquery(Transaction.objects.filter(sender__pk=OuterRef("pk")), "amount", output_field=PositiveBigIntegerField()), Value(0)),
 
             transaction_balance = F("received") - F("spent"),
             difference = F("money") - F("transaction_balance"),

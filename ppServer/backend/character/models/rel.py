@@ -10,24 +10,6 @@ from .gfs import GfsAbility
 from .klasse import Klasse, KlasseAbility, KlasseStufenplan
 
 
-class RelWesenkraft(models.Model):
-
-    class Meta:
-        ordering = ['char', 'wesenkraft']
-        verbose_name = "Wesenkraft"
-        verbose_name_plural = "Wesenkräfte"
-
-        unique_together = (('char', 'wesenkraft'),)
-
-    char = models.ForeignKey("character.Charakter", on_delete=models.CASCADE)
-    wesenkraft = models.ForeignKey(Wesenkraft, on_delete=models.CASCADE)
-
-    tier = models.PositiveSmallIntegerField(default=0, validators=[MaxValueValidator(7)])
-
-    def __str__(self):
-        return "'{}' von Charakter '{}'".format(self.wesenkraft, self.char)
-
-
 class Affektivität(models.Model):
 
     class Meta:

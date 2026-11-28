@@ -8,7 +8,6 @@ from .views.personal import GenericPersonalView
 from .views.teils import GenericVorteilView, GenericNachteilView
 from .views.spF_wF import GenericSpF_wFView
 from .views.talent import GenericTalentView
-from .views.wesenkraft import GenericWesenkraftView
 from .views.affektivität import AffektivitätView
 from .views.skilltree import GenericSkilltreeView
 from .views.gfs_ability import GenericGfsAbilityView
@@ -26,7 +25,6 @@ urlpatterns = [
 	path('<int:pk>/nachteile/', GenericNachteilView.as_view(), name='nachteile'),
 	path('<int:pk>/spF_wF/', GenericSpF_wFView.as_view(), name='spF_wF'),
 	path('<int:pk>/talent/', GenericTalentView.as_view(), name='talent'),
-	path('<int:pk>/wesenkraft/', GenericWesenkraftView.as_view(), name='wesenkraft'),
 	path('<int:pk>/affektivität/', AffektivitätView.as_view(), name='affektivität'),
 	path('<int:pk>/skilltree/', GenericSkilltreeView.as_view(), name='skilltree'),
 	path('<int:pk>/gfs_ability/', GenericGfsAbilityView.as_view(), name='gfs_ability'),

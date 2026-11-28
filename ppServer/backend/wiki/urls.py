@@ -21,7 +21,6 @@ urlpatterns = [
 
     path('spezial/', views.SpezialfertigkeitTableView.as_view(), name='spezial'),
     path('wissen/', views.WissensfertigkeitTableView.as_view(), name='wissen'),
-    path('wesenkraft/', views.WesenkraftTableView.as_view(), name='wesenkraft'),
 
     path('berufe/', views.BerufTableView.as_view(), name='berufe'),
     path('berufe/add', views.BerufAddView.as_view(), name='beruf_add'),

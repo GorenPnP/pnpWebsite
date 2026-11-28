@@ -108,9 +108,6 @@ class IndexView(LevelUpMixin, DetailView):
         # Talente
         if char.tp or char.talente.exists():
             rows.append({"done": True if char.tp == 0 else None, "link": self._get_url("talent", char), "text": "<b>Talente</b>", "werte": f"{char.tp} TP"})
-        # Wesenkräfte
-        if char.wesenkräfte.exists():
-            rows.append({"done": None, "link": self._get_url("wesenkraft", char), "text": "<b>Wesenkräfte</b>", "werte": wesenkr_werte})
         # Shop
         rows.append({"done": None, "extern": True, "link": reverse("shop:index"), "text": "<b>Shop</b>", "werte": f"{render_number(char.geld)} Drachmen"})
         # Affektivität
